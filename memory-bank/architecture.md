@@ -10,6 +10,11 @@
 - `supabase/migrations/20260101000000_init_schema.sql`: Initial database schema, RLS policies, and RPCs.
 - `supabase/migrations/20260101001000_add_leave_room_rpc.sql`: Leave-room RPC with ownership handoff.
 - `supabase/migrations/20260101002000_add_regenerate_invite_code_rpc.sql`: Owner-only invite code refresh.
+- `supabase/migrations/20260101003000_add_award_quest_reward_rpc.sql`: Daily quest bonus RPC.
+- `supabase/migrations/20260101004000_fix_room_members_rls.sql`: RLS recursion fix via helper.
+- `supabase/migrations/20260101005000_fix_create_room_rpc.sql`: Create-room invite code fix.
+- `supabase/migrations/20260101006000_pet_state_machine.sql`: Pet state machine updates and backfill.
+- `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/seed.sql`: Seed data for label mappings and quests.
 - `.github/workflows/ci.yml`: Flutter analyze/test workflow.
 

@@ -33,10 +33,14 @@
 - Added in-app test tools: Create Test Room + Run Feed Test.
 - Added auth debug logging for JWT + UID on sign-in.
 - Temporarily disabled `verify_jwt` for `feed_validate` due to Edge gateway JWT rejection; function still validates via `auth.getUser()`.
+- Marked Phase 1 as completed and started Phase 2 in the implementation plan.
+- Added pet state machine migration with mood boosts, poop penalties, and night mode decay.
+- Wired `feed_validate` to apply pet feed actions before awarding coins.
+- Added in-app pet action/state test panel (feed/clean/touch/tick).
+- Applied pet state machine migration to Supabase.
 
 ## Next
-- Review and refine the schema/RLS with real Supabase project constraints.
-- Define label mapping strategy and localization coverage for ML Kit tags.
-- Validate seed data against ML Kit label logs once available.
-- Configure and deploy `feed_validate` with R2 credentials, then run end-to-end feed tests.
-- Revisit Edge JWT verification and re-enable `verify_jwt` once root cause is found.
+- Build feeding flow with ML Kit + mapping layer.
+- Seed `label_mappings` and `quests` from the label dictionary.
+- Implement chat stream (text + feed cards + system events).
+- Add unit tests for label matching and cooldown logic.

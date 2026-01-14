@@ -37,6 +37,7 @@ Testing:
 - RPC tests for owner-only invite refresh + ownership transfer
 - In-app Edge Function smoke test (create room + feed_validate)
 Exit: rooms + membership flows are secure and verified with negative RLS tests
+Status: Completed
 
 Phase 2 - Core Gameplay Loop
 - Pet state machine + night mode logic
@@ -47,6 +48,7 @@ Testing:
 - Unit tests for label matching (EN->ZH/JA) and cooldown logic
 - Integration test for feed -> Edge -> DB -> chat message
 Exit: full loop works in one room with real-time sync
+Status: In progress
 
 Phase 3 - Social + Memory
 - Memory calendar view from feed messages

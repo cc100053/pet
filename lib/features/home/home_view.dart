@@ -18,6 +18,10 @@ class _HomeViewState extends State<HomeView> {
   String? _roomId;
   String? _inviteCode;
   String? _feedResult;
+  String? _petId;
+  bool _petBusy = false;
+  Map<String, dynamic>? _petState;
+  String? _petError;
 
   Future<void> _signOut() async {
     await Supabase.instance.client.auth.signOut();
@@ -131,6 +135,124 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  Future<String?> _loadPetId(String roomId) async {
+    final response = await Supabase.instance.client
+        .from('pets')
+        .select('id')
+        .eq('room_id', roomId)
+        .maybeSingle();
+
+    return response?['id'] as String?;
+  }
+
+  Future<void> _refreshPetState({bool tick = false}) async {
+    final roomId = _roomId;
+    if (roomId == null || roomId.isEmpty) {
+      setState(() {
+        _petError = 'Create a room first.';
+      });
+      return;
+    }
+
+    setState(() {
+      _petBusy = true;
+      _petError = null;
+    });
+
+    try {
+      final petId = _petId ?? await _loadPetId(roomId);
+      if (petId == null) {
+        setState(() {
+          _petError = 'No pet found for this room.';
+        });
+        return;
+      }
+
+      if (tick) {
+        await Supabase.instance.client.rpc(
+          'tick_pet_state',
+          params: {
+            'p_pet_id': petId,
+            'p_now': DateTime.now().toUtc().toIso8601String(),
+          },
+        );
+      }
+
+      final state = await Supabase.instance.client
+          .from('pet_state')
+          .select(
+            'pet_id,hunger,hygiene,mood,poop_at,'
+            'mood_boost,mood_boost_expires_at,'
+            'feed_count_since_poop,last_decay_at,'
+            'last_feed_at,last_touch_at,last_clean_at',
+          )
+          .eq('pet_id', petId)
+          .maybeSingle();
+
+      setState(() {
+        _petId = petId;
+        _petState = state;
+      });
+    } catch (error) {
+      setState(() {
+        _petError = 'Pet state error: $error';
+      });
+    } finally {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _petBusy = false;
+      });
+    }
+  }
+
+  Future<void> _applyPetAction(String action) async {
+    final roomId = _roomId;
+    if (roomId == null || roomId.isEmpty) {
+      setState(() {
+        _petError = 'Create a room first.';
+      });
+      return;
+    }
+
+    setState(() {
+      _petBusy = true;
+      _petError = null;
+    });
+
+    try {
+      final petId = _petId ?? await _loadPetId(roomId);
+      if (petId == null) {
+        setState(() {
+          _petError = 'No pet found for this room.';
+        });
+        return;
+      }
+
+      await Supabase.instance.client.rpc(
+        'apply_pet_action',
+        params: {
+          'p_pet_id': petId,
+          'p_action_type': action,
+        },
+      );
+
+      await _refreshPetState();
+    } catch (error) {
+      setState(() {
+        _petError = 'Pet action error: $error';
+      });
+    } finally {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _petBusy = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +283,33 @@ class _HomeViewState extends State<HomeView> {
             onPressed: _testingFeed ? null : _runFeedTest,
             child: Text(_testingFeed ? 'Running...' : 'Run Feed Test'),
           ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              FilledButton(
+                onPressed: _petBusy ? null : () => _applyPetAction('feed'),
+                child: const Text('Feed Pet'),
+              ),
+              FilledButton(
+                onPressed: _petBusy ? null : () => _applyPetAction('clean'),
+                child: const Text('Clean Pet'),
+              ),
+              FilledButton(
+                onPressed: _petBusy ? null : () => _applyPetAction('touch'),
+                child: const Text('Touch Pet'),
+              ),
+              OutlinedButton(
+                onPressed: _petBusy ? null : () => _refreshPetState(tick: true),
+                child: const Text('Tick + Refresh'),
+              ),
+              OutlinedButton(
+                onPressed: _petBusy ? null : _refreshPetState,
+                child: const Text('Refresh Pet State'),
+              ),
+            ],
+          ),
           if (_roomId != null) ...[
             const SizedBox(height: 12),
             Text('Room ID: $_roomId'),
@@ -169,6 +318,18 @@ class _HomeViewState extends State<HomeView> {
           if (_feedResult != null) ...[
             const SizedBox(height: 12),
             Text('Feed Test Result: $_feedResult'),
+          ],
+          if (_petId != null) ...[
+            const SizedBox(height: 12),
+            Text('Pet ID: $_petId'),
+          ],
+          if (_petState != null) ...[
+            const SizedBox(height: 12),
+            Text('Pet State: ${jsonEncode(_petState)}'),
+          ],
+          if (_petError != null) ...[
+            const SizedBox(height: 12),
+            Text(_petError!),
           ],
           const SizedBox(height: 24),
           const ProfileView(),

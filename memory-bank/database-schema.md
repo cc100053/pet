@@ -39,8 +39,11 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `pet_id` (uuid, pk, fk)
   - `hunger` (int), `mood` (text), `hygiene` (int)
   - `poop_at` (timestamptz)
+  - `mood_boost` (int), `mood_boost_expires_at` (timestamptz)
+  - `feed_count_since_poop` (int)
   - `last_decay_at` (timestamptz)
   - `last_feed_at`, `last_touch_at`, `last_clean_at` (timestamptz)
+  - `last_feed_boost_at`, `last_touch_boost_at`, `last_clean_boost_at` (timestamptz)
 
 - `messages`
   - `id` (uuid, pk)
@@ -250,13 +253,13 @@ for select using (auth.role() = 'authenticated');
 - `coin_ledger(user_id, created_at desc)`
 
 ## RPC Functions (Postgres)
-- `create_room(name text)` -> creates room, owner membership, and invite code.
+- `create_room(name text)` -> creates room, owner membership, invite code, and initial pet + pet_state.
 - `join_room_by_code(code text)` -> validates invite, inserts into `room_members`.
 - `leave_room(room_id uuid)` -> sets membership inactive and triggers owner transfer if needed.
 - `regenerate_invite_code(room_id uuid)` -> owner-only refresh for invite code + expiry.
-- `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood cooldowns, system messages.
+- `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters.
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger.
-- `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode using member timezone.
+- `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates.
 
 ## Ownership Transfer
 - Trigger `ensure_room_owner` promotes the oldest active member if no active owner exists.

@@ -243,6 +243,20 @@ serve(async (req) => {
     return jsonResponse(403, { error: "not_member" });
   }
 
+  const { data: pet, error: petError } = await supabase
+    .from("pets")
+    .select("id")
+    .eq("room_id", roomId)
+    .maybeSingle();
+
+  if (petError) {
+    return jsonResponse(500, { error: "pet_lookup_failed" });
+  }
+
+  if (!pet) {
+    return jsonResponse(404, { error: "pet_missing" });
+  }
+
   const normalizedLabels = normalizeLabels(payload.labels);
   const eligibleLabels = normalizedLabels.filter((label) =>
     label.confidence >= MIN_CONFIDENCE
@@ -276,6 +290,15 @@ serve(async (req) => {
 
   if (!imageUrl) {
     return jsonResponse(400, { error: "missing_image" });
+  }
+
+  const { error: petActionError } = await supabase.rpc("apply_pet_action", {
+    p_pet_id: pet.id,
+    p_action_type: "feed",
+  });
+
+  if (petActionError) {
+    return jsonResponse(500, { error: "pet_action_failed" });
   }
 
   let baseReward = 0;
