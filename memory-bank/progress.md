@@ -38,9 +38,11 @@
 - Wired `feed_validate` to apply pet feed actions before awarding coins.
 - Added in-app pet action/state test panel (feed/clean/touch/tick).
 - Applied pet state machine migration to Supabase.
+- Implemented label mapping service and unit tests for matching logic.
+- Implemented feed camera flow with ML Kit labeling and edge upload.
+- Implemented chat room view with realtime stream, text composer, and feed cards.
+- Added keyset pagination for loading older chat messages.
 
 ## Next
-- Build feeding flow with ML Kit + mapping layer.
-- Seed `label_mappings` and `quests` from the label dictionary.
-- Implement chat stream (text + feed cards + system events).
-- Add unit tests for label matching and cooldown logic.
+- Apply `label_mappings` and `quests` seed data in Supabase if not already loaded.
+- Add integration test for feed -> Edge -> DB -> chat message.

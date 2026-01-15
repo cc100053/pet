@@ -25,18 +25,18 @@ Implemented:
 - `lib/app/`: App bootstrap and theme.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
+- `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
+- `lib/features/chat/`: Chat stream with text, feed cards, and system events.
 - `lib/features/profile/`: Profile read/write stub.
 - `lib/services/`: Environment loader and shared service setup.
+- `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 
 Planned:
 - `lib/features/rooms/`: Room creation, invite codes, multi-room limits.
 - `lib/features/pet/`: Pet state machine (hunger, mood, hygiene, sleep), night mode protection, and growth.
-- `lib/features/chat/`: Hybrid stream (text, feed cards, system events) and pagination.
-- `lib/features/feed/`: Camera flow, ML Kit detection, content safety checks.
 - `lib/features/ads/`: Optional rewarded ads (double coins) and ad gating.
 - `lib/features/gallery/`: Calendar view for image memories.
 - `lib/features/store/`: Cosmetics, subscription, consumables.
-- `lib/services/label_mapping/`: ML Kit label translation and fuzzy matching driven by `label_mappings` and `quests`.
 - `lib/shared/`: UI components, theme, utilities.
 
 ## Backend (Supabase)

@@ -19,6 +19,18 @@
 - Image understanding: Google ML Kit
   - Image Labeling
   - Object Detection
+  - ⚠️ **Simulator Limitation**: MLKit binary frameworks don't support iOS Simulator on Xcode 26+
+  
+  ### MLKit Build Toggle (pubspec.yaml)
+  | Build Target | Action | Result |
+  |-------------|--------|--------|
+  | **Simulator** | Comment out `google_mlkit_image_labeling` | Uses mock labels (Food, Pet food, Bowl...) |
+  | **Real Device / TestFlight** | Uncomment `google_mlkit_image_labeling` | Real ML image analysis |
+  
+  > After toggling, run: `flutter clean && flutter pub get && cd ios && pod install`
+  
+  See `lib/services/image_labeling/` for implementation details.
+  
 - Label mapping: Client or backend mapping layer for EN -> ZH/JA labels
 - Mapping data: `label_mappings` + `quests` seed dictionary
 - Color DNA extraction: `palette_generator`

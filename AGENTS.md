@@ -1,10 +1,11 @@
 # Repository Guidelines
 
-## Important:
-# Read all md inside memory-bank before writing any code
-# Update all md inside memory-bank after completing any task if needed.
-# run flutter analyze after completing any task.
-# run flutter test after completing any task.
+## Important
+- Read all md inside memory-bank before writing any code.
+- Update all md inside memory-bank after completing any task if needed.
+- Run `flutter analyze` after completing any task.
+- Run `flutter test` after completing any task.
+- When your response includes actions requiring manual steps on external websites (e.g., server dashboards, App Store Connect), clearly mark these with [USER ACTION REQUIRED].
 
 ## Project Structure & Module Organization
 - `lib/`: Flutter app source (features, services, app entry points).

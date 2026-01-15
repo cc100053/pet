@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../feed/feed_capture_view.dart';
 import '../profile/profile_view.dart';
+import '../../services/label_mapping/label_mapping_service.dart';
+import '../chat/chat_room_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -60,12 +63,11 @@ class _HomeViewState extends State<HomeView> {
         SnackBar(content: Text('Failed to create room: $error')),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _creatingRoom = false;
+        });
       }
-      setState(() {
-        _creatingRoom = false;
-      });
     }
   }
 
@@ -103,13 +105,39 @@ class _HomeViewState extends State<HomeView> {
 
       Supabase.instance.client.functions.setAuth(session.accessToken);
 
+      final labelObservations = [
+        const LabelObservation(text: 'Coffee', confidence: 0.92),
+        const LabelObservation(text: 'Cup', confidence: 0.71),
+      ];
+
+      final mappingRepository = LabelMappingRepository(
+        Supabase.instance.client,
+      );
+      final mappingEntries = await mappingRepository.fetch();
+      final mappingService = LabelMappingService(mappingEntries);
+      final mappedLabels = mappingService.matchLabels(labelObservations);
+      final matchByLabel = <String, LabelMatch>{};
+      for (final match in mappedLabels) {
+        matchByLabel[LabelMappingService.normalizeLabel(match.text)] = match;
+      }
+      final labelPayload = labelObservations
+          .map((label) {
+            final normalized = LabelMappingService.normalizeLabel(label.text);
+            final match = matchByLabel[normalized];
+            return {
+              'text': label.text,
+              'confidence': label.confidence,
+              if (match != null) 'canonical_tag': match.canonicalTag,
+            };
+          })
+          .toList();
+
       final response = await Supabase.instance.client.functions.invoke(
         'feed_validate',
         body: {
           'room_id': roomId,
-          'labels': [
-            {'text': 'Coffee', 'confidence': 0.92},
-          ],
+          'labels': labelPayload,
+          'canonical_tags': mappingService.matchCanonicalTags(labelObservations),
           'caption': 'Test feed',
           'image_url': 'https://example.com/test.jpg',
         },
@@ -119,6 +147,8 @@ class _HomeViewState extends State<HomeView> {
         _feedResult = jsonEncode({
           'status': response.status,
           'data': response.data,
+          'client_canonical_tags':
+              mappingService.matchCanonicalTags(labelObservations),
         });
       });
     } catch (error) {
@@ -126,12 +156,11 @@ class _HomeViewState extends State<HomeView> {
         _feedResult = 'Error: $error';
       });
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _testingFeed = false;
+        });
       }
-      setState(() {
-        _testingFeed = false;
-      });
     }
   }
 
@@ -198,12 +227,11 @@ class _HomeViewState extends State<HomeView> {
         _petError = 'Pet state error: $error';
       });
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _petBusy = false;
+        });
       }
-      setState(() {
-        _petBusy = false;
-      });
     }
   }
 
@@ -244,13 +272,44 @@ class _HomeViewState extends State<HomeView> {
         _petError = 'Pet action error: $error';
       });
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _petBusy = false;
+        });
       }
-      setState(() {
-        _petBusy = false;
-      });
     }
+  }
+
+  void _openFeedCamera() {
+    final roomId = _roomId;
+    if (roomId == null || roomId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Create a room first.')),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FeedCaptureView(roomId: roomId),
+      ),
+    );
+  }
+
+  void _openChat() {
+    final roomId = _roomId;
+    if (roomId == null || roomId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Create a room first.')),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatRoomView(roomId: roomId),
+      ),
+    );
   }
 
   @override
@@ -282,6 +341,16 @@ class _HomeViewState extends State<HomeView> {
           FilledButton(
             onPressed: _testingFeed ? null : _runFeedTest,
             child: Text(_testingFeed ? 'Running...' : 'Run Feed Test'),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: _openFeedCamera,
+            child: const Text('Open Feed Camera'),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: _openChat,
+            child: const Text('Open Chat'),
           ),
           const SizedBox(height: 12),
           Wrap(
