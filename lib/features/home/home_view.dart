@@ -18,6 +18,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   bool _creatingRoom = false;
   bool _testingFeed = false;
+  bool _loadingRoom = true;
   String? _roomId;
   String? _inviteCode;
   String? _feedResult;
@@ -25,6 +26,59 @@ class _HomeViewState extends State<HomeView> {
   bool _petBusy = false;
   Map<String, dynamic>? _petState;
   String? _petError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingRoom();
+  }
+
+  Future<void> _loadExistingRoom() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        setState(() {
+          _loadingRoom = false;
+        });
+        return;
+      }
+
+      // Find first active room membership
+      final membership = await Supabase.instance.client
+          .from('room_members')
+          .select('room_id')
+          .eq('user_id', userId)
+          .eq('is_active', true)
+          .order('joined_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (membership != null) {
+        final roomId = membership['room_id'] as String?;
+        if (roomId != null) {
+          // Get invite code from room
+          final room = await Supabase.instance.client
+              .from('rooms')
+              .select('invite_code')
+              .eq('id', roomId)
+              .maybeSingle();
+
+          setState(() {
+            _roomId = roomId;
+            _inviteCode = room?['invite_code'] as String?;
+          });
+        }
+      }
+    } catch (error) {
+      debugPrint('Failed to load existing room: $error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingRoom = false;
+        });
+      }
+    }
+  }
 
   Future<void> _signOut() async {
     await Supabase.instance.client.auth.signOut();
@@ -333,10 +387,18 @@ class _HomeViewState extends State<HomeView> {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 12),
-          FilledButton(
-            onPressed: _creatingRoom ? null : _createRoom,
-            child: Text(_creatingRoom ? 'Creating...' : 'Create Test Room'),
-          ),
+          if (_loadingRoom)
+            const Center(child: CircularProgressIndicator())
+          else if (_roomId != null)
+            OutlinedButton(
+              onPressed: null,
+              child: Text('Room Loaded: ${_roomId!.substring(0, 8)}...'),
+            )
+          else
+            FilledButton(
+              onPressed: _creatingRoom ? null : _createRoom,
+              child: Text(_creatingRoom ? 'Creating...' : 'Create Test Room'),
+            ),
           const SizedBox(height: 12),
           FilledButton(
             onPressed: _testingFeed ? null : _runFeedTest,

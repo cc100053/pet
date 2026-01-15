@@ -42,6 +42,12 @@
 - Implemented feed camera flow with ML Kit labeling and edge upload.
 - Implemented chat room view with realtime stream, text composer, and feed cards.
 - Added keyset pagination for loading older chat messages.
+- Polished chat pagination UI with pull-to-refresh and loading placeholders.
+- Fixed chat room sent messages not auto-updating with optimistic UI pattern.
+- Removed chat room pull-to-refresh (Realtime handles new messages, scroll pagination handles old).
+- Added auto-load existing room on login (no need to create test room every time).
+- Fixed chat room load-more pagination (Supabase query builder is immutable, `.or()` filter wasn't being applied).
+- Added "scroll to latest" button when reading older messages.
 
 ## Next
 - Apply `label_mappings` and `quests` seed data in Supabase if not already loaded.

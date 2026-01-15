@@ -12,6 +12,9 @@ class ChatRoomView extends StatefulWidget {
   State<ChatRoomView> createState() => _ChatRoomViewState();
 }
 
+/// GlobalKey to allow parent to notify child of new messages
+final _chatMessageListKey = GlobalKey<_ChatMessageListState>();
+
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
   bool _sending = false;
@@ -43,6 +46,28 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       _sending = true;
     });
 
+    // Clear immediately for better UX
+    _messageController.clear();
+
+    // Create optimistic message
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final optimisticMessage = ChatMessage(
+      id: tempId,
+      roomId: widget.roomId,
+      senderId: userId,
+      type: 'text',
+      body: text,
+      imageUrl: null,
+      caption: null,
+      coinsAwarded: 0,
+      createdAt: DateTime.now().toUtc(),
+      clientCreatedAt: DateTime.now().toUtc(),
+      labels: const [],
+    );
+
+    // Add optimistic message immediately
+    _chatMessageListKey.currentState?.addOptimisticMessage(optimisticMessage);
+
     try {
       await Supabase.instance.client.from('messages').insert({
         'room_id': widget.roomId,
@@ -54,7 +79,6 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       if (!mounted) {
         return;
       }
-      _messageController.clear();
     } catch (error) {
       if (!mounted) {
         return;
@@ -91,6 +115,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         children: [
           Expanded(
             child: ChatMessageList(
+              key: _chatMessageListKey,
               roomId: widget.roomId,
               currentUserId: currentUserId,
             ),
@@ -149,18 +174,30 @@ class ChatMessageList extends StatefulWidget {
 }
 
 class _ChatMessageListState extends State<ChatMessageList> {
-  static const int _pageSize = 30;
+  static const int _pageSize = 20;
   static const double _loadMoreThreshold = 120;
 
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   final Set<String> _messageIds = {};
+  final Set<String> _optimisticIds = {}; // Track temp message IDs
 
   RealtimeChannel? _channel;
   bool _loadingInitial = true;
   bool _loadingMore = false;
   bool _hasMore = true;
+  bool _showScrollToBottom = false;
   String? _error;
+
+  /// Add an optimistic message immediately (called by parent)
+  void addOptimisticMessage(ChatMessage message) {
+    if (!mounted) return;
+    setState(() {
+      _optimisticIds.add(message.id);
+      _messages.insert(0, message);
+      _sortMessages();
+    });
+  }
 
   @override
   void initState() {
@@ -179,16 +216,34 @@ class _ChatMessageListState extends State<ChatMessageList> {
   }
 
   void _onScroll() {
-    if (!_hasMore || _loadingMore || _loadingInitial) {
-      return;
-    }
     if (!_scrollController.hasClients) {
       return;
     }
 
     final position = _scrollController.position;
+    final showScrollButton = position.pixels > 300;
+    if (showScrollButton != _showScrollToBottom) {
+      setState(() {
+        _showScrollToBottom = showScrollButton;
+      });
+    }
+
+    if (!_hasMore || _loadingMore || _loadingInitial) {
+      return;
+    }
+
     if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
       _loadMore();
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -280,7 +335,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
     String? beforeCreatedAt,
     String? beforeId,
   }) async {
-    final query = Supabase.instance.client
+    var query = Supabase.instance.client
         .from('messages')
         .select(
           'id,room_id,sender_id,type,body,image_url,caption,coins_awarded,'
@@ -289,7 +344,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
         .eq('room_id', widget.roomId);
 
     if (beforeCreatedAt != null && beforeId != null) {
-      query.or(
+      query = query.or(
         'created_at.lt.$beforeCreatedAt,'
         'and(created_at.eq.$beforeCreatedAt,id.lt.$beforeId)',
       );
@@ -326,15 +381,25 @@ class _ChatMessageListState extends State<ChatMessageList> {
         if (message.type.isEmpty) {
           return;
         }
-        if (_messageIds.add(message.id)) {
-          if (!mounted) {
-            return;
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          // Remove any optimistic messages with matching body/senderId
+          if (message.senderId != null) {
+            _messages.removeWhere((m) =>
+                _optimisticIds.contains(m.id) &&
+                m.senderId == message.senderId &&
+                m.body == message.body);
+            _optimisticIds.removeWhere((id) =>
+                _messages.every((m) => m.id != id));
           }
-          setState(() {
+          // Add the real message if not already present
+          if (_messageIds.add(message.id)) {
             _messages.insert(0, message);
             _sortMessages();
-          });
-        }
+          }
+        });
       },
     );
     channel.subscribe();
@@ -353,71 +418,153 @@ class _ChatMessageListState extends State<ChatMessageList> {
   @override
   Widget build(BuildContext context) {
     if (_loadingInitial) {
-      return const Center(child: CircularProgressIndicator());
+      return const _ChatLoadingList();
     }
 
-    if (_error != null && _messages.isEmpty) {
-      return Center(child: Text(_error!));
-    }
-
-    if (_messages.isEmpty) {
-      return const Center(child: Text('No messages yet.'));
-    }
-
-    return Column(
-      children: [
-        if (_error != null)
-          Padding(
+    final theme = Theme.of(context);
+    final errorBanner = _error == null
+        ? null
+        : Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: TextStyle(color: theme.colorScheme.error),
             ),
-          ),
-        Expanded(
-          child: ListView.separated(
-            controller: _scrollController,
-            reverse: true,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemBuilder: (context, index) {
-              if (index == _messages.length) {
-                if (_loadingMore) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (!_hasMore) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Center(child: Text('No older messages.')),
-                  );
-                }
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Center(
-                    child: OutlinedButton(
-                      onPressed: _loadingMore ? null : _loadMore,
-                      child: const Text('Load older messages'),
-                    ),
-                  ),
-                );
-              }
+          );
 
-              final message = _messages[index];
-              final isMe =
-                  message.senderId != null &&
-                  message.senderId == widget.currentUserId;
-              return ChatMessageTile(
-                message: message,
-                isMe: isMe,
-              );
-            },
-            separatorBuilder: (context, index) =>
-                const SizedBox(height: 8),
-            itemCount: _messages.length + 1,
+    return Column(
+      children: [
+        if (errorBanner != null) errorBanner,
+        Expanded(
+          child: Stack(
+            children: [
+              _messages.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      children: const [
+                        SizedBox(height: 120),
+                        Center(
+                          child: Text(
+                            'No messages yet. Start the chat below.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.separated(
+                      controller: _scrollController,
+                      reverse: true,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      itemBuilder: (context, index) {
+                        if (index == _messages.length) {
+                          if (_loadingMore) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (!_hasMore) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: Text('No older messages.')),
+                            );
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: OutlinedButton(
+                                onPressed: _loadingMore ? null : _loadMore,
+                                child: const Text('Load older messages'),
+                              ),
+                            ),
+                          );
+                        }
+
+                        final message = _messages[index];
+                        final isMe =
+                            message.senderId != null &&
+                            message.senderId == widget.currentUserId;
+                        return ChatMessageTile(
+                          key: ValueKey(message.id),
+                          message: message,
+                          isMe: isMe,
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 8),
+                      itemCount: _messages.length + 1,
+                    ),
+              if (_showScrollToBottom)
+                Positioned(
+                  right: 16,
+                  bottom: 16,
+                  child: FloatingActionButton.small(
+                    onPressed: _scrollToBottom,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    child: const Icon(Icons.arrow_downward),
+                  ),
+                ),
+            ],
           ),
         ),
+      ],
+    );
+  }
+}
+
+class _ChatLoadingList extends StatelessWidget {
+  const _ChatLoadingList();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bubbleColor = theme.colorScheme.surfaceContainerHighest;
+
+    Widget bubble({
+      required Alignment alignment,
+      required double widthFactor,
+    }) {
+      return Align(
+        alignment: alignment,
+        child: FractionallySizedBox(
+          widthFactor: widthFactor,
+          child: Container(
+            height: 36,
+            decoration: BoxDecoration(
+              color: bubbleColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      reverse: true,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      children: [
+        bubble(alignment: Alignment.centerRight, widthFactor: 0.45),
+        const SizedBox(height: 12),
+        bubble(alignment: Alignment.centerLeft, widthFactor: 0.65),
+        const SizedBox(height: 12),
+        bubble(alignment: Alignment.centerRight, widthFactor: 0.35),
+        const SizedBox(height: 12),
+        bubble(alignment: Alignment.centerLeft, widthFactor: 0.55),
+        const SizedBox(height: 12),
+        bubble(alignment: Alignment.centerRight, widthFactor: 0.5),
+        const SizedBox(height: 24),
+        const Center(child: CircularProgressIndicator()),
       ],
     );
   }

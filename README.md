@@ -16,6 +16,7 @@
 - Migrations live in `supabase/migrations/`.
 - Seed data lives in `supabase/seed.sql`.
 - Run the SQL in the Supabase SQL editor before first app launch.
+- Run `codex mcp login supabase` to login to Supabase.
 
 ## Notes
 - OAuth providers (Google/Apple) must be configured in Supabase.
