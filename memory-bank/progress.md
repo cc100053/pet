@@ -48,7 +48,10 @@
 - Added auto-load existing room on login (no need to create test room every time).
 - Fixed chat room load-more pagination (Supabase query builder is immutable, `.or()` filter wasn't being applied).
 - Added "scroll to latest" button when reading older messages.
+- Applied `label_mappings` and `quests` seed data to Supabase.
+- Added integration test for feed -> Edge -> DB -> chat message.
+- Fixed chat list refresh after feed and room switching.
+- Cleaned analyzer warnings by wiring debug state into UI and removing unused imports/locals.
 
 ## Next
-- Apply `label_mappings` and `quests` seed data in Supabase if not already loaded.
-- Add integration test for feed -> Edge -> DB -> chat message.
+- Re-enable `verify_jwt` for `feed_validate` after resolving Edge gateway JWT validation.

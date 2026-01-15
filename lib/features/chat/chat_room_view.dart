@@ -13,7 +13,7 @@ class ChatRoomView extends StatefulWidget {
 }
 
 /// GlobalKey to allow parent to notify child of new messages
-final _chatMessageListKey = GlobalKey<_ChatMessageListState>();
+final _chatMessageListKey = GlobalKey<ChatMessageListState>();
 
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
@@ -95,12 +95,16 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     }
   }
 
-  void _openFeedCamera() {
-    Navigator.of(context).push(
+  Future<void> _openFeedCamera() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FeedCaptureView(roomId: widget.roomId),
       ),
     );
+    if (!mounted) {
+      return;
+    }
+    _chatMessageListKey.currentState?.refreshLatest();
   }
 
   @override
@@ -164,20 +168,24 @@ class ChatMessageList extends StatefulWidget {
     super.key,
     required this.roomId,
     required this.currentUserId,
+    this.scrollController,
+    this.contentPadding,
   });
 
   final String roomId;
   final String? currentUserId;
+  final ScrollController? scrollController;
+  final EdgeInsetsGeometry? contentPadding;
 
   @override
-  State<ChatMessageList> createState() => _ChatMessageListState();
+  State<ChatMessageList> createState() => ChatMessageListState();
 }
 
-class _ChatMessageListState extends State<ChatMessageList> {
+class ChatMessageListState extends State<ChatMessageList> {
   static const int _pageSize = 20;
   static const double _loadMoreThreshold = 120;
 
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   final List<ChatMessage> _messages = [];
   final Set<String> _messageIds = {};
   final Set<String> _optimisticIds = {}; // Track temp message IDs
@@ -199,10 +207,58 @@ class _ChatMessageListState extends State<ChatMessageList> {
     });
   }
 
+  /// Refresh latest messages (useful after returning from feed capture)
+  Future<void> refreshLatest() async {
+    if (_loadingInitial) {
+      return;
+    }
+
+    try {
+      final page = await _fetchMessages();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _mergePage(page);
+        _error = null;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = 'Failed to refresh: $error';
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _scrollController = widget.scrollController ?? ScrollController();
     _scrollController.addListener(_onScroll);
+    _loadInitial();
+    _subscribeToMessages();
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatMessageList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.roomId == widget.roomId) {
+      return;
+    }
+
+    _channel?.unsubscribe();
+    setState(() {
+      _messages.clear();
+      _messageIds.clear();
+      _optimisticIds.clear();
+      _error = null;
+      _hasMore = true;
+      _loadingMore = false;
+      _loadingInitial = true;
+      _showScrollToBottom = false;
+    });
     _loadInitial();
     _subscribeToMessages();
   }
@@ -210,7 +266,9 @@ class _ChatMessageListState extends State<ChatMessageList> {
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
     _channel?.unsubscribe();
     super.dispose();
   }
@@ -258,21 +316,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
       if (!mounted) {
         return;
       }
-      final merged = <ChatMessage>[...page];
-      final ids = <String>{...page.map((message) => message.id)};
-      for (final message in _messages) {
-        if (ids.add(message.id)) {
-          merged.add(message);
-        }
-      }
-      _messages
-        ..clear()
-        ..addAll(merged);
-      _messageIds
-        ..clear()
-        ..addAll(ids);
-      _hasMore = page.length == _pageSize;
-      _sortMessages();
+      _mergePage(page);
     } catch (error) {
       if (!mounted) {
         return;
@@ -287,6 +331,24 @@ class _ChatMessageListState extends State<ChatMessageList> {
         });
       }
     }
+  }
+
+  void _mergePage(List<ChatMessage> page) {
+    final merged = <ChatMessage>[...page];
+    final ids = <String>{...page.map((message) => message.id)};
+    for (final message in _messages) {
+      if (ids.add(message.id)) {
+        merged.add(message);
+      }
+    }
+    _messages
+      ..clear()
+      ..addAll(merged);
+    _messageIds
+      ..clear()
+      ..addAll(ids);
+    _hasMore = page.length == _pageSize;
+    _sortMessages();
   }
 
   Future<void> _loadMore() async {
@@ -442,7 +504,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       reverse: true,
-                      padding: const EdgeInsets.symmetric(
+                      padding: widget.contentPadding ?? const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
                       ),
@@ -460,7 +522,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
                       controller: _scrollController,
                       reverse: true,
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
+                      padding: widget.contentPadding ?? const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
                       ),
@@ -594,33 +656,11 @@ class ChatMessageTile extends StatelessWidget {
     }
 
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    final crossAxisAlignment =
-        isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    final theme = Theme.of(context);
-    final senderLabel = isMe ? 'You' : 'Partner';
-
     return Align(
       alignment: alignment,
-      child: Column(
-        crossAxisAlignment: crossAxisAlignment,
-        children: [
-          Text(
-            senderLabel,
-            style: theme.textTheme.labelSmall,
-          ),
-          const SizedBox(height: 4),
-          if (message.isImageFeed)
-            _FeedMessageCard(
-              message: message,
-              isMe: isMe,
-            )
-          else
-            _TextMessageBubble(
-              message: message,
-              isMe: isMe,
-            ),
-        ],
-      ),
+      child: message.isImageFeed
+          ? _FeedMessageCard(message: message, isMe: isMe)
+          : _TextMessageBubble(message: message, isMe: isMe),
     );
   }
 }
@@ -634,22 +674,46 @@ class _TextMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    
+    // Telegram-like Colors
     final bubbleColor = isMe
-        ? theme.colorScheme.primaryContainer
-        : theme.colorScheme.surfaceContainerHighest;
-    final textColor = isMe
-        ? theme.colorScheme.onPrimaryContainer
-        : theme.colorScheme.onSurface;
+        ? const Color(0xFFEEFFDE) // Light Green
+        : Colors.white;
+    final textColor = Colors.black87;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      constraints: const BoxConstraints(maxWidth: 280),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: bubbleColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16).copyWith(
+          bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(16),
+          bottomLeft: !isMe ? const Radius.circular(0) : const Radius.circular(16),
+        ),
+        boxShadow: [
+           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 2, offset: const Offset(0, 1))
+        ]
       ),
-      child: Text(
-        message.body ?? '',
-        style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+           if (!isMe)
+             Padding(
+               padding: const EdgeInsets.only(bottom: 2),
+               child: Text(
+                 'Partner', // Todo: Use real nickname if available
+                 style: theme.textTheme.labelMedium?.copyWith(
+                   color: Colors.orange, 
+                   fontWeight: FontWeight.bold
+                 ),
+               ),
+             ),
+           Text(
+             message.body ?? '',
+             style: theme.textTheme.bodyMedium?.copyWith(color: textColor, fontSize: 16),
+           ),
+        ],
       ),
     );
   }
@@ -668,22 +732,33 @@ class _FeedMessageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cardColor = isMe
-        ? theme.colorScheme.primaryContainer
-        : theme.colorScheme.surfaceContainerHighest;
-    final textColor = isMe
-        ? theme.colorScheme.onPrimaryContainer
-        : theme.colorScheme.onSurface;
+        ? const Color(0xFFEEFFDE)
+        : Colors.white;
 
     return Container(
       width: 260,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
+         boxShadow: [
+           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 2, offset: const Offset(0, 1))
+        ]
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (!isMe)
+             Padding(
+               padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+               child: Text(
+                 'Partner',
+                 style: theme.textTheme.labelMedium?.copyWith(
+                   color: Colors.orange, 
+                   fontWeight: FontWeight.bold
+                 ),
+               ),
+             ),
           if (message.imageUrl != null && message.imageUrl!.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -709,13 +784,13 @@ class _FeedMessageCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.stars, size: 16),
+              const Icon(Icons.stars, size: 16, color: Colors.amber),
               const SizedBox(width: 6),
               Text(
                 message.coinsAwarded > 0
                     ? '+${message.coinsAwarded} coins'
                     : 'Feed',
-                style: theme.textTheme.labelMedium?.copyWith(color: textColor),
+                style: theme.textTheme.labelMedium?.copyWith(color: Colors.black87),
               ),
             ],
           ),
@@ -723,7 +798,7 @@ class _FeedMessageCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               message.caption!,
-              style: theme.textTheme.bodySmall?.copyWith(color: textColor),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.black87),
             ),
           ],
         ],
