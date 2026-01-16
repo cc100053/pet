@@ -33,6 +33,7 @@ Implemented:
 - `lib/features/profile/`: Profile read/write stub.
 - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
 - `lib/features/gallery/`: Memory calendar view for feed images.
+- `lib/features/store/`: Store UI with coin purchases.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 

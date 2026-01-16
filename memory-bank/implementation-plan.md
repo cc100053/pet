@@ -58,7 +58,7 @@ Testing:
 - Pagination tests for chat history + memory query
 - Notification delivery verification on both platforms
 Exit: memory view + notifications usable
-Status: In progress
+Status: Completed (basic flows accepted; hardening deferred)
 
 Phase 4 - Monetization
 - Store, coins, IAP/subscription, rewarded ads (opt-in)
@@ -67,10 +67,12 @@ Testing:
 - Sandbox IAP purchase/restore flows
 - Rewarded ad opt-in flow tracking + coin ledger updates
 Exit: monetization path functional end-to-end
+Status: In progress
 
 Phase 5 - Polish & Compliance
 - App config force-update, analytics events, UX fixes
 - Performance tuning (image sizes, caching, load times)
+- Report/block hardening (server-side enforcement + notification filtering)
 Testing:
 - Beta checklist: crash-free rate, startup time, cold-load chat
 - Privacy/report flows validated

@@ -15,6 +15,7 @@ import '../../shared/ui/juice_wrappers.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
+import '../store/store_view.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -1243,6 +1244,17 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                          Supabase.instance.client.auth.currentUser?.id,
                    ),
                  ),
+               );
+             },
+           ),
+
+           ListTile(
+             leading: const Icon(Icons.storefront_outlined),
+             title: const Text('Store'),
+             onTap: () {
+               Navigator.pop(context);
+               Navigator.of(context).push(
+                 MaterialPageRoute(builder: (_) => const StoreView()),
                );
              },
            ),

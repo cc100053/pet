@@ -76,6 +76,11 @@
 - Added per-token failure details in `notify_friend` responses for FCM debugging.
 - Resolved FCM/APNs auth error by confirming Firebase APNs key configuration; feed push now delivers.
 - Removed debug logging from client code now that notification flow is stable.
+- Marked Phase 3 as completed (basic report/block accepted) and moved to Phase 4; hardening deferred.
+- Added store UI with coin balance, inventory state, and coin-only purchase flow.
+- Added minimal store catalog seed data with JPY metadata.
+- Added `purchase_item_with_coins` RPC and `store_purchase` ledger source for coin spending.
 
 ## Next
 - Re-enable `verify_jwt` for `feed_validate` after resolving Edge gateway JWT validation.
+- Continue Phase 4 monetization work (IAP/subscription, then rewarded ads).

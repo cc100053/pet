@@ -101,7 +101,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `id` (uuid, pk)
   - `user_id` (uuid, fk)
   - `room_id` (uuid, fk, nullable)
-  - `source` (text: feed/touch/clean/ad_reward/quest)
+  - `source` (text: feed/touch/clean/ad_reward/quest/store_purchase)
   - `amount` (int)
   - `metadata` (jsonb)
   - `created_at`
@@ -266,6 +266,7 @@ for select using (auth.role() = 'authenticated');
 - `regenerate_invite_code(room_id uuid)` -> owner-only refresh for invite code + expiry.
 - `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters.
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger.
+- `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.
 - `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates.
 
 ## Ownership Transfer

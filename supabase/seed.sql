@@ -108,4 +108,49 @@ insert into quests (code, name, name_zh, name_ja, canonical_tags, reward_coins, 
 
 on conflict (code) do nothing;
 
+insert into items (sku, type, name, price_coins, price_usd, metadata, is_active) values
+  (
+    'cosmetic_room_cozy',
+    'cosmetic',
+    'Cozy Room Wallpaper',
+    120,
+    null,
+    '{"price_jpy":120,"currency":"JPY","category":"room","description":"Warm wooden room skin."}'::jsonb,
+    true
+  ),
+  (
+    'cosmetic_room_sky',
+    'cosmetic',
+    'Sky Window Theme',
+    180,
+    null,
+    '{"price_jpy":180,"currency":"JPY","category":"room","description":"Bright sky window backdrop."}'::jsonb,
+    true
+  ),
+  (
+    'consumable_snack_pack',
+    'consumable',
+    'Snack Pack',
+    40,
+    null,
+    '{"price_jpy":40,"currency":"JPY","category":"pet","description":"Small treat for quick care."}'::jsonb,
+    true
+  ),
+  (
+    'consumable_clean_kit',
+    'consumable',
+    'Clean Kit',
+    60,
+    null,
+    '{"price_jpy":60,"currency":"JPY","category":"pet","description":"Basic cleaning supplies."}'::jsonb,
+    true
+  )
+on conflict (sku) do update set
+  type = excluded.type,
+  name = excluded.name,
+  price_coins = excluded.price_coins,
+  price_usd = excluded.price_usd,
+  metadata = excluded.metadata,
+  is_active = excluded.is_active;
+
 commit;
