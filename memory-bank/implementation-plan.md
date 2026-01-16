@@ -48,7 +48,7 @@ Testing:
 - Unit tests for label matching (EN->ZH/JA) and cooldown logic
 - Integration test for feed -> Edge -> DB -> chat message
 Exit: full loop works in one room with real-time sync
-Status: In progress
+Status: Completed
 
 Phase 3 - Social + Memory
 - Memory calendar view from feed messages
@@ -58,6 +58,7 @@ Testing:
 - Pagination tests for chat history + memory query
 - Notification delivery verification on both platforms
 Exit: memory view + notifications usable
+Status: In progress
 
 Phase 4 - Monetization
 - Store, coins, IAP/subscription, rewarded ads (opt-in)

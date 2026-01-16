@@ -11,6 +11,13 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `coins` (int, default 0)
   - `created_at`, `updated_at`
 
+- `device_tokens`
+  - `id` (uuid, pk)
+  - `user_id` (uuid, fk, unique)
+  - `token` (text, unique)
+  - `platform` (text)
+  - `last_seen_at`, `created_at`, `updated_at`
+
 - `rooms`
   - `id` (uuid, pk)
   - `name` (text)
@@ -232,7 +239,7 @@ create policy inventories_rw on inventories
 for all using (user_id = auth.uid())
 with check (user_id = auth.uid());
 ```
-Apply the same pattern to `purchases`, `subscriptions`, `action_cooldowns`, and `coin_ledger`.
+Apply the same pattern to `purchases`, `subscriptions`, `action_cooldowns`, `coin_ledger`, and `device_tokens`.
 
 ### Public Read Tables (Authenticated)
 ```sql

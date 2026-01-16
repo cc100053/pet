@@ -181,6 +181,8 @@ class ChatMessageList extends StatefulWidget {
   State<ChatMessageList> createState() => ChatMessageListState();
 }
 
+enum _MessageAction { report, block }
+
 class ChatMessageListState extends State<ChatMessageList> {
   static const int _pageSize = 20;
   static const double _loadMoreThreshold = 120;
@@ -189,6 +191,7 @@ class ChatMessageListState extends State<ChatMessageList> {
   final List<ChatMessage> _messages = [];
   final Set<String> _messageIds = {};
   final Set<String> _optimisticIds = {}; // Track temp message IDs
+  final Set<String> _blockedUserIds = {};
 
   RealtimeChannel? _channel;
   bool _loadingInitial = true;
@@ -237,7 +240,7 @@ class ChatMessageListState extends State<ChatMessageList> {
     super.initState();
     _scrollController = widget.scrollController ?? ScrollController();
     _scrollController.addListener(_onScroll);
-    _loadInitial();
+    _initialize();
     _subscribeToMessages();
   }
 
@@ -259,7 +262,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       _loadingInitial = true;
       _showScrollToBottom = false;
     });
-    _loadInitial();
+    _initialize();
     _subscribeToMessages();
   }
 
@@ -271,6 +274,39 @@ class ChatMessageListState extends State<ChatMessageList> {
     }
     _channel?.unsubscribe();
     super.dispose();
+  }
+
+  void _initialize() {
+    _loadBlockedUsers().whenComplete(_loadInitial);
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    final userId = widget.currentUserId;
+    _blockedUserIds.clear();
+    if (userId == null) {
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('blocks')
+          .select('blocked_user_id')
+          .eq('blocker_id', userId);
+      final rows = response as List<dynamic>;
+      for (final row in rows) {
+        final blockedId = row['blocked_user_id'] as String?;
+        if (blockedId != null && blockedId.isNotEmpty) {
+          _blockedUserIds.add(blockedId);
+        }
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = 'Failed to load blocked users: $error';
+      });
+    }
   }
 
   void _onScroll() {
@@ -420,6 +456,9 @@ class ChatMessageListState extends State<ChatMessageList> {
     return rows
         .map((row) => ChatMessage.fromJson(row))
         .where((message) => message.type.isNotEmpty)
+        .where((message) =>
+            message.senderId == null ||
+            !_blockedUserIds.contains(message.senderId))
         .toList();
   }
 
@@ -441,6 +480,10 @@ class ChatMessageListState extends State<ChatMessageList> {
         final record = payload.newRecord;
         final message = ChatMessage.fromJson(record);
         if (message.type.isEmpty) {
+          return;
+        }
+        if (message.senderId != null &&
+            _blockedUserIds.contains(message.senderId)) {
           return;
         }
         if (!mounted) {
@@ -559,6 +602,9 @@ class ChatMessageListState extends State<ChatMessageList> {
                           key: ValueKey(message.id),
                           message: message,
                           isMe: isMe,
+                          onLongPress: _shouldShowActions(message, isMe)
+                              ? () => _showMessageActions(message)
+                              : null,
                         );
                       },
                       separatorBuilder: (context, index) =>
@@ -581,6 +627,179 @@ class ChatMessageListState extends State<ChatMessageList> {
         ),
       ],
     );
+  }
+
+  bool _shouldShowActions(ChatMessage message, bool isMe) {
+    if (message.isSystem) {
+      return false;
+    }
+    if (isMe) {
+      return false;
+    }
+    return message.senderId != null && message.id.isNotEmpty;
+  }
+
+  Future<void> _showMessageActions(ChatMessage message) async {
+    final currentUserId = widget.currentUserId;
+    final senderId = message.senderId;
+    if (currentUserId == null || senderId == null) {
+      return;
+    }
+
+    final isBlocked = _blockedUserIds.contains(senderId);
+    final action = await showModalBottomSheet<_MessageAction>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.report_gmailerrorred_outlined),
+                title: const Text('Report message'),
+                onTap: () => Navigator.pop(context, _MessageAction.report),
+              ),
+              ListTile(
+                leading: const Icon(Icons.block),
+                title: Text(isBlocked ? 'User blocked' : 'Block user'),
+                enabled: !isBlocked,
+                onTap: isBlocked
+                    ? null
+                    : () => Navigator.pop(context, _MessageAction.block),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || action == null) {
+      return;
+    }
+
+    switch (action) {
+      case _MessageAction.report:
+        await _reportMessage(message);
+        break;
+      case _MessageAction.block:
+        await _blockUser(senderId);
+        break;
+    }
+  }
+
+  Future<void> _reportMessage(ChatMessage message) async {
+    final reporterId = widget.currentUserId;
+    if (reporterId == null) {
+      return;
+    }
+
+    final reason = await _promptReportReason(context);
+    if (reason == null) {
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.from('reports').insert({
+        'reporter_id': reporterId,
+        'message_id': message.id,
+        'reason': reason,
+      });
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report submitted.')),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Report failed: $error')),
+      );
+    }
+  }
+
+  Future<void> _blockUser(String blockedUserId) async {
+    final blockerId = widget.currentUserId;
+    if (blockerId == null) {
+      return;
+    }
+
+    if (_blockedUserIds.contains(blockedUserId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User already blocked.')),
+      );
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.from('blocks').upsert({
+        'blocker_id': blockerId,
+        'blocked_user_id': blockedUserId,
+      });
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _blockedUserIds.add(blockedUserId);
+        _messages.removeWhere((message) {
+          if (message.senderId == blockedUserId) {
+            _messageIds.remove(message.id);
+            _optimisticIds.remove(message.id);
+            return true;
+          }
+          return false;
+        });
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User blocked.')),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Block failed: $error')),
+      );
+    }
+  }
+
+  Future<String?> _promptReportReason(BuildContext context) async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report message'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Share a quick reason',
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final text = controller.text.trim();
+              Navigator.pop(context, text.isEmpty ? 'No reason' : text);
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    return result;
   }
 }
 
@@ -637,10 +856,12 @@ class ChatMessageTile extends StatelessWidget {
     super.key,
     required this.message,
     required this.isMe,
+    this.onLongPress,
   });
 
   final ChatMessage message;
   final bool isMe;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -656,11 +877,16 @@ class ChatMessageTile extends StatelessWidget {
     }
 
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
+    final content = message.isImageFeed
+        ? _FeedMessageCard(message: message, isMe: isMe)
+        : _TextMessageBubble(message: message, isMe: isMe);
+
     return Align(
       alignment: alignment,
-      child: message.isImageFeed
-          ? _FeedMessageCard(message: message, isMe: isMe)
-          : _TextMessageBubble(message: message, isMe: isMe),
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        child: content,
+      ),
     );
   }
 }

@@ -10,41 +10,70 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SignInView extends StatelessWidget {
   const SignInView({super.key});
 
-  Future<void> _signInWithOAuth(OAuthProvider provider) async {
+  Future<void> _signInWithOAuth(
+    BuildContext context,
+    OAuthProvider provider,
+  ) async {
     const redirectUrl = 'com.cc100053.pet://login-callback';
-    await Supabase.instance.client.auth.signInWithOAuth(
-      provider,
-      redirectTo: redirectUrl,
-      authScreenLaunchMode: LaunchMode.externalApplication,
-    );
+    try {
+      await Supabase.instance.client.auth.signInWithOAuth(
+        provider,
+        redirectTo: redirectUrl,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+      );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      _showError(context, error);
+    }
   }
 
-  Future<void> _signInWithApple() async {
+  Future<void> _signInWithApple(BuildContext context) async {
     if (kIsWeb || !Platform.isIOS) {
-      await _signInWithOAuth(OAuthProvider.apple);
+      await _signInWithOAuth(context, OAuthProvider.apple);
       return;
     }
 
-    final rawNonce = Supabase.instance.client.auth.generateRawNonce();
-    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+    try {
+      final rawNonce = Supabase.instance.client.auth.generateRawNonce();
+      final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      nonce: hashedNonce,
-    );
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: hashedNonce,
+      );
 
-    final idToken = credential.identityToken;
-    if (idToken == null || idToken.isEmpty) {
-      throw StateError('Apple Sign-In failed: missing identity token.');
+      final idToken = credential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Apple Sign-In failed: missing identity token.');
+      }
+
+      await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.apple,
+        idToken: idToken,
+        nonce: rawNonce,
+      );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      _showError(context, error);
     }
+  }
 
-    await Supabase.instance.client.auth.signInWithIdToken(
-      provider: OAuthProvider.apple,
-      idToken: idToken,
-      nonce: rawNonce,
+  void _showError(BuildContext context, Object error) {
+    String message = 'Sign-in failed. Please try again.';
+    final errorText = error.toString();
+    if (errorText.contains('Unacceptable audience')) {
+      message =
+          'Apple sign-in rejected. Check Supabase Apple provider client ID.';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -68,18 +97,19 @@ class SignInView extends StatelessWidget {
               ),
               const Spacer(),
               FilledButton.icon(
-                onPressed: () => _signInWithOAuth(OAuthProvider.google),
+                onPressed: () =>
+                    _signInWithOAuth(context, OAuthProvider.google),
                 icon: const Icon(Icons.login),
                 label: const Text('Continue with Google'),
               ),
               const SizedBox(height: 12),
               if (!kIsWeb && Platform.isIOS)
                 SignInWithAppleButton(
-                  onPressed: _signInWithApple,
+                  onPressed: () => _signInWithApple(context),
                 )
               else
                 FilledButton.icon(
-                  onPressed: _signInWithApple,
+                  onPressed: () => _signInWithApple(context),
                   icon: const Icon(Icons.phone_iphone),
                   label: const Text('Continue with Apple'),
                 ),

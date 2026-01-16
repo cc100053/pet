@@ -48,8 +48,8 @@ app.*.map.json
 /android/app/release
 
 #personal
-/sercret_data/
-/secret_data/
+.sercret_data/
+.secret_data/
 /all_data/
 *.p8
 *.p12

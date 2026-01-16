@@ -14,7 +14,10 @@
 - `supabase/migrations/20260101004000_fix_room_members_rls.sql`: RLS recursion fix via helper.
 - `supabase/migrations/20260101005000_fix_create_room_rpc.sql`: Create-room invite code fix.
 - `supabase/migrations/20260101006000_pet_state_machine.sql`: Pet state machine updates and backfill.
+- `supabase/migrations/20260101007000_add_device_tokens.sql`: Device token storage for FCM.
+- `supabase/migrations/20260101008000_device_tokens_single_device.sql`: Enforce single-device token per user.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
+- `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
 - `supabase/seed.sql`: Seed data for label mappings and quests.
 - `.github/workflows/ci.yml`: Flutter analyze/test workflow.
 
@@ -28,6 +31,8 @@ Implemented:
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
 - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
 - `lib/features/profile/`: Profile read/write stub.
+- `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
+- `lib/features/gallery/`: Memory calendar view for feed images.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 

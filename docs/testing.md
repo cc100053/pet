@@ -22,3 +22,11 @@ Remove these UI controls once Phase 1 testing is complete.
 - Run: `flutter test test/feed_flow_integration_test.dart`.
 - Test creates a room via `create_room`, calls `feed_validate`, asserts the
   message record, then deletes the room to clean up.
+
+### Notify Friend webhook test
+- Script: `scripts/test_notify_friend.sh`
+- Required env vars:
+  - `NOTIFY_WEBHOOK_URL`, `NOTIFY_WEBHOOK_SECRET`
+  - `RECIPIENT_ID` (user id with a row in `device_tokens`)
+  - `ROOM_ID`, `SENDER_ID`, `MESSAGE_ID`
+- Run: `NOTIFY_WEBHOOK_URL=... NOTIFY_WEBHOOK_SECRET=... RECIPIENT_ID=... ROOM_ID=... SENDER_ID=... MESSAGE_ID=... scripts/test_notify_friend.sh`

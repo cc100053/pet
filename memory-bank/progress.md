@@ -52,6 +52,30 @@
 - Added integration test for feed -> Edge -> DB -> chat message.
 - Fixed chat list refresh after feed and room switching.
 - Cleaned analyzer warnings by wiring debug state into UI and removing unused imports/locals.
+- Added memory calendar view (monthly grid + day detail sheet) for feed messages.
+- Added report/block actions on chat messages and filtered blocked users from chat.
+- Added webhook hook in `feed_validate` to notify partner events when configured.
+- Added `device_tokens` table for multi-device FCM storage and updated FCM service to upsert tokens there.
+- Enforced single-device storage by making `device_tokens.user_id` unique and upserting by user.
+- Guarded FCM token fetch until APNS token is ready and added Apple sign-in error handling hints.
+- Added retry loop for FCM token fetch to avoid APNS timing errors on iOS.
+- Registered for remote notifications in iOS AppDelegate to ensure APNS token issuance.
+- Added `notify_friend` Edge Function to send FCM pushes via device tokens.
+- Added a local script to test `notify_friend` and documented it in testing notes.
+- Added join-room UI via invite code in the home screen and drawer.
+- Fixed join-room dialog to avoid disposing a controller while the dialog is closing.
+- Added owner-only “regenerate invite code” action in the room drawer.
+- Ensure a profile row exists on home load to avoid pet action failures.
+- Added webhook status details to feed debug output for notification troubleshooting.
+- Fixed `notify_friend` JWT signing by importing the private key via WebCrypto.
+- Added local notifications for foreground FCM messages on iOS/Android.
+- Documented iOS clean build steps in README.
+- Added a debug button to trigger a local notification.
+- Enabled iOS notification presentation in foreground via AppDelegate delegate.
+- Fixed iOS AppDelegate notification delegate conformance and iOS 14+ presentation options.
+- Added per-token failure details in `notify_friend` responses for FCM debugging.
+- Resolved FCM/APNs auth error by confirming Firebase APNs key configuration; feed push now delivers.
+- Removed debug logging from client code now that notification flow is stable.
 
 ## Next
 - Re-enable `verify_jwt` for `feed_validate` after resolving Edge gateway JWT validation.

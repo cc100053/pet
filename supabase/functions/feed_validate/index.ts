@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { AwsClient } from "https://esm.sh/aws4fetch@1.0.18";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,8 @@ const R2_ACCESS_KEY_ID = Deno.env.get("R2_ACCESS_KEY_ID") ?? "";
 const R2_SECRET_ACCESS_KEY = Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "";
 const R2_BUCKET = Deno.env.get("R2_BUCKET") ?? "";
 const R2_PUBLIC_BASE_URL = Deno.env.get("R2_PUBLIC_BASE_URL") ?? "";
+const NOTIFY_WEBHOOK_URL = Deno.env.get("NOTIFY_WEBHOOK_URL") ?? "";
+const NOTIFY_WEBHOOK_SECRET = Deno.env.get("NOTIFY_WEBHOOK_SECRET") ?? "";
 
 const MIN_CONFIDENCE = 0.6;
 const MAX_LABELS = 20;
@@ -153,6 +156,100 @@ function buildDatePath(now: Date) {
   const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(now.getUTCDate()).padStart(2, "0");
   return `${yyyy}/${mm}/${dd}`;
+}
+
+type WebhookResult = {
+  skipped: boolean;
+  status?: number;
+  error?: string;
+};
+
+async function notifyPartner({
+  supabase,
+  roomId,
+  senderId,
+  messageId,
+  imageUrl,
+  caption,
+  canonicalTags,
+  createdAt,
+}: {
+  supabase: SupabaseClient;
+  roomId: string;
+  senderId: string;
+  messageId: string;
+  imageUrl: string;
+  caption: string | null;
+  canonicalTags: string[];
+  createdAt: string | null;
+}): Promise<WebhookResult> {
+  if (!NOTIFY_WEBHOOK_URL) {
+    return { skipped: true };
+  }
+
+  const { data: members, error: membersError } = await supabase
+    .from("room_members")
+    .select("user_id")
+    .eq("room_id", roomId)
+    .eq("is_active", true)
+    .neq("user_id", senderId);
+
+  if (membersError) {
+    return { skipped: true, error: "webhook_members_failed" };
+  }
+
+  const recipientIds = (members ?? [])
+    .map((member) => member.user_id)
+    .filter((id) => typeof id === "string" && id.length > 0);
+
+  if (recipientIds.length === 0) {
+    return { skipped: true };
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (NOTIFY_WEBHOOK_SECRET) {
+    headers["Authorization"] = `Bearer ${NOTIFY_WEBHOOK_SECRET}`;
+  }
+
+  const payload = {
+    type: "feed_event",
+    room_id: roomId,
+    sender_id: senderId,
+    recipient_ids: recipientIds,
+    message_id: messageId,
+    image_url: imageUrl,
+    caption,
+    canonical_tags: canonicalTags,
+    created_at: createdAt,
+  };
+
+  try {
+    const response = await fetch(NOTIFY_WEBHOOK_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let detail = "";
+      try {
+        detail = await response.text();
+      } catch (_error) {
+        detail = "";
+      }
+      return {
+        skipped: false,
+        status: response.status,
+        error: `webhook_failed:${response.status}${detail ? `:${detail}` : ""}`,
+      };
+    }
+
+    return { skipped: false, status: response.status };
+  } catch (_error) {
+    return { skipped: false, error: "webhook_fetch_failed" };
+  }
 }
 
 async function uploadToR2(
@@ -427,12 +524,23 @@ serve(async (req) => {
       mood_delta: 0,
       client_created_at: payload.client_created_at ?? null,
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (messageError) {
     return jsonResponse(500, { error: "message_insert_failed" });
   }
+
+  const webhookResult = await notifyPartner({
+    supabase,
+    roomId,
+    senderId: authData.user.id,
+    messageId: message.id,
+    imageUrl,
+    caption: payload.caption ?? null,
+    canonicalTags,
+    createdAt: message.created_at ?? null,
+  });
 
   return jsonResponse(200, {
     ok: true,
@@ -446,5 +554,8 @@ serve(async (req) => {
     daily_quest_id: dailyQuestId,
     quest_award_error: questAwardError,
     canonical_tags: canonicalTags,
+    webhook_skipped: webhookResult.skipped,
+    webhook_status: webhookResult.status ?? null,
+    webhook_error: webhookResult.error ?? null,
   });
 });

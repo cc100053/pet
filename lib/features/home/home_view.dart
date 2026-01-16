@@ -1,26 +1,32 @@
 import 'dart:ui';
 
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/fcm_service.dart';
+
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
+import '../gallery/memory_calendar_view.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  ConsumerState<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
+class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderStateMixin {
   // Logic State
   bool _creatingRoom = false;
+  bool _joiningRoom = false;
   bool _testingFeed = false;
   bool _loadingRoom = true;
   String? _roomId;
@@ -52,7 +58,12 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
        vsync: this, 
        duration: const Duration(milliseconds: 300)
     );
-    _fetchRooms();
+    _ensureProfile().whenComplete(_fetchRooms);
+
+    // Init FCM
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(fcmServiceProvider).initialize();
+    });
   }
   
   // Update drag height on layout
@@ -70,6 +81,27 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
   }
 
   // --- Logic Methods ---
+  Future<void> _ensureProfile() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        return;
+      }
+
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (profile == null) {
+        await Supabase.instance.client.from('profiles').insert({
+          'user_id': user.id,
+          'nickname': 'Pet Parent',
+        });
+      }
+    } catch (_) {}
+  }
 
   Future<void> _fetchRooms() async {
     try {
@@ -81,7 +113,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
 
       final responses = await Supabase.instance.client
           .from('room_members')
-          .select('room_id, rooms(name, invite_code)')
+          .select('room_id, role, rooms(name, invite_code)')
           .eq('user_id', userId)
           .eq('is_active', true)
           .order('joined_at', ascending: false);
@@ -89,18 +121,29 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       final List<Map<String, dynamic>> rooms = [];
       for (final r in responses) {
          final roomData = r['rooms'] as Map<String, dynamic>?;
-         if (roomData != null) {
+          if (roomData != null) {
             rooms.add({
               'id': r['room_id'],
               'name': roomData['name'],
               'invite_code': roomData['invite_code'],
+              'role': r['role'],
             });
-         }
+          }
       }
 
       setState(() {
         _myRooms = rooms;
       });
+
+      if (_roomId != null) {
+        final current =
+            rooms.firstWhere((r) => r['id'] == _roomId, orElse: () => {});
+        if (current.isNotEmpty) {
+          setState(() {
+            _inviteCode = current['invite_code'];
+          });
+        }
+      }
       
       if (rooms.isNotEmpty) {
           // If no room selected, or selected room not in list, select first
@@ -109,9 +152,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
           }
       }
 
-    } catch (error) {
-      debugPrint('Failed to fetch rooms: $error');
-    } finally {
+    } catch (_) {} finally {
       if (mounted) setState(() => _loadingRoom = false);
     }
   }
@@ -169,6 +210,125 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       if (mounted) setState(() => _creatingRoom = false);
     }
   }
+
+  Future<void> _joinRoomByCode() async {
+    if (_joiningRoom) return;
+
+    String codeValue = '';
+    final code = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Join Room'),
+        content: TextField(
+          onChanged: (value) => codeValue = value,
+          decoration: const InputDecoration(
+            hintText: 'Enter 6-digit code',
+          ),
+          textCapitalization: TextCapitalization.characters,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = codeValue.trim();
+              Navigator.pop(context, value.isEmpty ? null : value);
+            },
+            child: const Text('Join'),
+          ),
+        ],
+      ),
+    );
+
+    if (code == null || code.isEmpty) {
+      return;
+    }
+
+    setState(() => _joiningRoom = true);
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'join_room_by_code',
+        params: {'code': code},
+      );
+
+      String? roomId;
+      if (response is String) {
+        roomId = response;
+      } else if (response is Map) {
+        final value = response.values.isNotEmpty ? response.values.first : null;
+        if (value is String) {
+          roomId = value;
+        }
+      } else if (response is List && response.isNotEmpty) {
+        final value = response.first;
+        if (value is String) {
+          roomId = value;
+        } else if (value is Map) {
+          final inner = value.values.isNotEmpty ? value.values.first : null;
+          if (inner is String) {
+            roomId = inner;
+          }
+        }
+      }
+
+      await _fetchRooms();
+      if (!mounted) {
+        return;
+      }
+      if (roomId != null) {
+        _switchRoom(roomId);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Joined room successfully.')),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to join room: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _joiningRoom = false);
+    }
+  }
+
+  Future<void> _regenerateInviteCode(String roomId) async {
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'regenerate_invite_code',
+        params: {'p_room_id': roomId},
+      );
+
+      String? newCode;
+      if (response is String) {
+        newCode = response;
+      }
+      await _fetchRooms();
+      if (!mounted) {
+        return;
+      }
+      if (newCode != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('New invite code: $newCode')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invite code regenerated.')),
+        );
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to regenerate code: $error')),
+      );
+    }
+  }
   
   Future<void> _leaveRoom(String roomId) async {
     final confirmed = await showDialog<bool>(
@@ -211,8 +371,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left room successfully.')));
       }
-    } catch (e) {
-      debugPrint('RPC leave_room failed, trying manual update: $e');
+    } catch (_) {
       // Fallback: Set is_active = false manually
       try {
         final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -297,8 +456,20 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
         },
       );
 
+      final data = response.data;
+      String details = 'status ${response.status}';
+      if (data is Map) {
+        final payload = Map<String, dynamic>.from(data);
+        final webhookSkipped = payload['webhook_skipped'];
+        final webhookStatus = payload['webhook_status'];
+        final webhookError = payload['webhook_error'];
+        details =
+            'status ${response.status} | webhook_skipped=$webhookSkipped | '
+            'webhook_status=$webhookStatus | webhook_error=$webhookError';
+      }
+
       setState(() {
-        _feedResult = 'Success: ${response.status}';
+        _feedResult = 'Success: $details';
       });
     } catch (error) {
       setState(() => _feedResult = 'Error: $error');
@@ -518,6 +689,11 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
               FilledButton(
                 onPressed: _creatingRoom ? null : _createRoom,
                 child: const Text('Create New Home'),
+              ),
+              const Gap(12),
+              OutlinedButton(
+                onPressed: _joiningRoom ? null : _joinRoomByCode,
+                child: const Text('Join with Invite Code'),
               ),
             ],
           ),
@@ -987,6 +1163,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                    itemBuilder: (context, index) {
                      final room = _myRooms[index];
                      final isSelected = room['id'] == _roomId;
+                     final isOwner = room['role'] == 'owner';
                      return ListTile(
                        leading: Icon(
                          isSelected ? Icons.home_filled : Icons.home_outlined,
@@ -996,12 +1173,26 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                        subtitle: Text('Code: ${room['invite_code']}'),
                        selected: isSelected,
                        selectedTileColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                       trailing: IconButton(
-                         icon: const Icon(Icons.delete_outline, size: 20, color: Colors.black45),
-                         onPressed: () {
-                           Navigator.pop(context); // Close Drawer first
-                           _leaveRoom(room['id']);
-                         },
+                       trailing: Row(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           if (isOwner)
+                             IconButton(
+                               icon: const Icon(Icons.refresh, size: 20, color: Colors.black54),
+                               tooltip: 'Regenerate invite code',
+                               onPressed: () {
+                                 Navigator.pop(context);
+                                 _regenerateInviteCode(room['id']);
+                               },
+                             ),
+                           IconButton(
+                             icon: const Icon(Icons.delete_outline, size: 20, color: Colors.black45),
+                             onPressed: () {
+                               Navigator.pop(context); // Close Drawer first
+                               _leaveRoom(room['id']);
+                             },
+                           ),
+                         ],
                        ),
                        onTap: () {
                           if (!isSelected) _switchRoom(room['id']);
@@ -1023,6 +1214,38 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                _createRoom();
              },
            ),
+
+           ListTile(
+             leading: const Icon(Icons.meeting_room_outlined),
+             title: const Text('Join with Invite Code'),
+             onTap: _joiningRoom
+                 ? null
+                 : () {
+                     Navigator.pop(context);
+                     _joinRoomByCode();
+                   },
+           ),
+
+           ListTile(
+             leading: const Icon(Icons.calendar_month_outlined),
+             title: const Text('Memories'),
+             onTap: () {
+               final roomId = _roomId;
+               if (roomId == null) {
+                 return;
+               }
+               Navigator.pop(context);
+               Navigator.of(context).push(
+                 MaterialPageRoute(
+                   builder: (_) => MemoryCalendarView(
+                     roomId: roomId,
+                     currentUserId:
+                         Supabase.instance.client.auth.currentUser?.id,
+                   ),
+                 ),
+               );
+             },
+           ),
            
            ExpansionTile(
              leading: const Icon(Icons.bug_report_outlined),
@@ -1039,7 +1262,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                         )
                       : null,
                 ),
-                ListTile(
+               ListTile(
                   title: const Text('Simulate Feed'),
                   subtitle: _feedResult == null ? null : Text(_feedResult!),
                   onTap: _testingFeed ? null : _runFeedTest,
@@ -1050,6 +1273,10 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : null,
+                ),
+                ListTile(
+                  title: const Text('Test Local Notification'),
+                  onTap: () => ref.read(fcmServiceProvider).showTestNotification(),
                 ),
                 if (_petError != null)
                   ListTile(
