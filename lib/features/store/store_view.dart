@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/analytics/analytics_service.dart';
 import '../../services/iap/revenuecat_service.dart';
 
 class StoreView extends StatefulWidget {
@@ -28,6 +29,7 @@ class _StoreViewState extends State<StoreView> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logEvent('store_open');
     _loadStore();
   }
 
@@ -234,6 +236,10 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchased ${item.name}.')),
       );
+      AnalyticsService.instance.logEvent('purchase_coins', parameters: {
+        'result': 'success',
+        'sku': item.sku,
+      });
     } catch (error) {
       if (!mounted) {
         return;
@@ -241,6 +247,10 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchase failed: $error')),
       );
+      AnalyticsService.instance.logEvent('purchase_coins', parameters: {
+        'result': 'failure',
+        'sku': item.sku,
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -290,6 +300,11 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchased ${item.name}.')),
       );
+      AnalyticsService.instance.logEvent('purchase_iap', parameters: {
+        'result': 'success',
+        'sku': item.sku,
+        'type': item.iapType ?? 'unknown',
+      });
     } catch (error) {
       if (!mounted) {
         return;
@@ -297,6 +312,11 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchase failed: $error')),
       );
+      AnalyticsService.instance.logEvent('purchase_iap', parameters: {
+        'result': 'failure',
+        'sku': item.sku,
+        'type': item.iapType ?? 'unknown',
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -350,6 +370,7 @@ class _StoreViewState extends State<StoreView> {
       return;
     }
 
+    AnalyticsService.instance.logEvent('restore_purchases');
     setState(() {
       _iapLoading = true;
       _iapError = null;
@@ -362,6 +383,9 @@ class _StoreViewState extends State<StoreView> {
           _activeEntitlements =
               info.entitlements.active.keys.toSet();
         });
+        AnalyticsService.instance.logEvent('restore_purchases_result', parameters: {
+          'result': 'success',
+        });
       }
     } catch (error) {
       if (!mounted) {
@@ -369,6 +393,9 @@ class _StoreViewState extends State<StoreView> {
       }
       setState(() {
         _iapError = 'Restore failed: $error';
+      });
+      AnalyticsService.instance.logEvent('restore_purchases_result', parameters: {
+        'result': 'failure',
       });
     } finally {
       if (mounted) {

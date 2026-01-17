@@ -3,6 +3,7 @@
 ## 1. Core Principles & Workflow
 - **Memory Bank**: Read all `.md` files in `memory-bank/` before writing code. Update them after tasks if needed.
 - **Quality Checks**: Run `flutter analyze` and `flutter test` after completing any task.
+- **Verification**: After completing work, explicitly tell the user how to test the changes.
 - **External Actions**: Clearly mark manual steps on external websites (e.g., server dashboards, App Store Connect) with `[USER ACTION REQUIRED]`.
 - **Supabase**: If adding or editing Supabase-related items, first try implementing with MCP.
 - **State Management**: If any in-app action could cause a state transition, the UI should automatically refresh.

@@ -7,8 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class SignInView extends StatelessWidget {
+import '../../services/analytics/analytics_service.dart';
+
+class SignInView extends StatefulWidget {
   const SignInView({super.key});
+
+  @override
+  State<SignInView> createState() => _SignInViewState();
+}
+
+class _SignInViewState extends State<SignInView> {
+  bool _signingIn = false;
+  String? _activeProvider;
 
   Future<void> _signInWithOAuth(
     BuildContext context,
@@ -16,6 +26,16 @@ class SignInView extends StatelessWidget {
   ) async {
     const redirectUrl = 'com.cc100053.pet://login-callback';
     try {
+      if (_signingIn) {
+        return;
+      }
+      setState(() {
+        _signingIn = true;
+        _activeProvider = provider.name;
+      });
+      AnalyticsService.instance.logEvent('sign_in_tap', parameters: {
+        'provider': provider.name,
+      });
       await Supabase.instance.client.auth.signInWithOAuth(
         provider,
         redirectTo: redirectUrl,
@@ -26,6 +46,13 @@ class SignInView extends StatelessWidget {
         return;
       }
       _showError(context, error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _signingIn = false;
+          _activeProvider = null;
+        });
+      }
     }
   }
 
@@ -36,6 +63,16 @@ class SignInView extends StatelessWidget {
     }
 
     try {
+      if (_signingIn) {
+        return;
+      }
+      setState(() {
+        _signingIn = true;
+        _activeProvider = OAuthProvider.apple.name;
+      });
+      AnalyticsService.instance.logEvent('sign_in_tap', parameters: {
+        'provider': OAuthProvider.apple.name,
+      });
       final rawNonce = Supabase.instance.client.auth.generateRawNonce();
       final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
@@ -62,6 +99,13 @@ class SignInView extends StatelessWidget {
         return;
       }
       _showError(context, error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _signingIn = false;
+          _activeProvider = null;
+        });
+      }
     }
   }
 
@@ -97,22 +141,49 @@ class SignInView extends StatelessWidget {
               ),
               const Spacer(),
               FilledButton.icon(
-                onPressed: () =>
-                    _signInWithOAuth(context, OAuthProvider.google),
+                onPressed: _signingIn
+                    ? null
+                    : () => _signInWithOAuth(context, OAuthProvider.google),
                 icon: const Icon(Icons.login),
                 label: const Text('Continue with Google'),
               ),
               const SizedBox(height: 12),
               if (!kIsWeb && Platform.isIOS)
-                SignInWithAppleButton(
-                  onPressed: () => _signInWithApple(context),
+                IgnorePointer(
+                  ignoring: _signingIn,
+                  child: Opacity(
+                    opacity: _signingIn ? 0.6 : 1,
+                    child: SignInWithAppleButton(
+                      onPressed: () => _signInWithApple(context),
+                    ),
+                  ),
                 )
               else
                 FilledButton.icon(
-                  onPressed: () => _signInWithApple(context),
+                  onPressed: _signingIn ? null : () => _signInWithApple(context),
                   icon: const Icon(Icons.phone_iphone),
                   label: const Text('Continue with Apple'),
                 ),
+              if (_signingIn) ...[
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _activeProvider == null
+                          ? 'Opening sign-in...'
+                          : 'Opening ${_activeProvider!}...',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
               Text(
                 'Note: OAuth providers must be configured in Supabase.',

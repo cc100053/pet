@@ -93,7 +93,13 @@
 - Added feed test error reporting with status/details and extra JWT claim info (sub/role).
 - Debug note: Edge Functions `verify_jwt` rejects ES256 Auth JWTs (asymmetric keys). If 401 occurs, set Supabase Auth → JWT Settings to legacy HS256 secret (disable asymmetric signing) or sign out/in after changing.
 - Verified Simulate Feed success (status 200) with webhook response 200 after fixing JWT signing mode.
+- Marked Phase 4 as completed (monetization path functional end-to-end) and moved to Phase 5.
+- Implemented force-update gate reading `app_config` and blocking outdated clients.
+- Added Firebase Analytics service and event logging for sign-in, chat, feed, store, and room actions.
+- UX fixes: sign-in loading state, invite code normalization/formatting, and rollback of failed optimistic messages.
 
 ## Next
-- Re-enable `verify_jwt` for `feed_validate` after resolving Edge gateway JWT validation.
-- Continue Phase 4 monetization work (IAP/subscription, then rewarded ads).
+- Begin Phase 5 polish/compliance work (force-update config, analytics, performance).
+- Harden report/block enforcement and notification filtering.
+- Implement offline-first message repository with Hive caching.
+

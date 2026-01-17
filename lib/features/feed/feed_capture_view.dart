@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/image_labeling/image_labeling.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
@@ -89,6 +90,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       _result = null;
     });
 
+    AnalyticsService.instance.logEvent('feed_image_pick', parameters: {
+      'source': source.name,
+    });
     final image = await _picker.pickImage(
       source: source,
       imageQuality: 80,
@@ -256,12 +260,18 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
           'data': response.data,
         });
       });
+      AnalyticsService.instance.logEvent('feed_send', parameters: {
+        'result': 'success',
+      });
     } catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
         _error = 'Send failed: $error';
+      });
+      AnalyticsService.instance.logEvent('feed_send', parameters: {
+        'result': 'failure',
       });
     } finally {
       if (mounted) {

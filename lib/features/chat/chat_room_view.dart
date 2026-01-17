@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/analytics/analytics_service.dart';
 import '../feed/feed_capture_view.dart';
 
 class ChatRoomView extends StatefulWidget {
@@ -77,6 +78,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         'client_created_at': DateTime.now().toUtc().toIso8601String(),
       });
       _chatMessageListKey.currentState?.refreshLatest();
+      AnalyticsService.instance.logEvent('message_send', parameters: {
+        'result': 'success',
+      });
       if (!mounted) {
         return;
       }
@@ -84,6 +88,13 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       if (!mounted) {
         return;
       }
+      _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
+      _messageController.text = text;
+      _messageController.selection =
+          TextSelection.collapsed(offset: _messageController.text.length);
+      AnalyticsService.instance.logEvent('message_send', parameters: {
+        'result': 'failure',
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Send failed: $error')),
       );
@@ -97,6 +108,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   }
 
   Future<void> _openFeedCamera() async {
+    AnalyticsService.instance.logEvent('feed_camera_open');
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FeedCaptureView(roomId: widget.roomId),
@@ -208,6 +220,14 @@ class ChatMessageListState extends State<ChatMessageList> {
       _optimisticIds.add(message.id);
       _messages.insert(0, message);
       _sortMessages();
+    });
+  }
+
+  void removeOptimisticMessage(String tempId) {
+    if (!mounted) return;
+    setState(() {
+      _messages.removeWhere((message) => message.id == tempId);
+      _optimisticIds.remove(tempId);
     });
   }
 

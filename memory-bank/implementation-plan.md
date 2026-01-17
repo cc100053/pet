@@ -67,10 +67,10 @@ Testing:
 - Sandbox IAP purchase/restore flows
 - Rewarded ad opt-in flow tracking + coin ledger updates
 Exit: monetization path functional end-to-end
-Status: In progress
+Status: Completed
 
 Phase 5 - Polish & Compliance
-- App config force-update, analytics events, UX fixes
+- [x] App config force-update, analytics events, UX fixes
 - Performance tuning (image sizes, caching, load times)
 - Report/block hardening (server-side enforcement + notification filtering)
 - Implement offline-first message repository with Hive caching
@@ -79,6 +79,7 @@ Testing:
 - Privacy/report flows validated
 - Verify Hive local cache usage for chat history (offline support)
 Exit: beta-ready build with tracking and compliance
+Status: In progress
 
 ## Milestones
 - M1: Schema + RLS + Edge Functions signed off
@@ -93,3 +94,7 @@ Exit: beta-ready build with tracking and compliance
 - Edge Function validation logic + latency
 - Ad UX impact on retention
 - Supabase Auth JWT signing mode mismatch (ES256) can cause Edge Function `verify_jwt` 401s; keep HS256 for now.
+
+## Last things to-do
+- Replace example `app_config` store URLs with real App Store / Play Store links.
+- 

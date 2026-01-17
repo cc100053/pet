@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 
@@ -160,6 +161,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   }
 
   void _switchRoom(String roomId) {
+     final previousRoom = _roomId;
      setState(() {
        _roomId = roomId;
        final room = _myRooms.firstWhere((r) => r['id'] == roomId, orElse: () => {});
@@ -168,9 +170,13 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
        _petId = null;
      });
      _refreshPetState();
+     if (previousRoom != roomId) {
+       AnalyticsService.instance.logEvent('room_switch');
+     }
   }
 
   Future<void> _signOut() async {
+    AnalyticsService.instance.logEvent('sign_out_tap');
     await Supabase.instance.client.auth.signOut();
   }
 
@@ -197,7 +203,9 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       if (newId != null) {
          _switchRoom(newId);
       }
-      
+      AnalyticsService.instance.logEvent('room_create', parameters: {
+        'result': 'success',
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Room created! Check the Drawer.')),
       );
@@ -216,17 +224,23 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   Future<void> _joinRoomByCode() async {
     if (_joiningRoom) return;
 
-    String codeValue = '';
+    final controller = TextEditingController();
     final code = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Join Room'),
         content: TextField(
-          onChanged: (value) => codeValue = value,
+          controller: controller,
           decoration: const InputDecoration(
             hintText: 'Enter 6-digit code',
+            helperText: 'Invite codes are case-insensitive.',
           ),
           textCapitalization: TextCapitalization.characters,
+          inputFormatters: [
+            UpperCaseTextFormatter(),
+            LengthLimitingTextInputFormatter(6),
+            FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+          ],
         ),
         actions: [
           TextButton(
@@ -235,7 +249,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
           ),
           FilledButton(
             onPressed: () {
-              final value = codeValue.trim();
+              // Normalize invite code to uppercase for consistent matching.
+              final value = controller.text.trim().toUpperCase();
               Navigator.pop(context, value.isEmpty ? null : value);
             },
             child: const Text('Join'),
@@ -283,6 +298,10 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         _switchRoom(roomId);
       }
 
+      AnalyticsService.instance.logEvent('room_join', parameters: {
+        'method': 'invite_code',
+        'result': 'success',
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Joined room successfully.')),
       );
@@ -373,6 +392,9 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left room successfully.')));
       }
+      AnalyticsService.instance.logEvent('room_leave', parameters: {
+        'result': 'success',
+      });
     } catch (_) {
       // Fallback: Set is_active = false manually
       try {
@@ -399,6 +421,9 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
            if (mounted) {
              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left room successfully.')));
            }
+           AnalyticsService.instance.logEvent('room_leave', parameters: {
+             'result': 'success',
+           });
         }
       } catch (e2) {
          if (mounted) {
@@ -1367,5 +1392,15 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         ],
       ),
     );
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }
