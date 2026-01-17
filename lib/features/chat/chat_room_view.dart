@@ -76,6 +76,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         'body': text,
         'client_created_at': DateTime.now().toUtc().toIso8601String(),
       });
+      _chatMessageListKey.currentState?.refreshLatest();
       if (!mounted) {
         return;
       }

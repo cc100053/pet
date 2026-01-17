@@ -1,48 +1,56 @@
 # Repository Guidelines
 
-## Important
-- Read all md inside memory-bank before writing any code.
-- Update all md inside memory-bank after completing any task if needed.
-- Run `flutter analyze` after completing any task.
-- Run `flutter test` after completing any task.
-- When your response includes actions requiring manual steps on external websites (e.g., server dashboards, App Store Connect), clearly mark these with [USER ACTION REQUIRED].
+## 1. Core Principles & Workflow
+- **Memory Bank**: Read all `.md` files in `memory-bank/` before writing code. Update them after tasks if needed.
+- **Quality Checks**: Run `flutter analyze` and `flutter test` after completing any task.
+- **External Actions**: Clearly mark manual steps on external websites (e.g., server dashboards, App Store Connect) with `[USER ACTION REQUIRED]`.
+- **Supabase**: If adding or editing Supabase-related items, first try implementing with MCP.
+- **State Management**: If any in-app action could cause a state transition, the UI should automatically refresh.
+- **Naming & Clarifications**: Proactively suggest names for complex sections. Default to user acceptance once given. Explicitly mark transformed fields to prevent data inconsistencies.
 
-## Project Structure & Module Organization
+## 2. Project Architecture
 - `lib/`: Flutter app source (features, services, app entry points).
 - `test/`: Flutter tests (e.g., `test/widget_test.dart`).
-- `supabase/`: database migrations, seed data, and edge functions.
-  - `supabase/migrations/`: SQL migrations in timestamped files.
-  - `supabase/functions/`: edge function code (e.g., `feed_validate`).
-  - `supabase/seed.sql`: seed data for initial lookup tables.
-- `docs/`: project notes like `docs/testing.md`.
-- Platform folders (`android/`, `ios/`, `web/`, `macos/`, `windows/`, `linux/`) are generated/managed by Flutter.
+- `supabase/`: Database migrations, seed data, and edge functions.
+  - `migrations/`: SQL migrations in timestamped files.
+  - `functions/`: Edge function code (e.g., `feed_validate`).
+  - `seed.sql`: Seed data for initial lookup tables.
+- `docs/`: Project notes (e.g., `docs/testing.md`).
+- **Platforms**: `android/`, `ios/`, `web/`, `macos/`, `windows/`, `linux/` are managed by Flutter.
 
-## Build, Test, and Development Commands
-- `flutter pub get`: install Dart/Flutter dependencies.
-- `flutter run`: launch the app on a connected device/simulator.
-- `flutter analyze`: run static analysis using `flutter_lints`.
-- `flutter test`: run the test suite in `test/`.
-- `flutter build <apk|ios|web>`: build release artifacts when needed.
+## 3. Development Standards
+### Coding Style
+- **Language**: Dart (Flutter).
+- **Format**: 2 spaces indentation. Run `dart format` or `flutter format` before PRs.
+- **Naming**: `snake_case.dart` for files, `PascalCase` for classes, `lowerCamelCase` for variables/functions.
+- **Linting**: Follow `analysis_options.yaml` (includes `flutter_lints`).
 
-Supabase setup: run migrations from `supabase/migrations/` in the Supabase SQL editor, then apply `supabase/seed.sql`. See `README.md` for setup steps.
+### Testing
+- **Framework**: `flutter_test`.
+- **Files**: Keep as `*_test.dart` under `test/`.
+- **Visuals**: Include UI screenshots in PRs when visual changes are made.
+- **Helpers**: Temporary in-app test helpers are documented in `docs/testing.md` (remove when done).
 
-## Coding Style & Naming Conventions
-- Language: Dart (Flutter).
-- Indentation: 2 spaces, `dart format` or `flutter format` before PRs.
-- Naming: files in `snake_case.dart`, classes in `PascalCase`, variables/functions in `lowerCamelCase`.
-- Linting: `analysis_options.yaml` includes `flutter_lints`.
+### Security & Configuration
+- **Secrets**: Copy `.env.example` to `.env` and keep secrets out of git.
+- **Auth**: Supabase OAuth providers must be configured before auth flows work.
 
-## Testing Guidelines
-- Framework: `flutter_test`.
-- Naming: keep test files as `*_test.dart` under `test/`.
-- Include UI screenshots in PRs when visual changes are made.
-- Temporary in-app test helpers are documented in `docs/testing.md`; remove them once the related phase is complete.
+## 4. Operational Commands
+- `flutter pub get`: Install dependencies.
+- `flutter run`: Launch app on device/simulator.
+- `flutter analyze`: Run static analysis.
+- `flutter test`: Run test suite.
+- `flutter build <apk|ios|web>`: Build release artifacts.
 
-## Commit & Pull Request Guidelines
-- Commit history is minimal; no strict convention yet. Use concise, imperative summaries (e.g., “Add pet state migration”).
-- PRs should include: a short description, tests run (`flutter test`, `flutter analyze`, or manual steps), and screenshots for UI changes.
-- Link relevant issues/tasks when available.
+**Supabase Setup**:
+1. Run migrations from `supabase/migrations/` in Supabase SQL editor.
+2. Apply `supabase/seed.sql`.
+*(See `README.md` for full setup steps)*
 
-## Security & Configuration Tips
-- Copy `.env.example` to `.env` and keep secrets out of git.
-- Supabase OAuth providers must be configured before auth flows work.
+## 5. Commit & Pull Request Guidelines
+- **Commits**: Concise, imperative summaries (e.g., "Add pet state migration").
+- **PRs**: consistent include:
+  - Short description.
+  - Tests run (`flutter test`, `flutter analyze`, or manual steps).
+  - Screenshots for UI changes.
+  - Links to relevant issues/tasks.

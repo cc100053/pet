@@ -144,6 +144,24 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     null,
     '{"price_jpy":60,"currency":"JPY","category":"pet","description":"Basic cleaning supplies."}'::jsonb,
     true
+  ),
+  (
+    'subscription_premium_monthly',
+    'subscription',
+    'Premium Monthly',
+    null,
+    null,
+    '{"price_jpy":480,"currency":"JPY","category":"subscription","description":"Unlimited rooms and no ads.","iap_product_id":"Petmonthly","iap_type":"subscription","rc_entitlement_id":"Petmonthly"}'::jsonb,
+    true
+  ),
+  (
+    'iap_coin_pack_small',
+    'consumable',
+    'Coin Pack Small',
+    null,
+    null,
+    '{"price_jpy":120,"currency":"JPY","category":"coin_pack","description":"One-time coin pack.","iap_product_id":"Petcoins120","iap_type":"consumable","coin_amount":120}'::jsonb,
+    true
   )
 on conflict (sku) do update set
   type = excluded.type,

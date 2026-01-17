@@ -40,6 +40,7 @@
 ## Notifications & Analytics
 - Push notifications: Firebase Cloud Messaging (FCM)
 - Analytics: Firebase Analytics
+- IAP/Subscriptions: RevenueCat (`purchases_flutter`)
 
 ## Tooling
 - CI: GitHub Actions (flutter analyze/test)

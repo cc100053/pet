@@ -92,16 +92,17 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 
 - `action_cooldowns`
   - `user_id` (uuid, fk)
+  - `room_id` (uuid, fk)
   - `action_type` (text: feed/touch/clean/ad_reward)
   - `last_reward_at` (timestamptz)
-  - unique (`user_id`, `action_type`)
+  - unique (`user_id`, `action_type`, `room_id`)
 
 ## Economy & Monetization
 - `coin_ledger`
   - `id` (uuid, pk)
   - `user_id` (uuid, fk)
   - `room_id` (uuid, fk, nullable)
-  - `source` (text: feed/touch/clean/ad_reward/quest/store_purchase)
+  - `source` (text: feed/touch/clean/ad_reward/quest/store_purchase/iap_purchase)
   - `amount` (int)
   - `metadata` (jsonb)
   - `created_at`
@@ -109,10 +110,10 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 - `items` (cosmetics/consumables)
   - `id` (uuid, pk)
   - `sku` (text, unique)
-  - `type` (text: cosmetic/consumable)
+  - `type` (text: cosmetic/consumable/subscription)
   - `name` (text)
   - `price_coins` (int), `price_usd` (numeric)
-  - `metadata` (jsonb), `is_active` (bool)
+  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`), `is_active` (bool)
 
 - `inventories`
   - `user_id` (uuid, fk)
@@ -133,6 +134,13 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `status` (text)
   - `provider` (text)
   - `started_at`, `expires_at`
+
+- `iap_transactions`
+  - `id` (uuid, pk)
+  - `user_id` (uuid, fk)
+  - `product_id` (text)
+  - `transaction_id` (text, unique)
+  - `created_at`
 
 ## Moderation & Config
 - `reports`
@@ -267,6 +275,7 @@ for select using (auth.role() = 'authenticated');
 - `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters.
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger.
 - `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.
+- `grant_iap_coins(product_id text, amount int, transaction_id text)` -> idempotent coin grant for IAP consumables.
 - `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates.
 
 ## Ownership Transfer

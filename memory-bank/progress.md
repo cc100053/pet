@@ -80,6 +80,10 @@
 - Added store UI with coin balance, inventory state, and coin-only purchase flow.
 - Added minimal store catalog seed data with JPY metadata.
 - Added `purchase_item_with_coins` RPC and `store_purchase` ledger source for coin spending.
+- Scoped action reward cooldowns per room to avoid cross-room throttling.
+- Added RevenueCat scaffolding and subscription item hookup in the store.
+- Aligned subscription catalog metadata to Petmonthly entitlement/product IDs.
+- Added IAP coin pack support with idempotent transaction tracking and coin grants.
 
 ## Next
 - Re-enable `verify_jwt` for `feed_validate` after resolving Edge gateway JWT validation.

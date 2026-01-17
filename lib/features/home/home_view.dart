@@ -472,6 +472,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       setState(() {
         _feedResult = 'Success: $details';
       });
+      _chatListKey.currentState?.refreshLatest();
     } catch (error) {
       setState(() => _feedResult = 'Error: $error');
     } finally {
@@ -610,6 +611,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         'body': text,
         'client_created_at': DateTime.now().toUtc().toIso8601String(),
       });
+      _chatListKey.currentState?.refreshLatest();
     } catch (error) {
       if (!mounted) {
         return;
