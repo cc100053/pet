@@ -84,6 +84,15 @@
 - Added RevenueCat scaffolding and subscription item hookup in the store.
 - Aligned subscription catalog metadata to Petmonthly entitlement/product IDs.
 - Added IAP coin pack support with idempotent transaction tracking and coin grants.
+- Added rewarded ads service framework with stub implementation and reusable CTA button.
+- Re-enabled `verify_jwt` for the `feed_validate` Edge Function deployment.
+- Added session refresh helper and per-call Authorization headers for feed invocations.
+- Added debug output for feed test auth/token details.
+- Added JWT claim debug (ref/aud/iss) for feed test auth output.
+- Added retry-on-401 logic to refresh session and re-invoke feed validation.
+- Added feed test error reporting with status/details and extra JWT claim info (sub/role).
+- Debug note: Edge Functions `verify_jwt` rejects ES256 Auth JWTs (asymmetric keys). If 401 occurs, set Supabase Auth → JWT Settings to legacy HS256 secret (disable asymmetric signing) or sign out/in after changing.
+- Verified Simulate Feed success (status 200) with webhook response 200 after fixing JWT signing mode.
 
 ## Next
 - Re-enable `verify_jwt` for `feed_validate` after resolving Edge gateway JWT validation.

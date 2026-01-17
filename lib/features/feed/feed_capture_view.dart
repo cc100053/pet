@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/auth/session_utils.dart';
 import '../../services/image_labeling/image_labeling.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
 
@@ -173,8 +174,8 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       return;
     }
 
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
+    final accessToken = await ensureValidAccessToken();
+    if (accessToken == null) {
       setState(() {
         _error = 'No active session. Please sign in again.';
       });
@@ -188,8 +189,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     });
 
     try {
-      Supabase.instance.client.functions.setAuth(session.accessToken);
-
       final matchByLabel = <String, String>{};
       for (final match in _matches) {
         matchByLabel[LabelMappingService.normalizeLabel(match.text)] =
@@ -213,18 +212,39 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
           'data:$imageContentType;base64,${base64Encode(imageBytes)}';
       final caption = _captionController.text.trim();
 
-      final response = await Supabase.instance.client.functions.invoke(
-        'feed_validate',
-        body: {
-          'room_id': widget.roomId,
-          'labels': labelsPayload,
-          'canonical_tags': _canonicalTags,
-          'caption': caption.isEmpty ? null : caption,
-          'image_base64': dataUri,
-          'image_content_type': imageContentType,
-          'client_created_at': DateTime.now().toUtc().toIso8601String(),
-        },
-      );
+      Future<FunctionResponse> invokeWithToken(String token) {
+        return Supabase.instance.client.functions.invoke(
+          'feed_validate',
+          headers: {'Authorization': 'Bearer $token'},
+          body: {
+            'room_id': widget.roomId,
+            'labels': labelsPayload,
+            'canonical_tags': _canonicalTags,
+            'caption': caption.isEmpty ? null : caption,
+            'image_base64': dataUri,
+            'image_content_type': imageContentType,
+            'client_created_at': DateTime.now().toUtc().toIso8601String(),
+          },
+        );
+      }
+
+      FunctionResponse response;
+      try {
+        response = await invokeWithToken(accessToken);
+      } on FunctionException catch (error) {
+        if (error.status == 401) {
+          final refreshed = await ensureValidAccessTokenWithDebug(
+            forceRefresh: true,
+          );
+          final refreshedToken = refreshed.token;
+          if (refreshedToken == null) {
+            rethrow;
+          }
+          response = await invokeWithToken(refreshedToken);
+        } else {
+          rethrow;
+        }
+      }
 
       if (!mounted) {
         return;

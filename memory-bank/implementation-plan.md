@@ -73,9 +73,11 @@ Phase 5 - Polish & Compliance
 - App config force-update, analytics events, UX fixes
 - Performance tuning (image sizes, caching, load times)
 - Report/block hardening (server-side enforcement + notification filtering)
+- Implement offline-first message repository with Hive caching
 Testing:
 - Beta checklist: crash-free rate, startup time, cold-load chat
 - Privacy/report flows validated
+- Verify Hive local cache usage for chat history (offline support)
 Exit: beta-ready build with tracking and compliance
 
 ## Milestones
@@ -90,3 +92,4 @@ Exit: beta-ready build with tracking and compliance
 - RLS correctness (room scoping and data leakage)
 - Edge Function validation logic + latency
 - Ad UX impact on retention
+- Supabase Auth JWT signing mode mismatch (ES256) can cause Edge Function `verify_jwt` 401s; keep HS256 for now.

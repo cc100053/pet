@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
@@ -417,9 +418,41 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     });
 
     try {
-      final session = Supabase.instance.client.auth.currentSession;
-      if (session == null) return;
-      Supabase.instance.client.functions.setAuth(session.accessToken);
+      final auth = Supabase.instance.client.auth;
+      final debugResult = await ensureValidAccessTokenWithDebug();
+      final accessToken = debugResult.token;
+      final userId = auth.currentUser?.id;
+      String tokenPreview;
+      if (accessToken == null) {
+        tokenPreview = 'null';
+      } else if (accessToken.length <= 16) {
+        tokenPreview = accessToken;
+      } else {
+        tokenPreview =
+            '${accessToken.substring(0, 10)}...${accessToken.substring(accessToken.length - 6)}';
+      }
+      final expiryText = debugResult.expiresAt?.toIso8601String() ?? 'unknown';
+      final remainingText =
+          debugResult.remaining?.inSeconds.toString() ?? 'unknown';
+      final claims = debugResult.claims ?? const {};
+      final ref = claims['ref'] ?? 'unknown';
+      final aud = claims['aud'] ?? 'unknown';
+      final issuer = claims['iss'] ?? 'unknown';
+      final sub = claims['sub'] ?? 'unknown';
+      final role = claims['role'] ?? 'unknown';
+
+      setState(() {
+        _feedResult =
+            'auth: user=$userId | token=$tokenPreview | '
+            'ref=$ref | aud=$aud | iss=$issuer | sub=$sub | role=$role | '
+            'expires=$expiryText | remaining=${remainingText}s | '
+            '${debugResult.message}';
+      });
+      debugPrint('[feed_test] ${_feedResult ?? ''}');
+
+      if (accessToken == null) {
+        return;
+      }
 
       final labelObservations = [
         const LabelObservation(text: 'Coffee', confidence: 0.92),
@@ -446,16 +479,37 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         };
       }).toList();
 
-      final response = await Supabase.instance.client.functions.invoke(
-        'feed_validate',
-        body: {
-          'room_id': roomId,
-          'labels': labelPayload,
-          'canonical_tags': mappingService.matchCanonicalTags(labelObservations),
-          'caption': 'Test feed',
-          'image_url': 'https://example.com/test.jpg',
-        },
-      );
+      Future<FunctionResponse> invokeWithToken(String token) {
+        return Supabase.instance.client.functions.invoke(
+          'feed_validate',
+          headers: {'Authorization': 'Bearer $token'},
+          body: {
+            'room_id': roomId,
+            'labels': labelPayload,
+            'canonical_tags': mappingService.matchCanonicalTags(labelObservations),
+            'caption': 'Test feed',
+            'image_url': 'https://example.com/test.jpg',
+          },
+        );
+      }
+
+      FunctionResponse response;
+      try {
+        response = await invokeWithToken(accessToken);
+      } on FunctionException catch (error) {
+        if (error.status == 401) {
+          final refreshed = await ensureValidAccessTokenWithDebug(
+            forceRefresh: true,
+          );
+          final refreshedToken = refreshed.token;
+          if (refreshedToken == null) {
+            rethrow;
+          }
+          response = await invokeWithToken(refreshedToken);
+        } else {
+          rethrow;
+        }
+      }
 
       final data = response.data;
       String details = 'status ${response.status}';
@@ -473,6 +527,10 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         _feedResult = 'Success: $details';
       });
       _chatListKey.currentState?.refreshLatest();
+    } on FunctionException catch (error) {
+      final detailsText = error.details == null ? '' : ' | ${error.details}';
+      setState(() => _feedResult =
+          'Error: status ${error.status} ${error.reasonPhrase}$detailsText');
     } catch (error) {
       setState(() => _feedResult = 'Error: $error');
     } finally {

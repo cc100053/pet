@@ -56,3 +56,4 @@ Planned:
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Ownership: Triggered owner transfer when the active owner leaves.
+- Note: Edge Functions with `verify_jwt` require HS256 JWT signing in Supabase Auth settings (ES256/asymmetric will be rejected).

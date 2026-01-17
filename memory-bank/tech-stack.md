@@ -14,6 +14,7 @@
 - DB logic: Postgres RPC (SQL functions)
 - Media storage: Cloudflare R2 (S3 compatible)
 - Security: Supabase RLS policies (Row Level Security)
+- Auth JWT signing: Edge Functions `verify_jwt` expects HS256 (legacy secret); ES256/asymmetric tokens will 401 at the gateway.
 
 ## AI & Media
 - Image understanding: Google ML Kit
