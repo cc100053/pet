@@ -649,12 +649,52 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     if (roomId == null) return;
 
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => FeedCaptureView(roomId: roomId)),
+      MaterialPageRoute(
+        builder: (_) => FeedCaptureView(
+          roomId: roomId,
+          onOptimisticMessage: _handleOptimisticFeed,
+          onUploadCompleted: _handleFeedUploadCompleted,
+          onUploadFailed: _handleFeedUploadFailed,
+        ),
+      ),
     );
     if (!mounted) {
       return;
     }
     _chatListKey.currentState?.refreshLatest();
+  }
+
+  void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    final optimisticMessage = ChatMessage(
+      id: entry.tempId,
+      roomId: entry.roomId,
+      senderId: entry.senderId,
+      type: 'image_feed',
+      body: null,
+      imageUrl: null,
+      caption: entry.caption,
+      coinsAwarded: 0,
+      createdAt: entry.clientCreatedAt,
+      clientCreatedAt: entry.clientCreatedAt,
+      labels: entry.labels,
+      localImagePath: entry.localImagePath,
+    );
+    _chatListKey.currentState?.addOptimisticMessage(optimisticMessage);
+  }
+
+  void _handleFeedUploadCompleted(String tempId) {
+    _chatListKey.currentState?.removeOptimisticMessage(tempId);
+    _chatListKey.currentState?.refreshLatest();
+  }
+
+  void _handleFeedUploadFailed(String tempId, Object error) {
+    _chatListKey.currentState?.removeOptimisticMessage(tempId);
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Feed upload failed: $error')),
+    );
   }
 
   Future<void> _sendMessage() async {
@@ -682,6 +722,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         createdAt: DateTime.now().toUtc(),
         clientCreatedAt: DateTime.now().toUtc(),
         labels: const [],
+        localImagePath: null,
       );
       
     _chatListKey.currentState?.addOptimisticMessage(optimisticMessage);

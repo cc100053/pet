@@ -71,7 +71,7 @@ Status: Completed
 
 Phase 5 - Polish & Compliance
 - [x] App config force-update, analytics events, UX fixes
-- Performance tuning (image sizes, caching, load times)
+- [x] Performance tuning (image sizes, caching, load times)
 - Report/block hardening (server-side enforcement + notification filtering)
 - Implement offline-first message repository with Hive caching
 Testing:

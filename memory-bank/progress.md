@@ -97,9 +97,13 @@
 - Implemented force-update gate reading `app_config` and blocking outdated clients.
 - Added Firebase Analytics service and event logging for sign-in, chat, feed, store, and room actions.
 - UX fixes: sign-in loading state, invite code normalization/formatting, and rollback of failed optimistic messages.
+- Tuned image performance with cached network images, sized decode targets, and smaller feed uploads.
+- Switched cached image disk storage to full-size originals to avoid blurry reuse in larger views.
+- Added client-side WebP compression for feed uploads with fallback to original format.
+- Adjusted WebP compression to avoid upscaling, lowered quality to 60, and show previews before compression finishes.
+- Moved feed compression/upload to background tasks and added optimistic local-image chat cards.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).
 - Harden report/block enforcement and notification filtering.
 - Implement offline-first message repository with Hive caching.
-

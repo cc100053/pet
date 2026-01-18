@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../shared/ui/cached_network_image_view.dart';
 import '../feed/feed_capture_view.dart';
 
 class ChatRoomView extends StatefulWidget {
@@ -64,6 +66,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       createdAt: DateTime.now().toUtc(),
       clientCreatedAt: DateTime.now().toUtc(),
       labels: const [],
+      localImagePath: null,
     );
 
     // Add optimistic message immediately
@@ -111,13 +114,51 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     AnalyticsService.instance.logEvent('feed_camera_open');
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => FeedCaptureView(roomId: widget.roomId),
+        builder: (_) => FeedCaptureView(
+          roomId: widget.roomId,
+          onOptimisticMessage: _handleOptimisticFeed,
+          onUploadCompleted: _handleFeedUploadCompleted,
+          onUploadFailed: _handleFeedUploadFailed,
+        ),
       ),
     );
     if (!mounted) {
       return;
     }
     _chatMessageListKey.currentState?.refreshLatest();
+  }
+
+  void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    final optimisticMessage = ChatMessage(
+      id: entry.tempId,
+      roomId: entry.roomId,
+      senderId: entry.senderId,
+      type: 'image_feed',
+      body: null,
+      imageUrl: null,
+      caption: entry.caption,
+      coinsAwarded: 0,
+      createdAt: entry.clientCreatedAt,
+      clientCreatedAt: entry.clientCreatedAt,
+      labels: entry.labels,
+      localImagePath: entry.localImagePath,
+    );
+    _chatMessageListKey.currentState?.addOptimisticMessage(optimisticMessage);
+  }
+
+  void _handleFeedUploadCompleted(String tempId) {
+    _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
+    _chatMessageListKey.currentState?.refreshLatest();
+  }
+
+  void _handleFeedUploadFailed(String tempId, Object error) {
+    _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Feed upload failed: $error')),
+    );
   }
 
   @override
@@ -513,10 +554,24 @@ class ChatMessageListState extends State<ChatMessageList> {
         setState(() {
           // Remove any optimistic messages with matching body/senderId
           if (message.senderId != null) {
-            _messages.removeWhere((m) =>
-                _optimisticIds.contains(m.id) &&
-                m.senderId == message.senderId &&
-                m.body == message.body);
+            _messages.removeWhere((m) {
+              if (!_optimisticIds.contains(m.id)) {
+                return false;
+              }
+              if (m.senderId != message.senderId) {
+                return false;
+              }
+              if (m.type == 'image_feed' && message.type == 'image_feed') {
+                final optimisticClient =
+                    m.clientCreatedAt?.toIso8601String();
+                final incomingClient =
+                    message.clientCreatedAt?.toIso8601String();
+                return optimisticClient != null &&
+                    incomingClient != null &&
+                    optimisticClient == incomingClient;
+              }
+              return m.body == message.body;
+            });
             _optimisticIds.removeWhere((id) =>
                 _messages.every((m) => m.id != id));
           }
@@ -619,10 +674,13 @@ class ChatMessageListState extends State<ChatMessageList> {
                         final isMe =
                             message.senderId != null &&
                             message.senderId == widget.currentUserId;
+                        final isOptimistic =
+                            _optimisticIds.contains(message.id);
                         return ChatMessageTile(
                           key: ValueKey(message.id),
                           message: message,
                           isMe: isMe,
+                          isOptimistic: isOptimistic,
                           onLongPress: _shouldShowActions(message, isMe)
                               ? () => _showMessageActions(message)
                               : null,
@@ -877,11 +935,13 @@ class ChatMessageTile extends StatelessWidget {
     super.key,
     required this.message,
     required this.isMe,
+    required this.isOptimistic,
     this.onLongPress,
   });
 
   final ChatMessage message;
   final bool isMe;
+  final bool isOptimistic;
   final VoidCallback? onLongPress;
 
   @override
@@ -899,7 +959,11 @@ class ChatMessageTile extends StatelessWidget {
 
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
     final content = message.isImageFeed
-        ? _FeedMessageCard(message: message, isMe: isMe)
+        ? _FeedMessageCard(
+            message: message,
+            isMe: isMe,
+            isOptimistic: isOptimistic,
+          )
         : _TextMessageBubble(message: message, isMe: isMe);
 
     return Align(
@@ -970,10 +1034,12 @@ class _FeedMessageCard extends StatelessWidget {
   const _FeedMessageCard({
     required this.message,
     required this.isMe,
+    required this.isOptimistic,
   });
 
   final ChatMessage message;
   final bool isMe;
+  final bool isOptimistic;
 
   @override
   Widget build(BuildContext context) {
@@ -1006,28 +1072,7 @@ class _FeedMessageCard extends StatelessWidget {
                  ),
                ),
              ),
-          if (message.imageUrl != null && message.imageUrl!.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                message.imageUrl!,
-                height: 140,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            )
-          else
-            Container(
-              height: 140,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.image_not_supported,
-                color: theme.colorScheme.outline,
-              ),
-            ),
+          _buildImagePreview(theme),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -1052,6 +1097,106 @@ class _FeedMessageCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildImagePreview(ThemeData theme) {
+    final imageUrl = message.imageUrl;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: CachedNetworkImageView(
+              imageUrl: imageUrl,
+              height: 140,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          if (isOptimistic) _buildUploadingBadge(theme),
+        ],
+      );
+    }
+
+    final localPath = message.localImagePath;
+    if (localPath != null && localPath.isNotEmpty) {
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              File(localPath),
+              height: 140,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stack) => Container(
+                height: 140,
+                color: theme.colorScheme.surface,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.image_not_supported,
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          ),
+          if (isOptimistic) _buildUploadingBadge(theme),
+        ],
+      );
+    }
+
+    return Container(
+      height: 140,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(
+        Icons.image_not_supported,
+        color: theme.colorScheme.outline,
+      ),
+    );
+  }
+
+  Widget _buildUploadingBadge(ThemeData theme) {
+    return Positioned(
+      right: 6,
+      bottom: 6,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface.withValues(alpha: 0.85),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 10,
+              height: 10,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.4,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Uploading',
+              style: theme.textTheme.labelSmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class ChatMessage {
@@ -1067,6 +1212,7 @@ class ChatMessage {
     required this.createdAt,
     required this.clientCreatedAt,
     required this.labels,
+    required this.localImagePath,
   });
 
   final String id;
@@ -1080,6 +1226,7 @@ class ChatMessage {
   final DateTime createdAt;
   final DateTime? clientCreatedAt;
   final List<Map<String, dynamic>> labels;
+  final String? localImagePath;
 
   bool get isSystem => type == 'system';
   bool get isImageFeed => type == 'image_feed';
@@ -1097,6 +1244,7 @@ class ChatMessage {
       createdAt: _parseDate(json['created_at']),
       clientCreatedAt: _parseOptionalDate(json['client_created_at']),
       labels: _parseLabels(json['labels']),
+      localImagePath: null,
     );
   }
 

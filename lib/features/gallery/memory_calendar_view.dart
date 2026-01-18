@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/ui/cached_network_image_view.dart';
+
 class MemoryCalendarView extends StatefulWidget {
   const MemoryCalendarView({
     super.key,
@@ -389,12 +391,12 @@ class _DayCell extends StatelessWidget {
                                   padding: const EdgeInsets.all(1),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(6),
-                                    child: Image.network(
-                                      feed.imageUrl,
+                                    child: CachedNetworkImageView(
+                                      imageUrl: feed.imageUrl,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stack) =>
-                                          Container(
+                                      errorWidget: Container(
                                         color: theme.colorScheme.surface,
+                                        alignment: Alignment.center,
                                         child: const Icon(
                                           Icons.broken_image,
                                           size: 16,
@@ -476,15 +478,15 @@ class _MemoryDaySheet extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                feed.imageUrl,
+                              child: CachedNetworkImageView(
+                                imageUrl: feed.imageUrl,
                                 height: 200,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stack) =>
-                                    Container(
+                                errorWidget: Container(
                                   height: 200,
                                   color: theme.colorScheme.surface,
+                                  alignment: Alignment.center,
                                   child: const Icon(Icons.broken_image),
                                 ),
                               ),
