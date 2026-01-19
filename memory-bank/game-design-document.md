@@ -153,7 +153,7 @@
 ### 7.1 主介面 (Home) - 沉浸式疊層
 - 採用 Stack 佈局：
   - Layer 1 (底層)：房間背景圖。
-  - Layer 2 (中層)：Rive 寵物動畫 (位於畫面中央偏上)。
+  - Layer 2 (中層)：Lottie 寵物動畫 (位於畫面中央偏上)。
   - Layer 3 (頂層)：可拖動底板 (DraggableScrollableSheet)，承載聊天室。
 - 互動：點擊寵物觸發 Bounce 動畫；長按顯示狀態數值。
 - 初始高度：40% (露出寵物)。
@@ -182,12 +182,12 @@
 - 元件庫：聊天氣泡、照片卡片 (含 +Coins)、系統事件卡、狀態數值提示、Grab Handle、相機按鈕。
 - 廣告/內購：Rewarded ad 彈窗、訂閱方案比較卡、付款成功/失敗回饋。
 - 多語系：中文/日文主要字串版面確認，避免文字溢出。
-- 動效指引：Rive 動畫進場/互動規範與 UI 動畫節奏。
+- 動效指引：Lottie 動畫進場/互動規範與 UI 動畫節奏。
 
 ### 7.4.2 交付清單 (Deliverables)
 - 介面設計：主要畫面與狀態稿。
 - 元件庫：可重用 UI 元件與樣式。
-- Pet 本體：寵物造型與基本狀態 (Rive / PNG)。
+- Pet 本體：寵物造型與基本狀態 (Lottie / PNG)。
 
 ### 7.4.3 交付指引 (非 Figma 使用者適用)
 - 可交付 PNG (透明底) / SVG / JPG / PDF 圖檔。
@@ -202,9 +202,9 @@
 | 背景 / 大圖 | PNG (2x/3x) | 複雜質感或插畫 |
 | 照片卡片 | PNG/JPG | 視覺層素材 |
 | Pet 靜態圖 | PNG | 無動畫時使用 |
-| Pet 動畫 | Rive (.riv) | 由向量分層素材製作 |
+| Pet 動畫 | Lottie (.json) | 由向量分層素材製作 |
 
-### 7.4.5 Rive 素材建議
+### 7.4.5 Lottie 素材建議
 - 最佳素材：分層 SVG/AI (身體、眼、口、手腳、飾品獨立)。
 - PNG 只適合靜態或逐格動畫，放大易糊、不易做骨骼動畫。
 - 避免複雜濾鏡/模糊，文字需轉 outline。
@@ -236,7 +236,7 @@
 ## 10. 技術棧清單 (Tech Stack Checklist)
 - Frontend: Flutter (Dart)
 - State Management: Riverpod
-- Animation: Rive (rive package)
+- Animation: Lottie (lottie package)
 - Local DB: Hive (for local cache & settings)
 - Backend: Supabase (Auth, Postgres DB, Realtime)
 - Storage: Cloudflare R2 (S3 compatible API)

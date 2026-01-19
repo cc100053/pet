@@ -16,7 +16,6 @@ import flutter_local_notifications
 import package_info_plus
 import path_provider_foundation
 import purchases_flutter
-import rive_native
 import shared_preferences_foundation
 import sign_in_with_apple
 import sqflite_darwin
@@ -34,7 +33,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   PurchasesFlutterPlugin.register(with: registry.registrar(forPlugin: "PurchasesFlutterPlugin"))
-  RiveNativePlugin.register(with: registry.registrar(forPlugin: "RiveNativePlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
   SignInWithApplePlugin.register(with: registry.registrar(forPlugin: "SignInWithApplePlugin"))
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))

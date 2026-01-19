@@ -20,7 +20,7 @@
 - Added MVP designer checklist to the GDD.
 - Simplified designer deliverables to interface design, component library, and pet assets.
 - Added non-Figma asset handoff guidance in the GDD.
-- Added asset format table and Rive material guidance to the GDD.
+- Added asset format table and Lottie material guidance to the GDD.
 - Restructured GDD section 7.4 for clearer designer deliverables.
 - Implemented Phase 0 scaffold: Flutter project, env setup, CI, auth gate, and profile stub.
 - Added Supabase env template and README setup guidance.
@@ -130,6 +130,8 @@
 - Redesigned P.4 memory calendar view to match the wireframe layout (month header, weekday bubbles, today card, earlier memories row).
 - Added month navigation and a full month calendar grid under the weekday bubbles in P.4.
 - Localized the app for EN/JA/zh-TW with device-language defaults and an in-app language selector.
+- Added a sample Lottie pet asset and wired the pet home avatar to render it with a fallback placeholder.
+- Switched the pet animation stack from Rive to Lottie and removed the old Rive asset references.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

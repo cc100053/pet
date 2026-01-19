@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
+import 'package:lottie/lottie.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,6 +31,8 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
+  static const _petLottieAsset = 'assets/lottie/pet_example.json';
+
   // Logic State
   bool _creatingRoom = false;
   bool _joiningRoom = false;
@@ -1257,10 +1260,31 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Widget _buildPetAvatar() {
-    // Placeholder Pet logic
+    final petColor = _petMoodColor();
+
+    return SizedBox(
+      width: 240,
+      height: 260,
+      child: Lottie.asset(
+        _petLottieAsset,
+        fit: BoxFit.contain,
+        alignment: Alignment.bottomCenter,
+        frameRate: FrameRate.max,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildPetFallback(petColor),
+        frameBuilder: (context, child, composition) {
+          if (composition == null) {
+            return _buildPetFallback(petColor, loading: true);
+          }
+          return child;
+        },
+      ),
+    );
+  }
+
+  Color _petMoodColor() {
     Color petColor = Colors.orangeAccent;
     if (_petState != null) {
-      // Simple visualization of mood
       final mood = _petState!['mood'] as String? ?? 'low';
       switch (mood) {
         case 'high':
@@ -1274,31 +1298,28 @@ class _HomeViewState extends ConsumerState<HomeView> {
           break;
       }
     }
+    return petColor;
+  }
+
+  Widget _buildPetFallback(Color petColor, {bool loading = false}) {
+    if (loading) {
+      return Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: petColor.withValues(alpha: 0.6),
+        ),
+      );
+    }
 
     return Container(
-      width: 220,
-      height: 220,
-      decoration: BoxDecoration(
-        color: petColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: petColor.withValues(alpha: 0.4),
-            blurRadius: 40,
-            spreadRadius: 5,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      color: Colors.transparent,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Eyes
-          Positioned(top: 80, left: 70, child: _buildEye()),
-          Positioned(top: 80, right: 70, child: _buildEye()),
-          // Mouth
+          Positioned(top: 90, left: 80, child: _buildEye()),
+          Positioned(top: 90, right: 80, child: _buildEye()),
           Positioned(
-            bottom: 100,
+            bottom: 90,
             child: Container(
               width: 40,
               height: 20,
