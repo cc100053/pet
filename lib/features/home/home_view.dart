@@ -1,6 +1,4 @@
-import 'dart:ui';
-
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +12,6 @@ import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/ui/juice_wrappers.dart';
-import '../chat/blocked_users_sheet.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
@@ -29,7 +26,7 @@ class HomeView extends ConsumerStatefulWidget {
   ConsumerState<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderStateMixin {
+class _HomeViewState extends ConsumerState<HomeView> {
   // Logic State
   bool _creatingRoom = false;
   bool _joiningRoom = false;
@@ -38,7 +35,6 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   bool _showRoomSelection = true;
   String? _roomSelectionId;
   String? _roomId;
-  String? _inviteCode;
   String? _feedResult;
   String? _petId;
   bool _petBusy = false;
@@ -50,24 +46,10 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
 
   // Chat State
   final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
-  final TextEditingController _messageController = TextEditingController();
-  bool _sendingFilter = false;
-
-  // Top Sheet State
-  late AnimationController _sheetController; // Controls the height factor (0.0 to 1.0)
-  late Animation<double> _sheetAnimation;
-  double _dragHeight = 0.0;
-  // Config
-  static const double _minHeightFraction = 0.45; // 45% (Collapsed) - Fits ~3 messages
-  static const double _maxHeightFraction = 0.90; // 90% (Expanded)
 
   @override
   void initState() {
     super.initState();
-    _sheetController = AnimationController(
-       vsync: this, 
-       duration: const Duration(milliseconds: 300)
-    );
     _ensureProfile().whenComplete(_fetchRooms);
 
     // Init FCM
@@ -76,17 +58,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     });
   }
   
-  // Update drag height on layout
-  void _updateDragHeight(double screenHeight) {
-     if (_dragHeight == 0.0) {
-        _dragHeight = screenHeight * _minHeightFraction;
-     }
-  }
-
   @override
   void dispose() {
-    _messageController.dispose();
-    _sheetController.dispose();
     _petStateChannel?.unsubscribe();
     super.dispose();
   }
@@ -171,13 +144,6 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       });
 
       if (_roomId != null) {
-        final current =
-            rooms.firstWhere((r) => r['id'] == _roomId, orElse: () => {});
-        if (current.isNotEmpty) {
-          setState(() {
-            _inviteCode = current['invite_code'];
-          });
-        }
       }
       
       if (rooms.isNotEmpty) {
@@ -196,8 +162,6 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
      final previousRoom = _roomId;
      setState(() {
        _roomId = roomId;
-       final room = _myRooms.firstWhere((r) => r['id'] == roomId, orElse: () => {});
-       _inviteCode = room['invite_code'];
        _petState = null; // Clear old state
        _petId = null;
      });
@@ -430,7 +394,6 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
          } else {
            setState(() {
              _roomId = null;
-             _inviteCode = null;
              _petState = null;
            });
          }
@@ -460,7 +423,6 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
               } else {
                 setState(() {
                   _roomId = null;
-                  _inviteCode = null;
                   _petState = null;
                 });
               }
@@ -905,126 +867,233 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     );
   }
 
-  Future<void> _openBlockedUsers() async {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    if (currentUserId == null) {
+  void _openChatRoom() {
+    final roomId = _roomId;
+    if (roomId == null) {
       return;
     }
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatRoomView(roomId: roomId)),
+    );
+  }
+  
+  String? _latestPhotoForRoom(String? roomId) {
+    if (roomId == null) {
+      return null;
+    }
+    final room = _myRooms.firstWhere((r) => r['id'] == roomId, orElse: () => {});
+    return room['latest_photo'] as String?;
+  }
 
-    final changed = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => BlockedUsersSheet(
-        currentUserId: currentUserId,
-        onBlockListChanged: () =>
-            _chatListKey.currentState?.refreshAfterBlockChange(),
+  void _openCalendar() {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MemoryCalendarView(
+          roomId: roomId,
+          currentUserId: Supabase.instance.client.auth.currentUser?.id,
+        ),
       ),
     );
-
-    if (changed == true) {
-      _chatListKey.currentState?.refreshAfterBlockChange();
-    }
   }
 
-  Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
-    if (text.isEmpty || _roomId == null) return;
-
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
-
-    setState(() => _sendingFilter = true);
-    _messageController.clear();
-    HapticFeedback.lightImpact();
-
-    // Optimistic Update
-    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    final optimisticMessage = ChatMessage(
-        id: tempId,
-        roomId: _roomId!,
-        senderId: userId,
-        type: 'text',
-        body: text,
-        imageUrl: null,
-        caption: null,
-        coinsAwarded: 0,
-        createdAt: DateTime.now().toUtc(),
-        clientCreatedAt: DateTime.now().toUtc(),
-        labels: const [],
-        localImagePath: null,
-      );
-      
-    _chatListKey.currentState?.addOptimisticMessage(optimisticMessage);
-
-    try {
-      await Supabase.instance.client.from('messages').insert({
-        'room_id': _roomId,
-        'sender_id': userId,
-        'type': 'text',
-        'body': text,
-        'client_created_at': DateTime.now().toUtc().toIso8601String(),
-      });
-      _chatListKey.currentState?.removeOptimisticMessage(tempId);
-      _chatListKey.currentState?.refreshLatest();
-    } catch (error) {
-      _chatListKey.currentState?.removeOptimisticMessage(tempId);
-      _messageController.text = text;
-      _messageController.selection =
-          TextSelection.collapsed(offset: _messageController.text.length);
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Send failed: $error')),
-      );
-    } finally {
-      if (mounted) setState(() => _sendingFilter = false);
-    }
+  Widget _buildInteractionTopBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      child: Row(
+        children: [
+          Builder(
+            builder: (context) {
+              return GestureDetector(
+                onTap: () => Scaffold.of(context).openDrawer(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.person_rounded, color: Colors.black87),
+                ),
+              );
+            },
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined, color: Colors.black87),
+            onPressed: _openCalendar,
+            tooltip: 'Calendar',
+          ),
+        ],
+      ),
+    );
   }
-  
-  // --- Gestures for Top Sheet ---
-  void _onVerticalDragUpdate(DragUpdateDetails details, double screenHeight) {
-    setState(() {
-      _dragHeight += details.delta.dy;
-      // Clamp
-      final minH = screenHeight * _minHeightFraction;
-      final maxH = screenHeight * _maxHeightFraction;
-      if (_dragHeight < minH) _dragHeight = minH;
-      if (_dragHeight > maxH) _dragHeight = maxH;
-    });
+
+  Widget _buildLatestPhotoCard() {
+    final latestPhoto = _latestPhotoForRoom(_roomId);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: AspectRatio(
+          aspectRatio: 4 / 3,
+          child: latestPhoto == null || latestPhoto.isEmpty
+              ? Container(
+                  color: const Color(0xFFF8F4EF),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Photo',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                    ),
+                  ),
+                )
+              : CachedNetworkImage(
+                  imageUrl: latestPhoto,
+                  fit: BoxFit.cover,
+                  placeholder: (context, _) => Container(
+                    color: const Color(0xFFF8F4EF),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: const Color(0xFFF8F4EF),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Photo',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+      ),
+    );
   }
-  
-  void _onVerticalDragEnd(DragEndDetails details, double screenHeight) {
-    final minH = screenHeight * _minHeightFraction;
-    final maxH = screenHeight * _maxHeightFraction;
-    final velocity = details.primaryVelocity ?? 0;
-    
-    double targetH;
-    if (velocity > 500) {
-       targetH = maxH; // Swiped Down
-    } else if (velocity < -500) {
-       targetH = minH; // Swiped Up
-    } else {
-       // Snap to nearest
-       final distMin = (_dragHeight - minH).abs();
-       final distMax = (_dragHeight - maxH).abs();
-       targetH = distMin < distMax ? minH : maxH;
-    }
-    
-    // Animate
-    _sheetAnimation = Tween<double>(
-      begin: _dragHeight, 
-      end: targetH
-    ).animate(CurvedAnimation(parent: _sheetController, curve: Curves.easeOutBack));
-    
-    _sheetController.reset();
-    _sheetController.forward();
-    _sheetController.addListener(() {
-      setState(() {
-        _dragHeight = _sheetAnimation.value;
-      });
-    });
+
+  Widget _buildPetHomeCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          const Positioned(
+            top: 14,
+            left: 16,
+            child: Text(
+              'Pet Home',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: _buildPetStatusPill(),
+          ),
+          Center(
+            child: JuicyFloat(
+              yOffset: 12,
+              child: JuicyScaleButton(
+                onTap: _petBusy ? null : () => _applyPetAction('touch'),
+                child: _buildPetAvatar(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildActionButton(
+          icon: Icons.cleaning_services_rounded,
+          onTap: () => _applyPetAction('clean'),
+          enabled: !_petBusy,
+        ),
+        _buildActionButton(
+          icon: Icons.camera_alt_rounded,
+          onTap: _openFeedCamera,
+          enabled: !_petBusy,
+        ),
+        _buildActionButton(
+          icon: Icons.chat_bubble_rounded,
+          onTap: _openChatRoom,
+          enabled: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool enabled,
+  }) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.5,
+      child: JuicyScaleButton(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: const Color(0xFF0D5C63)),
+        ),
+      ),
+    );
+  }
+
 
   // --- UI Builders ---
 
@@ -1036,8 +1105,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       );
     }
     
-    final size = MediaQuery.of(context).size;
-    _updateDragHeight(size.height);
+    final bottomInset = MediaQuery.of(context).padding.bottom;
 
     if (_showRoomSelection || _roomId == null) {
       return Scaffold(
@@ -1105,103 +1173,29 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
               ),
             ),
           ),
-
-          // Layer 2: Pet (At Bottom)
-          Positioned(
-            bottom: size.height * 0.15, // 15% from bottom
-            left: 0,
-            right: 0,
-            child: Center(
-              child: JuicyFloat(
-                yOffset: 15,
-                child: JuicyScaleButton(
-                  onTap: _petBusy ? null : () => _applyPetAction('touch'), // Touch interaction
-                  child: _buildPetAvatar(),
+          SafeArea(
+            child: Column(
+              children: [
+                _buildInteractionTopBar(),
+                const Gap(12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildLatestPhotoCard(),
                 ),
-              ),
-            ),
-          ),
-          
-          // Pet Status Pill (Near Pet)
-          Positioned(
-            bottom: size.height * 0.12,
-            right: 24,
-            child: _buildPetStatusPill(),
-          ),
-
-          // Layer 3: Chat Shade (Top Anchored)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: _dragHeight,
-            child: Container(
-               decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-               ),
-               child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
-                  child: BackdropFilter(
-                     filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                     child: Stack(
-                        children: [
-                           // Input Bar (Fixed at Top of Chat Content? Or Bottom of Sheet?)
-                           // Design: Input fixed at BOTTOM of the SHEET area.
-                           // Actually GDD said "Input Bar: Fixed in Layer 3 bottom".
-                           
-                           Column(
-                             children: [
-                               // Menu Button (Inside Sheet safely)
-                               AppBar(
-                                 backgroundColor: Colors.transparent,
-                                 elevation: 0,
-                                 leading: Builder(
-                                   builder: (context) {
-                                     return IconButton(
-                                       icon: const Icon(Icons.menu_rounded, color: Colors.black87),
-                                       onPressed: () => Scaffold.of(context).openDrawer(),
-                                     );
-                                   }
-                                 ),
-                                 actions: [
-                                   IconButton(
-                                     icon: const Icon(Icons.block, color: Colors.black87),
-                                     onPressed: _openBlockedUsers,
-                                     tooltip: 'Blocked users',
-                                   ),
-                                 ],
-                                 title: Text('Room: ${_inviteCode ?? '...'}', style: const TextStyle(color: Colors.black54, fontSize: 14)),
-                                 centerTitle: true,
-                               ),
-                               
-                               Expanded(
-                                 child: GestureDetector(
-                                    onTap: () => FocusScope.of(context).unfocus(),
-                                    child: ChatMessageList(
-                                       key: _chatListKey,
-                                       roomId: _roomId!,
-                                       currentUserId: Supabase.instance.client.auth.currentUser?.id,
-                                    ),
-                                 ),
-                               ),
-                               
-                               _buildInputBar(size.height),
-                             ],
-                           ),
-                        ],
-                     ),
+                const Gap(12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _buildPetHomeCard(),
                   ),
-               ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(20, 12, 20, bottomInset + 20),
+                  child: _buildActionButtons(),
+                ),
+              ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -1222,8 +1216,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     }
 
     return Container(
-      width: 280,
-      height: 280,
+      width: 220,
+      height: 220,
       decoration: BoxDecoration(
         color: petColor,
         shape: BoxShape.circle,
@@ -1345,137 +1339,6 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
               const Gap(4),
               Text('$hygiene%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-    Widget _buildInputBar(double screenHeight) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 12, 
-        right: 12, 
-        top: 12, 
-        bottom: MediaQuery.of(context).viewInsets.bottom // Dynamic bottom padding
-      ),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.5), // Subtle backing
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.5))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Input Row
-          Row(
-            children: [
-              // Camera Button (Juicy)
-              JuicyScaleButton(
-                onTap: _openFeedCamera,
-                child: Container(
-                  width: 44, height: 44,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF0D5C63), // Dark Teal from GDD/Memory
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
-                ),
-              ),
-              const Gap(10),
-              
-              // Input Field
-              Expanded(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                         color: Colors.black.withValues(alpha: 0.05),
-                         blurRadius: 5,
-                         offset: const Offset(0, 2),
-                      )
-                    ]
-                  ),
-                  alignment: Alignment.center,
-                  child: TextField(
-                    controller: _messageController,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) {
-                      if (_sendingFilter) {
-                        return;
-                      }
-                      _sendMessage();
-                    },
-                    enabled: !_sendingFilter,
-                    textAlignVertical: TextAlignVertical.center,
-                    decoration: const InputDecoration(
-                      hintText: 'Say something...',
-                      hintStyle: TextStyle(color: Colors.black38, fontSize: 15),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                    ),
-                  ),
-                ),
-              ),
-              
-              const Gap(10),
-              
-              // Send Button
-              JuicyScaleButton(
-                onTap: _sendingFilter ? null : _sendMessage,
-                child: Icon(
-                  Icons.send_rounded,
-                  color: _sendingFilter
-                      ? Colors.black26
-                      : const Color(0xFF0D5C63),
-                  size: 28,
-                ),
-              ),
-            ],
-          ),
-          
-          // Drag Handle Area (Integrated)
-          GestureDetector(
-             onTap: () {
-               final minH = screenHeight * _minHeightFraction;
-               final maxH = screenHeight * _maxHeightFraction;
-               
-               // Toggle
-               final targetH = (_dragHeight - minH).abs() < (_dragHeight - maxH).abs()
-                   ? maxH : minH;
-
-               _sheetAnimation = Tween<double>(
-                 begin: _dragHeight, 
-                 end: targetH
-               ).animate(CurvedAnimation(parent: _sheetController, curve: Curves.easeOutBack));
-               
-               _sheetController.reset();
-               _sheetController.forward();
-               _sheetController.addListener(() {
-                 setState(() {
-                   _dragHeight = _sheetAnimation.value;
-                 });
-               });
-             },
-             onVerticalDragUpdate: (d) => _onVerticalDragUpdate(d, screenHeight),
-             onVerticalDragEnd: (d) => _onVerticalDragEnd(d, screenHeight),
-             behavior: HitTestBehavior.translucent, // Catch misses
-             child: Container(
-                height: 36, // Tap target size
-                width: double.infinity,
-                alignment: Alignment.center,
-                child: Container(
-                  width: 50, height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.black12,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-             ),
           ),
         ],
       ),

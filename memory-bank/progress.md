@@ -124,6 +124,8 @@
 - Updated room selection cards to the wireframe-style outline with placeholder frame and mood dots.
 - Display the latest feed photo per room inside the room selection card frame.
 - Restyled room cards to an instant-film photograph layout with a thick white frame and caption strip.
+- Implemented P.3 interaction layout with top nav, latest photo card, pet home card, action buttons, and bottom chat sheet.
+- Moved chat access to a dedicated page and updated P.3 action buttons (center camera, right chat).
 - Updated design docs to support both Traditional Chinese (ZH) and Japanese (JA), switching based on user preference.
 
 ## Next
