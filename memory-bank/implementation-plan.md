@@ -72,8 +72,8 @@ Status: Completed
 Phase 5 - Polish & Compliance
 - [x] App config force-update, analytics events, UX fixes
 - [x] Performance tuning (image sizes, caching, load times)
-- Report/block hardening (server-side enforcement + notification filtering)
-- Implement offline-first message repository with Hive caching
+- [x] Report/block hardening (server-side enforcement + notification filtering)
+- [x] Implement offline-first message repository with Hive caching
 Testing:
 - Beta checklist: crash-free rate, startup time, cold-load chat
 - Privacy/report flows validated

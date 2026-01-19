@@ -14,6 +14,8 @@ import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/ui/juice_wrappers.dart';
+import '../chat/blocked_users_sheet.dart';
+import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
@@ -40,6 +42,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   Map<String, dynamic>? _petState;
   String? _petError;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
+  RealtimeChannel? _petStateChannel;
+  String? _petSubscriptionPetId;
 
   // Chat State
   final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
@@ -80,6 +84,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   void dispose() {
     _messageController.dispose();
     _sheetController.dispose();
+    _petStateChannel?.unsubscribe();
     super.dispose();
   }
 
@@ -169,6 +174,9 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
        _petState = null; // Clear old state
        _petId = null;
      });
+     _petStateChannel?.unsubscribe();
+     _petStateChannel = null;
+     _petSubscriptionPetId = null;
      _refreshPetState();
      if (previousRoom != roomId) {
        AnalyticsService.instance.logEvent('room_switch');
@@ -588,6 +596,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         return;
       }
 
+      _subscribeToPetState(petId);
+
       if (tick) {
         await Supabase.instance.client.rpc(
           'tick_pet_state',
@@ -613,6 +623,58 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     } finally {
       if (mounted) setState(() => _petBusy = false);
     }
+  }
+
+  void _subscribeToPetState(String petId) {
+    if (_petSubscriptionPetId == petId) {
+      return;
+    }
+
+    _petStateChannel?.unsubscribe();
+    _petSubscriptionPetId = petId;
+
+    final channel = Supabase.instance.client.channel('pet_state_$petId');
+    _petStateChannel = channel;
+
+    void handleUpdate(Map<String, dynamic> record) {
+      if (!mounted) {
+        return;
+      }
+      if (record.isEmpty) {
+        _refreshPetState();
+        return;
+      }
+      setState(() {
+        _petId = petId;
+        _petState = Map<String, dynamic>.from(record);
+      });
+    }
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'pet_state',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'pet_id',
+        value: petId,
+      ),
+      callback: (payload) => handleUpdate(payload.newRecord),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'pet_state',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'pet_id',
+        value: petId,
+      ),
+      callback: (payload) => handleUpdate(payload.newRecord),
+    );
+
+    channel.subscribe();
   }
 
   Future<void> _applyPetAction(String action) async {
@@ -697,6 +759,27 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     );
   }
 
+  Future<void> _openBlockedUsers() async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      return;
+    }
+
+    final changed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => BlockedUsersSheet(
+        currentUserId: currentUserId,
+        onBlockListChanged: () =>
+            _chatListKey.currentState?.refreshAfterBlockChange(),
+      ),
+    );
+
+    if (changed == true) {
+      _chatListKey.currentState?.refreshAfterBlockChange();
+    }
+  }
+
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty || _roomId == null) return;
@@ -735,8 +818,13 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         'body': text,
         'client_created_at': DateTime.now().toUtc().toIso8601String(),
       });
+      _chatListKey.currentState?.removeOptimisticMessage(tempId);
       _chatListKey.currentState?.refreshLatest();
     } catch (error) {
+      _chatListKey.currentState?.removeOptimisticMessage(tempId);
+      _messageController.text = text;
+      _messageController.selection =
+          TextSelection.collapsed(offset: _messageController.text.length);
       if (!mounted) {
         return;
       }
@@ -945,6 +1033,13 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                                      );
                                    }
                                  ),
+                                 actions: [
+                                   IconButton(
+                                     icon: const Icon(Icons.block, color: Colors.black87),
+                                     onPressed: _openBlockedUsers,
+                                     tooltip: 'Blocked users',
+                                   ),
+                                 ],
                                  title: Text('Room: ${_inviteCode ?? '...'}', style: const TextStyle(color: Colors.black54, fontSize: 14)),
                                  centerTitle: true,
                                ),

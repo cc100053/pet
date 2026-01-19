@@ -152,11 +152,64 @@ serve(async (req) => {
   }
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // 4. Fetch Device Tokens
+  // 4. Filter recipients against block list (both directions)
+  const senderId = payload.sender_id;
+  let recipientIds = payload.recipient_ids.filter((id) =>
+    typeof id === "string" && id.length > 0 && id !== senderId
+  );
+
+  if (recipientIds.length === 0) {
+    return jsonResponse(200, { message: "no_recipients" });
+  }
+
+  const { data: blockedBySender, error: blockedBySenderError } = await supabase
+    .from("blocks")
+    .select("blocked_user_id")
+    .eq("blocker_id", senderId)
+    .in("blocked_user_id", recipientIds);
+
+  if (blockedBySenderError) {
+    return jsonResponse(500, {
+      error: "db_error",
+      details: blockedBySenderError.message,
+    });
+  }
+
+  const { data: blockedSender, error: blockedSenderError } = await supabase
+    .from("blocks")
+    .select("blocker_id")
+    .in("blocker_id", recipientIds)
+    .eq("blocked_user_id", senderId);
+
+  if (blockedSenderError) {
+    return jsonResponse(500, {
+      error: "db_error",
+      details: blockedSenderError.message,
+    });
+  }
+
+  const blocked = new Set<string>();
+  for (const row of blockedBySender ?? []) {
+    if (row.blocked_user_id) {
+      blocked.add(row.blocked_user_id);
+    }
+  }
+  for (const row of blockedSender ?? []) {
+    if (row.blocker_id) {
+      blocked.add(row.blocker_id);
+    }
+  }
+
+  recipientIds = recipientIds.filter((id) => !blocked.has(id));
+  if (recipientIds.length === 0) {
+    return jsonResponse(200, { message: "recipients_blocked" });
+  }
+
+  // 5. Fetch Device Tokens
   const { data: tokens, error: tokensError } = await supabase
     .from("device_tokens")
     .select("token")
-    .in("user_id", payload.recipient_ids);
+    .in("user_id", recipientIds);
 
   if (tokensError) {
     return jsonResponse(500, {

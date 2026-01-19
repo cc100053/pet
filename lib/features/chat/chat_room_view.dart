@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../services/chat/chat_message_repository.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../feed/feed_capture_view.dart';
+import 'blocked_users_sheet.dart';
+import 'chat_message.dart';
 
 class ChatRoomView extends StatefulWidget {
   const ChatRoomView({super.key, required this.roomId});
@@ -80,6 +84,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         'body': text,
         'client_created_at': DateTime.now().toUtc().toIso8601String(),
       });
+      _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
       _chatMessageListKey.currentState?.refreshLatest();
       AnalyticsService.instance.logEvent('message_send', parameters: {
         'result': 'success',
@@ -161,6 +166,33 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     );
   }
 
+  Future<void> _openBlockedUsers() async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in again.')),
+      );
+      return;
+    }
+
+    final changed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => BlockedUsersSheet(
+        currentUserId: currentUserId,
+        onBlockListChanged: () =>
+            _chatMessageListKey.currentState?.refreshAfterBlockChange(),
+      ),
+    );
+
+    if (changed == true) {
+      _chatMessageListKey.currentState?.refreshAfterBlockChange();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
@@ -168,6 +200,14 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chat'),
+        actions: [
+          IconButton(
+            onPressed:
+                currentUserId == null ? null : () => _openBlockedUsers(),
+            icon: const Icon(Icons.block),
+            tooltip: 'Blocked users',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -246,6 +286,7 @@ class ChatMessageListState extends State<ChatMessageList> {
   final Set<String> _messageIds = {};
   final Set<String> _optimisticIds = {}; // Track temp message IDs
   final Set<String> _blockedUserIds = {};
+  final ChatMessageRepository _repository = ChatMessageRepository.instance;
 
   RealtimeChannel? _channel;
   bool _loadingInitial = true;
@@ -287,6 +328,7 @@ class ChatMessageListState extends State<ChatMessageList> {
         _mergePage(page);
         _error = null;
       });
+      _persistCache();
     } catch (error) {
       if (!mounted) {
         return;
@@ -302,7 +344,7 @@ class ChatMessageListState extends State<ChatMessageList> {
     super.initState();
     _scrollController = widget.scrollController ?? ScrollController();
     _scrollController.addListener(_onScroll);
-    _initialize();
+    unawaited(_initialize());
     _subscribeToMessages();
   }
 
@@ -324,7 +366,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       _loadingInitial = true;
       _showScrollToBottom = false;
     });
-    _initialize();
+    unawaited(_initialize());
     _subscribeToMessages();
   }
 
@@ -338,8 +380,37 @@ class ChatMessageListState extends State<ChatMessageList> {
     super.dispose();
   }
 
-  void _initialize() {
-    _loadBlockedUsers().whenComplete(_loadInitial);
+  Future<void> _initialize() async {
+    await _loadBlockedUsers();
+    await _loadCachedMessages();
+    await _loadInitial();
+  }
+
+  Future<void> _loadCachedMessages() async {
+    if (!_repository.isReady) {
+      return;
+    }
+    try {
+      final cached = await _repository.loadCachedMessages(widget.roomId);
+      if (!mounted) {
+        return;
+      }
+      if (cached.isEmpty) {
+        return;
+      }
+      setState(() {
+        _applyCachedMessages(_filterBlocked(cached));
+        _loadingInitial = false;
+        _error = null;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = 'Failed to load cached messages: $error';
+      });
+    }
   }
 
   Future<void> _loadBlockedUsers() async {
@@ -369,6 +440,55 @@ class ChatMessageListState extends State<ChatMessageList> {
         _error = 'Failed to load blocked users: $error';
       });
     }
+  }
+
+  Future<void> refreshAfterBlockChange() async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _messages.clear();
+      _messageIds.clear();
+      _optimisticIds.clear();
+      _error = null;
+      _hasMore = true;
+      _loadingMore = false;
+      _loadingInitial = true;
+      _showScrollToBottom = false;
+    });
+
+    await _loadBlockedUsers();
+    await _loadCachedMessages();
+    await _loadInitial();
+  }
+
+  List<ChatMessage> _filterBlocked(List<ChatMessage> source) {
+    return source
+        .where((message) =>
+            message.senderId == null ||
+            !_blockedUserIds.contains(message.senderId))
+        .toList();
+  }
+
+  void _applyCachedMessages(List<ChatMessage> cached) {
+    _messages
+      ..clear()
+      ..addAll(cached);
+    _messageIds
+      ..clear()
+      ..addAll(cached.map((message) => message.id));
+    _sortMessages();
+  }
+
+  void _persistCache() {
+    if (!_repository.isReady) {
+      return;
+    }
+    final cacheable = _messages
+        .where((message) => !_optimisticIds.contains(message.id))
+        .toList();
+    unawaited(_repository.cacheMessages(widget.roomId, cacheable));
   }
 
   void _onScroll() {
@@ -404,8 +524,9 @@ class ChatMessageListState extends State<ChatMessageList> {
   }
 
   Future<void> _loadInitial() async {
+    final showSkeleton = _messages.isEmpty;
     setState(() {
-      _loadingInitial = true;
+      _loadingInitial = showSkeleton;
       _error = null;
     });
 
@@ -415,6 +536,7 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       _mergePage(page);
+      _persistCache();
     } catch (error) {
       if (!mounted) {
         return;
@@ -475,6 +597,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       }
       _hasMore = page.length == _pageSize;
       _sortMessages();
+      _persistCache();
     } catch (error) {
       if (!mounted) {
         return;
@@ -495,33 +618,13 @@ class ChatMessageListState extends State<ChatMessageList> {
     String? beforeCreatedAt,
     String? beforeId,
   }) async {
-    var query = Supabase.instance.client
-        .from('messages')
-        .select(
-          'id,room_id,sender_id,type,body,image_url,caption,coins_awarded,'
-          'created_at,client_created_at,labels',
-        )
-        .eq('room_id', widget.roomId);
-
-    if (beforeCreatedAt != null && beforeId != null) {
-      query = query.or(
-        'created_at.lt.$beforeCreatedAt,'
-        'and(created_at.eq.$beforeCreatedAt,id.lt.$beforeId)',
-      );
-    }
-
-    final response = await query
-        .order('created_at', ascending: false)
-        .order('id', ascending: false)
-        .limit(_pageSize);
-    final rows = response as List<dynamic>;
-    return rows
-        .map((row) => ChatMessage.fromJson(row))
-        .where((message) => message.type.isNotEmpty)
-        .where((message) =>
-            message.senderId == null ||
-            !_blockedUserIds.contains(message.senderId))
-        .toList();
+    final page = await _repository.fetchMessages(
+      roomId: widget.roomId,
+      beforeCreatedAt: beforeCreatedAt,
+      beforeId: beforeId,
+      limit: _pageSize,
+    );
+    return _filterBlocked(page);
   }
 
   void _subscribeToMessages() {
@@ -581,6 +684,7 @@ class ChatMessageListState extends State<ChatMessageList> {
             _sortMessages();
           }
         });
+        _persistCache();
       },
     );
     channel.subscribe();
@@ -598,7 +702,7 @@ class ChatMessageListState extends State<ChatMessageList> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loadingInitial) {
+    if (_loadingInitial && _messages.isEmpty) {
       return const _ChatLoadingList();
     }
 
@@ -834,6 +938,7 @@ class ChatMessageListState extends State<ChatMessageList> {
           return false;
         });
       });
+      _persistCache();
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User blocked.')),
@@ -1196,88 +1301,5 @@ class _FeedMessageCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class ChatMessage {
-  ChatMessage({
-    required this.id,
-    required this.roomId,
-    required this.senderId,
-    required this.type,
-    required this.body,
-    required this.imageUrl,
-    required this.caption,
-    required this.coinsAwarded,
-    required this.createdAt,
-    required this.clientCreatedAt,
-    required this.labels,
-    required this.localImagePath,
-  });
-
-  final String id;
-  final String roomId;
-  final String? senderId;
-  final String type;
-  final String? body;
-  final String? imageUrl;
-  final String? caption;
-  final int coinsAwarded;
-  final DateTime createdAt;
-  final DateTime? clientCreatedAt;
-  final List<Map<String, dynamic>> labels;
-  final String? localImagePath;
-
-  bool get isSystem => type == 'system';
-  bool get isImageFeed => type == 'image_feed';
-
-  factory ChatMessage.fromJson(Map<String, dynamic> json) {
-    return ChatMessage(
-      id: (json['id'] as String?) ?? '',
-      roomId: (json['room_id'] as String?) ?? '',
-      senderId: json['sender_id'] as String?,
-      type: (json['type'] as String?) ?? '',
-      body: json['body'] as String?,
-      imageUrl: json['image_url'] as String?,
-      caption: json['caption'] as String?,
-      coinsAwarded: (json['coins_awarded'] as int?) ?? 0,
-      createdAt: _parseDate(json['created_at']),
-      clientCreatedAt: _parseOptionalDate(json['client_created_at']),
-      labels: _parseLabels(json['labels']),
-      localImagePath: null,
-    );
-  }
-
-  static DateTime _parseDate(dynamic value) {
-    if (value is DateTime) {
-      return value;
-    }
-    if (value is String) {
-      return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
-    }
-    return DateTime.fromMillisecondsSinceEpoch(0);
-  }
-
-  static DateTime? _parseOptionalDate(dynamic value) {
-    if (value == null) {
-      return null;
-    }
-    if (value is DateTime) {
-      return value;
-    }
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
-    return null;
-  }
-
-  static List<Map<String, dynamic>> _parseLabels(dynamic value) {
-    if (value is List) {
-      return value
-          .whereType<Map<String, dynamic>>()
-          .map((entry) => Map<String, dynamic>.from(entry))
-          .toList();
-    }
-    return const [];
   }
 }

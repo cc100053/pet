@@ -102,6 +102,17 @@
 - Added client-side WebP compression for feed uploads with fallback to original format.
 - Adjusted WebP compression to avoid upscaling, lowered quality to 60, and show previews before compression finishes.
 - Moved feed compression/upload to background tasks and added optimistic local-image chat cards.
+- Added server-side block enforcement on message reads via RLS policy update.
+- Filtered notify_friend recipients by block relationships before sending FCM.
+- Applied block enforcement migration and redeployed notify_friend Edge Function.
+- Added blocked users sheet with unblock flow and chat refresh after unblock.
+- Exposed blocked users sheet from the home chat header with a block icon.
+- Fixed duplicate sender messages by clearing optimistic text entries after insert.
+- Restored optimistic text rollback on send failure to keep chat UI consistent.
+- Added realtime pet_state subscription so pet UI auto-refreshes on state changes.
+- Enabled realtime publication and replica identity full for pet_state updates.
+- Added messages table to supabase_realtime publication for live chat updates.
+- Implemented offline-first message repository with Hive caching.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).
