@@ -79,7 +79,7 @@ Testing:
 - Privacy/report flows validated
 - Verify Hive local cache usage for chat history (offline support)
 Exit: beta-ready build with tracking and compliance
-Status: In progress
+Status: Completed
 
 ## Milestones
 - M1: Schema + RLS + Edge Functions signed off

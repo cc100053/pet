@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../home/home_view.dart';
 import 'sign_in_view.dart';
 import '../../services/analytics/analytics_service.dart';
+import '../launch/launch_view.dart';
 
 class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
@@ -17,12 +19,21 @@ class AuthGate extends ConsumerStatefulWidget {
 
 class _AuthGateState extends ConsumerState<AuthGate> {
   StreamSubscription<AuthState>? _authSubscription;
+  bool _showLaunch = true;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _showLaunch = false);
+    });
     final currentSession = Supabase.instance.client.auth.currentSession;
     AnalyticsService.instance.setUserId(currentSession?.user.id);
+    FirebaseCrashlytics.instance
+        .setUserIdentifier(currentSession?.user.id ?? 'signed_out');
 
     _authSubscription =
         Supabase.instance.client.auth.onAuthStateChange.listen((data) {
@@ -30,9 +41,11 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       if (session == null) {
         AnalyticsService.instance.setUserId(null);
         AnalyticsService.instance.logEvent('sign_out');
+        FirebaseCrashlytics.instance.setUserIdentifier('signed_out');
       } else {
         AnalyticsService.instance.setUserId(session.user.id);
         AnalyticsService.instance.logEvent('sign_in');
+        FirebaseCrashlytics.instance.setUserIdentifier(session.user.id);
       }
     });
   }
@@ -45,9 +58,15 @@ class _AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showLaunch) {
+      return const LaunchView();
+    }
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LaunchView();
+        }
         final session = snapshot.data?.session ??
             Supabase.instance.client.auth.currentSession;
         if (session == null) {

@@ -32,7 +32,7 @@
   
   See `lib/services/image_labeling/` for implementation details.
   
-- Label mapping: Client or backend mapping layer for EN -> ZH/JA labels
+- Label mapping: Client or backend mapping layer for EN -> ZH/JA labels (based on User Preference)
 - Mapping data: `label_mappings` + `quests` seed dictionary
 - Color DNA extraction: `palette_generator`
 - Image delivery: `cached_network_image`

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/chat/chat_message_repository.dart';
+import '../../services/performance/performance_service.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../feed/feed_capture_view.dart';
 import 'blocked_users_sheet.dart';
@@ -293,6 +294,7 @@ class ChatMessageListState extends State<ChatMessageList> {
   bool _loadingMore = false;
   bool _hasMore = true;
   bool _showScrollToBottom = false;
+  bool _usedCachedMessages = false;
   String? _error;
 
   /// Add an optimistic message immediately (called by parent)
@@ -365,6 +367,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       _loadingMore = false;
       _loadingInitial = true;
       _showScrollToBottom = false;
+      _usedCachedMessages = false;
     });
     unawaited(_initialize());
     _subscribeToMessages();
@@ -402,7 +405,13 @@ class ChatMessageListState extends State<ChatMessageList> {
         _applyCachedMessages(_filterBlocked(cached));
         _loadingInitial = false;
         _error = null;
+        _usedCachedMessages = true;
       });
+      PerformanceService.instance.markChatColdLoaded(
+        messageCount: cached.length,
+        source: 'cache',
+        success: true,
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -537,6 +546,11 @@ class ChatMessageListState extends State<ChatMessageList> {
       }
       _mergePage(page);
       _persistCache();
+      PerformanceService.instance.markChatColdLoaded(
+        messageCount: _messages.length,
+        source: _usedCachedMessages ? 'cache+network' : 'network',
+        success: true,
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -544,6 +558,11 @@ class ChatMessageListState extends State<ChatMessageList> {
       setState(() {
         _error = 'Failed to load messages: $error';
       });
+      PerformanceService.instance.markChatColdLoaded(
+        messageCount: _messages.length,
+        source: 'network_error',
+        success: false,
+      );
     } finally {
       if (mounted) {
         setState(() {

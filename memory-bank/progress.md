@@ -113,6 +113,18 @@
 - Enabled realtime publication and replica identity full for pet_state updates.
 - Added messages table to supabase_realtime publication for live chat updates.
 - Implemented offline-first message repository with Hive caching.
+- Added Crashlytics initialization and user binding for crash-free tracking.
+- Logged startup time and cold-load chat timing via analytics events.
+- Marked Phase 5 as completed in the implementation plan.
+- Create consolidated `game-design-detail.md` merging v2 specs and v3 UI wireframes.
+- Updated design docs to emphasize Japanese (JA) as the single required language for UI/warnings.
+- Implemented the P.1 launch screen and P.2 room selection UI layout with the new grid-based room picker and CTA.
+- Wired pet mood data into the room selection cards so status pills reflect live pet state.
+- Updated the room drawer so selecting a room returns to the room list page instead of entering directly.
+- Updated room selection cards to the wireframe-style outline with placeholder frame and mood dots.
+- Display the latest feed photo per room inside the room selection card frame.
+- Restyled room cards to an instant-film photograph layout with a thick white frame and caption strip.
+- Updated design docs to support both Traditional Chinese (ZH) and Japanese (JA), switching based on user preference.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

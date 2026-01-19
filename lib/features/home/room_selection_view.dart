@@ -1,0 +1,449 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class RoomSelectionView extends StatelessWidget {
+  const RoomSelectionView({
+    super.key,
+    required this.rooms,
+    required this.onCreateRoom,
+    required this.onJoinRoom,
+    required this.onSelectRoom,
+    required this.creatingRoom,
+    required this.joiningRoom,
+    this.selectedRoomId,
+  });
+
+  final List<Map<String, dynamic>> rooms;
+  final VoidCallback onCreateRoom;
+  final VoidCallback onJoinRoom;
+  final ValueChanged<String> onSelectRoom;
+  final bool creatingRoom;
+  final bool joiningRoom;
+  final String? selectedRoomId;
+
+  static const _ink = Color(0xFF2F2A23);
+  static const _muted = Color(0xFF7A6F66);
+  static const _ctaStart = Color(0xFFFFB36B);
+  static const _ctaEnd = Color(0xFFF79B5F);
+  static const _mint = Color(0xFF7ED9C0);
+  static const _borderLight = Color(0xFFD9D2C8);
+  static const _filmBase = Color(0xFFFFF9F2);
+  static const _moodHigh = Color(0xFF67CBA0);
+  static const _moodMid = Color(0xFFF3B562);
+  static const _moodLow = Color(0xFF9CB1C7);
+  static const _moodSad = Color(0xFFF28B82);
+
+  @override
+  Widget build(BuildContext context) {
+    final totalSlots = max(4, rooms.length + 1);
+
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFFFFBF3), Color(0xFFFFF0E7)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -60,
+          right: -40,
+          child: Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 120,
+          left: -50,
+          child: Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
+                  children: [
+                    _buildMeButton(),
+                    const Gap(12),
+                    Expanded(
+                      child: Text(
+                        'Room Selection',
+                        style: GoogleFonts.fredoka(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: _ink,
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: joiningRoom ? null : onJoinRoom,
+                      icon: const Icon(Icons.key_rounded, size: 18),
+                      label: Text(
+                        joiningRoom ? 'Joining...' : 'Enter Invite Code',
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: _muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Text(
+                  'Pick a pet home and jump back in.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _muted,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.82,
+                  ),
+                  itemCount: totalSlots,
+                  itemBuilder: (context, index) {
+                    if (index < rooms.length) {
+                      final room = rooms[index];
+                      return _buildRoomCard(
+                        context,
+                        room,
+                      )
+                          .animate()
+                          .fadeIn(delay: (80 * index).ms)
+                          .slideY(begin: 0.1, end: 0);
+                    }
+                    return _buildEmptySlot(context)
+                        .animate()
+                        .fadeIn(delay: (80 * index).ms)
+                        .slideY(begin: 0.1, end: 0);
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: _buildPrimaryCta(context),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMeButton() {
+    return Builder(
+      builder: (context) {
+        return GestureDetector(
+          onTap: () => Scaffold.of(context).openDrawer(),
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.person_rounded, color: _ink),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRoomCard(
+    BuildContext context,
+    Map<String, dynamic> room,
+  ) {
+    final roomId = room['id'] as String?;
+    final isSelected = roomId != null && roomId == selectedRoomId;
+    final mood = room['mood'] as String?;
+    final moodColor = _moodColor(mood);
+    final moodDotCount = _moodDotCount(mood);
+    final latestPhoto = room['latest_photo'] as String?;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: roomId == null ? null : () => onSelectRoom(roomId),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: _filmBase,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected ? _ink : _borderLight,
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _borderLight, width: 1.2),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(13),
+                          child: latestPhoto == null || latestPhoto.isEmpty
+                              ? Container(
+                                  color: const Color(0xFFF8F4EF),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.photo_rounded,
+                                      size: 28,
+                                      color: _muted,
+                                    ),
+                                  ),
+                                )
+                              : CachedNetworkImage(
+                                  imageUrl: latestPhoto,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, _) => Container(
+                                    color: const Color(0xFFF8F4EF),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                    color: const Color(0xFFF8F4EF),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.photo_rounded,
+                                        size: 28,
+                                        color: _muted,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        Positioned(
+                          bottom: 6,
+                          child: Container(
+                            width: 18,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(color: moodColor, width: 2),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Gap(8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        room['name'] ?? 'Room',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _ink,
+                        ),
+                      ),
+                    ),
+                    _buildMoodDots(moodDotCount, moodColor),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptySlot(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: creatingRoom ? null : onCreateRoom,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: _filmBase,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _borderLight),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _borderLight, width: 1.2),
+                ),
+                child: const Icon(Icons.add_rounded, size: 26, color: _muted),
+              ),
+              const Gap(10),
+              Text(
+                'Empty slot',
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: _muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryCta(BuildContext context) {
+    return Opacity(
+      opacity: creatingRoom ? 0.6 : 1,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: creatingRoom ? null : onCreateRoom,
+          borderRadius: BorderRadius.circular(28),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [_ctaStart, _ctaEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: _ctaStart.withValues(alpha: 0.35),
+                  blurRadius: 22,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  creatingRoom ? 'Creating...' : 'Create New Pet',
+                  style: GoogleFonts.fredoka(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoodDots(int filled, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: List.generate(4, (index) {
+        final isActive = index < filled;
+        return Container(
+          margin: const EdgeInsets.only(right: 6),
+          width: 5,
+          height: 5,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive ? color : _borderLight,
+          ),
+        );
+      }),
+    );
+  }
+
+  int _moodDotCount(String? mood) {
+    switch (mood) {
+      case 'high':
+        return 4;
+      case 'mid':
+        return 3;
+      case 'low':
+        return 2;
+      case 'sad':
+        return 1;
+      default:
+        return 0;
+    }
+  }
+
+  Color _moodColor(String? mood) {
+    switch (mood) {
+      case 'high':
+        return _moodHigh;
+      case 'mid':
+        return _moodMid;
+      case 'low':
+        return _moodLow;
+      case 'sad':
+        return _moodSad;
+      default:
+        return _mint;
+    }
+  }
+}

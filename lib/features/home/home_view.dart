@@ -20,6 +20,7 @@ import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../store/store_view.dart';
+import 'room_selection_view.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -34,6 +35,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   bool _joiningRoom = false;
   bool _testingFeed = false;
   bool _loadingRoom = true;
+  bool _showRoomSelection = true;
+  String? _roomSelectionId;
   String? _roomId;
   String? _inviteCode;
   String? _feedResult;
@@ -139,8 +142,32 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
           }
       }
 
+      final roomIds = rooms
+          .map((room) => room['id'])
+          .whereType<String>()
+          .toList(growable: false);
+      if (roomIds.isNotEmpty) {
+        final moods = await _fetchRoomMoods(roomIds);
+        final photos = await _fetchRoomLatestPhotos(roomIds);
+        for (final room in rooms) {
+          final roomId = room['id'] as String?;
+          if (roomId != null && moods.containsKey(roomId)) {
+            room['mood'] = moods[roomId];
+          }
+          if (roomId != null && photos.containsKey(roomId)) {
+            room['latest_photo'] = photos[roomId];
+          }
+        }
+      }
+
       setState(() {
         _myRooms = rooms;
+        if (rooms.isEmpty) {
+          _showRoomSelection = true;
+          _roomSelectionId = null;
+        } else {
+          _roomSelectionId ??= _roomId ?? rooms.first['id'] as String?;
+        }
       });
 
       if (_roomId != null) {
@@ -183,6 +210,18 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
      }
   }
 
+  void _enterRoomFromSelection(String roomId) {
+    if (!_showRoomSelection) {
+      _switchRoom(roomId);
+      return;
+    }
+    setState(() {
+      _showRoomSelection = false;
+      _roomSelectionId = roomId;
+    });
+    _switchRoom(roomId);
+  }
+
   Future<void> _signOut() async {
     AnalyticsService.instance.logEvent('sign_out_tap');
     await Supabase.instance.client.auth.signOut();
@@ -209,7 +248,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       }
       final newId = response['room_id'] as String?;
       if (newId != null) {
-         _switchRoom(newId);
+         _enterRoomFromSelection(newId);
       }
       AnalyticsService.instance.logEvent('room_create', parameters: {
         'result': 'success',
@@ -303,7 +342,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
         return;
       }
       if (roomId != null) {
-        _switchRoom(roomId);
+        _enterRoomFromSelection(roomId);
       }
 
       AnalyticsService.instance.logEvent('room_join', parameters: {
@@ -580,6 +619,94 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     return response?['id'] as String?;
   }
 
+  Future<Map<String, String?>> _fetchRoomMoods(List<String> roomIds) async {
+    if (roomIds.isEmpty) {
+      return {};
+    }
+    final rows = await Supabase.instance.client
+        .from('pets')
+        .select('room_id, pet_state(mood)')
+        .inFilter('room_id', roomIds);
+
+    final moods = <String, String?>{};
+    for (final row in rows) {
+      final roomId = row['room_id'] as String?;
+      if (roomId == null) {
+        continue;
+      }
+      final state = row['pet_state'];
+      String? mood;
+      if (state is Map) {
+        mood = state['mood'] as String?;
+      } else if (state is List && state.isNotEmpty) {
+        final first = state.first;
+        if (first is Map) {
+          mood = first['mood'] as String?;
+        }
+      }
+      moods[roomId] = mood;
+    }
+    return moods;
+  }
+
+  Future<Map<String, String?>> _fetchRoomLatestPhotos(List<String> roomIds) async {
+    if (roomIds.isEmpty) {
+      return {};
+    }
+    final rows = await Supabase.instance.client
+        .from('messages')
+        .select('room_id, image_url, created_at')
+        .inFilter('room_id', roomIds)
+        .eq('type', 'image_feed')
+        .not('image_url', 'is', null)
+        .order('created_at', ascending: false)
+        .limit(roomIds.length * 6);
+
+    final photos = <String, String?>{};
+    for (final row in rows) {
+      final roomId = row['room_id'] as String?;
+      final imageUrl = row['image_url'] as String?;
+      if (roomId == null || photos.containsKey(roomId)) {
+        continue;
+      }
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        photos[roomId] = imageUrl;
+      }
+    }
+    return photos;
+  }
+
+  Future<void> _refreshLatestRoomPhoto(String roomId) async {
+    try {
+      final rows = await Supabase.instance.client
+          .from('messages')
+          .select('image_url, created_at')
+          .eq('room_id', roomId)
+          .eq('type', 'image_feed')
+          .not('image_url', 'is', null)
+          .order('created_at', ascending: false)
+          .limit(1);
+
+      if (rows.isEmpty) {
+        return;
+      }
+      final imageUrl = rows.first['image_url'] as String?;
+      if (imageUrl == null || imageUrl.isEmpty) {
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _myRooms = _myRooms
+            .map((room) => room['id'] == roomId
+                ? {...room, 'latest_photo': imageUrl}
+                : room)
+            .toList();
+      });
+    } catch (_) {}
+  }
+
   Future<void> _refreshPetState({bool tick = false}) async {
     final roomId = _roomId;
     if (roomId == null) return;
@@ -617,6 +744,12 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       setState(() {
         _petId = petId;
         _petState = state;
+        final mood = state?['mood'] as String?;
+        _myRooms = _myRooms
+            .map((room) => room['id'] == roomId
+                ? {...room, 'mood': mood}
+                : room)
+            .toList();
       });
     } catch (error) {
       setState(() => _petError = 'Pet sync error: $error');
@@ -647,6 +780,15 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
       setState(() {
         _petId = petId;
         _petState = Map<String, dynamic>.from(record);
+        final mood = _petState?['mood'] as String?;
+        final roomId = _roomId;
+        if (roomId != null) {
+          _myRooms = _myRooms
+              .map((room) => room['id'] == roomId
+                  ? {...room, 'mood': mood}
+                  : room)
+              .toList();
+        }
       });
     }
 
@@ -747,6 +889,10 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   void _handleFeedUploadCompleted(String tempId) {
     _chatListKey.currentState?.removeOptimisticMessage(tempId);
     _chatListKey.currentState?.refreshLatest();
+    final roomId = _roomId;
+    if (roomId != null) {
+      _refreshLatestRoomPhoto(roomId);
+    }
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
@@ -893,25 +1039,17 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
     final size = MediaQuery.of(context).size;
     _updateDragHeight(size.height);
 
-    if (_roomId == null) {
+    if (_showRoomSelection || _roomId == null) {
       return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('No Room Found', style: TextStyle(fontSize: 20)),
-              const Gap(20),
-              FilledButton(
-                onPressed: _creatingRoom ? null : _createRoom,
-                child: const Text('Create New Home'),
-              ),
-              const Gap(12),
-              OutlinedButton(
-                onPressed: _joiningRoom ? null : _joinRoomByCode,
-                child: const Text('Join with Invite Code'),
-              ),
-            ],
-          ),
+        drawer: _buildSideDrawer(),
+        body: RoomSelectionView(
+          rooms: _myRooms,
+          creatingRoom: _creatingRoom,
+          joiningRoom: _joiningRoom,
+          onCreateRoom: _createRoom,
+          onJoinRoom: _joinRoomByCode,
+          onSelectRoom: _enterRoomFromSelection,
+          selectedRoomId: _roomSelectionId ?? _roomId,
         ),
       );
     }
@@ -1417,7 +1555,10 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                          ],
                        ),
                        onTap: () {
-                          if (!isSelected) _switchRoom(room['id']);
+                          setState(() {
+                            _roomSelectionId = room['id'] as String?;
+                            _showRoomSelection = true;
+                          });
                           Navigator.pop(context); // Close Drawer
                        },
                      );
