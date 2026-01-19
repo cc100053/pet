@@ -1,22 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum RewardedAdPlacement {
-  doubleCoins,
-}
+enum RewardedAdPlacement { doubleCoins }
 
-enum RewardedAdAvailability {
-  unavailable,
-  loading,
-  ready,
-}
+enum RewardedAdAvailability { unavailable, loading, ready }
 
-enum RewardedAdResultStatus {
-  rewarded,
-  dismissed,
-  failed,
-  unavailable,
-}
+enum RewardedAdResultStatus { rewarded, dismissed, failed, unavailable }
 
 class RewardedAdState {
   RewardedAdState({
@@ -33,11 +22,7 @@ class RewardedAdState {
 }
 
 class RewardedAdContext {
-  const RewardedAdContext({
-    this.roomId,
-    this.baseCoins,
-    this.eventId,
-  });
+  const RewardedAdContext({this.roomId, this.baseCoins, this.eventId});
 
   final String? roomId;
   // baseCoins is the pre-reward amount so later multipliers stay deterministic.
@@ -46,10 +31,7 @@ class RewardedAdContext {
 }
 
 class RewardedAdRequest {
-  const RewardedAdRequest({
-    required this.placement,
-    this.context,
-  });
+  const RewardedAdRequest({required this.placement, this.context});
 
   final RewardedAdPlacement placement;
   final RewardedAdContext? context;
@@ -75,19 +57,16 @@ class RewardedAdResult {
   });
 
   const RewardedAdResult.rewarded(RewardedAdReward reward)
-      : this._(status: RewardedAdResultStatus.rewarded, reward: reward);
+    : this._(status: RewardedAdResultStatus.rewarded, reward: reward);
 
   const RewardedAdResult.dismissed()
-      : this._(status: RewardedAdResultStatus.dismissed);
+    : this._(status: RewardedAdResultStatus.dismissed);
 
   const RewardedAdResult.failed(String message)
-      : this._(status: RewardedAdResultStatus.failed, errorMessage: message);
+    : this._(status: RewardedAdResultStatus.failed, errorMessage: message);
 
   const RewardedAdResult.unavailable(String message)
-      : this._(
-          status: RewardedAdResultStatus.unavailable,
-          errorMessage: message,
-        );
+    : this._(status: RewardedAdResultStatus.unavailable, errorMessage: message);
 
   final RewardedAdResultStatus status;
   final RewardedAdReward? reward;
@@ -110,12 +89,12 @@ abstract class RewardedAdsService {
 
 class RewardedAdsStubService implements RewardedAdsService {
   RewardedAdsStubService()
-      : _state = ValueNotifier(
-          RewardedAdState(
-            availability: RewardedAdAvailability.unavailable,
-            message: 'Rewarded ads not configured.',
-          ),
-        );
+    : _state = ValueNotifier(
+        RewardedAdState(
+          availability: RewardedAdAvailability.unavailable,
+          message: 'Rewarded ads not configured.',
+        ),
+      );
 
   final ValueNotifier<RewardedAdState> _state;
 

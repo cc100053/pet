@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -43,7 +44,7 @@ class _StoreViewState extends State<StoreView> {
     if (user == null) {
       setState(() {
         _loading = false;
-        _error = 'Please sign in to access the store.';
+        _error = AppLocalizations.of(context)!.storeSignInPrompt;
       });
       return;
     }
@@ -97,7 +98,9 @@ class _StoreViewState extends State<StoreView> {
         return;
       }
       setState(() {
-        _error = 'Failed to load store: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.storeLoadFailed(error.toString());
       });
     } finally {
       if (mounted) {
@@ -115,8 +118,9 @@ class _StoreViewState extends State<StoreView> {
     });
 
     try {
-      final configured =
-          await _revenueCatService.configure(appUserId: appUserId);
+      final configured = await _revenueCatService.configure(
+        appUserId: appUserId,
+      );
       if (!configured) {
         setState(() {
           _iapConfigured = false;
@@ -131,8 +135,9 @@ class _StoreViewState extends State<StoreView> {
       final packagesByProductId = _extractPackagesByProductId(offerings);
       final activeEntitlements = <String>{};
       if (customerInfo != null) {
-        activeEntitlements
-            .addAll(customerInfo.entitlements.active.keys.toList());
+        activeEntitlements.addAll(
+          customerInfo.entitlements.active.keys.toList(),
+        );
       }
 
       if (!mounted) {
@@ -152,7 +157,9 @@ class _StoreViewState extends State<StoreView> {
       }
       setState(() {
         _iapConfigured = false;
-        _iapError = 'IAP unavailable: $error';
+        _iapError = AppLocalizations.of(
+          context,
+        )!.storeIapUnavailable(error.toString());
         _packagesByProductId.clear();
         _activeEntitlements = {};
       });
@@ -204,10 +211,7 @@ class _StoreViewState extends State<StoreView> {
     try {
       final response = await Supabase.instance.client.rpc(
         'purchase_item_with_coins',
-        params: {
-          'p_item_id': item.id,
-          'p_quantity': 1,
-        },
+        params: {'p_item_id': item.id, 'p_quantity': 1},
       );
 
       Map<String, dynamic>? row;
@@ -234,23 +238,31 @@ class _StoreViewState extends State<StoreView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Purchased ${item.name}.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storePurchaseSuccess(item.name),
+          ),
+        ),
       );
-      AnalyticsService.instance.logEvent('purchase_coins', parameters: {
-        'result': 'success',
-        'sku': item.sku,
-      });
+      AnalyticsService.instance.logEvent(
+        'purchase_coins',
+        parameters: {'result': 'success', 'sku': item.sku},
+      );
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Purchase failed: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storePurchaseFailed(error.toString()),
+          ),
+        ),
       );
-      AnalyticsService.instance.logEvent('purchase_coins', parameters: {
-        'result': 'failure',
-        'sku': item.sku,
-      });
+      AnalyticsService.instance.logEvent(
+        'purchase_coins',
+        parameters: {'result': 'failure', 'sku': item.sku},
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -273,7 +285,9 @@ class _StoreViewState extends State<StoreView> {
     final package = _packagesByProductId[productId];
     if (package == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product unavailable.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.storeProductUnavailable),
+        ),
       );
       return;
     }
@@ -287,8 +301,8 @@ class _StoreViewState extends State<StoreView> {
       if (result != null) {
         if (item.iapType == 'subscription') {
           setState(() {
-            _activeEntitlements =
-                result.customerInfo.entitlements.active.keys.toSet();
+            _activeEntitlements = result.customerInfo.entitlements.active.keys
+                .toSet();
           });
         } else {
           await _grantIapCoins(item, result);
@@ -298,25 +312,39 @@ class _StoreViewState extends State<StoreView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Purchased ${item.name}.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storePurchaseSuccess(item.name),
+          ),
+        ),
       );
-      AnalyticsService.instance.logEvent('purchase_iap', parameters: {
-        'result': 'success',
-        'sku': item.sku,
-        'type': item.iapType ?? 'unknown',
-      });
+      AnalyticsService.instance.logEvent(
+        'purchase_iap',
+        parameters: {
+          'result': 'success',
+          'sku': item.sku,
+          'type': item.iapType ?? 'unknown',
+        },
+      );
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Purchase failed: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storePurchaseFailed(error.toString()),
+          ),
+        ),
       );
-      AnalyticsService.instance.logEvent('purchase_iap', parameters: {
-        'result': 'failure',
-        'sku': item.sku,
-        'type': item.iapType ?? 'unknown',
-      });
+      AnalyticsService.instance.logEvent(
+        'purchase_iap',
+        parameters: {
+          'result': 'failure',
+          'sku': item.sku,
+          'type': item.iapType ?? 'unknown',
+        },
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -380,23 +408,26 @@ class _StoreViewState extends State<StoreView> {
       final info = await _revenueCatService.restorePurchases();
       if (info != null && mounted) {
         setState(() {
-          _activeEntitlements =
-              info.entitlements.active.keys.toSet();
+          _activeEntitlements = info.entitlements.active.keys.toSet();
         });
-        AnalyticsService.instance.logEvent('restore_purchases_result', parameters: {
-          'result': 'success',
-        });
+        AnalyticsService.instance.logEvent(
+          'restore_purchases_result',
+          parameters: {'result': 'success'},
+        );
       }
     } catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _iapError = 'Restore failed: $error';
+        _iapError = AppLocalizations.of(
+          context,
+        )!.storeRestoreFailed(error.toString());
       });
-      AnalyticsService.instance.logEvent('restore_purchases_result', parameters: {
-        'result': 'failure',
-      });
+      AnalyticsService.instance.logEvent(
+        'restore_purchases_result',
+        parameters: {'result': 'failure'},
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -422,34 +453,33 @@ class _StoreViewState extends State<StoreView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Store'),
+        title: Text(l10n.storeTitle),
         actions: [
           if (_subscriptionItems.isNotEmpty)
             IconButton(
               onPressed: _iapLoading ? null : _restorePurchases,
               icon: const Icon(Icons.restore),
-              tooltip: 'Restore purchases',
+              tooltip: l10n.storeRestoreTooltip,
             ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
-              child: Chip(
-                label: Text('Coins: $_coins'),
-              ),
+              child: Chip(label: Text(l10n.storeCoinsLabel(_coins))),
             ),
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadStore,
-        child: _buildBody(context),
+        child: _buildBody(context, l10n),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, AppLocalizations l10n) {
     if (_loading) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -473,7 +503,7 @@ class _StoreViewState extends State<StoreView> {
           const SizedBox(height: 12),
           OutlinedButton(
             onPressed: _loadStore,
-            child: const Text('Try again'),
+            child: Text(l10n.commonTryAgain),
           ),
         ],
       );
@@ -483,12 +513,7 @@ class _StoreViewState extends State<StoreView> {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(24),
-        children: const [
-          Text(
-            'Store is empty for now.',
-            textAlign: TextAlign.center,
-          ),
-        ],
+        children: [Text(l10n.storeEmpty, textAlign: TextAlign.center)],
       );
     }
 
@@ -497,7 +522,7 @@ class _StoreViewState extends State<StoreView> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       children: [
         if (_subscriptionItems.isNotEmpty) ...[
-          const _SectionHeader(title: 'Subscription'),
+          _SectionHeader(title: l10n.storeSectionSubscription),
           if (_iapError != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -506,31 +531,28 @@ class _StoreViewState extends State<StoreView> {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
-          for (final item in _subscriptionItems)
-            _buildIapCard(item),
+          for (final item in _subscriptionItems) _buildIapCard(item, l10n),
           const SizedBox(height: 8),
         ],
         if (_iapConsumableItems.isNotEmpty) ...[
-          const _SectionHeader(title: 'Coin Packs'),
-          for (final item in _iapConsumableItems)
-            _buildIapCard(item),
+          _SectionHeader(title: l10n.storeSectionCoinPacks),
+          for (final item in _iapConsumableItems) _buildIapCard(item, l10n),
           const SizedBox(height: 8),
         ],
         if (_coinItems.isNotEmpty) ...[
-          const _SectionHeader(title: 'Coin Store'),
-          for (final item in _coinItems)
-            _buildCoinCard(item),
+          _SectionHeader(title: l10n.storeSectionCoinStore),
+          for (final item in _coinItems) _buildCoinCard(item, l10n),
         ],
       ],
     );
   }
 
-  Widget _buildIapCard(StoreItem item) {
+  Widget _buildIapCard(StoreItem item, AppLocalizations l10n) {
     final productId = item.iapProductId;
-    final package =
-        productId == null ? null : _packagesByProductId[productId];
-    final priceString = package?.storeProduct.priceString ??
-        (item.priceJpy != null ? 'JPY ${item.priceJpy}' : null);
+    final package = productId == null ? null : _packagesByProductId[productId];
+    final priceString =
+        package?.storeProduct.priceString ??
+        (item.priceJpy != null ? l10n.currencyJpy(item.priceJpy!) : null);
     final isSubscription = item.iapType == 'subscription';
     final entitlementId = item.rcEntitlementId;
     final isSubscribed =
@@ -559,7 +581,7 @@ class _StoreViewState extends State<StoreView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item.displayType,
+                        _displayTypeLabel(item, l10n),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -569,9 +591,13 @@ class _StoreViewState extends State<StoreView> {
                   onPressed: isSubscribed || !canBuy
                       ? null
                       : () => _purchaseIapItem(item),
-                  child: Text(isSubscription
-                      ? (isSubscribed ? 'Active' : 'Subscribe')
-                      : 'Buy'),
+                  child: Text(
+                    isSubscription
+                        ? (isSubscribed
+                              ? l10n.storeSubscriptionActive
+                              : l10n.storeSubscribe)
+                        : l10n.commonBuy,
+                  ),
                 ),
               ],
             ),
@@ -581,28 +607,28 @@ class _StoreViewState extends State<StoreView> {
             ],
             if (!isSubscription && item.coinAmount != null) ...[
               const SizedBox(height: 6),
-              Text('Coins +${item.coinAmount}'),
+              Text(l10n.storeCoinsReward(item.coinAmount!)),
             ],
             const SizedBox(height: 8),
             Row(
               children: [
-                Text(priceString ?? 'Price unavailable'),
+                Text(priceString ?? l10n.storePriceUnavailable),
                 if (item.priceJpy != null) ...[
                   const SizedBox(width: 12),
-                  Text('JPY ${item.priceJpy}'),
+                  Text(l10n.currencyJpy(item.priceJpy!)),
                 ],
               ],
             ),
             if (!_iapConfigured) ...[
               const SizedBox(height: 6),
               Text(
-                'IAP not configured.',
+                l10n.storeIapNotConfigured,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ] else if (package == null) ...[
               const SizedBox(height: 6),
               Text(
-                'Product not found in RevenueCat.',
+                l10n.storeProductNotFound,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
@@ -612,7 +638,7 @@ class _StoreViewState extends State<StoreView> {
     );
   }
 
-  Widget _buildCoinCard(StoreItem item) {
+  Widget _buildCoinCard(StoreItem item, AppLocalizations l10n) {
     final ownedQty = _inventory[item.id] ?? 0;
     final isCosmetic = item.type == 'cosmetic';
     final isOwned = isCosmetic && ownedQty > 0;
@@ -641,7 +667,7 @@ class _StoreViewState extends State<StoreView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item.displayType,
+                        _displayTypeLabel(item, l10n),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -649,7 +675,7 @@ class _StoreViewState extends State<StoreView> {
                 ),
                 FilledButton(
                   onPressed: canBuy ? () => _purchaseItem(item) : null,
-                  child: Text(isOwned ? 'Owned' : 'Buy'),
+                  child: Text(isOwned ? l10n.commonOwned : l10n.commonBuy),
                 ),
               ],
             ),
@@ -660,24 +686,24 @@ class _StoreViewState extends State<StoreView> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Text('Coins: ${item.priceCoins ?? '-'}'),
+                Text(l10n.storeCoinPrice(item.priceCoins?.toString() ?? '-')),
                 if (item.priceJpy != null) ...[
                   const SizedBox(width: 12),
-                  Text('JPY ${item.priceJpy}'),
+                  Text(l10n.currencyJpy(item.priceJpy!)),
                 ],
               ],
             ),
             if (showQuantity) ...[
               const SizedBox(height: 6),
-              Text('Owned: $ownedQty'),
+              Text(l10n.storeOwnedCount(ownedQty)),
             ] else if (isOwned) ...[
               const SizedBox(height: 6),
-              const Text('Owned'),
+              Text(l10n.commonOwned),
             ],
             if (!canAfford && !isOwned && item.priceCoins != null) ...[
               const SizedBox(height: 6),
               Text(
-                'Not enough coins.',
+                l10n.storeNotEnoughCoins,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
@@ -685,6 +711,22 @@ class _StoreViewState extends State<StoreView> {
         ),
       ),
     );
+  }
+
+  String _displayTypeLabel(StoreItem item, AppLocalizations l10n) {
+    if (item.iapType == 'subscription') {
+      return l10n.storeTypeSubscription;
+    }
+    switch (item.type) {
+      case 'cosmetic':
+        return l10n.storeTypeCosmetic;
+      case 'consumable':
+        return l10n.storeTypeConsumable;
+      case 'subscription':
+        return l10n.storeTypeSubscription;
+      default:
+        return item.type;
+    }
   }
 }
 
@@ -785,10 +827,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }

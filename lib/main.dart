@@ -13,20 +13,19 @@ import 'firebase_options.dart';
 import 'services/chat/chat_message_repository.dart';
 import 'services/env.dart';
 import 'services/performance/performance_service.dart';
+import 'services/settings/app_settings_repository.dart';
 
 Future<void> main() async {
   final appStartTime = DateTime.now();
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-  
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
-  await FirebaseCrashlytics.instance
-      .setCrashlyticsCollectionEnabled(!kDebugMode);
-  FlutterError.onError =
-      FirebaseCrashlytics.instance.recordFlutterFatalError;
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+    !kDebugMode,
+  );
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
@@ -39,14 +38,18 @@ Future<void> main() async {
   );
 
   await Hive.initFlutter();
+  await AppSettingsRepository.instance.init();
   await ChatMessageRepository.instance.init();
   PerformanceService.instance.markAppStart(appStartTime);
-  runZonedGuarded(() {
-    runApp(const ProviderScope(child: PicPetApp()));
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      PerformanceService.instance.markFirstFrameRendered();
-    });
-  }, (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  });
+  runZonedGuarded(
+    () {
+      runApp(const ProviderScope(child: PicPetApp()));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        PerformanceService.instance.markFirstFrameRendered();
+      });
+    },
+    (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    },
+  );
 }

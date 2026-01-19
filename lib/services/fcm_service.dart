@@ -48,7 +48,9 @@ class FCMService {
   }
 
   Future<void> _initLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
     const settings = InitializationSettings(
       android: androidSettings,
@@ -58,12 +60,14 @@ class FCMService {
     await _localNotifications.initialize(settings);
     final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await androidPlugin?.createNotificationChannel(_channel);
 
     final iosPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+          IOSFlutterLocalNotificationsPlugin
+        >();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
@@ -142,18 +146,14 @@ class FCMService {
 
     try {
       final now = DateTime.now().toUtc().toIso8601String();
-      await _supabase.from('device_tokens').upsert(
-        {
-          'user_id': user.id,
-          'token': token,
-          'platform': _platformLabel(),
-          'last_seen_at': now,
-          'updated_at': now,
-        },
-        onConflict: 'user_id',
-      );
-    } catch (_) {
-    }
+      await _supabase.from('device_tokens').upsert({
+        'user_id': user.id,
+        'token': token,
+        'platform': _platformLabel(),
+        'last_seen_at': now,
+        'updated_at': now,
+      }, onConflict: 'user_id');
+    } catch (_) {}
   }
 
   String _platformLabel() {

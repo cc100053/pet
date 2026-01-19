@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/ui/cached_network_image_view.dart';
@@ -81,17 +82,26 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
 
       _entries
         ..clear()
-        ..addAll(blockedIds.map((id) {
-          final profile = profileById[id];
-          return _BlockedUserEntry(
-            userId: id,
-            nickname: profile?.nickname,
-            avatarUrl: profile?.avatarUrl,
-            createdAt: createdAtById[id],
-          );
-        }));
+        ..addAll(
+          blockedIds.map((id) {
+            final profile = profileById[id];
+            return _BlockedUserEntry(
+              userId: id,
+              nickname: profile?.nickname,
+              avatarUrl: profile?.avatarUrl,
+              createdAt: createdAtById[id],
+            );
+          }),
+        );
     } catch (error) {
-      _error = 'Failed to load blocked users: $error';
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = AppLocalizations.of(
+          context,
+        )!.blockedUsersLoadFailed(error.toString());
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -143,7 +153,9 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
       widget.onBlockListChanged?.call();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User unblocked.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.blockedUserUnblocked),
+        ),
       );
     } catch (error) {
       if (!mounted) {
@@ -153,7 +165,13 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
         _unblockingIds.remove(entry.userId);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unblock failed: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.blockedUserUnblockFailed(error.toString()),
+          ),
+        ),
       );
     }
   }
@@ -165,6 +183,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return SafeArea(
       child: Padding(
@@ -181,19 +200,19 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Blocked users',
+                    l10n.blockedUsersTitle,
                     style: theme.textTheme.titleLarge,
                   ),
                 ),
                 IconButton(
                   onPressed: _loading ? null : _load,
                   icon: const Icon(Icons.refresh),
-                  tooltip: 'Reload',
+                  tooltip: l10n.commonReload,
                 ),
                 IconButton(
                   onPressed: _close,
                   icon: const Icon(Icons.close),
-                  tooltip: 'Close',
+                  tooltip: l10n.commonClose,
                 ),
               ],
             ),
@@ -216,15 +235,15 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
                     const SizedBox(height: 12),
                     OutlinedButton(
                       onPressed: _load,
-                      child: const Text('Try again'),
+                      child: Text(l10n.commonTryAgain),
                     ),
                   ],
                 ),
               )
             else if (_entries.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('No blocked users yet.'),
+                child: Text(l10n.blockedUsersEmpty),
               )
             else
               Flexible(
@@ -235,16 +254,14 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
                       const Divider(height: 16),
                   itemBuilder: (context, index) {
                     final entry = _entries[index];
-                    final displayName =
-                        (entry.nickname ?? '').trim().isEmpty
-                            ? 'User'
-                            : entry.nickname!.trim();
+                    final displayName = (entry.nickname ?? '').trim().isEmpty
+                        ? l10n.commonUser
+                        : entry.nickname!.trim();
                     final showId = (entry.nickname ?? '').trim().isEmpty;
                     final subtitle = showId
-                        ? 'ID (truncated): ${_truncateId(entry.userId)}'
+                        ? l10n.blockedUserIdTruncated(_truncateId(entry.userId))
                         : null;
-                    final isUnblocking =
-                        _unblockingIds.contains(entry.userId);
+                    final isUnblocking = _unblockingIds.contains(entry.userId);
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
@@ -259,7 +276,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
                             )
                           : TextButton(
                               onPressed: () => _unblockUser(entry),
-                              child: const Text('Unblock'),
+                              child: Text(l10n.commonUnblock),
                             ),
                     );
                   },
@@ -283,9 +300,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
       );
     }
 
-    return const CircleAvatar(
-      child: Icon(Icons.person),
-    );
+    return const CircleAvatar(child: Icon(Icons.person));
   }
 
   String _truncateId(String id) {

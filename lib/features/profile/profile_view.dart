@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileView extends StatefulWidget {
@@ -25,6 +26,9 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<Map<String, dynamic>?> _loadProfile() async {
+    final defaultNickname = AppLocalizations.of(
+      context,
+    )!.profileDefaultNickname;
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       return null;
@@ -42,7 +46,7 @@ class _ProfileViewState extends State<ProfileView> {
 
     await Supabase.instance.client.from('profiles').insert({
       'user_id': user.id,
-      'nickname': 'Pet Parent',
+      'nickname': defaultNickname,
     });
 
     return Supabase.instance.client
@@ -73,7 +77,7 @@ class _ProfileViewState extends State<ProfileView> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)),
     );
 
     setState(() {
@@ -83,6 +87,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FutureBuilder<Map<String, dynamic>?>(
       future: _profileFuture,
       builder: (context, snapshot) {
@@ -91,12 +96,12 @@ class _ProfileViewState extends State<ProfileView> {
         }
         if (snapshot.hasError) {
           return Center(
-            child: Text('Failed to load profile: ${snapshot.error}'),
+            child: Text(l10n.profileLoadFailed(snapshot.error.toString())),
           );
         }
         final profile = snapshot.data;
         if (profile == null) {
-          return const Center(child: Text('No profile available.'));
+          return Center(child: Text(l10n.profileEmpty));
         }
 
         final nickname = profile['nickname'] as String? ?? '';
@@ -110,23 +115,23 @@ class _ProfileViewState extends State<ProfileView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Profile',
+                l10n.profileTitle,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
-              Text('User ID: ${profile['user_id']}'),
+              Text(l10n.profileUserId(profile['user_id'])),
               const SizedBox(height: 16),
               TextField(
                 controller: _nicknameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nickname',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.profileNicknameLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: _saveProfile,
-                child: const Text('Save'),
+                child: Text(l10n.commonSave),
               ),
             ],
           ),

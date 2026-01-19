@@ -1,0 +1,377 @@
+{
+  "@@locale": "zh_TW",
+  "appleSignInRejected": "Apple 登入被拒絕，請檢查 Supabase Apple 供應商的 Client ID。",
+  "authReauthRequired": "請重新登入。",
+  "blockedUserIdTruncated": "ID（縮略）：{id}",
+  "@blockedUserIdTruncated": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "blockedUsersEmpty": "目前沒有封鎖的用戶。",
+  "blockedUsersLoadFailed": "載入封鎖名單失敗：{error}",
+  "@blockedUsersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "blockedUsersTitle": "已封鎖的用戶",
+  "blockedUserUnblocked": "已解除封鎖。",
+  "blockedUserUnblockFailed": "解除封鎖失敗：{error}",
+  "@blockedUserUnblockFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "calendarAddMemory": "新增回憶",
+  "calendarEarlier": "較早",
+  "calendarLatestPhoto": "最新的照片",
+  "calendarLoadFailed": "載入回憶失敗：{error}",
+  "@calendarLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "calendarNoEarlierMemories": "暫無較早的回憶。",
+  "calendarNoMemoriesForDay": "這天沒有回憶。",
+  "calendarNoPhotoYet": "尚無照片",
+  "calendarTitle": "回憶錄",
+  "calendarToday": "今天",
+  "chatBlockFailed": "封鎖失敗：{error}",
+  "@chatBlockFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatBlockUser": "封鎖用戶",
+  "chatCoinsAwarded": "+{count} 金幣",
+  "@chatCoinsAwarded": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "chatEmptyState": "尚無訊息，從下方開始聊天吧。",
+  "chatLoadBlockedUsersFailed": "載入封鎖名單失敗：{error}",
+  "@chatLoadBlockedUsersFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadCacheFailed": "載入快取訊息失敗：{error}",
+  "@chatLoadCacheFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadMessagesFailed": "載入訊息失敗：{error}",
+  "@chatLoadMessagesFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadMoreFailed": "載入更多失敗：{error}",
+  "@chatLoadMoreFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadOlderMessages": "載入更早的訊息",
+  "chatMessageHint": "訊息",
+  "chatNoOlderMessages": "沒有更早的訊息。",
+  "chatPartnerLabel": "對方",
+  "chatRefreshFailed": "更新失敗：{error}",
+  "@chatRefreshFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatReportFailed": "檢舉失敗：{error}",
+  "@chatReportFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatReportHint": "簡單說明原因",
+  "chatReportMessageTitle": "檢舉訊息",
+  "chatReportNoReason": "無原因",
+  "chatReportSent": "已送出檢舉。",
+  "chatSendFailed": "傳送失敗：{error}",
+  "@chatSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatSystemUpdate": "系統通知",
+  "chatTitle": "聊天",
+  "chatUserAlreadyBlocked": "已封鎖",
+  "chatUserBlocked": "已封鎖用戶。",
+  "commonBuy": "購買",
+  "commonCamera": "相機",
+  "commonCancel": "取消",
+  "commonClose": "關閉",
+  "commonGallery": "相簿",
+  "commonJoin": "加入",
+  "commonLeave": "離開",
+  "commonOwned": "已擁有",
+  "commonReload": "重新載入",
+  "commonSave": "儲存",
+  "commonSend": "送出",
+  "commonSending": "送出中...",
+  "commonSignOut": "登出",
+  "commonSubmit": "送出",
+  "commonTryAgain": "再試一次",
+  "commonUnblock": "解除封鎖",
+  "commonUploading": "上傳中",
+  "commonUser": "用戶",
+  "currencyJpy": "JPY {amount}",
+  "@currencyJpy": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "drawerCreateRoom": "建立新房間",
+  "drawerDebugTools": "除錯工具",
+  "drawerForceRefreshPet": "強制更新寵物",
+  "drawerFreePlan": "免費方案",
+  "drawerInviteCode": "代碼：{code}",
+  "@drawerInviteCode": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "drawerJoinWithCode": "使用邀請碼加入",
+  "drawerMyRooms": "我的房間",
+  "drawerNoRooms": "目前沒有房間。",
+  "drawerPetError": "寵物錯誤",
+  "drawerRegenerateInviteCode": "重新產生邀請碼",
+  "drawerSimulateFeed": "模擬餵食",
+  "drawerTestNotification": "測試本地通知",
+  "feedCameraSubtitle": "拍照並檢查標籤後再送出。",
+  "feedCameraTitle": "餵食相機",
+  "feedCanonicalTags": "標準標籤：{tags}",
+  "@feedCanonicalTags": {
+    "placeholders": {
+      "tags": {}
+    }
+  },
+  "feedCaptionLabel": "說明（選填）",
+  "feedDetectedLabels": "偵測到的標籤",
+  "feedLabelingFailed": "標註失敗：{error}",
+  "@feedLabelingFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedLabelingNotSupported": "Web 不支援 ML Kit 影像標註。",
+  "feedLabelMappingsFailed": "載入標籤對應失敗：{error}",
+  "@feedLabelMappingsFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedLabelMappingsLoading": "載入標籤對應中...",
+  "feedLabelMappingsReady": "標籤對應已就緒。",
+  "feedLabelMappingsUnavailable": "無法使用標籤對應。",
+  "feedNoLabels": "尚未偵測到標籤。",
+  "feedResponse": "回應：{response}",
+  "@feedResponse": {
+    "placeholders": {
+      "response": {}
+    }
+  },
+  "feedSelectImageFirst": "請先選擇圖片。",
+  "feedSendButton": "送出餵食",
+  "feedSendFailed": "送出失敗：{error}",
+  "@feedSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedTitle": "餵食",
+  "feedUploadFailed": "餵食上傳失敗：{error}",
+  "@feedUploadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "forceUpdateAction": "立即更新",
+  "forceUpdateLinkError": "無法開啟商店連結。",
+  "forceUpdateMessage": "需要更新到新版本才能繼續使用，請立即更新。",
+  "forceUpdateTitle": "需要更新",
+  "languageChineseTraditional": "繁體中文",
+  "languageEnglish": "英文",
+  "languageJapanese": "日文",
+  "languageSystem": "系統",
+  "languageSystemSubtitle": "跟隨裝置語言",
+  "languageTitle": "語言",
+  "launchTagline": "分享日常，一起成長。",
+  "moodHigh": "高",
+  "moodLow": "低",
+  "moodMid": "中",
+  "moodNeutral": "普通",
+  "moodSad": "難過",
+  "petActionFailed": "操作失敗：{error}",
+  "@petActionFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "petHomeTitle": "寵物的家",
+  "petNotFound": "找不到寵物。",
+  "petSyncFailed": "寵物同步錯誤：{error}",
+  "@petSyncFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "photoLabel": "照片",
+  "profileDefaultNickname": "寵物爸媽",
+  "profileEmpty": "沒有個人檔案。",
+  "profileLoadFailed": "載入個人檔案失敗：{error}",
+  "@profileLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "profileNicknameLabel": "暱稱",
+  "profileTitle": "個人檔案",
+  "profileUpdated": "已更新個人檔案",
+  "profileUserId": "使用者 ID：{id}",
+  "@profileUserId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "roomCreatedSuccess": "已建立房間！請查看側邊欄。",
+  "roomCreateFailed": "建立房間失敗：{error}",
+  "@roomCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomDefaultName": "新房間",
+  "roomInviteCodeRegenerated": "邀請碼已重新產生。",
+  "roomInviteCodeRegenerateFailed": "重新產生邀請碼失敗：{error}",
+  "@roomInviteCodeRegenerateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomJoinFailed": "加入房間失敗：{error}",
+  "@roomJoinFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomJoinHelper": "邀請碼不區分大小寫。",
+  "roomJoinHint": "輸入 6 位邀請碼",
+  "roomJoinSuccess": "加入房間成功。",
+  "roomJoinTitle": "加入房間",
+  "roomLeaveFailed": "離開房間失敗：{error}",
+  "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomLeaveMessage": "離開後在重新邀請前將無法存取這隻寵物。",
+  "roomLeaveSuccess": "已離開房間。",
+  "roomLeaveTitle": "離開房間？",
+  "roomLimitReached": "已達免費上限（最多 2 個房間）。升級以新增更多！",
+  "roomNewInviteCode": "新的邀請碼：{code}",
+  "@roomNewInviteCode": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "roomSelectionCreatePet": "建立新寵物",
+  "roomSelectionCreating": "建立中...",
+  "roomSelectionEmptySlot": "空位",
+  "roomSelectionEnterInvite": "輸入邀請碼",
+  "roomSelectionJoining": "加入中...",
+  "roomSelectionRoomFallback": "房間",
+  "roomSelectionSubtitle": "選擇寵物的家並繼續。",
+  "roomSelectionTitle": "房間選擇",
+  "signInFailed": "登入失敗，請再試一次。",
+  "signInNote": "注意：需要在 Supabase 設定 OAuth 供應商。",
+  "signInOpening": "正在開啟登入...",
+  "signInOpeningProvider": "正在開啟 {provider}...",
+  "@signInOpeningProvider": {
+    "placeholders": {
+      "provider": {}
+    }
+  },
+  "signInSubtitle": "登入後開始一起養成寵物。",
+  "signInWithApple": "使用 Apple 繼續",
+  "signInWithGoogle": "使用 Google 繼續",
+  "storeCoinPrice": "金幣：{amount}",
+  "@storeCoinPrice": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeCoinsLabel": "金幣：{amount}",
+  "@storeCoinsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeCoinsReward": "金幣 +{amount}",
+  "@storeCoinsReward": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeEmpty": "商店目前沒有商品。",
+  "storeIapNotConfigured": "尚未設定 IAP。",
+  "storeIapUnavailable": "IAP 無法使用：{error}",
+  "@storeIapUnavailable": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeLoadFailed": "載入商店失敗：{error}",
+  "@storeLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeNotEnoughCoins": "金幣不足。",
+  "storeOwnedCount": "已擁有：{amount}",
+  "@storeOwnedCount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storePriceUnavailable": "價格不可用",
+  "storeProductNotFound": "在 RevenueCat 找不到商品。",
+  "storeProductUnavailable": "商品不可用。",
+  "storePurchaseFailed": "購買失敗：{error}",
+  "@storePurchaseFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storePurchaseSuccess": "已購買 {name}。",
+  "@storePurchaseSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "storeRestoreFailed": "復原失敗：{error}",
+  "@storeRestoreFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeRestoreTooltip": "恢復購買",
+  "storeSectionCoinPacks": "金幣包",
+  "storeSectionCoinStore": "金幣商店",
+  "storeSectionSubscription": "訂閱",
+  "storeSignInPrompt": "請先登入才能使用商店。",
+  "storeSubscribe": "訂閱",
+  "storeSubscriptionActive": "已啟用",
+  "storeTitle": "商店",
+  "storeTypeConsumable": "消耗品",
+  "storeTypeCosmetic": "外觀",
+  "storeTypeSubscription": "訂閱"
+}

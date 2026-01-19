@@ -1,5 +1,5 @@
 // Barrel file for image labeling service
-// 
+//
 // ⚠️ IMPORTANT: This uses STUB (mock labels) when google_mlkit_image_labeling
 // is commented out in pubspec.yaml. See memory-bank/tech-stack.md for details.
 //

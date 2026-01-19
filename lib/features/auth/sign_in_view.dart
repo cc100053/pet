@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -33,9 +34,10 @@ class _SignInViewState extends State<SignInView> {
         _signingIn = true;
         _activeProvider = provider.name;
       });
-      AnalyticsService.instance.logEvent('sign_in_tap', parameters: {
-        'provider': provider.name,
-      });
+      AnalyticsService.instance.logEvent(
+        'sign_in_tap',
+        parameters: {'provider': provider.name},
+      );
       await Supabase.instance.client.auth.signInWithOAuth(
         provider,
         redirectTo: redirectUrl,
@@ -70,9 +72,10 @@ class _SignInViewState extends State<SignInView> {
         _signingIn = true;
         _activeProvider = OAuthProvider.apple.name;
       });
-      AnalyticsService.instance.logEvent('sign_in_tap', parameters: {
-        'provider': OAuthProvider.apple.name,
-      });
+      AnalyticsService.instance.logEvent(
+        'sign_in_tap',
+        parameters: {'provider': OAuthProvider.apple.name},
+      );
       final rawNonce = Supabase.instance.client.auth.generateRawNonce();
       final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
@@ -110,19 +113,20 @@ class _SignInViewState extends State<SignInView> {
   }
 
   void _showError(BuildContext context, Object error) {
-    String message = 'Sign-in failed. Please try again.';
+    final l10n = AppLocalizations.of(context)!;
+    String message = l10n.signInFailed;
     final errorText = error.toString();
     if (errorText.contains('Unacceptable audience')) {
-      message =
-          'Apple sign-in rejected. Check Supabase Apple provider client ID.';
+      message = l10n.appleSignInRejected;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -130,13 +134,10 @@ class _SignInViewState extends State<SignInView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'PicPet',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
+              Text('PicPet', style: Theme.of(context).textTheme.headlineLarge),
               const SizedBox(height: 8),
               Text(
-                'Sign in to start co-raising your pet.',
+                l10n.signInSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const Spacer(),
@@ -145,7 +146,7 @@ class _SignInViewState extends State<SignInView> {
                     ? null
                     : () => _signInWithOAuth(context, OAuthProvider.google),
                 icon: const Icon(Icons.login),
-                label: const Text('Continue with Google'),
+                label: Text(l10n.signInWithGoogle),
               ),
               const SizedBox(height: 12),
               if (!kIsWeb && Platform.isIOS)
@@ -160,9 +161,11 @@ class _SignInViewState extends State<SignInView> {
                 )
               else
                 FilledButton.icon(
-                  onPressed: _signingIn ? null : () => _signInWithApple(context),
+                  onPressed: _signingIn
+                      ? null
+                      : () => _signInWithApple(context),
                   icon: const Icon(Icons.phone_iphone),
-                  label: const Text('Continue with Apple'),
+                  label: Text(l10n.signInWithApple),
                 ),
               if (_signingIn) ...[
                 const SizedBox(height: 16),
@@ -177,8 +180,8 @@ class _SignInViewState extends State<SignInView> {
                     const SizedBox(width: 8),
                     Text(
                       _activeProvider == null
-                          ? 'Opening sign-in...'
-                          : 'Opening ${_activeProvider!}...',
+                          ? l10n.signInOpening
+                          : l10n.signInOpeningProvider(_activeProvider!),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -186,11 +189,10 @@ class _SignInViewState extends State<SignInView> {
               ],
               const SizedBox(height: 16),
               Text(
-                'Note: OAuth providers must be configured in Supabase.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
+                l10n.signInNote,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
             ],
           ),

@@ -23,9 +23,10 @@ class PerformanceService {
     }
     _startupLogged = true;
     final duration = DateTime.now().difference(start);
-    AnalyticsService.instance.logEvent('startup_time', parameters: {
-      'duration_ms': duration.inMilliseconds,
-    });
+    AnalyticsService.instance.logEvent(
+      'startup_time',
+      parameters: {'duration_ms': duration.inMilliseconds},
+    );
   }
 
   void markChatColdLoaded({
@@ -42,11 +43,14 @@ class PerformanceService {
     }
     _chatColdLogged = true;
     final duration = DateTime.now().difference(start);
-    AnalyticsService.instance.logEvent('chat_cold_load', parameters: {
-      'duration_ms': duration.inMilliseconds,
-      'message_count': messageCount,
-      'source': source,
-      'result': success ? 'success' : 'failure',
-    });
+    AnalyticsService.instance.logEvent(
+      'chat_cold_load',
+      parameters: {
+        'duration_ms': duration.inMilliseconds,
+        'message_count': messageCount,
+        'source': source,
+        'result': success ? 'success' : 'failure',
+      },
+    );
   }
 }

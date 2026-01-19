@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
@@ -11,6 +12,8 @@ import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
+import '../../shared/localization/app_locale_controller.dart';
+import '../../shared/localization/language_selector_sheet.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
@@ -57,7 +60,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       ref.read(fcmServiceProvider).initialize();
     });
   }
-  
+
   @override
   void dispose() {
     _petStateChannel?.unsubscribe();
@@ -66,6 +69,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   // --- Logic Methods ---
   Future<void> _ensureProfile() async {
+    final defaultNickname = AppLocalizations.of(
+      context,
+    )!.profileDefaultNickname;
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
@@ -81,7 +87,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       if (profile == null) {
         await Supabase.instance.client.from('profiles').insert({
           'user_id': user.id,
-          'nickname': 'Pet Parent',
+          'nickname': defaultNickname,
         });
       }
     } catch (_) {}
@@ -104,15 +110,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
       final List<Map<String, dynamic>> rooms = [];
       for (final r in responses) {
-         final roomData = r['rooms'] as Map<String, dynamic>?;
-          if (roomData != null) {
-            rooms.add({
-              'id': r['room_id'],
-              'name': roomData['name'],
-              'invite_code': roomData['invite_code'],
-              'role': r['role'],
-            });
-          }
+        final roomData = r['rooms'] as Map<String, dynamic>?;
+        if (roomData != null) {
+          rooms.add({
+            'id': r['room_id'],
+            'name': roomData['name'],
+            'invite_code': roomData['invite_code'],
+            'role': r['role'],
+          });
+        }
       }
 
       final roomIds = rooms
@@ -143,35 +149,34 @@ class _HomeViewState extends ConsumerState<HomeView> {
         }
       });
 
-      if (_roomId != null) {
-      }
-      
-      if (rooms.isNotEmpty) {
-          // If no room selected, or selected room not in list, select first
-          if (_roomId == null || !rooms.any((r) => r['id'] == _roomId)) {
-             _switchRoom(rooms.first['id'] as String);
-          }
-      }
+      if (_roomId != null) {}
 
-    } catch (_) {} finally {
+      if (rooms.isNotEmpty) {
+        // If no room selected, or selected room not in list, select first
+        if (_roomId == null || !rooms.any((r) => r['id'] == _roomId)) {
+          _switchRoom(rooms.first['id'] as String);
+        }
+      }
+    } catch (_) {
+    } finally {
       if (mounted) setState(() => _loadingRoom = false);
     }
   }
 
   void _switchRoom(String roomId) {
-     final previousRoom = _roomId;
-     setState(() {
-       _roomId = roomId;
-       _petState = null; // Clear old state
-       _petId = null;
-     });
-     _petStateChannel?.unsubscribe();
-     _petStateChannel = null;
-     _petSubscriptionPetId = null;
-     _refreshPetState();
-     if (previousRoom != roomId) {
-       AnalyticsService.instance.logEvent('room_switch');
-     }
+    final previousRoom = _roomId;
+    setState(() {
+      _roomId = roomId;
+      _petState = null; // Clear old state
+      _petId = null;
+    });
+    _petStateChannel?.unsubscribe();
+    _petStateChannel = null;
+    _petSubscriptionPetId = null;
+    _refreshPetState();
+    if (previousRoom != roomId) {
+      AnalyticsService.instance.logEvent('room_switch');
+    }
   }
 
   void _enterRoomFromSelection(String roomId) {
@@ -192,17 +197,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Future<void> _createRoom() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_myRooms.length >= 2) {
-       ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text('Free limit reached (2 rooms max). Upgrade to create more!')),
-       );
-       return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.roomLimitReached)));
+      return;
     }
-  
+
     setState(() => _creatingRoom = true);
     try {
       final response = await Supabase.instance.client
-          .rpc('create_room', params: {'p_name': 'New Room'})
+          .rpc('create_room', params: {'p_name': l10n.roomDefaultName})
           .single();
 
       // Refresh list and switch
@@ -212,20 +218,21 @@ class _HomeViewState extends ConsumerState<HomeView> {
       }
       final newId = response['room_id'] as String?;
       if (newId != null) {
-         _enterRoomFromSelection(newId);
+        _enterRoomFromSelection(newId);
       }
-      AnalyticsService.instance.logEvent('room_create', parameters: {
-        'result': 'success',
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Room created! Check the Drawer.')),
+      AnalyticsService.instance.logEvent(
+        'room_create',
+        parameters: {'result': 'success'},
       );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.roomCreatedSuccess)));
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create room: $error')),
+        SnackBar(content: Text(l10n.roomCreateFailed(error.toString()))),
       );
     } finally {
       if (mounted) setState(() => _creatingRoom = false);
@@ -235,16 +242,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
   Future<void> _joinRoomByCode() async {
     if (_joiningRoom) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final code = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Join Room'),
+        title: Text(l10n.roomJoinTitle),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter 6-digit code',
-            helperText: 'Invite codes are case-insensitive.',
+          decoration: InputDecoration(
+            hintText: l10n.roomJoinHint,
+            helperText: l10n.roomJoinHelper,
           ),
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [
@@ -256,7 +264,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -264,7 +272,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               final value = controller.text.trim().toUpperCase();
               Navigator.pop(context, value.isEmpty ? null : value);
             },
-            child: const Text('Join'),
+            child: Text(l10n.commonJoin),
           ),
         ],
       ),
@@ -309,19 +317,19 @@ class _HomeViewState extends ConsumerState<HomeView> {
         _enterRoomFromSelection(roomId);
       }
 
-      AnalyticsService.instance.logEvent('room_join', parameters: {
-        'method': 'invite_code',
-        'result': 'success',
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Joined room successfully.')),
+      AnalyticsService.instance.logEvent(
+        'room_join',
+        parameters: {'method': 'invite_code', 'result': 'success'},
       );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.roomJoinSuccess)));
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to join room: $error')),
+        SnackBar(content: Text(l10n.roomJoinFailed(error.toString()))),
       );
     } finally {
       if (mounted) setState(() => _joiningRoom = false);
@@ -329,6 +337,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Future<void> _regenerateInviteCode(String roomId) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final response = await Supabase.instance.client.rpc(
         'regenerate_invite_code',
@@ -345,35 +354,41 @@ class _HomeViewState extends ConsumerState<HomeView> {
       }
       if (newCode != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('New invite code: $newCode')),
+          SnackBar(content: Text(l10n.roomNewInviteCode(newCode))),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invite code regenerated.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.roomInviteCodeRegenerated)));
       }
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to regenerate code: $error')),
+        SnackBar(
+          content: Text(l10n.roomInviteCodeRegenerateFailed(error.toString())),
+        ),
       );
     }
   }
-  
+
   Future<void> _leaveRoom(String roomId) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Leave Room?'),
-        content: const Text('You will lose access to this pet until you are invited again.'),
+        title: Text(l10n.roomLeaveTitle),
+        content: Text(l10n.roomLeaveMessage),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
-             onPressed: () => Navigator.pop(context, true), 
-             style: TextButton.styleFrom(foregroundColor: Colors.red),
-             child: const Text('Leave')
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(l10n.commonLeave),
           ),
         ],
       ),
@@ -382,62 +397,73 @@ class _HomeViewState extends ConsumerState<HomeView> {
     if (confirmed != true) return;
 
     try {
-      await Supabase.instance.client.rpc('leave_room', params: {'p_room_id': roomId});
-      
+      await Supabase.instance.client.rpc(
+        'leave_room',
+        params: {'p_room_id': roomId},
+      );
+
       // Refresh list
       await _fetchRooms();
-      
+
       // If we left the current room, switch to another or clear
       if (_roomId == roomId) {
-         if (_myRooms.isNotEmpty) {
-           _switchRoom(_myRooms.first['id']);
-         } else {
-           setState(() {
-             _roomId = null;
-             _petState = null;
-           });
-         }
+        if (_myRooms.isNotEmpty) {
+          _switchRoom(_myRooms.first['id']);
+        } else {
+          setState(() {
+            _roomId = null;
+            _petState = null;
+          });
+        }
       }
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left room successfully.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
       }
-      AnalyticsService.instance.logEvent('room_leave', parameters: {
-        'result': 'success',
-      });
+      AnalyticsService.instance.logEvent(
+        'room_leave',
+        parameters: {'result': 'success'},
+      );
     } catch (_) {
       // Fallback: Set is_active = false manually
       try {
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId != null) {
-           await Supabase.instance.client
-             .from('room_members')
-             .update({'is_active': false})
-             .eq('room_id', roomId)
-             .eq('user_id', userId);
-           
-           await _fetchRooms();
-           if (_roomId == roomId) {
-              if (_myRooms.isNotEmpty) {
-                _switchRoom(_myRooms.first['id']);
-              } else {
-                setState(() {
-                  _roomId = null;
-                  _petState = null;
-                });
-              }
-           }
-           if (mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left room successfully.')));
-           }
-           AnalyticsService.instance.logEvent('room_leave', parameters: {
-             'result': 'success',
-           });
+          await Supabase.instance.client
+              .from('room_members')
+              .update({'is_active': false})
+              .eq('room_id', roomId)
+              .eq('user_id', userId);
+
+          await _fetchRooms();
+          if (_roomId == roomId) {
+            if (_myRooms.isNotEmpty) {
+              _switchRoom(_myRooms.first['id']);
+            } else {
+              setState(() {
+                _roomId = null;
+                _petState = null;
+              });
+            }
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
+          }
+          AnalyticsService.instance.logEvent(
+            'room_leave',
+            parameters: {'result': 'success'},
+          );
         }
       } catch (e2) {
-         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to leave room: $e2')));
-         }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.roomLeaveFailed(e2.toString()))),
+          );
+        }
       }
     }
   }
@@ -493,16 +519,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
         const LabelObservation(text: 'Cup', confidence: 0.71),
       ];
 
-      final mappingRepository = LabelMappingRepository(Supabase.instance.client);
+      final mappingRepository = LabelMappingRepository(
+        Supabase.instance.client,
+      );
       final mappingEntries = await mappingRepository.fetch();
       final mappingService = LabelMappingService(mappingEntries);
-      
+
       final mappedLabels = mappingService.matchLabels(labelObservations);
       final matchByLabel = <String, LabelMatch>{};
       for (final match in mappedLabels) {
         matchByLabel[LabelMappingService.normalizeLabel(match.text)] = match;
       }
-      
+
       final labelPayload = labelObservations.map((label) {
         final normalized = LabelMappingService.normalizeLabel(label.text);
         final match = matchByLabel[normalized];
@@ -520,7 +548,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
           body: {
             'room_id': roomId,
             'labels': labelPayload,
-            'canonical_tags': mappingService.matchCanonicalTags(labelObservations),
+            'canonical_tags': mappingService.matchCanonicalTags(
+              labelObservations,
+            ),
             'caption': 'Test feed',
             'image_url': 'https://example.com/test.jpg',
           },
@@ -563,8 +593,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
       _chatListKey.currentState?.refreshLatest();
     } on FunctionException catch (error) {
       final detailsText = error.details == null ? '' : ' | ${error.details}';
-      setState(() => _feedResult =
-          'Error: status ${error.status} ${error.reasonPhrase}$detailsText');
+      setState(
+        () => _feedResult =
+            'Error: status ${error.status} ${error.reasonPhrase}$detailsText',
+      );
     } catch (error) {
       setState(() => _feedResult = 'Error: $error');
     } finally {
@@ -611,7 +643,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
     return moods;
   }
 
-  Future<Map<String, String?>> _fetchRoomLatestPhotos(List<String> roomIds) async {
+  Future<Map<String, String?>> _fetchRoomLatestPhotos(
+    List<String> roomIds,
+  ) async {
     if (roomIds.isEmpty) {
       return {};
     }
@@ -661,9 +695,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
       }
       setState(() {
         _myRooms = _myRooms
-            .map((room) => room['id'] == roomId
-                ? {...room, 'latest_photo': imageUrl}
-                : room)
+            .map(
+              (room) => room['id'] == roomId
+                  ? {...room, 'latest_photo': imageUrl}
+                  : room,
+            )
             .toList();
       });
     } catch (_) {}
@@ -681,7 +717,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
     try {
       final petId = _petId ?? await _loadPetId(roomId);
       if (petId == null) {
-        setState(() => _petError = 'No pet found.');
+        setState(() => _petError = AppLocalizations.of(context)!.petNotFound);
         return;
       }
 
@@ -708,13 +744,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
         _petState = state;
         final mood = state?['mood'] as String?;
         _myRooms = _myRooms
-            .map((room) => room['id'] == roomId
-                ? {...room, 'mood': mood}
-                : room)
+            .map(
+              (room) => room['id'] == roomId ? {...room, 'mood': mood} : room,
+            )
             .toList();
       });
     } catch (error) {
-      setState(() => _petError = 'Pet sync error: $error');
+      setState(
+        () => _petError = AppLocalizations.of(
+          context,
+        )!.petSyncFailed(error.toString()),
+      );
     } finally {
       if (mounted) setState(() => _petBusy = false);
     }
@@ -746,9 +786,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
         final roomId = _roomId;
         if (roomId != null) {
           _myRooms = _myRooms
-              .map((room) => room['id'] == roomId
-                  ? {...room, 'mood': mood}
-                  : room)
+              .map(
+                (room) => room['id'] == roomId ? {...room, 'mood': mood} : room,
+              )
               .toList();
         }
       });
@@ -789,7 +829,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       _petBusy = true;
       _petError = null;
     });
-    
+
     // Haptic Feedback for actions
     HapticFeedback.mediumImpact();
 
@@ -804,7 +844,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
       await _refreshPetState();
     } catch (error) {
-      setState(() => _petError = 'Action failed: $error');
+      setState(
+        () => _petError = AppLocalizations.of(
+          context,
+        )!.petActionFailed(error.toString()),
+      );
     } finally {
       if (mounted) setState(() => _petBusy = false);
     }
@@ -863,7 +907,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Feed upload failed: $error')),
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.feedUploadFailed(error.toString()),
+        ),
+      ),
     );
   }
 
@@ -872,16 +920,19 @@ class _HomeViewState extends ConsumerState<HomeView> {
     if (roomId == null) {
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ChatRoomView(roomId: roomId)),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => ChatRoomView(roomId: roomId)));
   }
-  
+
   String? _latestPhotoForRoom(String? roomId) {
     if (roomId == null) {
       return null;
     }
-    final room = _myRooms.firstWhere((r) => r['id'] == roomId, orElse: () => {});
+    final room = _myRooms.firstWhere(
+      (r) => r['id'] == roomId,
+      orElse: () => {},
+    );
     return room['latest_photo'] as String?;
   }
 
@@ -901,6 +952,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Widget _buildInteractionTopBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
       child: Row(
@@ -923,16 +975,22 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.person_rounded, color: Colors.black87),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.black87,
+                  ),
                 ),
               );
             },
           ),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.calendar_month_outlined, color: Colors.black87),
+            icon: const Icon(
+              Icons.calendar_month_outlined,
+              color: Colors.black87,
+            ),
             onPressed: _openCalendar,
-            tooltip: 'Calendar',
+            tooltip: l10n.calendarTitle,
           ),
         ],
       ),
@@ -940,6 +998,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Widget _buildLatestPhotoCard() {
+    final l10n = AppLocalizations.of(context)!;
     final latestPhoto = _latestPhotoForRoom(_roomId);
     return Container(
       decoration: BoxDecoration(
@@ -962,9 +1021,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ? Container(
                   color: const Color(0xFFF8F4EF),
                   alignment: Alignment.center,
-                  child: const Text(
-                    'Photo',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.photoLabel,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.black54,
@@ -974,15 +1033,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
               : CachedNetworkImage(
                   imageUrl: latestPhoto,
                   fit: BoxFit.cover,
-                  placeholder: (context, _) => Container(
-                    color: const Color(0xFFF8F4EF),
-                  ),
+                  placeholder: (context, _) =>
+                      Container(color: const Color(0xFFF8F4EF)),
                   errorWidget: (context, url, error) => Container(
                     color: const Color(0xFFF8F4EF),
                     alignment: Alignment.center,
-                    child: const Text(
-                      'Photo',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.photoLabel,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: Colors.black54,
@@ -996,6 +1054,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Widget _buildPetHomeCard() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1011,23 +1070,19 @@ class _HomeViewState extends ConsumerState<HomeView> {
       ),
       child: Stack(
         children: [
-          const Positioned(
+          Positioned(
             top: 14,
             left: 16,
             child: Text(
-              'Pet Home',
-              style: TextStyle(
+              l10n.petHomeTitle,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Colors.black54,
               ),
             ),
           ),
-          Positioned(
-            top: 12,
-            right: 12,
-            child: _buildPetStatusPill(),
-          ),
+          Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
           Center(
             child: JuicyFloat(
               yOffset: 12,
@@ -1094,17 +1149,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
-
   // --- UI Builders ---
 
   @override
   Widget build(BuildContext context) {
     if (_loadingRoom) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    
+
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     if (_showRoomSelection || _roomId == null) {
@@ -1124,7 +1176,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     return Scaffold(
       drawer: _buildSideDrawer(), // Room List Drawer
-      resizeToAvoidBottomInset: false, 
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // Layer 1: Background
@@ -1132,14 +1184,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFFFFF9E5), Color(0xFFFFECE5)], // Warm Pudding colors
+                  colors: [
+                    Color(0xFFFFF9E5),
+                    Color(0xFFFFECE5),
+                  ], // Warm Pudding colors
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
               ),
             ),
           ),
-          
+
           // Background Blobs (Floating)
           Positioned(
             bottom: 150,
@@ -1201,18 +1256,23 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
-
   Widget _buildPetAvatar() {
     // Placeholder Pet logic
     Color petColor = Colors.orangeAccent;
     if (_petState != null) {
-        // Simple visualization of mood
-        final mood = _petState!['mood'] as String? ?? 'low';
-        switch (mood) {
-          case 'high': petColor = Colors.pinkAccent; break;
-          case 'mid': petColor = Colors.orangeAccent; break;
-          case 'sad': petColor = Colors.blueGrey; break;
-        }
+      // Simple visualization of mood
+      final mood = _petState!['mood'] as String? ?? 'low';
+      switch (mood) {
+        case 'high':
+          petColor = Colors.pinkAccent;
+          break;
+        case 'mid':
+          petColor = Colors.orangeAccent;
+          break;
+        case 'sad':
+          petColor = Colors.blueGrey;
+          break;
+      }
     }
 
     return Container(
@@ -1222,39 +1282,32 @@ class _HomeViewState extends ConsumerState<HomeView> {
         color: petColor,
         shape: BoxShape.circle,
         boxShadow: [
-           BoxShadow(
-             color: petColor.withValues(alpha: 0.4),
-             blurRadius: 40,
-             spreadRadius: 5,
-             offset: const Offset(0, 10),
-           )
-        ]
+          BoxShadow(
+            color: petColor.withValues(alpha: 0.4),
+            blurRadius: 40,
+            spreadRadius: 5,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-           // Eyes
-           Positioned(
-             top: 80,
-             left: 70,
-             child: _buildEye(),
-           ),
-           Positioned(
-             top: 80,
-             right: 70,
-             child: _buildEye(),
-           ),
-           // Mouth
-           Positioned(
-             bottom: 100,
-             child: Container(
-               width: 40, height: 20,
-               decoration: BoxDecoration(
-                 color: Colors.white,
-                 borderRadius: BorderRadius.circular(20),
-               ),
-             ),
-           )
+          // Eyes
+          Positioned(top: 80, left: 70, child: _buildEye()),
+          Positioned(top: 80, right: 70, child: _buildEye()),
+          // Mouth
+          Positioned(
+            bottom: 100,
+            child: Container(
+              width: 40,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1262,24 +1315,33 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   Widget _buildEye() {
     return Container(
-      width: 30, height: 40,
-      decoration: BoxDecoration(
-        color: Colors.black87,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Align(
-        alignment: Alignment.topRight,
-        child: Container(
-          margin: const EdgeInsets.all(5),
-          width: 10, height: 10,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+          width: 30,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.black87,
+            borderRadius: BorderRadius.circular(20),
           ),
-        ),
-      ),
-    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-    .scaleY(begin: 1.0, end: 0.1, duration: 200.ms, delay: 3000.ms, curve: Curves.easeInOut); // Blink
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Container(
+              margin: const EdgeInsets.all(5),
+              width: 10,
+              height: 10,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        )
+        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+        .scaleY(
+          begin: 1.0,
+          end: 0.1,
+          duration: 200.ms,
+          delay: 3000.ms,
+          curve: Curves.easeInOut,
+        ); // Blink
   }
 
   Widget _buildPetStatusPill() {
@@ -1287,7 +1349,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
     final hunger = _petState!['hunger'] as int? ?? 0;
     final mood = _petState!['mood'] as String? ?? 'neutral';
     final hygiene = _petState!['hygiene'] as int? ?? 0;
-    
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -1298,8 +1361,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
-          )
-        ]
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1307,37 +1370,71 @@ class _HomeViewState extends ConsumerState<HomeView> {
           // Hunger
           Row(
             children: [
-              const Icon(Icons.lunch_dining_rounded, size: 16, color: Colors.orange),
+              const Icon(
+                Icons.lunch_dining_rounded,
+                size: 16,
+                color: Colors.orange,
+              ),
               const Gap(4),
-              Text('$hunger%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(
+                '$hunger%',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
-          
+
           Container(
-             height: 12, width: 1, color: Colors.black12, 
-             margin: const EdgeInsets.symmetric(horizontal: 8)
+            height: 12,
+            width: 1,
+            color: Colors.black12,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
           ),
 
           // Mood
           Row(
             children: [
-              const Icon(Icons.mood_rounded, size: 16, color: Colors.purpleAccent),
+              const Icon(
+                Icons.mood_rounded,
+                size: 16,
+                color: Colors.purpleAccent,
+              ),
               const Gap(4),
-              Text(mood.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              Text(
+                _moodLabel(mood, l10n),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
             ],
           ),
-          
+
           Container(
-             height: 12, width: 1, color: Colors.black12, 
-             margin: const EdgeInsets.symmetric(horizontal: 8)
+            height: 12,
+            width: 1,
+            color: Colors.black12,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
           ),
 
           // Hygiene
           Row(
             children: [
-              const Icon(Icons.cleaning_services_rounded, size: 16, color: Colors.blue),
+              const Icon(
+                Icons.cleaning_services_rounded,
+                size: 16,
+                color: Colors.blue,
+              ),
               const Gap(4),
-              Text('$hygiene%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(
+                '$hygiene%',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
         ],
@@ -1345,190 +1442,275 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
+  String _moodLabel(String mood, AppLocalizations l10n) {
+    switch (mood) {
+      case 'high':
+        return l10n.moodHigh;
+      case 'mid':
+        return l10n.moodMid;
+      case 'low':
+        return l10n.moodLow;
+      case 'sad':
+        return l10n.moodSad;
+      default:
+        return l10n.moodNeutral;
+    }
+  }
+
+  String _languageOptionLabel(AppLanguageOption option, AppLocalizations l10n) {
+    switch (option) {
+      case AppLanguageOption.system:
+        return l10n.languageSystem;
+      case AppLanguageOption.english:
+        return l10n.languageEnglish;
+      case AppLanguageOption.japanese:
+        return l10n.languageJapanese;
+      case AppLanguageOption.chineseTraditional:
+        return l10n.languageChineseTraditional;
+    }
+  }
+
   Widget _buildSideDrawer() {
     final userId = Supabase.instance.client.auth.currentUser?.id;
+    final l10n = AppLocalizations.of(context)!;
+    final localeState = ref.watch(appLocaleProvider);
 
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
         children: [
-           // Header
-           Container(
-             padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-             color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-             child: Row(
-               children: [
-                 CircleAvatar(
-                   backgroundColor: Theme.of(context).primaryColor,
-                   child: Text(userId?.substring(0, 1).toUpperCase() ?? 'U', style: const TextStyle(color: Colors.white)),
-                 ),
-                 const Gap(12),
-                 const Expanded(
-                   child: Column(
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                       Text('My Rooms', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                       Text('Free Plan', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                     ],
-                   ),
-                 )
-               ],
-             ),
-           ),
-           
-           // Room List
-           Expanded(
-             child: _myRooms.isEmpty 
-               ? const Center(child: Text('No rooms yet.'))
-               : ListView.builder(
-                   padding: const EdgeInsets.symmetric(vertical: 8),
-                   itemCount: _myRooms.length,
-                   itemBuilder: (context, index) {
-                     final room = _myRooms[index];
-                     final isSelected = room['id'] == _roomId;
-                     final isOwner = room['role'] == 'owner';
-                     return ListTile(
-                       leading: Icon(
-                         isSelected ? Icons.home_filled : Icons.home_outlined,
-                         color: isSelected ? Theme.of(context).primaryColor : Colors.black54,
-                       ),
-                       title: Text(room['name'] ?? 'Room'),
-                       subtitle: Text('Code: ${room['invite_code']}'),
-                       selected: isSelected,
-                       selectedTileColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                       trailing: Row(
-                         mainAxisSize: MainAxisSize.min,
-                         children: [
-                           if (isOwner)
-                             IconButton(
-                               icon: const Icon(Icons.refresh, size: 20, color: Colors.black54),
-                               tooltip: 'Regenerate invite code',
-                               onPressed: () {
-                                 Navigator.pop(context);
-                                 _regenerateInviteCode(room['id']);
-                               },
-                             ),
-                           IconButton(
-                             icon: const Icon(Icons.delete_outline, size: 20, color: Colors.black45),
-                             onPressed: () {
-                               Navigator.pop(context); // Close Drawer first
-                               _leaveRoom(room['id']);
-                             },
-                           ),
-                         ],
-                       ),
-                       onTap: () {
+          // Header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  child: Text(
+                    userId?.substring(0, 1).toUpperCase() ?? 'U',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.drawerMyRooms,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        l10n.drawerFreePlan,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Room List
+          Expanded(
+            child: _myRooms.isEmpty
+                ? Center(child: Text(l10n.drawerNoRooms))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: _myRooms.length,
+                    itemBuilder: (context, index) {
+                      final room = _myRooms[index];
+                      final isSelected = room['id'] == _roomId;
+                      final isOwner = room['role'] == 'owner';
+                      return ListTile(
+                        leading: Icon(
+                          isSelected ? Icons.home_filled : Icons.home_outlined,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.black54,
+                        ),
+                        title: Text(
+                          room['name'] ?? l10n.roomSelectionRoomFallback,
+                        ),
+                        subtitle: Text(
+                          l10n.drawerInviteCode(
+                            (room['invite_code'] ?? '-').toString(),
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedTileColor: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isOwner)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  size: 20,
+                                  color: Colors.black54,
+                                ),
+                                tooltip: l10n.drawerRegenerateInviteCode,
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _regenerateInviteCode(room['id']);
+                                },
+                              ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                size: 20,
+                                color: Colors.black45,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context); // Close Drawer first
+                                _leaveRoom(room['id']);
+                              },
+                            ),
+                          ],
+                        ),
+                        onTap: () {
                           setState(() {
                             _roomSelectionId = room['id'] as String?;
                             _showRoomSelection = true;
                           });
                           Navigator.pop(context); // Close Drawer
-                       },
-                     );
-                   },
-                 ),
-           ),
-           
-           const Divider(),
-           
-           // Actions
-           ListTile(
-             leading: const Icon(Icons.add_circle_outline),
-             title: const Text('Create New Room'),
-             onTap: () {
-               Navigator.pop(context);
-               _createRoom();
-             },
-           ),
-
-           ListTile(
-             leading: const Icon(Icons.meeting_room_outlined),
-             title: const Text('Join with Invite Code'),
-             onTap: _joiningRoom
-                 ? null
-                 : () {
-                     Navigator.pop(context);
-                     _joinRoomByCode();
-                   },
-           ),
-
-           ListTile(
-             leading: const Icon(Icons.calendar_month_outlined),
-             title: const Text('Memories'),
-             onTap: () {
-               final roomId = _roomId;
-               if (roomId == null) {
-                 return;
-               }
-               Navigator.pop(context);
-               Navigator.of(context).push(
-                 MaterialPageRoute(
-                   builder: (_) => MemoryCalendarView(
-                     roomId: roomId,
-                     currentUserId:
-                         Supabase.instance.client.auth.currentUser?.id,
-                   ),
-                 ),
-               );
-             },
-           ),
-
-           ListTile(
-             leading: const Icon(Icons.storefront_outlined),
-             title: const Text('Store'),
-             onTap: () {
-               Navigator.pop(context);
-               Navigator.of(context).push(
-                 MaterialPageRoute(builder: (_) => const StoreView()),
-               );
-             },
-           ),
-           
-           ExpansionTile(
-             leading: const Icon(Icons.bug_report_outlined),
-             title: const Text('Debug Tools'),
-             children: [
-                ListTile(
-                  title: const Text('Force Refresh Pet'),
-                  onTap: _petBusy ? null : () => _refreshPetState(tick: true),
-                  trailing: _petBusy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : null,
-                ),
-               ListTile(
-                  title: const Text('Simulate Feed'),
-                  subtitle: _feedResult == null ? null : Text(_feedResult!),
-                  onTap: _testingFeed ? null : _runFeedTest,
-                  trailing: _testingFeed
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : null,
-                ),
-                ListTile(
-                  title: const Text('Test Local Notification'),
-                  onTap: () => ref.read(fcmServiceProvider).showTestNotification(),
-                ),
-                if (_petError != null)
-                  ListTile(
-                    title: const Text('Pet Error'),
-                    subtitle: Text(_petError!),
+                        },
+                      );
+                    },
                   ),
-             ],
-           ),
-           
-           ListTile(
-             leading: const Icon(Icons.logout, color: Colors.redAccent),
-             title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
-             onTap: _signOut,
-           ),
-           const Gap(20),
+          ),
+
+          const Divider(),
+
+          // Actions
+          ListTile(
+            leading: const Icon(Icons.add_circle_outline),
+            title: Text(l10n.drawerCreateRoom),
+            onTap: () {
+              Navigator.pop(context);
+              _createRoom();
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.meeting_room_outlined),
+            title: Text(l10n.drawerJoinWithCode),
+            onTap: _joiningRoom
+                ? null
+                : () {
+                    Navigator.pop(context);
+                    _joinRoomByCode();
+                  },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.calendar_month_outlined),
+            title: Text(l10n.calendarTitle),
+            onTap: () {
+              final roomId = _roomId;
+              if (roomId == null) {
+                return;
+              }
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MemoryCalendarView(
+                    roomId: roomId,
+                    currentUserId:
+                        Supabase.instance.client.auth.currentUser?.id,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.storefront_outlined),
+            title: Text(l10n.storeTitle),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const StoreView()));
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.language_outlined),
+            title: Text(l10n.languageTitle),
+            subtitle: Text(_languageOptionLabel(localeState.option, l10n)),
+            onTap: () {
+              Navigator.pop(context);
+              showModalBottomSheet<void>(
+                context: context,
+                showDragHandle: true,
+                backgroundColor: Colors.white,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder: (_) => const LanguageSelectorSheet(),
+              );
+            },
+          ),
+
+          ExpansionTile(
+            leading: const Icon(Icons.bug_report_outlined),
+            title: Text(l10n.drawerDebugTools),
+            children: [
+              ListTile(
+                title: Text(l10n.drawerForceRefreshPet),
+                onTap: _petBusy ? null : () => _refreshPetState(tick: true),
+                trailing: _petBusy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+              ),
+              ListTile(
+                title: Text(l10n.drawerSimulateFeed),
+                subtitle: _feedResult == null ? null : Text(_feedResult!),
+                onTap: _testingFeed ? null : _runFeedTest,
+                trailing: _testingFeed
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
+              ),
+              ListTile(
+                title: Text(l10n.drawerTestNotification),
+                onTap: () =>
+                    ref.read(fcmServiceProvider).showTestNotification(),
+              ),
+              if (_petError != null)
+                ListTile(
+                  title: Text(l10n.drawerPetError),
+                  subtitle: Text(_petError!),
+                ),
+            ],
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: Text(
+              l10n.commonSignOut,
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+            onTap: _signOut,
+          ),
+          const Gap(20),
         ],
       ),
     );

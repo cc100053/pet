@@ -1,0 +1,377 @@
+{
+  "@@locale": "en",
+  "appleSignInRejected": "Apple sign-in rejected. Check Supabase Apple provider client ID.",
+  "authReauthRequired": "Please sign in again.",
+  "blockedUserIdTruncated": "ID (truncated): {id}",
+  "@blockedUserIdTruncated": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "blockedUsersEmpty": "No blocked users yet.",
+  "blockedUsersLoadFailed": "Failed to load blocked users: {error}",
+  "@blockedUsersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "blockedUsersTitle": "Blocked users",
+  "blockedUserUnblocked": "User unblocked.",
+  "blockedUserUnblockFailed": "Unblock failed: {error}",
+  "@blockedUserUnblockFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "calendarAddMemory": "Add memory",
+  "calendarEarlier": "Earlier",
+  "calendarLatestPhoto": "Latest photo",
+  "calendarLoadFailed": "Failed to load memories: {error}",
+  "@calendarLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "calendarNoEarlierMemories": "No earlier memories yet.",
+  "calendarNoMemoriesForDay": "No memories for this day.",
+  "calendarNoPhotoYet": "No photo yet",
+  "calendarTitle": "Calendar",
+  "calendarToday": "Today",
+  "chatBlockFailed": "Block failed: {error}",
+  "@chatBlockFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatBlockUser": "Block user",
+  "chatCoinsAwarded": "+{count} coins",
+  "@chatCoinsAwarded": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "chatEmptyState": "No messages yet. Start the chat below.",
+  "chatLoadBlockedUsersFailed": "Failed to load blocked users: {error}",
+  "@chatLoadBlockedUsersFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadCacheFailed": "Failed to load cached messages: {error}",
+  "@chatLoadCacheFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadMessagesFailed": "Failed to load messages: {error}",
+  "@chatLoadMessagesFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadMoreFailed": "Failed to load more: {error}",
+  "@chatLoadMoreFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadOlderMessages": "Load older messages",
+  "chatMessageHint": "Message",
+  "chatNoOlderMessages": "No older messages.",
+  "chatPartnerLabel": "Partner",
+  "chatRefreshFailed": "Failed to refresh: {error}",
+  "@chatRefreshFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatReportFailed": "Report failed: {error}",
+  "@chatReportFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatReportHint": "Share a quick reason",
+  "chatReportMessageTitle": "Report message",
+  "chatReportNoReason": "No reason",
+  "chatReportSent": "Report submitted.",
+  "chatSendFailed": "Send failed: {error}",
+  "@chatSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatSystemUpdate": "System update",
+  "chatTitle": "Chat",
+  "chatUserAlreadyBlocked": "User blocked",
+  "chatUserBlocked": "User blocked.",
+  "commonBuy": "Buy",
+  "commonCamera": "Camera",
+  "commonCancel": "Cancel",
+  "commonClose": "Close",
+  "commonGallery": "Gallery",
+  "commonJoin": "Join",
+  "commonLeave": "Leave",
+  "commonOwned": "Owned",
+  "commonReload": "Reload",
+  "commonSave": "Save",
+  "commonSend": "Send",
+  "commonSending": "Sending...",
+  "commonSignOut": "Sign Out",
+  "commonSubmit": "Submit",
+  "commonTryAgain": "Try again",
+  "commonUnblock": "Unblock",
+  "commonUploading": "Uploading",
+  "commonUser": "User",
+  "currencyJpy": "JPY {amount}",
+  "@currencyJpy": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "drawerCreateRoom": "Create New Room",
+  "drawerDebugTools": "Debug Tools",
+  "drawerForceRefreshPet": "Force Refresh Pet",
+  "drawerFreePlan": "Free Plan",
+  "drawerInviteCode": "Code: {code}",
+  "@drawerInviteCode": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "drawerJoinWithCode": "Join with Invite Code",
+  "drawerMyRooms": "My Rooms",
+  "drawerNoRooms": "No rooms yet.",
+  "drawerPetError": "Pet Error",
+  "drawerRegenerateInviteCode": "Regenerate invite code",
+  "drawerSimulateFeed": "Simulate Feed",
+  "drawerTestNotification": "Test Local Notification",
+  "feedCameraSubtitle": "Capture a feed photo and review labels before sending.",
+  "feedCameraTitle": "Feed Camera",
+  "feedCanonicalTags": "Canonical tags: {tags}",
+  "@feedCanonicalTags": {
+    "placeholders": {
+      "tags": {}
+    }
+  },
+  "feedCaptionLabel": "Caption (optional)",
+  "feedDetectedLabels": "Detected labels",
+  "feedLabelingFailed": "Labeling failed: {error}",
+  "@feedLabelingFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedLabelingNotSupported": "ML Kit image labeling is not supported on web.",
+  "feedLabelMappingsFailed": "Failed to load label mappings: {error}",
+  "@feedLabelMappingsFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedLabelMappingsLoading": "Loading label mappings...",
+  "feedLabelMappingsReady": "Label mappings ready.",
+  "feedLabelMappingsUnavailable": "Label mappings unavailable.",
+  "feedNoLabels": "No labels detected yet.",
+  "feedResponse": "Response: {response}",
+  "@feedResponse": {
+    "placeholders": {
+      "response": {}
+    }
+  },
+  "feedSelectImageFirst": "Select an image first.",
+  "feedSendButton": "Send Feed",
+  "feedSendFailed": "Send failed: {error}",
+  "@feedSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedTitle": "Feed",
+  "feedUploadFailed": "Feed upload failed: {error}",
+  "@feedUploadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "forceUpdateAction": "Update now",
+  "forceUpdateLinkError": "Unable to open store link.",
+  "forceUpdateMessage": "A newer version is required to continue. Please update now.",
+  "forceUpdateTitle": "Update required",
+  "languageChineseTraditional": "Traditional Chinese",
+  "languageEnglish": "English",
+  "languageJapanese": "Japanese",
+  "languageSystem": "System",
+  "languageSystemSubtitle": "Follow device language",
+  "languageTitle": "Language",
+  "launchTagline": "Share moments. Grow together.",
+  "moodHigh": "HIGH",
+  "moodLow": "LOW",
+  "moodMid": "MID",
+  "moodNeutral": "NEUTRAL",
+  "moodSad": "SAD",
+  "petActionFailed": "Action failed: {error}",
+  "@petActionFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "petHomeTitle": "Pet Home",
+  "petNotFound": "No pet found.",
+  "petSyncFailed": "Pet sync error: {error}",
+  "@petSyncFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "photoLabel": "Photo",
+  "profileDefaultNickname": "Pet Parent",
+  "profileEmpty": "No profile available.",
+  "profileLoadFailed": "Failed to load profile: {error}",
+  "@profileLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "profileNicknameLabel": "Nickname",
+  "profileTitle": "Profile",
+  "profileUpdated": "Profile updated",
+  "profileUserId": "User ID: {id}",
+  "@profileUserId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "roomCreatedSuccess": "Room created! Check the Drawer.",
+  "roomCreateFailed": "Failed to create room: {error}",
+  "@roomCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomDefaultName": "New Room",
+  "roomInviteCodeRegenerated": "Invite code regenerated.",
+  "roomInviteCodeRegenerateFailed": "Failed to regenerate code: {error}",
+  "@roomInviteCodeRegenerateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomJoinFailed": "Failed to join room: {error}",
+  "@roomJoinFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomJoinHelper": "Invite codes are case-insensitive.",
+  "roomJoinHint": "Enter 6-digit code",
+  "roomJoinSuccess": "Joined room successfully.",
+  "roomJoinTitle": "Join Room",
+  "roomLeaveFailed": "Failed to leave room: {error}",
+  "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomLeaveMessage": "You will lose access to this pet until you are invited again.",
+  "roomLeaveSuccess": "Left room successfully.",
+  "roomLeaveTitle": "Leave Room?",
+  "roomLimitReached": "Free limit reached (2 rooms max). Upgrade to create more!",
+  "roomNewInviteCode": "New invite code: {code}",
+  "@roomNewInviteCode": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "roomSelectionCreatePet": "Create New Pet",
+  "roomSelectionCreating": "Creating...",
+  "roomSelectionEmptySlot": "Empty slot",
+  "roomSelectionEnterInvite": "Enter Invite Code",
+  "roomSelectionJoining": "Joining...",
+  "roomSelectionRoomFallback": "Room",
+  "roomSelectionSubtitle": "Pick a pet home and jump back in.",
+  "roomSelectionTitle": "Room Selection",
+  "signInFailed": "Sign-in failed. Please try again.",
+  "signInNote": "Note: OAuth providers must be configured in Supabase.",
+  "signInOpening": "Opening sign-in...",
+  "signInOpeningProvider": "Opening {provider}...",
+  "@signInOpeningProvider": {
+    "placeholders": {
+      "provider": {}
+    }
+  },
+  "signInSubtitle": "Sign in to start co-raising your pet.",
+  "signInWithApple": "Continue with Apple",
+  "signInWithGoogle": "Continue with Google",
+  "storeCoinPrice": "Coins: {amount}",
+  "@storeCoinPrice": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeCoinsLabel": "Coins: {amount}",
+  "@storeCoinsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeCoinsReward": "Coins +{amount}",
+  "@storeCoinsReward": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeEmpty": "Store is empty for now.",
+  "storeIapNotConfigured": "IAP not configured.",
+  "storeIapUnavailable": "IAP unavailable: {error}",
+  "@storeIapUnavailable": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeLoadFailed": "Failed to load store: {error}",
+  "@storeLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeNotEnoughCoins": "Not enough coins.",
+  "storeOwnedCount": "Owned: {amount}",
+  "@storeOwnedCount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storePriceUnavailable": "Price unavailable",
+  "storeProductNotFound": "Product not found in RevenueCat.",
+  "storeProductUnavailable": "Product unavailable.",
+  "storePurchaseFailed": "Purchase failed: {error}",
+  "@storePurchaseFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storePurchaseSuccess": "Purchased {name}.",
+  "@storePurchaseSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "storeRestoreFailed": "Restore failed: {error}",
+  "@storeRestoreFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeRestoreTooltip": "Restore purchases",
+  "storeSectionCoinPacks": "Coin Packs",
+  "storeSectionCoinStore": "Coin Store",
+  "storeSectionSubscription": "Subscription",
+  "storeSignInPrompt": "Please sign in to access the store.",
+  "storeSubscribe": "Subscribe",
+  "storeSubscriptionActive": "Active",
+  "storeTitle": "Store",
+  "storeTypeConsumable": "Consumable",
+  "storeTypeCosmetic": "Cosmetic",
+  "storeTypeSubscription": "Subscription"
+}

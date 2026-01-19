@@ -13,10 +13,7 @@ class AnalyticsService {
     } catch (_) {}
   }
 
-  Future<void> logEvent(
-    String name, {
-    Map<String, Object?>? parameters,
-  }) async {
+  Future<void> logEvent(String name, {Map<String, Object?>? parameters}) async {
     try {
       Map<String, Object>? sanitized;
       if (parameters != null) {

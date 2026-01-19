@@ -6,8 +6,9 @@ import '../../features/chat/chat_message.dart';
 class ChatMessageRepository {
   ChatMessageRepository._(this._client);
 
-  static final ChatMessageRepository instance =
-      ChatMessageRepository._(Supabase.instance.client);
+  static final ChatMessageRepository instance = ChatMessageRepository._(
+    Supabase.instance.client,
+  );
 
   static const String _boxName = 'chat_messages';
   static const int _maxMessagesPerRoom = 200;
@@ -33,8 +34,7 @@ class ChatMessageRepository {
 
     return raw
         .whereType<Map>()
-        .map((entry) =>
-            ChatMessage.fromJson(Map<String, dynamic>.from(entry)))
+        .map((entry) => ChatMessage.fromJson(Map<String, dynamic>.from(entry)))
         .toList();
   }
 

@@ -66,9 +66,7 @@ class RevenueCatService {
     if (!isAvailable) {
       return null;
     }
-    final result = await Purchases.purchase(
-      PurchaseParams.package(package),
-    );
+    final result = await Purchases.purchase(PurchaseParams.package(package));
     return result;
   }
 

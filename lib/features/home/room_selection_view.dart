@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pet/l10n/app_localizations.dart';
 
 class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
@@ -41,6 +42,7 @@ class RoomSelectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalSlots = max(4, rooms.length + 1);
+    final l10n = AppLocalizations.of(context)!;
 
     return Stack(
       children: [
@@ -91,7 +93,7 @@ class RoomSelectionView extends StatelessWidget {
                     const Gap(12),
                     Expanded(
                       child: Text(
-                        'Room Selection',
+                        l10n.roomSelectionTitle,
                         style: GoogleFonts.fredoka(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -103,12 +105,12 @@ class RoomSelectionView extends StatelessWidget {
                       onPressed: joiningRoom ? null : onJoinRoom,
                       icon: const Icon(Icons.key_rounded, size: 18),
                       label: Text(
-                        joiningRoom ? 'Joining...' : 'Enter Invite Code',
+                        joiningRoom
+                            ? l10n.roomSelectionJoining
+                            : l10n.roomSelectionEnterInvite,
                         style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
                       ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: _muted,
-                      ),
+                      style: TextButton.styleFrom(foregroundColor: _muted),
                     ),
                   ],
                 ),
@@ -116,7 +118,7 @@ class RoomSelectionView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Text(
-                  'Pick a pet home and jump back in.',
+                  l10n.roomSelectionSubtitle,
                   style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -126,7 +128,10 @@ class RoomSelectionView extends StatelessWidget {
               ),
               Expanded(
                 child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
@@ -137,15 +142,12 @@ class RoomSelectionView extends StatelessWidget {
                   itemBuilder: (context, index) {
                     if (index < rooms.length) {
                       final room = rooms[index];
-                      return _buildRoomCard(
-                        context,
-                        room,
-                      )
+                      return _buildRoomCard(context, room, l10n)
                           .animate()
                           .fadeIn(delay: (80 * index).ms)
                           .slideY(begin: 0.1, end: 0);
                     }
-                    return _buildEmptySlot(context)
+                    return _buildEmptySlot(context, l10n)
                         .animate()
                         .fadeIn(delay: (80 * index).ms)
                         .slideY(begin: 0.1, end: 0);
@@ -154,7 +156,7 @@ class RoomSelectionView extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                child: _buildPrimaryCta(context),
+                child: _buildPrimaryCta(context, l10n),
               ),
             ],
           ),
@@ -192,6 +194,7 @@ class RoomSelectionView extends StatelessWidget {
   Widget _buildRoomCard(
     BuildContext context,
     Map<String, dynamic> room,
+    AppLocalizations l10n,
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
@@ -251,20 +254,19 @@ class RoomSelectionView extends StatelessWidget {
                               : CachedNetworkImage(
                                   imageUrl: latestPhoto,
                                   fit: BoxFit.cover,
-                                  placeholder: (context, _) => Container(
-                                    color: const Color(0xFFF8F4EF),
-                                  ),
+                                  placeholder: (context, _) =>
+                                      Container(color: const Color(0xFFF8F4EF)),
                                   errorWidget: (context, url, error) =>
                                       Container(
-                                    color: const Color(0xFFF8F4EF),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.photo_rounded,
-                                        size: 28,
-                                        color: _muted,
+                                        color: const Color(0xFFF8F4EF),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.photo_rounded,
+                                            size: 28,
+                                            color: _muted,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
                                 ),
                         ),
                         Positioned(
@@ -288,7 +290,7 @@ class RoomSelectionView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        room['name'] ?? 'Room',
+                        room['name'] ?? l10n.roomSelectionRoomFallback,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.nunito(
@@ -309,7 +311,7 @@ class RoomSelectionView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptySlot(BuildContext context) {
+  Widget _buildEmptySlot(BuildContext context, AppLocalizations l10n) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -342,7 +344,7 @@ class RoomSelectionView extends StatelessWidget {
               ),
               const Gap(10),
               Text(
-                'Empty slot',
+                l10n.roomSelectionEmptySlot,
                 style: GoogleFonts.nunito(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -356,7 +358,7 @@ class RoomSelectionView extends StatelessWidget {
     );
   }
 
-  Widget _buildPrimaryCta(BuildContext context) {
+  Widget _buildPrimaryCta(BuildContext context, AppLocalizations l10n) {
     return Opacity(
       opacity: creatingRoom ? 0.6 : 1,
       child: Material(
@@ -384,7 +386,9 @@ class RoomSelectionView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
-                  creatingRoom ? 'Creating...' : 'Create New Pet',
+                  creatingRoom
+                      ? l10n.roomSelectionCreating
+                      : l10n.roomSelectionCreatePet,
                   style: GoogleFonts.fredoka(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,

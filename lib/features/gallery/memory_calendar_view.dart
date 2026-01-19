@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 import '../../shared/ui/cached_network_image_view.dart';
 
@@ -18,31 +20,6 @@ class MemoryCalendarView extends StatefulWidget {
 }
 
 class _MemoryCalendarViewState extends State<MemoryCalendarView> {
-  static const List<String> _monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-
-  static const List<String> _weekdayLabels = [
-    'Sun',
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-  ];
-
   late DateTime _focusedMonth;
   bool _loading = true;
   String? _error;
@@ -71,7 +48,9 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
         return;
       }
       setState(() {
-        _error = 'Failed to load memories: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.calendarLoadFailed(error.toString());
       });
     } finally {
       if (mounted) {
@@ -120,8 +99,10 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     final feeds = rows
         .map((row) => MemoryFeed.fromJson(row))
         .where((feed) => feed.imageUrl.isNotEmpty)
-        .where((feed) =>
-            feed.senderId == null || !_blockedUserIds.contains(feed.senderId))
+        .where(
+          (feed) =>
+              feed.senderId == null || !_blockedUserIds.contains(feed.senderId),
+        )
         .toList();
 
     _feedsByDay
@@ -149,38 +130,21 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     _reloadMonth();
   }
 
-  String _monthLabel(DateTime date) {
-    final monthIndex = date.month - 1;
-    if (monthIndex < 0 || monthIndex >= _monthNames.length) {
-      return '${date.month}/${date.year}';
-    }
-    return '${_monthNames[monthIndex]} ${date.year}';
+  String _monthLabel(BuildContext context, DateTime date) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.MMMM(locale).format(date);
+  }
+
+  String _monthYearLabel(BuildContext context, DateTime date) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.yMMMM(locale).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Memories'),
-        actions: [
-          IconButton(
-            onPressed: _loading ? null : _reloadMonth,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Reload',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _MonthHeader(
-            label: _monthLabel(_focusedMonth),
-            onPrevious: () => _shiftMonth(-1),
-            onNext: () => _shiftMonth(1),
-          ),
-          _WeekdayRow(labels: _weekdayLabels),
-          Expanded(child: _buildCalendarBody(context)),
-        ],
-      ),
+      backgroundColor: _CalendarColors.background,
+      body: SafeArea(child: _buildCalendarBody(context)),
     );
   }
 
@@ -204,7 +168,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: _reloadMonth,
-                child: const Text('Try again'),
+                child: Text(AppLocalizations.of(context)!.commonTryAgain),
               ),
             ],
           ),
@@ -212,46 +176,90 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
       );
     }
 
-    final year = _focusedMonth.year;
-    final month = _focusedMonth.month;
-    final firstDay = DateTime(year, month, 1);
-    final daysInMonth = DateUtils.getDaysInMonth(year, month);
-    final leadingEmpty = firstDay.weekday % 7;
-    final totalCells = leadingEmpty + daysInMonth;
-    final cellCount = totalCells <= 35 ? 35 : 42;
+    final l10n = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final weekdayLabels = _weekdayLabelsForLocale(context);
+    final todayKey = DateTime(now.year, now.month, now.day);
+    final todayFeeds = List<MemoryFeed>.from(_feedsByDay[todayKey] ?? const []);
+    todayFeeds.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final latestToday = todayFeeds.isEmpty ? null : todayFeeds.last;
+    final recentFeeds = _buildRecentFeeds(latestToday);
 
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
-        childAspectRatio: 0.78,
+    return RefreshIndicator(
+      onRefresh: _reloadMonth,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _CalendarHeader(
+                label: _monthLabel(context, _focusedMonth),
+                onMenuTap: () => _handleHeaderTap(context),
+              ),
+              const SizedBox(height: 16),
+              _WeekdayStrip(
+                labels: weekdayLabels,
+                dates: _currentWeekDates(now),
+                feedsByDay: _feedsByDay,
+              ),
+              const SizedBox(height: 18),
+              _MonthNavigator(
+                label: _monthYearLabel(context, _focusedMonth),
+                onPrevious: () => _shiftMonth(-1),
+                onNext: () => _shiftMonth(1),
+              ),
+              const SizedBox(height: 12),
+              _MonthCalendarCard(
+                focusedMonth: _focusedMonth,
+                feedsByDay: _feedsByDay,
+                onDayTap: (date, feeds) =>
+                    _openDayDetails(context, date, feeds),
+                weekdayLabels: weekdayLabels,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.calendarToday,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: _CalendarColors.textStrong,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _TodayCard(
+                feed: latestToday,
+                dateLabel: _formatShortDate(context, now),
+                emptyLabel: l10n.calendarNoPhotoYet,
+                fallbackLabel: l10n.calendarLatestPhoto,
+                onTap: latestToday == null
+                    ? null
+                    : () => _openDayDetails(context, todayKey, todayFeeds),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.calendarEarlier,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: _CalendarColors.textStrong,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _RecentRow(
+                feeds: recentFeeds,
+                onTap: (feed) {
+                  final local = feed.createdAt.toLocal();
+                  final dateKey = DateTime(local.year, local.month, local.day);
+                  final feeds = _feedsByDay[dateKey] ?? const [];
+                  _openDayDetails(context, dateKey, feeds);
+                },
+                emptyLabel: l10n.calendarNoEarlierMemories,
+                placeholderLabel: l10n.calendarAddMemory,
+              ),
+            ],
+          ),
+        ),
       ),
-      itemCount: cellCount,
-      itemBuilder: (context, index) {
-        final dayIndex = index - leadingEmpty + 1;
-        if (dayIndex < 1 || dayIndex > daysInMonth) {
-          return const SizedBox.shrink();
-        }
-
-        final date = DateTime(year, month, dayIndex);
-        final key = DateTime(date.year, date.month, date.day);
-        final feeds = _feedsByDay[key] ?? const [];
-        final today = DateTime.now();
-        final isToday = today.year == date.year &&
-            today.month == date.month &&
-            today.day == date.day;
-
-        return _DayCell(
-          date: date,
-          feeds: feeds,
-          isToday: isToday,
-          onTap: feeds.isEmpty
-              ? null
-              : () => _openDayDetails(context, date, feeds),
-        );
-      },
     );
   }
 
@@ -263,16 +271,159 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _MemoryDaySheet(
-        date: date,
-        feeds: feeds,
+      backgroundColor: _CalendarColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (context) => _MemoryDaySheet(date: date, feeds: feeds),
+    );
+  }
+
+  void _handleHeaderTap(BuildContext context) {
+    final scaffold = Scaffold.maybeOf(context);
+    if (scaffold?.hasDrawer ?? false) {
+      scaffold?.openDrawer();
+      return;
+    }
+    Navigator.maybePop(context);
+  }
+
+  List<MemoryFeed> _buildRecentFeeds(MemoryFeed? latestToday) {
+    final feeds = <MemoryFeed>[];
+    for (final entry in _feedsByDay.entries) {
+      feeds.addAll(entry.value);
+    }
+    feeds.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    if (latestToday != null) {
+      feeds.removeWhere((feed) => feed.id == latestToday.id);
+    }
+    return feeds.take(3).toList();
+  }
+
+  List<DateTime> _currentWeekDates(DateTime reference) {
+    final startOffset = reference.weekday % 7;
+    final start = DateTime(
+      reference.year,
+      reference.month,
+      reference.day,
+    ).subtract(Duration(days: startOffset));
+    return List.generate(
+      7,
+      (index) => DateTime(start.year, start.month, start.day + index),
+    );
+  }
+
+  List<String> _weekdayLabelsForLocale(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final start = DateTime(2020, 1, 5);
+    return List.generate(
+      7,
+      (index) => DateFormat.E(
+        locale,
+      ).format(DateTime(start.year, start.month, start.day + index)),
+    );
+  }
+
+  String _formatShortDate(BuildContext context, DateTime date) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.Md(locale).format(date);
+  }
+}
+
+class _CalendarHeader extends StatelessWidget {
+  const _CalendarHeader({required this.label, required this.onMenuTap});
+
+  final String label;
+  final VoidCallback onMenuTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _CircleIconButton(icon: Icons.menu_rounded, onTap: onMenuTap),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: _CalendarColors.textStrong,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _MonthHeader extends StatelessWidget {
-  const _MonthHeader({
+class _WeekdayStrip extends StatelessWidget {
+  const _WeekdayStrip({
+    required this.labels,
+    required this.dates,
+    required this.feedsByDay,
+  });
+
+  final List<String> labels;
+  final List<DateTime> dates;
+  final Map<DateTime, List<MemoryFeed>> feedsByDay;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
+      color: _CalendarColors.textMuted,
+      fontWeight: FontWeight.w600,
+    );
+
+    return Column(
+      children: [
+        Row(
+          children: labels
+              .map(
+                (label) => Expanded(
+                  child: Center(child: Text(label, style: labelStyle)),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 20,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: 2,
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                decoration: BoxDecoration(
+                  color: _CalendarColors.lineSoft,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: dates.map((date) {
+                  final key = DateTime(date.year, date.month, date.day);
+                  final hasFeed = (feedsByDay[key] ?? const []).isNotEmpty;
+                  final now = DateTime.now();
+                  final isToday =
+                      now.year == date.year &&
+                      now.month == date.month &&
+                      now.day == date.day;
+                  return _DayBubble(
+                    isToday: isToday,
+                    hasFeed: hasFeed,
+                    isInMonth: date.month == now.month,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MonthNavigator extends StatelessWidget {
+  const _MonthNavigator({
     required this.label,
     required this.onPrevious,
     required this.onNext,
@@ -284,24 +435,121 @@ class _MonthHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: onPrevious,
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Expanded(
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+    return Row(
+      children: [
+        _CircleIconButton(icon: Icons.chevron_left_rounded, onTap: onPrevious),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: _CalendarColors.textStrong,
             ),
           ),
-          IconButton(
-            onPressed: onNext,
-            icon: const Icon(Icons.chevron_right),
+        ),
+        const SizedBox(width: 12),
+        _CircleIconButton(icon: Icons.chevron_right_rounded, onTap: onNext),
+      ],
+    );
+  }
+}
+
+class _MonthCalendarCard extends StatelessWidget {
+  const _MonthCalendarCard({
+    required this.focusedMonth,
+    required this.feedsByDay,
+    required this.onDayTap,
+    this.weekdayLabels = const [
+      'Sun',
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+    ],
+  });
+
+  final DateTime focusedMonth;
+  final Map<DateTime, List<MemoryFeed>> feedsByDay;
+  final List<String> weekdayLabels;
+  final void Function(DateTime date, List<MemoryFeed> feeds) onDayTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final year = focusedMonth.year;
+    final month = focusedMonth.month;
+    final firstDay = DateTime(year, month, 1);
+    final daysInMonth = DateUtils.getDaysInMonth(year, month);
+    final leadingEmpty = firstDay.weekday % 7;
+    final totalCells = leadingEmpty + daysInMonth;
+    final cellCount = totalCells <= 35 ? 35 : 42;
+
+    final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: _CalendarColors.textMuted,
+      fontWeight: FontWeight.w600,
+    );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+      decoration: BoxDecoration(
+        color: _CalendarColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _CalendarColors.outlineSoft),
+        boxShadow: [
+          BoxShadow(
+            color: _CalendarColors.shadow,
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: weekdayLabels
+                .map(
+                  (label) => Expanded(
+                    child: Center(child: Text(label, style: labelStyle)),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 10),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 1,
+            ),
+            itemCount: cellCount,
+            itemBuilder: (context, index) {
+              final dayIndex = index - leadingEmpty + 1;
+              if (dayIndex < 1 || dayIndex > daysInMonth) {
+                return const SizedBox.shrink();
+              }
+
+              final date = DateTime(year, month, dayIndex);
+              final key = DateTime(date.year, date.month, date.day);
+              final feeds = feedsByDay[key] ?? const [];
+              final now = DateTime.now();
+              final isToday =
+                  now.year == date.year &&
+                  now.month == date.month &&
+                  now.day == date.day;
+
+              return _MonthDayCell(
+                date: date,
+                feeds: feeds,
+                isToday: isToday,
+                onTap: feeds.isEmpty ? null : () => onDayTap(date, feeds),
+              );
+            },
           ),
         ],
       ),
@@ -309,35 +557,8 @@ class _MonthHeader extends StatelessWidget {
   }
 }
 
-class _WeekdayRow extends StatelessWidget {
-  const _WeekdayRow({required this.labels});
-
-  final List<String> labels;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = Theme.of(context)
-        .textTheme
-        .labelMedium
-        ?.copyWith(color: Colors.black54);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: labels
-            .map(
-              (label) => Expanded(
-                child: Center(child: Text(label, style: style)),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-}
-
-class _DayCell extends StatelessWidget {
-  const _DayCell({
+class _MonthDayCell extends StatelessWidget {
+  const _MonthDayCell({
     required this.date,
     required this.feeds,
     required this.isToday,
@@ -352,76 +573,387 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final surface = theme.colorScheme.surface;
-    final highlight = theme.colorScheme.primaryContainer;
-    final borderColor = theme.colorScheme.outlineVariant;
-
-    final previews = feeds.take(2).toList();
+    final feed = feeds.isEmpty ? null : feeds.last;
+    final borderColor = isToday
+        ? _CalendarColors.primary
+        : _CalendarColors.outlineSoft;
 
     return Material(
-      color: isToday ? highlight : surface,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            border: Border.all(color: borderColor, width: 0.6),
+            color: _CalendarColors.surfaceMuted,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: isToday ? 1.6 : 1),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              Text(
-                '${date.day}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Expanded(
-                child: previews.isEmpty
-                    ? const SizedBox.shrink()
-                    : Row(
-                        children: previews
-                            .map(
-                              (feed) => Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(1),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: CachedNetworkImageView(
-                                      imageUrl: feed.imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorWidget: Container(
-                                        color: theme.colorScheme.surface,
-                                        alignment: Alignment.center,
-                                        child: const Icon(
-                                          Icons.broken_image,
-                                          size: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
+              if (feed != null)
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CachedNetworkImageView(
+                      imageUrl: feed.imageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: Container(
+                        color: _CalendarColors.surfaceMuted,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.broken_image, size: 16),
                       ),
-              ),
-              if (feeds.length > 2)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    '+${feeds.length - 2}',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.outline,
                     ),
                   ),
                 ),
+              if (feed != null)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.0),
+                          Colors.black.withValues(alpha: 0.35),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned(
+                top: 6,
+                left: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: feed == null
+                        ? _CalendarColors.surface
+                        : Colors.black.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${date.day}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: feed == null
+                          ? _CalendarColors.textStrong
+                          : Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayBubble extends StatelessWidget {
+  const _DayBubble({
+    required this.isToday,
+    required this.hasFeed,
+    required this.isInMonth,
+  });
+
+  final bool isToday;
+  final bool hasFeed;
+  final bool isInMonth;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color borderColor = isToday
+        ? _CalendarColors.primary
+        : _CalendarColors.outline;
+    final Color fillColor = isToday
+        ? _CalendarColors.primary
+        : hasFeed
+        ? _CalendarColors.primarySoft
+        : _CalendarColors.surface;
+    final double opacity = isInMonth ? 1 : 0.4;
+
+    return Opacity(
+      opacity: opacity,
+      child: Container(
+        width: 14,
+        height: 14,
+        decoration: BoxDecoration(
+          color: fillColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+      ),
+    );
+  }
+}
+
+class _TodayCard extends StatelessWidget {
+  const _TodayCard({
+    required this.feed,
+    required this.dateLabel,
+    required this.emptyLabel,
+    required this.fallbackLabel,
+    required this.onTap,
+  });
+
+  final MemoryFeed? feed;
+  final String dateLabel;
+  final String emptyLabel;
+  final String fallbackLabel;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final caption = _captionOrFallback(feed, dateLabel);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _CalendarColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _CalendarColors.outline),
+          boxShadow: [
+            BoxShadow(
+              color: _CalendarColors.shadow,
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: AspectRatio(
+                aspectRatio: 4 / 3,
+                child: feed == null
+                    ? Container(
+                        color: _CalendarColors.surfaceMuted,
+                        alignment: Alignment.center,
+                        child: Text(
+                          emptyLabel,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: _CalendarColors.textMuted,
+                          ),
+                        ),
+                      )
+                    : CachedNetworkImageView(
+                        imageUrl: feed!.imageUrl,
+                        fit: BoxFit.cover,
+                        errorWidget: Container(
+                          color: _CalendarColors.surfaceMuted,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.broken_image),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              alignment: Alignment.centerLeft,
+              decoration: BoxDecoration(
+                color: _CalendarColors.surfaceMuted,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _CalendarColors.outlineSoft),
+              ),
+              child: Text(
+                caption,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: _CalendarColors.textStrong,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _captionOrFallback(MemoryFeed? feed, String dateLabel) {
+    final caption = feed?.caption?.trim();
+    if (caption != null && caption.isNotEmpty) {
+      return caption;
+    }
+    return '$fallbackLabel • $dateLabel';
+  }
+}
+
+class _RecentRow extends StatelessWidget {
+  const _RecentRow({
+    required this.feeds,
+    required this.onTap,
+    required this.emptyLabel,
+    required this.placeholderLabel,
+  });
+
+  final List<MemoryFeed> feeds;
+  final void Function(MemoryFeed feed) onTap;
+  final String emptyLabel;
+  final String placeholderLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = feeds
+        .map((feed) => _RecentMemoryCard(feed: feed, onTap: () => onTap(feed)))
+        .toList();
+
+    if (items.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _CalendarColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _CalendarColors.outlineSoft),
+        ),
+        child: Text(
+          emptyLabel,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: _CalendarColors.textMuted),
+        ),
+      );
+    }
+
+    while (items.length < 3) {
+      items.add(
+        _RecentMemoryCard.placeholder(placeholderLabel: placeholderLabel),
+      );
+    }
+
+    return Row(
+      children: [
+        for (final item in items) ...[
+          Expanded(child: item),
+          if (item != items.last) const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
+}
+
+class _RecentMemoryCard extends StatelessWidget {
+  const _RecentMemoryCard({required this.feed, required this.onTap})
+    : isPlaceholder = false,
+      placeholderLabel = null;
+
+  const _RecentMemoryCard.placeholder({required this.placeholderLabel})
+    : feed = null,
+      onTap = null,
+      isPlaceholder = true;
+
+  final MemoryFeed? feed;
+  final VoidCallback? onTap;
+  final bool isPlaceholder;
+  final String? placeholderLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: isPlaceholder ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: _CalendarColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _CalendarColors.outlineSoft),
+        ),
+        child: Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: isPlaceholder || feed == null
+                    ? Container(
+                        color: _CalendarColors.surfaceMuted,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.photo_outlined,
+                          color: _CalendarColors.textMuted,
+                        ),
+                      )
+                    : CachedNetworkImageView(
+                        imageUrl: feed!.imageUrl,
+                        fit: BoxFit.cover,
+                        errorWidget: Container(
+                          color: _CalendarColors.surfaceMuted,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.broken_image),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _buildCardLabel(context),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: isPlaceholder
+                    ? _CalendarColors.textMuted
+                    : _CalendarColors.textStrong,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _buildCardLabel(BuildContext context) {
+    if (isPlaceholder || feed == null) {
+      return placeholderLabel ?? '';
+    }
+    final caption = feed!.caption?.trim();
+    if (caption != null && caption.isNotEmpty) {
+      return caption;
+    }
+    final local = feed!.createdAt.toLocal();
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.Md(locale).format(local);
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: _CalendarColors.surface,
+      shape: const CircleBorder(),
+      elevation: 0,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: _CalendarColors.outlineSoft),
+          ),
+          child: Icon(icon, color: _CalendarColors.textStrong),
         ),
       ),
     );
@@ -437,23 +969,29 @@ class _MemoryDaySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateLabel =
-        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dateLabel = DateFormat.yMMMd(locale).format(date);
 
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
         child: Column(
           children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 48,
+              height: 4,
+              decoration: BoxDecoration(
+                color: _CalendarColors.lineSoft,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      dateLabel,
-                      style: theme.textTheme.titleMedium,
-                    ),
+                    child: Text(dateLabel, style: theme.textTheme.titleMedium),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -465,14 +1003,19 @@ class _MemoryDaySheet extends StatelessWidget {
             const Divider(height: 1),
             Expanded(
               child: feeds.isEmpty
-                  ? const Center(child: Text('No memories for this day.'))
+                  ? Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.calendarNoMemoriesForDay,
+                      ),
+                    )
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemBuilder: (context, index) {
                         final feed = feeds[index];
                         final localTime = feed.createdAt.toLocal();
-                        final timeLabel =
-                            TimeOfDay.fromDateTime(localTime).format(context);
+                        final timeLabel = TimeOfDay.fromDateTime(
+                          localTime,
+                        ).format(context);
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -494,7 +1037,9 @@ class _MemoryDaySheet extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               timeLabel,
-                              style: theme.textTheme.labelMedium,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: _CalendarColors.textMuted,
+                              ),
                             ),
                             if (feed.caption != null &&
                                 feed.caption!.trim().isNotEmpty)
@@ -515,6 +1060,20 @@ class _MemoryDaySheet extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CalendarColors {
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceMuted = Color(0xFFF1F5F9);
+  static const Color outline = Color(0xFFE2E8F0);
+  static const Color outlineSoft = Color(0xFFE5E7EB);
+  static const Color lineSoft = Color(0xFFCBD5F5);
+  static const Color textStrong = Color(0xFF1E293B);
+  static const Color textMuted = Color(0xFF64748B);
+  static const Color primary = Color(0xFF3B82F6);
+  static const Color primarySoft = Color(0xFFDBEAFE);
+  static const Color shadow = Color(0x1A1E293B);
 }
 
 class MemoryFeed {

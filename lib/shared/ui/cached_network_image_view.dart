@@ -37,10 +37,8 @@ class CachedNetworkImageView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final resolvedWidth =
-            _resolveDimension(width, constraints.maxWidth);
-        final resolvedHeight =
-            _resolveDimension(height, constraints.maxHeight);
+        final resolvedWidth = _resolveDimension(width, constraints.maxWidth);
+        final resolvedHeight = _resolveDimension(height, constraints.maxHeight);
         final cacheWidth = _cacheDimension(context, resolvedWidth);
         final cacheHeight = _cacheDimension(context, resolvedHeight);
 

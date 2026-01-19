@@ -2,7 +2,7 @@
 
 - **版本**: v3.0 (UI Redesign merged)
 - **日期**: 2026-01-19
-- **語言**: **雙語支援 (Bilingual)** - 支援 **繁體中文 (Traditional Chinese)** 與 **日文 (Japanese)**，依據用戶系統語言偏好設定 (System Preference) 自動切換。
+- **語言**: **三語支援 (Trilingual)** - 支援 **繁體中文 (Traditional Chinese)**、**日文 (Japanese)**、**英文 (English)**。預設依據用戶系統語言自動切換，並提供應用程式內語言選項。
 - **UI/通知**: 所有介面與警告訊息需提供完整的雙語資源檔 (Localization)。
 - **原有設計**: 基於 v2.0 企劃書
 - **新版 UI**: 基於提供的線框圖 (Wireframes)
@@ -87,7 +87,3 @@
 - **圖片識別**: Google ML Kit。
 - **圖片存儲**: Cloudflare R2。
 - **即時通訊**: Supabase Realtime。
-
-## 5. 常見問題 (FAQ)
-- **Q: Markdown 可以加圖片嗎？**
-  - **A: 可以！** 格式為 `![圖片描述](圖片路徑)`。在本文檔中已實際應用 (見 2. UI/UX 設計詳解)。這樣可以讓文檔更直觀，防止純文字描述的歧義。

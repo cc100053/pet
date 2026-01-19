@@ -46,12 +46,10 @@ class _JuicyScaleButtonState extends State<JuicyScaleButton>
     HapticFeedback.lightImpact(); // Tactile feedback is MUST
     _controller.animateTo(0.0, duration: const Duration(milliseconds: 100));
     setState(() {
-      _scaleAnimation = Tween<double>(
-        begin: 1.0,
-        end: widget.lowerBound,
-      ).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad),
-      );
+      _scaleAnimation = Tween<double>(begin: 1.0, end: widget.lowerBound)
+          .animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad),
+          );
     });
     _controller.forward();
   }

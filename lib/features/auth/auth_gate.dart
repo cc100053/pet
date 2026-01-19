@@ -32,11 +32,13 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     });
     final currentSession = Supabase.instance.client.auth.currentSession;
     AnalyticsService.instance.setUserId(currentSession?.user.id);
-    FirebaseCrashlytics.instance
-        .setUserIdentifier(currentSession?.user.id ?? 'signed_out');
+    FirebaseCrashlytics.instance.setUserIdentifier(
+      currentSession?.user.id ?? 'signed_out',
+    );
 
-    _authSubscription =
-        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
       final session = data.session;
       if (session == null) {
         AnalyticsService.instance.setUserId(null);
@@ -67,7 +69,8 @@ class _AuthGateState extends ConsumerState<AuthGate> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const LaunchView();
         }
-        final session = snapshot.data?.session ??
+        final session =
+            snapshot.data?.session ??
             Supabase.instance.client.auth.currentSession;
         if (session == null) {
           return const SignInView();

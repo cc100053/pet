@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -89,7 +90,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         return;
       }
       setState(() {
-        _mappingError = 'Failed to load label mappings: $error';
+        _mappingError = AppLocalizations.of(
+          context,
+        )!.feedLabelMappingsFailed(error.toString());
       });
     } finally {
       if (mounted) {
@@ -106,12 +109,11 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       _result = null;
     });
 
-    AnalyticsService.instance.logEvent('feed_image_pick', parameters: {
-      'source': source.name,
-    });
-    final image = await _picker.pickImage(
-      source: source,
+    AnalyticsService.instance.logEvent(
+      'feed_image_pick',
+      parameters: {'source': source.name},
     );
+    final image = await _picker.pickImage(source: source);
     if (image == null) {
       return;
     }
@@ -133,7 +135,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
   Future<void> _analyzeImage(XFile image, int requestId) async {
     if (kIsWeb) {
       setState(() {
-        _error = 'ML Kit image labeling is not supported on web.';
+        _error = AppLocalizations.of(context)!.feedLabelingNotSupported;
       });
       return;
     }
@@ -172,7 +174,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         return;
       }
       setState(() {
-        _error = 'Labeling failed: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.feedLabelingFailed(error.toString());
       });
     } finally {
       if (mounted && _imageRequestId == requestId) {
@@ -188,7 +192,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     final previewBytes = _previewBytes;
     if (image == null || previewBytes == null) {
       setState(() {
-        _error = 'Select an image first.';
+        _error = AppLocalizations.of(context)!.feedSelectImageFirst;
       });
       return;
     }
@@ -197,7 +201,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
 
     if (userId == null) {
       setState(() {
-        _error = 'No active session. Please sign in again.';
+        _error = AppLocalizations.of(context)!.authReauthRequired;
       });
       return;
     }
@@ -223,10 +227,13 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
             (label) => {
               'text': label.text,
               'confidence': label.confidence,
-              if (matchByLabel
-                  .containsKey(LabelMappingService.normalizeLabel(label.text)))
+              if (matchByLabel.containsKey(
+                LabelMappingService.normalizeLabel(label.text),
+              ))
                 'canonical_tag':
-                    matchByLabel[LabelMappingService.normalizeLabel(label.text)],
+                    matchByLabel[LabelMappingService.normalizeLabel(
+                      label.text,
+                    )],
             },
           )
           .toList();
@@ -266,7 +273,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         return;
       }
       setState(() {
-        _error = 'Send failed: $error';
+        _error = AppLocalizations.of(context)!.feedSendFailed(error.toString());
       });
     } finally {
       if (mounted) {
@@ -419,9 +426,10 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         }
       }
 
-      AnalyticsService.instance.logEvent('feed_send', parameters: {
-        'result': 'success',
-      });
+      AnalyticsService.instance.logEvent(
+        'feed_send',
+        parameters: {'result': 'success'},
+      );
 
       if (mounted) {
         setState(() {
@@ -434,52 +442,53 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
 
       widget.onUploadCompleted?.call(tempId);
     } catch (error) {
-      AnalyticsService.instance.logEvent('feed_send', parameters: {
-        'result': 'failure',
-      });
+      AnalyticsService.instance.logEvent(
+        'feed_send',
+        parameters: {'result': 'failure'},
+      );
       widget.onUploadFailed?.call(tempId, error);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final mappingStatus = _loadingMappings
-        ? 'Loading label mappings...'
+        ? l10n.feedLabelMappingsLoading
         : (_mappingError ??
-            (_mappingService == null
-                ? 'Label mappings unavailable.'
-                : 'Label mappings ready.'));
+              (_mappingService == null
+                  ? l10n.feedLabelMappingsUnavailable
+                  : l10n.feedLabelMappingsReady));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Feed Camera'),
-      ),
+      appBar: AppBar(title: Text(l10n.feedCameraTitle)),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
           Text(
-            'Capture a feed photo and review labels before sending.',
+            l10n.feedCameraSubtitle,
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 12),
-          Text(
-            mappingStatus,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(mappingStatus, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
               FilledButton.icon(
-                onPressed: _sending ? null : () => _pickImage(ImageSource.camera),
+                onPressed: _sending
+                    ? null
+                    : () => _pickImage(ImageSource.camera),
                 icon: const Icon(Icons.photo_camera),
-                label: const Text('Camera'),
+                label: Text(l10n.commonCamera),
               ),
               OutlinedButton.icon(
-                onPressed: _sending ? null : () => _pickImage(ImageSource.gallery),
+                onPressed: _sending
+                    ? null
+                    : () => _pickImage(ImageSource.gallery),
                 icon: const Icon(Icons.photo_library),
-                label: const Text('Gallery'),
+                label: Text(l10n.commonGallery),
               ),
             ],
           ),
@@ -489,8 +498,10 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               borderRadius: BorderRadius.circular(12),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final cacheWidth =
-                      _cacheDimension(context, constraints.maxWidth);
+                  final cacheWidth = _cacheDimension(
+                    context,
+                    constraints.maxWidth,
+                  );
                   final cacheHeight = _cacheDimension(context, 240);
                   return Image.memory(
                     _previewBytes!,
@@ -508,36 +519,33 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
           if (_analyzing)
             const LinearProgressIndicator()
           else if (_observations.isNotEmpty)
-            _LabelsPreview(
-              observations: _observations,
-              matches: _matches,
-            )
+            _LabelsPreview(observations: _observations, matches: _matches)
           else
             Text(
-              'No labels detected yet.',
+              l10n.feedNoLabels,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           const SizedBox(height: 16),
           TextField(
             controller: _captionController,
-            decoration: const InputDecoration(
-              labelText: 'Caption (optional)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.feedCaptionLabel,
+              border: const OutlineInputBorder(),
             ),
             maxLines: 2,
           ),
           const SizedBox(height: 12),
           FilledButton(
             onPressed: _sending || _analyzing ? null : _sendFeed,
-            child: Text(_sending ? 'Sending...' : 'Send Feed'),
+            child: Text(_sending ? l10n.commonSending : l10n.feedSendButton),
           ),
           if (_canonicalTags.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text('Canonical tags: ${_canonicalTags.join(', ')}'),
+            Text(l10n.feedCanonicalTags(_canonicalTags.join(', '))),
           ],
           if (_result != null) ...[
             const SizedBox(height: 12),
-            Text('Response: $_result'),
+            Text(l10n.feedResponse(_result!)),
           ],
           if (_error != null) ...[
             const SizedBox(height: 12),
@@ -553,10 +561,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
 }
 
 class _CompressedImage {
-  const _CompressedImage({
-    required this.bytes,
-    required this.contentType,
-  });
+  const _CompressedImage({required this.bytes, required this.contentType});
 
   final Uint8List bytes;
   final String contentType;
@@ -590,16 +595,14 @@ class FeedOptimisticMessage {
 }
 
 class _LabelsPreview extends StatelessWidget {
-  const _LabelsPreview({
-    required this.observations,
-    required this.matches,
-  });
+  const _LabelsPreview({required this.observations, required this.matches});
 
   final List<LabelObservation> observations;
   final List<LabelMatch> matches;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final matchByLabel = <String, String>{
       for (final match in matches)
         LabelMappingService.normalizeLabel(match.text): match.canonicalTag,
@@ -609,7 +612,7 @@ class _LabelsPreview extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Detected labels',
+          l10n.feedDetectedLabels,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
@@ -621,11 +624,7 @@ class _LabelsPreview extends StatelessWidget {
                 (label) => Chip(
                   label: Text(
                     '${label.text} (${(label.confidence * 100).round()}%)'
-                    '${matchByLabel.containsKey(
-                          LabelMappingService.normalizeLabel(label.text),
-                        )
-                        ? ' -> ${matchByLabel[LabelMappingService.normalizeLabel(label.text)]}'
-                        : ''}',
+                    '${matchByLabel.containsKey(LabelMappingService.normalizeLabel(label.text)) ? ' -> ${matchByLabel[LabelMappingService.normalizeLabel(label.text)]}' : ''}',
                   ),
                 ),
               )

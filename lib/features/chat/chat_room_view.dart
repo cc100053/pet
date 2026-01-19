@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
@@ -45,7 +46,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in again.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.authReauthRequired),
+        ),
       );
       return;
     }
@@ -87,9 +90,10 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       });
       _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
       _chatMessageListKey.currentState?.refreshLatest();
-      AnalyticsService.instance.logEvent('message_send', parameters: {
-        'result': 'success',
-      });
+      AnalyticsService.instance.logEvent(
+        'message_send',
+        parameters: {'result': 'success'},
+      );
       if (!mounted) {
         return;
       }
@@ -99,13 +103,19 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       }
       _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
       _messageController.text = text;
-      _messageController.selection =
-          TextSelection.collapsed(offset: _messageController.text.length);
-      AnalyticsService.instance.logEvent('message_send', parameters: {
-        'result': 'failure',
-      });
+      _messageController.selection = TextSelection.collapsed(
+        offset: _messageController.text.length,
+      );
+      AnalyticsService.instance.logEvent(
+        'message_send',
+        parameters: {'result': 'failure'},
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Send failed: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.chatSendFailed(error.toString()),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -163,7 +173,11 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Feed upload failed: $error')),
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)!.feedUploadFailed(error.toString()),
+        ),
+      ),
     );
   }
 
@@ -174,7 +188,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in again.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.authReauthRequired),
+        ),
       );
       return;
     }
@@ -197,16 +213,16 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   @override
   Widget build(BuildContext context) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Text(l10n.chatTitle),
         actions: [
           IconButton(
-            onPressed:
-                currentUserId == null ? null : () => _openBlockedUsers(),
+            onPressed: currentUserId == null ? null : () => _openBlockedUsers(),
             icon: const Icon(Icons.block),
-            tooltip: 'Blocked users',
+            tooltip: l10n.blockedUsersTitle,
           ),
         ],
       ),
@@ -227,16 +243,16 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                 IconButton(
                   onPressed: _sending ? null : _openFeedCamera,
                   icon: const Icon(Icons.photo_camera),
-                  tooltip: 'Feed',
+                  tooltip: l10n.feedTitle,
                 ),
                 Expanded(
                   child: TextField(
                     controller: _messageController,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sending ? null : _sendMessage(),
-                    decoration: const InputDecoration(
-                      hintText: 'Message',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      hintText: l10n.chatMessageHint,
+                      border: const OutlineInputBorder(),
                       isDense: true,
                     ),
                     minLines: 1,
@@ -247,7 +263,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                 IconButton(
                   onPressed: _sending ? null : _sendMessage,
                   icon: const Icon(Icons.send),
-                  tooltip: 'Send',
+                  tooltip: l10n.commonSend,
                 ),
               ],
             ),
@@ -336,7 +352,9 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       setState(() {
-        _error = 'Failed to refresh: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.chatRefreshFailed(error.toString());
       });
     }
   }
@@ -417,7 +435,9 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       setState(() {
-        _error = 'Failed to load cached messages: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadCacheFailed(error.toString());
       });
     }
   }
@@ -446,7 +466,9 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       setState(() {
-        _error = 'Failed to load blocked users: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadBlockedUsersFailed(error.toString());
       });
     }
   }
@@ -474,9 +496,11 @@ class ChatMessageListState extends State<ChatMessageList> {
 
   List<ChatMessage> _filterBlocked(List<ChatMessage> source) {
     return source
-        .where((message) =>
-            message.senderId == null ||
-            !_blockedUserIds.contains(message.senderId))
+        .where(
+          (message) =>
+              message.senderId == null ||
+              !_blockedUserIds.contains(message.senderId),
+        )
         .toList();
   }
 
@@ -556,7 +580,9 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       setState(() {
-        _error = 'Failed to load messages: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadMessagesFailed(error.toString());
       });
       PerformanceService.instance.markChatColdLoaded(
         messageCount: _messages.length,
@@ -622,7 +648,9 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       setState(() {
-        _error = 'Failed to load more: $error';
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadMoreFailed(error.toString());
       });
     } finally {
       if (mounted) {
@@ -684,18 +712,18 @@ class ChatMessageListState extends State<ChatMessageList> {
                 return false;
               }
               if (m.type == 'image_feed' && message.type == 'image_feed') {
-                final optimisticClient =
-                    m.clientCreatedAt?.toIso8601String();
-                final incomingClient =
-                    message.clientCreatedAt?.toIso8601String();
+                final optimisticClient = m.clientCreatedAt?.toIso8601String();
+                final incomingClient = message.clientCreatedAt
+                    ?.toIso8601String();
                 return optimisticClient != null &&
                     incomingClient != null &&
                     optimisticClient == incomingClient;
               }
               return m.body == message.body;
             });
-            _optimisticIds.removeWhere((id) =>
-                _messages.every((m) => m.id != id));
+            _optimisticIds.removeWhere(
+              (id) => _messages.every((m) => m.id != id),
+            );
           }
           // Add the real message if not already present
           if (_messageIds.add(message.id)) {
@@ -726,6 +754,7 @@ class ChatMessageListState extends State<ChatMessageList> {
     }
 
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final errorBanner = _error == null
         ? null
         : Padding(
@@ -746,15 +775,17 @@ class ChatMessageListState extends State<ChatMessageList> {
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       reverse: true,
-                      padding: widget.contentPadding ?? const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      children: const [
-                        SizedBox(height: 120),
+                      padding:
+                          widget.contentPadding ??
+                          const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                      children: [
+                        const SizedBox(height: 120),
                         Center(
                           child: Text(
-                            'No messages yet. Start the chat below.',
+                            l10n.chatEmptyState,
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -764,10 +795,12 @@ class ChatMessageListState extends State<ChatMessageList> {
                       controller: _scrollController,
                       reverse: true,
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: widget.contentPadding ?? const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
+                      padding:
+                          widget.contentPadding ??
+                          const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                       itemBuilder: (context, index) {
                         if (index == _messages.length) {
                           if (_loadingMore) {
@@ -777,9 +810,11 @@ class ChatMessageListState extends State<ChatMessageList> {
                             );
                           }
                           if (!_hasMore) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Center(child: Text('No older messages.')),
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Center(
+                                child: Text(l10n.chatNoOlderMessages),
+                              ),
                             );
                           }
                           return Padding(
@@ -787,7 +822,7 @@ class ChatMessageListState extends State<ChatMessageList> {
                             child: Center(
                               child: OutlinedButton(
                                 onPressed: _loadingMore ? null : _loadMore,
-                                child: const Text('Load older messages'),
+                                child: Text(l10n.chatLoadOlderMessages),
                               ),
                             ),
                           );
@@ -797,8 +832,9 @@ class ChatMessageListState extends State<ChatMessageList> {
                         final isMe =
                             message.senderId != null &&
                             message.senderId == widget.currentUserId;
-                        final isOptimistic =
-                            _optimisticIds.contains(message.id);
+                        final isOptimistic = _optimisticIds.contains(
+                          message.id,
+                        );
                         return ChatMessageTile(
                           key: ValueKey(message.id),
                           message: message,
@@ -848,6 +884,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       return;
     }
 
+    final l10n = AppLocalizations.of(context)!;
     final isBlocked = _blockedUserIds.contains(senderId);
     final action = await showModalBottomSheet<_MessageAction>(
       context: context,
@@ -858,12 +895,14 @@ class ChatMessageListState extends State<ChatMessageList> {
             children: [
               ListTile(
                 leading: const Icon(Icons.report_gmailerrorred_outlined),
-                title: const Text('Report message'),
+                title: Text(l10n.chatReportMessageTitle),
                 onTap: () => Navigator.pop(context, _MessageAction.report),
               ),
               ListTile(
                 leading: const Icon(Icons.block),
-                title: Text(isBlocked ? 'User blocked' : 'Block user'),
+                title: Text(
+                  isBlocked ? l10n.chatUserAlreadyBlocked : l10n.chatBlockUser,
+                ),
                 enabled: !isBlocked,
                 onTap: isBlocked
                     ? null
@@ -911,14 +950,18 @@ class ChatMessageListState extends State<ChatMessageList> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report submitted.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.chatReportSent)),
       );
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Report failed: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.chatReportFailed(error.toString()),
+          ),
+        ),
       );
     }
   }
@@ -931,7 +974,9 @@ class ChatMessageListState extends State<ChatMessageList> {
 
     if (_blockedUserIds.contains(blockedUserId)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User already blocked.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.chatUserAlreadyBlocked),
+        ),
       );
       return;
     }
@@ -960,42 +1005,48 @@ class ChatMessageListState extends State<ChatMessageList> {
       _persistCache();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User blocked.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.chatUserBlocked)),
       );
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Block failed: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.chatBlockFailed(error.toString()),
+          ),
+        ),
       );
     }
   }
 
   Future<String?> _promptReportReason(BuildContext context) async {
     final controller = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Report message'),
+        title: Text(l10n.chatReportMessageTitle),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Share a quick reason',
-          ),
+          decoration: InputDecoration(hintText: l10n.chatReportHint),
           maxLines: 3,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () {
               final text = controller.text.trim();
-              Navigator.pop(context, text.isEmpty ? 'No reason' : text);
+              Navigator.pop(
+                context,
+                text.isEmpty ? l10n.chatReportNoReason : text,
+              );
             },
-            child: const Text('Submit'),
+            child: Text(l10n.commonSubmit),
           ),
         ],
       ),
@@ -1014,10 +1065,7 @@ class _ChatLoadingList extends StatelessWidget {
     final theme = Theme.of(context);
     final bubbleColor = theme.colorScheme.surfaceContainerHighest;
 
-    Widget bubble({
-      required Alignment alignment,
-      required double widthFactor,
-    }) {
+    Widget bubble({required Alignment alignment, required double widthFactor}) {
       return Align(
         alignment: alignment,
         child: FractionallySizedBox(
@@ -1073,10 +1121,10 @@ class ChatMessageTile extends StatelessWidget {
     if (message.isSystem) {
       return Center(
         child: Text(
-          message.body ?? 'System update',
+          message.body ?? AppLocalizations.of(context)!.chatSystemUpdate,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+            color: Theme.of(context).colorScheme.outline,
+          ),
         ),
       );
     }
@@ -1092,10 +1140,7 @@ class ChatMessageTile extends StatelessWidget {
 
     return Align(
       alignment: alignment,
-      child: GestureDetector(
-        onLongPress: onLongPress,
-        child: content,
-      ),
+      child: GestureDetector(onLongPress: onLongPress, child: content),
     );
   }
 }
@@ -1109,7 +1154,8 @@ class _TextMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final l10n = AppLocalizations.of(context)!;
+
     // Telegram-like Colors
     final bubbleColor = isMe
         ? const Color(0xFFEEFFDE) // Light Green
@@ -1122,32 +1168,43 @@ class _TextMessageBubble extends StatelessWidget {
       decoration: BoxDecoration(
         color: bubbleColor,
         borderRadius: BorderRadius.circular(16).copyWith(
-          bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(16),
-          bottomLeft: !isMe ? const Radius.circular(0) : const Radius.circular(16),
+          bottomRight: isMe
+              ? const Radius.circular(0)
+              : const Radius.circular(16),
+          bottomLeft: !isMe
+              ? const Radius.circular(0)
+              : const Radius.circular(16),
         ),
         boxShadow: [
-           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 2, offset: const Offset(0, 1))
-        ]
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-           if (!isMe)
-             Padding(
-               padding: const EdgeInsets.only(bottom: 2),
-               child: Text(
-                 'Partner', // Todo: Use real nickname if available
-                 style: theme.textTheme.labelMedium?.copyWith(
-                   color: Colors.orange, 
-                   fontWeight: FontWeight.bold
-                 ),
-               ),
-             ),
-           Text(
-             message.body ?? '',
-             style: theme.textTheme.bodyMedium?.copyWith(color: textColor, fontSize: 16),
-           ),
+          if (!isMe)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                l10n.chatPartnerLabel,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          Text(
+            message.body ?? '',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: textColor,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );
@@ -1168,9 +1225,8 @@ class _FeedMessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cardColor = isMe
-        ? const Color(0xFFEEFFDE)
-        : Colors.white;
+    final l10n = AppLocalizations.of(context)!;
+    final cardColor = isMe ? const Color(0xFFEEFFDE) : Colors.white;
 
     return Container(
       width: 260,
@@ -1178,25 +1234,29 @@ class _FeedMessageCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
-         boxShadow: [
-           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 2, offset: const Offset(0, 1))
-        ]
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMe)
-             Padding(
-               padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
-               child: Text(
-                 'Partner',
-                 style: theme.textTheme.labelMedium?.copyWith(
-                   color: Colors.orange, 
-                   fontWeight: FontWeight.bold
-                 ),
-               ),
-             ),
-          _buildImagePreview(theme),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+              child: Text(
+                l10n.chatPartnerLabel,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          _buildImagePreview(context, theme),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -1204,9 +1264,11 @@ class _FeedMessageCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 message.coinsAwarded > 0
-                    ? '+${message.coinsAwarded} coins'
-                    : 'Feed',
-                style: theme.textTheme.labelMedium?.copyWith(color: Colors.black87),
+                    ? l10n.chatCoinsAwarded(message.coinsAwarded)
+                    : l10n.feedTitle,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: Colors.black87,
+                ),
               ),
             ],
           ),
@@ -1222,7 +1284,7 @@ class _FeedMessageCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePreview(ThemeData theme) {
+  Widget _buildImagePreview(BuildContext context, ThemeData theme) {
     final imageUrl = message.imageUrl;
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return Stack(
@@ -1236,7 +1298,7 @@ class _FeedMessageCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          if (isOptimistic) _buildUploadingBadge(theme),
+          if (isOptimistic) _buildUploadingBadge(context, theme),
         ],
       );
     }
@@ -1263,7 +1325,7 @@ class _FeedMessageCard extends StatelessWidget {
               ),
             ),
           ),
-          if (isOptimistic) _buildUploadingBadge(theme),
+          if (isOptimistic) _buildUploadingBadge(context, theme),
         ],
       );
     }
@@ -1274,14 +1336,11 @@ class _FeedMessageCard extends StatelessWidget {
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(
-        Icons.image_not_supported,
-        color: theme.colorScheme.outline,
-      ),
+      child: Icon(Icons.image_not_supported, color: theme.colorScheme.outline),
     );
   }
 
-  Widget _buildUploadingBadge(ThemeData theme) {
+  Widget _buildUploadingBadge(BuildContext context, ThemeData theme) {
     return Positioned(
       right: 6,
       bottom: 6,
@@ -1313,7 +1372,7 @@ class _FeedMessageCard extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              'Uploading',
+              AppLocalizations.of(context)!.commonUploading,
               style: theme.textTheme.labelSmall,
             ),
           ],

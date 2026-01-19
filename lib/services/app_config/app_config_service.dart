@@ -20,7 +20,7 @@ class ForceUpdateConfig {
 
 class AppConfigService {
   AppConfigService({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 
@@ -48,8 +48,7 @@ class AppConfigService {
     final rawMessage = await _fetchConfigValue('force_update_message');
     final message = _valueForPlatform(rawMessage);
 
-    final rawMinVersionString =
-        rawMinVersion is String ? rawMinVersion : null;
+    final rawMinVersionString = rawMinVersion is String ? rawMinVersion : null;
 
     return ForceUpdateConfig(
       minVersion: minVersion,

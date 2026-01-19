@@ -1,0 +1,377 @@
+{
+  "@@locale": "ja",
+  "appleSignInRejected": "Apple サインインが拒否されました。Supabase の Apple プロバイダのクライアントIDを確認してください。",
+  "authReauthRequired": "もう一度サインインしてください。",
+  "blockedUserIdTruncated": "ID（省略）: {id}",
+  "@blockedUserIdTruncated": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "blockedUsersEmpty": "ブロック中のユーザーはいません。",
+  "blockedUsersLoadFailed": "ブロックユーザーの読み込みに失敗しました: {error}",
+  "@blockedUsersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "blockedUsersTitle": "ブロックしたユーザー",
+  "blockedUserUnblocked": "ブロックを解除しました。",
+  "blockedUserUnblockFailed": "解除に失敗しました: {error}",
+  "@blockedUserUnblockFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "calendarAddMemory": "思い出を追加",
+  "calendarEarlier": "以前",
+  "calendarLatestPhoto": "最新の写真",
+  "calendarLoadFailed": "思い出の読み込みに失敗しました: {error}",
+  "@calendarLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "calendarNoEarlierMemories": "以前の思い出はまだありません。",
+  "calendarNoMemoriesForDay": "この日の思い出はありません。",
+  "calendarNoPhotoYet": "まだ写真がありません",
+  "calendarTitle": "カレンダー",
+  "calendarToday": "今日",
+  "chatBlockFailed": "ブロックに失敗しました: {error}",
+  "@chatBlockFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatBlockUser": "ユーザーをブロック",
+  "chatCoinsAwarded": "+{count}コイン",
+  "@chatCoinsAwarded": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "chatEmptyState": "まだメッセージがありません。下の入力欄から始めましょう。",
+  "chatLoadBlockedUsersFailed": "ブロックユーザーの読み込みに失敗しました: {error}",
+  "@chatLoadBlockedUsersFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadCacheFailed": "キャッシュの読み込みに失敗しました: {error}",
+  "@chatLoadCacheFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadMessagesFailed": "メッセージの読み込みに失敗しました: {error}",
+  "@chatLoadMessagesFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadMoreFailed": "さらに読み込めませんでした: {error}",
+  "@chatLoadMoreFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatLoadOlderMessages": "過去のメッセージを読み込む",
+  "chatMessageHint": "メッセージ",
+  "chatNoOlderMessages": "これ以上のメッセージはありません。",
+  "chatPartnerLabel": "相手",
+  "chatRefreshFailed": "更新に失敗しました: {error}",
+  "@chatRefreshFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatReportFailed": "通報に失敗しました: {error}",
+  "@chatReportFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatReportHint": "理由を簡単に入力してください",
+  "chatReportMessageTitle": "メッセージを通報",
+  "chatReportNoReason": "理由なし",
+  "chatReportSent": "通報しました。",
+  "chatSendFailed": "送信に失敗しました: {error}",
+  "@chatSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatSystemUpdate": "システム通知",
+  "chatTitle": "チャット",
+  "chatUserAlreadyBlocked": "ブロック済み",
+  "chatUserBlocked": "ユーザーをブロックしました。",
+  "commonBuy": "購入",
+  "commonCamera": "カメラ",
+  "commonCancel": "キャンセル",
+  "commonClose": "閉じる",
+  "commonGallery": "ギャラリー",
+  "commonJoin": "参加",
+  "commonLeave": "退出",
+  "commonOwned": "所有済み",
+  "commonReload": "再読み込み",
+  "commonSave": "保存",
+  "commonSend": "送信",
+  "commonSending": "送信中...",
+  "commonSignOut": "サインアウト",
+  "commonSubmit": "送信",
+  "commonTryAgain": "再試行",
+  "commonUnblock": "解除",
+  "commonUploading": "アップロード中",
+  "commonUser": "ユーザー",
+  "currencyJpy": "JPY {amount}",
+  "@currencyJpy": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "drawerCreateRoom": "新しいルームを作成",
+  "drawerDebugTools": "デバッグツール",
+  "drawerForceRefreshPet": "ペットを強制更新",
+  "drawerFreePlan": "無料プラン",
+  "drawerInviteCode": "コード: {code}",
+  "@drawerInviteCode": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "drawerJoinWithCode": "招待コードで参加",
+  "drawerMyRooms": "マイルーム",
+  "drawerNoRooms": "まだルームがありません。",
+  "drawerPetError": "ペットエラー",
+  "drawerRegenerateInviteCode": "招待コードを再生成",
+  "drawerSimulateFeed": "フィードをシミュレーション",
+  "drawerTestNotification": "ローカル通知をテスト",
+  "feedCameraSubtitle": "写真を撮ってラベルを確認してから送信します。",
+  "feedCameraTitle": "フィードカメラ",
+  "feedCanonicalTags": "カノニカルタグ: {tags}",
+  "@feedCanonicalTags": {
+    "placeholders": {
+      "tags": {}
+    }
+  },
+  "feedCaptionLabel": "キャプション（任意）",
+  "feedDetectedLabels": "検出されたラベル",
+  "feedLabelingFailed": "ラベル付けに失敗しました: {error}",
+  "@feedLabelingFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedLabelingNotSupported": "Web では ML Kit の画像ラベリングは利用できません。",
+  "feedLabelMappingsFailed": "ラベルマッピングの読み込みに失敗しました: {error}",
+  "@feedLabelMappingsFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedLabelMappingsLoading": "ラベルマッピングを読み込み中...",
+  "feedLabelMappingsReady": "ラベルマッピング準備完了。",
+  "feedLabelMappingsUnavailable": "ラベルマッピングを利用できません。",
+  "feedNoLabels": "まだラベルは検出されていません。",
+  "feedResponse": "応答: {response}",
+  "@feedResponse": {
+    "placeholders": {
+      "response": {}
+    }
+  },
+  "feedSelectImageFirst": "まず画像を選択してください。",
+  "feedSendButton": "フィードを送信",
+  "feedSendFailed": "送信に失敗しました: {error}",
+  "@feedSendFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedTitle": "フィード",
+  "feedUploadFailed": "フィードのアップロードに失敗しました: {error}",
+  "@feedUploadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "forceUpdateAction": "今すぐ更新",
+  "forceUpdateLinkError": "ストアリンクを開けません。",
+  "forceUpdateMessage": "続行するには新しいバージョンが必要です。今すぐ更新してください。",
+  "forceUpdateTitle": "更新が必要です",
+  "languageChineseTraditional": "繁体字中国語",
+  "languageEnglish": "英語",
+  "languageJapanese": "日本語",
+  "languageSystem": "システム",
+  "languageSystemSubtitle": "端末の言語に従う",
+  "languageTitle": "言語",
+  "launchTagline": "思い出を共有して、一緒に育てよう。",
+  "moodHigh": "最高",
+  "moodLow": "低い",
+  "moodMid": "いい",
+  "moodNeutral": "普通",
+  "moodSad": "元気なし",
+  "petActionFailed": "操作に失敗しました: {error}",
+  "@petActionFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "petHomeTitle": "ペットの家",
+  "petNotFound": "ペットが見つかりません。",
+  "petSyncFailed": "ペット同期エラー: {error}",
+  "@petSyncFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "photoLabel": "写真",
+  "profileDefaultNickname": "ペットの親",
+  "profileEmpty": "プロフィールがありません。",
+  "profileLoadFailed": "プロフィールの読み込みに失敗しました: {error}",
+  "@profileLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "profileNicknameLabel": "ニックネーム",
+  "profileTitle": "プロフィール",
+  "profileUpdated": "プロフィールを更新しました",
+  "profileUserId": "ユーザーID: {id}",
+  "@profileUserId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "roomCreatedSuccess": "ルームを作成しました。ドロワーを確認してください。",
+  "roomCreateFailed": "ルーム作成に失敗しました: {error}",
+  "@roomCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomDefaultName": "新しいルーム",
+  "roomInviteCodeRegenerated": "招待コードを再生成しました。",
+  "roomInviteCodeRegenerateFailed": "コードの再生成に失敗しました: {error}",
+  "@roomInviteCodeRegenerateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomJoinFailed": "ルーム参加に失敗しました: {error}",
+  "@roomJoinFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomJoinHelper": "招待コードは大文字小文字を区別しません。",
+  "roomJoinHint": "6桁のコードを入力",
+  "roomJoinSuccess": "ルームに参加しました。",
+  "roomJoinTitle": "ルームに参加",
+  "roomLeaveFailed": "退出に失敗しました: {error}",
+  "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomLeaveMessage": "再招待されるまでこのペットにアクセスできません。",
+  "roomLeaveSuccess": "ルームから退出しました。",
+  "roomLeaveTitle": "ルームを退出しますか？",
+  "roomLimitReached": "無料枠に達しました（最大2ルーム）。アップグレードしてください。",
+  "roomNewInviteCode": "新しい招待コード: {code}",
+  "@roomNewInviteCode": {
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "roomSelectionCreatePet": "新しいペットを作成",
+  "roomSelectionCreating": "作成中...",
+  "roomSelectionEmptySlot": "空きスロット",
+  "roomSelectionEnterInvite": "招待コードを入力",
+  "roomSelectionJoining": "参加中...",
+  "roomSelectionRoomFallback": "ルーム",
+  "roomSelectionSubtitle": "ペットの家を選んで戻りましょう。",
+  "roomSelectionTitle": "ルーム選択",
+  "signInFailed": "サインインに失敗しました。もう一度お試しください。",
+  "signInNote": "注: Supabase で OAuth プロバイダの設定が必要です。",
+  "signInOpening": "サインイン画面を開いています...",
+  "signInOpeningProvider": "{provider} を開いています...",
+  "@signInOpeningProvider": {
+    "placeholders": {
+      "provider": {}
+    }
+  },
+  "signInSubtitle": "サインインして一緒に育て始めましょう。",
+  "signInWithApple": "Apple で続行",
+  "signInWithGoogle": "Google で続行",
+  "storeCoinPrice": "コイン: {amount}",
+  "@storeCoinPrice": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeCoinsLabel": "コイン: {amount}",
+  "@storeCoinsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeCoinsReward": "コイン +{amount}",
+  "@storeCoinsReward": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeEmpty": "現在ストアは空です。",
+  "storeIapNotConfigured": "IAP が設定されていません。",
+  "storeIapUnavailable": "IAP を利用できません: {error}",
+  "@storeIapUnavailable": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeLoadFailed": "ストアの読み込みに失敗しました: {error}",
+  "@storeLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeNotEnoughCoins": "コインが足りません。",
+  "storeOwnedCount": "所持数: {amount}",
+  "@storeOwnedCount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storePriceUnavailable": "価格情報がありません",
+  "storeProductNotFound": "RevenueCat に商品が見つかりません。",
+  "storeProductUnavailable": "商品を利用できません。",
+  "storePurchaseFailed": "購入に失敗しました: {error}",
+  "@storePurchaseFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storePurchaseSuccess": "{name} を購入しました。",
+  "@storePurchaseSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "storeRestoreFailed": "復元に失敗しました: {error}",
+  "@storeRestoreFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeRestoreTooltip": "購入を復元",
+  "storeSectionCoinPacks": "コインパック",
+  "storeSectionCoinStore": "コインストア",
+  "storeSectionSubscription": "サブスクリプション",
+  "storeSignInPrompt": "ストアを利用するにはサインインしてください。",
+  "storeSubscribe": "購読する",
+  "storeSubscriptionActive": "有効",
+  "storeTitle": "ストア",
+  "storeTypeConsumable": "消耗品",
+  "storeTypeCosmetic": "コスメ",
+  "storeTypeSubscription": "サブスクリプション"
+}

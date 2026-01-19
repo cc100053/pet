@@ -47,9 +47,9 @@ class LabelMappingRepository {
   final SupabaseClient _client;
 
   Future<List<LabelMappingEntry>> fetch({String? locale}) async {
-    final query = _client.from('label_mappings').select(
-          'label_en, canonical_tag, priority',
-        );
+    final query = _client
+        .from('label_mappings')
+        .select('label_en, canonical_tag, priority');
 
     final response = locale == null
         ? await query
@@ -63,8 +63,7 @@ class LabelMappingRepository {
 }
 
 class LabelMappingService {
-  LabelMappingService(List<LabelMappingEntry> entries)
-      : _entries = entries {
+  LabelMappingService(List<LabelMappingEntry> entries) : _entries = entries {
     for (final entry in entries) {
       if (entry.label.isEmpty || entry.canonicalTag.isEmpty) {
         continue;

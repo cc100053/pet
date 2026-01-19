@@ -73,10 +73,7 @@ Future<AccessTokenDebugResult> ensureValidAccessTokenWithDebug({
   Duration? remaining;
   final expiresAt = session.expiresAt;
   if (expiresAt != null) {
-    expiry = DateTime.fromMillisecondsSinceEpoch(
-      expiresAt * 1000,
-      isUtc: true,
-    );
+    expiry = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000, isUtc: true);
     remaining = expiry.difference(DateTime.now().toUtc());
   }
 
@@ -93,7 +90,8 @@ Future<AccessTokenDebugResult> ensureValidAccessTokenWithDebug({
 
   try {
     final refreshed = await auth.refreshSession();
-    final token = refreshed.session?.accessToken ??
+    final token =
+        refreshed.session?.accessToken ??
         auth.currentSession?.accessToken ??
         session.accessToken;
     final refreshedClaims = _decodeJwtClaims(token);

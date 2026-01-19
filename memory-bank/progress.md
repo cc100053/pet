@@ -127,6 +127,9 @@
 - Implemented P.3 interaction layout with top nav, latest photo card, pet home card, action buttons, and bottom chat sheet.
 - Moved chat access to a dedicated page and updated P.3 action buttons (center camera, right chat).
 - Updated design docs to support both Traditional Chinese (ZH) and Japanese (JA), switching based on user preference.
+- Redesigned P.4 memory calendar view to match the wireframe layout (month header, weekday bubbles, today card, earlier memories row).
+- Added month navigation and a full month calendar grid under the weekday bubbles in P.4.
+- Localized the app for EN/JA/zh-TW with device-language defaults and an in-app language selector.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

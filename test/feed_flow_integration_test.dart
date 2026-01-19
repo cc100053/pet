@@ -23,8 +23,7 @@ class _TestEnv {
       dotenv.testLoad(fileInput: envFile.readAsStringSync());
     }
 
-    String? readEnv(String key) =>
-        Platform.environment[key] ?? dotenv.env[key];
+    String? readEnv(String key) => Platform.environment[key] ?? dotenv.env[key];
 
     final url = readEnv('SUPABASE_URL');
     final anonKey = readEnv('SUPABASE_ANON_KEY');
@@ -32,7 +31,8 @@ class _TestEnv {
 
     String? skip;
     if (url == null || anonKey == null || refreshToken == null) {
-      skip = 'Set SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_TEST_REFRESH_TOKEN.';
+      skip =
+          'Set SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_TEST_REFRESH_TOKEN.';
     }
 
     return _TestEnv(
@@ -48,78 +48,71 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final env = _TestEnv.load();
 
-  test(
-    'feed_validate writes message to chat',
-    () async {
-      final client = SupabaseClient(
-        env.supabaseUrl!,
-        env.supabaseAnonKey!,
+  test('feed_validate writes message to chat', () async {
+    final client = SupabaseClient(env.supabaseUrl!, env.supabaseAnonKey!);
+    String? roomId;
+    try {
+      final authResponse = await client.auth.setSession(env.refreshToken!);
+      final session = authResponse.session;
+      expect(session, isNotNull);
+
+      final accessToken = session!.accessToken;
+      client.functions.setAuth(accessToken);
+
+      final roomResponse = await client
+          .rpc('create_room', params: {'p_name': 'Integration Test Room'})
+          .single();
+      roomId = roomResponse['room_id'] as String?;
+      expect(roomId, isNotNull);
+
+      final imageUrl = 'https://example.com/test.jpg';
+      final response = await client.functions.invoke(
+        'feed_validate',
+        body: {
+          'room_id': roomId,
+          'labels': [
+            {
+              'text': 'Coffee',
+              'confidence': 0.95,
+              'canonical_tag': 'beverage.coffee',
+            },
+            {
+              'text': 'Cup',
+              'confidence': 0.7,
+              'canonical_tag': 'beverage.coffee',
+            },
+          ],
+          'canonical_tags': ['beverage.coffee'],
+          'caption': 'Integration test feed',
+          'image_url': imageUrl,
+          'client_created_at': DateTime.now().toUtc().toIso8601String(),
+        },
       );
-      String? roomId;
+
+      expect(response.status, 200);
+      final data = response.data;
+      expect(data, isA<Map<String, dynamic>>());
+      final payload = Map<String, dynamic>.from(data as Map);
+      final messageId = payload['message_id'] as String?;
+      expect(messageId, isNotNull);
+
+      final message = await client
+          .from('messages')
+          .select('id, room_id, type, image_url')
+          .eq('id', messageId!)
+          .maybeSingle();
+
+      expect(message, isNotNull);
+      expect(message?['room_id'], roomId);
+      expect(message?['type'], 'image_feed');
+      expect(message?['image_url'], imageUrl);
+    } finally {
       try {
-        final authResponse = await client.auth.setSession(env.refreshToken!);
-        final session = authResponse.session;
-        expect(session, isNotNull);
-
-        final accessToken = session!.accessToken;
-        client.functions.setAuth(accessToken);
-
-        final roomResponse = await client
-            .rpc('create_room', params: {'p_name': 'Integration Test Room'})
-            .single();
-        roomId = roomResponse['room_id'] as String?;
-        expect(roomId, isNotNull);
-
-        final imageUrl = 'https://example.com/test.jpg';
-        final response = await client.functions.invoke(
-          'feed_validate',
-          body: {
-            'room_id': roomId,
-            'labels': [
-              {
-                'text': 'Coffee',
-                'confidence': 0.95,
-                'canonical_tag': 'beverage.coffee',
-              },
-              {
-                'text': 'Cup',
-                'confidence': 0.7,
-                'canonical_tag': 'beverage.coffee',
-              },
-            ],
-            'canonical_tags': ['beverage.coffee'],
-            'caption': 'Integration test feed',
-            'image_url': imageUrl,
-            'client_created_at': DateTime.now().toUtc().toIso8601String(),
-          },
-        );
-
-        expect(response.status, 200);
-        final data = response.data;
-        expect(data, isA<Map<String, dynamic>>());
-        final payload = Map<String, dynamic>.from(data as Map);
-        final messageId = payload['message_id'] as String?;
-        expect(messageId, isNotNull);
-
-        final message = await client
-            .from('messages')
-            .select('id, room_id, type, image_url')
-            .eq('id', messageId!)
-            .maybeSingle();
-
-        expect(message, isNotNull);
-        expect(message?['room_id'], roomId);
-        expect(message?['type'], 'image_feed');
-        expect(message?['image_url'], imageUrl);
-      } finally {
-        try {
-          if (roomId != null) {
-            await client.from('rooms').delete().eq('id', roomId);
-          }
-        } catch (_) {}
-        await client.dispose();
-      }
-    },
-    skip: env.skipReason,
-  );
+        if (roomId != null) {
+          await client.from('rooms').delete().eq('id', roomId);
+        }
+      } catch (_) {}
+      await client.dispose();
+    }
+  }, skip: env.skipReason);
 }
