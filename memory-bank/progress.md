@@ -132,6 +132,9 @@
 - Localized the app for EN/JA/zh-TW with device-language defaults and an in-app language selector.
 - Added a sample Lottie pet asset and wired the pet home avatar to render it with a fallback placeholder.
 - Switched the pet animation stack from Rive to Lottie and removed the old Rive asset references.
+- Updated the calendar page to use a back button in the header and show the most recent photo card.
+- Simplified the drawer to a single Room List option instead of listing every room.
+- Implemented interactive pet movement (tap-to-move, drag, idle wander) with facing direction in the pet home card.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

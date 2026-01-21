@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,8 +33,16 @@ class HomeView extends ConsumerStatefulWidget {
   ConsumerState<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends ConsumerState<HomeView> {
+class _HomeViewState extends ConsumerState<HomeView>
+    with SingleTickerProviderStateMixin {
   static const _petLottieAsset = 'assets/lottie/pet_example.json';
+  static const _petAvatarSize = Size(100, 100);
+  static const double _petMoveSpeed = 30;
+  static const int _minMoveMs = 260;
+  static const int _maxMoveMs = 1400;
+  static const Duration _idleThreshold = Duration(seconds: 8);
+  static const Duration _wanderCooldown = Duration(seconds: 7);
+  static const Duration _wanderCheckInterval = Duration(seconds: 4);
 
   // Logic State
   bool _creatingRoom = false;
@@ -49,6 +60,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
   String? _petSubscriptionPetId;
+  final GlobalKey _petFieldKey = GlobalKey();
+  final Random _random = Random();
+  late final AnimationController _petMoveController;
+  Animation<Offset>? _petMoveAnimation;
+  Offset _petNormalizedPosition = const Offset(0.5, 0.6);
+  Offset _petNormalizedTarget = const Offset(0.5, 0.6);
+  bool _petFacingRight = true;
+  bool _isDraggingPet = false;
+  Offset _dragOffset = Offset.zero;
+  Timer? _wanderTimer;
+  DateTime _lastInteractionAt = DateTime.now();
+  DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
 
   // Chat State
   final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
@@ -57,6 +80,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void initState() {
     super.initState();
     _ensureProfile().whenComplete(_fetchRooms);
+    _petMoveController = AnimationController(vsync: this)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _petNormalizedPosition = _petNormalizedTarget;
+        }
+      });
+    _startWanderTimer();
 
     // Init FCM
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,6 +97,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   void dispose() {
     _petStateChannel?.unsubscribe();
+    _wanderTimer?.cancel();
+    _petMoveController.dispose();
     super.dispose();
   }
 
@@ -336,138 +368,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
       );
     } finally {
       if (mounted) setState(() => _joiningRoom = false);
-    }
-  }
-
-  Future<void> _regenerateInviteCode(String roomId) async {
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      final response = await Supabase.instance.client.rpc(
-        'regenerate_invite_code',
-        params: {'p_room_id': roomId},
-      );
-
-      String? newCode;
-      if (response is String) {
-        newCode = response;
-      }
-      await _fetchRooms();
-      if (!mounted) {
-        return;
-      }
-      if (newCode != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.roomNewInviteCode(newCode))),
-        );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.roomInviteCodeRegenerated)));
-      }
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.roomInviteCodeRegenerateFailed(error.toString())),
-        ),
-      );
-    }
-  }
-
-  Future<void> _leaveRoom(String roomId) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.roomLeaveTitle),
-        content: Text(l10n.roomLeaveMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(l10n.commonLeave),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      await Supabase.instance.client.rpc(
-        'leave_room',
-        params: {'p_room_id': roomId},
-      );
-
-      // Refresh list
-      await _fetchRooms();
-
-      // If we left the current room, switch to another or clear
-      if (_roomId == roomId) {
-        if (_myRooms.isNotEmpty) {
-          _switchRoom(_myRooms.first['id']);
-        } else {
-          setState(() {
-            _roomId = null;
-            _petState = null;
-          });
-        }
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
-      }
-      AnalyticsService.instance.logEvent(
-        'room_leave',
-        parameters: {'result': 'success'},
-      );
-    } catch (_) {
-      // Fallback: Set is_active = false manually
-      try {
-        final userId = Supabase.instance.client.auth.currentUser?.id;
-        if (userId != null) {
-          await Supabase.instance.client
-              .from('room_members')
-              .update({'is_active': false})
-              .eq('room_id', roomId)
-              .eq('user_id', userId);
-
-          await _fetchRooms();
-          if (_roomId == roomId) {
-            if (_myRooms.isNotEmpty) {
-              _switchRoom(_myRooms.first['id']);
-            } else {
-              setState(() {
-                _roomId = null;
-                _petState = null;
-              });
-            }
-          }
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
-          }
-          AnalyticsService.instance.logEvent(
-            'room_leave',
-            parameters: {'result': 'success'},
-          );
-        }
-      } catch (e2) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.roomLeaveFailed(e2.toString()))),
-          );
-        }
-      }
     }
   }
 
@@ -954,6 +854,186 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
+  void _startWanderTimer() {
+    _wanderTimer?.cancel();
+    _wanderTimer = Timer.periodic(
+      _wanderCheckInterval,
+      (_) => _maybeTriggerWander(),
+    );
+  }
+
+  void _maybeTriggerWander() {
+    if (!mounted || _isDraggingPet) {
+      return;
+    }
+    final now = DateTime.now();
+    if (now.difference(_lastInteractionAt) < _idleThreshold) {
+      return;
+    }
+    if (now.difference(_lastWanderAt) < _wanderCooldown) {
+      return;
+    }
+    final fieldSize = _petFieldSize();
+    if (fieldSize == null || fieldSize.isEmpty) {
+      return;
+    }
+    final target = Offset(
+      0.1 + _random.nextDouble() * 0.8,
+      0.15 + _random.nextDouble() * 0.7,
+    );
+    _lastWanderAt = now;
+    _animatePetTo(target, fieldSize, userInitiated: false);
+  }
+
+  void _markUserInteraction() {
+    _lastInteractionAt = DateTime.now();
+  }
+
+  Size? _petFieldSize() {
+    final context = _petFieldKey.currentContext;
+    if (context == null) {
+      return null;
+    }
+    final box = context.findRenderObject() as RenderBox?;
+    return box?.size;
+  }
+
+  Offset _currentPetNormalized() {
+    if (_petMoveController.isAnimating && _petMoveAnimation != null) {
+      return _petMoveAnimation!.value;
+    }
+    return _petNormalizedPosition;
+  }
+
+  Offset _positionFromNormalized(Offset normalized, Size fieldSize) {
+    final maxX = max(0.0, fieldSize.width - _petAvatarSize.width);
+    final maxY = max(0.0, fieldSize.height - _petAvatarSize.height);
+    return Offset(normalized.dx * maxX, normalized.dy * maxY);
+  }
+
+  Offset _normalizedFromTopLeft(Offset topLeft, Size fieldSize) {
+    final maxX = max(0.0, fieldSize.width - _petAvatarSize.width);
+    final maxY = max(0.0, fieldSize.height - _petAvatarSize.height);
+    final normalizedX = maxX == 0 ? 0.0 : topLeft.dx / maxX;
+    final normalizedY = maxY == 0 ? 0.0 : topLeft.dy / maxY;
+    return Offset(normalizedX, normalizedY);
+  }
+
+  Offset _clampTopLeft(Offset topLeft, Size fieldSize) {
+    final maxX = max(0.0, fieldSize.width - _petAvatarSize.width);
+    final maxY = max(0.0, fieldSize.height - _petAvatarSize.height);
+    final clampedX = topLeft.dx.clamp(0.0, maxX);
+    final clampedY = topLeft.dy.clamp(0.0, maxY);
+    return Offset(clampedX, clampedY);
+  }
+
+  Offset _clampNormalized(Offset normalized) {
+    final clampedX = normalized.dx.clamp(0.0, 1.0);
+    final clampedY = normalized.dy.clamp(0.0, 1.0);
+    return Offset(clampedX, clampedY);
+  }
+
+  Duration _durationForDistance(double distance) {
+    final rawMs = (distance / _petMoveSpeed * 1000).round();
+    final clampedMs = rawMs.clamp(_minMoveMs, _maxMoveMs);
+    return Duration(milliseconds: clampedMs);
+  }
+
+  void _updateFacing(Offset from, Offset to, Size fieldSize) {
+    final fromPx = _positionFromNormalized(from, fieldSize);
+    final toPx = _positionFromNormalized(to, fieldSize);
+    final dx = toPx.dx - fromPx.dx;
+    if (dx.abs() < 1) {
+      return;
+    }
+    _petFacingRight = dx > 0;
+  }
+
+  void _animatePetTo(
+    Offset targetNormalized,
+    Size fieldSize, {
+    bool userInitiated = true,
+  }) {
+    final clampedTarget = _clampNormalized(targetNormalized);
+    final current = _currentPetNormalized();
+    final currentPx = _positionFromNormalized(current, fieldSize);
+    final targetPx = _positionFromNormalized(clampedTarget, fieldSize);
+    _updateFacing(current, clampedTarget, fieldSize);
+    _petMoveController.stop();
+    _petMoveController.duration =
+        _durationForDistance((targetPx - currentPx).distance);
+    _petMoveAnimation = Tween<Offset>(begin: current, end: clampedTarget).animate(
+      CurvedAnimation(parent: _petMoveController, curve: Curves.easeOutCubic),
+    );
+    _petNormalizedTarget = clampedTarget;
+    if (userInitiated) {
+      _markUserInteraction();
+    }
+    _petMoveController.forward(from: 0);
+    setState(() {});
+  }
+
+  void _handlePetFieldTap(Offset localPosition, Size fieldSize) {
+    final desiredTopLeft = localPosition -
+        Offset(_petAvatarSize.width / 2, _petAvatarSize.height / 2);
+    final clampedTopLeft = _clampTopLeft(desiredTopLeft, fieldSize);
+    final normalizedTarget = _normalizedFromTopLeft(clampedTopLeft, fieldSize);
+    _animatePetTo(normalizedTarget, fieldSize);
+  }
+
+  Offset? _globalToPetField(Offset globalPosition) {
+    final context = _petFieldKey.currentContext;
+    if (context == null) {
+      return null;
+    }
+    final box = context.findRenderObject() as RenderBox?;
+    return box?.globalToLocal(globalPosition);
+  }
+
+  void _handlePetDragStart(DragStartDetails details, Size fieldSize) {
+    final localPosition = _globalToPetField(details.globalPosition);
+    if (localPosition == null) {
+      return;
+    }
+    _markUserInteraction();
+    final current = _currentPetNormalized();
+    _petMoveController.stop();
+    _petNormalizedPosition = current;
+    final currentTopLeft =
+        _positionFromNormalized(_petNormalizedPosition, fieldSize);
+    _dragOffset = localPosition - currentTopLeft;
+    setState(() => _isDraggingPet = true);
+  }
+
+  void _handlePetDragUpdate(DragUpdateDetails details, Size fieldSize) {
+    final localPosition = _globalToPetField(details.globalPosition);
+    if (localPosition == null) {
+      return;
+    }
+    _markUserInteraction();
+    final desiredTopLeft = localPosition - _dragOffset;
+    final clampedTopLeft = _clampTopLeft(desiredTopLeft, fieldSize);
+    final normalized = _normalizedFromTopLeft(clampedTopLeft, fieldSize);
+    _updateFacing(_petNormalizedPosition, normalized, fieldSize);
+    setState(() {
+      _petNormalizedPosition = normalized;
+    });
+  }
+
+  void _handlePetDragEnd() {
+    if (!_isDraggingPet) {
+      return;
+    }
+    setState(() => _isDraggingPet = false);
+  }
+
+  void _handlePetDragCancel() {
+    if (!_isDraggingPet) {
+      return;
+    }
+    setState(() => _isDraggingPet = false);
+  }
+
   Widget _buildInteractionTopBar() {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
@@ -1071,31 +1151,75 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 14,
-            left: 16,
-            child: Text(
-              l10n.petHomeTitle,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
-              ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final fieldSize = constraints.biggest;
+          return GestureDetector(
+            key: _petFieldKey,
+            behavior: HitTestBehavior.opaque,
+            onTapUp: (details) =>
+                _handlePetFieldTap(details.localPosition, fieldSize),
+            child: Stack(
+              children: [
+                AnimatedBuilder(
+                  animation: _petMoveController,
+                  builder: (context, child) {
+                    final normalized = _currentPetNormalized();
+                    final topLeft = _positionFromNormalized(
+                      normalized,
+                      fieldSize,
+                    );
+                    return Positioned(
+                      left: topLeft.dx,
+                      top: topLeft.dy,
+                      child: child!,
+                    );
+                  },
+                  child: _buildDraggablePet(fieldSize),
+                ),
+                Positioned(
+                  top: 14,
+                  left: 16,
+                  child: Text(
+                    l10n.petHomeTitle,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+                Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
+              ],
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDraggablePet(Size fieldSize) {
+    return GestureDetector(
+      onPanStart: (details) => _handlePetDragStart(details, fieldSize),
+      onPanUpdate: (details) => _handlePetDragUpdate(details, fieldSize),
+      onPanEnd: (_) => _handlePetDragEnd(),
+      onPanCancel: _handlePetDragCancel,
+      child: JuicyScaleButton(
+        onTap: _petBusy
+            ? null
+            : () {
+                _markUserInteraction();
+                _applyPetAction('touch');
+              },
+        child: Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.diagonal3Values(
+            _petFacingRight ? 1.0 : -1.0,
+            1.0,
+            1.0,
           ),
-          Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
-          Center(
-            child: JuicyFloat(
-              yOffset: 12,
-              child: JuicyScaleButton(
-                onTap: _petBusy ? null : () => _applyPetAction('touch'),
-                child: _buildPetAvatar(),
-              ),
-            ),
-          ),
-        ],
+          child: _buildPetAvatar(),
+        ),
       ),
     );
   }
@@ -1263,8 +1387,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
     final petColor = _petMoodColor();
 
     return SizedBox(
-      width: 240,
-      height: 260,
+      width: _petAvatarSize.width,
+      height: _petAvatarSize.height,
       child: Lottie.asset(
         _petLottieAsset,
         fit: BoxFit.contain,
@@ -1539,75 +1663,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
             ),
           ),
 
-          // Room List
-          Expanded(
-            child: _myRooms.isEmpty
-                ? Center(child: Text(l10n.drawerNoRooms))
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _myRooms.length,
-                    itemBuilder: (context, index) {
-                      final room = _myRooms[index];
-                      final isSelected = room['id'] == _roomId;
-                      final isOwner = room['role'] == 'owner';
-                      return ListTile(
-                        leading: Icon(
-                          isSelected ? Icons.home_filled : Icons.home_outlined,
-                          color: isSelected
-                              ? Theme.of(context).primaryColor
-                              : Colors.black54,
-                        ),
-                        title: Text(
-                          room['name'] ?? l10n.roomSelectionRoomFallback,
-                        ),
-                        subtitle: Text(
-                          l10n.drawerInviteCode(
-                            (room['invite_code'] ?? '-').toString(),
-                          ),
-                        ),
-                        selected: isSelected,
-                        selectedTileColor: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.1),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (isOwner)
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.refresh,
-                                  size: 20,
-                                  color: Colors.black54,
-                                ),
-                                tooltip: l10n.drawerRegenerateInviteCode,
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  _regenerateInviteCode(room['id']);
-                                },
-                              ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline,
-                                size: 20,
-                                color: Colors.black45,
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context); // Close Drawer first
-                                _leaveRoom(room['id']);
-                              },
-                            ),
-                          ],
-                        ),
-                        onTap: () {
-                          setState(() {
-                            _roomSelectionId = room['id'] as String?;
-                            _showRoomSelection = true;
-                          });
-                          Navigator.pop(context); // Close Drawer
-                        },
-                      );
-                    },
-                  ),
+          // Room List Shortcut
+          ListTile(
+            leading: const Icon(Icons.list_alt_rounded),
+            title: Text(l10n.roomSelectionTitle),
+            subtitle: Text(l10n.roomSelectionSubtitle),
+            onTap: () {
+              setState(() {
+                _roomSelectionId = _roomId;
+                _showRoomSelection = true;
+              });
+              Navigator.pop(context);
+            },
           ),
 
           const Divider(),

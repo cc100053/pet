@@ -25,6 +25,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
   String? _error;
   final Map<DateTime, List<MemoryFeed>> _feedsByDay = {};
   final Set<String> _blockedUserIds = {};
+  MemoryFeed? _latestFeed;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
 
     try {
       await _loadBlockedUsers();
+      await _loadLatestFeed();
       await _loadMonth();
     } catch (error) {
       if (!mounted) {
@@ -108,6 +110,28 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     _feedsByDay
       ..clear()
       ..addEntries(_groupByDay(feeds).entries);
+  }
+
+  Future<void> _loadLatestFeed() async {
+    final response = await Supabase.instance.client
+        .from('messages')
+        .select('id,sender_id,image_url,caption,created_at')
+        .eq('room_id', widget.roomId)
+        .eq('type', 'image_feed')
+        .order('created_at', ascending: false)
+        .limit(10);
+
+    final rows = response as List<dynamic>;
+    final feeds = rows
+        .map((row) => MemoryFeed.fromJson(row))
+        .where((feed) => feed.imageUrl.isNotEmpty)
+        .where(
+          (feed) =>
+              feed.senderId == null || !_blockedUserIds.contains(feed.senderId),
+        )
+        .toList();
+
+    _latestFeed = feeds.isEmpty ? null : feeds.first;
   }
 
   Map<DateTime, List<MemoryFeed>> _groupByDay(List<MemoryFeed> feeds) {
@@ -179,11 +203,18 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final weekdayLabels = _weekdayLabelsForLocale(context);
-    final todayKey = DateTime(now.year, now.month, now.day);
-    final todayFeeds = List<MemoryFeed>.from(_feedsByDay[todayKey] ?? const []);
-    todayFeeds.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    final latestToday = todayFeeds.isEmpty ? null : todayFeeds.last;
-    final recentFeeds = _buildRecentFeeds(latestToday);
+    final latestInMonth = _latestFeedFromMonth();
+    final latestFeed = _latestFeed ?? latestInMonth;
+    final latestDateKey = latestFeed == null
+        ? null
+        : _dayKeyForDate(latestFeed.createdAt.toLocal());
+    final latestDayFeeds = latestDateKey == null
+        ? const <MemoryFeed>[]
+        : List<MemoryFeed>.from(
+            _feedsByDay[latestDateKey] ?? [latestFeed],
+          );
+    latestDayFeeds.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final recentFeeds = _buildRecentFeeds(latestFeed);
 
     return RefreshIndicator(
       onRefresh: _reloadMonth,
@@ -220,7 +251,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
               ),
               const SizedBox(height: 20),
               Text(
-                l10n.calendarToday,
+                l10n.calendarLatestPhoto,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: _CalendarColors.textStrong,
@@ -228,13 +259,19 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
               ),
               const SizedBox(height: 12),
               _TodayCard(
-                feed: latestToday,
-                dateLabel: _formatShortDate(context, now),
+                feed: latestFeed,
+                dateLabel: latestFeed == null
+                    ? _formatShortDate(context, now)
+                    : _formatShortDate(context, latestFeed.createdAt.toLocal()),
                 emptyLabel: l10n.calendarNoPhotoYet,
                 fallbackLabel: l10n.calendarLatestPhoto,
-                onTap: latestToday == null
+                onTap: latestFeed == null
                     ? null
-                    : () => _openDayDetails(context, todayKey, todayFeeds),
+                    : () {
+                        final dateKey =
+                            latestDateKey ?? _dayKeyForDate(now);
+                        _openDayDetails(context, dateKey, latestDayFeeds);
+                      },
               ),
               const SizedBox(height: 20),
               Text(
@@ -280,24 +317,31 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
   }
 
   void _handleHeaderTap(BuildContext context) {
-    final scaffold = Scaffold.maybeOf(context);
-    if (scaffold?.hasDrawer ?? false) {
-      scaffold?.openDrawer();
-      return;
-    }
     Navigator.maybePop(context);
   }
 
-  List<MemoryFeed> _buildRecentFeeds(MemoryFeed? latestToday) {
+  List<MemoryFeed> _buildRecentFeeds(MemoryFeed? excludedFeed) {
     final feeds = <MemoryFeed>[];
     for (final entry in _feedsByDay.entries) {
       feeds.addAll(entry.value);
     }
     feeds.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    if (latestToday != null) {
-      feeds.removeWhere((feed) => feed.id == latestToday.id);
+    if (excludedFeed != null) {
+      feeds.removeWhere((feed) => feed.id == excludedFeed.id);
     }
     return feeds.take(3).toList();
+  }
+
+  MemoryFeed? _latestFeedFromMonth() {
+    final feeds = <MemoryFeed>[];
+    for (final entry in _feedsByDay.entries) {
+      feeds.addAll(entry.value);
+    }
+    if (feeds.isEmpty) {
+      return null;
+    }
+    feeds.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return feeds.last;
   }
 
   List<DateTime> _currentWeekDates(DateTime reference) {
@@ -311,6 +355,10 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
       7,
       (index) => DateTime(start.year, start.month, start.day + index),
     );
+  }
+
+  DateTime _dayKeyForDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
   }
 
   List<String> _weekdayLabelsForLocale(BuildContext context) {
@@ -340,7 +388,7 @@ class _CalendarHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _CircleIconButton(icon: Icons.menu_rounded, onTap: onMenuTap),
+        _CircleIconButton(icon: Icons.arrow_back_rounded, onTap: onMenuTap),
         const SizedBox(width: 12),
         Text(
           label,
