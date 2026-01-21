@@ -121,6 +121,15 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `quantity` (int)
   - `updated_at`
 
+- `room_furniture`
+  - `id` (uuid, pk)
+  - `room_id` (uuid, fk)
+  - `item_id` (uuid, fk)
+  - `owner_user_id` (uuid, fk)
+  - `position_x` (numeric, 0-1 normalized)
+  - `position_y` (numeric, 0-1 normalized)
+  - `created_at`, `updated_at`
+
 - `purchases`
   - `id` (uuid, pk)
   - `user_id` (uuid, fk)

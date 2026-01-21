@@ -373,5 +373,10 @@
   "storeTitle": "商店",
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "外觀",
-  "storeTypeSubscription": "訂閱"
+  "storeTypeSubscription": "訂閱",
+  "furnitureInventoryTitle": "家具",
+  "furnitureInventorySubtitle": "把家具放進寵物家裡。",
+  "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
+  "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。",
+  "furnitureEditMode": "家具模式"
 }

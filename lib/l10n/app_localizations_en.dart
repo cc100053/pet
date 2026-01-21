@@ -616,4 +616,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeTypeSubscription => 'Subscription';
+
+  @override
+  String get furnitureInventoryTitle => 'Furniture';
+
+  @override
+  String get furnitureInventorySubtitle => 'Place items in your pet home.';
+
+  @override
+  String get furnitureInventoryEmpty =>
+      'No furniture yet. Buy some in the store.';
+
+  @override
+  String get furnitureInventoryHint =>
+      'Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.';
+
+  @override
+  String get furnitureEditMode => 'Furniture Mode';
 }

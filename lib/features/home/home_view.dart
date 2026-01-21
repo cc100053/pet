@@ -34,7 +34,7 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _petLottieAsset = 'assets/lottie/pet_example.json';
   static const _petAvatarSize = Size(100, 100);
   static const double _petMoveSpeed = 30;
@@ -43,8 +43,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _idleThreshold = Duration(seconds: 8);
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
+  static const _furnitureItemSize = Size(42, 42);
 
   // Logic State
+  bool _profileEnsured = false;
   bool _creatingRoom = false;
   bool _joiningRoom = false;
   bool _testingFeed = false;
@@ -63,6 +65,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final GlobalKey _petFieldKey = GlobalKey();
   final Random _random = Random();
   late final AnimationController _petMoveController;
+  late final AnimationController _furnitureWiggleController;
   Animation<Offset>? _petMoveAnimation;
   Offset _petNormalizedPosition = const Offset(0.5, 0.6);
   Offset _petNormalizedTarget = const Offset(0.5, 0.6);
@@ -73,19 +76,40 @@ class _HomeViewState extends ConsumerState<HomeView>
   DateTime _lastInteractionAt = DateTime.now();
   DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
 
+  // Furniture State
+  bool _furnitureMode = false;
+  bool _furnitureLoading = false;
+  String? _furnitureError;
+  String? _selectedFurnitureItemId;
+  int _furnitureInstanceSeed = 0;
+  final Map<String, StoreItem> _furnitureCatalog = {};
+  final Map<String, int> _furnitureInventory = {};
+  final Map<String, List<_PlacedFurniture>> _placedFurnitureByRoom = {};
+  RealtimeChannel? _furnitureChannel;
+  String? _furnitureSubscriptionRoomId;
+
   // Chat State
   final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    _ensureProfile().whenComplete(_fetchRooms);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_profileEnsured) {
+        _ensureProfile().whenComplete(_fetchRooms);
+        _profileEnsured = true;
+      }
+    });
     _petMoveController = AnimationController(vsync: this)
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _petNormalizedPosition = _petNormalizedTarget;
         }
       });
+    _furnitureWiggleController = AnimationController(
+      vsync: this,
+      duration: 450.ms,
+    );
     _startWanderTimer();
 
     // Init FCM
@@ -97,8 +121,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void dispose() {
     _petStateChannel?.unsubscribe();
+    _furnitureChannel?.unsubscribe();
     _wanderTimer?.cancel();
     _petMoveController.dispose();
+    _furnitureWiggleController.dispose();
     super.dispose();
   }
 
@@ -204,11 +230,21 @@ class _HomeViewState extends ConsumerState<HomeView>
       _roomId = roomId;
       _petState = null; // Clear old state
       _petId = null;
+      _furnitureMode = false;
+      _selectedFurnitureItemId = null;
     });
+    _furnitureWiggleController.stop();
+    _furnitureWiggleController.value = 0;
     _petStateChannel?.unsubscribe();
     _petStateChannel = null;
     _petSubscriptionPetId = null;
+    _furnitureChannel?.unsubscribe();
+    _furnitureChannel = null;
+    _furnitureSubscriptionRoomId = null;
     _refreshPetState();
+    unawaited(_loadFurnitureInventory());
+    unawaited(_loadRoomFurniture(roomId));
+    _subscribeToFurniture(roomId);
     if (previousRoom != roomId) {
       AnalyticsService.instance.logEvent('room_switch');
     }
@@ -1034,6 +1070,521 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() => _isDraggingPet = false);
   }
 
+  List<_PlacedFurniture> _activeFurnitureForRoom() {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return const [];
+    }
+    return _placedFurnitureByRoom.putIfAbsent(roomId, () => []);
+  }
+
+  int _placedCountForItem(String itemId) {
+    final placed = _activeFurnitureForRoom();
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    return placed
+        .where(
+          (item) => item.itemId == itemId && item.ownerUserId == userId,
+        )
+        .length;
+  }
+
+  int _availableFurnitureCount(String itemId) {
+    final owned = _furnitureInventory[itemId] ?? 0;
+    final placed = _placedCountForItem(itemId);
+    return max(0, owned - placed);
+  }
+
+  Future<void> _loadFurnitureInventory() async {
+    if (_furnitureLoading) {
+      return;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      setState(() {
+        _furnitureError = AppLocalizations.of(context)!.storeSignInPrompt;
+      });
+      return;
+    }
+
+    setState(() {
+      _furnitureLoading = true;
+      _furnitureError = null;
+    });
+
+    try {
+      final itemsResponse = await Supabase.instance.client
+          .from('items')
+          .select('id,sku,type,name,price_coins,price_usd,metadata,is_active')
+          .eq('is_active', true);
+      final inventoryResponse = await Supabase.instance.client
+          .from('inventories')
+          .select('item_id,quantity')
+          .eq('user_id', userId);
+
+      final items = (itemsResponse as List<dynamic>)
+          .map((row) => StoreItem.fromJson(row as Map<String, dynamic>))
+          .where((item) => item.isFurniture)
+          .toList(growable: false);
+
+      final inventory = <String, int>{};
+      for (final row in inventoryResponse as List<dynamic>) {
+        final itemId = row['item_id'] as String?;
+        final quantity = row['quantity'] as int?;
+        if (itemId != null && quantity != null) {
+          inventory[itemId] = quantity;
+        }
+      }
+
+      setState(() {
+        _furnitureCatalog
+          ..clear()
+          ..addEntries(items.map((item) => MapEntry(item.id, item)));
+        _furnitureInventory
+          ..clear()
+          ..addAll(inventory);
+      });
+    } catch (error) {
+      setState(() {
+        _furnitureError = AppLocalizations.of(
+          context,
+        )!.storeLoadFailed(error.toString());
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _furnitureLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadRoomFurniture(String roomId) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('room_furniture')
+          .select('id,item_id,owner_user_id,position_x,position_y,items(metadata)')
+          .eq('room_id', roomId);
+
+      final placed = <_PlacedFurniture>[];
+      for (final row in response as List<dynamic>) {
+        final record = row as Map<String, dynamic>;
+        final id = record['id'] as String?;
+        final itemId = record['item_id'] as String?;
+        if (id == null || itemId == null) {
+          continue;
+        }
+        final ownerUserId = record['owner_user_id'] as String?;
+        final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
+        final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
+        final emoji = _resolveFurnitureEmoji(itemId, record);
+        placed.add(
+          _PlacedFurniture(
+            id: id,
+            itemId: itemId,
+            ownerUserId: ownerUserId,
+            emoji: emoji,
+            normalizedPosition: Offset(posX, posY),
+            isPending: false,
+          ),
+        );
+      }
+
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      setState(() {
+        _placedFurnitureByRoom[roomId] = placed;
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _furnitureError = AppLocalizations.of(
+            context,
+          )!.storeLoadFailed(error.toString());
+        });
+      }
+    }
+  }
+
+  void _subscribeToFurniture(String roomId) {
+    if (_furnitureSubscriptionRoomId == roomId) {
+      return;
+    }
+
+    _furnitureChannel?.unsubscribe();
+    _furnitureSubscriptionRoomId = roomId;
+
+    final channel = Supabase.instance.client.channel(
+      'room_furniture_$roomId',
+    );
+    _furnitureChannel = channel;
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'room_furniture',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (payload) => _applyFurnitureRecord(payload.newRecord),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'room_furniture',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (payload) => _applyFurnitureRecord(payload.newRecord),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.delete,
+      schema: 'public',
+      table: 'room_furniture',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (payload) => _removeFurnitureRecord(payload.oldRecord),
+    );
+
+    channel.subscribe();
+  }
+
+  void _applyFurnitureRecord(Map<String, dynamic> record) {
+    if (!mounted || record.isEmpty) {
+      return;
+    }
+    final roomId = record['room_id'] as String?;
+    final id = record['id'] as String?;
+    final itemId = record['item_id'] as String?;
+    if (roomId == null || id == null || itemId == null) {
+      return;
+    }
+
+    final ownerUserId = record['owner_user_id'] as String?;
+    final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
+    final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
+    final emoji = _resolveFurnitureEmoji(itemId, record);
+    final list = _placedFurnitureByRoom.putIfAbsent(roomId, () => []);
+    final index = list.indexWhere((item) => item.id == id);
+
+    if (index >= 0) {
+      setState(() {
+        list[index]
+          ..itemId = itemId
+          ..ownerUserId = ownerUserId
+          ..emoji = emoji
+          ..normalizedPosition = Offset(posX, posY)
+          ..isPending = false;
+      });
+      return;
+    }
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null && ownerUserId == userId) {
+      final pendingIndex = list.indexWhere(
+        (item) =>
+            item.isPending &&
+            item.itemId == itemId &&
+            (item.normalizedPosition - Offset(posX, posY)).distance < 0.02,
+      );
+      if (pendingIndex >= 0) {
+        setState(() {
+          list[pendingIndex]
+            ..id = id
+            ..ownerUserId = ownerUserId
+            ..emoji = emoji
+            ..normalizedPosition = Offset(posX, posY)
+            ..isPending = false;
+        });
+        return;
+      }
+    }
+
+    setState(() {
+      list.add(
+        _PlacedFurniture(
+          id: id,
+          itemId: itemId,
+          ownerUserId: ownerUserId,
+          emoji: emoji,
+          normalizedPosition: Offset(posX, posY),
+          isPending: false,
+        ),
+      );
+    });
+  }
+
+  void _removeFurnitureRecord(Map<String, dynamic> record) {
+    if (!mounted || record.isEmpty) {
+      return;
+    }
+    final roomId = record['room_id'] as String?;
+    final id = record['id'] as String?;
+    if (roomId == null || id == null) {
+      return;
+    }
+    final list = _placedFurnitureByRoom[roomId];
+    if (list == null) {
+      return;
+    }
+    setState(() {
+      list.removeWhere((item) => item.id == id);
+    });
+  }
+
+  String _resolveFurnitureEmoji(String itemId, Map<String, dynamic> record) {
+    final item = _furnitureCatalog[itemId];
+    if (item?.emoji != null && item!.emoji!.isNotEmpty) {
+      return item.emoji!;
+    }
+    final itemData = record['items'] as Map<String, dynamic>?;
+    final metadata = (itemData?['metadata'] as Map?)?.cast<String, dynamic>();
+    final emoji = metadata?['emoji'] as String?;
+    return (emoji != null && emoji.isNotEmpty) ? emoji : '🪑';
+  }
+
+  void _openFurnitureInventory() {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    setState(() => _furnitureMode = true);
+    _furnitureWiggleController.repeat(reverse: true);
+    unawaited(_loadFurnitureInventory());
+    unawaited(_loadRoomFurniture(roomId));
+  }
+
+  void _closeFurnitureInventory() {
+    setState(() {
+      _furnitureMode = false;
+      _selectedFurnitureItemId = null;
+    });
+    _furnitureWiggleController.stop();
+    _furnitureWiggleController.value = 0;
+  }
+
+  void _placeFurnitureAt(Offset localPosition, Size fieldSize) {
+    final itemId = _selectedFurnitureItemId;
+    if (itemId == null) {
+      return;
+    }
+    final item = _furnitureCatalog[itemId];
+    if (item == null) {
+      return;
+    }
+    if (_availableFurnitureCount(itemId) <= 0) {
+      return;
+    }
+
+    final desiredTopLeft = localPosition -
+        Offset(_furnitureItemSize.width / 2, _furnitureItemSize.height / 2);
+    final clampedTopLeft =
+        _clampTopLeftSized(desiredTopLeft, fieldSize, _furnitureItemSize);
+    // Store normalized coordinates (0..1) so layout stays consistent across sizes.
+    final normalized = _normalizedFromTopLeftSized(
+      clampedTopLeft,
+      fieldSize,
+      _furnitureItemSize,
+    );
+
+    final placed = _PlacedFurniture(
+      id: 'f_${_furnitureInstanceSeed++}',
+      itemId: itemId,
+      ownerUserId: Supabase.instance.client.auth.currentUser?.id,
+      emoji: item.emoji ?? '🪑',
+      normalizedPosition: normalized,
+      isPending: true,
+    );
+
+    setState(() {
+      _activeFurnitureForRoom().add(placed);
+    });
+    unawaited(_persistFurniturePlacement(placed));
+  }
+
+  void _autoPlaceFurnitureFromInventory(String itemId) {
+    final fieldSize = _petFieldSize();
+    if (fieldSize == null) {
+      return;
+    }
+    final jitterX = (_random.nextDouble() - 0.5) * 40;
+    final jitterY = (_random.nextDouble() - 0.5) * 40;
+    final center = Offset(
+      fieldSize.width / 2 + jitterX,
+      fieldSize.height / 2 + jitterY,
+    );
+    _placeFurnitureAt(center, fieldSize);
+  }
+
+  void _moveFurniture(
+    _PlacedFurniture item,
+    DragUpdateDetails details,
+    Size fieldSize,
+  ) {
+    final currentTopLeft = _positionFromNormalizedSized(
+      item.normalizedPosition,
+      fieldSize,
+      _furnitureItemSize,
+    );
+    final desiredTopLeft = currentTopLeft + details.delta;
+    final clampedTopLeft =
+        _clampTopLeftSized(desiredTopLeft, fieldSize, _furnitureItemSize);
+    // Store normalized coordinates (0..1) so layout stays consistent across sizes.
+    final normalized = _normalizedFromTopLeftSized(
+      clampedTopLeft,
+      fieldSize,
+      _furnitureItemSize,
+    );
+    setState(() {
+      item.normalizedPosition = normalized;
+    });
+  }
+
+  void _handleFurnitureDragEnd(_PlacedFurniture item) {
+    unawaited(_persistFurniturePosition(item));
+  }
+
+  Offset _positionFromNormalizedSized(
+    Offset normalized,
+    Size fieldSize,
+    Size itemSize,
+  ) {
+    final maxX = max(0.0, fieldSize.width - itemSize.width);
+    final maxY = max(0.0, fieldSize.height - itemSize.height);
+    return Offset(normalized.dx * maxX, normalized.dy * maxY);
+  }
+
+  Offset _normalizedFromTopLeftSized(
+    Offset topLeft,
+    Size fieldSize,
+    Size itemSize,
+  ) {
+    final maxX = max(0.0, fieldSize.width - itemSize.width);
+    final maxY = max(0.0, fieldSize.height - itemSize.height);
+    final normalizedX = maxX == 0 ? 0.0 : topLeft.dx / maxX;
+    final normalizedY = maxY == 0 ? 0.0 : topLeft.dy / maxY;
+    return Offset(normalizedX, normalizedY);
+  }
+
+  Offset _clampTopLeftSized(Offset topLeft, Size fieldSize, Size itemSize) {
+    final maxX = max(0.0, fieldSize.width - itemSize.width);
+    final maxY = max(0.0, fieldSize.height - itemSize.height);
+    final clampedX = topLeft.dx.clamp(0.0, maxX);
+    final clampedY = topLeft.dy.clamp(0.0, maxY);
+    return Offset(clampedX, clampedY);
+  }
+
+  Future<void> _persistFurniturePlacement(_PlacedFurniture item) async {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    try {
+      final response = await Supabase.instance.client
+          .rpc(
+            'place_room_furniture',
+            params: {
+              'p_room_id': roomId,
+              'p_item_id': item.itemId,
+              'p_position_x': item.normalizedPosition.dx,
+              'p_position_y': item.normalizedPosition.dy,
+            },
+          )
+          .single();
+
+      final newId = response['id'] as String?;
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        final list = _activeFurnitureForRoom();
+        final index = list.indexWhere((entry) => entry.id == item.id);
+        if (index >= 0) {
+          list[index]
+            ..id = newId ?? list[index].id
+            ..ownerUserId = response['owner_user_id'] as String?
+            ..isPending = false;
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _activeFurnitureForRoom().removeWhere((entry) => entry.id == item.id);
+        _furnitureError = AppLocalizations.of(
+          context,
+        )!.storePurchaseFailed(error.toString());
+      });
+    }
+  }
+
+  Future<void> _persistFurniturePosition(_PlacedFurniture item) async {
+    if (item.isPending) {
+      return;
+    }
+    try {
+      await Supabase.instance.client.rpc(
+        'update_room_furniture_position',
+        params: {
+          'p_id': item.id,
+          'p_position_x': item.normalizedPosition.dx,
+          'p_position_y': item.normalizedPosition.dy,
+        },
+      );
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _furnitureError = AppLocalizations.of(
+            context,
+          )!.storeLoadFailed(error.toString());
+        });
+      }
+      final roomId = _roomId;
+      if (roomId != null) {
+        unawaited(_loadRoomFurniture(roomId));
+      }
+    }
+  }
+
+  Future<void> _removeFurniture(_PlacedFurniture item) async {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    setState(() {
+      _activeFurnitureForRoom().removeWhere((entry) => entry.id == item.id);
+    });
+
+    if (item.isPending) {
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.rpc(
+        'remove_room_furniture',
+        params: {'p_id': item.id},
+      );
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _furnitureError = AppLocalizations.of(
+            context,
+          )!.storeLoadFailed(error.toString());
+        });
+      }
+      unawaited(_loadRoomFurniture(roomId));
+    }
+  }
+
+
   Widget _buildInteractionTopBar() {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
@@ -1157,10 +1708,16 @@ class _HomeViewState extends ConsumerState<HomeView>
           return GestureDetector(
             key: _petFieldKey,
             behavior: HitTestBehavior.opaque,
-            onTapUp: (details) =>
-                _handlePetFieldTap(details.localPosition, fieldSize),
+            onTapUp: (details) {
+              if (_furnitureMode) {
+                _closeFurnitureInventory();
+                return;
+              }
+              _handlePetFieldTap(details.localPosition, fieldSize);
+            },
             child: Stack(
               children: [
+                ..._buildPlacedFurniture(fieldSize),
                 AnimatedBuilder(
                   animation: _petMoveController,
                   builder: (context, child) {
@@ -1190,6 +1747,12 @@ class _HomeViewState extends ConsumerState<HomeView>
                   ),
                 ),
                 Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
+                if (_furnitureMode)
+                  Positioned(
+                    left: 16,
+                    bottom: 12,
+                    child: _buildFurnitureEditHint(),
+                  ),
               ],
             ),
           );
@@ -1199,29 +1762,159 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildDraggablePet(Size fieldSize) {
-    return GestureDetector(
-      onPanStart: (details) => _handlePetDragStart(details, fieldSize),
-      onPanUpdate: (details) => _handlePetDragUpdate(details, fieldSize),
-      onPanEnd: (_) => _handlePetDragEnd(),
-      onPanCancel: _handlePetDragCancel,
-      child: JuicyScaleButton(
-        onTap: _petBusy
-            ? null
-            : () {
-                _markUserInteraction();
-                _applyPetAction('touch');
-              },
-        child: Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.diagonal3Values(
-            _petFacingRight ? 1.0 : -1.0,
-            1.0,
-            1.0,
+    return IgnorePointer(
+      ignoring: _furnitureMode,
+      child: GestureDetector(
+        onPanStart: (details) => _handlePetDragStart(details, fieldSize),
+        onPanUpdate: (details) => _handlePetDragUpdate(details, fieldSize),
+        onPanEnd: (_) => _handlePetDragEnd(),
+        onPanCancel: _handlePetDragCancel,
+        child: JuicyScaleButton(
+          onTap: _petBusy
+              ? null
+              : () {
+                  _markUserInteraction();
+                  _applyPetAction('touch');
+                },
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.diagonal3Values(
+              _petFacingRight ? 1.0 : -1.0,
+              1.0,
+              1.0,
+            ),
+            child: _buildPetAvatar(),
           ),
-          child: _buildPetAvatar(),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildPlacedFurniture(Size fieldSize) {
+    final placed = _activeFurnitureForRoom();
+    if (placed.isEmpty) {
+      return const [];
+    }
+    return [
+      for (final item in placed)
+        Positioned(
+          left: _positionFromNormalizedSized(
+            item.normalizedPosition,
+            fieldSize,
+            _furnitureItemSize,
+          ).dx,
+          top: _positionFromNormalizedSized(
+            item.normalizedPosition,
+            fieldSize,
+            _furnitureItemSize,
+          ).dy,
+          child: _buildFurniturePiece(item, fieldSize),
+        ),
+    ];
+  }
+
+  Widget _buildFurniturePiece(_PlacedFurniture item, Size fieldSize) {
+    final canEdit = _furnitureMode;
+    return GestureDetector(
+      onLongPress: _openFurnitureInventory,
+      onTap: canEdit ? () {} : null,
+      onPanUpdate:
+          canEdit ? (details) => _moveFurniture(item, details, fieldSize) : null,
+      onPanEnd: canEdit ? (_) => _handleFurnitureDragEnd(item) : null,
+      child: AnimatedBuilder(
+        animation: _furnitureWiggleController,
+        builder: (context, child) {
+          final angle = canEdit ? _furnitureWiggleAngle(item) : 0.0;
+          return Transform.rotate(angle: angle, child: child);
+        },
+        child: AnimatedContainer(
+          duration: 150.ms,
+          width: _furnitureItemSize.width,
+          height: _furnitureItemSize.height,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: canEdit
+                ? Colors.white.withValues(alpha: 0.7)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: canEdit ? Border.all(color: Colors.black12) : null,
+            boxShadow: canEdit
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Center(
+                child: Text(
+                  item.emoji,
+                  style: const TextStyle(fontSize: 26),
+                ),
+              ),
+              if (canEdit)
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: Material(
+                    color: Colors.redAccent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => _removeFurniture(item),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFurnitureEditHint() {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        l10n.furnitureEditMode,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  double _furnitureWiggleAngle(_PlacedFurniture item) {
+    final phase = (item.id.hashCode % 360) * (pi / 180);
+    return sin((_furnitureWiggleController.value * 2 * pi) + phase) * 0.04;
   }
 
   Widget _buildActionButtons() {
@@ -1271,6 +1964,153 @@ class _HomeViewState extends ConsumerState<HomeView>
             ],
           ),
           child: Icon(icon, color: const Color(0xFF0D5C63)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFurnitureInventoryPanel() {
+    final l10n = AppLocalizations.of(context)!;
+    final furnitureItems = _furnitureCatalog.values
+        .where((item) => (_furnitureInventory[item.id] ?? 0) > 0)
+        .toList(growable: false);
+
+    return Material(
+      color: Colors.white.withValues(alpha: 0.96),
+      elevation: 6,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Text(
+                  l10n.furnitureInventoryTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: _closeFurnitureInventory,
+                  tooltip: l10n.commonClose,
+                ),
+              ],
+            ),
+            if (_furnitureLoading)
+              const LinearProgressIndicator(minHeight: 2)
+            else if (_furnitureError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _furnitureError!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              )
+            else if (furnitureItems.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  l10n.furnitureInventoryEmpty,
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else
+              SizedBox(
+                height: 92,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: furnitureItems.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final item = furnitureItems[index];
+                    final available = _availableFurnitureCount(item.id);
+                    final isSelected = _selectedFurnitureItemId == item.id;
+                    return _buildFurnitureInventoryItem(
+                      item,
+                      available,
+                      isSelected,
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.furnitureInventoryHint,
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFurnitureInventoryItem(
+    StoreItem item,
+    int available,
+    bool isSelected,
+  ) {
+    final canSelect = available > 0;
+    return GestureDetector(
+      onTap: canSelect
+          ? () {
+              setState(() => _selectedFurnitureItemId = item.id);
+              _autoPlaceFurnitureFromInventory(item.id);
+            }
+          : null,
+      child: AnimatedContainer(
+        duration: 150.ms,
+        width: 76,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFFFFF2D6)
+              : Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? const Color(0xFFFFB74D) : Colors.black12,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              item.emoji ?? '🪑',
+              style: const TextStyle(fontSize: 22),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'x$available',
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.0,
+                color: canSelect ? Colors.black87 : Colors.black38,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1376,6 +2216,28 @@ class _HomeViewState extends ConsumerState<HomeView>
                   child: _buildActionButtons(),
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 12,
+            right: 12,
+            child: SafeArea(
+              child: IgnorePointer(
+                ignoring: !_furnitureMode,
+                child: AnimatedSlide(
+                  offset: _furnitureMode
+                      ? Offset.zero
+                      : const Offset(0, -1.1),
+                  duration: 220.ms,
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedOpacity(
+                    opacity: _furnitureMode ? 1 : 0,
+                    duration: 160.ms,
+                    child: _buildFurnitureInventoryPanel(),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -1672,6 +2534,8 @@ class _HomeViewState extends ConsumerState<HomeView>
               setState(() {
                 _roomSelectionId = _roomId;
                 _showRoomSelection = true;
+                _furnitureMode = false;
+                _selectedFurnitureItemId = null;
               });
               Navigator.pop(context);
             },
@@ -1726,9 +2590,23 @@ class _HomeViewState extends ConsumerState<HomeView>
             title: Text(l10n.storeTitle),
             onTap: () {
               Navigator.pop(context);
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const StoreView()));
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => const StoreView()))
+                  .then((_) {
+                if (mounted) {
+                  _loadFurnitureInventory();
+                }
+              });
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.chair_alt_outlined),
+            title: Text(l10n.furnitureInventoryTitle),
+            subtitle: Text(l10n.furnitureInventorySubtitle),
+            onTap: () {
+              Navigator.pop(context);
+              _openFurnitureInventory();
             },
           ),
 
@@ -1803,6 +2681,24 @@ class _HomeViewState extends ConsumerState<HomeView>
       ),
     );
   }
+}
+
+class _PlacedFurniture {
+  _PlacedFurniture({
+    required this.id,
+    required this.itemId,
+    required this.ownerUserId,
+    required this.emoji,
+    required this.normalizedPosition,
+    required this.isPending,
+  });
+
+  String id;
+  String itemId;
+  String? ownerUserId;
+  String emoji;
+  Offset normalizedPosition;
+  bool isPending;
 }
 
 class UpperCaseTextFormatter extends TextInputFormatter {

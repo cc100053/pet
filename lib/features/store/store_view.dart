@@ -646,6 +646,10 @@ class _StoreViewState extends State<StoreView> {
     final showQuantity = !isCosmetic && ownedQty > 0;
     final canBuy =
         !_purchasing && !isOwned && canAfford && item.priceCoins != null;
+    final displayName =
+        item.emoji != null && item.emoji!.isNotEmpty
+            ? '${item.emoji} ${item.name}'
+            : item.name;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -662,7 +666,7 @@ class _StoreViewState extends State<StoreView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.name,
+                        displayName,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 4),
@@ -743,6 +747,8 @@ class StoreItem {
     required this.iapType,
     required this.rcEntitlementId,
     required this.coinAmount,
+    required this.category,
+    required this.emoji,
   });
 
   final String id;
@@ -756,8 +762,11 @@ class StoreItem {
   final String? iapType;
   final String? rcEntitlementId;
   final int? coinAmount;
+  final String? category;
+  final String? emoji;
 
   bool get isIap => iapProductId != null && iapProductId!.isNotEmpty;
+  bool get isFurniture => category == 'furniture';
 
   String get displayType {
     if (iapType == 'subscription') {
@@ -783,6 +792,8 @@ class StoreItem {
     final iapType = metadata['iap_type'] as String?;
     final rcEntitlementId = metadata['rc_entitlement_id'] as String?;
     final coinAmountRaw = metadata['coin_amount'];
+    final category = metadata['category'] as String?;
+    final emoji = metadata['emoji'] as String?;
 
     int? priceJpy;
     if (priceJpyRaw is int) {
@@ -814,6 +825,8 @@ class StoreItem {
       iapType: iapType,
       rcEntitlementId: rcEntitlementId,
       coinAmount: coinAmount,
+      category: category,
+      emoji: emoji,
     );
   }
 }

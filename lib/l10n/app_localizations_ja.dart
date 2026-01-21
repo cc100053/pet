@@ -610,4 +610,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeTypeSubscription => 'サブスクリプション';
+
+  @override
+  String get furnitureInventoryTitle => '家具';
+
+  @override
+  String get furnitureInventorySubtitle => 'ペットの家に配置できます。';
+
+  @override
+  String get furnitureInventoryEmpty => 'まだ家具がありません。ストアで購入してください。';
+
+  @override
+  String get furnitureInventoryHint =>
+      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。';
+
+  @override
+  String get furnitureEditMode => '家具モード';
 }

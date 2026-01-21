@@ -135,6 +135,9 @@
 - Updated the calendar page to use a back button in the header and show the most recent photo card.
 - Simplified the drawer to a single Room List option instead of listing every room.
 - Implemented interactive pet movement (tap-to-move, drag, idle wander) with facing direction in the pet home card.
+- Added furniture store items (emoji metadata) plus a furniture inventory dropdown to place and move decor in the pet home.
+- Added persistent room furniture storage with RPCs and drag-to-inventory removal support.
+- Allowed any room member to move/remove furniture regardless of owner.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

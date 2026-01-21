@@ -373,5 +373,10 @@
   "storeTitle": "ストア",
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "コスメ",
-  "storeTypeSubscription": "サブスクリプション"
+  "storeTypeSubscription": "サブスクリプション",
+  "furnitureInventoryTitle": "家具",
+  "furnitureInventorySubtitle": "ペットの家に配置できます。",
+  "furnitureInventoryEmpty": "まだ家具がありません。ストアで購入してください。",
+  "furnitureInventoryHint": "家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。",
+  "furnitureEditMode": "家具モード"
 }

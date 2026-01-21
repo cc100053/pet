@@ -610,6 +610,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get storeTypeSubscription => '訂閱';
+
+  @override
+  String get furnitureInventoryTitle => '家具';
+
+  @override
+  String get furnitureInventorySubtitle => '把家具放進寵物家裡。';
+
+  @override
+  String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
+
+  @override
+  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。';
+
+  @override
+  String get furnitureEditMode => '家具模式';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1218,4 +1233,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeTypeSubscription => '訂閱';
+
+  @override
+  String get furnitureInventoryTitle => '家具';
+
+  @override
+  String get furnitureInventorySubtitle => '把家具放進寵物家裡。';
+
+  @override
+  String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
+
+  @override
+  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。';
+
+  @override
+  String get furnitureEditMode => '家具模式';
 }

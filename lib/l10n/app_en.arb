@@ -373,5 +373,10 @@
   "storeTitle": "Store",
   "storeTypeConsumable": "Consumable",
   "storeTypeCosmetic": "Cosmetic",
-  "storeTypeSubscription": "Subscription"
+  "storeTypeSubscription": "Subscription",
+  "furnitureInventoryTitle": "Furniture",
+  "furnitureInventorySubtitle": "Place items in your pet home.",
+  "furnitureInventoryEmpty": "No furniture yet. Buy some in the store.",
+  "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.",
+  "furnitureEditMode": "Furniture Mode"
 }

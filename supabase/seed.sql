@@ -128,6 +128,33 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     true
   ),
   (
+    'cosmetic_furniture_cozy_chair',
+    'cosmetic',
+    'Cozy Chair',
+    80,
+    null,
+    '{"price_jpy":80,"currency":"JPY","category":"furniture","emoji":"🪑","description":"A comfy chair for the pet home."}'::jsonb,
+    true
+  ),
+  (
+    'cosmetic_furniture_tiny_plant',
+    'cosmetic',
+    'Tiny Plant',
+    60,
+    null,
+    '{"price_jpy":60,"currency":"JPY","category":"furniture","emoji":"🪴","description":"A small plant to brighten the room."}'::jsonb,
+    true
+  ),
+  (
+    'cosmetic_furniture_soft_lamp',
+    'cosmetic',
+    'Soft Lamp',
+    90,
+    null,
+    '{"price_jpy":90,"currency":"JPY","category":"furniture","emoji":"💡","description":"Warm light for cozy vibes."}'::jsonb,
+    true
+  ),
+  (
     'consumable_snack_pack',
     'consumable',
     'Snack Pack',

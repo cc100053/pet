@@ -1144,6 +1144,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscription'**
   String get storeTypeSubscription;
+
+  /// No description provided for @furnitureInventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture'**
+  String get furnitureInventoryTitle;
+
+  /// No description provided for @furnitureInventorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Place items in your pet home.'**
+  String get furnitureInventorySubtitle;
+
+  /// No description provided for @furnitureInventoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No furniture yet. Buy some in the store.'**
+  String get furnitureInventoryEmpty;
+
+  /// No description provided for @furnitureInventoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.'**
+  String get furnitureInventoryHint;
+
+  /// No description provided for @furnitureEditMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture Mode'**
+  String get furnitureEditMode;
 }
 
 class _AppLocalizationsDelegate
