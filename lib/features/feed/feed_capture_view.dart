@@ -12,6 +12,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/image_labeling/image_labeling.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
+import '../../shared/theme/app_theme.dart';
 
 class FeedCaptureView extends StatefulWidget {
   const FeedCaptureView({
@@ -456,88 +457,145 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     final mappingStatus = _loadingMappings
         ? l10n.feedLabelMappingsLoading
         : (_mappingError ??
-              (_mappingService == null
-                  ? l10n.feedLabelMappingsUnavailable
-                  : l10n.feedLabelMappingsReady));
+            (_mappingService == null
+                ? l10n.feedLabelMappingsUnavailable
+                : l10n.feedLabelMappingsReady));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.feedCameraTitle)),
+      appBar: AppBar(
+        title: Text(l10n.feedCameraTitle),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppTheme.textPrimary,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
           Text(
             l10n.feedCameraSubtitle,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
           ),
           const SizedBox(height: 12),
-          Text(mappingStatus, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 16),
+          Text(mappingStatus,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.grey)),
+          const SizedBox(height: 24),
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
             children: [
               FilledButton.icon(
-                onPressed: _sending
-                    ? null
-                    : () => _pickImage(ImageSource.camera),
+                onPressed:
+                    _sending ? null : () => _pickImage(ImageSource.camera),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.secondaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
                 icon: const Icon(Icons.photo_camera),
                 label: Text(l10n.commonCamera),
               ),
               OutlinedButton.icon(
-                onPressed: _sending
-                    ? null
-                    : () => _pickImage(ImageSource.gallery),
+                onPressed:
+                    _sending ? null : () => _pickImage(ImageSource.gallery),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.textPrimary,
+                  side: const BorderSide(color: Colors.black12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
                 icon: const Icon(Icons.photo_library),
                 label: Text(l10n.commonGallery),
               ),
             ],
           ),
           if (_previewBytes != null) ...[
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final cacheWidth = _cacheDimension(
-                    context,
-                    constraints.maxWidth,
-                  );
-                  final cacheHeight = _cacheDimension(context, 240);
-                  return Image.memory(
-                    _previewBytes!,
-                    height: 240,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    cacheWidth: cacheWidth,
-                    cacheHeight: cacheHeight,
-                  );
-                },
+            const SizedBox(height: 24),
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cacheWidth = _cacheDimension(
+                      context,
+                      constraints.maxWidth,
+                    );
+                    final cacheHeight = _cacheDimension(context, 300);
+                    return Image.memory(
+                      _previewBytes!,
+                      height: 300,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      cacheWidth: cacheWidth,
+                      cacheHeight: cacheHeight,
+                    );
+                  },
+                ),
               ),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           if (_analyzing)
-            const LinearProgressIndicator()
+            const Center(child: CircularProgressIndicator())
           else if (_observations.isNotEmpty)
             _LabelsPreview(observations: _observations, matches: _matches)
           else
-            Text(
-              l10n.feedNoLabels,
-              style: Theme.of(context).textTheme.bodySmall,
+            Center(
+              child: Text(
+                l10n.feedNoLabels,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontStyle: FontStyle.italic),
+              ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           TextField(
             controller: _captionController,
             decoration: InputDecoration(
               labelText: l10n.feedCaptionLabel,
-              border: const OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.black12),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.black12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppTheme.primaryColor),
+              ),
+              filled: true,
+              fillColor: Colors.white,
             ),
             maxLines: 2,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
           FilledButton(
             onPressed: _sending || _analyzing ? null : _sendFeed,
-            child: Text(_sending ? l10n.commonSending : l10n.feedSendButton),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              minimumSize: const Size.fromHeight(56),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
+              elevation: 4,
+              shadowColor: AppTheme.primaryColor.withOpacity(0.4),
+            ),
+            child: Text(
+              _sending ? l10n.commonSending : l10n.feedSendButton,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
           if (_canonicalTags.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -554,6 +612,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
+          const SizedBox(height: 40),
         ],
       ),
     );

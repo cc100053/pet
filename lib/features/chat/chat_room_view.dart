@@ -5,11 +5,13 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../shared/theme/app_theme.dart';
 import '../../services/chat/chat_message_repository.dart';
 import '../../services/performance/performance_service.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../feed/feed_capture_view.dart';
 import 'blocked_users_sheet.dart';
+import 'widgets/chat_message_tile.dart';
 import 'chat_message.dart';
 
 class ChatRoomView extends StatefulWidget {
@@ -235,39 +237,67 @@ class _ChatRoomViewState extends State<ChatRoomView> {
               currentUserId: currentUserId,
             ),
           ),
-          SafeArea(
-            top: false,
-            minimum: const EdgeInsets.all(12),
+        SafeArea(
+          top: false,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               children: [
                 IconButton(
                   onPressed: _sending ? null : _openFeedCamera,
-                  icon: const Icon(Icons.photo_camera),
+                  icon: const Icon(Icons.camera_alt_rounded),
+                  color: AppTheme.textSecondary,
                   tooltip: l10n.feedTitle,
                 ),
                 Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sending ? null : _sendMessage(),
-                    decoration: InputDecoration(
-                      hintText: l10n.chatMessageHint,
-                      border: const OutlineInputBorder(),
-                      isDense: true,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.backgroundColor,
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    minLines: 1,
-                    maxLines: 3,
+                    child: TextField(
+                      controller: _messageController,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sending ? null : _sendMessage(),
+                      decoration: InputDecoration(
+                        hintText: l10n.chatMessageHint,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
+                        isDense: true,
+                        filled: false,
+                      ),
+                      minLines: 1,
+                      maxLines: 4,
+                      style: const TextStyle(fontSize: 15),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
                   onPressed: _sending ? null : _sendMessage,
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.send_rounded),
+                  color: AppTheme.primaryColor,
                   tooltip: l10n.commonSend,
                 ),
               ],
             ),
           ),
+        ),
         ],
       ),
     );
@@ -799,7 +829,7 @@ class ChatMessageListState extends State<ChatMessageList> {
                           widget.contentPadding ??
                           const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 12,
+                            vertical: 8,
                           ),
                       itemBuilder: (context, index) {
                         if (index == _messages.length) {
@@ -846,7 +876,7 @@ class ChatMessageListState extends State<ChatMessageList> {
                         );
                       },
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 2),
                       itemCount: _messages.length + 1,
                     ),
               if (_showScrollToBottom)
@@ -1098,286 +1128,6 @@ class _ChatLoadingList extends StatelessWidget {
         const SizedBox(height: 24),
         const Center(child: CircularProgressIndicator()),
       ],
-    );
-  }
-}
-
-class ChatMessageTile extends StatelessWidget {
-  const ChatMessageTile({
-    super.key,
-    required this.message,
-    required this.isMe,
-    required this.isOptimistic,
-    this.onLongPress,
-  });
-
-  final ChatMessage message;
-  final bool isMe;
-  final bool isOptimistic;
-  final VoidCallback? onLongPress;
-
-  @override
-  Widget build(BuildContext context) {
-    if (message.isSystem) {
-      return Center(
-        child: Text(
-          message.body ?? AppLocalizations.of(context)!.chatSystemUpdate,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
-          ),
-        ),
-      );
-    }
-
-    final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    final content = message.isImageFeed
-        ? _FeedMessageCard(
-            message: message,
-            isMe: isMe,
-            isOptimistic: isOptimistic,
-          )
-        : _TextMessageBubble(message: message, isMe: isMe);
-
-    return Align(
-      alignment: alignment,
-      child: GestureDetector(onLongPress: onLongPress, child: content),
-    );
-  }
-}
-
-class _TextMessageBubble extends StatelessWidget {
-  const _TextMessageBubble({required this.message, required this.isMe});
-
-  final ChatMessage message;
-  final bool isMe;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
-    // Telegram-like Colors
-    final bubbleColor = isMe
-        ? const Color(0xFFEEFFDE) // Light Green
-        : Colors.white;
-    final textColor = Colors.black87;
-
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 280),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: bubbleColor,
-        borderRadius: BorderRadius.circular(16).copyWith(
-          bottomRight: isMe
-              ? const Radius.circular(0)
-              : const Radius.circular(16),
-          bottomLeft: !isMe
-              ? const Radius.circular(0)
-              : const Radius.circular(16),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!isMe)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                l10n.chatPartnerLabel,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          Text(
-            message.body ?? '',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: textColor,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeedMessageCard extends StatelessWidget {
-  const _FeedMessageCard({
-    required this.message,
-    required this.isMe,
-    required this.isOptimistic,
-  });
-
-  final ChatMessage message;
-  final bool isMe;
-  final bool isOptimistic;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final cardColor = isMe ? const Color(0xFFEEFFDE) : Colors.white;
-
-    return Container(
-      width: 260,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isMe)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
-              child: Text(
-                l10n.chatPartnerLabel,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          _buildImagePreview(context, theme),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.stars, size: 16, color: Colors.amber),
-              const SizedBox(width: 6),
-              Text(
-                message.coinsAwarded > 0
-                    ? l10n.chatCoinsAwarded(message.coinsAwarded)
-                    : l10n.feedTitle,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          if (message.caption != null && message.caption!.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              message.caption!,
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.black87),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImagePreview(BuildContext context, ThemeData theme) {
-    final imageUrl = message.imageUrl;
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      return Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImageView(
-              imageUrl: imageUrl,
-              height: 140,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          if (isOptimistic) _buildUploadingBadge(context, theme),
-        ],
-      );
-    }
-
-    final localPath = message.localImagePath;
-    if (localPath != null && localPath.isNotEmpty) {
-      return Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              File(localPath),
-              height: 140,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stack) => Container(
-                height: 140,
-                color: theme.colorScheme.surface,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.image_not_supported,
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-            ),
-          ),
-          if (isOptimistic) _buildUploadingBadge(context, theme),
-        ],
-      );
-    }
-
-    return Container(
-      height: 140,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(Icons.image_not_supported, color: theme.colorScheme.outline),
-    );
-  }
-
-  Widget _buildUploadingBadge(BuildContext context, ThemeData theme) {
-    return Positioned(
-      right: 6,
-      bottom: 6,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 10,
-              height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.4,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  theme.colorScheme.primary,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              AppLocalizations.of(context)!.commonUploading,
-              style: theme.textTheme.labelSmall,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

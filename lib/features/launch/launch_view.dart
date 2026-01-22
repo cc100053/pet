@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../shared/theme/app_theme.dart';
 
 class LaunchView extends StatelessWidget {
   const LaunchView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const brand = Color(0xFFFFB36B);
-    const brandDark = Color(0xFFF59A5A);
-
     return Scaffold(
       body: Container(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -23,14 +20,10 @@ class LaunchView extends StatelessWidget {
                   height: 140,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFE0B2), Color(0xFFFFB36B)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: AppTheme.primaryGradient,
                     boxShadow: [
                       BoxShadow(
-                        color: brand.withValues(alpha: 0.35),
+                        color: AppTheme.primaryColor.withOpacity(0.35),
                         blurRadius: 30,
                         offset: const Offset(0, 16),
                       ),
@@ -51,21 +44,19 @@ class LaunchView extends StatelessWidget {
             const SizedBox(height: 28),
             Text(
               'PicPet',
-              style: GoogleFonts.fredoka(
-                fontSize: 34,
-                fontWeight: FontWeight.w600,
-                color: brandDark,
-                letterSpacing: 0.6,
-              ),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                    letterSpacing: 0.6,
+                  ),
             ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
             const SizedBox(height: 8),
             Text(
               AppLocalizations.of(context)!.launchTagline,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF7A6F66),
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
             ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
           ],
         ),

@@ -25,6 +25,7 @@ import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
+import 'widgets/home_drawer.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -2684,209 +2685,92 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildSideDrawer() {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
     final l10n = AppLocalizations.of(context)!;
-    final localeState = ref.watch(appLocaleProvider);
-
-    return Drawer(
-      backgroundColor: Colors.white,
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    child: Text(
-                      userId?.substring(0, 1).toUpperCase() ?? 'U',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  const Gap(12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.drawerMyRooms,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          l10n.drawerFreePlan,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+    return HomeDrawer(
+      rooms: _myRooms,
+      currentRoomId: _roomId,
+      onNavigateToRoomSelection: () {
+        setState(() {
+          _roomSelectionId = _roomId;
+          _showRoomSelection = true;
+          _furnitureMode = false;
+          _selectedFurnitureItemId = null;
+        });
+        Navigator.pop(context);
+      },
+      onCreateRoom: () {
+        Navigator.pop(context);
+        _createRoom();
+      },
+      onJoinRoom: () {
+        if (!_joiningRoom) {
+          Navigator.pop(context);
+          _joinRoomByCode();
+        }
+      },
+      onCalendarTap: (roomId) {
+        Navigator.pop(context);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MemoryCalendarView(
+              roomId: roomId,
+              currentUserId: Supabase.instance.client.auth.currentUser?.id,
             ),
-
-            // Room List Shortcut
+          ),
+        );
+      },
+      onStoreTap: () {
+        Navigator.pop(context);
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const StoreView()))
+            .then((_) {
+          if (mounted) {
+            _loadFurnitureInventory();
+          }
+        });
+      },
+      onInventoryTap: () {
+        Navigator.pop(context);
+        _openFurnitureInventory();
+      },
+      onSignOut: _signOut,
+      debugActions: ExpansionTile(
+        leading: const Icon(Icons.bug_report_outlined),
+        title: Text(l10n.drawerDebugTools),
+        children: [
+          ListTile(
+            title: Text(l10n.drawerForceRefreshPet),
+            onTap: _petBusy ? null : () => _refreshPetState(tick: true),
+            trailing: _petBusy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+          ),
+          ListTile(
+            title: Text(l10n.drawerSimulateFeed),
+            subtitle: _feedResult == null ? null : Text(_feedResult!),
+            onTap: _testingFeed ? null : _runFeedTest,
+            trailing: _testingFeed
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+          ),
+          ListTile(
+            title: Text(l10n.drawerTestNotification),
+            onTap: () => ref.read(fcmServiceProvider).showTestNotification(),
+          ),
+          if (_petError != null)
             ListTile(
-              leading: const Icon(Icons.list_alt_rounded),
-              title: Text(l10n.roomSelectionTitle),
-              subtitle: Text(l10n.roomSelectionSubtitle),
-              onTap: () {
-                setState(() {
-                  _roomSelectionId = _roomId;
-                  _showRoomSelection = true;
-                  _furnitureMode = false;
-                  _selectedFurnitureItemId = null;
-                });
-                Navigator.pop(context);
-              },
+              title: Text(l10n.drawerPetError),
+              subtitle: Text(_petError!),
             ),
-
-            const Divider(),
-
-            // Actions
-            ListTile(
-              leading: const Icon(Icons.add_circle_outline),
-              title: Text(l10n.drawerCreateRoom),
-              onTap: () {
-                Navigator.pop(context);
-                _createRoom();
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.meeting_room_outlined),
-              title: Text(l10n.drawerJoinWithCode),
-              onTap: _joiningRoom
-                  ? null
-                  : () {
-                      Navigator.pop(context);
-                      _joinRoomByCode();
-                    },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.calendar_month_outlined),
-              title: Text(l10n.calendarTitle),
-              onTap: () {
-                final roomId = _roomId;
-                if (roomId == null) {
-                  return;
-                }
-                Navigator.pop(context);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MemoryCalendarView(
-                      roomId: roomId,
-                      currentUserId:
-                          Supabase.instance.client.auth.currentUser?.id,
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.storefront_outlined),
-              title: Text(l10n.storeTitle),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const StoreView()))
-                    .then((_) {
-                  if (mounted) {
-                    _loadFurnitureInventory();
-                  }
-                });
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.chair_alt_outlined),
-              title: Text(l10n.furnitureInventoryTitle),
-              subtitle: Text(l10n.furnitureInventorySubtitle),
-              onTap: () {
-                Navigator.pop(context);
-                _openFurnitureInventory();
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.language_outlined),
-              title: Text(l10n.languageTitle),
-              subtitle: Text(_languageOptionLabel(localeState.option, l10n)),
-              onTap: () {
-                Navigator.pop(context);
-                showModalBottomSheet<void>(
-                  context: context,
-                  showDragHandle: true,
-                  backgroundColor: Colors.white,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  ),
-                  builder: (_) => const LanguageSelectorSheet(),
-                );
-              },
-            ),
-
-            ExpansionTile(
-              leading: const Icon(Icons.bug_report_outlined),
-              title: Text(l10n.drawerDebugTools),
-              children: [
-                ListTile(
-                  title: Text(l10n.drawerForceRefreshPet),
-                  onTap: _petBusy ? null : () => _refreshPetState(tick: true),
-                  trailing: _petBusy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : null,
-                ),
-                ListTile(
-                  title: Text(l10n.drawerSimulateFeed),
-                  subtitle: _feedResult == null ? null : Text(_feedResult!),
-                  onTap: _testingFeed ? null : _runFeedTest,
-                  trailing: _testingFeed
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : null,
-                ),
-                ListTile(
-                  title: Text(l10n.drawerTestNotification),
-                  onTap: () =>
-                      ref.read(fcmServiceProvider).showTestNotification(),
-                ),
-                if (_petError != null)
-                  ListTile(
-                    title: Text(l10n.drawerPetError),
-                    subtitle: Text(_petError!),
-                  ),
-              ],
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: Text(
-                l10n.commonSignOut,
-                style: const TextStyle(color: Colors.redAccent),
-              ),
-              onTap: _signOut,
-            ),
-            const Gap(20),
-          ],
-        ),
+        ],
       ),
     );
   }

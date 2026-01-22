@@ -5,6 +5,7 @@ import 'package:pet/l10n/app_localizations.dart';
 
 import '../features/auth/auth_gate.dart';
 import '../shared/localization/app_locale_controller.dart';
+import '../shared/theme/app_theme.dart';
 import '../shared/force_update/force_update_gate.dart';
 
 class PicPetApp extends ConsumerWidget {
@@ -15,10 +16,7 @@ class PicPetApp extends ConsumerWidget {
     final localeState = ref.watch(appLocaleProvider);
     return MaterialApp(
       title: 'PicPet',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: localeState.locale,

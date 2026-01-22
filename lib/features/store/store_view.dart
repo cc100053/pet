@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../shared/theme/app_theme.dart';
 
 class StoreView extends StatefulWidget {
   const StoreView({super.key});
@@ -561,79 +562,149 @@ class _StoreViewState extends State<StoreView> {
         _activeEntitlements.contains(entitlementId);
     final canBuy = _iapConfigured && !_purchasing && package != null;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: isSubscription
+            ? Border.all(color: AppTheme.secondaryColor.withOpacity(0.3))
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: isSubscription
+                  ? AppTheme.secondaryColor.withOpacity(0.1)
+                  : Colors.amber.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              isSubscription ? Icons.stars_rounded : Icons.diamond_rounded,
+              color: isSubscription ? AppTheme.secondaryColor : Colors.amber,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: Theme.of(context).textTheme.titleMedium,
+                if (isSubscription)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      l10n.storeSubscriptionActive, // Reusing label for "Premium" tag contextually? No, wait.
+                      // Actually "Subscription" label
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  )
+                else if (item.coinAmount != null)
+                   Text(
+                      l10n.storeCoinsReward(item.coinAmount!),
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _displayTypeLabel(item, l10n),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
+                   ),
+
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
-                FilledButton(
-                  onPressed: isSubscribed || !canBuy
+                if (item.description != null)
+                  Text(
+                    item.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                   priceString ?? l10n.storePriceUnavailable,
+                   style: const TextStyle(
+                     fontSize: 15,
+                     fontWeight: FontWeight.w700,
+                     color: AppTheme.textPrimary,
+                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: isSubscribed || !canBuy ? null : () => _purchaseIapItem(item),
+            child: Opacity(
+              opacity: isSubscribed || !canBuy ? 0.6 : 1.0,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: isSubscribed
                       ? null
-                      : () => _purchaseIapItem(item),
-                  child: Text(
-                    isSubscription
-                        ? (isSubscribed
-                              ? l10n.storeSubscriptionActive
-                              : l10n.storeSubscribe)
-                        : l10n.commonBuy,
+                      : (isSubscription
+                          ? AppTheme.accentGradient
+                          : AppTheme.primaryGradient),
+                  color: isSubscribed ? Colors.grey[200] : null,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: isSubscribed
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: (isSubscription
+                                    ? AppTheme.secondaryColor
+                                    : AppTheme.primaryColor)
+                                .withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                ),
+                child: Text(
+                  isSubscription
+                      ? (isSubscribed
+                          ? l10n.commonOwned // "Active"
+                          : l10n.storeSubscribe)
+                      : l10n.commonBuy,
+                  style: TextStyle(
+                    color: isSubscribed ? Colors.grey : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
                   ),
                 ),
-              ],
-            ),
-            if (item.description != null) ...[
-              const SizedBox(height: 8),
-              Text(item.description!),
-            ],
-            if (!isSubscription && item.coinAmount != null) ...[
-              const SizedBox(height: 6),
-              Text(l10n.storeCoinsReward(item.coinAmount!)),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(priceString ?? l10n.storePriceUnavailable),
-                if (item.priceJpy != null) ...[
-                  const SizedBox(width: 12),
-                  Text(l10n.currencyJpy(item.priceJpy!)),
-                ],
-              ],
-            ),
-            if (!_iapConfigured) ...[
-              const SizedBox(height: 6),
-              Text(
-                l10n.storeIapNotConfigured,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-            ] else if (package == null) ...[
-              const SizedBox(height: 6),
-              Text(
-                l10n.storeProductNotFound,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -646,73 +717,120 @@ class _StoreViewState extends State<StoreView> {
     final showQuantity = !isCosmetic && ownedQty > 0;
     final canBuy =
         !_purchasing && !isOwned && canAfford && item.priceCoins != null;
-    final displayName =
-        item.emoji != null && item.emoji!.isNotEmpty
-            ? '${item.emoji} ${item.name}'
-            : item.name;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              item.emoji ?? '🎁',
+              style: const TextStyle(fontSize: 30),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                Text(
+                  item.description ?? _displayTypeLabel(item, l10n),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (item.priceCoins != null)
+                  Row(
                     children: [
+                      const Icon(Icons.monetization_on_rounded,
+                          size: 16, color: Colors.amber),
+                      const SizedBox(width: 4),
                       Text(
-                        displayName,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _displayTypeLabel(item, l10n),
-                        style: Theme.of(context).textTheme.bodySmall,
+                        '${item.priceCoins}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: canAfford ? Colors.amber[800] : Colors.red,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                FilledButton(
-                  onPressed: canBuy ? () => _purchaseItem(item) : null,
-                  child: Text(isOwned ? l10n.commonOwned : l10n.commonBuy),
-                ),
-              ],
-            ),
-            if (item.description != null) ...[
-              const SizedBox(height: 8),
-              Text(item.description!),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(l10n.storeCoinPrice(item.priceCoins?.toString() ?? '-')),
-                if (item.priceJpy != null) ...[
-                  const SizedBox(width: 12),
-                  Text(l10n.currencyJpy(item.priceJpy!)),
+                if (showQuantity) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.storeOwnedCount(ownedQty),
+                    style: const TextStyle(
+                        fontSize: 11, color: AppTheme.textSecondary),
+                  ),
                 ],
               ],
             ),
-            if (showQuantity) ...[
-              const SizedBox(height: 6),
-              Text(l10n.storeOwnedCount(ownedQty)),
-            ] else if (isOwned) ...[
-              const SizedBox(height: 6),
-              Text(l10n.commonOwned),
-            ],
-            if (!canAfford && !isOwned && item.priceCoins != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                l10n.storeNotEnoughCoins,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+          GestureDetector(
+            onTap: canBuy ? () => _purchaseItem(item) : null,
+            child: Opacity(
+              opacity: canBuy || isOwned ? 1.0 : 0.5,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: isOwned
+                      ? null
+                      : AppTheme.primaryGradient,
+                  color: isOwned ? Colors.grey[200] : null,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: isOwned || !canBuy
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                ),
+                child: Text(
+                  isOwned ? l10n.commonOwned : l10n.commonBuy,
+                  style: TextStyle(
+                    color: isOwned ? Colors.grey : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

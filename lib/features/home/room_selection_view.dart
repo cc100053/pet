@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import '../../shared/theme/app_theme.dart';
 
 class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
@@ -43,19 +43,12 @@ class RoomSelectionView extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalSlots = max(4, rooms.length + 1);
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return Stack(
       children: [
         Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFFFFBF3), Color(0xFFFFF0E7)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
+          child: Container(color: AppTheme.backgroundColor),
         ),
         Positioned(
           top: -60,
@@ -94,10 +87,9 @@ class RoomSelectionView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         l10n.roomSelectionTitle,
-                        style: GoogleFonts.fredoka(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: _ink,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -108,9 +100,13 @@ class RoomSelectionView extends StatelessWidget {
                         joiningRoom
                             ? l10n.roomSelectionJoining
                             : l10n.roomSelectionEnterInvite,
-                        style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      style: TextButton.styleFrom(foregroundColor: _muted),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -119,10 +115,9 @@ class RoomSelectionView extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Text(
                   l10n.roomSelectionSubtitle,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: _muted,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ),
@@ -184,7 +179,7 @@ class RoomSelectionView extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.person_rounded, color: _ink),
+            child: const Icon(Icons.person_rounded, color: AppTheme.textPrimary),
           ),
         );
       },
@@ -212,7 +207,7 @@ class RoomSelectionView extends StatelessWidget {
             color: _filmBase,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isSelected ? _ink : _borderLight,
+              color: isSelected ? AppTheme.textPrimary : Colors.black12,
               width: isSelected ? 2 : 1,
             ),
             boxShadow: [
@@ -233,7 +228,7 @@ class RoomSelectionView extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: _borderLight, width: 1.2),
+                      border: Border.all(color: Colors.black12, width: 1.2),
                     ),
                     child: Stack(
                       alignment: Alignment.center,
@@ -247,7 +242,7 @@ class RoomSelectionView extends StatelessWidget {
                                     child: Icon(
                                       Icons.photo_rounded,
                                       size: 28,
-                                      color: _muted,
+                                      color: AppTheme.textSecondary,
                                     ),
                                   ),
                                 )
@@ -263,7 +258,7 @@ class RoomSelectionView extends StatelessWidget {
                                           child: Icon(
                                             Icons.photo_rounded,
                                             size: 28,
-                                            color: _muted,
+                                            color: AppTheme.textSecondary,
                                           ),
                                         ),
                                       ),
@@ -293,10 +288,9 @@ class RoomSelectionView extends StatelessWidget {
                         room['name'] ?? l10n.roomSelectionRoomFallback,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: _ink,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -321,7 +315,7 @@ class RoomSelectionView extends StatelessWidget {
           decoration: BoxDecoration(
             color: _filmBase,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: _borderLight),
+            border: Border.all(color: Colors.black12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -338,17 +332,16 @@ class RoomSelectionView extends StatelessWidget {
                 height: 90,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _borderLight, width: 1.2),
+                  border: Border.all(color: Colors.black12, width: 1.2),
                 ),
-                child: const Icon(Icons.add_rounded, size: 26, color: _muted),
+                child: const Icon(Icons.add_rounded, size: 26, color: AppTheme.textSecondary),
               ),
               const Gap(10),
               Text(
                 l10n.roomSelectionEmptySlot,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: _muted,
+                  color: AppTheme.textSecondary,
                 ),
               ),
             ],
@@ -368,15 +361,11 @@ class RoomSelectionView extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           child: Ink(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_ctaStart, _ctaEnd],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: AppTheme.primaryGradient,
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: _ctaStart.withValues(alpha: 0.35),
+                  color: AppTheme.primaryColor.withOpacity(0.35),
                   blurRadius: 22,
                   offset: const Offset(0, 12),
                 ),
@@ -389,11 +378,10 @@ class RoomSelectionView extends StatelessWidget {
                   creatingRoom
                       ? l10n.roomSelectionCreating
                       : l10n.roomSelectionCreatePet,
-                  style: GoogleFonts.fredoka(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
             ),
@@ -414,7 +402,7 @@ class RoomSelectionView extends StatelessWidget {
           height: 5,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive ? color : _borderLight,
+            color: isActive ? color : Colors.black12,
           ),
         );
       }),
