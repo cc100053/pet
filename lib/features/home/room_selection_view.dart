@@ -27,12 +27,7 @@ class RoomSelectionView extends StatelessWidget {
   final bool joiningRoom;
   final String? selectedRoomId;
 
-  static const _ink = Color(0xFF2F2A23);
-  static const _muted = Color(0xFF7A6F66);
-  static const _ctaStart = Color(0xFFFFB36B);
-  static const _ctaEnd = Color(0xFFF79B5F);
   static const _mint = Color(0xFF7ED9C0);
-  static const _borderLight = Color(0xFFD9D2C8);
   static const _filmBase = Color(0xFFFFF9F2);
   static const _moodHigh = Color(0xFF67CBA0);
   static const _moodMid = Color(0xFFF3B562);
@@ -47,9 +42,7 @@ class RoomSelectionView extends StatelessWidget {
 
     return Stack(
       children: [
-        Positioned.fill(
-          child: Container(color: AppTheme.backgroundColor),
-        ),
+        Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
         Positioned(
           top: -60,
           right: -40,
@@ -179,7 +172,10 @@ class RoomSelectionView extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.person_rounded, color: AppTheme.textPrimary),
+            child: const Icon(
+              Icons.person_rounded,
+              color: AppTheme.textPrimary,
+            ),
           ),
         );
       },
@@ -334,7 +330,11 @@ class RoomSelectionView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.black12, width: 1.2),
                 ),
-                child: const Icon(Icons.add_rounded, size: 26, color: AppTheme.textSecondary),
+                child: const Icon(
+                  Icons.add_rounded,
+                  size: 26,
+                  color: AppTheme.textSecondary,
+                ),
               ),
               const Gap(10),
               Text(
@@ -365,7 +365,7 @@ class RoomSelectionView extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryColor.withOpacity(0.35),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.35),
                   blurRadius: 22,
                   offset: const Offset(0, 12),
                 ),
@@ -379,9 +379,9 @@ class RoomSelectionView extends StatelessWidget {
                       ? l10n.roomSelectionCreating
                       : l10n.roomSelectionCreatePet,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

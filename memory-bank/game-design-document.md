@@ -158,7 +158,7 @@
 ### 7.1 主介面 (Home) - 沉浸式疊層
 - 採用 Stack 佈局：
   - Layer 1 (底層)：房間背景圖。
-  - Layer 2 (中層)：Lottie 寵物動畫 (位於畫面中央偏上)。
+  - Layer 2 (中層)：寵物動畫 (Idle: Lottie / Walk: GIF) (位於畫面中央偏上)。
   - Layer 3 (頂層)：可拖動底板 (DraggableScrollableSheet)，承載聊天室。
 - 互動：點擊寵物觸發 Bounce 動畫；長按顯示狀態數值。
 - 初始高度：40% (露出寵物)。
@@ -192,7 +192,7 @@
 ### 7.4.2 交付清單 (Deliverables)
 - 介面設計：主要畫面與狀態稿。
 - 元件庫：可重用 UI 元件與樣式。
-- Pet 本體：寵物造型與基本狀態 (Lottie / PNG)。
+- Pet 本體：寵物造型與基本狀態 (Lottie / GIF / PNG)。
 
 ### 7.4.3 交付指引 (非 Figma 使用者適用)
 - 可交付 PNG (透明底) / SVG / JPG / PDF 圖檔。
@@ -207,7 +207,7 @@
 | 背景 / 大圖 | PNG (2x/3x) | 複雜質感或插畫 |
 | 照片卡片 | PNG/JPG | 視覺層素材 |
 | Pet 靜態圖 | PNG | 無動畫時使用 |
-| Pet 動畫 | Lottie (.json) | 由向量分層素材製作 |
+| Pet 動畫 | Lottie (.json) / GIF | Lottie 用於向量分層動畫；GIF 可用於快速迭代/逐格走路循環 |
 
 ### 7.4.5 Lottie 素材建議
 - 最佳素材：分層 SVG/AI (身體、眼、口、手腳、飾品獨立)。
@@ -241,7 +241,7 @@
 ## 10. 技術棧清單 (Tech Stack Checklist)
 - Frontend: Flutter (Dart)
 - State Management: Riverpod
-- Animation: Lottie (lottie package)
+- Animation: Lottie + GIF (Flutter assets)
 - Local DB: Hive (for local cache & settings)
 - Backend: Supabase (Auth, Postgres DB, Realtime)
 - Storage: Cloudflare R2 (S3 compatible API)

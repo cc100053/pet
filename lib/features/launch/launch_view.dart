@@ -23,7 +23,7 @@ class LaunchView extends StatelessWidget {
                     gradient: AppTheme.primaryGradient,
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.35),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.35),
                         blurRadius: 30,
                         offset: const Offset(0, 16),
                       ),
@@ -45,18 +45,18 @@ class LaunchView extends StatelessWidget {
             Text(
               'PicPet',
               style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                    letterSpacing: 0.6,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+                letterSpacing: 0.6,
+              ),
             ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
             const SizedBox(height: 8),
             Text(
               AppLocalizations.of(context)!.launchTagline,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
-                  ),
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary,
+              ),
             ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
           ],
         ),

@@ -53,9 +53,7 @@ class HomeDrawer extends ConsumerWidget {
           // Premium Header
           Container(
             padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
-            decoration: const BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-            ),
+            decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +61,7 @@ class HomeDrawer extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: CircleAvatar(
@@ -91,9 +89,12 @@ class HomeDrawer extends ConsumerWidget {
                 ),
                 const Gap(4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -122,7 +123,7 @@ class HomeDrawer extends ConsumerWidget {
                   onTap: onNavigateToRoomSelection,
                   isHighlight: true,
                 ),
-                
+
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Divider(height: 1),
@@ -179,22 +180,25 @@ class HomeDrawer extends ConsumerWidget {
                       showDragHandle: true,
                       backgroundColor: Colors.white,
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
                       ),
                       builder: (_) => const LanguageSelectorSheet(),
                     );
                   },
                 ),
-                
+
                 if (debugActions != null) ...[
-                   const Gap(24),
-                   _DrawerHeader(title: 'DEBUG'),
-                   debugActions!,
+                  const Gap(24),
+                  _DrawerHeader(title: 'DEBUG'),
+                  debugActions!,
                 ],
 
-                 _DrawerItem(
+                _DrawerItem(
                   icon: Icons.logout_rounded,
-                  title: 'Sign Out', // Needs localization if available, or keep hardcoded for now
+                  title:
+                      'Sign Out', // Needs localization if available, or keep hardcoded for now
                   onTap: onSignOut,
                   textColor: AppTheme.errorColor,
                   iconColor: AppTheme.errorColor,
@@ -232,7 +236,7 @@ class _DrawerHeader extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          color: AppTheme.textSecondary.withOpacity(0.5),
+          color: AppTheme.textSecondary.withValues(alpha: 0.5),
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -267,21 +271,27 @@ class _DrawerItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: isHighlight
           ? BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.05),
+              color: AppTheme.primaryColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              ),
             )
           : null,
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isHighlight ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+            color: isHighlight
+                ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                : Colors.transparent,
             shape: BoxShape.circle,
           ),
           child: Icon(
-            icon, 
-            color: iconColor ?? (isHighlight ? AppTheme.primaryColor : AppTheme.textSecondary),
+            icon,
+            color:
+                iconColor ??
+                (isHighlight ? AppTheme.primaryColor : AppTheme.textSecondary),
             size: 22,
           ),
         ),
@@ -297,7 +307,9 @@ class _DrawerItem extends StatelessWidget {
             ? Text(
                 subtitle!,
                 style: TextStyle(
-                  color: textColor?.withOpacity(0.7) ?? AppTheme.textSecondary,
+                  color:
+                      textColor?.withValues(alpha: 0.7) ??
+                      AppTheme.textSecondary,
                   fontSize: 12,
                 ),
               )

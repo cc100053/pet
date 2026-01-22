@@ -29,15 +29,15 @@ class ChatMessageTile extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             message.body ?? AppLocalizations.of(context)!.chatSystemUpdate,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                  fontSize: 10,
-                ),
+              color: Colors.grey[600],
+              fontSize: 10,
+            ),
           ),
         ),
       );
@@ -56,10 +56,7 @@ class ChatMessageTile extends StatelessWidget {
       alignment: alignment,
       child: GestureDetector(
         onLongPress: onLongPress,
-        child: Opacity(
-          opacity: isOptimistic ? 0.7 : 1.0,
-          child: content,
-        ),
+        child: Opacity(opacity: isOptimistic ? 0.7 : 1.0, child: content),
       ),
     );
   }
@@ -94,7 +91,7 @@ class _TextMessageBubble extends StatelessWidget {
               bottomLeft: Radius.circular(2),
               bottomRight: Radius.circular(16),
             ),
-            border: Border.all(color: Colors.black.withOpacity(0.04)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
           );
 
     final textColor = AppTheme.textPrimary;
@@ -130,10 +127,7 @@ class _TextMessageBubble extends StatelessWidget {
             alignment: Alignment.bottomRight,
             child: Text(
               _formatTime(message.createdAt),
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.black38,
-              ),
+              style: TextStyle(fontSize: 10, color: Colors.black38),
             ),
           ),
         ],
@@ -172,7 +166,7 @@ class _FeedMessageCard extends StatelessWidget {
         : BoxDecoration(
             color: AppTheme.chatBubbleOther,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black.withOpacity(0.04)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
           );
 
     return Container(
@@ -185,96 +179,106 @@ class _FeedMessageCard extends StatelessWidget {
           // Header (Partner Name + Coins)
           Row(
             children: [
-               if (!isMe) ...[
-                 Container(
-                   margin: const EdgeInsets.only(right: 8),
-                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                   decoration: BoxDecoration(
-                     color: AppTheme.secondaryColor,
-                     borderRadius: BorderRadius.circular(10),
-                   ),
-                   child: Text(
-                     l10n.chatPartnerLabel,
-                     style: const TextStyle(
-                       color: Colors.white,
-                       fontSize: 10, 
-                       fontWeight: FontWeight.bold
-                     ),
-                   ),
-                 ),
-               ],
-               const Spacer(),
-               if (message.coinsAwarded > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.amber[100],
-                      borderRadius: BorderRadius.circular(12),
+              if (!isMe) ...[
+                Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    l10n.chatPartnerLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.monetization_on_rounded, size: 14, color: Colors.orange),
-                        const SizedBox(width: 4),
-                        Text(
-                          '+${message.coinsAwarded}',
-                          style: const TextStyle(
-                            color: Colors.brown,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        )
-                      ],
-                    ),
-                  )
+                  ),
+                ),
+              ],
+              const Spacer(),
+              if (message.coinsAwarded > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.monetization_on_rounded,
+                        size: 14,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '+${message.coinsAwarded}',
+                        style: const TextStyle(
+                          color: Colors.brown,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 8),
-          
+
           // Image
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: AspectRatio(
-              aspectRatio: 1.0,
-              child: _buildImageContent(),
-            ),
+            child: AspectRatio(aspectRatio: 1.0, child: _buildImageContent()),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Caption or Label
-             if (message.caption != null && message.caption!.isNotEmpty)
-                Text(
-                  message.caption!,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-             
+          if (message.caption != null && message.caption!.isNotEmpty)
+            Text(
+              message.caption!,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+
           // Labels/Tags
-           if (message.labels.isNotEmpty) ...[
-             const SizedBox(height: 6),
-             Wrap(
-               spacing: 4,
-               runSpacing: 4,
-               children: message.labels.take(3).map((lbl) {
-                 final text = lbl['text'] as String? ?? '';
-                 return Container(
-                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                   decoration: BoxDecoration(
-                     color: Colors.black12,
-                     borderRadius: BorderRadius.circular(4),
-                   ),
-                   child: Text(
-                     text,
-                     style: const TextStyle(fontSize: 10, color: Colors.black54),
-                   ),
-                 );
-               }).toList(),
-             ),
-           ],
+          if (message.labels.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: message.labels.take(3).map((lbl) {
+                final text = lbl['text'] as String? ?? '';
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    text,
+                    style: const TextStyle(fontSize: 10, color: Colors.black54),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ],
       ),
     );

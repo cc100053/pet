@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,7 +7,6 @@ import '../../services/analytics/analytics_service.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../services/chat/chat_message_repository.dart';
 import '../../services/performance/performance_service.dart';
-import '../../shared/ui/cached_network_image_view.dart';
 import '../feed/feed_capture_view.dart';
 import 'blocked_users_sheet.dart';
 import 'widgets/chat_message_tile.dart';
@@ -237,67 +235,67 @@ class _ChatRoomViewState extends State<ChatRoomView> {
               currentUserId: currentUserId,
             ),
           ),
-        SafeArea(
-          top: false,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: _sending ? null : _openFeedCamera,
-                  icon: const Icon(Icons.camera_alt_rounded),
-                  color: AppTheme.textSecondary,
-                  tooltip: l10n.feedTitle,
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.backgroundColor,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: TextField(
-                      controller: _messageController,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sending ? null : _sendMessage(),
-                      decoration: InputDecoration(
-                        hintText: l10n.chatMessageHint,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
-                        isDense: true,
-                        filled: false,
+          SafeArea(
+            top: false,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: _sending ? null : _openFeedCamera,
+                    icon: const Icon(Icons.camera_alt_rounded),
+                    color: AppTheme.textSecondary,
+                    tooltip: l10n.feedTitle,
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.backgroundColor,
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      minLines: 1,
-                      maxLines: 4,
-                      style: const TextStyle(fontSize: 15),
+                      child: TextField(
+                        controller: _messageController,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _sending ? null : _sendMessage(),
+                        decoration: InputDecoration(
+                          hintText: l10n.chatMessageHint,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                          ),
+                          isDense: true,
+                          filled: false,
+                        ),
+                        minLines: 1,
+                        maxLines: 4,
+                        style: const TextStyle(fontSize: 15),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: _sending ? null : _sendMessage,
-                  icon: const Icon(Icons.send_rounded),
-                  color: AppTheme.primaryColor,
-                  tooltip: l10n.commonSend,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _sending ? null : _sendMessage,
+                    icon: const Icon(Icons.send_rounded),
+                    color: AppTheme.primaryColor,
+                    tooltip: l10n.commonSend,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         ],
       ),
     );

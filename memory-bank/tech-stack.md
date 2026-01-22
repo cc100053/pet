@@ -3,7 +3,7 @@
 ## Core
 - Frontend: Flutter (Dart)
 - State management: Riverpod
-- Animation: Lottie (`lottie`)
+- Animation: Lottie (`lottie`) + asset images (GIF/PNG)
 - Local storage/cache: Hive
 - Client SDK: `supabase_flutter`
 - Env config: `flutter_dotenv`

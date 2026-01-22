@@ -16,8 +16,6 @@ import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
-import '../../shared/localization/app_locale_controller.dart';
-import '../../shared/localization/language_selector_sheet.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
@@ -36,7 +34,13 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin {
-  static const _petLottieAsset = 'assets/lottie/pet_example.json';
+  static const bool _petUseGif = bool.fromEnvironment(
+    'PET_USE_GIF',
+    defaultValue: false,
+  );
+  static const _petIdleLottieAsset = 'assets/lottie/ghost_float.json';
+  static const _petGifAsset = 'assets/lottie/example.gif';
+  static const _petMovingGifAsset = 'assets/gif/ghost_walking.gif';
   static const _petAvatarSize = Size(100, 100);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
@@ -74,6 +78,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Offset _petNormalizedTarget = const Offset(0.5, 0.6);
   bool _petFacingRight = true;
   bool _isDraggingPet = false;
+  bool _petIsMoving = false;
   Offset _dragOffset = Offset.zero;
   Timer? _wanderTimer;
   DateTime _lastInteractionAt = DateTime.now();
@@ -109,6 +114,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _petNormalizedPosition = _petNormalizedTarget;
+          if (mounted) {
+            if (!_isDraggingPet) {
+              setState(() => _petIsMoving = false);
+            }
+          } else {
+            _petIsMoving = false;
+          }
         }
       });
     _furnitureWiggleController = AnimationController(
@@ -1107,21 +1119,28 @@ class _HomeViewState extends ConsumerState<HomeView>
     final targetPx = _positionFromNormalized(clampedTarget, fieldSize);
     _updateFacing(current, clampedTarget, fieldSize);
     _petMoveController.stop();
-    _petMoveController.duration =
-        _durationForDistance((targetPx - currentPx).distance);
-    _petMoveAnimation = Tween<Offset>(begin: current, end: clampedTarget).animate(
-      CurvedAnimation(parent: _petMoveController, curve: Curves.easeOutCubic),
+    _petMoveController.duration = _durationForDistance(
+      (targetPx - currentPx).distance,
     );
+    _petMoveAnimation = Tween<Offset>(begin: current, end: clampedTarget)
+        .animate(
+          CurvedAnimation(
+            parent: _petMoveController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _petNormalizedTarget = clampedTarget;
     if (userInitiated) {
       _markUserInteraction();
     }
+    _petIsMoving = true;
     _petMoveController.forward(from: 0);
     setState(() {});
   }
 
   void _handlePetFieldTap(Offset localPosition, Size fieldSize) {
-    final desiredTopLeft = localPosition -
+    final desiredTopLeft =
+        localPosition -
         Offset(_petAvatarSize.width / 2, _petAvatarSize.height / 2);
     final clampedTopLeft = _clampTopLeft(desiredTopLeft, fieldSize);
     final normalizedTarget = _normalizedFromTopLeft(clampedTopLeft, fieldSize);
@@ -1146,10 +1165,15 @@ class _HomeViewState extends ConsumerState<HomeView>
     final current = _currentPetNormalized();
     _petMoveController.stop();
     _petNormalizedPosition = current;
-    final currentTopLeft =
-        _positionFromNormalized(_petNormalizedPosition, fieldSize);
+    final currentTopLeft = _positionFromNormalized(
+      _petNormalizedPosition,
+      fieldSize,
+    );
     _dragOffset = localPosition - currentTopLeft;
-    setState(() => _isDraggingPet = true);
+    setState(() {
+      _isDraggingPet = true;
+      _petIsMoving = true;
+    });
   }
 
   void _handlePetDragUpdate(DragUpdateDetails details, Size fieldSize) {
@@ -1171,14 +1195,20 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!_isDraggingPet) {
       return;
     }
-    setState(() => _isDraggingPet = false);
+    setState(() {
+      _isDraggingPet = false;
+      _petIsMoving = false;
+    });
   }
 
   void _handlePetDragCancel() {
     if (!_isDraggingPet) {
       return;
     }
-    setState(() => _isDraggingPet = false);
+    setState(() {
+      _isDraggingPet = false;
+      _petIsMoving = false;
+    });
   }
 
   List<_PlacedFurniture> _activeFurnitureForRoom() {
@@ -1193,9 +1223,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final placed = _activeFurnitureForRoom();
     final userId = Supabase.instance.client.auth.currentUser?.id;
     return placed
-        .where(
-          (item) => item.itemId == itemId && item.ownerUserId == userId,
-        )
+        .where((item) => item.itemId == itemId && item.ownerUserId == userId)
         .length;
   }
 
@@ -1271,7 +1299,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       final response = await Supabase.instance.client
           .from('room_furniture')
-          .select('id,item_id,owner_user_id,position_x,position_y,items(metadata)')
+          .select(
+            'id,item_id,owner_user_id,position_x,position_y,items(metadata)',
+          )
           .eq('room_id', roomId);
 
       final placed = <_PlacedFurniture>[];
@@ -1323,9 +1353,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _furnitureChannel?.unsubscribe();
     _furnitureSubscriptionRoomId = roomId;
 
-    final channel = Supabase.instance.client.channel(
-      'room_furniture_$roomId',
-    );
+    final channel = Supabase.instance.client.channel('room_furniture_$roomId');
     _furnitureChannel = channel;
 
     channel.onPostgresChanges(
@@ -1494,10 +1522,14 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    final desiredTopLeft = localPosition -
+    final desiredTopLeft =
+        localPosition -
         Offset(_furnitureItemSize.width / 2, _furnitureItemSize.height / 2);
-    final clampedTopLeft =
-        _clampTopLeftSized(desiredTopLeft, fieldSize, _furnitureItemSize);
+    final clampedTopLeft = _clampTopLeftSized(
+      desiredTopLeft,
+      fieldSize,
+      _furnitureItemSize,
+    );
     // Store normalized coordinates (0..1) so layout stays consistent across sizes.
     final normalized = _normalizedFromTopLeftSized(
       clampedTopLeft,
@@ -1545,8 +1577,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       _furnitureItemSize,
     );
     final desiredTopLeft = currentTopLeft + details.delta;
-    final clampedTopLeft =
-        _clampTopLeftSized(desiredTopLeft, fieldSize, _furnitureItemSize);
+    final clampedTopLeft = _clampTopLeftSized(
+      desiredTopLeft,
+      fieldSize,
+      _furnitureItemSize,
+    );
     // Store normalized coordinates (0..1) so layout stays consistent across sizes.
     final normalized = _normalizedFromTopLeftSized(
       clampedTopLeft,
@@ -1694,7 +1729,6 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_loadRoomFurniture(roomId));
     }
   }
-
 
   Widget _buildInteractionTopBar() {
     final l10n = AppLocalizations.of(context)!;
@@ -1901,10 +1935,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           spots.add(
             _PoopSpot(
               index: i,
-              normalized: Offset(
-                x.clamp(0.05, 0.95),
-                y.clamp(0.05, 0.95),
-              ),
+              normalized: Offset(x.clamp(0.05, 0.95), y.clamp(0.05, 0.95)),
             ),
           );
         }
@@ -1913,9 +1944,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (spots.isEmpty) {
       final poopAt = _parseOptionalDate(_petState?['poop_at'])?.toUtc();
       if (poopAt != null && !poopAt.isAfter(DateTime.now().toUtc())) {
-        spots.add(
-          const _PoopSpot(index: 0, normalized: Offset(0.62, 0.72)),
-        );
+        spots.add(const _PoopSpot(index: 0, normalized: Offset(0.62, 0.72)));
       }
     }
     return spots;
@@ -2025,8 +2054,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     return GestureDetector(
       onLongPress: _openFurnitureInventory,
       onTap: canEdit ? () {} : null,
-      onPanUpdate:
-          canEdit ? (details) => _moveFurniture(item, details, fieldSize) : null,
+      onPanUpdate: canEdit
+          ? (details) => _moveFurniture(item, details, fieldSize)
+          : null,
       onPanEnd: canEdit ? (_) => _handleFurnitureDragEnd(item) : null,
       child: AnimatedBuilder(
         animation: _furnitureWiggleController,
@@ -2059,10 +2089,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             clipBehavior: Clip.none,
             children: [
               Center(
-                child: Text(
-                  item.emoji,
-                  style: const TextStyle(fontSize: 26),
-                ),
+                child: Text(item.emoji, style: const TextStyle(fontSize: 26)),
               ),
               if (canEdit)
                 Positioned(
@@ -2293,10 +2320,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              item.emoji ?? '🪑',
-              style: const TextStyle(fontSize: 22),
-            ),
+            Text(item.emoji ?? '🪑', style: const TextStyle(fontSize: 22)),
             const SizedBox(height: 3),
             Text(
               item.name,
@@ -2433,9 +2457,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               child: IgnorePointer(
                 ignoring: !_furnitureMode,
                 child: AnimatedSlide(
-                  offset: _furnitureMode
-                      ? Offset.zero
-                      : const Offset(0, -1.1),
+                  offset: _furnitureMode ? Offset.zero : const Offset(0, -1.1),
                   duration: 220.ms,
                   curve: Curves.easeOutCubic,
                   child: AnimatedOpacity(
@@ -2455,11 +2477,55 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget _buildPetAvatar() {
     final petColor = _petMoodColor();
 
+    if (_petUseGif) {
+      return SizedBox(
+        width: _petAvatarSize.width,
+        height: _petAvatarSize.height,
+        child: Image.asset(
+          _petGifAsset,
+          fit: BoxFit.contain,
+          alignment: Alignment.bottomCenter,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPetFallback(petColor),
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (frame == null) {
+              return _buildPetFallback(petColor, loading: true);
+            }
+            return child;
+          },
+        ),
+      );
+    }
+
+    if (_petIsMoving) {
+      return SizedBox(
+        width: _petAvatarSize.width,
+        height: _petAvatarSize.height,
+        child: Image.asset(
+          _petMovingGifAsset,
+          fit: BoxFit.contain,
+          alignment: Alignment.bottomCenter,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPetFallback(petColor),
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (frame == null) {
+              return _buildPetFallback(petColor, loading: true);
+            }
+            return child;
+          },
+        ),
+      );
+    }
+
     return SizedBox(
       width: _petAvatarSize.width,
       height: _petAvatarSize.height,
       child: Lottie.asset(
-        _petLottieAsset,
+        _petIdleLottieAsset,
         fit: BoxFit.contain,
         alignment: Alignment.bottomCenter,
         frameRate: FrameRate.max,
@@ -2671,19 +2737,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  String _languageOptionLabel(AppLanguageOption option, AppLocalizations l10n) {
-    switch (option) {
-      case AppLanguageOption.system:
-        return l10n.languageSystem;
-      case AppLanguageOption.english:
-        return l10n.languageEnglish;
-      case AppLanguageOption.japanese:
-        return l10n.languageJapanese;
-      case AppLanguageOption.chineseTraditional:
-        return l10n.languageChineseTraditional;
-    }
-  }
-
   Widget _buildSideDrawer() {
     final l10n = AppLocalizations.of(context)!;
     return HomeDrawer(
@@ -2721,9 +2774,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       },
       onStoreTap: () {
         Navigator.pop(context);
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const StoreView()))
-            .then((_) {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const StoreView())).then((_) {
           if (mounted) {
             _loadFurnitureInventory();
           }

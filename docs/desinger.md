@@ -122,4 +122,4 @@ App 不是永遠都滿滿的，有時候會沒資料或斷線，請幫忙設計�
 這份清單的核心策略是：
 
 1. **避開技術名詞**：用「磨砂玻璃」代替 "Blur Effect"，用「紙娃娃」代替 "Rigging Layers"。
-2. **拿 Source File 最實際**：因為他是平面設計師，不懂切圖規則 (Slicing) 的機會很大。你拿 AI/PSD 檔回來，自己用 Flutter 的 `flutter_svg` 或者 Lottie/After Effects 去處理，會比叫他反覆修改格式快得多。
+2. **拿 Source File 最實際**：因為他是平面設計師，不懂切圖規則 (Slicing) 的機會很大。你拿 AI/PSD 檔回來，自己用 Flutter 的 `flutter_svg` 或者 Lottie/After Effects 去處理；需要快速驗證走路循環時也可以先用 GIF，會比叫他反覆修改格式快得多。

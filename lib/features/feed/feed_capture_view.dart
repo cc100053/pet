@@ -457,9 +457,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     final mappingStatus = _loadingMappings
         ? l10n.feedLabelMappingsLoading
         : (_mappingError ??
-            (_mappingService == null
-                ? l10n.feedLabelMappingsUnavailable
-                : l10n.feedLabelMappingsReady));
+              (_mappingService == null
+                  ? l10n.feedLabelMappingsUnavailable
+                  : l10n.feedLabelMappingsReady));
 
     return Scaffold(
       appBar: AppBar(
@@ -473,16 +473,17 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         children: [
           Text(
             l10n.feedCameraSubtitle,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 12),
-          Text(mappingStatus,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey)),
+          Text(
+            mappingStatus,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+          ),
           const SizedBox(height: 24),
           Wrap(
             spacing: 16,
@@ -490,29 +491,37 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
             alignment: WrapAlignment.center,
             children: [
               FilledButton.icon(
-                onPressed:
-                    _sending ? null : () => _pickImage(ImageSource.camera),
+                onPressed: _sending
+                    ? null
+                    : () => _pickImage(ImageSource.camera),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.secondaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 icon: const Icon(Icons.photo_camera),
                 label: Text(l10n.commonCamera),
               ),
               OutlinedButton.icon(
-                onPressed:
-                    _sending ? null : () => _pickImage(ImageSource.gallery),
+                onPressed: _sending
+                    ? null
+                    : () => _pickImage(ImageSource.gallery),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.textPrimary,
                   side: const BorderSide(color: Colors.black12),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 icon: const Icon(Icons.photo_library),
                 label: Text(l10n.commonGallery),
@@ -553,10 +562,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
             Center(
               child: Text(
                 l10n.feedNoLabels,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontStyle: FontStyle.italic),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
               ),
             ),
           const SizedBox(height: 24),
@@ -588,9 +596,10 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               backgroundColor: AppTheme.primaryColor,
               minimumSize: const Size.fromHeight(56),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28)),
+                borderRadius: BorderRadius.circular(28),
+              ),
               elevation: 4,
-              shadowColor: AppTheme.primaryColor.withOpacity(0.4),
+              shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
             ),
             child: Text(
               _sending ? l10n.commonSending : l10n.feedSendButton,

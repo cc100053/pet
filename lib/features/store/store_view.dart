@@ -569,11 +569,11 @@ class _StoreViewState extends State<StoreView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: isSubscription
-            ? Border.all(color: AppTheme.secondaryColor.withOpacity(0.3))
+            ? Border.all(color: AppTheme.secondaryColor.withValues(alpha: 0.3))
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -586,8 +586,8 @@ class _StoreViewState extends State<StoreView> {
             height: 56,
             decoration: BoxDecoration(
               color: isSubscription
-                  ? AppTheme.secondaryColor.withOpacity(0.1)
-                  : Colors.amber.withOpacity(0.1),
+                  ? AppTheme.secondaryColor.withValues(alpha: 0.1)
+                  : Colors.amber.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(18),
             ),
             alignment: Alignment.center,
@@ -605,8 +605,10 @@ class _StoreViewState extends State<StoreView> {
                 if (isSubscription)
                   Container(
                     margin: const EdgeInsets.only(bottom: 4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.secondaryColor,
                       borderRadius: BorderRadius.circular(8),
@@ -615,20 +617,21 @@ class _StoreViewState extends State<StoreView> {
                       l10n.storeSubscriptionActive, // Reusing label for "Premium" tag contextually? No, wait.
                       // Actually "Subscription" label
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   )
                 else if (item.coinAmount != null)
-                   Text(
-                      l10n.storeCoinsReward(item.coinAmount!),
-                      style: const TextStyle(
-                        color: Colors.amber,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                   ),
+                  Text(
+                    l10n.storeCoinsReward(item.coinAmount!),
+                    style: const TextStyle(
+                      color: Colors.amber,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
 
                 Text(
                   item.name,
@@ -650,50 +653,56 @@ class _StoreViewState extends State<StoreView> {
                   ),
                 const SizedBox(height: 4),
                 Text(
-                   priceString ?? l10n.storePriceUnavailable,
-                   style: const TextStyle(
-                     fontSize: 15,
-                     fontWeight: FontWeight.w700,
-                     color: AppTheme.textPrimary,
-                   ),
+                  priceString ?? l10n.storePriceUnavailable,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: isSubscribed || !canBuy ? null : () => _purchaseIapItem(item),
+            onTap: isSubscribed || !canBuy
+                ? null
+                : () => _purchaseIapItem(item),
             child: Opacity(
               opacity: isSubscribed || !canBuy ? 0.6 : 1.0,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   gradient: isSubscribed
                       ? null
                       : (isSubscription
-                          ? AppTheme.accentGradient
-                          : AppTheme.primaryGradient),
+                            ? AppTheme.accentGradient
+                            : AppTheme.primaryGradient),
                   color: isSubscribed ? Colors.grey[200] : null,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: isSubscribed
                       ? []
                       : [
                           BoxShadow(
-                            color: (isSubscription
-                                    ? AppTheme.secondaryColor
-                                    : AppTheme.primaryColor)
-                                .withOpacity(0.3),
+                            color:
+                                (isSubscription
+                                        ? AppTheme.secondaryColor
+                                        : AppTheme.primaryColor)
+                                    .withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
-                          )
+                          ),
                         ],
                 ),
                 child: Text(
                   isSubscription
                       ? (isSubscribed
-                          ? l10n.commonOwned // "Active"
-                          : l10n.storeSubscribe)
+                            ? l10n
+                                  .commonOwned // "Active"
+                            : l10n.storeSubscribe)
                       : l10n.commonBuy,
                   style: TextStyle(
                     color: isSubscribed ? Colors.grey : Colors.white,
@@ -726,7 +735,7 @@ class _StoreViewState extends State<StoreView> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -738,7 +747,7 @@ class _StoreViewState extends State<StoreView> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.08),
+              color: AppTheme.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             alignment: Alignment.center,
@@ -773,8 +782,11 @@ class _StoreViewState extends State<StoreView> {
                 if (item.priceCoins != null)
                   Row(
                     children: [
-                      const Icon(Icons.monetization_on_rounded,
-                          size: 16, color: Colors.amber),
+                      const Icon(
+                        Icons.monetization_on_rounded,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${item.priceCoins}',
@@ -790,7 +802,9 @@ class _StoreViewState extends State<StoreView> {
                   Text(
                     l10n.storeOwnedCount(ownedQty),
                     style: const TextStyle(
-                        fontSize: 11, color: AppTheme.textSecondary),
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ],
@@ -801,22 +815,22 @@ class _StoreViewState extends State<StoreView> {
             child: Opacity(
               opacity: canBuy || isOwned ? 1.0 : 0.5,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  gradient: isOwned
-                      ? null
-                      : AppTheme.primaryGradient,
+                  gradient: isOwned ? null : AppTheme.primaryGradient,
                   color: isOwned ? Colors.grey[200] : null,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: isOwned || !canBuy
                       ? []
                       : [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
-                          )
+                          ),
                         ],
                 ),
                 child: Text(
