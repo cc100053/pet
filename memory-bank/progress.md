@@ -141,6 +141,7 @@
 - Allowed any room member to move/remove furniture regardless of owner.
 - Implemented periodic poop spawning with emoji display and tap-to-clean interaction.
 - Synced poop incidents via pet_state positions, added clean RPC with system chat log and coin rewards.
+- Refactored `lib/features/home/home_view.dart` by extracting UI-only widgets into `lib/features/home/widgets/` (top bar, latest photo card, action buttons, furniture inventory panel) while keeping behavior unchanged.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

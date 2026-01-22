@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +22,11 @@ import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
+import 'widgets/home_action_buttons.dart';
 import 'widgets/home_drawer.dart';
+import 'widgets/home_furniture_inventory_panel.dart';
+import 'widgets/home_interaction_top_bar.dart';
+import 'widgets/home_latest_photo_card.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -174,7 +177,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           'nickname': defaultNickname,
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Best-effort. Profile creation can be retried on next app open.
+    }
   }
 
   Future<void> _fetchRooms() async {
@@ -721,7 +726,9 @@ class _HomeViewState extends ConsumerState<HomeView>
             )
             .toList();
       });
-    } catch (_) {}
+    } catch (_) {
+      // Best-effort. Latest photo updates are also driven by realtime.
+    }
   }
 
   Future<void> _refreshPetState({bool tick = false}) async {
@@ -1005,7 +1012,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           'p_now': DateTime.now().toUtc().toIso8601String(),
         },
       );
-    } catch (_) {}
+    } catch (_) {
+      // Best-effort. This periodic tick should not disrupt the UI.
+    }
   }
 
   DateTime? _parseOptionalDate(dynamic value) {
@@ -1730,108 +1739,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Widget _buildInteractionTopBar() {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-      child: Row(
-        children: [
-          Builder(
-            builder: (context) {
-              return GestureDetector(
-                onTap: () => Scaffold.of(context).openDrawer(),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: Colors.black87,
-                  ),
-                ),
-              );
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(
-              Icons.calendar_month_outlined,
-              color: Colors.black87,
-            ),
-            onPressed: _openCalendar,
-            tooltip: l10n.calendarTitle,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLatestPhotoCard() {
-    final l10n = AppLocalizations.of(context)!;
-    final latestPhoto = _latestPhotoForRoom(_roomId);
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: AspectRatio(
-          aspectRatio: 4 / 3,
-          child: latestPhoto == null || latestPhoto.isEmpty
-              ? Container(
-                  color: const Color(0xFFF8F4EF),
-                  alignment: Alignment.center,
-                  child: Text(
-                    l10n.photoLabel,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black54,
-                    ),
-                  ),
-                )
-              : CachedNetworkImage(
-                  imageUrl: latestPhoto,
-                  fit: BoxFit.cover,
-                  placeholder: (context, _) =>
-                      Container(color: const Color(0xFFF8F4EF)),
-                  errorWidget: (context, url, error) => Container(
-                    color: const Color(0xFFF8F4EF),
-                    alignment: Alignment.center,
-                    child: Text(
-                      l10n.photoLabel,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPetHomeCard() {
     final l10n = AppLocalizations.of(context)!;
     return Container(
@@ -2151,202 +2058,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     return sin((_furnitureWiggleController.value * 2 * pi) + phase) * 0.04;
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildActionButton(
-          icon: Icons.cleaning_services_rounded,
-          onTap: () => unawaited(_handleCleanAction()),
-          enabled: !_petBusy,
-        ),
-        _buildActionButton(
-          icon: Icons.camera_alt_rounded,
-          onTap: _openFeedCamera,
-          enabled: !_petBusy,
-        ),
-        _buildActionButton(
-          icon: Icons.chat_bubble_rounded,
-          onTap: _openChatRoom,
-          enabled: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    required bool enabled,
-  }) {
-    return Opacity(
-      opacity: enabled ? 1 : 0.5,
-      child: JuicyScaleButton(
-        onTap: enabled ? onTap : null,
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: const Color(0xFF0D5C63)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFurnitureInventoryPanel() {
-    final l10n = AppLocalizations.of(context)!;
-    final furnitureItems = _furnitureCatalog.values
-        .where((item) => (_furnitureInventory[item.id] ?? 0) > 0)
-        .toList(growable: false);
-
-    return Material(
-      color: Colors.white.withValues(alpha: 0.96),
-      elevation: 6,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Text(
-                  l10n.furnitureInventoryTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: _closeFurnitureInventory,
-                  tooltip: l10n.commonClose,
-                ),
-              ],
-            ),
-            if (_furnitureLoading)
-              const LinearProgressIndicator(minHeight: 2)
-            else if (_furnitureError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _furnitureError!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              )
-            else if (furnitureItems.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  l10n.furnitureInventoryEmpty,
-                  textAlign: TextAlign.center,
-                ),
-              )
-            else
-              SizedBox(
-                height: 92,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: furnitureItems.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    final item = furnitureItems[index];
-                    final available = _availableFurnitureCount(item.id);
-                    final isSelected = _selectedFurnitureItemId == item.id;
-                    return _buildFurnitureInventoryItem(
-                      item,
-                      available,
-                      isSelected,
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.furnitureInventoryHint,
-              style: const TextStyle(fontSize: 12, color: Colors.black54),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFurnitureInventoryItem(
-    StoreItem item,
-    int available,
-    bool isSelected,
-  ) {
-    final canSelect = available > 0;
-    return GestureDetector(
-      onTap: canSelect
-          ? () {
-              setState(() => _selectedFurnitureItemId = item.id);
-              _autoPlaceFurnitureFromInventory(item.id);
-            }
-          : null,
-      child: AnimatedContainer(
-        duration: 150.ms,
-        width: 76,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFFFF2D6)
-              : Colors.white.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? const Color(0xFFFFB74D) : Colors.black12,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(item.emoji ?? '🪑', style: const TextStyle(fontSize: 22)),
-            const SizedBox(height: 3),
-            Text(
-              item.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                height: 1.0,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'x$available',
-              style: TextStyle(
-                fontSize: 11,
-                height: 1.0,
-                color: canSelect ? Colors.black87 : Colors.black38,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // --- UI Builders ---
 
   @override
@@ -2429,11 +2140,13 @@ class _HomeViewState extends ConsumerState<HomeView>
           SafeArea(
             child: Column(
               children: [
-                _buildInteractionTopBar(),
+                HomeInteractionTopBar(onCalendarPressed: _openCalendar),
                 const Gap(12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _buildLatestPhotoCard(),
+                  child: HomeLatestPhotoCard(
+                    imageUrl: _latestPhotoForRoom(_roomId),
+                  ),
                 ),
                 const Gap(12),
                 Expanded(
@@ -2444,7 +2157,12 @@ class _HomeViewState extends ConsumerState<HomeView>
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(20, 12, 20, bottomInset + 20),
-                  child: _buildActionButtons(),
+                  child: HomeActionButtons(
+                    petBusy: _petBusy,
+                    onCleanPressed: () => unawaited(_handleCleanAction()),
+                    onCameraPressed: _openFeedCamera,
+                    onChatPressed: _openChatRoom,
+                  ),
                 ),
               ],
             ),
@@ -2463,7 +2181,19 @@ class _HomeViewState extends ConsumerState<HomeView>
                   child: AnimatedOpacity(
                     opacity: _furnitureMode ? 1 : 0,
                     duration: 160.ms,
-                    child: _buildFurnitureInventoryPanel(),
+                    child: HomeFurnitureInventoryPanel(
+                      furnitureCatalog: _furnitureCatalog,
+                      furnitureInventory: _furnitureInventory,
+                      selectedItemId: _selectedFurnitureItemId,
+                      availableCount: _availableFurnitureCount,
+                      loading: _furnitureLoading,
+                      errorText: _furnitureError,
+                      onClose: _closeFurnitureInventory,
+                      onItemTap: (itemId) {
+                        setState(() => _selectedFurnitureItemId = itemId);
+                        _autoPlaceFurnitureFromInventory(itemId);
+                      },
+                    ),
                   ),
                 ),
               ),
