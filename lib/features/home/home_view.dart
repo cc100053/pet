@@ -47,7 +47,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const _petAvatarSize = Size(100, 100);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
-  static const int _maxMoveMs = 1400;
   static const Duration _idleThreshold = Duration(seconds: 8);
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
@@ -1103,8 +1102,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Duration _durationForDistance(double distance) {
     final rawMs = (distance / _petMoveSpeed * 1000).round();
-    final clampedMs = rawMs.clamp(_minMoveMs, _maxMoveMs);
-    return Duration(milliseconds: clampedMs);
+    return Duration(milliseconds: max(_minMoveMs, rawMs));
   }
 
   void _updateFacing(Offset from, Offset to, Size fieldSize) {

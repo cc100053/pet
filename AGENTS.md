@@ -69,7 +69,7 @@ flutter run
 ### Setup
 - Migrations: `supabase/migrations/` (run in Supabase SQL editor).
 - Seed data: `supabase/seed.sql`.
-- Login (for MCP tooling): `codex mcp login supabase`.
+- Login (for MCP tooling): `opencode mcp auth supabase`.
 
 ### Edge functions
 - Functions live in `supabase/functions/`.

@@ -16,7 +16,7 @@
 - Migrations live in `supabase/migrations/`.
 - Seed data lives in `supabase/seed.sql`.
 - Run the SQL in the Supabase SQL editor before first app launch.
-- Run `codex mcp login supabase` to login to Supabase.
+- Run `opencode mcp auth supabase` to login to Supabase.
 
 ## iOS Clean Build
 If iOS builds act up or pods are out of sync, run:
