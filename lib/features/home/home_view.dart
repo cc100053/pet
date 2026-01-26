@@ -222,7 +222,11 @@ class _HomeViewState extends ConsumerState<HomeView>
             room['mood'] = moods[roomId];
           }
           if (roomId != null && photos.containsKey(roomId)) {
-            room['latest_photo'] = photos[roomId];
+            final latest = photos[roomId];
+            if (latest != null && latest.isNotEmpty) {
+              room['latest_photo'] = latest.first;
+              room['latest_photos'] = latest;
+            }
           }
         }
       }
@@ -298,13 +302,31 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     setState(() {
-      _myRooms = _myRooms
-          .map(
-            (room) => room['id'] == roomId
-                ? {...room, 'latest_photo': imageUrl}
-                : room,
-          )
-          .toList();
+      _myRooms = _myRooms.map((room) {
+        if (room['id'] != roomId) {
+          return room;
+        }
+        final next = <String>[imageUrl];
+        final existing = room['latest_photos'];
+        if (existing is List) {
+          for (final entry in existing) {
+            final url = entry as String?;
+            if (url == null || url.isEmpty || url == imageUrl) {
+              continue;
+            }
+            next.add(url);
+            if (next.length >= 3) {
+              break;
+            }
+          }
+        } else {
+          final previous = room['latest_photo'] as String?;
+          if (previous != null && previous.isNotEmpty && previous != imageUrl) {
+            next.add(previous);
+          }
+        }
+        return {...room, 'latest_photo': imageUrl, 'latest_photos': next};
+      }).toList();
     });
   }
 
@@ -666,7 +688,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     return moods;
   }
 
-  Future<Map<String, String?>> _fetchRoomLatestPhotos(
+  Future<Map<String, List<String>>> _fetchRoomLatestPhotos(
     List<String> roomIds,
   ) async {
     if (roomIds.isEmpty) {
@@ -679,18 +701,21 @@ class _HomeViewState extends ConsumerState<HomeView>
         .eq('type', 'image_feed')
         .not('image_url', 'is', null)
         .order('created_at', ascending: false)
-        .limit(roomIds.length * 6);
+        .limit(roomIds.length * 12);
 
-    final photos = <String, String?>{};
+    final photos = <String, List<String>>{};
     for (final row in rows) {
       final roomId = row['room_id'] as String?;
       final imageUrl = row['image_url'] as String?;
-      if (roomId == null || photos.containsKey(roomId)) {
+      if (roomId == null || imageUrl == null || imageUrl.isEmpty) {
         continue;
       }
-      if (imageUrl != null && imageUrl.isNotEmpty) {
-        photos[roomId] = imageUrl;
+
+      final existing = photos.putIfAbsent(roomId, () => <String>[]);
+      if (existing.length >= 3 || existing.contains(imageUrl)) {
+        continue;
       }
+      existing.add(imageUrl);
     }
     return photos;
   }
@@ -704,13 +729,18 @@ class _HomeViewState extends ConsumerState<HomeView>
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
           .order('created_at', ascending: false)
-          .limit(1);
+          .limit(3);
 
       if (rows.isEmpty) {
         return;
       }
-      final imageUrl = rows.first['image_url'] as String?;
-      if (imageUrl == null || imageUrl.isEmpty) {
+      final latest = rows
+          .map((row) => row['image_url'] as String?)
+          .whereType<String>()
+          .where((url) => url.isNotEmpty)
+          .take(3)
+          .toList(growable: false);
+      if (latest.isEmpty) {
         return;
       }
       if (!mounted) {
@@ -720,7 +750,11 @@ class _HomeViewState extends ConsumerState<HomeView>
         _myRooms = _myRooms
             .map(
               (room) => room['id'] == roomId
-                  ? {...room, 'latest_photo': imageUrl}
+                  ? {
+                      ...room,
+                      'latest_photo': latest.first,
+                      'latest_photos': latest,
+                    }
                   : room,
             )
             .toList();
@@ -950,15 +984,28 @@ class _HomeViewState extends ConsumerState<HomeView>
     ).push(MaterialPageRoute(builder: (_) => ChatRoomView(roomId: roomId)));
   }
 
-  String? _latestPhotoForRoom(String? roomId) {
+  List<String> _latestPhotosForRoom(String? roomId) {
     if (roomId == null) {
-      return null;
+      return const [];
     }
     final room = _myRooms.firstWhere(
       (r) => r['id'] == roomId,
       orElse: () => {},
     );
-    return room['latest_photo'] as String?;
+    final photos = room['latest_photos'];
+    if (photos is List) {
+      return photos
+          .map((entry) => entry as String?)
+          .whereType<String>()
+          .where((url) => url.isNotEmpty)
+          .take(3)
+          .toList(growable: false);
+    }
+    final fallback = room['latest_photo'] as String?;
+    if (fallback == null || fallback.isEmpty) {
+      return const [];
+    }
+    return [fallback];
   }
 
   void _openCalendar() {
@@ -1739,89 +1786,75 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Widget _buildPetHomeCard() {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final fieldSize = constraints.biggest;
-          return GestureDetector(
-            key: _petFieldKey,
-            behavior: HitTestBehavior.opaque,
-            onTapUp: (details) {
-              if (_furnitureMode) {
-                _closeFurnitureInventory();
-                return;
-              }
-              _handlePetFieldTap(details.localPosition, fieldSize);
-            },
-            child: Stack(
-              children: [
-                ..._buildPlacedFurniture(fieldSize),
-                for (final spot in _poopSpots())
-                  Positioned(
-                    left: _positionFromNormalizedSized(
-                      spot.normalized,
-                      fieldSize,
-                      _poopEmojiSize,
-                    ).dx,
-                    top: _positionFromNormalizedSized(
-                      spot.normalized,
-                      fieldSize,
-                      _poopEmojiSize,
-                    ).dy,
-                    child: _buildPoopEmoji(spot.index),
-                  ),
-                AnimatedBuilder(
-                  animation: _petMoveController,
-                  builder: (context, child) {
-                    final normalized = _currentPetNormalized();
-                    final topLeft = _positionFromNormalized(
-                      normalized,
-                      fieldSize,
-                    );
-                    return Positioned(
-                      left: topLeft.dx,
-                      top: topLeft.dy,
-                      child: child!,
-                    );
-                  },
-                  child: _buildDraggablePet(fieldSize),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fieldSize = constraints.biggest;
+        return GestureDetector(
+          key: _petFieldKey,
+          behavior: HitTestBehavior.opaque,
+          onTapUp: (details) {
+            if (_furnitureMode) {
+              _closeFurnitureInventory();
+              return;
+            }
+            _handlePetFieldTap(details.localPosition, fieldSize);
+          },
+          child: Stack(
+            children: [
+              ..._buildPlacedFurniture(fieldSize),
+              for (final spot in _poopSpots())
                 Positioned(
-                  top: 14,
-                  left: 16,
-                  child: Text(
-                    l10n.petHomeTitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black54,
-                    ),
+                  left: _positionFromNormalizedSized(
+                    spot.normalized,
+                    fieldSize,
+                    _poopEmojiSize,
+                  ).dx,
+                  top: _positionFromNormalizedSized(
+                    spot.normalized,
+                    fieldSize,
+                    _poopEmojiSize,
+                  ).dy,
+                  child: _buildPoopEmoji(spot.index),
+                ),
+              AnimatedBuilder(
+                animation: _petMoveController,
+                builder: (context, child) {
+                  final normalized = _currentPetNormalized();
+                  final topLeft = _positionFromNormalized(
+                    normalized,
+                    fieldSize,
+                  );
+                  return Positioned(
+                    left: topLeft.dx,
+                    top: topLeft.dy,
+                    child: child!,
+                  );
+                },
+                child: _buildDraggablePet(fieldSize),
+              ),
+              Positioned(
+                top: 14,
+                left: 16,
+                child: Text(
+                  l10n.petHomeTitle,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black54,
                   ),
                 ),
-                Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
-                if (_furnitureMode)
-                  Positioned(
-                    left: 16,
-                    bottom: 12,
-                    child: _buildFurnitureEditHint(),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+              Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
+              if (_furnitureMode)
+                Positioned(
+                  left: 16,
+                  bottom: 12,
+                  child: _buildFurnitureEditHint(),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -2143,7 +2176,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: HomeLatestPhotoCard(
-                    imageUrl: _latestPhotoForRoom(_roomId),
+                    imageUrls: _latestPhotosForRoom(_roomId),
                   ),
                 ),
                 const Gap(12),

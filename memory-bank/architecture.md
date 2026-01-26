@@ -37,6 +37,8 @@ Implemented:
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
+- Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
+- Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
 
 Planned:
 - `lib/features/rooms/`: Room creation, invite codes, multi-room limits.
