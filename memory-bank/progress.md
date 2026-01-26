@@ -149,6 +149,11 @@
 - Added `delete_account` Edge Function (JWT-required) to delete the authenticated user via Supabase Admin API (service role).
 - Added a shared `UserAvatar` widget that supports preset avatars (`preset:<id>`) and remote URLs; wired it into blocked user list and profile.
 - Added Drawer navigation entry to open the Profile screen.
+- Redesigned the Home view to a gamified HUD + polaroid memory frame + bottom nav layout while keeping the existing warm gradient background.
+- Iterated the gamified Home UI: level text moved next to pet name, coin pill aligned to health bar width, and removed the extra '+' after coin count.
+- Adjusted the bottom nav camera button to sit inline with other items (not raised).
+- Removed caption/user label text from the polaroid frame and narrowed the frame width by ~20%.
+- Expanded pet idle-wander range by ~20% to better fill the available home space.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

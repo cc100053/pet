@@ -22,11 +22,11 @@ import '../gallery/memory_calendar_view.dart';
 import '../profile/profile_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
-import 'widgets/home_action_buttons.dart';
+import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_furniture_inventory_panel.dart';
-import 'widgets/home_interaction_top_bar.dart';
-import 'widgets/home_latest_photo_card.dart';
+import 'widgets/home_game_status_bar.dart';
+import 'widgets/home_polaroid_memory_frame.dart';
 
 enum _PetStationaryState { staying, sleeping }
 
@@ -66,6 +66,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _petBusy = false;
   Map<String, dynamic>? _petState;
   String? _petError;
+  String? _petName;
+  int? _petLevel;
+  int _coins = 1234;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
   String? _petSubscriptionPetId;
@@ -103,13 +106,22 @@ class _HomeViewState extends ConsumerState<HomeView>
   // Chat State
   final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
 
+  // Latest feed (polaroid)
+  String? _latestFeedImageUrl;
+  String? _latestFeedSenderId;
+  final Map<String, _ProfileSummary> _profileByUserId = {};
+
   @override
   void initState() {
     super.initState();
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
-        _ensureProfile().whenComplete(_fetchRooms);
+        unawaited(() async {
+          await _ensureProfile();
+          await _loadCoins();
+          await _fetchRooms();
+        }());
         _profileEnsured = true;
       }
     });
@@ -198,6 +210,28 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
     } catch (_) {
       // Best-effort. Profile creation can be retried on next app open.
+    }
+  }
+
+  Future<void> _loadCoins() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        return;
+      }
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('coins')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      final value = (profile?['coins'] as int?) ?? _coins;
+      if (!mounted) {
+        _coins = value;
+        return;
+      }
+      setState(() => _coins = value);
+    } catch (_) {
+      // Best-effort.
     }
   }
 
@@ -321,7 +355,12 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (roomId == null || imageUrl == null || imageUrl.isEmpty) {
       return;
     }
+    final senderId = record['sender_id'] as String?;
     setState(() {
+      if (roomId == _roomId) {
+        _latestFeedImageUrl = imageUrl;
+        _latestFeedSenderId = senderId;
+      }
       _myRooms = _myRooms.map((room) {
         if (room['id'] != roomId) {
           return room;
@@ -348,6 +387,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         return {...room, 'latest_photo': imageUrl, 'latest_photos': next};
       }).toList();
     });
+
+    if (senderId != null && senderId.isNotEmpty) {
+      unawaited(_ensureProfileSummary(senderId));
+    }
   }
 
   void _switchRoom(String roomId) {
@@ -368,6 +411,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _furnitureChannel = null;
     _furnitureSubscriptionRoomId = null;
     _refreshPetState();
+    unawaited(_refreshLatestFeed(roomId));
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
     _subscribeToFurniture(roomId);
@@ -801,6 +845,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       _subscribeToPetState(petId);
+      unawaited(_loadPetInfo(petId));
 
       if (tick) {
         await Supabase.instance.client.rpc(
@@ -837,6 +882,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     } finally {
       if (mounted) setState(() => _petBusy = false);
     }
+
+    unawaited(_loadCoins());
   }
 
   void _subscribeToPetState(String petId) {
@@ -922,6 +969,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       );
 
       await _refreshPetState();
+      await _loadCoins();
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
@@ -977,6 +1025,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     final roomId = _roomId;
     if (roomId != null) {
       _refreshLatestRoomPhoto(roomId);
+      unawaited(_refreshLatestFeed(roomId));
+      unawaited(_loadCoins());
     }
   }
 
@@ -1004,30 +1054,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     ).push(MaterialPageRoute(builder: (_) => ChatRoomView(roomId: roomId)));
   }
 
-  List<String> _latestPhotosForRoom(String? roomId) {
-    if (roomId == null) {
-      return const [];
-    }
-    final room = _myRooms.firstWhere(
-      (r) => r['id'] == roomId,
-      orElse: () => {},
-    );
-    final photos = room['latest_photos'];
-    if (photos is List) {
-      return photos
-          .map((entry) => entry as String?)
-          .whereType<String>()
-          .where((url) => url.isNotEmpty)
-          .take(3)
-          .toList(growable: false);
-    }
-    final fallback = room['latest_photo'] as String?;
-    if (fallback == null || fallback.isEmpty) {
-      return const [];
-    }
-    return [fallback];
-  }
-
   void _openCalendar() {
     final roomId = _roomId;
     if (roomId == null) {
@@ -1041,6 +1067,139 @@ class _HomeViewState extends ConsumerState<HomeView>
         ),
       ),
     );
+  }
+
+  double _healthValue() {
+    final hunger = (_petState?['hunger'] as int?) ?? 0;
+    final hygiene = (_petState?['hygiene'] as int?) ?? 0;
+    final base = ((hunger + hygiene) / 2).clamp(0, 100);
+    final mood = (_petState?['mood'] as String?) ?? 'low';
+    final moodFactor = switch (mood) {
+      'high' => 1.0,
+      'mid' => 0.9,
+      'low' => 0.75,
+      'sad' => 0.6,
+      _ => 0.9,
+    };
+    return ((base / 100) * moodFactor).clamp(0.0, 1.0);
+  }
+
+  void _onHomeNavPressed() {
+    if (_furnitureMode) {
+      _closeFurnitureInventory();
+    }
+    final fieldSize = _petFieldSize();
+    if (fieldSize != null && !fieldSize.isEmpty) {
+      _animatePetTo(const Offset(0.5, 0.7), fieldSize, userInitiated: false);
+      return;
+    }
+    setState(() {
+      _petNormalizedPosition = const Offset(0.5, 0.7);
+    });
+  }
+
+  Future<void> _openStoreFromNav() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const StoreView()));
+    if (!mounted) {
+      return;
+    }
+    await _loadCoins();
+    await _loadFurnitureInventory();
+  }
+
+  Future<void> _refreshLatestFeed(String roomId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('messages')
+          .select('sender_id,image_url,created_at')
+          .eq('room_id', roomId)
+          .eq('type', 'image_feed')
+          .not('image_url', 'is', null)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (row == null) {
+        return;
+      }
+      final imageUrl = row['image_url'] as String?;
+      if (imageUrl == null || imageUrl.isEmpty) {
+        return;
+      }
+      final senderId = row['sender_id'] as String?;
+      if (mounted) {
+        setState(() {
+          _latestFeedImageUrl = imageUrl;
+          _latestFeedSenderId = senderId;
+        });
+      } else {
+        _latestFeedImageUrl = imageUrl;
+        _latestFeedSenderId = senderId;
+      }
+      if (senderId != null && senderId.isNotEmpty) {
+        await _ensureProfileSummary(senderId);
+      }
+    } catch (_) {
+      // Best-effort.
+    }
+  }
+
+  Future<_ProfileSummary?> _ensureProfileSummary(String userId) async {
+    final cached = _profileByUserId[userId];
+    if (cached != null) {
+      return cached;
+    }
+    try {
+      final row = await Supabase.instance.client
+          .from('profiles')
+          .select('user_id,nickname,avatar_url')
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (row == null) {
+        return null;
+      }
+      final summary = _ProfileSummary(
+        nickname: row['nickname'] as String?,
+        avatarUrl: row['avatar_url'] as String?,
+      );
+      if (!mounted) {
+        _profileByUserId[userId] = summary;
+        return summary;
+      }
+      setState(() {
+        _profileByUserId[userId] = summary;
+      });
+      return summary;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _loadPetInfo(String petId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('pets')
+          .select('name, level')
+          .eq('id', petId)
+          .maybeSingle();
+      if (row == null) {
+        return;
+      }
+      final name = row['name'] as String?;
+      final level = row['level'] as int?;
+      if (!mounted) {
+        _petName = name;
+        _petLevel = level;
+        return;
+      }
+      setState(() {
+        _petName = name;
+        _petLevel = level;
+      });
+    } catch (_) {
+      // Best-effort.
+    }
   }
 
   void _startWanderTimer() {
@@ -1112,8 +1271,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     final target = Offset(
-      0.1 + _random.nextDouble() * 0.8,
-      0.15 + _random.nextDouble() * 0.7,
+      0.02 + _random.nextDouble() * 0.96,
+      0.08 + _random.nextDouble() * 0.84,
     );
     _lastWanderAt = now;
     _animatePetTo(target, fieldSize, userInitiated: false);
@@ -1833,7 +1992,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildPetHomeCard() {
-    final l10n = AppLocalizations.of(context)!;
     return LayoutBuilder(
       builder: (context, constraints) {
         final fieldSize = constraints.biggest;
@@ -1880,19 +2038,6 @@ class _HomeViewState extends ConsumerState<HomeView>
                 },
                 child: _buildDraggablePet(fieldSize),
               ),
-              Positioned(
-                top: 14,
-                left: 16,
-                child: Text(
-                  l10n.petHomeTitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-              Positioned(top: 12, right: 12, child: _buildPetStatusPill()),
               if (_furnitureMode)
                 Positioned(
                   left: 16,
@@ -1975,14 +2120,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _handleCleanAction() async {
-    if (_poopSpots().isNotEmpty) {
-      await _cleanPoopAt(0);
-      return;
-    }
-    await _applyPetAction('clean');
-  }
-
   Widget _buildDraggablePet(Size fieldSize) {
     return IgnorePointer(
       ignoring: _furnitureMode,
@@ -2005,7 +2142,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               1.0,
               1.0,
             ),
-            child: _buildPetAvatar(),
+            child: Transform.scale(scale: 0.88, child: _buildPetAvatar()),
           ),
         ),
       ),
@@ -2217,17 +2354,49 @@ class _HomeViewState extends ConsumerState<HomeView>
             ),
           ),
           SafeArea(
+            bottom: false,
             child: Column(
               children: [
-                HomeInteractionTopBar(onCalendarPressed: _openCalendar),
+                Builder(
+                  builder: (context) {
+                    return HomeGameStatusBar(
+                      petAvatar: Image.asset(
+                        _petStayGifAsset,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                      ),
+                      level: _petLevel ?? 17,
+                      petName: (_petName == null || _petName!.trim().isEmpty)
+                          ? '貪吃鬼鬼'
+                          : _petName!.trim(),
+                      healthValue: _healthValue(),
+                      coins: _coins,
+                      onPetTap: () => Scaffold.of(context).openDrawer(),
+                    );
+                  },
+                ),
                 const Gap(12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: HomeLatestPhotoCard(
-                    imageUrls: _latestPhotosForRoom(_roomId),
+                  child: Center(
+                    child: FractionallySizedBox(
+                      widthFactor: 0.8,
+                      child: HomePolaroidMemoryFrame(
+                        imageUrl: _latestFeedImageUrl ?? '',
+                        caption: '',
+                        userLabel: '',
+                        senderAvatar: _latestFeedSenderId == null
+                            ? null
+                            : _profileByUserId[_latestFeedSenderId!]?.avatarUrl,
+                        senderFallbackText: _latestFeedSenderId == null
+                            ? null
+                            : _profileByUserId[_latestFeedSenderId!]?.nickname,
+                        onTap: null,
+                      ),
+                    ),
                   ),
                 ),
-                const Gap(12),
+                const Gap(10),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -2235,12 +2404,13 @@ class _HomeViewState extends ConsumerState<HomeView>
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(20, 12, 20, bottomInset + 20),
-                  child: HomeActionButtons(
-                    petBusy: _petBusy,
-                    onCleanPressed: () => unawaited(_handleCleanAction()),
-                    onCameraPressed: _openFeedCamera,
-                    onChatPressed: _openChatRoom,
+                  padding: EdgeInsets.fromLTRB(0, 8, 0, bottomInset + 8),
+                  child: HomeBottomNavBar(
+                    onHome: _onHomeNavPressed,
+                    onCalendar: _openCalendar,
+                    onCamera: _openFeedCamera,
+                    onStore: _openStoreFromNav,
+                    onChat: _openChatRoom,
                   ),
                 ),
               ],
@@ -2401,119 +2571,6 @@ class _HomeViewState extends ConsumerState<HomeView>
         ); // Blink
   }
 
-  Widget _buildPetStatusPill() {
-    if (_petState == null) return const SizedBox.shrink();
-    final hunger = _petState!['hunger'] as int? ?? 0;
-    final mood = _petState!['mood'] as String? ?? 'neutral';
-    final hygiene = _petState!['hygiene'] as int? ?? 0;
-    final l10n = AppLocalizations.of(context)!;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Hunger
-          Row(
-            children: [
-              const Icon(
-                Icons.lunch_dining_rounded,
-                size: 16,
-                color: Colors.orange,
-              ),
-              const Gap(4),
-              Text(
-                '$hunger%',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-
-          Container(
-            height: 12,
-            width: 1,
-            color: Colors.black12,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-          ),
-
-          // Mood
-          Row(
-            children: [
-              const Icon(
-                Icons.mood_rounded,
-                size: 16,
-                color: Colors.purpleAccent,
-              ),
-              const Gap(4),
-              Text(
-                _moodLabel(mood, l10n),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-
-          Container(
-            height: 12,
-            width: 1,
-            color: Colors.black12,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-          ),
-
-          // Hygiene
-          Row(
-            children: [
-              const Icon(
-                Icons.cleaning_services_rounded,
-                size: 16,
-                color: Colors.blue,
-              ),
-              const Gap(4),
-              Text(
-                '$hygiene%',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _moodLabel(String mood, AppLocalizations l10n) {
-    switch (mood) {
-      case 'high':
-        return l10n.moodHigh;
-      case 'mid':
-        return l10n.moodMid;
-      case 'low':
-        return l10n.moodLow;
-      case 'sad':
-        return l10n.moodSad;
-      default:
-        return l10n.moodNeutral;
-    }
-  }
-
   Widget _buildSideDrawer() {
     final l10n = AppLocalizations.of(context)!;
     return HomeDrawer(
@@ -2610,6 +2667,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       ),
     );
   }
+}
+
+class _ProfileSummary {
+  const _ProfileSummary({required this.nickname, required this.avatarUrl});
+
+  final String? nickname;
+  final String? avatarUrl;
 }
 
 class _PlacedFurniture {
