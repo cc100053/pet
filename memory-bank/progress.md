@@ -143,6 +143,7 @@
 - Synced poop incidents via pet_state positions, added clean RPC with system chat log and coin rewards.
 - Refactored `lib/features/home/home_view.dart` by extracting UI-only widgets into `lib/features/home/widgets/` (top bar, latest photo card, action buttons, furniture inventory panel) while keeping behavior unchanged.
 - Updated the home “latest photo” card to show the latest 3 feed photos as separated, tappable, drifting bubbles with fullscreen preview; room state now keeps `latest_photos` (max 3) while preserving `latest_photo` for backward compatibility.
+- Updated pet avatar visuals to 3 GIF states (stay/sleep/walk) with a cat-like polyphasic sleep selection (time-of-day weighted; ~12-16h/day target); switched asset paths to `assets/pet/ghost/`.
 
 ## Next
 - Begin Phase 5 polish/compliance work (force-update config, analytics, performance).

@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
-import 'package:lottie/lottie.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -28,6 +27,8 @@ import 'widgets/home_furniture_inventory_panel.dart';
 import 'widgets/home_interaction_top_bar.dart';
 import 'widgets/home_latest_photo_card.dart';
 
+enum _PetStationaryState { staying, sleeping }
+
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
@@ -37,13 +38,9 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin {
-  static const bool _petUseGif = bool.fromEnvironment(
-    'PET_USE_GIF',
-    defaultValue: false,
-  );
-  static const _petIdleLottieAsset = 'assets/lottie/ghost_float.json';
-  static const _petGifAsset = 'assets/lottie/example.gif';
-  static const _petMovingGifAsset = 'assets/gif/ghost_walking.gif';
+  static const _petStayGifAsset = 'assets/pet/ghost/ghost_stay.gif';
+  static const _petSleepGifAsset = 'assets/pet/ghost/ghost_sleep.gif';
+  static const _petWalkGifAsset = 'assets/pet/ghost/ghost_walking.gif';
   static const _petAvatarSize = Size(100, 100);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
@@ -81,11 +78,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _petFacingRight = true;
   bool _isDraggingPet = false;
   bool _petIsMoving = false;
+  _PetStationaryState _petStationaryState = _PetStationaryState.staying;
   Offset _dragOffset = Offset.zero;
   Timer? _wanderTimer;
   DateTime _lastInteractionAt = DateTime.now();
   DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
   Timer? _petTickTimer;
+  bool _petAssetsPrecached = false;
 
   // Furniture State
   bool _furnitureMode = false;
@@ -106,6 +105,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void initState() {
     super.initState();
+    _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
         _ensureProfile().whenComplete(_fetchRooms);
@@ -118,7 +118,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           _petNormalizedPosition = _petNormalizedTarget;
           if (mounted) {
             if (!_isDraggingPet) {
-              setState(() => _petIsMoving = false);
+              setState(() {
+                _petIsMoving = false;
+                _selectNextPetStationaryState();
+              });
             }
           } else {
             _petIsMoving = false;
@@ -136,6 +139,22 @@ class _HomeViewState extends ConsumerState<HomeView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(fcmServiceProvider).initialize();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_petAssetsPrecached) {
+      return;
+    }
+    _petAssetsPrecached = true;
+    for (final asset in const [
+      _petStayGifAsset,
+      _petSleepGifAsset,
+      _petWalkGifAsset,
+    ]) {
+      precacheImage(AssetImage(asset), context);
+    }
   }
 
   @override
@@ -1252,6 +1271,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       _isDraggingPet = false;
       _petIsMoving = false;
+      _selectNextPetStationaryState();
     });
   }
 
@@ -1262,7 +1282,34 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       _isDraggingPet = false;
       _petIsMoving = false;
+      _selectNextPetStationaryState();
     });
+  }
+
+  void _selectNextPetStationaryState() {
+    // Cat-like polyphasic sleep: sleep a lot, but not only at night.
+    // We approximate "12-16 hours/day" by using higher sleep probability
+    // during late night + midday, with crepuscular awake windows.
+    final sleepProbability = _sleepProbabilityForLocalHour(DateTime.now().hour);
+    _petStationaryState = _random.nextDouble() < sleepProbability
+        ? _PetStationaryState.sleeping
+        : _PetStationaryState.staying;
+  }
+
+  double _sleepProbabilityForLocalHour(int hour) {
+    // hour: 0-23
+    // Targets ~13-14h/day of sleep when mostly stationary.
+    // Crepuscular: more awake at dawn/dusk.
+    if (hour >= 22 || hour <= 4) {
+      return 0.75;
+    }
+    if (hour >= 11 && hour <= 16) {
+      return 0.65;
+    }
+    if ((hour >= 5 && hour <= 7) || (hour >= 18 && hour <= 20)) {
+      return 0.30;
+    }
+    return 0.50;
   }
 
   List<_PlacedFurniture> _activeFurnitureForRoom() {
@@ -2238,62 +2285,30 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget _buildPetAvatar() {
     final petColor = _petMoodColor();
 
-    if (_petUseGif) {
-      return SizedBox(
-        width: _petAvatarSize.width,
-        height: _petAvatarSize.height,
-        child: Image.asset(
-          _petGifAsset,
-          fit: BoxFit.contain,
-          alignment: Alignment.bottomCenter,
-          gaplessPlayback: true,
-          filterQuality: FilterQuality.high,
-          errorBuilder: (context, error, stackTrace) =>
-              _buildPetFallback(petColor),
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (frame == null) {
-              return _buildPetFallback(petColor, loading: true);
-            }
-            return child;
-          },
-        ),
-      );
-    }
-
+    final String asset;
     if (_petIsMoving) {
-      return SizedBox(
-        width: _petAvatarSize.width,
-        height: _petAvatarSize.height,
-        child: Image.asset(
-          _petMovingGifAsset,
-          fit: BoxFit.contain,
-          alignment: Alignment.bottomCenter,
-          gaplessPlayback: true,
-          filterQuality: FilterQuality.high,
-          errorBuilder: (context, error, stackTrace) =>
-              _buildPetFallback(petColor),
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (frame == null) {
-              return _buildPetFallback(petColor, loading: true);
-            }
-            return child;
-          },
-        ),
-      );
+      asset = _petWalkGifAsset;
+    } else {
+      asset = switch (_petStationaryState) {
+        _PetStationaryState.staying => _petStayGifAsset,
+        _PetStationaryState.sleeping => _petSleepGifAsset,
+      };
     }
 
     return SizedBox(
       width: _petAvatarSize.width,
       height: _petAvatarSize.height,
-      child: Lottie.asset(
-        _petIdleLottieAsset,
+      child: Image.asset(
+        asset,
+        key: ValueKey(asset),
         fit: BoxFit.contain,
         alignment: Alignment.bottomCenter,
-        frameRate: FrameRate.max,
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.high,
         errorBuilder: (context, error, stackTrace) =>
             _buildPetFallback(petColor),
-        frameBuilder: (context, child, composition) {
-          if (composition == null) {
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (frame == null) {
             return _buildPetFallback(petColor, loading: true);
           }
           return child;
