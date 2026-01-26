@@ -236,12 +236,35 @@
   "profileNicknameLabel": "Nickname",
   "profileTitle": "Profile",
   "profileUpdated": "Profile updated",
+  "profileAvatarTitle": "Choose an avatar",
+  "profileAvatarEdit": "Edit avatar",
+  "profileAvatarUpload": "Upload photo",
+  "profileAvatarRemove": "Remove",
+  "profileCoinsLabel": "Coins: {amount}",
+  "@profileCoinsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "profileDeleteAccountSectionTitle": "Delete account",
+  "profileDeleteAccountSectionBody": "This permanently deletes your account. Shared rooms and pets stay with other members.",
+  "profileDeleteAccountAction": "Delete account",
+  "profileDeleteAccountTitle": "Delete account?",
+  "profileDeleteAccountConfirmBody": "This will permanently delete your account and personal data. Shared rooms/pets remain and ownership transfers to other members. This cannot be undone.",
+  "profileDeleteAccountConfirmAction": "Delete",
+  "profileDeleteFailed": "Failed to delete account: {error}",
+  "@profileDeleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "profileUserId": "User ID: {id}",
   "@profileUserId": {
     "placeholders": {
       "id": {}
     }
   },
+  "drawerProfile": "Profile",
   "roomCreatedSuccess": "Room created! Check the Drawer.",
   "roomCreateFailed": "Failed to create room: {error}",
   "@roomCreateFailed": {

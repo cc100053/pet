@@ -406,9 +406,54 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileUpdated => '已更新個人檔案';
 
   @override
+  String get profileAvatarTitle => '選擇頭像';
+
+  @override
+  String get profileAvatarEdit => '編輯頭像';
+
+  @override
+  String get profileAvatarUpload => '上傳照片';
+
+  @override
+  String get profileAvatarRemove => '移除';
+
+  @override
+  String profileCoinsLabel(Object amount) {
+    return '金幣：$amount';
+  }
+
+  @override
+  String get profileDeleteAccountSectionTitle => '刪除帳號';
+
+  @override
+  String get profileDeleteAccountSectionBody =>
+      '此操作會永久刪除你的帳號。共養房間與寵物會保留並轉移給其他成員。';
+
+  @override
+  String get profileDeleteAccountAction => '刪除帳號';
+
+  @override
+  String get profileDeleteAccountTitle => '要刪除帳號嗎？';
+
+  @override
+  String get profileDeleteAccountConfirmBody =>
+      '此操作會永久刪除你的帳號與個人資料。共養房間／寵物會保留並將所有權轉移給其他成員。此操作無法復原。';
+
+  @override
+  String get profileDeleteAccountConfirmAction => '刪除';
+
+  @override
+  String profileDeleteFailed(Object error) {
+    return '刪除帳號失敗：$error';
+  }
+
+  @override
   String profileUserId(Object id) {
     return '使用者 ID：$id';
   }
+
+  @override
+  String get drawerProfile => '個人檔案';
 
   @override
   String get roomCreatedSuccess => '已建立房間！請查看側邊欄。';
@@ -1029,9 +1074,54 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get profileUpdated => '已更新個人檔案';
 
   @override
+  String get profileAvatarTitle => '選擇頭像';
+
+  @override
+  String get profileAvatarEdit => '編輯頭像';
+
+  @override
+  String get profileAvatarUpload => '上傳照片';
+
+  @override
+  String get profileAvatarRemove => '移除';
+
+  @override
+  String profileCoinsLabel(Object amount) {
+    return '金幣：$amount';
+  }
+
+  @override
+  String get profileDeleteAccountSectionTitle => '刪除帳號';
+
+  @override
+  String get profileDeleteAccountSectionBody =>
+      '此操作會永久刪除你的帳號。共養房間與寵物會保留並轉移給其他成員。';
+
+  @override
+  String get profileDeleteAccountAction => '刪除帳號';
+
+  @override
+  String get profileDeleteAccountTitle => '要刪除帳號嗎？';
+
+  @override
+  String get profileDeleteAccountConfirmBody =>
+      '此操作會永久刪除你的帳號與個人資料。共養房間／寵物會保留並將所有權轉移給其他成員。此操作無法復原。';
+
+  @override
+  String get profileDeleteAccountConfirmAction => '刪除';
+
+  @override
+  String profileDeleteFailed(Object error) {
+    return '刪除帳號失敗：$error';
+  }
+
+  @override
   String profileUserId(Object id) {
     return '使用者 ID：$id';
   }
+
+  @override
+  String get drawerProfile => '個人檔案';
 
   @override
   String get roomCreatedSuccess => '已建立房間！請查看側邊欄。';

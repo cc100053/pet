@@ -236,12 +236,35 @@
   "profileNicknameLabel": "ニックネーム",
   "profileTitle": "プロフィール",
   "profileUpdated": "プロフィールを更新しました",
+  "profileAvatarTitle": "アバターを選択",
+  "profileAvatarEdit": "アバターを編集",
+  "profileAvatarUpload": "写真をアップロード",
+  "profileAvatarRemove": "削除",
+  "profileCoinsLabel": "コイン: {amount}",
+  "@profileCoinsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "profileDeleteAccountSectionTitle": "アカウント削除",
+  "profileDeleteAccountSectionBody": "アカウントを完全に削除します。共有ルームとペットは他のメンバーに引き継がれます。",
+  "profileDeleteAccountAction": "アカウントを削除",
+  "profileDeleteAccountTitle": "アカウントを削除しますか？",
+  "profileDeleteAccountConfirmBody": "アカウントと個人データを完全に削除します。共有ルーム／ペットは保持され、所有権は他のメンバーに移ります。この操作は取り消せません。",
+  "profileDeleteAccountConfirmAction": "削除",
+  "profileDeleteFailed": "アカウント削除に失敗しました: {error}",
+  "@profileDeleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "profileUserId": "ユーザーID: {id}",
   "@profileUserId": {
     "placeholders": {
       "id": {}
     }
   },
+  "drawerProfile": "プロフィール",
   "roomCreatedSuccess": "ルームを作成しました。ドロワーを確認してください。",
   "roomCreateFailed": "ルーム作成に失敗しました: {error}",
   "@roomCreateFailed": {

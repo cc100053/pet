@@ -6,7 +6,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 ## Core Tables
 - `profiles`
   - `user_id` (uuid, pk, references auth.users)
-  - `nickname` (text), `avatar_url` (text)
+  - `nickname` (text), `avatar_url` (text; either `preset:<id>` or a remote URL)
   - `locale` (text), `timezone` (text)
   - `coins` (int, default 0)
   - `created_at`, `updated_at`

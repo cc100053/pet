@@ -797,11 +797,89 @@ abstract class AppLocalizations {
   /// **'Profile updated'**
   String get profileUpdated;
 
+  /// No description provided for @profileAvatarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an avatar'**
+  String get profileAvatarTitle;
+
+  /// No description provided for @profileAvatarEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit avatar'**
+  String get profileAvatarEdit;
+
+  /// No description provided for @profileAvatarUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload photo'**
+  String get profileAvatarUpload;
+
+  /// No description provided for @profileAvatarRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get profileAvatarRemove;
+
+  /// No description provided for @profileCoinsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins: {amount}'**
+  String profileCoinsLabel(Object amount);
+
+  /// No description provided for @profileDeleteAccountSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get profileDeleteAccountSectionTitle;
+
+  /// No description provided for @profileDeleteAccountSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account. Shared rooms and pets stay with other members.'**
+  String get profileDeleteAccountSectionBody;
+
+  /// No description provided for @profileDeleteAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get profileDeleteAccountAction;
+
+  /// No description provided for @profileDeleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get profileDeleteAccountTitle;
+
+  /// No description provided for @profileDeleteAccountConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete your account and personal data. Shared rooms/pets remain and ownership transfers to other members. This cannot be undone.'**
+  String get profileDeleteAccountConfirmBody;
+
+  /// No description provided for @profileDeleteAccountConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get profileDeleteAccountConfirmAction;
+
+  /// No description provided for @profileDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account: {error}'**
+  String profileDeleteFailed(Object error);
+
   /// No description provided for @profileUserId.
   ///
   /// In en, this message translates to:
   /// **'User ID: {id}'**
   String profileUserId(Object id);
+
+  /// No description provided for @drawerProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get drawerProfile;
 
   /// No description provided for @roomCreatedSuccess.
   ///

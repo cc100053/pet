@@ -144,8 +144,12 @@
 - Refactored `lib/features/home/home_view.dart` by extracting UI-only widgets into `lib/features/home/widgets/` (top bar, latest photo card, action buttons, furniture inventory panel) while keeping behavior unchanged.
 - Updated the home “latest photo” card to show the latest 3 feed photos as separated, tappable, drifting bubbles with fullscreen preview; room state now keeps `latest_photos` (max 3) while preserving `latest_photo` for backward compatibility.
 - Updated pet avatar visuals to 3 GIF states (stay/sleep/walk) with a cat-like polyphasic sleep selection (time-of-day weighted; ~12-16h/day target); switched asset paths to `assets/pet/ghost/`.
+- Implemented GDD 2.1 account system profile page: nickname edit, avatar presets + custom upload, and in-app account deletion.
+- Added `avatar_upload` Edge Function (JWT-required) to upload avatar images to R2 and persist `profiles.avatar_url`.
+- Added `delete_account` Edge Function (JWT-required) to delete the authenticated user via Supabase Admin API (service role).
+- Added a shared `UserAvatar` widget that supports preset avatars (`preset:<id>`) and remote URLs; wired it into blocked user list and profile.
+- Added Drawer navigation entry to open the Profile screen.
 
 ## Next
-- Begin Phase 5 polish/compliance work (force-update config, analytics, performance).
-- Harden report/block enforcement and notification filtering.
-- Implement offline-first message repository with Hive caching.
+- Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.
+- Implement Sign in with Apple token revocation on account deletion (Apple guideline recommends revoking user tokens).

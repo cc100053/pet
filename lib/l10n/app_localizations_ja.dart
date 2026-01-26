@@ -406,9 +406,54 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileUpdated => 'プロフィールを更新しました';
 
   @override
+  String get profileAvatarTitle => 'アバターを選択';
+
+  @override
+  String get profileAvatarEdit => 'アバターを編集';
+
+  @override
+  String get profileAvatarUpload => '写真をアップロード';
+
+  @override
+  String get profileAvatarRemove => '削除';
+
+  @override
+  String profileCoinsLabel(Object amount) {
+    return 'コイン: $amount';
+  }
+
+  @override
+  String get profileDeleteAccountSectionTitle => 'アカウント削除';
+
+  @override
+  String get profileDeleteAccountSectionBody =>
+      'アカウントを完全に削除します。共有ルームとペットは他のメンバーに引き継がれます。';
+
+  @override
+  String get profileDeleteAccountAction => 'アカウントを削除';
+
+  @override
+  String get profileDeleteAccountTitle => 'アカウントを削除しますか？';
+
+  @override
+  String get profileDeleteAccountConfirmBody =>
+      'アカウントと個人データを完全に削除します。共有ルーム／ペットは保持され、所有権は他のメンバーに移ります。この操作は取り消せません。';
+
+  @override
+  String get profileDeleteAccountConfirmAction => '削除';
+
+  @override
+  String profileDeleteFailed(Object error) {
+    return 'アカウント削除に失敗しました: $error';
+  }
+
+  @override
   String profileUserId(Object id) {
     return 'ユーザーID: $id';
   }
+
+  @override
+  String get drawerProfile => 'プロフィール';
 
   @override
   String get roomCreatedSuccess => 'ルームを作成しました。ドロワーを確認してください。';

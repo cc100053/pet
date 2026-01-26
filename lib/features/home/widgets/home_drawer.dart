@@ -14,6 +14,7 @@ class HomeDrawer extends ConsumerWidget {
   final VoidCallback onNavigateToRoomSelection;
   final VoidCallback onCreateRoom;
   final VoidCallback onJoinRoom;
+  final VoidCallback onProfileTap;
   final Function(String roomId) onCalendarTap;
   final VoidCallback onStoreTap;
   final VoidCallback onInventoryTap;
@@ -27,6 +28,7 @@ class HomeDrawer extends ConsumerWidget {
     required this.onNavigateToRoomSelection,
     required this.onCreateRoom,
     required this.onJoinRoom,
+    required this.onProfileTap,
     required this.onCalendarTap,
     required this.onStoreTap,
     required this.onInventoryTap,
@@ -170,6 +172,12 @@ class HomeDrawer extends ConsumerWidget {
                 _DrawerHeader(title: 'PREFERENCES'),
 
                 _DrawerItem(
+                  icon: Icons.person_outline,
+                  title: l10n.drawerProfile,
+                  onTap: onProfileTap,
+                ),
+
+                _DrawerItem(
                   icon: Icons.language_outlined,
                   title: l10n.languageTitle,
                   subtitle: _languageOptionLabel(localeState.option, l10n),
@@ -197,8 +205,7 @@ class HomeDrawer extends ConsumerWidget {
 
                 _DrawerItem(
                   icon: Icons.logout_rounded,
-                  title:
-                      'Sign Out', // Needs localization if available, or keep hardcoded for now
+                  title: l10n.commonSignOut,
                   onTap: onSignOut,
                   textColor: AppTheme.errorColor,
                   iconColor: AppTheme.errorColor,

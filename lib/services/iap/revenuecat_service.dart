@@ -77,6 +77,17 @@ class RevenueCatService {
     return Purchases.restorePurchases();
   }
 
+  Future<void> logOut() async {
+    if (!isAvailable) {
+      return;
+    }
+    try {
+      await Purchases.logOut();
+    } catch (_) {
+      // Best-effort.
+    }
+  }
+
   Future<void> _logIn(String appUserId) async {
     try {
       await Purchases.logIn(appUserId);

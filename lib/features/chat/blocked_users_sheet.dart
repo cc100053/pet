@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../shared/ui/cached_network_image_view.dart';
+import '../../shared/ui/user_avatar.dart';
 
 class BlockedUsersSheet extends StatefulWidget {
   const BlockedUsersSheet({
@@ -289,18 +289,13 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
   }
 
   Widget _buildAvatar(_BlockedUserEntry entry) {
-    final avatarUrl = entry.avatarUrl ?? '';
-    if (avatarUrl.isNotEmpty) {
-      return ClipOval(
-        child: CachedNetworkImageView(
-          imageUrl: avatarUrl,
-          width: 40,
-          height: 40,
-        ),
-      );
-    }
-
-    return const CircleAvatar(child: Icon(Icons.person));
+    final displayName = (entry.nickname ?? '').trim();
+    final fallback = displayName.isNotEmpty ? displayName : entry.userId;
+    return UserAvatar(
+      avatar: entry.avatarUrl,
+      fallbackText: fallback,
+      size: 40,
+    );
   }
 
   String _truncateId(String id) {

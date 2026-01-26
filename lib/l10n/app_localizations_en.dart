@@ -409,9 +409,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUpdated => 'Profile updated';
 
   @override
+  String get profileAvatarTitle => 'Choose an avatar';
+
+  @override
+  String get profileAvatarEdit => 'Edit avatar';
+
+  @override
+  String get profileAvatarUpload => 'Upload photo';
+
+  @override
+  String get profileAvatarRemove => 'Remove';
+
+  @override
+  String profileCoinsLabel(Object amount) {
+    return 'Coins: $amount';
+  }
+
+  @override
+  String get profileDeleteAccountSectionTitle => 'Delete account';
+
+  @override
+  String get profileDeleteAccountSectionBody =>
+      'This permanently deletes your account. Shared rooms and pets stay with other members.';
+
+  @override
+  String get profileDeleteAccountAction => 'Delete account';
+
+  @override
+  String get profileDeleteAccountTitle => 'Delete account?';
+
+  @override
+  String get profileDeleteAccountConfirmBody =>
+      'This will permanently delete your account and personal data. Shared rooms/pets remain and ownership transfers to other members. This cannot be undone.';
+
+  @override
+  String get profileDeleteAccountConfirmAction => 'Delete';
+
+  @override
+  String profileDeleteFailed(Object error) {
+    return 'Failed to delete account: $error';
+  }
+
+  @override
   String profileUserId(Object id) {
     return 'User ID: $id';
   }
+
+  @override
+  String get drawerProfile => 'Profile';
 
   @override
   String get roomCreatedSuccess => 'Room created! Check the Drawer.';

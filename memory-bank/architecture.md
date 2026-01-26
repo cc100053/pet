@@ -30,7 +30,7 @@ Implemented:
 - `lib/features/home/`: Signed-in home shell.
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
 - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
-- `lib/features/profile/`: Profile read/write stub.
+- `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
 - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
 - `lib/features/gallery/`: Memory calendar view for feed images.
 - `lib/features/store/`: Store UI with coin purchases.
@@ -53,9 +53,20 @@ Planned:
 - Postgres: Users, rooms, pets, messages, inventories, config.
 - Realtime: Chat and system events.
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
-- Edge Functions: Feed validation + upload, then write messages/rewards.
+- Edge Functions: Feed validation + upload, avatar upload, and account deletion.
 - Webhooks: Trigger friend notifications on feed events.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Ownership: Triggered owner transfer when the active owner leaves.
 - Note: Edge Functions with `verify_jwt` require HS256 JWT signing in Supabase Auth settings (ES256/asymmetric will be rejected).
+
+### Edge Functions (Repo)
+- `supabase/functions/notify_friend/feed_validate/index.ts`: Feed validation + upload + reward logic.
+- `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
+- `supabase/functions/avatar_upload/index.ts`: Upload avatar image to R2 and update `profiles.avatar_url`.
+- `supabase/functions/delete_account/index.ts`: Delete authenticated user (uses `SUPABASE_SERVICE_ROLE_KEY`).
+
+### Profile Data Notes
+- `profiles.avatar_url` supports two forms:
+  - Preset: `preset:<id>` (client-rendered gradient/icon)
+  - Remote URL: `https://...` (uploaded to R2)

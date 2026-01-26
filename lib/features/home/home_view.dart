@@ -19,6 +19,7 @@ import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
+import '../profile/profile_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
 import 'widgets/home_action_buttons.dart';
@@ -2536,6 +2537,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           Navigator.pop(context);
           _joinRoomByCode();
         }
+      },
+      onProfileTap: () {
+        Navigator.pop(context);
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const ProfileView()));
       },
       onCalendarTap: (roomId) {
         Navigator.pop(context);
