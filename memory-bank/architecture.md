@@ -16,6 +16,7 @@
 - `supabase/migrations/20260101006000_pet_state_machine.sql`: Pet state machine updates and backfill.
 - `supabase/migrations/20260101007000_add_device_tokens.sql`: Device token storage for FCM.
 - `supabase/migrations/20260101008000_device_tokens_single_device.sql`: Enforce single-device token per user.
+- `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
 - `supabase/seed.sql`: Seed data for label mappings and quests.
@@ -29,11 +30,12 @@ Implemented:
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
-- `lib/features/chat/`: Chat stream with text, feed cards, and system events.
-- `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
-- `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
-- `lib/features/gallery/`: Memory calendar view for feed images.
-- `lib/features/store/`: Store UI with coin purchases.
+  - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
+  - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
+  - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
+  - `lib/features/gallery/`: Memory calendar view for feed images.
+  - `lib/features/store/`: Store UI with coin purchases.
+  - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
@@ -42,7 +44,7 @@ Implemented:
 
 Planned:
 - `lib/features/rooms/`: Room creation, invite codes, multi-room limits.
-- `lib/features/pet/`: Pet state machine (hunger, mood, hygiene, sleep), night mode protection, and growth.
+- `lib/features/pet/`: Pet state machine (hunger, mood, hygiene, sleep), night mode protection, growth, and expanded leveling UX.
 - `lib/features/ads/`: Optional rewarded ads (double coins) and ad gating.
 - `lib/features/gallery/`: Calendar view for image memories.
 - `lib/features/store/`: Cosmetics, subscription, consumables.

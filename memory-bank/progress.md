@@ -154,6 +154,10 @@
 - Adjusted the bottom nav camera button to sit inline with other items (not raised).
 - Removed caption/user label text from the polaroid frame and narrowed the frame width by ~20%.
 - Expanded pet idle-wander range by ~20% to better fill the available home space.
+- Added pets EXP tracking with feed-based leveling in Supabase reward RPCs (XP gain gated by the same per-room cooldown as coins).
+- Added Home HUD EXP ring around the pet avatar and wired `pets.exp` into the Home view.
+- Added client-side leveling helpers + unit tests.
+- Applied `add_pet_exp_and_leveling` migration to Supabase.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

@@ -41,6 +41,7 @@ Status: Completed
 
 Phase 2 - Core Gameplay Loop
 - Pet state machine + night mode logic
+- Pet EXP + leveling progression (feed-based) + Home HUD EXP ring
 - Feeding flow with ML Kit + mapping layer
 - Seed `label_mappings` and `quests` from the label dictionary
 - Chat stream (text + feed cards + system events)
@@ -97,4 +98,3 @@ Status: Completed
 
 ## Last things to-do
 - Replace example `app_config` store URLs with real App Store / Play Store links.
-- 

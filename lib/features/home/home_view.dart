@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +20,7 @@ import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
+import '../pet/leveling.dart';
 import '../profile/profile_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
@@ -68,6 +70,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _petError;
   String? _petName;
   int? _petLevel;
+  int? _petExp;
   int _coins = 1234;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
@@ -109,6 +112,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   // Latest feed (polaroid)
   String? _latestFeedImageUrl;
   String? _latestFeedSenderId;
+  String? _latestFeedCaption;
+  String? _latestFeedOptimisticTempId;
+  String? _latestFeedOptimisticRoomId;
+  String? _latestFeedOptimisticPrevImageUrl;
+  String? _latestFeedOptimisticPrevSenderId;
+  String? _latestFeedOptimisticPrevCaption;
   final Map<String, _ProfileSummary> _profileByUserId = {};
 
   @override
@@ -356,10 +365,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     final senderId = record['sender_id'] as String?;
+    final caption = record['caption'] as String?;
     setState(() {
       if (roomId == _roomId) {
         _latestFeedImageUrl = imageUrl;
         _latestFeedSenderId = senderId;
+        _latestFeedCaption = caption;
       }
       _myRooms = _myRooms.map((room) {
         if (room['id'] != roomId) {
@@ -387,6 +398,15 @@ class _HomeViewState extends ConsumerState<HomeView>
         return {...room, 'latest_photo': imageUrl, 'latest_photos': next};
       }).toList();
     });
+
+    if (roomId == _roomId) {
+      unawaited(() async {
+        final petId = _petId ?? await _loadPetId(roomId);
+        if (petId != null) {
+          await _loadPetInfo(petId);
+        }
+      }());
+    }
 
     if (senderId != null && senderId.isNotEmpty) {
       unawaited(_ensureProfileSummary(senderId));
@@ -1017,21 +1037,72 @@ class _HomeViewState extends ConsumerState<HomeView>
       localImagePath: entry.localImagePath,
     );
     _chatListKey.currentState?.addOptimisticMessage(optimisticMessage);
+
+    final roomId = _roomId;
+    if (roomId == null || entry.roomId != roomId) {
+      return;
+    }
+    if (kIsWeb) {
+      return;
+    }
+
+    setState(() {
+      _latestFeedOptimisticTempId = entry.tempId;
+      _latestFeedOptimisticRoomId = entry.roomId;
+      _latestFeedOptimisticPrevImageUrl = _latestFeedImageUrl;
+      _latestFeedOptimisticPrevSenderId = _latestFeedSenderId;
+      _latestFeedOptimisticPrevCaption = _latestFeedCaption;
+      _latestFeedImageUrl = entry.localImagePath;
+      _latestFeedSenderId = entry.senderId;
+      _latestFeedCaption = entry.caption;
+    });
+    unawaited(_ensureProfileSummary(entry.senderId));
   }
 
   void _handleFeedUploadCompleted(String tempId) {
     _chatListKey.currentState?.removeOptimisticMessage(tempId);
     _chatListKey.currentState?.refreshLatest();
+
+    if (_latestFeedOptimisticTempId == tempId) {
+      _latestFeedOptimisticTempId = null;
+      _latestFeedOptimisticRoomId = null;
+      _latestFeedOptimisticPrevImageUrl = null;
+      _latestFeedOptimisticPrevSenderId = null;
+      _latestFeedOptimisticPrevCaption = null;
+    }
     final roomId = _roomId;
     if (roomId != null) {
       _refreshLatestRoomPhoto(roomId);
       unawaited(_refreshLatestFeed(roomId));
       unawaited(_loadCoins());
+
+      unawaited(() async {
+        final petId = _petId ?? await _loadPetId(roomId);
+        if (petId != null) {
+          await _loadPetInfo(petId);
+        }
+      }());
     }
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
     _chatListKey.currentState?.removeOptimisticMessage(tempId);
+    if (_latestFeedOptimisticTempId == tempId) {
+      final shouldRestore =
+          _roomId != null && _roomId == _latestFeedOptimisticRoomId;
+      setState(() {
+        if (shouldRestore) {
+          _latestFeedImageUrl = _latestFeedOptimisticPrevImageUrl;
+          _latestFeedSenderId = _latestFeedOptimisticPrevSenderId;
+          _latestFeedCaption = _latestFeedOptimisticPrevCaption;
+        }
+        _latestFeedOptimisticTempId = null;
+        _latestFeedOptimisticRoomId = null;
+        _latestFeedOptimisticPrevImageUrl = null;
+        _latestFeedOptimisticPrevSenderId = null;
+        _latestFeedOptimisticPrevCaption = null;
+      });
+    }
     if (!mounted) {
       return;
     }
@@ -1113,7 +1184,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       final row = await Supabase.instance.client
           .from('messages')
-          .select('sender_id,image_url,created_at')
+          .select('sender_id,image_url,caption,created_at')
           .eq('room_id', roomId)
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
@@ -1128,14 +1199,17 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       final senderId = row['sender_id'] as String?;
+      final caption = row['caption'] as String?;
       if (mounted) {
         setState(() {
           _latestFeedImageUrl = imageUrl;
           _latestFeedSenderId = senderId;
+          _latestFeedCaption = caption;
         });
       } else {
         _latestFeedImageUrl = imageUrl;
         _latestFeedSenderId = senderId;
+        _latestFeedCaption = caption;
       }
       if (senderId != null && senderId.isNotEmpty) {
         await _ensureProfileSummary(senderId);
@@ -1180,7 +1254,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       final row = await Supabase.instance.client
           .from('pets')
-          .select('name, level')
+          .select('name, level, exp')
           .eq('id', petId)
           .maybeSingle();
       if (row == null) {
@@ -1188,14 +1262,17 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       final name = row['name'] as String?;
       final level = row['level'] as int?;
+      final exp = row['exp'] as int?;
       if (!mounted) {
         _petName = name;
         _petLevel = level;
+        _petExp = exp;
         return;
       }
       setState(() {
         _petName = name;
         _petLevel = level;
+        _petExp = exp;
       });
     } catch (_) {
       // Best-effort.
@@ -2359,13 +2436,20 @@ class _HomeViewState extends ConsumerState<HomeView>
               children: [
                 Builder(
                   builder: (context) {
+                    final level = _petLevel ?? 17;
+                    final exp = _petExp ?? 0;
+                    final expProgressValue = expProgress(
+                      level: level,
+                      exp: exp,
+                    );
                     return HomeGameStatusBar(
                       petAvatar: Image.asset(
                         _petStayGifAsset,
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
                       ),
-                      level: _petLevel ?? 17,
+                      expProgress: expProgressValue,
+                      level: level,
                       petName: (_petName == null || _petName!.trim().isEmpty)
                           ? '貪吃鬼鬼'
                           : _petName!.trim(),
@@ -2383,7 +2467,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                       widthFactor: 0.8,
                       child: HomePolaroidMemoryFrame(
                         imageUrl: _latestFeedImageUrl ?? '',
-                        caption: '',
+                        caption: (_latestFeedCaption ?? '').trim(),
                         userLabel: '',
                         senderAvatar: _latestFeedSenderId == null
                             ? null

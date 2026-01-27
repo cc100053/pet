@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'local_file_image.dart';
+
 class CachedNetworkImageView extends StatelessWidget {
   const CachedNetworkImageView({
     super.key,
@@ -21,6 +23,16 @@ class CachedNetworkImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final local = buildLocalFileImage(
+      imageUrl,
+      fit: fit,
+      width: width,
+      height: height,
+    );
+    if (local != null) {
+      return local;
+    }
+
     final theme = Theme.of(context);
     final fallbackPlaceholder = Container(
       color: theme.colorScheme.surfaceContainerHighest,

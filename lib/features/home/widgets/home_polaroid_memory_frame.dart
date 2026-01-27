@@ -36,7 +36,7 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
         final avatarSize = 46.0;
         var photoSize = width - (innerPadding * 2);
         if (constraints.maxHeight.isFinite) {
-          final reservedBelowPhoto = showCaption ? 16 + 2 + 18 + 56 : 58;
+          final reservedBelowPhoto = showCaption ? 80 : 60;
           final available =
               constraints.maxHeight - (innerPadding * 2) - reservedBelowPhoto;
           if (available.isFinite && available > 0) {
@@ -88,81 +88,91 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                         ),
                       ),
                       if (showCaption) ...[
-                        const Gap(16),
-                        Container(height: 2, color: Colors.black87),
-                        const Gap(18),
+                        const Gap(36),
                         Text(
                           caption,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                             color: AppTheme.textPrimary,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ] else ...[
-                        const Gap(44),
+                        const Gap(60),
                       ],
                     ],
                   ),
                   Positioned(
-                    left: (photoSize / 2) - (avatarSize / 2),
                     top: photoSize - (avatarSize / 2) + 10,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: avatarSize,
-                          height: avatarSize,
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black87, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.10),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: UserAvatar(
-                              avatar: senderAvatar,
-                              fallbackText: senderFallbackText,
-                              size: avatarSize - 10,
-                            ),
-                          ),
-                        ),
-                        if (showUserLabel) ...[
-                          const Gap(6),
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
+                            width: avatarSize,
+                            height: avatarSize,
+                            padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.95),
-                              borderRadius: BorderRadius.circular(999),
+                              color: Colors.white,
+                              shape: BoxShape.circle,
                               border: Border.all(
                                 color: Colors.black87,
                                 width: 2,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.10),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
                             ),
-                            child: Text(
-                              userLabel,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                height: 1,
+                            child: Center(
+                              child: UserAvatar(
+                                avatar: senderAvatar,
+                                fallbackText: senderFallbackText,
+                                size: avatarSize - 10,
                               ),
                             ),
                           ),
+                          if (showUserLabel) ...[
+                            const Gap(6),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: photoSize),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: Colors.black87,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Text(
+                                  userLabel,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.1,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ],

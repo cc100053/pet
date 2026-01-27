@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -7,6 +9,7 @@ class HomeGameStatusBar extends StatelessWidget {
   const HomeGameStatusBar({
     super.key,
     required this.petAvatar,
+    required this.expProgress,
     required this.level,
     required this.petName,
     required this.healthValue,
@@ -15,6 +18,7 @@ class HomeGameStatusBar extends StatelessWidget {
   });
 
   final Widget petAvatar;
+  final double expProgress;
   final int level;
   final String petName;
   final double healthValue;
@@ -31,6 +35,7 @@ class HomeGameStatusBar extends StatelessWidget {
         children: [
           _LeftCluster(
             petAvatar: petAvatar,
+            expProgress: expProgress,
             level: level,
             petName: petName,
             onPetTap: onPetTap,
@@ -45,12 +50,14 @@ class HomeGameStatusBar extends StatelessWidget {
 class _LeftCluster extends StatelessWidget {
   const _LeftCluster({
     required this.petAvatar,
+    required this.expProgress,
     required this.level,
     required this.petName,
     required this.onPetTap,
   });
 
   final Widget petAvatar;
+  final double expProgress;
   final int level;
   final String petName;
   final VoidCallback onPetTap;
@@ -64,26 +71,7 @@ class _LeftCluster extends StatelessWidget {
           onTap: onPetTap,
           child: Stack(
             clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black87, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.10),
-                      blurRadius: 12,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipOval(child: petAvatar),
-              ),
-            ],
+            children: [_ExpRingAvatar(progress: expProgress, child: petAvatar)],
           ),
         ),
         const Gap(10),
@@ -128,6 +116,119 @@ class _LeftCluster extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _ExpRingAvatar extends StatelessWidget {
+  const _ExpRingAvatar({required this.progress, required this.child});
+
+  final double progress;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final clamped = progress.clamp(0.0, 1.0);
+
+    // Outer size includes the progress ring
+    const double outerSize = 58;
+    const double ringStrokeWidth = 4;
+    const double innerSize = outerSize - ringStrokeWidth * 2;
+
+    return SizedBox(
+      width: outerSize,
+      height: outerSize,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Custom progress ring - starts from 12 o'clock, goes clockwise
+          CustomPaint(
+            size: const Size(outerSize, outerSize),
+            painter: _CircularProgressPainter(
+              progress: clamped,
+              strokeWidth: ringStrokeWidth,
+              backgroundColor: Colors.black.withValues(alpha: 0.12),
+              progressColor: AppTheme.secondaryColor,
+            ),
+          ),
+          // Inner container with pet avatar
+          Container(
+            width: innerSize,
+            height: innerSize,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black87, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  blurRadius: 12,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: ClipOval(child: child),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CircularProgressPainter extends CustomPainter {
+  _CircularProgressPainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.backgroundColor,
+    required this.progressColor,
+  });
+
+  final double progress;
+  final double strokeWidth;
+  final Color backgroundColor;
+  final Color progressColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    // Background circle
+    final backgroundPaint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, backgroundPaint);
+
+    // Progress arc - starts from top (12 o'clock = -pi/2) and goes clockwise
+    final progressPaint = Paint()
+      ..color = progressColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    const startAngle = -pi / 2; // 12 o'clock position
+    final sweepAngle = 2 * pi * progress; // Clockwise sweep
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CircularProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.progressColor != progressColor;
   }
 }
 

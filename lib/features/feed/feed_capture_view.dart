@@ -588,6 +588,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               fillColor: Colors.white,
             ),
             maxLines: 2,
+            maxLength: 40,
           ),
           const SizedBox(height: 24),
           FilledButton(
