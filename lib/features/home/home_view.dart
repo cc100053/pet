@@ -72,6 +72,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   int? _petLevel;
   int? _petExp;
   int _coins = 1234;
+  int? _coinReward; // Triggers coin animation when set
+  int _coinRewardEventId = 0;
+  bool _coinsLoadInFlight = false;
+  int? _pendingCoinsExpectedReward;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
   String? _petSubscriptionPetId;
@@ -222,7 +226,17 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _loadCoins() async {
+  Future<void> _loadCoins({int? expectedReward}) async {
+    final normalizedExpected = expectedReward ?? 0;
+    if (_coinsLoadInFlight) {
+      if (normalizedExpected > 0) {
+        _pendingCoinsExpectedReward =
+            (_pendingCoinsExpectedReward ?? 0) + normalizedExpected;
+      }
+      return;
+    }
+
+    _coinsLoadInFlight = true;
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
@@ -233,14 +247,58 @@ class _HomeViewState extends ConsumerState<HomeView>
           .select('coins')
           .eq('user_id', user.id)
           .maybeSingle();
-      final value = (profile?['coins'] as int?) ?? _coins;
+      final newValue = (profile?['coins'] as int?) ?? _coins;
+      final oldValue = _coins;
       if (!mounted) {
-        _coins = value;
+        _coins = newValue;
         return;
       }
-      setState(() => _coins = value);
+
+      int? rewardEventIdToClear;
+      setState(() {
+        _coins = newValue;
+
+        // Clear any stale reward when this load is expected to represent a
+        // reward event (including cooldown/no-op cases).
+        if (expectedReward != null) {
+          _coinReward = null;
+        }
+
+        // Trigger animation only for expected reward events that actually
+        // increased the balance.
+        if (normalizedExpected > 0 && newValue > oldValue) {
+          _coinReward = newValue - oldValue;
+          _coinRewardEventId++;
+          rewardEventIdToClear = _coinRewardEventId;
+        }
+      });
+
+      if (rewardEventIdToClear != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          if (_coinRewardEventId != rewardEventIdToClear) {
+            return;
+          }
+          if (_coinReward == null) {
+            return;
+          }
+          setState(() {
+            _coinReward = null;
+          });
+        });
+      }
     } catch (_) {
       // Best-effort.
+    } finally {
+      _coinsLoadInFlight = false;
+
+      final pending = _pendingCoinsExpectedReward;
+      _pendingCoinsExpectedReward = null;
+      if (pending != null && pending > 0) {
+        unawaited(_loadCoins(expectedReward: pending));
+      }
     }
   }
 
@@ -988,8 +1046,16 @@ class _HomeViewState extends ConsumerState<HomeView>
         params: {'p_pet_id': petId, 'p_action_type': action},
       );
 
+      // Call claim_action_reward to actually grant coins
+      final reward = await Supabase.instance.client.rpc(
+        'claim_action_reward',
+        params: {'p_action_type': action, 'p_room_id': roomId},
+      );
+      final actualReward = (reward as int?) ?? 0;
+
       await _refreshPetState();
-      await _loadCoins();
+      await _loadCoins(expectedReward: actualReward);
+      await _loadPetInfo(petId);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
@@ -1074,7 +1140,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (roomId != null) {
       _refreshLatestRoomPhoto(roomId);
       unawaited(_refreshLatestFeed(roomId));
-      unawaited(_loadCoins());
+      unawaited(_loadCoins(expectedReward: 10)); // Feed = +10 coins
 
       unawaited(() async {
         final petId = _petId ?? await _loadPetId(roomId);
@@ -2182,10 +2248,25 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       final petId = _petId ?? await _loadPetId(roomId);
       if (petId == null) return;
-      await Supabase.instance.client.rpc(
+
+      // clean_poop returns a table with poop_count and coins_awarded
+      final result = await Supabase.instance.client.rpc(
         'clean_poop',
         params: {'p_pet_id': petId, 'p_poop_index': index},
       );
+
+      // Extract coins_awarded from the result
+      int actualReward = 0;
+      if (result is List && result.isNotEmpty) {
+        actualReward = (result[0]['coins_awarded'] as int?) ?? 0;
+      } else if (result is Map) {
+        actualReward = (result['coins_awarded'] as int?) ?? 0;
+      }
+
+      // Refresh state and rewards immediately after clean action
+      await _refreshPetState();
+      await _loadCoins(expectedReward: actualReward);
+      await _loadPetInfo(petId);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
@@ -2455,6 +2536,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                           : _petName!.trim(),
                       healthValue: _healthValue(),
                       coins: _coins,
+                      coinReward: _coinReward,
+                      coinRewardEventId: _coinRewardEventId,
                       onPetTap: () => Scaffold.of(context).openDrawer(),
                     );
                   },

@@ -158,6 +158,7 @@
 - Added Home HUD EXP ring around the pet avatar and wired `pets.exp` into the Home view.
 - Added client-side leveling helpers + unit tests.
 - Applied `add_pet_exp_and_leveling` migration to Supabase.
+- Fixed Home coin reward animation robustness: reward events retrigger even when the amount repeats (e.g., +10 twice), transient +X overlay clears on completion, and concurrent coin loads are coalesced to reduce racey deltas.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

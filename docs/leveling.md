@@ -18,7 +18,8 @@ The pet gains Experience Points (EXP) through interactions (specifically feeding
 
 ### Rewards & Actions
 - **Feed**: Grants **10 XP** (and 10 Coins).
-- **Other Actions**: (To be determined if Clean/Touch also grant XP, currently defaulting to Feed).
+- **Clean**: Grants **5 Coins** (no XP).
+- **Touch**: Grants **1 Coin** (no XP).
 
 ### Cooldowns
 - XP gain shares the **same cooldown** as Coin rewards.

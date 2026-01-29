@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
 import '../../../shared/theme/app_theme.dart';
@@ -15,6 +16,8 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.healthValue,
     required this.coins,
     required this.onPetTap,
+    this.coinReward,
+    this.coinRewardEventId = 0,
   });
 
   final Widget petAvatar;
@@ -24,6 +27,14 @@ class HomeGameStatusBar extends StatelessWidget {
   final double healthValue;
   final int coins;
   final VoidCallback onPetTap;
+
+  /// When set, triggers the coin reward animation showing "+X" and bounce.
+  /// Treated as a one-shot trigger; it can be cleared on the next frame.
+  final int? coinReward;
+
+  /// Monotonic event id that guarantees re-triggering even when reward amount
+  /// repeats (e.g., +10 multiple times).
+  final int coinRewardEventId;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +51,12 @@ class HomeGameStatusBar extends StatelessWidget {
             petName: petName,
             onPetTap: onPetTap,
           ),
-          _RightCluster(healthValue: healthValue, coins: coins),
+          _RightCluster(
+            healthValue: healthValue,
+            coins: coins,
+            coinReward: coinReward,
+            coinRewardEventId: coinRewardEventId,
+          ),
         ],
       ),
     );
@@ -233,10 +249,17 @@ class _CircularProgressPainter extends CustomPainter {
 }
 
 class _RightCluster extends StatelessWidget {
-  const _RightCluster({required this.healthValue, required this.coins});
+  const _RightCluster({
+    required this.healthValue,
+    required this.coins,
+    this.coinReward,
+    this.coinRewardEventId = 0,
+  });
 
   final double healthValue;
   final int coins;
+  final int? coinReward;
+  final int coinRewardEventId;
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +282,11 @@ class _RightCluster extends StatelessWidget {
         const Gap(10),
         SizedBox(
           width: barWidth,
-          child: _CoinsPill(coins: coins),
+          child: _AnimatedCoinsPill(
+            coins: coins,
+            coinReward: coinReward,
+            coinRewardEventId: coinRewardEventId,
+          ),
         ),
       ],
     );
@@ -304,8 +331,179 @@ class _HealthBar extends StatelessWidget {
   }
 }
 
-class _CoinsPill extends StatelessWidget {
-  const _CoinsPill({required this.coins});
+class _AnimatedCoinsPill extends StatefulWidget {
+  const _AnimatedCoinsPill({
+    required this.coins,
+    required this.coinRewardEventId,
+    this.coinReward,
+  });
+
+  final int coins;
+  final int? coinReward;
+  final int coinRewardEventId;
+
+  @override
+  State<_AnimatedCoinsPill> createState() => _AnimatedCoinsPillState();
+}
+
+class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
+    with TickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late AnimationController _floatController;
+  late Animation<double> _bounceAnimation;
+  late Animation<double> _floatOpacity;
+  late Animation<Offset> _floatOffset;
+
+  int? _displayReward;
+  late final AnimationStatusListener _floatStatusListener;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Bounce animation (scale 1.0 -> 1.15 -> 1.0)
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _bounceAnimation =
+        TweenSequence<double>([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.15), weight: 40),
+          TweenSequenceItem(tween: Tween(begin: 1.15, end: 0.95), weight: 30),
+          TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 30),
+        ]).animate(
+          CurvedAnimation(
+            parent: _bounceController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
+    // Float animation (move up + fade out)
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _floatOpacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
+    ]).animate(_floatController);
+    _floatOffset =
+        Tween<Offset>(
+          begin: const Offset(0, 0),
+          end: const Offset(0, -1.5),
+        ).animate(
+          CurvedAnimation(parent: _floatController, curve: Curves.easeOutCubic),
+        );
+
+    _floatStatusListener = (status) {
+      if (status != AnimationStatus.completed) {
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _displayReward = null;
+      });
+    };
+    _floatController.addStatusListener(_floatStatusListener);
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedCoinsPill oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Trigger animation only on reward event id changes.
+    if (widget.coinRewardEventId == oldWidget.coinRewardEventId) {
+      return;
+    }
+    final reward = widget.coinReward;
+    if (reward == null || reward <= 0) {
+      return;
+    }
+
+    setState(() {
+      _displayReward = reward;
+    });
+    _triggerAnimation();
+  }
+
+  void _triggerAnimation() {
+    _bounceController.forward(from: 0);
+    _floatController.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _floatController.removeStatusListener(_floatStatusListener);
+    _bounceController.dispose();
+    _floatController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Bounce animation on the pill
+        AnimatedBuilder(
+          animation: _bounceAnimation,
+          builder: (context, child) {
+            return Transform.scale(scale: _bounceAnimation.value, child: child);
+          },
+          child: _CoinsPillContent(coins: widget.coins),
+        ),
+
+        // Floating "+X" text
+        if (_displayReward != null)
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: SlideTransition(
+              position: _floatOffset,
+              child: FadeTransition(
+                opacity: _floatOpacity,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.secondaryColor.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '+$_displayReward',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _CoinsPillContent extends StatelessWidget {
+  const _CoinsPillContent({required this.coins});
 
   final int coins;
 
@@ -331,10 +529,14 @@ class _CoinsPill extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.cake_rounded,
-                size: 18,
-                color: AppTheme.secondaryColor,
+              SvgPicture.asset(
+                'assets/icon/icon-park--candy.svg',
+                width: 18,
+                height: 18,
+                colorFilter: const ColorFilter.mode(
+                  AppTheme.secondaryColor,
+                  BlendMode.srcIn,
+                ),
               ),
               const Gap(8),
               Text(

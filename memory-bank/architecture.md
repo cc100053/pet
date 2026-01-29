@@ -41,6 +41,7 @@ Implemented:
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
+- Home HUD coin reward animation: `lib/features/home/home_view.dart` emits a monotonic `coinRewardEventId` so repeated rewards retrigger the animation reliably; coin loads are coalesced to avoid racey deltas.
 
 Planned:
 - `lib/features/rooms/`: Room creation, invite codes, multi-room limits.

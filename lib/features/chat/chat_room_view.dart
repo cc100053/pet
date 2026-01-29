@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -288,8 +289,15 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                   const SizedBox(width: 8),
                   IconButton(
                     onPressed: _sending ? null : _sendMessage,
-                    icon: const Icon(Icons.send_rounded),
-                    color: AppTheme.primaryColor,
+                    icon: SvgPicture.asset(
+                      'assets/icon/mingcute--send-plane-line.svg',
+                      width: 24,
+                      height: 24,
+                      colorFilter: const ColorFilter.mode(
+                        AppTheme.primaryColor,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                     tooltip: l10n.commonSend,
                   ),
                 ],
