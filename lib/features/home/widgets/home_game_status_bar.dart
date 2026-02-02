@@ -6,6 +6,8 @@ import 'package:gap/gap.dart';
 
 import '../../../shared/theme/app_theme.dart';
 
+const Color _diamondColor = Color(0xFF4C7DFF);
+
 class HomeGameStatusBar extends StatelessWidget {
   const HomeGameStatusBar({
     super.key,
@@ -15,6 +17,7 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.petName,
     required this.healthValue,
     required this.coins,
+    required this.diamonds,
     required this.onPetTap,
     this.coinReward,
     this.coinRewardEventId = 0,
@@ -26,6 +29,7 @@ class HomeGameStatusBar extends StatelessWidget {
   final String petName;
   final double healthValue;
   final int coins;
+  final int diamonds;
   final VoidCallback onPetTap;
 
   /// When set, triggers the coin reward animation showing "+X" and bounce.
@@ -54,6 +58,7 @@ class HomeGameStatusBar extends StatelessWidget {
           _RightCluster(
             healthValue: healthValue,
             coins: coins,
+            diamonds: diamonds,
             coinReward: coinReward,
             coinRewardEventId: coinRewardEventId,
           ),
@@ -252,12 +257,14 @@ class _RightCluster extends StatelessWidget {
   const _RightCluster({
     required this.healthValue,
     required this.coins,
+    required this.diamonds,
     this.coinReward,
     this.coinRewardEventId = 0,
   });
 
   final double healthValue;
   final int coins;
+  final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
 
@@ -289,7 +296,12 @@ class _RightCluster extends StatelessWidget {
                 ],
               ),
             ),
-        const Gap(10),
+        const Gap(8),
+        SizedBox(
+          width: barWidth,
+          child: _DiamondsPillContent(diamonds: diamonds),
+        ),
+        const Gap(8),
         SizedBox(
           width: barWidth,
           child: _AnimatedCoinsPill(
@@ -507,6 +519,55 @@ class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
             ),
           ),
       ],
+    );
+  }
+}
+
+class _DiamondsPillContent extends StatelessWidget {
+  const _DiamondsPillContent({required this.diamonds});
+
+  final int diamonds;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.black87, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.diamond_rounded,
+                size: 18,
+                color: _diamondColor,
+              ),
+              const Gap(8),
+              Text(
+                '$diamonds',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  height: 1,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

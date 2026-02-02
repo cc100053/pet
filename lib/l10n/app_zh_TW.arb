@@ -44,7 +44,7 @@
     }
   },
   "chatBlockUser": "封鎖用戶",
-  "chatCoinsAwarded": "+{count} 金幣",
+  "chatCoinsAwarded": "+{count} 糖果",
   "@chatCoinsAwarded": {
     "placeholders": {
       "count": {}
@@ -240,7 +240,7 @@
   "profileAvatarEdit": "編輯頭像",
   "profileAvatarUpload": "上傳照片",
   "profileAvatarRemove": "移除",
-  "profileCoinsLabel": "金幣：{amount}",
+  "profileCoinsLabel": "糖果：{amount}",
   "@profileCoinsLabel": {
     "placeholders": {
       "amount": {}
@@ -326,19 +326,31 @@
   "signInSubtitle": "登入後開始一起養成寵物。",
   "signInWithApple": "使用 Apple 繼續",
   "signInWithGoogle": "使用 Google 繼續",
-  "storeCoinPrice": "金幣：{amount}",
+  "storeCoinPrice": "糖果：{amount}",
   "@storeCoinPrice": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeCoinsLabel": "金幣：{amount}",
+  "storeCoinsLabel": "糖果：{amount}",
   "@storeCoinsLabel": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeCoinsReward": "金幣 +{amount}",
+  "storeCoinsReward": "糖果 +{amount}",
+  "storeDiamondsLabel": "鑽石：{amount}",
+  "@storeDiamondsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeDiamondsReward": "鑽石 +{amount}",
+  "@storeDiamondsReward": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "@storeCoinsReward": {
     "placeholders": {
       "amount": {}
@@ -358,7 +370,7 @@
       "error": {}
     }
   },
-  "storeNotEnoughCoins": "金幣不足。",
+  "storeNotEnoughCoins": "糖果不足。",
   "storeOwnedCount": "已擁有：{amount}",
   "@storeOwnedCount": {
     "placeholders": {
@@ -387,8 +399,10 @@
     }
   },
   "storeRestoreTooltip": "恢復購買",
-  "storeSectionCoinPacks": "金幣包",
-  "storeSectionCoinStore": "金幣商店",
+  "storeSectionCoinPacks": "糖果包",
+  "storeSectionCoinStore": "糖果商店",
+  "storeSectionDiamondPacks": "鑽石包",
+  "storeSectionDiamondStore": "鑽石商店",
   "storeSectionSubscription": "訂閱",
   "storeSignInPrompt": "請先登入才能使用商店。",
   "storeSubscribe": "訂閱",

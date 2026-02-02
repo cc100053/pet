@@ -7,6 +7,8 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../shared/theme/app_theme.dart';
 
+const Color _diamondColor = Color(0xFF4C7DFF);
+
 class StoreView extends StatefulWidget {
   const StoreView({super.key});
 
@@ -20,6 +22,7 @@ class _StoreViewState extends State<StoreView> {
   bool _purchasing = false;
   String? _error;
   int _coins = 0;
+  int _diamonds = 0;
   List<StoreItem> _items = [];
   final Map<String, int> _inventory = {};
   bool _iapConfigured = false;
@@ -53,13 +56,13 @@ class _StoreViewState extends State<StoreView> {
     try {
       final profile = await Supabase.instance.client
           .from('profiles')
-          .select('coins')
+          .select('coins,diamonds')
           .eq('user_id', user.id)
           .maybeSingle();
 
       final itemsResponse = await Supabase.instance.client
           .from('items')
-          .select('id,sku,type,name,price_coins,metadata')
+          .select('id,sku,type,name,price_coins,price_diamonds,metadata')
           .eq('is_active', true)
           .order('price_coins', ascending: true);
 
@@ -87,6 +90,7 @@ class _StoreViewState extends State<StoreView> {
 
       setState(() {
         _coins = (profile?['coins'] as int?) ?? 0;
+        _diamonds = (profile?['diamonds'] as int?) ?? 0;
         _items = items;
         _inventory
           ..clear()
@@ -273,6 +277,88 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
+  Future<void> _purchaseDiamondItem(StoreItem item) async {
+    if (_purchasing) {
+      return;
+    }
+
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    setState(() {
+      _purchasing = true;
+    });
+
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'purchase_item_with_diamonds',
+        params: {'p_item_id': item.id, 'p_quantity': 1},
+      );
+
+      Map<String, dynamic>? row;
+      if (response is List && response.isNotEmpty) {
+        row = response.first as Map<String, dynamic>;
+      } else if (response is Map) {
+        row = response.cast<String, dynamic>();
+      }
+
+      if (row != null) {
+        final remaining = row['remaining_diamonds'] as int?;
+        final newQuantity = row['new_quantity'] as int?;
+        final newCoinBalance = row['new_coin_balance'] as int?;
+        setState(() {
+          if (remaining != null) {
+            _diamonds = remaining;
+          }
+          if (newQuantity != null) {
+            _inventory[item.id] = newQuantity;
+          }
+          if (newCoinBalance != null) {
+            _coins = newCoinBalance;
+          }
+        });
+      }
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storePurchaseSuccess(item.name),
+          ),
+        ),
+      );
+      AnalyticsService.instance.logEvent(
+        'purchase_diamonds',
+        parameters: {'result': 'success', 'sku': item.sku},
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storePurchaseFailed(error.toString()),
+          ),
+        ),
+      );
+      AnalyticsService.instance.logEvent(
+        'purchase_diamonds',
+        parameters: {'result': 'failure', 'sku': item.sku},
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _purchasing = false;
+        });
+      }
+    }
+  }
+
   Future<void> _purchaseIapItem(StoreItem item) async {
     if (_purchasing) {
       return;
@@ -306,7 +392,11 @@ class _StoreViewState extends State<StoreView> {
                 .toSet();
           });
         } else {
-          await _grantIapCoins(item, result);
+          if (item.isDiamondIap) {
+            await _grantIapDiamonds(item, result);
+          } else {
+            await _grantIapCoins(item, result);
+          }
         }
       }
       if (!mounted) {
@@ -394,6 +484,45 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
+  Future<void> _grantIapDiamonds(StoreItem item, PurchaseResult result) async {
+    final diamondAmount = item.diamondAmount;
+    if (diamondAmount == null || diamondAmount <= 0) {
+      throw StateError('Missing diamond amount for IAP item.');
+    }
+
+    final transaction = result.storeTransaction;
+    final transactionId = transaction.transactionIdentifier;
+    final productId = transaction.productIdentifier;
+    if (transactionId.isEmpty) {
+      throw StateError('Missing transaction id.');
+    }
+
+    final response = await Supabase.instance.client.rpc(
+      'grant_iap_diamonds',
+      params: {
+        'p_product_id': productId,
+        'p_amount': diamondAmount,
+        'p_transaction_id': transactionId,
+      },
+    );
+
+    Map<String, dynamic>? row;
+    if (response is List && response.isNotEmpty) {
+      row = response.first as Map<String, dynamic>;
+    } else if (response is Map) {
+      row = response.cast<String, dynamic>();
+    }
+
+    if (row != null) {
+      final newBalance = row['new_balance'] as int?;
+      if (newBalance != null) {
+        setState(() {
+          _diamonds = newBalance;
+        });
+      }
+    }
+  }
+
   Future<void> _restorePurchases() async {
     if (_iapLoading) {
       return;
@@ -449,8 +578,37 @@ class _StoreViewState extends State<StoreView> {
       .where((item) => item.iapType != 'subscription')
       .toList(growable: false);
 
-  List<StoreItem> get _coinItems =>
-      _items.where((item) => !item.isIap).toList(growable: false);
+  List<StoreItem> get _iapDiamondPackItems {
+    final items =
+        _iapConsumableItems.where((item) => item.isDiamondIap).toList();
+    items.sort((a, b) => (a.diamondAmount ?? 0).compareTo(b.diamondAmount ?? 0));
+    return items;
+  }
+
+  List<StoreItem> get _iapCoinPackItems {
+    final items =
+        _iapConsumableItems.where((item) => !item.isDiamondIap).toList();
+    items.sort((a, b) => (a.coinAmount ?? 0).compareTo(b.coinAmount ?? 0));
+    return items;
+  }
+
+  List<StoreItem> get _coinItems {
+    final items = _items
+        .where((item) => !item.isIap && item.priceCoins != null)
+        .toList();
+    items.sort((a, b) => (a.priceCoins ?? 0).compareTo(b.priceCoins ?? 0));
+    return items;
+  }
+
+  List<StoreItem> get _diamondItems {
+    final items = _items
+        .where((item) => !item.isIap && item.priceDiamonds != null)
+        .toList();
+    items.sort(
+      (a, b) => (a.priceDiamonds ?? 0).compareTo(b.priceDiamonds ?? 0),
+    );
+    return items;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -468,7 +626,14 @@ class _StoreViewState extends State<StoreView> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
-              child: Chip(label: Text(l10n.storeCoinsLabel(_coins))),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Chip(label: Text(l10n.storeDiamondsLabel(_diamonds))),
+                  const SizedBox(width: 8),
+                  Chip(label: Text(l10n.storeCoinsLabel(_coins))),
+                ],
+              ),
             ),
           ),
         ],
@@ -535,9 +700,19 @@ class _StoreViewState extends State<StoreView> {
           for (final item in _subscriptionItems) _buildIapCard(item, l10n),
           const SizedBox(height: 8),
         ],
-        if (_iapConsumableItems.isNotEmpty) ...[
+        if (_iapDiamondPackItems.isNotEmpty) ...[
+          _SectionHeader(title: l10n.storeSectionDiamondPacks),
+          for (final item in _iapDiamondPackItems) _buildIapCard(item, l10n),
+          const SizedBox(height: 8),
+        ],
+        if (_iapCoinPackItems.isNotEmpty) ...[
           _SectionHeader(title: l10n.storeSectionCoinPacks),
-          for (final item in _iapConsumableItems) _buildIapCard(item, l10n),
+          for (final item in _iapCoinPackItems) _buildIapCard(item, l10n),
+          const SizedBox(height: 8),
+        ],
+        if (_diamondItems.isNotEmpty) ...[
+          _SectionHeader(title: l10n.storeSectionDiamondStore),
+          for (final item in _diamondItems) _buildDiamondCard(item, l10n),
           const SizedBox(height: 8),
         ],
         if (_coinItems.isNotEmpty) ...[
@@ -555,12 +730,14 @@ class _StoreViewState extends State<StoreView> {
         package?.storeProduct.priceString ??
         (item.priceJpy != null ? l10n.currencyJpy(item.priceJpy!) : null);
     final isSubscription = item.iapType == 'subscription';
+    final isDiamondPack = item.isDiamondIap;
     final entitlementId = item.rcEntitlementId;
     final isSubscribed =
         isSubscription &&
         entitlementId != null &&
         _activeEntitlements.contains(entitlementId);
     final canBuy = _iapConfigured && !_purchasing && package != null;
+    final packColor = isDiamondPack ? _diamondColor : Colors.amber;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -587,13 +764,17 @@ class _StoreViewState extends State<StoreView> {
             decoration: BoxDecoration(
               color: isSubscription
                   ? AppTheme.secondaryColor.withValues(alpha: 0.1)
-                  : Colors.amber.withValues(alpha: 0.1),
+                  : packColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(18),
             ),
             alignment: Alignment.center,
             child: Icon(
-              isSubscription ? Icons.stars_rounded : Icons.diamond_rounded,
-              color: isSubscription ? AppTheme.secondaryColor : Colors.amber,
+              isSubscription
+                  ? Icons.stars_rounded
+                  : (isDiamondPack
+                        ? Icons.diamond_rounded
+                        : Icons.monetization_on_rounded),
+              color: isSubscription ? AppTheme.secondaryColor : packColor,
               size: 28,
             ),
           ),
@@ -621,6 +802,15 @@ class _StoreViewState extends State<StoreView> {
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  )
+                else if (isDiamondPack && item.diamondAmount != null)
+                  Text(
+                    l10n.storeDiamondsReward(item.diamondAmount!),
+                    style: TextStyle(
+                      color: packColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   )
                 else if (item.coinAmount != null)
@@ -849,6 +1039,147 @@ class _StoreViewState extends State<StoreView> {
     );
   }
 
+  Widget _buildDiamondCard(StoreItem item, AppLocalizations l10n) {
+    final ownedQty = _inventory[item.id] ?? 0;
+    final isCosmetic = item.type == 'cosmetic';
+    final isOwned = isCosmetic && ownedQty > 0;
+    final canAfford =
+        item.priceDiamonds != null && _diamonds >= item.priceDiamonds!;
+    final showQuantity = !isCosmetic && ownedQty > 0;
+    final canBuy =
+        !_purchasing && !isOwned && canAfford && item.priceDiamonds != null;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: _diamondColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              item.emoji ?? '💎',
+              style: const TextStyle(fontSize: 30),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (item.coinAmount != null)
+                  Text(
+                    l10n.storeCoinsReward(item.coinAmount!),
+                    style: TextStyle(
+                      color: _diamondColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                Text(
+                  item.description ?? _displayTypeLabel(item, l10n),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (item.priceDiamonds != null)
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.diamond_rounded,
+                        size: 16,
+                        color: _diamondColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${item.priceDiamonds}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: canAfford ? _diamondColor : Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                if (showQuantity) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.storeOwnedCount(ownedQty),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: canBuy ? () => _purchaseDiamondItem(item) : null,
+            child: Opacity(
+              opacity: canBuy || isOwned ? 1.0 : 0.5,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  gradient: isOwned ? null : AppTheme.primaryGradient,
+                  color: isOwned ? Colors.grey[200] : null,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: isOwned || !canBuy
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: _diamondColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                ),
+                child: Text(
+                  isOwned ? l10n.commonOwned : l10n.commonBuy,
+                  style: TextStyle(
+                    color: isOwned ? Colors.grey : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _displayTypeLabel(StoreItem item, AppLocalizations l10n) {
     if (item.iapType == 'subscription') {
       return l10n.storeTypeSubscription;
@@ -873,12 +1204,15 @@ class StoreItem {
     required this.type,
     required this.name,
     required this.priceCoins,
+    required this.priceDiamonds,
     required this.priceJpy,
     required this.description,
     required this.iapProductId,
     required this.iapType,
     required this.rcEntitlementId,
     required this.coinAmount,
+    required this.diamondAmount,
+    required this.iapCurrency,
     required this.category,
     required this.emoji,
   });
@@ -888,16 +1222,22 @@ class StoreItem {
   final String type;
   final String name;
   final int? priceCoins;
+  final int? priceDiamonds;
   final int? priceJpy;
   final String? description;
   final String? iapProductId;
   final String? iapType;
   final String? rcEntitlementId;
   final int? coinAmount;
+  final int? diamondAmount;
+  final String? iapCurrency;
   final String? category;
   final String? emoji;
 
   bool get isIap => iapProductId != null && iapProductId!.isNotEmpty;
+  bool get isDiamondIap =>
+      iapType != 'subscription' &&
+      (iapCurrency == 'diamond' || diamondAmount != null);
   bool get isFurniture => category == 'furniture';
 
   String get displayType {
@@ -924,6 +1264,8 @@ class StoreItem {
     final iapType = metadata['iap_type'] as String?;
     final rcEntitlementId = metadata['rc_entitlement_id'] as String?;
     final coinAmountRaw = metadata['coin_amount'];
+    final diamondAmountRaw = metadata['diamond_amount'];
+    final iapCurrency = metadata['iap_currency'] as String?;
     final category = metadata['category'] as String?;
     final emoji = metadata['emoji'] as String?;
 
@@ -945,18 +1287,30 @@ class StoreItem {
       coinAmount = int.tryParse(coinAmountRaw);
     }
 
+    int? diamondAmount;
+    if (diamondAmountRaw is int) {
+      diamondAmount = diamondAmountRaw;
+    } else if (diamondAmountRaw is double) {
+      diamondAmount = diamondAmountRaw.round();
+    } else if (diamondAmountRaw is String) {
+      diamondAmount = int.tryParse(diamondAmountRaw);
+    }
+
     return StoreItem(
       id: json['id'] as String,
       sku: json['sku'] as String,
       type: json['type'] as String? ?? 'consumable',
       name: json['name'] as String? ?? 'Item',
       priceCoins: json['price_coins'] as int?,
+      priceDiamonds: json['price_diamonds'] as int?,
       priceJpy: priceJpy,
       description: description,
       iapProductId: iapProductId,
       iapType: iapType,
       rcEntitlementId: rcEntitlementId,
       coinAmount: coinAmount,
+      diamondAmount: diamondAmount,
+      iapCurrency: iapCurrency,
       category: category,
       emoji: emoji,
     );

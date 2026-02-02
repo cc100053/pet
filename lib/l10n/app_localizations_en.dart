@@ -78,7 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatCoinsAwarded(Object count) {
-    return '+$count coins';
+    return '+$count candy';
   }
 
   @override
@@ -422,7 +422,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String profileCoinsLabel(Object amount) {
-    return 'Coins: $amount';
+    return 'Candy: $amount';
   }
 
   @override
@@ -568,17 +568,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String storeCoinPrice(Object amount) {
-    return 'Coins: $amount';
+    return 'Candy: $amount';
   }
 
   @override
   String storeCoinsLabel(Object amount) {
-    return 'Coins: $amount';
+    return 'Candy: $amount';
   }
 
   @override
   String storeCoinsReward(Object amount) {
-    return 'Coins +$amount';
+    return 'Candy +$amount';
+  }
+
+  @override
+  String storeDiamondsLabel(Object amount) {
+    return 'Diamonds: $amount';
+  }
+
+  @override
+  String storeDiamondsReward(Object amount) {
+    return 'Diamonds +$amount';
   }
 
   @override
@@ -598,7 +608,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeNotEnoughCoins => 'Not enough coins.';
+  String get storeNotEnoughCoins => 'Not enough candy.';
 
   @override
   String storeOwnedCount(Object amount) {
@@ -633,10 +643,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeRestoreTooltip => 'Restore purchases';
 
   @override
-  String get storeSectionCoinPacks => 'Coin Packs';
+  String get storeSectionCoinPacks => 'Candy Packs';
 
   @override
-  String get storeSectionCoinStore => 'Coin Store';
+  String get storeSectionCoinStore => 'Candy Store';
+
+  @override
+  String get storeSectionDiamondPacks => 'Diamond Packs';
+
+  @override
+  String get storeSectionDiamondStore => 'Diamond Store';
 
   @override
   String get storeSectionSubscription => 'Subscription';

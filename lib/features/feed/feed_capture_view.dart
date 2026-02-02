@@ -477,13 +477,14 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               context,
             ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
           ),
-          const SizedBox(height: 12),
-          Text(
-            mappingStatus,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-          ),
+          // Photo labeling UI is currently disabled
+          // const SizedBox(height: 12),
+          // Text(
+          //   mappingStatus,
+          //   style: Theme.of(
+          //     context,
+          //   ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+          // ),
           const SizedBox(height: 24),
           Wrap(
             spacing: 16,
@@ -553,20 +554,21 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               ),
             ),
           ],
-          const SizedBox(height: 24),
-          if (_analyzing)
-            const Center(child: CircularProgressIndicator())
-          else if (_observations.isNotEmpty)
-            _LabelsPreview(observations: _observations, matches: _matches)
-          else
-            Center(
-              child: Text(
-                l10n.feedNoLabels,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-              ),
-            ),
+          // Photo labeling UI is currently disabled
+          // const SizedBox(height: 24),
+          // if (_analyzing)
+          //   const Center(child: CircularProgressIndicator())
+          // else if (_observations.isNotEmpty)
+          //   _LabelsPreview(observations: _observations, matches: _matches)
+          // else
+          //   Center(
+          //     child: Text(
+          //       l10n.feedNoLabels,
+          //       style: Theme.of(
+          //         context,
+          //       ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          //     ),
+          //   ),
           const SizedBox(height: 24),
           TextField(
             controller: _captionController,
@@ -607,14 +609,15 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          if (_canonicalTags.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(l10n.feedCanonicalTags(_canonicalTags.join(', '))),
-          ],
-          if (_result != null) ...[
-            const SizedBox(height: 12),
-            Text(l10n.feedResponse(_result!)),
-          ],
+          // Photo labeling canonical tags display is disabled
+          // if (_canonicalTags.isNotEmpty) ...[
+          //   const SizedBox(height: 12),
+          //   Text(l10n.feedCanonicalTags(_canonicalTags.join(', '))),
+          // ],
+          // if (_result != null) ...[
+          //   const SizedBox(height: 12),
+          //   Text(l10n.feedResponse(_result!)),
+          // ],
           if (_error != null) ...[
             const SizedBox(height: 12),
             Text(

@@ -159,6 +159,7 @@
 - Added client-side leveling helpers + unit tests.
 - Applied `add_pet_exp_and_leveling` migration to Supabase.
 - Fixed Home coin reward animation robustness: reward events retrigger even when the amount repeats (e.g., +10 twice), transient +X overlay clears on completion, and concurrent coin loads are coalesced to reduce racey deltas.
+- Added diamond currency support in Supabase (balances, ledger, RPCs) and updated store + home HUD to display diamonds and handle diamond purchases/exchange.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

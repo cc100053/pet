@@ -9,6 +9,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `nickname` (text), `avatar_url` (text; either `preset:<id>` or a remote URL)
   - `locale` (text), `timezone` (text)
   - `coins` (int, default 0)
+  - `diamonds` (int, default 0)
   - `created_at`, `updated_at`
 
 - `device_tokens`
@@ -46,6 +47,8 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `pet_id` (uuid, pk, fk)
   - `hunger` (int), `mood` (text), `hygiene` (int)
   - `poop_at` (timestamptz)
+  - `poop_count` (int, 0-3), `poop_positions` (jsonb, array of {x, y})
+  - `last_poop_spawn_at` (timestamptz; reset on clean to now; next spawn after 8 hours)
   - `mood_boost` (int), `mood_boost_expires_at` (timestamptz)
   - `feed_count_since_poop` (int)
   - `last_decay_at` (timestamptz)
@@ -102,7 +105,16 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `id` (uuid, pk)
   - `user_id` (uuid, fk)
   - `room_id` (uuid, fk, nullable)
-  - `source` (text: feed/touch/clean/ad_reward/quest/store_purchase/iap_purchase)
+  - `source` (text: feed/touch/clean/ad_reward/quest/store_purchase/iap_purchase/diamond_exchange)
+  - `amount` (int)
+  - `metadata` (jsonb)
+  - `created_at`
+
+- `diamond_ledger`
+  - `id` (uuid, pk)
+  - `user_id` (uuid, fk)
+  - `room_id` (uuid, fk, nullable)
+  - `source` (text: iap_purchase/store_purchase/exchange/admin_adjust)
   - `amount` (int)
   - `metadata` (jsonb)
   - `created_at`
@@ -112,7 +124,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `sku` (text, unique)
   - `type` (text: cosmetic/consumable/subscription)
   - `name` (text)
-  - `price_coins` (int), `price_usd` (numeric)
+  - `price_coins` (int), `price_diamonds` (int), `price_usd` (numeric)
   - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`), `is_active` (bool)
 
 - `inventories`
@@ -284,7 +296,9 @@ for select using (auth.role() = 'authenticated');
 - `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters.
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger; when `action_type='feed'` and the reward is granted, grants pet EXP (+10), levels up with carry (`50 * current_level`), and caps at level 999.
 - `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.
+- `purchase_item_with_diamonds(item_id uuid, quantity int)` -> spends diamonds; if `metadata.coin_amount` is set, exchanges diamonds for coins.
 - `grant_iap_coins(product_id text, amount int, transaction_id text)` -> idempotent coin grant for IAP consumables.
+- `grant_iap_diamonds(product_id text, amount int, transaction_id text)` -> idempotent diamond grant for IAP consumables.
 - `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates.
 
 ## Ownership Transfer

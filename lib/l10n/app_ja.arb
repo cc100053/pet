@@ -44,7 +44,7 @@
     }
   },
   "chatBlockUser": "ユーザーをブロック",
-  "chatCoinsAwarded": "+{count}コイン",
+  "chatCoinsAwarded": "+{count}キャンディ",
   "@chatCoinsAwarded": {
     "placeholders": {
       "count": {}
@@ -240,7 +240,7 @@
   "profileAvatarEdit": "アバターを編集",
   "profileAvatarUpload": "写真をアップロード",
   "profileAvatarRemove": "削除",
-  "profileCoinsLabel": "コイン: {amount}",
+  "profileCoinsLabel": "キャンディ: {amount}",
   "@profileCoinsLabel": {
     "placeholders": {
       "amount": {}
@@ -326,19 +326,31 @@
   "signInSubtitle": "サインインして一緒に育て始めましょう。",
   "signInWithApple": "Apple で続行",
   "signInWithGoogle": "Google で続行",
-  "storeCoinPrice": "コイン: {amount}",
+  "storeCoinPrice": "キャンディ: {amount}",
   "@storeCoinPrice": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeCoinsLabel": "コイン: {amount}",
+  "storeCoinsLabel": "キャンディ: {amount}",
   "@storeCoinsLabel": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeCoinsReward": "コイン +{amount}",
+  "storeCoinsReward": "キャンディ +{amount}",
+  "storeDiamondsLabel": "ダイヤ: {amount}",
+  "@storeDiamondsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeDiamondsReward": "ダイヤ +{amount}",
+  "@storeDiamondsReward": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "@storeCoinsReward": {
     "placeholders": {
       "amount": {}
@@ -358,7 +370,7 @@
       "error": {}
     }
   },
-  "storeNotEnoughCoins": "コインが足りません。",
+  "storeNotEnoughCoins": "キャンディが足りません。",
   "storeOwnedCount": "所持数: {amount}",
   "@storeOwnedCount": {
     "placeholders": {
@@ -387,8 +399,10 @@
     }
   },
   "storeRestoreTooltip": "購入を復元",
-  "storeSectionCoinPacks": "コインパック",
-  "storeSectionCoinStore": "コインストア",
+  "storeSectionCoinPacks": "キャンディパック",
+  "storeSectionCoinStore": "キャンディストア",
+  "storeSectionDiamondPacks": "ダイヤパック",
+  "storeSectionDiamondStore": "ダイヤストア",
   "storeSectionSubscription": "サブスクリプション",
   "storeSignInPrompt": "ストアを利用するにはサインインしてください。",
   "storeSubscribe": "購読する",

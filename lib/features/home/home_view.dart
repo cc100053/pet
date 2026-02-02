@@ -72,6 +72,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int? _petLevel;
   int? _petExp;
   int _coins = 1234;
+  int _diamonds = 0;
   int? _coinReward; // Triggers coin animation when set
   int _coinRewardEventId = 0;
   bool _coinsLoadInFlight = false;
@@ -244,19 +245,22 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       final profile = await Supabase.instance.client
           .from('profiles')
-          .select('coins')
+          .select('coins,diamonds')
           .eq('user_id', user.id)
           .maybeSingle();
       final newValue = (profile?['coins'] as int?) ?? _coins;
+      final newDiamonds = (profile?['diamonds'] as int?) ?? _diamonds;
       final oldValue = _coins;
       if (!mounted) {
         _coins = newValue;
+        _diamonds = newDiamonds;
         return;
       }
 
       int? rewardEventIdToClear;
       setState(() {
         _coins = newValue;
+        _diamonds = newDiamonds;
 
         // Clear any stale reward when this load is expected to represent a
         // reward event (including cooldown/no-op cases).
@@ -2536,6 +2540,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                           : _petName!.trim(),
                       healthValue: _healthValue(),
                       coins: _coins,
+                      diamonds: _diamonds,
                       coinReward: _coinReward,
                       coinRewardEventId: _coinRewardEventId,
                       onPetTap: () => Scaffold.of(context).openDrawer(),
@@ -2785,6 +2790,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           context,
         ).push(MaterialPageRoute(builder: (_) => const StoreView())).then((_) {
           if (mounted) {
+            unawaited(_loadCoins());
             _loadFurnitureInventory();
           }
         });

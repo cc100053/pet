@@ -108,12 +108,13 @@ insert into quests (code, name, name_zh, name_ja, canonical_tags, reward_coins, 
 
 on conflict (code) do nothing;
 
-insert into items (sku, type, name, price_coins, price_usd, metadata, is_active) values
+insert into items (sku, type, name, price_coins, price_diamonds, price_usd, metadata, is_active) values
   (
     'cosmetic_room_cozy',
     'cosmetic',
     'Cozy Room Wallpaper',
     120,
+    null,
     null,
     '{"price_jpy":120,"currency":"JPY","category":"room","description":"Warm wooden room skin."}'::jsonb,
     true
@@ -124,6 +125,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'Sky Window Theme',
     180,
     null,
+    null,
     '{"price_jpy":180,"currency":"JPY","category":"room","description":"Bright sky window backdrop."}'::jsonb,
     true
   ),
@@ -132,6 +134,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'cosmetic',
     'Cozy Chair',
     80,
+    null,
     null,
     '{"price_jpy":80,"currency":"JPY","category":"furniture","emoji":"🪑","description":"A comfy chair for the pet home."}'::jsonb,
     true
@@ -142,6 +145,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'Tiny Plant',
     60,
     null,
+    null,
     '{"price_jpy":60,"currency":"JPY","category":"furniture","emoji":"🪴","description":"A small plant to brighten the room."}'::jsonb,
     true
   ),
@@ -150,6 +154,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'cosmetic',
     'Soft Lamp',
     90,
+    null,
     null,
     '{"price_jpy":90,"currency":"JPY","category":"furniture","emoji":"💡","description":"Warm light for cozy vibes."}'::jsonb,
     true
@@ -160,6 +165,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'Snack Pack',
     40,
     null,
+    null,
     '{"price_jpy":40,"currency":"JPY","category":"pet","description":"Small treat for quick care."}'::jsonb,
     true
   ),
@@ -169,6 +175,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'Clean Kit',
     60,
     null,
+    null,
     '{"price_jpy":60,"currency":"JPY","category":"pet","description":"Basic cleaning supplies."}'::jsonb,
     true
   ),
@@ -176,6 +183,7 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'subscription_premium_monthly',
     'subscription',
     'Premium Monthly',
+    null,
     null,
     null,
     '{"price_jpy":480,"currency":"JPY","category":"subscription","description":"Unlimited rooms and no ads.","iap_product_id":"Petmonthly","iap_type":"subscription","rc_entitlement_id":"Petmonthly"}'::jsonb,
@@ -187,13 +195,45 @@ insert into items (sku, type, name, price_coins, price_usd, metadata, is_active)
     'Coin Pack Small',
     null,
     null,
+    null,
     '{"price_jpy":120,"currency":"JPY","category":"coin_pack","description":"One-time coin pack.","iap_product_id":"Petcoins120","iap_type":"consumable","coin_amount":120}'::jsonb,
+    true
+  ),
+  (
+    'iap_diamond_pack_small',
+    'consumable',
+    'Diamond Pack Small',
+    null,
+    null,
+    null,
+    '{"price_jpy":120,"currency":"JPY","category":"diamond_pack","description":"One-time diamond pack.","iap_product_id":"Petdiamonds120","iap_type":"consumable","diamond_amount":120,"iap_currency":"diamond"}'::jsonb,
+    true
+  ),
+  (
+    'diamond_candy_pack_small',
+    'consumable',
+    'Candy Exchange Pack',
+    null,
+    10,
+    null,
+    '{"price_jpy":120,"currency":"JPY","category":"coin_pack","description":"Exchange diamonds for candy.","coin_amount":120}'::jsonb,
+    true
+  ),
+  (
+    'premium_room_glow',
+    'cosmetic',
+    'Glow Frame Room',
+    null,
+    15,
+    null,
+    '{"price_jpy":240,"currency":"JPY","category":"premium","description":"Premium glowing frame skin."}'::jsonb,
     true
   )
 on conflict (sku) do update set
   type = excluded.type,
   name = excluded.name,
   price_coins = excluded.price_coins,
+  price_diamonds = excluded.price_diamonds,
   price_usd = excluded.price_usd,
   metadata = excluded.metadata,
   is_active = excluded.is_active;

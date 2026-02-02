@@ -218,7 +218,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatCoinsAwarded.
   ///
   /// In en, this message translates to:
-  /// **'+{count} coins'**
+  /// **'+{count} candy'**
   String chatCoinsAwarded(Object count);
 
   /// No description provided for @chatEmptyState.
@@ -824,7 +824,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileCoinsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Coins: {amount}'**
+  /// **'Candy: {amount}'**
   String profileCoinsLabel(Object amount);
 
   /// No description provided for @profileDeleteAccountSectionTitle.
@@ -1070,20 +1070,32 @@ abstract class AppLocalizations {
   /// No description provided for @storeCoinPrice.
   ///
   /// In en, this message translates to:
-  /// **'Coins: {amount}'**
+  /// **'Candy: {amount}'**
   String storeCoinPrice(Object amount);
 
   /// No description provided for @storeCoinsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Coins: {amount}'**
+  /// **'Candy: {amount}'**
   String storeCoinsLabel(Object amount);
 
   /// No description provided for @storeCoinsReward.
   ///
   /// In en, this message translates to:
-  /// **'Coins +{amount}'**
+  /// **'Candy +{amount}'**
   String storeCoinsReward(Object amount);
+
+  /// No description provided for @storeDiamondsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamonds: {amount}'**
+  String storeDiamondsLabel(Object amount);
+
+  /// No description provided for @storeDiamondsReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamonds +{amount}'**
+  String storeDiamondsReward(Object amount);
 
   /// No description provided for @storeEmpty.
   ///
@@ -1112,7 +1124,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeNotEnoughCoins.
   ///
   /// In en, this message translates to:
-  /// **'Not enough coins.'**
+  /// **'Not enough candy.'**
   String get storeNotEnoughCoins;
 
   /// No description provided for @storeOwnedCount.
@@ -1166,14 +1178,26 @@ abstract class AppLocalizations {
   /// No description provided for @storeSectionCoinPacks.
   ///
   /// In en, this message translates to:
-  /// **'Coin Packs'**
+  /// **'Candy Packs'**
   String get storeSectionCoinPacks;
 
   /// No description provided for @storeSectionCoinStore.
   ///
   /// In en, this message translates to:
-  /// **'Coin Store'**
+  /// **'Candy Store'**
   String get storeSectionCoinStore;
+
+  /// No description provided for @storeSectionDiamondPacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond Packs'**
+  String get storeSectionDiamondPacks;
+
+  /// No description provided for @storeSectionDiamondStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond Store'**
+  String get storeSectionDiamondStore;
 
   /// No description provided for @storeSectionSubscription.
   ///

@@ -78,7 +78,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatCoinsAwarded(Object count) {
-    return '+$count 金幣';
+    return '+$count 糖果';
   }
 
   @override
@@ -419,7 +419,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String profileCoinsLabel(Object amount) {
-    return '金幣：$amount';
+    return '糖果：$amount';
   }
 
   @override
@@ -562,17 +562,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String storeCoinPrice(Object amount) {
-    return '金幣：$amount';
+    return '糖果：$amount';
   }
 
   @override
   String storeCoinsLabel(Object amount) {
-    return '金幣：$amount';
+    return '糖果：$amount';
   }
 
   @override
   String storeCoinsReward(Object amount) {
-    return '金幣 +$amount';
+    return '糖果 +$amount';
+  }
+
+  @override
+  String storeDiamondsLabel(Object amount) {
+    return '鑽石：$amount';
+  }
+
+  @override
+  String storeDiamondsReward(Object amount) {
+    return '鑽石 +$amount';
   }
 
   @override
@@ -592,7 +602,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get storeNotEnoughCoins => '金幣不足。';
+  String get storeNotEnoughCoins => '糖果不足。';
 
   @override
   String storeOwnedCount(Object amount) {
@@ -627,10 +637,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeRestoreTooltip => '恢復購買';
 
   @override
-  String get storeSectionCoinPacks => '金幣包';
+  String get storeSectionCoinPacks => '糖果包';
 
   @override
-  String get storeSectionCoinStore => '金幣商店';
+  String get storeSectionCoinStore => '糖果商店';
+
+  @override
+  String get storeSectionDiamondPacks => '鑽石包';
+
+  @override
+  String get storeSectionDiamondStore => '鑽石商店';
 
   @override
   String get storeSectionSubscription => '訂閱';
@@ -746,7 +762,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String chatCoinsAwarded(Object count) {
-    return '+$count 金幣';
+    return '+$count 糖果';
   }
 
   @override
@@ -1087,7 +1103,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String profileCoinsLabel(Object amount) {
-    return '金幣：$amount';
+    return '糖果：$amount';
   }
 
   @override
@@ -1230,17 +1246,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String storeCoinPrice(Object amount) {
-    return '金幣：$amount';
+    return '糖果：$amount';
   }
 
   @override
   String storeCoinsLabel(Object amount) {
-    return '金幣：$amount';
+    return '糖果：$amount';
   }
 
   @override
   String storeCoinsReward(Object amount) {
-    return '金幣 +$amount';
+    return '糖果 +$amount';
+  }
+
+  @override
+  String storeDiamondsLabel(Object amount) {
+    return '鑽石：$amount';
+  }
+
+  @override
+  String storeDiamondsReward(Object amount) {
+    return '鑽石 +$amount';
   }
 
   @override
@@ -1260,7 +1286,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get storeNotEnoughCoins => '金幣不足。';
+  String get storeNotEnoughCoins => '糖果不足。';
 
   @override
   String storeOwnedCount(Object amount) {
@@ -1295,10 +1321,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeRestoreTooltip => '恢復購買';
 
   @override
-  String get storeSectionCoinPacks => '金幣包';
+  String get storeSectionCoinPacks => '糖果包';
 
   @override
-  String get storeSectionCoinStore => '金幣商店';
+  String get storeSectionCoinStore => '糖果商店';
+
+  @override
+  String get storeSectionDiamondPacks => '鑽石包';
+
+  @override
+  String get storeSectionDiamondStore => '鑽石商店';
 
   @override
   String get storeSectionSubscription => '訂閱';

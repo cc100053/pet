@@ -78,7 +78,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String chatCoinsAwarded(Object count) {
-    return '+$countコイン';
+    return '+$countキャンディ';
   }
 
   @override
@@ -419,7 +419,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String profileCoinsLabel(Object amount) {
-    return 'コイン: $amount';
+    return 'キャンディ: $amount';
   }
 
   @override
@@ -562,17 +562,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeCoinPrice(Object amount) {
-    return 'コイン: $amount';
+    return 'キャンディ: $amount';
   }
 
   @override
   String storeCoinsLabel(Object amount) {
-    return 'コイン: $amount';
+    return 'キャンディ: $amount';
   }
 
   @override
   String storeCoinsReward(Object amount) {
-    return 'コイン +$amount';
+    return 'キャンディ +$amount';
+  }
+
+  @override
+  String storeDiamondsLabel(Object amount) {
+    return 'ダイヤ: $amount';
+  }
+
+  @override
+  String storeDiamondsReward(Object amount) {
+    return 'ダイヤ +$amount';
   }
 
   @override
@@ -592,7 +602,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeNotEnoughCoins => 'コインが足りません。';
+  String get storeNotEnoughCoins => 'キャンディが足りません。';
 
   @override
   String storeOwnedCount(Object amount) {
@@ -627,10 +637,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeRestoreTooltip => '購入を復元';
 
   @override
-  String get storeSectionCoinPacks => 'コインパック';
+  String get storeSectionCoinPacks => 'キャンディパック';
 
   @override
-  String get storeSectionCoinStore => 'コインストア';
+  String get storeSectionCoinStore => 'キャンディストア';
+
+  @override
+  String get storeSectionDiamondPacks => 'ダイヤパック';
+
+  @override
+  String get storeSectionDiamondStore => 'ダイヤストア';
 
   @override
   String get storeSectionSubscription => 'サブスクリプション';

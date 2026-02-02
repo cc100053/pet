@@ -69,7 +69,7 @@ flutter run
 ### Setup
 - Migrations: `supabase/migrations/` (run in Supabase SQL editor).
 - Seed data: `supabase/seed.sql`.
-- Login (for MCP tooling): `opencode mcp auth supabase`.
+- Login (for MCP tooling): `codex mcp login supabase`.
 
 ### Edge functions
 - Functions live in `supabase/functions/`.
@@ -126,11 +126,33 @@ flutter run
 - Keep providers pure; do I/O in services/repositories.
 - Avoid creating providers in widgets; define them at file/library scope.
 
-### Supabase patterns
-- Prefer explicit `select(...)` column lists for performance-sensitive queries.
-- Treat database rows as `Map<String, dynamic>` only at the boundary; map to typed models early when logic grows.
-- Realtime: unsubscribe channels when replacing them; avoid duplicate subscriptions.
-- RPC calls: include parameter names (`p_*`) explicitly and surface errors to UI.
+### Supabase Postgres Best Practices
+
+> **MCP-First**: Always use Supabase MCP tools for schema/function/policy changes. Never ask user to open dashboard.
+
+#### MCP Workflow
+- Auth: `codex mcp login supabase` (one-time)
+- Use MCP to explore schema, execute SQL, and run migrations
+- Save migrations to `supabase/migrations/` with timestamp prefix, commit to Git
+
+#### Schema
+- `snake_case` names, plural tables, `uuid` PKs, `timestamptz` for dates
+- Add indexes on columns in `WHERE`, `JOIN`, or RLS policies
+
+#### RLS
+- Enable on all user tables; use `(select auth.uid())` to cache per query
+- Add `TO authenticated` in policies; index policy columns
+- Room-scoped: `exists (select 1 from room_members rm where rm.room_id = <table>.room_id and rm.user_id = (select auth.uid()) and rm.is_active)`
+
+#### RPC Functions
+- Use `SECURITY INVOKER`; prefix params with `p_`; validate inputs; raise meaningful errors
+
+#### Flutter Queries
+- Use explicit `.select('col1, col2')`; convert to typed models at boundary
+- Include param names in `.rpc()` calls; surface errors to UI
+
+#### Realtime
+- Unsubscribe before re-subscribing; cleanup in `dispose()`
 
 ### Testing style
 - Name tests descriptively; keep widget tests deterministic (`pumpAndSettle` with bounded animations).

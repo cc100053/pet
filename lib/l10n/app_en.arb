@@ -44,7 +44,7 @@
     }
   },
   "chatBlockUser": "Block user",
-  "chatCoinsAwarded": "+{count} coins",
+  "chatCoinsAwarded": "+{count} candy",
   "@chatCoinsAwarded": {
     "placeholders": {
       "count": {}
@@ -240,7 +240,7 @@
   "profileAvatarEdit": "Edit avatar",
   "profileAvatarUpload": "Upload photo",
   "profileAvatarRemove": "Remove",
-  "profileCoinsLabel": "Coins: {amount}",
+  "profileCoinsLabel": "Candy: {amount}",
   "@profileCoinsLabel": {
     "placeholders": {
       "amount": {}
@@ -326,19 +326,31 @@
   "signInSubtitle": "Sign in to start co-raising your pet.",
   "signInWithApple": "Continue with Apple",
   "signInWithGoogle": "Continue with Google",
-  "storeCoinPrice": "Coins: {amount}",
+  "storeCoinPrice": "Candy: {amount}",
   "@storeCoinPrice": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeCoinsLabel": "Coins: {amount}",
+  "storeCoinsLabel": "Candy: {amount}",
   "@storeCoinsLabel": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeCoinsReward": "Coins +{amount}",
+  "storeCoinsReward": "Candy +{amount}",
+  "storeDiamondsLabel": "Diamonds: {amount}",
+  "@storeDiamondsLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeDiamondsReward": "Diamonds +{amount}",
+  "@storeDiamondsReward": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "@storeCoinsReward": {
     "placeholders": {
       "amount": {}
@@ -358,7 +370,7 @@
       "error": {}
     }
   },
-  "storeNotEnoughCoins": "Not enough coins.",
+  "storeNotEnoughCoins": "Not enough candy.",
   "storeOwnedCount": "Owned: {amount}",
   "@storeOwnedCount": {
     "placeholders": {
@@ -387,8 +399,10 @@
     }
   },
   "storeRestoreTooltip": "Restore purchases",
-  "storeSectionCoinPacks": "Coin Packs",
-  "storeSectionCoinStore": "Coin Store",
+  "storeSectionCoinPacks": "Candy Packs",
+  "storeSectionCoinStore": "Candy Store",
+  "storeSectionDiamondPacks": "Diamond Packs",
+  "storeSectionDiamondStore": "Diamond Store",
   "storeSectionSubscription": "Subscription",
   "storeSignInPrompt": "Please sign in to access the store.",
   "storeSubscribe": "Subscribe",
