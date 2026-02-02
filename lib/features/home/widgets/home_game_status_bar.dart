@@ -268,17 +268,27 @@ class _RightCluster extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.favorite_rounded, color: Color(0xFFEE6D85)),
-            const Gap(8),
             SizedBox(
               width: barWidth,
-              child: _HealthBar(value: healthValue),
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                clipBehavior: Clip.none,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: _HealthBar(value: healthValue),
+                  ),
+                  Positioned(
+                    left: -5,
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      color: Color(0xFFEE6D85),
+                      size: 40,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
         const Gap(10),
         SizedBox(
           width: barWidth,
@@ -302,8 +312,7 @@ class _HealthBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final clamped = value.clamp(0.0, 1.0);
     return Container(
-      width: 150,
-      height: 14,
+      height: 18,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(999),

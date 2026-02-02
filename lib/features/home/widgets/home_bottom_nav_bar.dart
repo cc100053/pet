@@ -19,7 +19,7 @@ class HomeBottomNavBar extends StatelessWidget {
   final VoidCallback onChat;
 
   static const double _height = 68;
-  static const double _cameraSize = 52;
+  static const double _cameraSize = 60;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class HomeBottomNavBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _NavIconButton(
-            iconAsset: 'assets/icon/streamline-sharp--pet-friendly-hotel-remix.svg',
+            iconAsset: 'assets/icon/streamline-sharp--pet-friendly-hotel.svg',
             onTap: onHome,
           ),
           _NavIconButton(
@@ -82,8 +82,8 @@ class _NavIconButton extends StatelessWidget {
         child: Center(
           child: SvgPicture.asset(
             iconAsset,
-            width: 26,
-            height: 26,
+            width: 32,
+            height: 32,
             colorFilter: const ColorFilter.mode(Colors.black87, BlendMode.srcIn),
           ),
         ),
@@ -119,14 +119,15 @@ class _CameraButton extends StatelessWidget {
         ),
         child: Container(
           margin: const EdgeInsets.all(6),
+          alignment: Alignment.center,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: AppTheme.primaryColor,
+            color: Color(0xFF268792),
           ),
           child: SvgPicture.asset(
             'assets/icon/solar--camera-linear.svg',
-            width: 26,
-            height: 26,
+            width: 32,
+            height: 32,
             colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
           ),
         ),

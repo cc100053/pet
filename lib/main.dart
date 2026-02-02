@@ -16,33 +16,37 @@ import 'services/performance/performance_service.dart';
 import 'services/settings/app_settings_repository.dart';
 
 Future<void> main() async {
-  final appStartTime = DateTime.now();
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
-    !kDebugMode,
-  );
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  await Supabase.initialize(
-    url: Env.supabaseUrl,
-    anonKey: Env.supabaseAnonKey,
-    authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
-  );
-
-  await Hive.initFlutter();
-  await AppSettingsRepository.instance.init();
-  await ChatMessageRepository.instance.init();
-  PerformanceService.instance.markAppStart(appStartTime);
   runZonedGuarded(
-    () {
+    () async {
+      final appStartTime = DateTime.now();
+      WidgetsFlutterBinding.ensureInitialized();
+      await dotenv.load(fileName: '.env');
+
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+        !kDebugMode,
+      );
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
+      await Supabase.initialize(
+        url: Env.supabaseUrl,
+        anonKey: Env.supabaseAnonKey,
+        authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
+      );
+
+      await Hive.initFlutter();
+      await AppSettingsRepository.instance.init();
+      await ChatMessageRepository.instance.init();
+      PerformanceService.instance.markAppStart(appStartTime);
+
       runApp(const ProviderScope(child: PicPetApp()));
       WidgetsBinding.instance.addPostFrameCallback((_) {
         PerformanceService.instance.markFirstFrameRendered();
