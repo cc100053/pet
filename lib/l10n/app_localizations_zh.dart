@@ -386,6 +386,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petNameEditTitle => '編輯寵物名字';
 
   @override
+  String get petNameLabel => '寵物名字';
+
+  @override
   String get petNameHint => '輸入寵物名字';
 
   @override
@@ -494,6 +497,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get roomCreateTitle => '建立房間';
+
+  @override
+  String get roomCreateAction => '建立';
+
+  @override
+  String get roomNameLabel => '房間名稱';
+
+  @override
+  String get roomNameHint => '房間名稱';
+
+  @override
+  String get roomNameEmptyError => '請輸入房間名稱。';
+
+  @override
+  String roomNameUpdateFailed(Object error) {
+    return '無法更新房間名稱：$error';
+  }
+
+  @override
   String get roomDefaultName => '新房間';
 
   @override
@@ -527,13 +550,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get roomLeaveMessage => '離開後在重新邀請前將無法存取這隻寵物。';
+  String roomLeaveMessage(Object name) {
+    return '你將離開 $name，並失去聊天室與寵物的存取權。';
+  }
 
   @override
   String get roomLeaveSuccess => '已離開房間。';
 
   @override
-  String get roomLeaveTitle => '離開房間？';
+  String get roomLeaveTitle => '要離開房間嗎？';
 
   @override
   String get roomLimitReached => '已達免費上限（最多 2 個房間）。升級以新增更多！';
@@ -716,6 +741,52 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get furnitureEditMode => '家具模式';
+
+  @override
+  String get petSelectionTitle => '選擇你的寵物';
+
+  @override
+  String get petSelectionSubtitle => '為這個房間挑一位夥伴。';
+
+  @override
+  String get petSelectionHint => '點一下寵物就能繼續。';
+
+  @override
+  String petSelectionSelected(Object name) {
+    return '已選擇：$name';
+  }
+
+  @override
+  String get petSelectionConfirm => '開始房間';
+
+  @override
+  String get petSelectionStarterBadge => '入門';
+
+  @override
+  String petSelectionFailed(Object error) {
+    return '選擇寵物失敗：$error';
+  }
+
+  @override
+  String get petTypeGhostName => '小幽靈';
+
+  @override
+  String get petTypeGhostTagline => '害羞又愛零食的飄飄。';
+
+  @override
+  String get petTypeCatName => '小貓';
+
+  @override
+  String get petTypeCatTagline => '好奇又愛撒嬌的小獵手。';
+
+  @override
+  String get petTypeFishName => '小魚';
+
+  @override
+  String get petTypeFishTagline => '愛滑行的泡泡游泳家。';
+
+  @override
+  String get roomLeaveConfirm => '離開房間';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1100,6 +1171,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get petNameEditTitle => '編輯寵物名字';
 
   @override
+  String get petNameLabel => '寵物名字';
+
+  @override
   String get petNameHint => '輸入寵物名字';
 
   @override
@@ -1208,6 +1282,26 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
+  String get roomCreateTitle => '建立房間';
+
+  @override
+  String get roomCreateAction => '建立';
+
+  @override
+  String get roomNameLabel => '房間名稱';
+
+  @override
+  String get roomNameHint => '房間名稱';
+
+  @override
+  String get roomNameEmptyError => '請輸入房間名稱。';
+
+  @override
+  String roomNameUpdateFailed(Object error) {
+    return '無法更新房間名稱：$error';
+  }
+
+  @override
   String get roomDefaultName => '新房間';
 
   @override
@@ -1241,13 +1335,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get roomLeaveMessage => '離開後在重新邀請前將無法存取這隻寵物。';
+  String roomLeaveMessage(Object name) {
+    return '你將離開 $name，並失去聊天室與寵物的存取權。';
+  }
 
   @override
   String get roomLeaveSuccess => '已離開房間。';
 
   @override
-  String get roomLeaveTitle => '離開房間？';
+  String get roomLeaveTitle => '要離開房間嗎？';
 
   @override
   String get roomLimitReached => '已達免費上限（最多 2 個房間）。升級以新增更多！';
@@ -1430,4 +1526,50 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get furnitureEditMode => '家具模式';
+
+  @override
+  String get petSelectionTitle => '選擇你的寵物';
+
+  @override
+  String get petSelectionSubtitle => '為這個房間挑一位夥伴。';
+
+  @override
+  String get petSelectionHint => '點一下寵物就能繼續。';
+
+  @override
+  String petSelectionSelected(Object name) {
+    return '已選擇：$name';
+  }
+
+  @override
+  String get petSelectionConfirm => '開始房間';
+
+  @override
+  String get petSelectionStarterBadge => '入門';
+
+  @override
+  String petSelectionFailed(Object error) {
+    return '選擇寵物失敗：$error';
+  }
+
+  @override
+  String get petTypeGhostName => '小幽靈';
+
+  @override
+  String get petTypeGhostTagline => '害羞又愛零食的飄飄。';
+
+  @override
+  String get petTypeCatName => '小貓';
+
+  @override
+  String get petTypeCatTagline => '好奇又愛撒嬌的小獵手。';
+
+  @override
+  String get petTypeFishName => '小魚';
+
+  @override
+  String get petTypeFishTagline => '愛滑行的泡泡游泳家。';
+
+  @override
+  String get roomLeaveConfirm => '離開房間';
 }

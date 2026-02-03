@@ -227,6 +227,7 @@
   },
   "petHomeTitle": "ペットの家",
   "petNameEditTitle": "ペット名を編集",
+  "petNameLabel": "ペット名",
   "petNameHint": "ペット名を入力",
   "petNameEmptyError": "名前を入力してください。",
   "petNameUpdateFailed": "ペット名を更新できませんでした: {error}",
@@ -295,6 +296,17 @@
   "roomCreatedSuccess": "ルームを作成しました。ドロワーを確認してください。",
   "roomCreateFailed": "ルーム作成に失敗しました: {error}",
   "@roomCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomCreateTitle": "ルームを作成",
+  "roomCreateAction": "作成",
+  "roomNameLabel": "ルーム名",
+  "roomNameHint": "ルーム名",
+  "roomNameEmptyError": "ルーム名を入力してください。",
+  "roomNameUpdateFailed": "ルーム名を更新できませんでした: {error}",
+  "@roomNameUpdateFailed": {
     "placeholders": {
       "error": {}
     }
@@ -442,5 +454,46 @@
   "furnitureInventorySubtitle": "ペットの家に配置できます。",
   "furnitureInventoryEmpty": "まだ家具がありません。ストアで購入してください。",
   "furnitureInventoryHint": "家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。",
-  "furnitureEditMode": "家具モード"
+  "furnitureEditMode": "家具モード",
+  "petSelectionTitle": "ペットを選んで",
+  "petSelectionSubtitle": "このルームの相棒を選ぼう。",
+  "petSelectionHint": "ペットをタップして進みましょう。",
+  "petSelectionSelected": "選択中：{name}",
+  "@petSelectionSelected": {
+    "description": "Label that shows the currently selected pet.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "petSelectionConfirm": "ルームを始める",
+  "petSelectionStarterBadge": "スターター",
+  "petSelectionFailed": "ペットの選択に失敗しました：{error}",
+  "@petSelectionFailed": {
+    "description": "Error message when applying selected pet fails.",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "petTypeGhostName": "ゴースト",
+  "petTypeGhostTagline": "おやつが大好きな、恥ずかしがり屋のふわふわ。",
+  "petTypeCatName": "ネコ",
+  "petTypeCatTagline": "好奇心旺盛でゴロゴロ上手。",
+  "petTypeFishName": "サカナ",
+  "petTypeFishTagline": "ぷくぷく泳ぐ、きらきらスイマー。",
+  "roomLeaveTitle": "ルームを退出しますか？",
+  "roomLeaveMessage": "{name} から退出し、チャットとペットにアクセスできなくなります。",
+  "@roomLeaveMessage": {
+    "description": "Confirmation message when leaving a room.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "roomLeaveConfirm": "退出する",
+  "roomLeaveSuccess": "ルームを退出しました。",
+  "roomLeaveFailed": "退出に失敗しました：{error}",
+  "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
 }

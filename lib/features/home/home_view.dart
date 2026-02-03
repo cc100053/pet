@@ -22,7 +22,9 @@ import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
+import '../pet/pet_catalog.dart';
 import '../pet/leveling.dart';
+import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
@@ -43,9 +45,6 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin {
-  static const _petStayGifAsset = 'assets/pet/ghost/ghost_stay.gif';
-  static const _petSleepGifAsset = 'assets/pet/ghost/ghost_sleep.gif';
-  static const _petWalkGifAsset = 'assets/pet/ghost/ghost_walking.gif';
   static const _petAvatarSize = Size(100, 100);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
@@ -60,6 +59,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _profileEnsured = false;
   bool _creatingRoom = false;
   bool _joiningRoom = false;
+  bool _leavingRoom = false;
   bool _testingFeed = false;
   bool _loadingRoom = true;
   bool _showRoomSelection = true;
@@ -67,6 +67,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _roomId;
   String? _feedResult;
   String? _petId;
+  String _petType = PetCatalog.defaultPetId;
   bool _petBusy = false;
   Map<String, dynamic>? _petState;
   String? _petError;
@@ -100,6 +101,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
   Timer? _petTickTimer;
   bool _petAssetsPrecached = false;
+  final Set<String> _cachedPetAssets = {};
+  static const int _petNameMaxLength = 20;
 
   // Furniture State
   bool _furnitureMode = false;
@@ -178,12 +181,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     _petAssetsPrecached = true;
-    for (final asset in const [
-      _petStayGifAsset,
-      _petSleepGifAsset,
-      _petWalkGifAsset,
-    ]) {
-      precacheImage(AssetImage(asset), context);
+    for (final pet in PetCatalog.pets) {
+      _precachePetAssets(pet);
     }
   }
 
@@ -200,6 +199,29 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
+  }
+
+  void _precachePetAssets(PetDefinition pet) {
+    for (final asset in PetCatalog.assetPaths(pet)) {
+      if (_cachedPetAssets.add(asset)) {
+        precacheImage(AssetImage(asset), context);
+      }
+    }
+  }
+
+  void _updatePetType(String? petType) {
+    final resolved = PetCatalog.resolveId(petType);
+    if (!mounted) {
+      _petType = resolved;
+      return;
+    }
+    if (resolved == _petType) {
+      return;
+    }
+    setState(() {
+      _petType = resolved;
+    });
+    _precachePetAssets(PetCatalog.byId(resolved));
   }
 
   // --- Logic Methods ---
@@ -480,12 +502,13 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  void _switchRoom(String roomId) {
+  void _switchRoom(String roomId, {String? petType}) {
     final previousRoom = _roomId;
     setState(() {
       _roomId = roomId;
       _petState = null; // Clear old state
       _petId = null;
+      _petType = petType ?? PetCatalog.defaultPetId;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
     });
@@ -507,16 +530,16 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  void _enterRoomFromSelection(String roomId) {
+  void _enterRoomFromSelection(String roomId, {String? petType}) {
     if (!_showRoomSelection) {
-      _switchRoom(roomId);
+      _switchRoom(roomId, petType: petType);
       return;
     }
     setState(() {
       _showRoomSelection = false;
       _roomSelectionId = roomId;
     });
-    _switchRoom(roomId);
+    _switchRoom(roomId, petType: petType);
   }
 
   Future<void> _signOut() async {
@@ -533,19 +556,50 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
+    final creation = await _promptRoomCreationDetails();
+    if (creation == null) {
+      return;
+    }
+
     setState(() => _creatingRoom = true);
     try {
       final response = await Supabase.instance.client
           .rpc('create_room', params: {'p_name': l10n.roomDefaultName})
           .single();
 
+      final newId = response['room_id'] as String?;
+      if (newId == null) {
+        throw Exception('room_id_missing');
+      }
+
+      await _applyInitialRoomName(newId, creation.roomName);
+
       // Refresh list and switch
       await _fetchRooms();
       if (!mounted) {
         return;
       }
-      final newId = response['room_id'] as String?;
-      if (newId != null) {
+
+      final selectedPet = await Navigator.of(context).push<PetDefinition>(
+        PetSelectionPage.route(),
+      );
+      if (!mounted) {
+        return;
+      }
+
+      if (selectedPet == null) {
+        await _leaveRoom(newId, showSnackBar: false);
+        return;
+      }
+
+      final applied = await _applyPetSelection(newId, selectedPet);
+      await _applyInitialPetName(newId, creation.petName);
+      if (!mounted) {
+        return;
+      }
+      if (applied) {
+        _enterRoomFromSelection(newId, petType: selectedPet.id);
+      } else {
         _enterRoomFromSelection(newId);
       }
       AnalyticsService.instance.logEvent(
@@ -565,6 +619,111 @@ class _HomeViewState extends ConsumerState<HomeView>
     } finally {
       if (mounted) setState(() => _creatingRoom = false);
     }
+  }
+
+  Future<bool> _applyPetSelection(
+    String roomId,
+    PetDefinition selectedPet,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final petId = await _loadPetId(roomId);
+      if (petId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.petNotFound)));
+        }
+        return false;
+      }
+
+      await Supabase.instance.client
+          .from('pets')
+          .update({
+            'color_dna': {PetCatalog.colorDnaTypeKey: selectedPet.id},
+          })
+          .eq('id', petId);
+
+      _updatePetType(selectedPet.id);
+      unawaited(_loadPetInfo(petId));
+      return true;
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.petSelectionFailed(error.toString()))),
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<void> _applyInitialPetName(String roomId, String petName) async {
+    final trimmed = petName.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final petId = await _loadPetId(roomId);
+      if (petId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.petNotFound)));
+        }
+        return;
+      }
+
+      await Supabase.instance.client
+          .from('pets')
+          .update({'name': trimmed})
+          .eq('id', petId);
+
+      if (!mounted) {
+        return;
+      }
+      if (_petId == petId) {
+        setState(() => _petName = trimmed);
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.petNameUpdateFailed(error.toString()))),
+      );
+    }
+  }
+
+  Future<void> _applyInitialRoomName(String roomId, String roomName) async {
+    final trimmed = roomName.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await Supabase.instance.client
+          .from('rooms')
+          .update({'name': trimmed})
+          .eq('id', roomId);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.roomNameUpdateFailed(error.toString()))),
+      );
+    }
+  }
+
+  Future<_RoomCreationDetails?> _promptRoomCreationDetails() async {
+    return showAppDialog<_RoomCreationDetails>(
+      context: context,
+      builder: (context) => const _RoomCreationDialog(
+        initialRoomName: '',
+        maxPetNameLength: _petNameMaxLength,
+      ),
+    );
   }
 
   Future<void> _joinRoomByCode() async {
@@ -662,6 +821,87 @@ class _HomeViewState extends ConsumerState<HomeView>
       );
     } finally {
       if (mounted) setState(() => _joiningRoom = false);
+    }
+  }
+
+  Future<void> _confirmLeaveRoom(String roomId) async {
+    if (_leavingRoom) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final room = _myRooms.firstWhere(
+      (entry) => entry['id'] == roomId,
+      orElse: () => const {},
+    );
+    final roomName = room['name'] as String?;
+    final confirmed = await showAppDialog<bool>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.warning,
+        title: l10n.roomLeaveTitle,
+        message: l10n.roomLeaveMessage(
+          roomName?.trim().isEmpty ?? true ? l10n.roomDefaultName : roomName!,
+        ),
+        actions: [
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          AppDialogAction.destructive(
+            label: l10n.roomLeaveConfirm,
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _leaveRoom(roomId);
+    }
+  }
+
+  Future<void> _leaveRoom(String roomId, {bool showSnackBar = true}) async {
+    if (_leavingRoom) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    setState(() {
+      _leavingRoom = true;
+      _showRoomSelection = true;
+      if (_roomId == roomId) {
+        _roomId = null;
+        _roomSelectionId = null;
+        _petState = null;
+        _petId = null;
+      }
+    });
+    try {
+      await Supabase.instance.client.rpc(
+        'leave_room',
+        params: {'p_room_id': roomId},
+      );
+      await _fetchRooms();
+      if (!mounted) {
+        return;
+      }
+      if (showSnackBar) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.roomLeaveSuccess)),
+        );
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      if (showSnackBar) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.roomLeaveFailed(error.toString()))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _leavingRoom = false);
+      }
     }
   }
 
@@ -1417,7 +1657,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       final row = await Supabase.instance.client
           .from('pets')
-          .select('name, level, exp')
+          .select('name, level, exp, color_dna')
           .eq('id', petId)
           .maybeSingle();
       if (row == null) {
@@ -1426,17 +1666,22 @@ class _HomeViewState extends ConsumerState<HomeView>
       final name = row['name'] as String?;
       final level = row['level'] as int?;
       final exp = row['exp'] as int?;
+      final petType = PetCatalog.typeFromColorDna(row['color_dna']);
+      final resolvedPetType = PetCatalog.resolveId(petType);
       if (!mounted) {
         _petName = name;
         _petLevel = level;
         _petExp = exp;
+        _petType = resolvedPetType;
         return;
       }
       setState(() {
         _petName = name;
         _petLevel = level;
         _petExp = exp;
+        _petType = resolvedPetType;
       });
+      _precachePetAssets(PetCatalog.byId(resolvedPetType));
     } catch (_) {
       // Best-effort.
     }
@@ -2549,6 +2794,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           onCreateRoom: _createRoom,
           onJoinRoom: _joinRoomByCode,
           onSelectRoom: _enterRoomFromSelection,
+          onLeaveRoom: _confirmLeaveRoom,
           selectedRoomId: _roomSelectionId ?? _roomId,
           userAvatarUrl: _myAvatarUrl,
         ),
@@ -2617,13 +2863,14 @@ class _HomeViewState extends ConsumerState<HomeView>
                   builder: (context) {
                     final level = _petLevel ?? 17;
                     final exp = _petExp ?? 0;
+                    final petDefinition = PetCatalog.byId(_petType);
                     final expProgressValue = expProgress(
                       level: level,
                       exp: exp,
                     );
                     return HomeGameStatusBar(
                       petAvatar: Image.asset(
-                        _petStayGifAsset,
+                        petDefinition.stayAsset,
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
                       ),
@@ -2737,14 +2984,15 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Widget _buildPetAvatar() {
     final petColor = _petMoodColor();
+    final petDefinition = PetCatalog.byId(_petType);
 
     final String asset;
     if (_petIsMoving) {
-      asset = _petWalkGifAsset;
+      asset = petDefinition.walkAsset;
     } else {
       asset = switch (_petStationaryState) {
-        _PetStationaryState.staying => _petStayGifAsset,
-        _PetStationaryState.sleeping => _petSleepGifAsset,
+        _PetStationaryState.staying => petDefinition.stayAsset,
+        _PetStationaryState.sleeping => petDefinition.sleepAsset,
       };
     }
 
@@ -2983,6 +3231,130 @@ class _PoopSpot {
 
   final int index;
   final Offset normalized;
+}
+
+class _RoomCreationDetails {
+  const _RoomCreationDetails({required this.roomName, required this.petName});
+
+  final String roomName;
+  final String petName;
+}
+
+class _RoomCreationDialog extends StatefulWidget {
+  const _RoomCreationDialog({
+    required this.initialRoomName,
+    required this.maxPetNameLength,
+  });
+
+  final String initialRoomName;
+  final int maxPetNameLength;
+
+  @override
+  State<_RoomCreationDialog> createState() => _RoomCreationDialogState();
+}
+
+class _RoomCreationDialogState extends State<_RoomCreationDialog> {
+  late final TextEditingController _roomController;
+  late final TextEditingController _petController;
+  String? _roomError;
+  String? _petError;
+
+  @override
+  void initState() {
+    super.initState();
+    _roomController = TextEditingController(
+      text: widget.initialRoomName.isEmpty ? null : widget.initialRoomName,
+    );
+    _petController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _roomController.dispose();
+    _petController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final l10n = AppLocalizations.of(context)!;
+    final roomName = _roomController.text.trim();
+    final petName = _petController.text.trim();
+    var hasError = false;
+    if (roomName.isEmpty) {
+      _roomError = l10n.roomNameEmptyError;
+      hasError = true;
+    } else {
+      _roomError = null;
+    }
+    if (petName.isEmpty) {
+      _petError = l10n.petNameEmptyError;
+      hasError = true;
+    } else {
+      _petError = null;
+    }
+    if (hasError) {
+      setState(() {});
+      return;
+    }
+    Navigator.of(context).pop(
+      _RoomCreationDetails(roomName: roomName, petName: petName),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return AppDialog(
+      tone: AppDialogTone.info,
+      title: l10n.roomCreateTitle,
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _roomController,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: l10n.roomNameLabel,
+                helperText: l10n.roomDefaultName,
+                helperStyle: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                errorText: _roomError,
+              ),
+              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+            ),
+            const Gap(12),
+            TextField(
+              controller: _petController,
+              textInputAction: TextInputAction.done,
+              maxLength: widget.maxPetNameLength,
+              decoration: InputDecoration(
+                labelText: l10n.petNameLabel,
+                helperText: l10n.petNameHint,
+                helperStyle: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                errorText: _petError,
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        AppDialogAction.secondary(
+          label: l10n.commonCancel,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        AppDialogAction.primary(
+          label: l10n.roomCreateAction,
+          onPressed: _submit,
+        ),
+      ],
+    );
+  }
 }
 
 class UpperCaseTextFormatter extends TextInputFormatter {

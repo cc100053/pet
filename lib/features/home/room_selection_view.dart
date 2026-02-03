@@ -15,6 +15,7 @@ class RoomSelectionView extends StatelessWidget {
     required this.onCreateRoom,
     required this.onJoinRoom,
     required this.onSelectRoom,
+    required this.onLeaveRoom,
     required this.creatingRoom,
     required this.joiningRoom,
     this.selectedRoomId,
@@ -25,6 +26,7 @@ class RoomSelectionView extends StatelessWidget {
   final VoidCallback onCreateRoom;
   final VoidCallback onJoinRoom;
   final ValueChanged<String> onSelectRoom;
+  final ValueChanged<String> onLeaveRoom;
   final bool creatingRoom;
   final bool joiningRoom;
   final String? selectedRoomId;
@@ -133,10 +135,10 @@ class RoomSelectionView extends StatelessWidget {
                   itemBuilder: (context, index) {
                     if (index < rooms.length) {
                       final room = rooms[index];
-                      return _buildRoomCard(context, room, l10n)
-                          .animate()
-                          .fadeIn(delay: (80 * index).ms)
-                          .slideY(begin: 0.1, end: 0);
+    return _buildRoomCard(context, room, l10n)
+        .animate()
+        .fadeIn(delay: (80 * index).ms)
+        .slideY(begin: 0.1, end: 0);
                     }
                     return _buildEmptySlot(context, l10n)
                         .animate()
@@ -202,6 +204,7 @@ class RoomSelectionView extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: roomId == null ? null : () => onSelectRoom(roomId),
+        onLongPress: roomId == null ? null : () => onLeaveRoom(roomId),
         child: Ink(
           decoration: BoxDecoration(
             color: _filmBase,

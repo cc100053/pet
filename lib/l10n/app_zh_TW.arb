@@ -227,6 +227,7 @@
   },
   "petHomeTitle": "寵物的家",
   "petNameEditTitle": "編輯寵物名字",
+  "petNameLabel": "寵物名字",
   "petNameHint": "輸入寵物名字",
   "petNameEmptyError": "請輸入名字。",
   "petNameUpdateFailed": "無法更新寵物名字：{error}",
@@ -295,6 +296,17 @@
   "roomCreatedSuccess": "已建立房間！請查看側邊欄。",
   "roomCreateFailed": "建立房間失敗：{error}",
   "@roomCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomCreateTitle": "建立房間",
+  "roomCreateAction": "建立",
+  "roomNameLabel": "房間名稱",
+  "roomNameHint": "房間名稱",
+  "roomNameEmptyError": "請輸入房間名稱。",
+  "roomNameUpdateFailed": "無法更新房間名稱：{error}",
+  "@roomNameUpdateFailed": {
     "placeholders": {
       "error": {}
     }
@@ -442,5 +454,46 @@
   "furnitureInventorySubtitle": "把家具放進寵物家裡。",
   "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
   "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。",
-  "furnitureEditMode": "家具模式"
+  "furnitureEditMode": "家具模式",
+  "petSelectionTitle": "選擇你的寵物",
+  "petSelectionSubtitle": "為這個房間挑一位夥伴。",
+  "petSelectionHint": "點一下寵物就能繼續。",
+  "petSelectionSelected": "已選擇：{name}",
+  "@petSelectionSelected": {
+    "description": "Label that shows the currently selected pet.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "petSelectionConfirm": "開始房間",
+  "petSelectionStarterBadge": "入門",
+  "petSelectionFailed": "選擇寵物失敗：{error}",
+  "@petSelectionFailed": {
+    "description": "Error message when applying selected pet fails.",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "petTypeGhostName": "小幽靈",
+  "petTypeGhostTagline": "害羞又愛零食的飄飄。",
+  "petTypeCatName": "小貓",
+  "petTypeCatTagline": "好奇又愛撒嬌的小獵手。",
+  "petTypeFishName": "小魚",
+  "petTypeFishTagline": "愛滑行的泡泡游泳家。",
+  "roomLeaveTitle": "要離開房間嗎？",
+  "roomLeaveMessage": "你將離開 {name}，並失去聊天室與寵物的存取權。",
+  "@roomLeaveMessage": {
+    "description": "Confirmation message when leaving a room.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "roomLeaveConfirm": "離開房間",
+  "roomLeaveSuccess": "已離開房間。",
+  "roomLeaveFailed": "離開房間失敗：{error}",
+  "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
 }

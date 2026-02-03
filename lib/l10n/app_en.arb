@@ -227,6 +227,7 @@
   },
   "petHomeTitle": "Pet Home",
   "petNameEditTitle": "Edit pet name",
+  "petNameLabel": "Pet name",
   "petNameHint": "Enter pet name",
   "petNameEmptyError": "Please enter a name.",
   "petNameUpdateFailed": "Couldn't update pet name: {error}",
@@ -295,6 +296,17 @@
   "roomCreatedSuccess": "Room created! Check the Drawer.",
   "roomCreateFailed": "Failed to create room: {error}",
   "@roomCreateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomCreateTitle": "Create room",
+  "roomCreateAction": "Create",
+  "roomNameLabel": "Room name",
+  "roomNameHint": "Room name",
+  "roomNameEmptyError": "Please enter a room name.",
+  "roomNameUpdateFailed": "Couldn't update room name: {error}",
+  "@roomNameUpdateFailed": {
     "placeholders": {
       "error": {}
     }
@@ -442,5 +454,46 @@
   "furnitureInventorySubtitle": "Place items in your pet home.",
   "furnitureInventoryEmpty": "No furniture yet. Buy some in the store.",
   "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.",
-  "furnitureEditMode": "Furniture Mode"
+  "furnitureEditMode": "Furniture Mode",
+  "petSelectionTitle": "Choose your pet",
+  "petSelectionSubtitle": "Pick a buddy to start this room.",
+  "petSelectionHint": "Tap a pet to continue.",
+  "petSelectionSelected": "Selected: {name}",
+  "@petSelectionSelected": {
+    "description": "Label that shows the currently selected pet.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "petSelectionConfirm": "Start room",
+  "petSelectionStarterBadge": "Starter",
+  "petSelectionFailed": "Pet selection failed: {error}",
+  "@petSelectionFailed": {
+    "description": "Error message when applying selected pet fails.",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "petTypeGhostName": "Ghost",
+  "petTypeGhostTagline": "A shy floater who loves snacks.",
+  "petTypeCatName": "Cat",
+  "petTypeCatTagline": "A curious pouncer with a warm purr.",
+  "petTypeFishName": "Fish",
+  "petTypeFishTagline": "A bubbly swimmer who loves to glide.",
+  "roomLeaveTitle": "Leave room?",
+  "roomLeaveMessage": "You'll leave {name} and lose access to its chat and pet.",
+  "@roomLeaveMessage": {
+    "description": "Confirmation message when leaving a room.",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "roomLeaveConfirm": "Leave room",
+  "roomLeaveSuccess": "Left the room.",
+  "roomLeaveFailed": "Failed to leave room: {error}",
+  "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
 }

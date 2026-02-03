@@ -386,6 +386,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petNameEditTitle => 'ペット名を編集';
 
   @override
+  String get petNameLabel => 'ペット名';
+
+  @override
   String get petNameHint => 'ペット名を入力';
 
   @override
@@ -494,6 +497,26 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get roomCreateTitle => 'ルームを作成';
+
+  @override
+  String get roomCreateAction => '作成';
+
+  @override
+  String get roomNameLabel => 'ルーム名';
+
+  @override
+  String get roomNameHint => 'ルーム名';
+
+  @override
+  String get roomNameEmptyError => 'ルーム名を入力してください。';
+
+  @override
+  String roomNameUpdateFailed(Object error) {
+    return 'ルーム名を更新できませんでした: $error';
+  }
+
+  @override
   String get roomDefaultName => '新しいルーム';
 
   @override
@@ -523,14 +546,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String roomLeaveFailed(Object error) {
-    return '退出に失敗しました: $error';
+    return '退出に失敗しました：$error';
   }
 
   @override
-  String get roomLeaveMessage => '再招待されるまでこのペットにアクセスできません。';
+  String roomLeaveMessage(Object name) {
+    return '$name から退出し、チャットとペットにアクセスできなくなります。';
+  }
 
   @override
-  String get roomLeaveSuccess => 'ルームから退出しました。';
+  String get roomLeaveSuccess => 'ルームを退出しました。';
 
   @override
   String get roomLeaveTitle => 'ルームを退出しますか？';
@@ -717,4 +742,50 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get furnitureEditMode => '家具モード';
+
+  @override
+  String get petSelectionTitle => 'ペットを選んで';
+
+  @override
+  String get petSelectionSubtitle => 'このルームの相棒を選ぼう。';
+
+  @override
+  String get petSelectionHint => 'ペットをタップして進みましょう。';
+
+  @override
+  String petSelectionSelected(Object name) {
+    return '選択中：$name';
+  }
+
+  @override
+  String get petSelectionConfirm => 'ルームを始める';
+
+  @override
+  String get petSelectionStarterBadge => 'スターター';
+
+  @override
+  String petSelectionFailed(Object error) {
+    return 'ペットの選択に失敗しました：$error';
+  }
+
+  @override
+  String get petTypeGhostName => 'ゴースト';
+
+  @override
+  String get petTypeGhostTagline => 'おやつが大好きな、恥ずかしがり屋のふわふわ。';
+
+  @override
+  String get petTypeCatName => 'ネコ';
+
+  @override
+  String get petTypeCatTagline => '好奇心旺盛でゴロゴロ上手。';
+
+  @override
+  String get petTypeFishName => 'サカナ';
+
+  @override
+  String get petTypeFishTagline => 'ぷくぷく泳ぐ、きらきらスイマー。';
+
+  @override
+  String get roomLeaveConfirm => '退出する';
 }

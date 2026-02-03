@@ -389,6 +389,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petNameEditTitle => 'Edit pet name';
 
   @override
+  String get petNameLabel => 'Pet name';
+
+  @override
   String get petNameHint => 'Enter pet name';
 
   @override
@@ -497,6 +500,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get roomCreateTitle => 'Create room';
+
+  @override
+  String get roomCreateAction => 'Create';
+
+  @override
+  String get roomNameLabel => 'Room name';
+
+  @override
+  String get roomNameHint => 'Room name';
+
+  @override
+  String get roomNameEmptyError => 'Please enter a room name.';
+
+  @override
+  String roomNameUpdateFailed(Object error) {
+    return 'Couldn\'t update room name: $error';
+  }
+
+  @override
   String get roomDefaultName => 'New Room';
 
   @override
@@ -530,14 +553,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get roomLeaveMessage =>
-      'You will lose access to this pet until you are invited again.';
+  String roomLeaveMessage(Object name) {
+    return 'You\'ll leave $name and lose access to its chat and pet.';
+  }
 
   @override
-  String get roomLeaveSuccess => 'Left room successfully.';
+  String get roomLeaveSuccess => 'Left the room.';
 
   @override
-  String get roomLeaveTitle => 'Leave Room?';
+  String get roomLeaveTitle => 'Leave room?';
 
   @override
   String get roomLimitReached =>
@@ -724,4 +748,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureEditMode => 'Furniture Mode';
+
+  @override
+  String get petSelectionTitle => 'Choose your pet';
+
+  @override
+  String get petSelectionSubtitle => 'Pick a buddy to start this room.';
+
+  @override
+  String get petSelectionHint => 'Tap a pet to continue.';
+
+  @override
+  String petSelectionSelected(Object name) {
+    return 'Selected: $name';
+  }
+
+  @override
+  String get petSelectionConfirm => 'Start room';
+
+  @override
+  String get petSelectionStarterBadge => 'Starter';
+
+  @override
+  String petSelectionFailed(Object error) {
+    return 'Pet selection failed: $error';
+  }
+
+  @override
+  String get petTypeGhostName => 'Ghost';
+
+  @override
+  String get petTypeGhostTagline => 'A shy floater who loves snacks.';
+
+  @override
+  String get petTypeCatName => 'Cat';
+
+  @override
+  String get petTypeCatTagline => 'A curious pouncer with a warm purr.';
+
+  @override
+  String get petTypeFishName => 'Fish';
+
+  @override
+  String get petTypeFishTagline => 'A bubbly swimmer who loves to glide.';
+
+  @override
+  String get roomLeaveConfirm => 'Leave room';
 }

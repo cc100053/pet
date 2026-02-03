@@ -761,6 +761,12 @@ abstract class AppLocalizations {
   /// **'Edit pet name'**
   String get petNameEditTitle;
 
+  /// No description provided for @petNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet name'**
+  String get petNameLabel;
+
   /// No description provided for @petNameHint.
   ///
   /// In en, this message translates to:
@@ -941,6 +947,42 @@ abstract class AppLocalizations {
   /// **'Failed to create room: {error}'**
   String roomCreateFailed(Object error);
 
+  /// No description provided for @roomCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create room'**
+  String get roomCreateTitle;
+
+  /// No description provided for @roomCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get roomCreateAction;
+
+  /// No description provided for @roomNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Room name'**
+  String get roomNameLabel;
+
+  /// No description provided for @roomNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Room name'**
+  String get roomNameHint;
+
+  /// No description provided for @roomNameEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a room name.'**
+  String get roomNameEmptyError;
+
+  /// No description provided for @roomNameUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update room name: {error}'**
+  String roomNameUpdateFailed(Object error);
+
   /// No description provided for @roomDefaultName.
   ///
   /// In en, this message translates to:
@@ -995,22 +1037,22 @@ abstract class AppLocalizations {
   /// **'Failed to leave room: {error}'**
   String roomLeaveFailed(Object error);
 
-  /// No description provided for @roomLeaveMessage.
+  /// Confirmation message when leaving a room.
   ///
   /// In en, this message translates to:
-  /// **'You will lose access to this pet until you are invited again.'**
-  String get roomLeaveMessage;
+  /// **'You\'ll leave {name} and lose access to its chat and pet.'**
+  String roomLeaveMessage(Object name);
 
   /// No description provided for @roomLeaveSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Left room successfully.'**
+  /// **'Left the room.'**
   String get roomLeaveSuccess;
 
   /// No description provided for @roomLeaveTitle.
   ///
   /// In en, this message translates to:
-  /// **'Leave Room?'**
+  /// **'Leave room?'**
   String get roomLeaveTitle;
 
   /// No description provided for @roomLimitReached.
@@ -1324,6 +1366,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Furniture Mode'**
   String get furnitureEditMode;
+
+  /// No description provided for @petSelectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your pet'**
+  String get petSelectionTitle;
+
+  /// No description provided for @petSelectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a buddy to start this room.'**
+  String get petSelectionSubtitle;
+
+  /// No description provided for @petSelectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a pet to continue.'**
+  String get petSelectionHint;
+
+  /// Label that shows the currently selected pet.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {name}'**
+  String petSelectionSelected(Object name);
+
+  /// No description provided for @petSelectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start room'**
+  String get petSelectionConfirm;
+
+  /// No description provided for @petSelectionStarterBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter'**
+  String get petSelectionStarterBadge;
+
+  /// Error message when applying selected pet fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet selection failed: {error}'**
+  String petSelectionFailed(Object error);
+
+  /// No description provided for @petTypeGhostName.
+  ///
+  /// In en, this message translates to:
+  /// **'Ghost'**
+  String get petTypeGhostName;
+
+  /// No description provided for @petTypeGhostTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A shy floater who loves snacks.'**
+  String get petTypeGhostTagline;
+
+  /// No description provided for @petTypeCatName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cat'**
+  String get petTypeCatName;
+
+  /// No description provided for @petTypeCatTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A curious pouncer with a warm purr.'**
+  String get petTypeCatTagline;
+
+  /// No description provided for @petTypeFishName.
+  ///
+  /// In en, this message translates to:
+  /// **'Fish'**
+  String get petTypeFishName;
+
+  /// No description provided for @petTypeFishTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A bubbly swimmer who loves to glide.'**
+  String get petTypeFishTagline;
+
+  /// No description provided for @roomLeaveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave room'**
+  String get roomLeaveConfirm;
 }
 
 class _AppLocalizationsDelegate

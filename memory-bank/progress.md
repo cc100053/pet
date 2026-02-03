@@ -167,6 +167,17 @@
 - Added system chat message for pet renames and localized rendering in chat.
 - Updated pet rename system message to include the previous name and localized parsing for old/new names.
 - Redesigned dialogs to use a shared frosted AppDialog component with tone variants (info/success/warning/danger) and updated alert/confirmation/input flows to the new style.
+- Added Pet Selection flow after room creation with a new PetSelectionPage, pet catalog definitions, and persisted pet type in pets.color_dna.
+- Added long-press leave-room flow on room selection cards with confirmation dialog and room list refresh.
+- Added cat and fish pets to the asset catalog and Pet Selection options, with localized names/taglines.
+- Added a return (back) button on the Pet Selection page header.
+- Canceling the Pet Selection now leaves the just-created room to prevent orphan rooms.
+- Added room creation dialog to input room name and initial pet name before starting pet selection.
+- Fixed room creation dialog to own its TextEditingControllers (prevents dispose-related crash on cancel).
+- Refined room creation input fields to use dim helper text below the fields instead of inline placeholders.
+- Applied room name after creation via direct update to match initial pet name logic and added error messaging for failures.
+- Room name now shows the default “New Room” as dim helper text (not prefilled in the input).
+- Updated hunger decay tuning (base -4/hour) with new mood modifiers; kept night mode behavior.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.
