@@ -8,6 +8,7 @@ import 'package:pet/l10n/app_localizations.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
+import '../ui/app_dialog.dart';
 
 class ForceUpdateGate extends StatefulWidget {
   const ForceUpdateGate({super.key, required this.child});
@@ -144,21 +145,21 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       return;
     }
     _dialogShowing = true;
-    await showDialog<void>(
+    await showAppDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.forceUpdateTitle),
-        content: Text(
-          config.message ?? AppLocalizations.of(context)!.forceUpdateMessage,
-        ),
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: AppLocalizations.of(context)!.forceUpdateTitle,
+        message:
+            config.message ?? AppLocalizations.of(context)!.forceUpdateMessage,
         actions: [
-          FilledButton(
+          AppDialogAction.primary(
+            label: AppLocalizations.of(context)!.forceUpdateAction,
             onPressed: () {
               Navigator.of(context).pop();
               _launchStore(config.storeUrl);
             },
-            child: Text(AppLocalizations.of(context)!.forceUpdateAction),
           ),
         ],
       ),

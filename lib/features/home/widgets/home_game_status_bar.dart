@@ -19,8 +19,10 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.coins,
     required this.diamonds,
     required this.onPetTap,
+    required this.onStoreTap,
     this.coinReward,
     this.coinRewardEventId = 0,
+    this.onPetNameTap,
   });
 
   final Widget petAvatar;
@@ -31,6 +33,8 @@ class HomeGameStatusBar extends StatelessWidget {
   final int coins;
   final int diamonds;
   final VoidCallback onPetTap;
+  final VoidCallback onStoreTap;
+  final VoidCallback? onPetNameTap;
 
   /// When set, triggers the coin reward animation showing "+X" and bounce.
   /// Treated as a one-shot trigger; it can be cleared on the next frame.
@@ -54,6 +58,7 @@ class HomeGameStatusBar extends StatelessWidget {
             level: level,
             petName: petName,
             onPetTap: onPetTap,
+            onPetNameTap: onPetNameTap,
           ),
           _RightCluster(
             healthValue: healthValue,
@@ -61,6 +66,7 @@ class HomeGameStatusBar extends StatelessWidget {
             diamonds: diamonds,
             coinReward: coinReward,
             coinRewardEventId: coinRewardEventId,
+            onStoreTap: onStoreTap,
           ),
         ],
       ),
@@ -75,6 +81,7 @@ class _LeftCluster extends StatelessWidget {
     required this.level,
     required this.petName,
     required this.onPetTap,
+    this.onPetNameTap,
   });
 
   final Widget petAvatar;
@@ -82,6 +89,7 @@ class _LeftCluster extends StatelessWidget {
   final int level;
   final String petName;
   final VoidCallback onPetTap;
+  final VoidCallback? onPetNameTap;
 
   @override
   Widget build(BuildContext context) {
@@ -96,43 +104,48 @@ class _LeftCluster extends StatelessWidget {
           ),
         ),
         const Gap(10),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.black87, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Lv $level',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 12,
-                  color: AppTheme.secondaryColor,
-                  height: 1,
+        GestureDetector(
+          onTap: onPetNameTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.black87, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 8),
                 ),
-              ),
-              const Gap(8),
-              Text(
-                petName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  color: Colors.black,
-                  height: 1,
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Lv $level',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    color: AppTheme.secondaryColor,
+                    height: 1,
+                  ),
                 ),
-              ),
-            ],
+                const Gap(8),
+                Text(
+                  petName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: Colors.black,
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -260,6 +273,7 @@ class _RightCluster extends StatelessWidget {
     required this.diamonds,
     this.coinReward,
     this.coinRewardEventId = 0,
+    required this.onStoreTap,
   });
 
   final double healthValue;
@@ -267,47 +281,38 @@ class _RightCluster extends StatelessWidget {
   final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final VoidCallback onStoreTap;
 
   @override
   Widget build(BuildContext context) {
-    const barWidth = 150.0;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-            SizedBox(
-              width: barWidth,
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                clipBehavior: Clip.none,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: _HealthBar(value: healthValue),
-                  ),
-                  Positioned(
-                    left: -5,
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      color: Color(0xFFEE6D85),
-                      size: 40,
-                    ),
-                  ),
-                ],
-              ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: _HealthBar(value: healthValue),
             ),
-        const Gap(8),
-        SizedBox(
-          width: barWidth,
-          child: _DiamondsPillContent(diamonds: diamonds),
+            const SizedBox(height: 8),
+            _CombinedCurrencyPill(
+              coins: coins,
+              diamonds: diamonds,
+              coinReward: coinReward,
+              coinRewardEventId: coinRewardEventId,
+              onStoreTap: onStoreTap,
+            ),
+          ],
         ),
-        const Gap(8),
-        SizedBox(
-          width: barWidth,
-          child: _AnimatedCoinsPill(
-            coins: coins,
-            coinReward: coinReward,
-            coinRewardEventId: coinRewardEventId,
+        const Positioned(
+          top: -11,
+          left: -5,
+          child: Icon(
+            Icons.favorite_rounded,
+            color: Color(0xFFEE6D85),
+            size: 40,
           ),
         ),
       ],
@@ -322,52 +327,68 @@ class _HealthBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final clamped = value.clamp(0.0, 1.0);
-    return Container(
-      height: 18,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.black87, width: 2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(2),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: clamped,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEE6D85),
-                  borderRadius: BorderRadius.circular(999),
+    final safeValue = value.isFinite ? value : 0.0;
+    final clamped = safeValue.clamp(0.0, 1.0);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fallbackWidth = MediaQuery.of(context).size.width * 0.35;
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : fallbackWidth;
+        return SizedBox(
+          width: width,
+          child: Container(
+            height: 18,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.black87, width: 2),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: clamped,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEE6D85),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class _AnimatedCoinsPill extends StatefulWidget {
-  const _AnimatedCoinsPill({
+class _CombinedCurrencyPill extends StatefulWidget {
+  const _CombinedCurrencyPill({
     required this.coins,
+    required this.diamonds,
     required this.coinRewardEventId,
+    required this.onStoreTap,
     this.coinReward,
   });
 
   final int coins;
+  final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final VoidCallback onStoreTap;
 
   @override
-  State<_AnimatedCoinsPill> createState() => _AnimatedCoinsPillState();
+  State<_CombinedCurrencyPill> createState() => _CombinedCurrencyPillState();
 }
 
-class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
+class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
     with TickerProviderStateMixin {
   late AnimationController _bounceController;
   late AnimationController _floatController;
@@ -382,22 +403,18 @@ class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
   void initState() {
     super.initState();
 
-    // Bounce animation (scale 1.0 -> 1.15 -> 1.0)
+    // Bounce animation (scale 1.0 -> 1.25 -> 1.0)
     _bounceController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _bounceAnimation =
-        TweenSequence<double>([
-          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.15), weight: 40),
-          TweenSequenceItem(tween: Tween(begin: 1.15, end: 0.95), weight: 30),
-          TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 30),
-        ]).animate(
-          CurvedAnimation(
-            parent: _bounceController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
+    _bounceAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.25, end: 0.95), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 30),
+    ]).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeOutCubic),
+    );
 
     // Float animation (move up + fade out)
     _floatController = AnimationController(
@@ -409,13 +426,12 @@ class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
     ]).animate(_floatController);
-    _floatOffset =
-        Tween<Offset>(
-          begin: const Offset(0, 0),
-          end: const Offset(0, -1.5),
-        ).animate(
-          CurvedAnimation(parent: _floatController, curve: Curves.easeOutCubic),
-        );
+    _floatOffset = Tween<Offset>(
+      begin: const Offset(0, 0),
+      end: const Offset(0, -1.5),
+    ).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeOutCubic),
+    );
 
     _floatStatusListener = (status) {
       if (status != AnimationStatus.completed) {
@@ -432,7 +448,7 @@ class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
   }
 
   @override
-  void didUpdateWidget(_AnimatedCoinsPill oldWidget) {
+  void didUpdateWidget(_CombinedCurrencyPill oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // Trigger animation only on reward event id changes.
@@ -467,51 +483,138 @@ class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
   Widget build(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
+      alignment: Alignment.centerRight,
       children: [
-        // Bounce animation on the pill
-        AnimatedBuilder(
-          animation: _bounceAnimation,
-          builder: (context, child) {
-            return Transform.scale(scale: _bounceAnimation.value, child: child);
-          },
-          child: _CoinsPillContent(coins: widget.coins),
+        Container(
+          padding: const EdgeInsets.fromLTRB(12, 6, 20, 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.black87, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Diamonds Part
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.diamond_rounded,
+                    size: 18,
+                    color: _diamondColor,
+                  ),
+                  const Gap(6),
+                  Text(
+                    '${widget.diamonds}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      height: 1,
+                    ),
+                  ),
+                ],
+              ),
+              const Gap(12),
+              Container(
+                width: 1,
+                height: 14,
+                color: Colors.black.withValues(alpha: 0.1),
+              ),
+              const Gap(12),
+              // Coins Part
+              AnimatedBuilder(
+                animation: _bounceAnimation,
+                builder: (context, child) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Transform.scale(
+                        scale: _bounceAnimation.value,
+                        child: SvgPicture.asset(
+                          'assets/icon/icon-park--candy.svg',
+                          width: 18,
+                          height: 18,
+                          colorFilter: const ColorFilter.mode(
+                            AppTheme.secondaryColor,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                      const Gap(6),
+                      Text(
+                        '${widget.coins}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          height: 1,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const Gap(8),
+              Transform.translate(
+                offset: const Offset(10, 0),
+                child: GestureDetector(
+                  onTap: widget.onStoreTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEE6D85),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black87, width: 2),
+                    ),
+                    child: const Icon(Icons.add, size: 12, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
 
         // Floating "+X" text
         if (_displayReward != null)
           Positioned(
-            left: 0,
             right: 0,
-            top: 0,
+            top: -20,
             child: SlideTransition(
               position: _floatOffset,
               child: FadeTransition(
                 opacity: _floatOpacity,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.secondaryColor.withValues(alpha: 0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      '+$_displayReward',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 14,
-                        color: Colors.white,
-                        height: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.secondaryColor.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
+                    ],
+                  ),
+                  child: Text(
+                    '+$_displayReward',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      color: Colors.white,
+                      height: 1,
                     ),
                   ),
                 ),
@@ -519,118 +622,6 @@ class _AnimatedCoinsPillState extends State<_AnimatedCoinsPill>
             ),
           ),
       ],
-    );
-  }
-}
-
-class _DiamondsPillContent extends StatelessWidget {
-  const _DiamondsPillContent({required this.diamonds});
-
-  final int diamonds;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.black87, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.diamond_rounded,
-                size: 18,
-                color: _diamondColor,
-              ),
-              const Gap(8),
-              Text(
-                '$diamonds',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  height: 1,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CoinsPillContent extends StatelessWidget {
-  const _CoinsPillContent({required this.coins});
-
-  final int coins;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.black87, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset(
-                'assets/icon/icon-park--candy.svg',
-                width: 18,
-                height: 18,
-                colorFilter: const ColorFilter.mode(
-                  AppTheme.secondaryColor,
-                  BlendMode.srcIn,
-                ),
-              ),
-              const Gap(8),
-              Text(
-                '$coins',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  height: 1,
-                ),
-              ),
-            ],
-          ),
-          Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEE6D85),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black87, width: 2),
-            ),
-            child: const Icon(Icons.add, size: 12, color: Colors.white),
-          ),
-        ],
-      ),
     );
   }
 }

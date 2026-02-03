@@ -102,6 +102,15 @@
     }
   },
   "chatSystemUpdate": "System update",
+  "chatCandyLabel": "Candys",
+  "chatCleanPoopMessage": "{name} cleaned the poop: +{amount} Candys.",
+  "@chatCleanPoopMessage": {
+    "description": "System message when a user cleans poop and earns candy.",
+    "placeholders": {
+      "name": {},
+      "amount": {}
+    }
+  },
   "chatTitle": "Chat",
   "chatUserAlreadyBlocked": "User blocked",
   "chatUserBlocked": "User blocked.",
@@ -217,6 +226,24 @@
     }
   },
   "petHomeTitle": "Pet Home",
+  "petNameEditTitle": "Edit pet name",
+  "petNameHint": "Enter pet name",
+  "petNameEmptyError": "Please enter a name.",
+  "petNameUpdateFailed": "Couldn't update pet name: {error}",
+  "@petNameUpdateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatPetRenamedMessage": "{user} renamed the pet from {oldName} to {petName}.",
+  "@chatPetRenamedMessage": {
+    "placeholders": {
+      "user": {},
+      "oldName": {},
+      "petName": {}
+    }
+  },
+  "petNameUnnamed": "Unnamed",
   "petNotFound": "No pet found.",
   "petSyncFailed": "Pet sync error: {error}",
   "@petSyncFailed": {

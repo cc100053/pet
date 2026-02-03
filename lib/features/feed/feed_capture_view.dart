@@ -41,8 +41,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
   late final ImageLabelingService _labeler;
 
   LabelMappingService? _mappingService;
-  bool _loadingMappings = false;
-  String? _mappingError;
 
   Uint8List? _previewBytes;
   XFile? _selectedImage;
@@ -50,7 +48,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
   bool _analyzing = false;
   bool _sending = false;
   String? _error;
-  String? _result;
 
   List<LabelObservation> _observations = const [];
   List<LabelMatch> _matches = const [];
@@ -72,11 +69,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
   }
 
   Future<void> _loadMappings() async {
-    setState(() {
-      _loadingMappings = true;
-      _mappingError = null;
-    });
-
     try {
       final repository = LabelMappingRepository(Supabase.instance.client);
       final entries = await repository.fetch();
@@ -90,24 +82,13 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _mappingError = AppLocalizations.of(
-          context,
-        )!.feedLabelMappingsFailed(error.toString());
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _loadingMappings = false;
-        });
-      }
+      // Best-effort. Label mappings are optional when UI is hidden.
     }
   }
 
   Future<void> _pickImage(ImageSource source) async {
     setState(() {
       _error = null;
-      _result = null;
     });
 
     AnalyticsService.instance.logEvent(
@@ -210,7 +191,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     setState(() {
       _sending = true;
       _error = null;
-      _result = null;
     });
 
     try {
@@ -409,9 +389,8 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         throw Exception('missing_session');
       }
 
-      FunctionResponse response;
       try {
-        response = await invokeWithToken(accessToken);
+        await invokeWithToken(accessToken);
       } on FunctionException catch (error) {
         if (error.status == 401) {
           final refreshed = await ensureValidAccessTokenWithDebug(
@@ -421,7 +400,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
           if (refreshedToken == null) {
             rethrow;
           }
-          response = await invokeWithToken(refreshedToken);
+          await invokeWithToken(refreshedToken);
         } else {
           rethrow;
         }
@@ -431,15 +410,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         'feed_send',
         parameters: {'result': 'success'},
       );
-
-      if (mounted) {
-        setState(() {
-          _result = jsonEncode({
-            'status': response.status,
-            'data': response.data,
-          });
-        });
-      }
 
       widget.onUploadCompleted?.call(tempId);
     } catch (error) {
@@ -454,13 +424,6 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final mappingStatus = _loadingMappings
-        ? l10n.feedLabelMappingsLoading
-        : (_mappingError ??
-              (_mappingService == null
-                  ? l10n.feedLabelMappingsUnavailable
-                  : l10n.feedLabelMappingsReady));
-
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.feedCameraTitle),
@@ -664,45 +627,4 @@ class FeedOptimisticMessage {
   final String? caption;
   final DateTime clientCreatedAt;
   final List<Map<String, dynamic>> labels;
-}
-
-class _LabelsPreview extends StatelessWidget {
-  const _LabelsPreview({required this.observations, required this.matches});
-
-  final List<LabelObservation> observations;
-  final List<LabelMatch> matches;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final matchByLabel = <String, String>{
-      for (final match in matches)
-        LabelMappingService.normalizeLabel(match.text): match.canonicalTag,
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.feedDetectedLabels,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: observations
-              .map(
-                (label) => Chip(
-                  label: Text(
-                    '${label.text} (${(label.confidence * 100).round()}%)'
-                    '${matchByLabel.containsKey(LabelMappingService.normalizeLabel(label.text)) ? ' -> ${matchByLabel[LabelMappingService.normalizeLabel(label.text)]}' : ''}',
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-      ],
-    );
-  }
 }

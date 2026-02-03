@@ -5,12 +5,14 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/ui/user_avatar.dart';
 import '../../../shared/localization/app_locale_controller.dart';
 import '../../../shared/localization/language_selector_sheet.dart';
 
 class HomeDrawer extends ConsumerWidget {
   final List<Map<String, dynamic>> rooms;
   final String? currentRoomId;
+  final String? userAvatarUrl;
   final VoidCallback onNavigateToRoomSelection;
   final VoidCallback onCreateRoom;
   final VoidCallback onJoinRoom;
@@ -25,6 +27,7 @@ class HomeDrawer extends ConsumerWidget {
     super.key,
     required this.rooms,
     required this.currentRoomId,
+    this.userAvatarUrl,
     required this.onNavigateToRoomSelection,
     required this.onCreateRoom,
     required this.onJoinRoom,
@@ -66,17 +69,10 @@ class HomeDrawer extends ConsumerWidget {
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      userId?.substring(0, 1).toUpperCase() ?? 'U',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
+                  child: UserAvatar(
+                    avatar: userAvatarUrl,
+                    fallbackText: userId?.substring(0, 1),
+                    size: 72,
                   ),
                 ),
                 const Gap(16),

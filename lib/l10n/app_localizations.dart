@@ -323,6 +323,18 @@ abstract class AppLocalizations {
   /// **'System update'**
   String get chatSystemUpdate;
 
+  /// No description provided for @chatCandyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Candys'**
+  String get chatCandyLabel;
+
+  /// System message when a user cleans poop and earns candy.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} cleaned the poop: +{amount} Candys.'**
+  String chatCleanPoopMessage(Object name, Object amount);
+
   /// No description provided for @chatTitle.
   ///
   /// In en, this message translates to:
@@ -742,6 +754,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pet Home'**
   String get petHomeTitle;
+
+  /// No description provided for @petNameEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit pet name'**
+  String get petNameEditTitle;
+
+  /// No description provided for @petNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter pet name'**
+  String get petNameHint;
+
+  /// No description provided for @petNameEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name.'**
+  String get petNameEmptyError;
+
+  /// No description provided for @petNameUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update pet name: {error}'**
+  String petNameUpdateFailed(Object error);
+
+  /// No description provided for @chatPetRenamedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{user} renamed the pet from {oldName} to {petName}.'**
+  String chatPetRenamedMessage(Object user, Object oldName, Object petName);
+
+  /// No description provided for @petNameUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed'**
+  String get petNameUnnamed;
 
   /// No description provided for @petNotFound.
   ///

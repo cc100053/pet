@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF0D5C63); // Dark Teal from Home Buttons
+  // Main accent: lighter green to pair with the pale yellow base.
+  static const Color primaryColor = Color(0xFF5FBF9E); // Soft Green Accent
   static const Color secondaryColor = Color(0xFFFFB36B); // Warm Orange Accent
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color backgroundColor = Color(0xFFFFFBF3); // Warm Cream Base
@@ -104,7 +105,7 @@ class AppTheme {
   
   // Custom Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF0D5C63), Color(0xFF1B8089)],
+    colors: [Color(0xFF5FBF9E), Color(0xFF7BD3B3)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/user_avatar.dart';
 
 class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
@@ -17,6 +18,7 @@ class RoomSelectionView extends StatelessWidget {
     required this.creatingRoom,
     required this.joiningRoom,
     this.selectedRoomId,
+    this.userAvatarUrl,
   });
 
   final List<Map<String, dynamic>> rooms;
@@ -26,6 +28,7 @@ class RoomSelectionView extends StatelessWidget {
   final bool creatingRoom;
   final bool joiningRoom;
   final String? selectedRoomId;
+  final String? userAvatarUrl;
 
   static const _mint = Color(0xFF7ED9C0);
   static const _filmBase = Color(0xFFFFF9F2);
@@ -172,9 +175,10 @@ class RoomSelectionView extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.person_rounded,
-              color: AppTheme.textPrimary,
+            child: UserAvatar(
+              avatar: userAvatarUrl,
+              fallbackText: null,
+              size: 42,
             ),
           ),
         );

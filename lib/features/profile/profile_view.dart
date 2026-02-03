@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/user_avatar.dart';
 
 class ProfileView extends StatefulWidget {
@@ -274,20 +275,20 @@ class _ProfileViewState extends State<ProfileView> {
       return;
     }
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.profileDeleteAccountTitle),
-        content: Text(l10n.profileDeleteAccountConfirmBody),
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.danger,
+        title: l10n.profileDeleteAccountTitle,
+        message: l10n.profileDeleteAccountConfirmBody,
         actions: [
-          TextButton(
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.commonCancel),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+          AppDialogAction.destructive(
+            label: l10n.profileDeleteAccountConfirmAction,
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.profileDeleteAccountConfirmAction),
           ),
         ],
       ),

@@ -16,6 +16,8 @@ import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/ui/juice_wrappers.dart';
+import '../../shared/ui/full_screen_photo_viewer.dart';
+import '../../shared/ui/app_dialog.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
@@ -73,6 +75,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int? _petExp;
   int _coins = 1234;
   int _diamonds = 0;
+  String? _myAvatarUrl;
   int? _coinReward; // Triggers coin animation when set
   int _coinRewardEventId = 0;
   bool _coinsLoadInFlight = false;
@@ -245,11 +248,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       final profile = await Supabase.instance.client
           .from('profiles')
-          .select('coins,diamonds')
+          .select('coins,diamonds,avatar_url')
           .eq('user_id', user.id)
           .maybeSingle();
       final newValue = (profile?['coins'] as int?) ?? _coins;
       final newDiamonds = (profile?['diamonds'] as int?) ?? _diamonds;
+      final newAvatarUrl = profile?['avatar_url'] as String?;
       final oldValue = _coins;
       if (!mounted) {
         _coins = newValue;
@@ -261,6 +265,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _coins = newValue;
         _diamonds = newDiamonds;
+        _myAvatarUrl = newAvatarUrl;
 
         // Clear any stale reward when this load is expected to represent a
         // reward event (including cooldown/no-op cases).
@@ -567,15 +572,16 @@ class _HomeViewState extends ConsumerState<HomeView>
 
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
-    final code = await showDialog<String>(
+    final code = await showAppDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.roomJoinTitle),
-        content: TextField(
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.roomJoinTitle,
+        message: l10n.roomJoinHelper,
+        body: TextField(
           controller: controller,
           decoration: InputDecoration(
             hintText: l10n.roomJoinHint,
-            helperText: l10n.roomJoinHelper,
           ),
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [
@@ -585,17 +591,17 @@ class _HomeViewState extends ConsumerState<HomeView>
           ],
         ),
         actions: [
-          TextButton(
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.commonCancel),
           ),
-          FilledButton(
+          AppDialogAction.primary(
+            label: l10n.commonJoin,
             onPressed: () {
               // Normalize invite code to uppercase for consistent matching.
               final value = controller.text.trim().toUpperCase();
               Navigator.pop(context, value.isEmpty ? null : value);
             },
-            child: Text(l10n.commonJoin),
           ),
         ],
       ),
@@ -1210,6 +1216,97 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
+  Future<void> _openPetNameEditor() async {
+    final petId = _petId;
+    if (petId == null) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.petNotFound)),
+      );
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(text: _petName?.trim() ?? '');
+    String? errorText;
+
+    Future<void> submit(StateSetter setState) async {
+      final next = controller.text.trim();
+      if (next.isEmpty) {
+        setState(() {
+          errorText = l10n.petNameEmptyError;
+        });
+        return;
+      }
+      Navigator.of(context).pop(next);
+    }
+
+    final newName = await showAppDialog<String>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AppDialog(
+              tone: AppDialogTone.info,
+              title: l10n.petNameEditTitle,
+              body: TextField(
+                controller: controller,
+                maxLength: 20,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  hintText: l10n.petNameHint,
+                  errorText: errorText,
+                ),
+                onSubmitted: (_) => submit(setState),
+              ),
+              actions: [
+                AppDialogAction.secondary(
+                  label: l10n.commonCancel,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                AppDialogAction.primary(
+                  label: l10n.commonSave,
+                  onPressed: () => submit(setState),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (newName == null) {
+      return;
+    }
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty || trimmed == _petName?.trim()) {
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.rpc(
+        'update_pet_name',
+        params: {'p_pet_id': petId, 'p_name': trimmed},
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _petName = trimmed;
+      });
+      unawaited(_loadPetInfo(petId));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.petNameUpdateFailed(error.toString()))),
+      );
+    }
+  }
+
   double _healthValue() {
     final hunger = (_petState?['hunger'] as int?) ?? 0;
     final hygiene = (_petState?['hygiene'] as int?) ?? 0;
@@ -1229,13 +1326,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (_furnitureMode) {
       _closeFurnitureInventory();
     }
-    final fieldSize = _petFieldSize();
-    if (fieldSize != null && !fieldSize.isEmpty) {
-      _animatePetTo(const Offset(0.5, 0.7), fieldSize, userInitiated: false);
-      return;
-    }
+    // Navigate to room selection page
     setState(() {
-      _petNormalizedPosition = const Offset(0.5, 0.7);
+      _showRoomSelection = true;
     });
   }
 
@@ -2457,6 +2550,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           onJoinRoom: _joinRoomByCode,
           onSelectRoom: _enterRoomFromSelection,
           selectedRoomId: _roomSelectionId ?? _roomId,
+          userAvatarUrl: _myAvatarUrl,
         ),
       );
     }
@@ -2544,6 +2638,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                       coinReward: _coinReward,
                       coinRewardEventId: _coinRewardEventId,
                       onPetTap: () => Scaffold.of(context).openDrawer(),
+                      onPetNameTap: _openPetNameEditor,
+                      onStoreTap: _openStoreFromNav,
                     );
                   },
                 ),
@@ -2563,7 +2659,21 @@ class _HomeViewState extends ConsumerState<HomeView>
                         senderFallbackText: _latestFeedSenderId == null
                             ? null
                             : _profileByUserId[_latestFeedSenderId!]?.nickname,
-                        onTap: null,
+                        onTap: () {
+                          final imageUrl = _latestFeedImageUrl ?? '';
+                          if (imageUrl.isEmpty) {
+                            return;
+                          }
+                          FullScreenPhotoViewer.open(
+                            context,
+                            imageUrls: [imageUrl],
+                            captions: [
+                              (_latestFeedCaption ?? '').trim().isEmpty
+                                  ? null
+                                  : _latestFeedCaption!.trim(),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -2748,6 +2858,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     return HomeDrawer(
       rooms: _myRooms,
       currentRoomId: _roomId,
+      userAvatarUrl: _myAvatarUrl,
       onNavigateToRoomSelection: () {
         setState(() {
           _roomSelectionId = _roomId;

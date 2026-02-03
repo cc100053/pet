@@ -102,6 +102,15 @@
     }
   },
   "chatSystemUpdate": "系統通知",
+  "chatCandyLabel": "糖果",
+  "chatCleanPoopMessage": "{name}清理了便便：+{amount} 糖果",
+  "@chatCleanPoopMessage": {
+    "description": "System message when a user cleans poop and earns candy.",
+    "placeholders": {
+      "name": {},
+      "amount": {}
+    }
+  },
   "chatTitle": "聊天",
   "chatUserAlreadyBlocked": "已封鎖",
   "chatUserBlocked": "已封鎖用戶。",
@@ -217,6 +226,24 @@
     }
   },
   "petHomeTitle": "寵物的家",
+  "petNameEditTitle": "編輯寵物名字",
+  "petNameHint": "輸入寵物名字",
+  "petNameEmptyError": "請輸入名字。",
+  "petNameUpdateFailed": "無法更新寵物名字：{error}",
+  "@petNameUpdateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatPetRenamedMessage": "{user}把寵物名字從{oldName}改為{petName}。",
+  "@chatPetRenamedMessage": {
+    "placeholders": {
+      "user": {},
+      "oldName": {},
+      "petName": {}
+    }
+  },
+  "petNameUnnamed": "未命名",
   "petNotFound": "找不到寵物。",
   "petSyncFailed": "寵物同步錯誤：{error}",
   "@petSyncFailed": {

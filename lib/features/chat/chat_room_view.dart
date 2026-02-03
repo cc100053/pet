@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/shared/ui/app_dialog.dart';
+import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
@@ -791,6 +793,28 @@ class ChatMessageListState extends State<ChatMessageList> {
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final imageIndexByMessageId = <String, int>{};
+    final imageUrls = <String>[];
+    final imageCaptions = <String?>[];
+    final localImagePaths = <int, String>{};
+    for (final message in _messages) {
+      if (!message.isImageFeed) {
+        continue;
+      }
+      final localPath = message.localImagePath;
+      final remoteUrl = message.imageUrl ?? '';
+      if (remoteUrl.isEmpty && (localPath == null || localPath.isEmpty)) {
+        continue;
+      }
+      final index = imageUrls.length;
+      imageIndexByMessageId[message.id] = index;
+      imageUrls.add(remoteUrl);
+      final captionRaw = (message.caption ?? message.body ?? '').trim();
+      imageCaptions.add(captionRaw.isEmpty ? null : captionRaw);
+      if (localPath != null && localPath.isNotEmpty) {
+        localImagePaths[index] = localPath;
+      }
+    }
     final errorBanner = _error == null
         ? null
         : Padding(
@@ -871,6 +895,7 @@ class ChatMessageListState extends State<ChatMessageList> {
                         final isOptimistic = _optimisticIds.contains(
                           message.id,
                         );
+                        final imageIndex = imageIndexByMessageId[message.id];
                         return ChatMessageTile(
                           key: ValueKey(message.id),
                           message: message,
@@ -879,6 +904,16 @@ class ChatMessageListState extends State<ChatMessageList> {
                           onLongPress: _shouldShowActions(message, isMe)
                               ? () => _showMessageActions(message)
                               : null,
+                          onImageTap: imageIndex == null
+                              ? null
+                                  : () => FullScreenPhotoViewer.open(
+                                        context,
+                                        imageUrls: imageUrls,
+                                        initialIndex: imageIndex,
+                                        localImagePaths: localImagePaths,
+                                        showIndicator: false,
+                                        captions: imageCaptions,
+                                      ),
                         );
                       },
                       separatorBuilder: (context, index) =>
@@ -1060,21 +1095,23 @@ class ChatMessageListState extends State<ChatMessageList> {
   Future<String?> _promptReportReason(BuildContext context) async {
     final controller = TextEditingController();
     final l10n = AppLocalizations.of(context)!;
-    final result = await showDialog<String>(
+    final result = await showAppDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.chatReportMessageTitle),
-        content: TextField(
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.warning,
+        title: l10n.chatReportMessageTitle,
+        body: TextField(
           controller: controller,
           decoration: InputDecoration(hintText: l10n.chatReportHint),
           maxLines: 3,
         ),
         actions: [
-          TextButton(
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.commonCancel),
           ),
-          FilledButton(
+          AppDialogAction.primary(
+            label: l10n.commonSubmit,
             onPressed: () {
               final text = controller.text.trim();
               Navigator.pop(
@@ -1082,7 +1119,6 @@ class ChatMessageListState extends State<ChatMessageList> {
                 text.isEmpty ? l10n.chatReportNoReason : text,
               );
             },
-            child: Text(l10n.commonSubmit),
           ),
         ],
       ),

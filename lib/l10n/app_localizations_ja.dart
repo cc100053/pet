@@ -147,6 +147,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatSystemUpdate => 'システム通知';
 
   @override
+  String get chatCandyLabel => 'キャンディ';
+
+  @override
+  String chatCleanPoopMessage(Object name, Object amount) {
+    return '$nameがうんちを掃除した：+$amountキャンディ';
+  }
+
+  @override
   String get chatTitle => 'チャット';
 
   @override
@@ -373,6 +381,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get petHomeTitle => 'ペットの家';
+
+  @override
+  String get petNameEditTitle => 'ペット名を編集';
+
+  @override
+  String get petNameHint => 'ペット名を入力';
+
+  @override
+  String get petNameEmptyError => '名前を入力してください。';
+
+  @override
+  String petNameUpdateFailed(Object error) {
+    return 'ペット名を更新できませんでした: $error';
+  }
+
+  @override
+  String chatPetRenamedMessage(Object user, Object oldName, Object petName) {
+    return '$userがペットの名前を$oldNameから$petNameに変更した。';
+  }
+
+  @override
+  String get petNameUnnamed => '名前なし';
 
   @override
   String get petNotFound => 'ペットが見つかりません。';

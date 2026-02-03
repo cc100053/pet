@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../shared/theme/app_theme.dart';
 
 class HomeBottomNavBar extends StatelessWidget {
@@ -122,7 +123,7 @@ class _CameraButton extends StatelessWidget {
           alignment: Alignment.center,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFF268792),
+            color: AppTheme.primaryColor,
           ),
           child: SvgPicture.asset(
             'assets/icon/solar--camera-linear.svg',

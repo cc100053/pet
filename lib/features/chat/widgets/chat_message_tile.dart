@@ -14,16 +14,20 @@ class ChatMessageTile extends StatelessWidget {
     required this.isMe,
     required this.isOptimistic,
     this.onLongPress,
+    this.onImageTap,
   });
 
   final ChatMessage message;
   final bool isMe;
   final bool isOptimistic;
   final VoidCallback? onLongPress;
+  final VoidCallback? onImageTap;
 
   @override
   Widget build(BuildContext context) {
     if (message.isSystem) {
+      final l10n = AppLocalizations.of(context)!;
+      final text = _localizedSystemMessage(l10n);
       return Center(
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -33,7 +37,7 @@ class ChatMessageTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            message.body ?? AppLocalizations.of(context)!.chatSystemUpdate,
+            text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
               fontSize: 10,
@@ -49,6 +53,7 @@ class ChatMessageTile extends StatelessWidget {
             message: message,
             isMe: isMe,
             isOptimistic: isOptimistic,
+            onImageTap: onImageTap,
           )
         : _TextMessageBubble(message: message, isMe: isMe);
 
@@ -59,6 +64,111 @@ class ChatMessageTile extends StatelessWidget {
         child: Opacity(opacity: isOptimistic ? 0.7 : 1.0, child: content),
       ),
     );
+  }
+
+  String _localizedSystemMessage(AppLocalizations l10n) {
+    final raw = message.body?.trim();
+    if (raw == null || raw.isEmpty) {
+      return l10n.chatSystemUpdate;
+    }
+
+    final lower = raw.toLowerCase();
+    final phrases = <String>['cleaned the poop', '清理了便便', 'うんちを掃除した'];
+    final matchedPhrase = phrases.firstWhere(
+      (phrase) => lower.contains(phrase),
+      orElse: () => '',
+    );
+    if (matchedPhrase.isNotEmpty) {
+      final phraseIndex = lower.indexOf(matchedPhrase);
+      final nameRaw = phraseIndex > 0 ? raw.substring(0, phraseIndex) : '';
+      final name = nameRaw.trim().isEmpty ? l10n.chatSystemUpdate : nameRaw.trim();
+      final amountFromBody = RegExp(r'\\+(\\d+)')
+          .firstMatch(raw)
+          ?.group(1);
+      final amount = message.coinsAwarded > 0
+          ? message.coinsAwarded.toString()
+          : (amountFromBody ?? '0');
+      return l10n.chatCleanPoopMessage(name, amount);
+    }
+
+    final renamedFromMessage = _parseRenameFromMessage(raw, l10n);
+    if (renamedFromMessage != null) {
+      return renamedFromMessage;
+    }
+
+    final renameMatch = RegExp(
+      r'^(.+?)\\s*renamed the pet to\\s*(.+?)\\s*\\.?$',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (renameMatch != null) {
+      final name = (renameMatch.group(1) ?? '').trim().isEmpty
+          ? l10n.chatSystemUpdate
+          : renameMatch.group(1)!.trim();
+      final petName = (renameMatch.group(2) ?? '').trim();
+      if (petName.isNotEmpty) {
+        return l10n.chatPetRenamedMessage(
+          name,
+          l10n.petNameUnnamed,
+          petName,
+        );
+      }
+    }
+
+    final renameLocalizedMatch = RegExp(
+      r'^(.+?)\\s*(?:renamed the pet to|將寵物名字改為|改了寵物名字為|ペットの名前を)(.+?)\\s*\\.?$',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (renameLocalizedMatch != null) {
+      final name = (renameLocalizedMatch.group(1) ?? '').trim().isEmpty
+          ? l10n.chatSystemUpdate
+          : renameLocalizedMatch.group(1)!.trim();
+      final petName = (renameLocalizedMatch.group(2) ?? '').trim();
+      if (petName.isNotEmpty) {
+        return l10n.chatPetRenamedMessage(
+          name,
+          l10n.petNameUnnamed,
+          petName,
+        );
+      }
+    }
+
+    return raw.replaceAll('Coins', l10n.chatCandyLabel);
+  }
+
+  String? _parseRenameFromMessage(String raw, AppLocalizations l10n) {
+    final lower = raw.toLowerCase();
+    const phrase = 'renamed the pet from';
+    final phraseIndex = lower.indexOf(phrase);
+    if (phraseIndex == -1) {
+      return null;
+    }
+
+    final userPart = raw.substring(0, phraseIndex).trim();
+    final userName = userPart.isEmpty ? l10n.chatSystemUpdate : userPart;
+    final rest = raw.substring(phraseIndex + phrase.length).trim();
+    if (rest.isEmpty) {
+      return null;
+    }
+
+    final lowerRest = rest.toLowerCase();
+    final toIndex = lowerRest.lastIndexOf(' to ');
+    if (toIndex == -1) {
+      return null;
+    }
+
+    final oldNameRaw = rest.substring(0, toIndex).trim();
+    var newName = rest.substring(toIndex + 4).trim();
+    newName = newName.replaceAll(RegExp(r'[.]$'), '').trim();
+    if (newName.isEmpty) {
+      return null;
+    }
+
+    final normalizedOld = oldNameRaw.trim();
+    final isUnnamed = normalizedOld.isEmpty ||
+        normalizedOld.toLowerCase() == 'unnamed';
+    final oldName = isUnnamed ? l10n.petNameUnnamed : normalizedOld;
+
+    return l10n.chatPetRenamedMessage(userName, oldName, newName);
   }
 }
 
@@ -148,11 +258,13 @@ class _FeedMessageCard extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.isOptimistic,
+    required this.onImageTap,
   });
 
   final ChatMessage message;
   final bool isMe;
   final bool isOptimistic;
+  final VoidCallback? onImageTap;
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +350,16 @@ class _FeedMessageCard extends StatelessWidget {
           // Image
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: AspectRatio(aspectRatio: 1.0, child: _buildImageContent()),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onImageTap,
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: _buildImageContent(),
+                ),
+              ),
+            ),
           ),
 
           const SizedBox(height: 8),
@@ -254,31 +375,7 @@ class _FeedMessageCard extends StatelessWidget {
               ),
             ),
 
-          // Labels/Tags
-          if (message.labels.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: message.labels.take(3).map((lbl) {
-                final text = lbl['text'] as String? ?? '';
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black12,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    text,
-                    style: const TextStyle(fontSize: 10, color: Colors.black54),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+          // Labels/Tags (temporarily disabled)
         ],
       ),
     );
@@ -301,4 +398,5 @@ class _FeedMessageCard extends StatelessWidget {
     }
     return Container(color: Colors.grey[300]);
   }
+
 }

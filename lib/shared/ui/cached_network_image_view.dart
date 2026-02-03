@@ -59,6 +59,7 @@ class CachedNetworkImageView extends StatelessWidget {
           width: width,
           height: height,
           fit: fit,
+          alignment: Alignment.center,
           memCacheWidth: cacheWidth,
           memCacheHeight: cacheHeight,
           fadeInDuration: const Duration(milliseconds: 120),

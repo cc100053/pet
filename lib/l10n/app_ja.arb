@@ -102,6 +102,15 @@
     }
   },
   "chatSystemUpdate": "システム通知",
+  "chatCandyLabel": "キャンディ",
+  "chatCleanPoopMessage": "{name}がうんちを掃除した：+{amount}キャンディ",
+  "@chatCleanPoopMessage": {
+    "description": "System message when a user cleans poop and earns candy.",
+    "placeholders": {
+      "name": {},
+      "amount": {}
+    }
+  },
   "chatTitle": "チャット",
   "chatUserAlreadyBlocked": "ブロック済み",
   "chatUserBlocked": "ユーザーをブロックしました。",
@@ -217,6 +226,24 @@
     }
   },
   "petHomeTitle": "ペットの家",
+  "petNameEditTitle": "ペット名を編集",
+  "petNameHint": "ペット名を入力",
+  "petNameEmptyError": "名前を入力してください。",
+  "petNameUpdateFailed": "ペット名を更新できませんでした: {error}",
+  "@petNameUpdateFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatPetRenamedMessage": "{user}がペットの名前を{oldName}から{petName}に変更した。",
+  "@chatPetRenamedMessage": {
+    "placeholders": {
+      "user": {},
+      "oldName": {},
+      "petName": {}
+    }
+  },
+  "petNameUnnamed": "名前なし",
   "petNotFound": "ペットが見つかりません。",
   "petSyncFailed": "ペット同期エラー: {error}",
   "@petSyncFailed": {

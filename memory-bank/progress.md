@@ -160,6 +160,13 @@
 - Applied `add_pet_exp_and_leveling` migration to Supabase.
 - Fixed Home coin reward animation robustness: reward events retrigger even when the amount repeats (e.g., +10 twice), transient +X overlay clears on completion, and concurrent coin loads are coalesced to reduce racey deltas.
 - Added diamond currency support in Supabase (balances, ledger, RPCs) and updated store + home HUD to display diamonds and handle diamond purchases/exchange.
+- Wired the full-screen photo viewer to the home latest photo and chat image messages with swipe between chat photos.
+- Localized chat system messages (clean poop) with candy wording and hid image label tags in chat.
+- Removed clean action cooldown so each poop clean awards +5 candies.
+- Added pet name edit flow on the home HUD with RPC-backed persistence.
+- Added system chat message for pet renames and localized rendering in chat.
+- Updated pet rename system message to include the previous name and localized parsing for old/new names.
+- Redesigned dialogs to use a shared frosted AppDialog component with tone variants (info/success/warning/danger) and updated alert/confirmation/input flows to the new style.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

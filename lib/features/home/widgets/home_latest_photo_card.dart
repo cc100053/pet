@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
+import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 
 class HomeLatestPhotoCard extends StatelessWidget {
   const HomeLatestPhotoCard({super.key, required this.imageUrls});
@@ -73,12 +74,12 @@ class _PhotoBubbles extends StatelessWidget {
         final b = imageUrls.length > 1 ? imageUrls[1] : '';
         final c = imageUrls.length > 2 ? imageUrls[2] : '';
 
-        void open(String url) {
-          if (url.isEmpty) return;
-          showDialog<void>(
-            context: context,
-            barrierColor: Colors.black.withValues(alpha: 0.88),
-            builder: (_) => _PhotoPreviewDialog(imageUrl: url),
+        void open(int index) {
+          if (imageUrls[index].isEmpty) return;
+          FullScreenPhotoViewer.open(
+            context,
+            imageUrls: imageUrls,
+            initialIndex: index,
           );
         }
 
@@ -127,7 +128,7 @@ class _PhotoBubbles extends StatelessWidget {
                               imageUrl: b,
                               size: smallSize,
                               fallbackLabel: fallbackLabel,
-                              onTap: b.isEmpty ? null : () => open(b),
+                              onTap: b.isEmpty ? null : () => open(1),
                             ),
                           ),
                         ),
@@ -142,7 +143,7 @@ class _PhotoBubbles extends StatelessWidget {
                               imageUrl: c,
                               size: smallSize,
                               fallbackLabel: fallbackLabel,
-                              onTap: c.isEmpty ? null : () => open(c),
+                              onTap: c.isEmpty ? null : () => open(2),
                             ),
                           ),
                         ),
@@ -159,7 +160,7 @@ class _PhotoBubbles extends StatelessWidget {
                           imageUrl: a,
                           size: bigSize,
                           fallbackLabel: fallbackLabel,
-                          onTap: a.isEmpty ? null : () => open(a),
+                          onTap: a.isEmpty ? null : () => open(0),
                         ),
                       ),
                     ),
@@ -261,42 +262,7 @@ class _PhotoBubble extends StatelessWidget {
   }
 }
 
-class _PhotoPreviewDialog extends StatelessWidget {
-  const _PhotoPreviewDialog({required this.imageUrl});
 
-  final String imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog.fullscreen(
-      backgroundColor: Colors.black.withValues(alpha: 0.92),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: InteractiveViewer(
-                minScale: 1,
-                maxScale: 4,
-                child: CachedNetworkImageView(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _PhotoLoading extends StatelessWidget {
   const _PhotoLoading();

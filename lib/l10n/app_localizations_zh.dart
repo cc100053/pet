@@ -147,6 +147,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatSystemUpdate => '系統通知';
 
   @override
+  String get chatCandyLabel => '糖果';
+
+  @override
+  String chatCleanPoopMessage(Object name, Object amount) {
+    return '$name清理了便便：+$amount 糖果';
+  }
+
+  @override
   String get chatTitle => '聊天';
 
   @override
@@ -373,6 +381,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get petHomeTitle => '寵物的家';
+
+  @override
+  String get petNameEditTitle => '編輯寵物名字';
+
+  @override
+  String get petNameHint => '輸入寵物名字';
+
+  @override
+  String get petNameEmptyError => '請輸入名字。';
+
+  @override
+  String petNameUpdateFailed(Object error) {
+    return '無法更新寵物名字：$error';
+  }
+
+  @override
+  String chatPetRenamedMessage(Object user, Object oldName, Object petName) {
+    return '$user把寵物名字從$oldName改為$petName。';
+  }
+
+  @override
+  String get petNameUnnamed => '未命名';
 
   @override
   String get petNotFound => '找不到寵物。';
@@ -831,6 +861,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatSystemUpdate => '系統通知';
 
   @override
+  String get chatCandyLabel => '糖果';
+
+  @override
+  String chatCleanPoopMessage(Object name, Object amount) {
+    return '$name清理了便便：+$amount 糖果';
+  }
+
+  @override
   String get chatTitle => '聊天';
 
   @override
@@ -1057,6 +1095,28 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get petHomeTitle => '寵物的家';
+
+  @override
+  String get petNameEditTitle => '編輯寵物名字';
+
+  @override
+  String get petNameHint => '輸入寵物名字';
+
+  @override
+  String get petNameEmptyError => '請輸入名字。';
+
+  @override
+  String petNameUpdateFailed(Object error) {
+    return '無法更新寵物名字：$error';
+  }
+
+  @override
+  String chatPetRenamedMessage(Object user, Object oldName, Object petName) {
+    return '$user把寵物名字從$oldName改為$petName。';
+  }
+
+  @override
+  String get petNameUnnamed => '未命名';
 
   @override
   String get petNotFound => '找不到寵物。';
