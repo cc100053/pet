@@ -114,6 +114,15 @@
   "chatTitle": "Chat",
   "chatUserAlreadyBlocked": "User blocked",
   "chatUserBlocked": "User blocked.",
+  "chatMemberCount": "{count, plural, one {{count} member} other {{count} members}}",
+  "@chatMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "calendarYesterday": "Yesterday",
   "commonBuy": "Buy",
   "commonCamera": "Camera",
   "commonCancel": "Cancel",

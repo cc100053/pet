@@ -17,6 +17,7 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.level,
     required this.petName,
     required this.healthValue,
+    this.healthDebugValue,
     required this.coins,
     required this.diamonds,
     required this.onPetTap,
@@ -31,6 +32,7 @@ class HomeGameStatusBar extends StatelessWidget {
   final int level;
   final String petName;
   final double healthValue;
+  final int? healthDebugValue;
   final int coins;
   final int diamonds;
   final VoidCallback onPetTap;
@@ -63,6 +65,7 @@ class HomeGameStatusBar extends StatelessWidget {
           ),
           _RightCluster(
             healthValue: healthValue,
+            healthDebugValue: healthDebugValue,
             coins: coins,
             diamonds: diamonds,
             coinReward: coinReward,
@@ -270,6 +273,7 @@ class _CircularProgressPainter extends CustomPainter {
 class _RightCluster extends StatelessWidget {
   const _RightCluster({
     required this.healthValue,
+    this.healthDebugValue,
     required this.coins,
     required this.diamonds,
     this.coinReward,
@@ -278,6 +282,7 @@ class _RightCluster extends StatelessWidget {
   });
 
   final double healthValue;
+  final int? healthDebugValue;
   final int coins;
   final int diamonds;
   final int? coinReward;
@@ -295,7 +300,10 @@ class _RightCluster extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: _HealthBar(value: healthValue),
+              child: _HealthBar(
+                value: healthValue,
+                debugValue: healthDebugValue,
+              ),
             ),
             const SizedBox(height: 8),
             _CombinedCurrencyPill(
@@ -322,9 +330,10 @@ class _RightCluster extends StatelessWidget {
 }
 
 class _HealthBar extends StatefulWidget {
-  const _HealthBar({required this.value});
+  const _HealthBar({required this.value, this.debugValue});
 
   final double value;
+  final int? debugValue;
 
   @override
   State<_HealthBar> createState() => _HealthBarState();
@@ -379,39 +388,52 @@ class _HealthBarState extends State<_HealthBar> {
     final safeValue = widget.value.isFinite ? widget.value : 0.0;
     final clamped = safeValue.clamp(0.0, 1.0);
     final fillColor = _isRising ? _riseTint : _restTint;
+    final debugText = widget.debugValue?.toString() ??
+        (clamped * 100).round().toString();
     return LayoutBuilder(
       builder: (context, constraints) {
         final fallbackWidth = MediaQuery.of(context).size.width * 0.35;
         final width = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : fallbackWidth;
+        final innerWidth = (width - 4).clamp(0.0, double.infinity);
+        final fillWidth = (innerWidth * clamped).clamp(0.0, innerWidth);
         return SizedBox(
           width: width,
-          child: Container(
-            height: 18,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.black87, width: 2),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: clamped,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: fillColor,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
+          height: 18,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.black87, width: 2),
+                ),
+              ),
+              Positioned(
+                left: 2,
+                top: 2,
+                bottom: 2,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOut,
+                  width: fillWidth,
+                  decoration: BoxDecoration(
+                    color: fillColor,
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
               ),
-            ),
+              Text(
+                debugText,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -458,13 +480,17 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _bounceAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 40),
-      TweenSequenceItem(tween: Tween(begin: 1.25, end: 0.95), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 30),
-    ]).animate(
-      CurvedAnimation(parent: _bounceController, curve: Curves.easeOutCubic),
-    );
+    _bounceAnimation =
+        TweenSequence<double>([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 40),
+          TweenSequenceItem(tween: Tween(begin: 1.25, end: 0.95), weight: 30),
+          TweenSequenceItem(tween: Tween(begin: 0.95, end: 1.0), weight: 30),
+        ]).animate(
+          CurvedAnimation(
+            parent: _bounceController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     // Float animation (move up + fade out)
     _floatController = AnimationController(
@@ -476,12 +502,13 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 30),
     ]).animate(_floatController);
-    _floatOffset = Tween<Offset>(
-      begin: const Offset(0, 0),
-      end: const Offset(0, -1.5),
-    ).animate(
-      CurvedAnimation(parent: _floatController, curve: Curves.easeOutCubic),
-    );
+    _floatOffset =
+        Tween<Offset>(
+          begin: const Offset(0, 0),
+          end: const Offset(0, -1.5),
+        ).animate(
+          CurvedAnimation(parent: _floatController, curve: Curves.easeOutCubic),
+        );
 
     _floatStatusListener = (status) {
       if (status != AnimationStatus.completed) {
@@ -535,72 +562,40 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
       clipBehavior: Clip.none,
       alignment: Alignment.centerRight,
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(12, 6, 20, 6),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.92),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onStoreTap,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: Colors.black87, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Diamonds Part
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.diamond_rounded,
-                    size: 18,
-                    color: _diamondColor,
-                  ),
-                  const Gap(6),
-                  Text(
-                    '${widget.diamonds}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      height: 1,
-                    ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(12, 6, 20, 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.black87, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-              const Gap(12),
-              Container(
-                width: 1,
-                height: 14,
-                color: Colors.black.withValues(alpha: 0.1),
-              ),
-              const Gap(12),
-              // Coins Part
-              AnimatedBuilder(
-                animation: _bounceAnimation,
-                builder: (context, child) {
-                  return Row(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Diamonds Part
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Transform.scale(
-                        scale: _bounceAnimation.value,
-                        child: SvgPicture.asset(
-                          'assets/icon/icon-park--candy.svg',
-                          width: 18,
-                          height: 18,
-                          colorFilter: const ColorFilter.mode(
-                            AppTheme.secondaryColor,
-                            BlendMode.srcIn,
-                          ),
-                        ),
+                      const Icon(
+                        Icons.diamond_rounded,
+                        size: 18,
+                        color: _diamondColor,
                       ),
                       const Gap(6),
                       Text(
-                        '${widget.coins}',
+                        '${widget.diamonds}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
@@ -608,28 +603,73 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
-              const Gap(8),
-              Transform.translate(
-                offset: const Offset(10, 0),
-                child: GestureDetector(
-                  onTap: widget.onStoreTap,
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEE6D85),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black87, width: 2),
-                    ),
-                    child: const Icon(Icons.add, size: 12, color: Colors.white),
                   ),
-                ),
+                  const Gap(12),
+                  Container(
+                    width: 1,
+                    height: 14,
+                    color: Colors.black.withValues(alpha: 0.1),
+                  ),
+                  const Gap(12),
+                  // Coins Part
+                  AnimatedBuilder(
+                    animation: _bounceAnimation,
+                    builder: (context, child) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Transform.scale(
+                            scale: _bounceAnimation.value,
+                            child: SvgPicture.asset(
+                              'assets/icon/icon-park--candy.svg',
+                              width: 18,
+                              height: 18,
+                              colorFilter: const ColorFilter.mode(
+                                AppTheme.secondaryColor,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                          const Gap(6),
+                          Text(
+                            '${widget.coins}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                              height: 1,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const Gap(8),
+                  Transform.translate(
+                    offset: const Offset(10, 0),
+                    child: SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: Center(
+                        child: Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEE6D85),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.black87, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            size: 12,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
 

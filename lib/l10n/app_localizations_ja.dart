@@ -164,6 +164,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatUserBlocked => 'ユーザーをブロックしました。';
 
   @override
+  String chatMemberCount(num count) {
+    return '$count人';
+  }
+
+  @override
+  String get calendarYesterday => '昨日';
+
+  @override
   String get commonBuy => '購入';
 
   @override

@@ -353,6 +353,18 @@ abstract class AppLocalizations {
   /// **'User blocked.'**
   String get chatUserBlocked;
 
+  /// No description provided for @chatMemberCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {{count} member} other {{count} members}}'**
+  String chatMemberCount(num count);
+
+  /// No description provided for @calendarYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get calendarYesterday;
+
   /// No description provided for @commonBuy.
   ///
   /// In en, this message translates to:

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
@@ -16,9 +17,20 @@ import 'widgets/chat_message_tile.dart';
 import 'chat_message.dart';
 
 class ChatRoomView extends StatefulWidget {
-  const ChatRoomView({super.key, required this.roomId});
+  const ChatRoomView({
+    super.key,
+    required this.roomId,
+    this.backgroundDecoration,
+    this.roomName,
+    this.memberCount,
+    this.petAssetPath,
+  });
 
   final String roomId;
+  final BoxDecoration? backgroundDecoration;
+  final String? roomName;
+  final int? memberCount;
+  final String? petAssetPath;
 
   @override
   State<ChatRoomView> createState() => _ChatRoomViewState();
@@ -30,6 +42,31 @@ final _chatMessageListKey = GlobalKey<ChatMessageListState>();
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
   bool _sending = false;
+  int? _memberCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _memberCount = widget.memberCount;
+    if (_memberCount == null) {
+      _fetchMemberCount();
+    }
+  }
+
+  Future<void> _fetchMemberCount() async {
+    try {
+      final count = await Supabase.instance.client
+          .from('room_members')
+          .count(CountOption.exact)
+          .eq('room_id', widget.roomId)
+          .eq('is_active', true);
+      if (mounted) {
+        setState(() => _memberCount = count);
+      }
+    } catch (_) {
+      // Ignore errors
+    }
+  }
 
   @override
   void dispose() {
@@ -220,93 +257,138 @@ class _ChatRoomViewState extends State<ChatRoomView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.chatTitle),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.roomName ?? l10n.chatTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            if (_memberCount != null)
+              Text(
+                l10n.chatMemberCount(_memberCount!),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
         actions: [
-          IconButton(
-            onPressed: currentUserId == null ? null : () => _openBlockedUsers(),
-            icon: const Icon(Icons.block),
-            tooltip: l10n.blockedUsersTitle,
+          if (widget.petAssetPath != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Image.asset(
+                widget.petAssetPath!,
+                width: 36,
+                height: 36,
+              ),
+            ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'block' && currentUserId != null) {
+                _openBlockedUsers();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'block',
+                child: Row(
+                  children: [
+                    const Icon(Icons.block, size: 20),
+                    const SizedBox(width: 12),
+                    Text(l10n.blockedUsersTitle),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ChatMessageList(
-              key: _chatMessageListKey,
-              roomId: widget.roomId,
-              currentUserId: currentUserId,
-            ),
-          ),
-          SafeArea(
-            top: false,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
+      body: Container(
+        decoration: widget.backgroundDecoration,
+        child: Column(
+          children: [
+            Expanded(
+              child: ChatMessageList(
+                key: _chatMessageListKey,
+                roomId: widget.roomId,
+                currentUserId: currentUserId,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: _sending ? null : _openFeedCamera,
-                    icon: const Icon(Icons.camera_alt_rounded),
-                    color: AppTheme.textSecondary,
-                    tooltip: l10n.feedTitle,
-                  ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: TextField(
-                        controller: _messageController,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _sending ? null : _sendMessage(),
-                        decoration: InputDecoration(
-                          hintText: l10n.chatMessageHint,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
-                          isDense: true,
-                          filled: false,
+            ),
+            SafeArea(
+              top: false,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 5,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: _sending ? null : _openFeedCamera,
+                      icon: const Icon(Icons.camera_alt_rounded),
+                      color: AppTheme.textSecondary,
+                      tooltip: l10n.feedTitle,
+                    ),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.backgroundColor,
+                          borderRadius: BorderRadius.circular(24),
                         ),
-                        minLines: 1,
-                        maxLines: 4,
-                        style: const TextStyle(fontSize: 15),
+                        child: TextField(
+                          controller: _messageController,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sending ? null : _sendMessage(),
+                          decoration: InputDecoration(
+                            hintText: l10n.chatMessageHint,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
+                            isDense: true,
+                            filled: false,
+                          ),
+                          minLines: 1,
+                          maxLines: 4,
+                          style: const TextStyle(fontSize: 15),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _sending ? null : _sendMessage,
-                    icon: SvgPicture.asset(
-                      'assets/icon/mingcute--send-plane-line.svg',
-                      width: 24,
-                      height: 24,
-                      colorFilter: const ColorFilter.mode(
-                        AppTheme.primaryColor,
-                        BlendMode.srcIn,
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _sending ? null : _sendMessage,
+                      icon: SvgPicture.asset(
+                        'assets/icon/mingcute--send-plane-line.svg',
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                          AppTheme.primaryColor,
+                          BlendMode.srcIn,
+                        ),
                       ),
+                      tooltip: l10n.commonSend,
                     ),
-                    tooltip: l10n.commonSend,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -341,6 +423,7 @@ class ChatMessageListState extends State<ChatMessageList> {
   final Set<String> _messageIds = {};
   final Set<String> _optimisticIds = {}; // Track temp message IDs
   final Set<String> _blockedUserIds = {};
+  final Map<String, String> _profileNicknames = {}; // userId -> nickname
   final ChatMessageRepository _repository = ChatMessageRepository.instance;
 
   RealtimeChannel? _channel;
@@ -608,6 +691,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       }
       _mergePage(page);
       _persistCache();
+      unawaited(_ensureProfilesForMessages(_messages));
       PerformanceService.instance.markChatColdLoaded(
         messageCount: _messages.length,
         source: _usedCachedMessages ? 'cache+network' : 'network',
@@ -712,6 +796,52 @@ class ChatMessageListState extends State<ChatMessageList> {
     return _filterBlocked(page);
   }
 
+  /// Fetches and caches nicknames for all unique sender IDs in messages
+  Future<void> _ensureProfilesForMessages(List<ChatMessage> messages) async {
+    final userIds = <String>{};
+    for (final message in messages) {
+      final senderId = message.senderId;
+      if (senderId != null &&
+          senderId.isNotEmpty &&
+          senderId != widget.currentUserId &&
+          !_profileNicknames.containsKey(senderId)) {
+        userIds.add(senderId);
+      }
+    }
+
+    if (userIds.isEmpty) {
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select('user_id, nickname')
+          .inFilter('user_id', userIds.toList());
+
+      if (!mounted) {
+        return;
+      }
+
+      final rows = response as List<dynamic>;
+      bool hasNewProfiles = false;
+      for (final row in rows) {
+        final userId = row['user_id'] as String?;
+        final nickname = row['nickname'] as String?;
+        if (userId != null && nickname != null && nickname.isNotEmpty) {
+          _profileNicknames[userId] = nickname;
+          hasNewProfiles = true;
+        }
+      }
+
+      if (hasNewProfiles) {
+        setState(() {});
+      }
+    } catch (_) {
+      // Best-effort profile loading
+    }
+  }
+
   void _subscribeToMessages() {
     final channel = Supabase.instance.client.channel(
       'room_messages_${widget.roomId}',
@@ -770,6 +900,12 @@ class ChatMessageListState extends State<ChatMessageList> {
           }
         });
         _persistCache();
+        // Fetch profile for new sender if not cached
+        if (message.senderId != null &&
+            message.senderId != widget.currentUserId &&
+            !_profileNicknames.containsKey(message.senderId)) {
+          unawaited(_ensureProfilesForMessages([message]));
+        }
       },
     );
     channel.subscribe();
@@ -783,6 +919,14 @@ class ChatMessageListState extends State<ChatMessageList> {
       }
       return b.id.compareTo(a.id);
     });
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year &&
+        localA.month == localB.month &&
+        localA.day == localB.day;
   }
 
   @override
@@ -896,11 +1040,15 @@ class ChatMessageListState extends State<ChatMessageList> {
                           message.id,
                         );
                         final imageIndex = imageIndexByMessageId[message.id];
+                        final senderName = isMe
+                            ? null
+                            : _profileNicknames[message.senderId];
                         return ChatMessageTile(
                           key: ValueKey(message.id),
                           message: message,
                           isMe: isMe,
                           isOptimistic: isOptimistic,
+                          senderName: senderName,
                           onLongPress: _shouldShowActions(message, isMe)
                               ? () => _showMessageActions(message)
                               : null,
@@ -916,8 +1064,20 @@ class ChatMessageListState extends State<ChatMessageList> {
                                       ),
                         );
                       },
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 2),
+                      separatorBuilder: (context, index) {
+                        if (index == _messages.length - 1) {
+                          // Separator between oldest message and loader/footer
+                          return _DateSeparator(date: _messages[index].createdAt);
+                        }
+                        if (index < _messages.length - 1) {
+                          final newer = _messages[index];
+                          final older = _messages[index + 1];
+                          if (!_isSameDay(newer.createdAt, older.createdAt)) {
+                            return _DateSeparator(date: newer.createdAt);
+                          }
+                        }
+                        return const SizedBox(height: 2);
+                      },
                       itemCount: _messages.length + 1,
                     ),
               if (_showScrollToBottom)
@@ -1171,5 +1331,60 @@ class _ChatLoadingList extends StatelessWidget {
         const Center(child: CircularProgressIndicator()),
       ],
     );
+  }
+}
+
+class _DateSeparator extends StatelessWidget {
+  const _DateSeparator({required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            _formatDate(context, date),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(BuildContext context, DateTime date) {
+    final now = DateTime.now();
+    final localDate = date.toLocal();
+    final l10n = AppLocalizations.of(context)!;
+    // Check if Today
+    if (localDate.year == now.year &&
+        localDate.month == now.month &&
+        localDate.day == now.day) {
+      return l10n.calendarToday;
+    }
+
+    // Check if Yesterday
+    final yesterday = now.subtract(const Duration(days: 1));
+    if (localDate.year == yesterday.year &&
+        localDate.month == yesterday.month &&
+        localDate.day == yesterday.day) {
+      return l10n.calendarYesterday;
+    }
+
+    if (localDate.year == now.year) {
+      return DateFormat.MMMd().format(localDate);
+    }
+    return DateFormat.yMMMd().format(localDate);
   }
 }

@@ -13,6 +13,7 @@ class ChatMessageTile extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.isOptimistic,
+    this.senderName,
     this.onLongPress,
     this.onImageTap,
   });
@@ -20,8 +21,27 @@ class ChatMessageTile extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
   final bool isOptimistic;
+  final String? senderName;
   final VoidCallback? onLongPress;
   final VoidCallback? onImageTap;
+
+  // Color palette for different users (Telegram-style)
+  static const List<Color> _userColors = [
+    Color(0xFFE17076), // Coral red
+    Color(0xFF7BC862), // Green
+    Color(0xFF65AADD), // Blue
+    Color(0xFFEE7AE9), // Pink
+    Color(0xFFFAA74A), // Orange
+    Color(0xFF6EC9CB), // Teal
+    Color(0xFFE47ACD), // Magenta
+    Color(0xFF8E85EE), // Purple
+  ];
+
+  /// Returns a consistent color for a given user ID
+  static Color colorForUserId(String? userId) {
+    if (userId == null || userId.isEmpty) return _userColors[0];
+    return _userColors[userId.hashCode.abs() % _userColors.length];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +68,11 @@ class ChatMessageTile extends StatelessWidget {
     }
 
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    final content = message.isImageFeed
+    final crossAxisAlignment =
+        isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+
+    // Build the message content (bubble)
+    final bubbleContent = message.isImageFeed
         ? _FeedMessageCard(
             message: message,
             isMe: isMe,
@@ -57,11 +81,37 @@ class ChatMessageTile extends StatelessWidget {
           )
         : _TextMessageBubble(message: message, isMe: isMe);
 
+    // Build sender name widget (shown above bubble for non-me messages)
+    Widget? senderWidget;
+    if (!isMe && senderName != null && senderName!.isNotEmpty) {
+      senderWidget = Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 2),
+        child: Text(
+          senderName!,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: colorForUserId(message.senderId),
+          ),
+        ),
+      );
+    }
+
     return Align(
       alignment: alignment,
       child: GestureDetector(
         onLongPress: onLongPress,
-        child: Opacity(opacity: isOptimistic ? 0.7 : 1.0, child: content),
+        child: Opacity(
+          opacity: isOptimistic ? 0.7 : 1.0,
+          child: Column(
+            crossAxisAlignment: crossAxisAlignment,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (senderWidget != null) senderWidget,
+              bubbleContent,
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -181,32 +231,33 @@ class _TextMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final bubbleColor = isMe ? AppTheme.chatBubbleMe : AppTheme.chatBubbleOther;
 
-    final decoration = isMe
-        ? BoxDecoration(
-            color: AppTheme.chatBubbleMe,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(2),
-            ),
+    final bubbleRadius = isMe
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(4),
           )
-        : BoxDecoration(
-            color: AppTheme.chatBubbleOther,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(2),
-              bottomRight: Radius.circular(16),
-            ),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
+        : const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(4),
+            bottomRight: Radius.circular(16),
           );
+
+    final decoration = BoxDecoration(
+      color: bubbleColor,
+      borderRadius: bubbleRadius,
+      border: isMe
+          ? null
+          : Border.all(color: Colors.black.withValues(alpha: 0.04)),
+    );
 
     final textColor = AppTheme.textPrimary;
 
-    return Container(
+    final bubble = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: decoration,
@@ -214,17 +265,6 @@ class _TextMessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!isMe)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                l10n.chatPartnerLabel,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppTheme.secondaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
           Text(
             message.body ?? '',
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -237,12 +277,36 @@ class _TextMessageBubble extends StatelessWidget {
             alignment: Alignment.bottomRight,
             child: Text(
               _formatTime(message.createdAt),
-              style: TextStyle(fontSize: 10, color: Colors.black38),
+              style: const TextStyle(fontSize: 10, color: Colors.black38),
             ),
           ),
         ],
       ),
     );
+
+    // Add bubble tail
+    final tail = CustomPaint(
+      size: const Size(8, 12),
+      painter: _BubbleTailPainter(
+        color: bubbleColor,
+        isMe: isMe,
+        hasBorder: !isMe,
+      ),
+    );
+
+    if (isMe) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [bubble, tail],
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [tail, bubble],
+      );
+    }
   }
 
   String _formatTime(DateTime date) {
@@ -250,6 +314,60 @@ class _TextMessageBubble extends StatelessWidget {
     final hour = local.hour.toString().padLeft(2, '0');
     final minute = local.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+}
+
+/// Custom painter for Telegram-style bubble tail
+class _BubbleTailPainter extends CustomPainter {
+  const _BubbleTailPainter({
+    required this.color,
+    required this.isMe,
+    this.hasBorder = false,
+  });
+
+  final Color color;
+  final bool isMe;
+  final bool hasBorder;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+
+    if (isMe) {
+      // Tail on right side, pointing right-down
+      path.moveTo(0, 0);
+      path.quadraticBezierTo(size.width * 0.8, size.height * 0.3, size.width, size.height);
+      path.lineTo(0, size.height);
+      path.close();
+    } else {
+      // Tail on left side, pointing left-down
+      path.moveTo(size.width, 0);
+      path.quadraticBezierTo(size.width * 0.2, size.height * 0.3, 0, size.height);
+      path.lineTo(size.width, size.height);
+      path.close();
+    }
+
+    canvas.drawPath(path, paint);
+
+    // Draw border if needed (for other's messages)
+    if (hasBorder) {
+      final borderPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.04)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+      canvas.drawPath(path, borderPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BubbleTailPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.isMe != isMe ||
+        oldDelegate.hasBorder != hasBorder;
   }
 }
 
@@ -268,8 +386,6 @@ class _FeedMessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     final decoration = isMe
         ? BoxDecoration(
             color: AppTheme.chatBubbleMe,
@@ -288,33 +404,13 @@ class _FeedMessageCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header (Partner Name + Coins)
-          Row(
-            children: [
-              if (!isMe) ...[
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    l10n.chatPartnerLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-              const Spacer(),
-              if (message.coinsAwarded > 0)
-                Container(
+          // Header (Coins badge only - sender name is shown above the card)
+          if (message.coinsAwarded > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 4,
@@ -343,9 +439,8 @@ class _FeedMessageCard extends StatelessWidget {
                     ],
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
+              ),
+            ),
 
           // Image
           ClipRRect(

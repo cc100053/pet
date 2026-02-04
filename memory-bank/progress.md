@@ -187,6 +187,8 @@
 - Added overfed speech bubble trigger when the pet is fed too many times in a short window.
 - Shared room background selection across members by syncing `room_background_state` and `room_backgrounds` in Home view.
 - Updated store flow to limit IAP to subscription + diamond pack; all non-IAP items now support candy or diamond purchase, and backgrounds use room-scoped purchase RPCs.
+- Wired Home health bar to hunger-only value per GDD and hardened numeric parsing.
+- Implemented overfed bubble UI driven by `pet_state.last_overfed_at` with a timed display.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

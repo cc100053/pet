@@ -114,6 +114,15 @@
   "chatTitle": "チャット",
   "chatUserAlreadyBlocked": "ブロック済み",
   "chatUserBlocked": "ユーザーをブロックしました。",
+  "chatMemberCount": "{count}人",
+  "@chatMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "calendarYesterday": "昨日",
   "commonBuy": "購入",
   "commonCamera": "カメラ",
   "commonCancel": "キャンセル",

@@ -74,6 +74,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _petBusy = false;
   Map<String, dynamic>? _petState;
   String? _petError;
+  DateTime? _lastOverfedAt;
+  bool _showOverfedBubble = false;
+  Timer? _overfedBubbleTimer;
   String? _petName;
   int? _petLevel;
   int? _petExp;
@@ -205,6 +208,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _furnitureChannel?.unsubscribe();
     _backgroundStateChannel?.unsubscribe();
     _backgroundInventoryChannel?.unsubscribe();
+    _overfedBubbleTimer?.cancel();
     for (final channel in _messageChannels.values) {
       channel.unsubscribe();
     }
@@ -380,19 +384,26 @@ class _HomeViewState extends ConsumerState<HomeView>
           .map((room) => room['id'])
           .whereType<String>()
           .toList(growable: false);
+      final senderIds = <String>{};
       if (roomIds.isNotEmpty) {
         final moods = await _fetchRoomMoods(roomIds);
-        final photos = await _fetchRoomLatestPhotos(roomIds);
+        final feeds = await _fetchRoomLatestFeeds(roomIds);
         for (final room in rooms) {
           final roomId = room['id'] as String?;
           if (roomId != null && moods.containsKey(roomId)) {
             room['mood'] = moods[roomId];
           }
-          if (roomId != null && photos.containsKey(roomId)) {
-            final latest = photos[roomId];
-            if (latest != null && latest.isNotEmpty) {
-              room['latest_photo'] = latest.first;
-              room['latest_photos'] = latest;
+          if (roomId != null && feeds.containsKey(roomId)) {
+            final latest = feeds[roomId]!;
+            if (latest.imageUrls.isNotEmpty) {
+              room['latest_photo'] = latest.latestImageUrl;
+              room['latest_photos'] = latest.imageUrls;
+              room['latest_caption'] = latest.latestCaption;
+              room['latest_sender_id'] = latest.latestSenderId;
+              final senderId = latest.latestSenderId;
+              if (senderId != null && senderId.isNotEmpty) {
+                senderIds.add(senderId);
+              }
             }
           }
         }
@@ -409,6 +420,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           _roomSelectionId ??= _roomId ?? rooms.first['id'] as String?;
         }
       });
+      for (final senderId in senderIds) {
+        unawaited(_ensureProfileSummary(senderId));
+      }
 
       if (_roomId != null) {}
 
@@ -523,10 +537,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       _roomId = roomId;
       _petState = null; // Clear old state
       _petId = null;
+      _lastOverfedAt = null;
+      _showOverfedBubble = false;
       _petType = petType ?? PetCatalog.defaultPetId;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
     });
+    _overfedBubbleTimer?.cancel();
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
     _petStateChannel?.unsubscribe();
@@ -568,6 +585,20 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _signOut() async {
     AnalyticsService.instance.logEvent('sign_out_tap');
     await Supabase.instance.client.auth.signOut();
+  }
+
+  Future<void> _openProfile() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProfileView()));
+    if (!mounted) {
+      return;
+    }
+    await _loadCoins();
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      await _ensureProfileSummary(userId, forceRefresh: true);
+    }
   }
 
   Future<void> _createRoom() async {
@@ -1101,7 +1132,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     return moods;
   }
 
-  Future<Map<String, List<String>>> _fetchRoomLatestPhotos(
+  Future<Map<String, _RoomLatestFeed>> _fetchRoomLatestFeeds(
     List<String> roomIds,
   ) async {
     if (roomIds.isEmpty) {
@@ -1109,14 +1140,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     final rows = await Supabase.instance.client
         .from('messages')
-        .select('room_id, image_url, created_at')
+        .select('room_id, image_url, caption, sender_id, created_at')
         .inFilter('room_id', roomIds)
         .eq('type', 'image_feed')
         .not('image_url', 'is', null)
         .order('created_at', ascending: false)
         .limit(roomIds.length * 12);
 
-    final photos = <String, List<String>>{};
+    final feeds = <String, _RoomLatestFeed>{};
     for (final row in rows) {
       final roomId = row['room_id'] as String?;
       final imageUrl = row['image_url'] as String?;
@@ -1124,20 +1155,30 @@ class _HomeViewState extends ConsumerState<HomeView>
         continue;
       }
 
-      final existing = photos.putIfAbsent(roomId, () => <String>[]);
-      if (existing.length >= 3 || existing.contains(imageUrl)) {
+      final existing = feeds[roomId];
+      if (existing == null) {
+        feeds[roomId] = _RoomLatestFeed(
+          latestImageUrl: imageUrl,
+          latestCaption: row['caption'] as String?,
+          latestSenderId: row['sender_id'] as String?,
+          imageUrls: [imageUrl],
+        );
         continue;
       }
-      existing.add(imageUrl);
+      if (existing.imageUrls.length >= 3 ||
+          existing.imageUrls.contains(imageUrl)) {
+        continue;
+      }
+      existing.imageUrls.add(imageUrl);
     }
-    return photos;
+    return feeds;
   }
 
   Future<void> _refreshLatestRoomPhoto(String roomId) async {
     try {
       final rows = await Supabase.instance.client
           .from('messages')
-          .select('image_url, created_at')
+          .select('image_url, caption, sender_id, created_at')
           .eq('room_id', roomId)
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
@@ -1159,6 +1200,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
+      final firstRow = rows.first;
+      final senderId = firstRow['sender_id'] as String?;
+      final caption = firstRow['caption'] as String?;
       setState(() {
         _myRooms = _myRooms
             .map(
@@ -1167,11 +1211,16 @@ class _HomeViewState extends ConsumerState<HomeView>
                       ...room,
                       'latest_photo': latest.first,
                       'latest_photos': latest,
+                      'latest_caption': caption,
+                      'latest_sender_id': senderId,
                     }
                   : room,
             )
             .toList();
       });
+      if (senderId != null && senderId.isNotEmpty) {
+        unawaited(_ensureProfileSummary(senderId));
+      }
     } catch (_) {
       // Best-effort. Latest photo updates are also driven by realtime.
     }
@@ -1222,6 +1271,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             )
             .toList();
       });
+      _handleOverfedState();
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
@@ -1267,6 +1317,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               .toList();
         }
       });
+      _handleOverfedState();
     }
 
     channel.onPostgresChanges(
@@ -1413,6 +1464,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_refreshLatestFeed(roomId));
       unawaited(_loadCoins(expectedReward: 10)); // Feed = +10 coins
 
+      unawaited(_refreshPetState());
       unawaited(() async {
         final petId = _petId ?? await _loadPetId(roomId);
         if (petId != null) {
@@ -1524,9 +1576,32 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (roomId == null) {
       return;
     }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => ChatRoomView(roomId: roomId)));
+
+    final room = _myRooms.firstWhere(
+      (r) => r['id'] == roomId,
+      orElse: () => {},
+    );
+    final roomName = room['name'] as String?;
+    final petAssetPath = PetCatalog.byId(_petType).stayAsset;
+    final backgroundDecoration = _currentBackgroundDefinition().decoration;
+
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => ChatRoomView(
+              roomId: roomId,
+              backgroundDecoration: backgroundDecoration,
+              roomName: roomName,
+              petAssetPath: petAssetPath,
+            ),
+          ),
+        )
+        .then((_) {
+          if (!mounted) {
+            return;
+          }
+          unawaited(_refreshPetState());
+        });
   }
 
   void _openCalendar() {
@@ -1636,18 +1711,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   double _healthValue() {
-    final hunger = (_petState?['hunger'] as int?) ?? 0;
-    final hygiene = (_petState?['hygiene'] as int?) ?? 0;
-    final base = ((hunger + hygiene) / 2).clamp(0, 100);
-    final mood = (_petState?['mood'] as String?) ?? 'low';
-    final moodFactor = switch (mood) {
-      'high' => 1.0,
-      'mid' => 0.9,
-      'low' => 0.75,
-      'sad' => 0.6,
-      _ => 0.9,
-    };
-    return ((base / 100) * moodFactor).clamp(0.0, 1.0);
+    final hunger = (_petState?['hunger'] as num?)?.toDouble() ?? 0.0;
+    return (hunger / 100).clamp(0.0, 1.0);
   }
 
   void _onHomeNavPressed() {
@@ -1710,9 +1775,12 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<_ProfileSummary?> _ensureProfileSummary(String userId) async {
+  Future<_ProfileSummary?> _ensureProfileSummary(
+    String userId, {
+    bool forceRefresh = false,
+  }) async {
     final cached = _profileByUserId[userId];
-    if (cached != null) {
+    if (cached != null && !forceRefresh) {
       return cached;
     }
     try {
@@ -1826,6 +1894,33 @@ class _HomeViewState extends ConsumerState<HomeView>
       return DateTime.tryParse(value);
     }
     return null;
+  }
+
+  void _handleOverfedState() {
+    final lastOverfed =
+        _parseOptionalDate(_petState?['last_overfed_at'])?.toUtc();
+    if (lastOverfed == null) {
+      return;
+    }
+    if (_lastOverfedAt != null && !lastOverfed.isAfter(_lastOverfedAt!)) {
+      return;
+    }
+    if (DateTime.now()
+            .toUtc()
+            .difference(lastOverfed) >
+        const Duration(minutes: 10)) {
+      _lastOverfedAt = lastOverfed;
+      return;
+    }
+    _lastOverfedAt = lastOverfed;
+    _overfedBubbleTimer?.cancel();
+    setState(() => _showOverfedBubble = true);
+    _overfedBubbleTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _showOverfedBubble = false);
+    });
   }
 
   void _maybeTriggerWander() {
@@ -2865,6 +2960,65 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
+  Widget _buildOverfedBubble() {
+    final l10n = AppLocalizations.of(context)!;
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: _showOverfedBubble ? 1 : 0,
+        duration: 200.ms,
+        curve: Curves.easeOut,
+        child: AnimatedScale(
+          scale: _showOverfedBubble ? 1 : 0.92,
+          duration: 200.ms,
+          curve: Curves.easeOutBack,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.black87, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  l10n.petOverfedBubble,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(0, -2),
+                child: Transform.rotate(
+                  angle: pi / 4,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black87, width: 1.2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _cleanPoopAt(int index) async {
     final roomId = _roomId;
     if (roomId == null) return;
@@ -2917,22 +3071,32 @@ class _HomeViewState extends ConsumerState<HomeView>
         onPanUpdate: (details) => _handlePetDragUpdate(details, fieldSize),
         onPanEnd: (_) => _handlePetDragEnd(),
         onPanCancel: _handlePetDragCancel,
-        child: JuicyScaleButton(
-          onTap: _petBusy
-              ? null
-              : () {
-                  _markUserInteraction();
-                  _applyPetAction('touch');
-                },
-          child: Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.diagonal3Values(
-              _petFacingRight ? 1.0 : -1.0,
-              1.0,
-              1.0,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: -6,
+              top: -54,
+              child: _buildOverfedBubble(),
             ),
-            child: Transform.scale(scale: 0.88, child: _buildPetAvatar()),
-          ),
+            JuicyScaleButton(
+              onTap: _petBusy
+                  ? null
+                  : () {
+                      _markUserInteraction();
+                      _applyPetAction('touch');
+                    },
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.diagonal3Values(
+                  _petFacingRight ? 1.0 : -1.0,
+                  1.0,
+                  1.0,
+                ),
+                child: Transform.scale(scale: 0.88, child: _buildPetAvatar()),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -3085,6 +3249,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           onSelectRoom: _enterRoomFromSelection,
           onLeaveRoom: _confirmLeaveRoom,
           onRenameRoom: _renameRoomFromSelection,
+          userAvatarById: _profileByUserId.map(
+            (key, value) => MapEntry(key, value.avatarUrl),
+          ),
+          userNameById: _profileByUserId.map(
+            (key, value) => MapEntry(key, value.nickname),
+          ),
           selectedRoomId: _roomSelectionId ?? _roomId,
           userAvatarUrl: _myAvatarUrl,
         ),
@@ -3149,6 +3319,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                       level: level,
                       exp: exp,
                     );
+                    final healthDebugValue =
+                        (_petState?['hunger'] as num?)?.round();
                     return HomeGameStatusBar(
                       petAvatar: Image.asset(
                         petDefinition.stayAsset,
@@ -3161,6 +3333,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                           ? '貪吃鬼鬼'
                           : _petName!.trim(),
                       healthValue: _healthValue(),
+                      healthDebugValue: healthDebugValue,
                       coins: _coins,
                       diamonds: _diamonds,
                       coinReward: _coinReward,
@@ -3419,9 +3592,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       },
       onProfileTap: () {
         Navigator.pop(context);
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => const ProfileView()));
+        unawaited(_openProfile());
       },
       onCalendarTap: (roomId) {
         Navigator.pop(context);

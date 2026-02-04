@@ -114,6 +114,15 @@
   "chatTitle": "聊天",
   "chatUserAlreadyBlocked": "已封鎖",
   "chatUserBlocked": "已封鎖用戶。",
+  "chatMemberCount": "{count} 位成員",
+  "@chatMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "calendarYesterday": "昨天",
   "commonBuy": "購買",
   "commonCamera": "相機",
   "commonCancel": "取消",

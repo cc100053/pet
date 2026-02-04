@@ -7,6 +7,20 @@ class _ProfileSummary {
   final String? avatarUrl;
 }
 
+class _RoomLatestFeed {
+  _RoomLatestFeed({
+    required this.latestImageUrl,
+    required this.latestCaption,
+    required this.latestSenderId,
+    required this.imageUrls,
+  });
+
+  final String latestImageUrl;
+  final String? latestCaption;
+  final String? latestSenderId;
+  final List<String> imageUrls;
+}
+
 class _PlacedFurniture {
   _PlacedFurniture({
     required this.id,

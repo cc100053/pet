@@ -164,6 +164,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatUserBlocked => '已封鎖用戶。';
 
   @override
+  String chatMemberCount(num count) {
+    return '$count 位成員';
+  }
+
+  @override
+  String get calendarYesterday => '昨天';
+
+  @override
   String get commonBuy => '購買';
 
   @override
