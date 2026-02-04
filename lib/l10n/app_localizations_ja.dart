@@ -517,6 +517,21 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get roomOptionsTitle => 'ルームオプション';
+
+  @override
+  String get roomOptionRename => 'ルーム名を変更';
+
+  @override
+  String get roomOptionLeave => 'ルームを退出';
+
+  @override
+  String get roomRenameTitle => 'ルーム名を変更';
+
+  @override
+  String get roomRenameMessage => '新しいルーム名を入力してください。';
+
+  @override
   String get roomDefaultName => '新しいルーム';
 
   @override
@@ -728,10 +743,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeTypeSubscription => 'サブスクリプション';
 
   @override
-  String get furnitureInventoryTitle => '家具';
+  String get furnitureInventoryTitle => 'ルーム在庫';
 
   @override
-  String get furnitureInventorySubtitle => 'ペットの家に配置できます。';
+  String get furnitureInventorySubtitle => 'このルームの家具と背景を管理します。';
 
   @override
   String get furnitureInventoryEmpty => 'まだ家具がありません。ストアで購入してください。';
@@ -739,6 +754,51 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get furnitureInventoryHint =>
       '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。';
+
+  @override
+  String get roomInventoryTitle => 'ルーム在庫';
+
+  @override
+  String get inventoryTabFurniture => '家具';
+
+  @override
+  String get backgroundGalleryTab => '背景ギャラリー';
+
+  @override
+  String get backgroundInventoryEmpty => '背景がまだありません。ストアで入手できます。';
+
+  @override
+  String get backgroundInventoryHint => '背景をタップするとルーム全員に適用されます。';
+
+  @override
+  String get backgroundApply => '適用';
+
+  @override
+  String get backgroundAppliedLabel => '適用中';
+
+  @override
+  String backgroundApplyFailed(Object error) {
+    return '背景の適用に失敗しました: $error';
+  }
+
+  @override
+  String get storeSectionBackgrounds => '背景';
+
+  @override
+  String get storeSectionItems => 'アイテム';
+
+  @override
+  String get storeBackgroundRoomRequired => '背景を購入する前にルームを選択してください。';
+
+  @override
+  String storeBuyWithCandies(Object price) {
+    return '$price キャンディで購入';
+  }
+
+  @override
+  String storeBuyWithDiamonds(Object price) {
+    return '$price ダイヤで購入';
+  }
 
   @override
   String get furnitureEditMode => '家具モード';
@@ -788,4 +848,55 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomLeaveConfirm => '退出する';
+
+  @override
+  String get petDepartureNoteMessage => 'どうしてこんな扱いをするの…';
+
+  @override
+  String get petDepartureGuideTitle => '回復の手紙';
+
+  @override
+  String get petDepartureGuideMessage => 'ストアで「手紙」を買って、ペットを呼び戻してください。';
+
+  @override
+  String get petDepartureGuideGoStore => 'ストアへ';
+
+  @override
+  String get petDepartureLetterUnavailableTitle => '手紙は使えません';
+
+  @override
+  String get petDepartureLetterUnavailableMessage => '今は帰ってきてほしいペットがいません。';
+
+  @override
+  String get petDepartureLetterSelectTitle => 'ペットを選ぶ';
+
+  @override
+  String get petDepartureLetterSelectMessage => 'どのペットを呼び戻しますか？';
+
+  @override
+  String petDepartureLetterConfirmTitle(Object petName) {
+    return '$petNameを呼び戻す？';
+  }
+
+  @override
+  String petDepartureLetterConfirmMessage(Object petName) {
+    return '手紙を購入して$petNameを家に呼び戻しますか？';
+  }
+
+  @override
+  String get petDepartureLetterConfirmAction => '手紙を購入';
+
+  @override
+  String get petOverfedBubble => 'おなかいっぱい！';
+
+  @override
+  String get petNameUnknown => 'あなたのペット';
+
+  @override
+  String get roomNameUnknown => '不明なルーム';
+
+  @override
+  String petReturnFailed(Object error) {
+    return 'ペットの復帰に失敗しました: $error';
+  }
 }

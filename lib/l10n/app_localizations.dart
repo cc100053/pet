@@ -983,6 +983,36 @@ abstract class AppLocalizations {
   /// **'Couldn\'t update room name: {error}'**
   String roomNameUpdateFailed(Object error);
 
+  /// No description provided for @roomOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Room options'**
+  String get roomOptionsTitle;
+
+  /// No description provided for @roomOptionRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename room'**
+  String get roomOptionRename;
+
+  /// No description provided for @roomOptionLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave room'**
+  String get roomOptionLeave;
+
+  /// No description provided for @roomRenameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change room name'**
+  String get roomRenameTitle;
+
+  /// No description provided for @roomRenameMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a new name for this room.'**
+  String get roomRenameMessage;
+
   /// No description provided for @roomDefaultName.
   ///
   /// In en, this message translates to:
@@ -1340,13 +1370,13 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Furniture'**
+  /// **'Room Inventory'**
   String get furnitureInventoryTitle;
 
   /// No description provided for @furnitureInventorySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Place items in your pet home.'**
+  /// **'Manage furniture and backgrounds for this room.'**
   String get furnitureInventorySubtitle;
 
   /// No description provided for @furnitureInventoryEmpty.
@@ -1360,6 +1390,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.'**
   String get furnitureInventoryHint;
+
+  /// No description provided for @roomInventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Room Inventory'**
+  String get roomInventoryTitle;
+
+  /// No description provided for @inventoryTabFurniture.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture'**
+  String get inventoryTabFurniture;
+
+  /// No description provided for @backgroundGalleryTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Background Gallery'**
+  String get backgroundGalleryTab;
+
+  /// No description provided for @backgroundInventoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No backgrounds yet. Pick one up in the store.'**
+  String get backgroundInventoryEmpty;
+
+  /// No description provided for @backgroundInventoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a background to apply it for everyone in the room.'**
+  String get backgroundInventoryHint;
+
+  /// No description provided for @backgroundApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get backgroundApply;
+
+  /// No description provided for @backgroundAppliedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied'**
+  String get backgroundAppliedLabel;
+
+  /// No description provided for @backgroundApplyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to apply background: {error}'**
+  String backgroundApplyFailed(Object error);
+
+  /// No description provided for @storeSectionBackgrounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Backgrounds'**
+  String get storeSectionBackgrounds;
+
+  /// No description provided for @storeSectionItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get storeSectionItems;
+
+  /// No description provided for @storeBackgroundRoomRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a room before purchasing a background.'**
+  String get storeBackgroundRoomRequired;
+
+  /// No description provided for @storeBuyWithCandies.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy {price} Candy'**
+  String storeBuyWithCandies(Object price);
+
+  /// No description provided for @storeBuyWithDiamonds.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy {price} Diamonds'**
+  String storeBuyWithDiamonds(Object price);
 
   /// No description provided for @furnitureEditMode.
   ///
@@ -1450,6 +1558,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave room'**
   String get roomLeaveConfirm;
+
+  /// No description provided for @petDepartureNoteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Why treat me like this...'**
+  String get petDepartureNoteMessage;
+
+  /// No description provided for @petDepartureGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Letter'**
+  String get petDepartureGuideTitle;
+
+  /// No description provided for @petDepartureGuideMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit the Store and buy a Letter to invite your pet back.'**
+  String get petDepartureGuideMessage;
+
+  /// No description provided for @petDepartureGuideGoStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Store'**
+  String get petDepartureGuideGoStore;
+
+  /// No description provided for @petDepartureLetterUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Letter unavailable'**
+  String get petDepartureLetterUnavailableTitle;
+
+  /// No description provided for @petDepartureLetterUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No pets have left yet.'**
+  String get petDepartureLetterUnavailableMessage;
+
+  /// No description provided for @petDepartureLetterSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a pet'**
+  String get petDepartureLetterSelectTitle;
+
+  /// No description provided for @petDepartureLetterSelectMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Which pet should the letter call back?'**
+  String get petDepartureLetterSelectMessage;
+
+  /// No description provided for @petDepartureLetterConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {petName} back?'**
+  String petDepartureLetterConfirmTitle(Object petName);
+
+  /// No description provided for @petDepartureLetterConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy a Letter to invite {petName} back home.'**
+  String petDepartureLetterConfirmMessage(Object petName);
+
+  /// No description provided for @petDepartureLetterConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy Letter'**
+  String get petDepartureLetterConfirmAction;
+
+  /// No description provided for @petOverfedBubble.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m full!'**
+  String get petOverfedBubble;
+
+  /// No description provided for @petNameUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet'**
+  String get petNameUnknown;
+
+  /// No description provided for @roomNameUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown room'**
+  String get roomNameUnknown;
+
+  /// No description provided for @petReturnFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to return pet: {error}'**
+  String petReturnFailed(Object error);
 }
 
 class _AppLocalizationsDelegate

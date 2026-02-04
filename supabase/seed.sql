@@ -110,11 +110,31 @@ on conflict (code) do nothing;
 
 insert into items (sku, type, name, price_coins, price_diamonds, price_usd, metadata, is_active) values
   (
+    'background_default',
+    'cosmetic',
+    'Default Background',
+    0,
+    0,
+    null,
+    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"default","description":"Original cozy room backdrop."}'::jsonb,
+    true
+  ),
+  (
+    'background_test',
+    'cosmetic',
+    'Test Background',
+    120,
+    120,
+    null,
+    '{"price_jpy":120,"currency":"JPY","category":"background","background_key":"test","description":"Example background for testing."}'::jsonb,
+    true
+  ),
+  (
     'cosmetic_room_cozy',
     'cosmetic',
     'Cozy Room Wallpaper',
     120,
-    null,
+    120,
     null,
     '{"price_jpy":120,"currency":"JPY","category":"room","description":"Warm wooden room skin."}'::jsonb,
     true
@@ -124,7 +144,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     'cosmetic',
     'Sky Window Theme',
     180,
-    null,
+    180,
     null,
     '{"price_jpy":180,"currency":"JPY","category":"room","description":"Bright sky window backdrop."}'::jsonb,
     true
@@ -134,7 +154,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     'cosmetic',
     'Cozy Chair',
     80,
-    null,
+    80,
     null,
     '{"price_jpy":80,"currency":"JPY","category":"furniture","emoji":"🪑","description":"A comfy chair for the pet home."}'::jsonb,
     true
@@ -144,7 +164,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     'cosmetic',
     'Tiny Plant',
     60,
-    null,
+    60,
     null,
     '{"price_jpy":60,"currency":"JPY","category":"furniture","emoji":"🪴","description":"A small plant to brighten the room."}'::jsonb,
     true
@@ -154,7 +174,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     'cosmetic',
     'Soft Lamp',
     90,
-    null,
+    90,
     null,
     '{"price_jpy":90,"currency":"JPY","category":"furniture","emoji":"💡","description":"Warm light for cozy vibes."}'::jsonb,
     true
@@ -164,7 +184,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     'consumable',
     'Snack Pack',
     40,
-    null,
+    40,
     null,
     '{"price_jpy":40,"currency":"JPY","category":"pet","description":"Small treat for quick care."}'::jsonb,
     true
@@ -174,7 +194,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     'consumable',
     'Clean Kit',
     60,
-    null,
+    60,
     null,
     '{"price_jpy":60,"currency":"JPY","category":"pet","description":"Basic cleaning supplies."}'::jsonb,
     true
@@ -190,16 +210,6 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     true
   ),
   (
-    'iap_coin_pack_small',
-    'consumable',
-    'Coin Pack Small',
-    null,
-    null,
-    null,
-    '{"price_jpy":120,"currency":"JPY","category":"coin_pack","description":"One-time coin pack.","iap_product_id":"Petcoins120","iap_type":"consumable","coin_amount":120}'::jsonb,
-    true
-  ),
-  (
     'iap_diamond_pack_small',
     'consumable',
     'Diamond Pack Small',
@@ -210,20 +220,10 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     true
   ),
   (
-    'diamond_candy_pack_small',
-    'consumable',
-    'Candy Exchange Pack',
-    null,
-    10,
-    null,
-    '{"price_jpy":120,"currency":"JPY","category":"coin_pack","description":"Exchange diamonds for candy.","coin_amount":120}'::jsonb,
-    true
-  ),
-  (
     'premium_room_glow',
     'cosmetic',
     'Glow Frame Room',
-    null,
+    15,
     15,
     null,
     '{"price_jpy":240,"currency":"JPY","category":"premium","description":"Premium glowing frame skin."}'::jsonb,

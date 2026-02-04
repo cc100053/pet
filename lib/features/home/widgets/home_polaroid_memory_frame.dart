@@ -40,9 +40,18 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
           final available =
               constraints.maxHeight - (innerPadding * 2) - reservedBelowPhoto;
           if (available.isFinite && available > 0) {
-            photoSize = math.min(photoSize, available);
+            photoSize = math.min(photoSize, available).toDouble();
           }
         }
+        final double bottomHeight = constraints.maxHeight.isFinite
+            ? math
+                  .max(
+                    0,
+                    constraints.maxHeight - (innerPadding * 2) - photoSize,
+                  )
+                  .toDouble()
+            : (showCaption ? 80.0 : 60.0);
+        final double safeBottomHeight = math.max(0, bottomHeight - 8);
 
         return Material(
           color: Colors.transparent,
@@ -87,22 +96,36 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                                 ),
                         ),
                       ),
-                      if (showCaption) ...[
-                        const Gap(36),
-                        Text(
-                          caption,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
+                      if (showCaption)
+                        SizedBox(
+                          height: safeBottomHeight,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: math
+                                    .min(36, safeBottomHeight)
+                                    .toDouble(),
+                              ),
+                              if (safeBottomHeight > 8)
+                                Flexible(
+                                  child: Text(
+                                    caption,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ] else ...[
-                        const Gap(60),
-                      ],
+                        )
+                      else
+                        SizedBox(height: safeBottomHeight),
                     ],
                   ),
                   Positioned(

@@ -517,6 +517,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get roomOptionsTitle => '房間選項';
+
+  @override
+  String get roomOptionRename => '重新命名房間';
+
+  @override
+  String get roomOptionLeave => '離開房間';
+
+  @override
+  String get roomRenameTitle => '變更房間名稱';
+
+  @override
+  String get roomRenameMessage => '輸入新的房間名稱。';
+
+  @override
   String get roomDefaultName => '新房間';
 
   @override
@@ -728,16 +743,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeTypeSubscription => '訂閱';
 
   @override
-  String get furnitureInventoryTitle => '家具';
+  String get furnitureInventoryTitle => '房間背包';
 
   @override
-  String get furnitureInventorySubtitle => '把家具放進寵物家裡。';
+  String get furnitureInventorySubtitle => '管理這個房間的家具與背景。';
 
   @override
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
   String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。';
+
+  @override
+  String get roomInventoryTitle => '房間背包';
+
+  @override
+  String get inventoryTabFurniture => '家具';
+
+  @override
+  String get backgroundGalleryTab => '背景圖庫';
+
+  @override
+  String get backgroundInventoryEmpty => '還沒有背景，去商店看看吧。';
+
+  @override
+  String get backgroundInventoryHint => '點擊背景即可套用到房間所有成員。';
+
+  @override
+  String get backgroundApply => '套用';
+
+  @override
+  String get backgroundAppliedLabel => '已套用';
+
+  @override
+  String backgroundApplyFailed(Object error) {
+    return '套用背景失敗：$error';
+  }
+
+  @override
+  String get storeSectionBackgrounds => '背景';
+
+  @override
+  String get storeSectionItems => '商品';
+
+  @override
+  String get storeBackgroundRoomRequired => '購買背景前請先選擇房間。';
+
+  @override
+  String storeBuyWithCandies(Object price) {
+    return '用 $price 糖果購買';
+  }
+
+  @override
+  String storeBuyWithDiamonds(Object price) {
+    return '用 $price 鑽石購買';
+  }
 
   @override
   String get furnitureEditMode => '家具模式';
@@ -787,6 +847,57 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get roomLeaveConfirm => '離開房間';
+
+  @override
+  String get petDepartureNoteMessage => '為什麼要這樣對我...';
+
+  @override
+  String get petDepartureGuideTitle => '回家信';
+
+  @override
+  String get petDepartureGuideMessage => '前往商店購買「信」來把你的寵物叫回來。';
+
+  @override
+  String get petDepartureGuideGoStore => '前往商店';
+
+  @override
+  String get petDepartureLetterUnavailableTitle => '無法使用信';
+
+  @override
+  String get petDepartureLetterUnavailableMessage => '目前沒有離開的寵物。';
+
+  @override
+  String get petDepartureLetterSelectTitle => '選擇寵物';
+
+  @override
+  String get petDepartureLetterSelectMessage => '要把哪隻寵物叫回來？';
+
+  @override
+  String petDepartureLetterConfirmTitle(Object petName) {
+    return '要叫回 $petName 嗎？';
+  }
+
+  @override
+  String petDepartureLetterConfirmMessage(Object petName) {
+    return '購買信件來把 $petName 叫回家嗎？';
+  }
+
+  @override
+  String get petDepartureLetterConfirmAction => '購買信';
+
+  @override
+  String get petOverfedBubble => '我吃飽了！';
+
+  @override
+  String get petNameUnknown => '你的寵物';
+
+  @override
+  String get roomNameUnknown => '未知的房間';
+
+  @override
+  String petReturnFailed(Object error) {
+    return '寵物回來失敗：$error';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1302,6 +1413,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
+  String get roomOptionsTitle => '房間選項';
+
+  @override
+  String get roomOptionRename => '重新命名房間';
+
+  @override
+  String get roomOptionLeave => '離開房間';
+
+  @override
+  String get roomRenameTitle => '變更房間名稱';
+
+  @override
+  String get roomRenameMessage => '輸入新的房間名稱。';
+
+  @override
   String get roomDefaultName => '新房間';
 
   @override
@@ -1513,16 +1639,61 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeTypeSubscription => '訂閱';
 
   @override
-  String get furnitureInventoryTitle => '家具';
+  String get furnitureInventoryTitle => '房間背包';
 
   @override
-  String get furnitureInventorySubtitle => '把家具放進寵物家裡。';
+  String get furnitureInventorySubtitle => '管理這個房間的家具與背景。';
 
   @override
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
   String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。';
+
+  @override
+  String get roomInventoryTitle => '房間背包';
+
+  @override
+  String get inventoryTabFurniture => '家具';
+
+  @override
+  String get backgroundGalleryTab => '背景圖庫';
+
+  @override
+  String get backgroundInventoryEmpty => '還沒有背景，去商店看看吧。';
+
+  @override
+  String get backgroundInventoryHint => '點擊背景即可套用到房間所有成員。';
+
+  @override
+  String get backgroundApply => '套用';
+
+  @override
+  String get backgroundAppliedLabel => '已套用';
+
+  @override
+  String backgroundApplyFailed(Object error) {
+    return '套用背景失敗：$error';
+  }
+
+  @override
+  String get storeSectionBackgrounds => '背景';
+
+  @override
+  String get storeSectionItems => '商品';
+
+  @override
+  String get storeBackgroundRoomRequired => '購買背景前請先選擇房間。';
+
+  @override
+  String storeBuyWithCandies(Object price) {
+    return '用 $price 糖果購買';
+  }
+
+  @override
+  String storeBuyWithDiamonds(Object price) {
+    return '用 $price 鑽石購買';
+  }
 
   @override
   String get furnitureEditMode => '家具模式';
@@ -1572,4 +1743,55 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomLeaveConfirm => '離開房間';
+
+  @override
+  String get petDepartureNoteMessage => '為什麼要這樣對我...';
+
+  @override
+  String get petDepartureGuideTitle => '回家信';
+
+  @override
+  String get petDepartureGuideMessage => '前往商店購買「信」來把你的寵物叫回來。';
+
+  @override
+  String get petDepartureGuideGoStore => '前往商店';
+
+  @override
+  String get petDepartureLetterUnavailableTitle => '無法使用信';
+
+  @override
+  String get petDepartureLetterUnavailableMessage => '目前沒有離開的寵物。';
+
+  @override
+  String get petDepartureLetterSelectTitle => '選擇寵物';
+
+  @override
+  String get petDepartureLetterSelectMessage => '要把哪隻寵物叫回來？';
+
+  @override
+  String petDepartureLetterConfirmTitle(Object petName) {
+    return '要叫回 $petName 嗎？';
+  }
+
+  @override
+  String petDepartureLetterConfirmMessage(Object petName) {
+    return '購買信件來把 $petName 叫回家嗎？';
+  }
+
+  @override
+  String get petDepartureLetterConfirmAction => '購買信';
+
+  @override
+  String get petOverfedBubble => '我吃飽了！';
+
+  @override
+  String get petNameUnknown => '你的寵物';
+
+  @override
+  String get roomNameUnknown => '未知的房間';
+
+  @override
+  String petReturnFailed(Object error) {
+    return '寵物回來失敗：$error';
+  }
 }

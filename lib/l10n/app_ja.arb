@@ -311,6 +311,11 @@
       "error": {}
     }
   },
+  "roomOptionsTitle": "ルームオプション",
+  "roomOptionRename": "ルーム名を変更",
+  "roomOptionLeave": "ルームを退出",
+  "roomRenameTitle": "ルーム名を変更",
+  "roomRenameMessage": "新しいルーム名を入力してください。",
   "roomDefaultName": "新しいルーム",
   "roomInviteCodeRegenerated": "招待コードを再生成しました。",
   "roomInviteCodeRegenerateFailed": "コードの再生成に失敗しました: {error}",
@@ -353,6 +358,9 @@
   "roomSelectionRoomFallback": "ルーム",
   "roomSelectionSubtitle": "ペットの家を選んで戻りましょう。",
   "roomSelectionTitle": "ルーム選択",
+  "roomOptionsTitle": "ルームオプション",
+  "roomOptionRename": "ルーム名を変更",
+  "roomOptionLeave": "ルームを退出",
   "signInFailed": "サインインに失敗しました。もう一度お試しください。",
   "signInNote": "注: Supabase で OAuth プロバイダの設定が必要です。",
   "signInOpening": "サインイン画面を開いています...",
@@ -450,10 +458,38 @@
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "コスメ",
   "storeTypeSubscription": "サブスクリプション",
-  "furnitureInventoryTitle": "家具",
-  "furnitureInventorySubtitle": "ペットの家に配置できます。",
+  "furnitureInventoryTitle": "ルーム在庫",
+  "furnitureInventorySubtitle": "このルームの家具と背景を管理します。",
   "furnitureInventoryEmpty": "まだ家具がありません。ストアで購入してください。",
   "furnitureInventoryHint": "家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。",
+  "roomInventoryTitle": "ルーム在庫",
+  "inventoryTabFurniture": "家具",
+  "backgroundGalleryTab": "背景ギャラリー",
+  "backgroundInventoryEmpty": "背景がまだありません。ストアで入手できます。",
+  "backgroundInventoryHint": "背景をタップするとルーム全員に適用されます。",
+  "backgroundApply": "適用",
+  "backgroundAppliedLabel": "適用中",
+  "backgroundApplyFailed": "背景の適用に失敗しました: {error}",
+  "@backgroundApplyFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeSectionBackgrounds": "背景",
+  "storeSectionItems": "アイテム",
+  "storeBackgroundRoomRequired": "背景を購入する前にルームを選択してください。",
+  "storeBuyWithCandies": "{price} キャンディで購入",
+  "@storeBuyWithCandies": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "storeBuyWithDiamonds": "{price} ダイヤで購入",
+  "@storeBuyWithDiamonds": {
+    "placeholders": {
+      "price": {}
+    }
+  },
   "furnitureEditMode": "家具モード",
   "petSelectionTitle": "ペットを選んで",
   "petSelectionSubtitle": "このルームの相棒を選ぼう。",
@@ -492,6 +528,37 @@
   "roomLeaveSuccess": "ルームを退出しました。",
   "roomLeaveFailed": "退出に失敗しました：{error}",
   "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
+  ,
+  "petDepartureNoteMessage": "どうしてこんな扱いをするの…",
+  "petDepartureGuideTitle": "回復の手紙",
+  "petDepartureGuideMessage": "ストアで「手紙」を買って、ペットを呼び戻してください。",
+  "petDepartureGuideGoStore": "ストアへ",
+  "petDepartureLetterUnavailableTitle": "手紙は使えません",
+  "petDepartureLetterUnavailableMessage": "今は帰ってきてほしいペットがいません。",
+  "petDepartureLetterSelectTitle": "ペットを選ぶ",
+  "petDepartureLetterSelectMessage": "どのペットを呼び戻しますか？",
+  "petDepartureLetterConfirmTitle": "{petName}を呼び戻す？",
+  "@petDepartureLetterConfirmTitle": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petDepartureLetterConfirmMessage": "手紙を購入して{petName}を家に呼び戻しますか？",
+  "@petDepartureLetterConfirmMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petDepartureLetterConfirmAction": "手紙を購入",
+  "petOverfedBubble": "おなかいっぱい！",
+  "petNameUnknown": "あなたのペット",
+  "roomNameUnknown": "不明なルーム",
+  "petReturnFailed": "ペットの復帰に失敗しました: {error}",
+  "@petReturnFailed": {
     "placeholders": {
       "error": {}
     }

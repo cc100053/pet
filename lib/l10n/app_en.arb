@@ -311,6 +311,11 @@
       "error": {}
     }
   },
+  "roomOptionsTitle": "Room options",
+  "roomOptionRename": "Change room name",
+  "roomOptionLeave": "Leave room",
+  "roomRenameTitle": "Change room name",
+  "roomRenameMessage": "Enter a new name for this room.",
   "roomDefaultName": "New Room",
   "roomInviteCodeRegenerated": "Invite code regenerated.",
   "roomInviteCodeRegenerateFailed": "Failed to regenerate code: {error}",
@@ -353,6 +358,9 @@
   "roomSelectionRoomFallback": "Room",
   "roomSelectionSubtitle": "Pick a pet home and jump back in.",
   "roomSelectionTitle": "Room Selection",
+  "roomOptionsTitle": "Room options",
+  "roomOptionRename": "Rename room",
+  "roomOptionLeave": "Leave room",
   "signInFailed": "Sign-in failed. Please try again.",
   "signInNote": "Note: OAuth providers must be configured in Supabase.",
   "signInOpening": "Opening sign-in...",
@@ -450,10 +458,38 @@
   "storeTypeConsumable": "Consumable",
   "storeTypeCosmetic": "Cosmetic",
   "storeTypeSubscription": "Subscription",
-  "furnitureInventoryTitle": "Furniture",
-  "furnitureInventorySubtitle": "Place items in your pet home.",
+  "furnitureInventoryTitle": "Room Inventory",
+  "furnitureInventorySubtitle": "Manage furniture and backgrounds for this room.",
   "furnitureInventoryEmpty": "No furniture yet. Buy some in the store.",
   "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.",
+  "roomInventoryTitle": "Room Inventory",
+  "inventoryTabFurniture": "Furniture",
+  "backgroundGalleryTab": "Background Gallery",
+  "backgroundInventoryEmpty": "No backgrounds yet. Pick one up in the store.",
+  "backgroundInventoryHint": "Tap a background to apply it for everyone in the room.",
+  "backgroundApply": "Apply",
+  "backgroundAppliedLabel": "Applied",
+  "backgroundApplyFailed": "Failed to apply background: {error}",
+  "@backgroundApplyFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeSectionBackgrounds": "Backgrounds",
+  "storeSectionItems": "Items",
+  "storeBackgroundRoomRequired": "Choose a room before purchasing a background.",
+  "storeBuyWithCandies": "Buy {price} Candy",
+  "@storeBuyWithCandies": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "storeBuyWithDiamonds": "Buy {price} Diamonds",
+  "@storeBuyWithDiamonds": {
+    "placeholders": {
+      "price": {}
+    }
+  },
   "furnitureEditMode": "Furniture Mode",
   "petSelectionTitle": "Choose your pet",
   "petSelectionSubtitle": "Pick a buddy to start this room.",
@@ -492,6 +528,37 @@
   "roomLeaveSuccess": "Left the room.",
   "roomLeaveFailed": "Failed to leave room: {error}",
   "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
+  ,
+  "petDepartureNoteMessage": "Why treat me like this...",
+  "petDepartureGuideTitle": "Recovery Letter",
+  "petDepartureGuideMessage": "Visit the Store and buy a Letter to invite your pet back.",
+  "petDepartureGuideGoStore": "Go to Store",
+  "petDepartureLetterUnavailableTitle": "Letter unavailable",
+  "petDepartureLetterUnavailableMessage": "No pets have left yet.",
+  "petDepartureLetterSelectTitle": "Choose a pet",
+  "petDepartureLetterSelectMessage": "Which pet should the letter call back?",
+  "petDepartureLetterConfirmTitle": "Call {petName} back?",
+  "@petDepartureLetterConfirmTitle": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petDepartureLetterConfirmMessage": "Buy a Letter to invite {petName} back home.",
+  "@petDepartureLetterConfirmMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petDepartureLetterConfirmAction": "Buy Letter",
+  "petOverfedBubble": "I'm full!",
+  "petNameUnknown": "Your pet",
+  "roomNameUnknown": "Unknown room",
+  "petReturnFailed": "Failed to return pet: {error}",
+  "@petReturnFailed": {
     "placeholders": {
       "error": {}
     }

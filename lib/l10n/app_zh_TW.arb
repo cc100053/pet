@@ -311,6 +311,11 @@
       "error": {}
     }
   },
+  "roomOptionsTitle": "房間選項",
+  "roomOptionRename": "變更房間名稱",
+  "roomOptionLeave": "離開房間",
+  "roomRenameTitle": "變更房間名稱",
+  "roomRenameMessage": "輸入新的房間名稱。",
   "roomDefaultName": "新房間",
   "roomInviteCodeRegenerated": "邀請碼已重新產生。",
   "roomInviteCodeRegenerateFailed": "重新產生邀請碼失敗：{error}",
@@ -353,6 +358,9 @@
   "roomSelectionRoomFallback": "房間",
   "roomSelectionSubtitle": "選擇寵物的家並繼續。",
   "roomSelectionTitle": "房間選擇",
+  "roomOptionsTitle": "房間選項",
+  "roomOptionRename": "重新命名房間",
+  "roomOptionLeave": "離開房間",
   "signInFailed": "登入失敗，請再試一次。",
   "signInNote": "注意：需要在 Supabase 設定 OAuth 供應商。",
   "signInOpening": "正在開啟登入...",
@@ -450,10 +458,38 @@
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "外觀",
   "storeTypeSubscription": "訂閱",
-  "furnitureInventoryTitle": "家具",
-  "furnitureInventorySubtitle": "把家具放進寵物家裡。",
+  "furnitureInventoryTitle": "房間背包",
+  "furnitureInventorySubtitle": "管理這個房間的家具與背景。",
   "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
   "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。",
+  "roomInventoryTitle": "房間背包",
+  "inventoryTabFurniture": "家具",
+  "backgroundGalleryTab": "背景圖庫",
+  "backgroundInventoryEmpty": "還沒有背景，去商店看看吧。",
+  "backgroundInventoryHint": "點擊背景即可套用到房間所有成員。",
+  "backgroundApply": "套用",
+  "backgroundAppliedLabel": "已套用",
+  "backgroundApplyFailed": "套用背景失敗：{error}",
+  "@backgroundApplyFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "storeSectionBackgrounds": "背景",
+  "storeSectionItems": "商品",
+  "storeBackgroundRoomRequired": "購買背景前請先選擇房間。",
+  "storeBuyWithCandies": "用 {price} 糖果購買",
+  "@storeBuyWithCandies": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "storeBuyWithDiamonds": "用 {price} 鑽石購買",
+  "@storeBuyWithDiamonds": {
+    "placeholders": {
+      "price": {}
+    }
+  },
   "furnitureEditMode": "家具模式",
   "petSelectionTitle": "選擇你的寵物",
   "petSelectionSubtitle": "為這個房間挑一位夥伴。",
@@ -492,6 +528,37 @@
   "roomLeaveSuccess": "已離開房間。",
   "roomLeaveFailed": "離開房間失敗：{error}",
   "@roomLeaveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  }
+  ,
+  "petDepartureNoteMessage": "為什麼要這樣對我...",
+  "petDepartureGuideTitle": "回家信",
+  "petDepartureGuideMessage": "前往商店購買「信」來把你的寵物叫回來。",
+  "petDepartureGuideGoStore": "前往商店",
+  "petDepartureLetterUnavailableTitle": "無法使用信",
+  "petDepartureLetterUnavailableMessage": "目前沒有離開的寵物。",
+  "petDepartureLetterSelectTitle": "選擇寵物",
+  "petDepartureLetterSelectMessage": "要把哪隻寵物叫回來？",
+  "petDepartureLetterConfirmTitle": "要叫回 {petName} 嗎？",
+  "@petDepartureLetterConfirmTitle": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petDepartureLetterConfirmMessage": "購買信件來把 {petName} 叫回家嗎？",
+  "@petDepartureLetterConfirmMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petDepartureLetterConfirmAction": "購買信",
+  "petOverfedBubble": "我吃飽了！",
+  "petNameUnknown": "你的寵物",
+  "roomNameUnknown": "未知的房間",
+  "petReturnFailed": "寵物回來失敗：{error}",
+  "@petReturnFailed": {
     "placeholders": {
       "error": {}
     }

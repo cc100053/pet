@@ -520,6 +520,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get roomOptionsTitle => 'Room options';
+
+  @override
+  String get roomOptionRename => 'Rename room';
+
+  @override
+  String get roomOptionLeave => 'Leave room';
+
+  @override
+  String get roomRenameTitle => 'Change room name';
+
+  @override
+  String get roomRenameMessage => 'Enter a new name for this room.';
+
+  @override
   String get roomDefaultName => 'New Room';
 
   @override
@@ -733,10 +748,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeTypeSubscription => 'Subscription';
 
   @override
-  String get furnitureInventoryTitle => 'Furniture';
+  String get furnitureInventoryTitle => 'Room Inventory';
 
   @override
-  String get furnitureInventorySubtitle => 'Place items in your pet home.';
+  String get furnitureInventorySubtitle =>
+      'Manage furniture and backgrounds for this room.';
 
   @override
   String get furnitureInventoryEmpty =>
@@ -745,6 +761,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get furnitureInventoryHint =>
       'Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.';
+
+  @override
+  String get roomInventoryTitle => 'Room Inventory';
+
+  @override
+  String get inventoryTabFurniture => 'Furniture';
+
+  @override
+  String get backgroundGalleryTab => 'Background Gallery';
+
+  @override
+  String get backgroundInventoryEmpty =>
+      'No backgrounds yet. Pick one up in the store.';
+
+  @override
+  String get backgroundInventoryHint =>
+      'Tap a background to apply it for everyone in the room.';
+
+  @override
+  String get backgroundApply => 'Apply';
+
+  @override
+  String get backgroundAppliedLabel => 'Applied';
+
+  @override
+  String backgroundApplyFailed(Object error) {
+    return 'Failed to apply background: $error';
+  }
+
+  @override
+  String get storeSectionBackgrounds => 'Backgrounds';
+
+  @override
+  String get storeSectionItems => 'Items';
+
+  @override
+  String get storeBackgroundRoomRequired =>
+      'Choose a room before purchasing a background.';
+
+  @override
+  String storeBuyWithCandies(Object price) {
+    return 'Buy $price Candy';
+  }
+
+  @override
+  String storeBuyWithDiamonds(Object price) {
+    return 'Buy $price Diamonds';
+  }
 
   @override
   String get furnitureEditMode => 'Furniture Mode';
@@ -794,4 +858,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roomLeaveConfirm => 'Leave room';
+
+  @override
+  String get petDepartureNoteMessage => 'Why treat me like this...';
+
+  @override
+  String get petDepartureGuideTitle => 'Recovery Letter';
+
+  @override
+  String get petDepartureGuideMessage =>
+      'Visit the Store and buy a Letter to invite your pet back.';
+
+  @override
+  String get petDepartureGuideGoStore => 'Go to Store';
+
+  @override
+  String get petDepartureLetterUnavailableTitle => 'Letter unavailable';
+
+  @override
+  String get petDepartureLetterUnavailableMessage => 'No pets have left yet.';
+
+  @override
+  String get petDepartureLetterSelectTitle => 'Choose a pet';
+
+  @override
+  String get petDepartureLetterSelectMessage =>
+      'Which pet should the letter call back?';
+
+  @override
+  String petDepartureLetterConfirmTitle(Object petName) {
+    return 'Call $petName back?';
+  }
+
+  @override
+  String petDepartureLetterConfirmMessage(Object petName) {
+    return 'Buy a Letter to invite $petName back home.';
+  }
+
+  @override
+  String get petDepartureLetterConfirmAction => 'Buy Letter';
+
+  @override
+  String get petOverfedBubble => 'I\'m full!';
+
+  @override
+  String get petNameUnknown => 'Your pet';
+
+  @override
+  String get roomNameUnknown => 'Unknown room';
+
+  @override
+  String petReturnFailed(Object error) {
+    return 'Failed to return pet: $error';
+  }
 }

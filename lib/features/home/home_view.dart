@@ -28,11 +28,14 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
+import 'room_backgrounds.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
-import 'widgets/home_furniture_inventory_panel.dart';
+import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_game_status_bar.dart';
 import 'widgets/home_polaroid_memory_frame.dart';
+
+part 'home_view_models.dart';
 
 enum _PetStationaryState { staying, sleeping }
 
@@ -113,6 +116,16 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, StoreItem> _furnitureCatalog = {};
   final Map<String, int> _furnitureInventory = {};
   final Map<String, List<_PlacedFurniture>> _placedFurnitureByRoom = {};
+
+  // Background State
+  bool _backgroundLoading = false;
+  String? _backgroundError;
+  String? _backgroundApplyingItemId;
+  final Map<String, List<StoreItem>> _ownedBackgroundsByRoom = {};
+  final Map<String, String?> _activeBackgroundByRoom = {};
+  RealtimeChannel? _backgroundStateChannel;
+  RealtimeChannel? _backgroundInventoryChannel;
+  String? _backgroundSubscriptionRoomId;
   RealtimeChannel? _furnitureChannel;
   String? _furnitureSubscriptionRoomId;
   final Map<String, RealtimeChannel> _messageChannels = {};
@@ -190,6 +203,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   void dispose() {
     _petStateChannel?.unsubscribe();
     _furnitureChannel?.unsubscribe();
+    _backgroundStateChannel?.unsubscribe();
+    _backgroundInventoryChannel?.unsubscribe();
     for (final channel in _messageChannels.values) {
       channel.unsubscribe();
     }
@@ -520,11 +535,19 @@ class _HomeViewState extends ConsumerState<HomeView>
     _furnitureChannel?.unsubscribe();
     _furnitureChannel = null;
     _furnitureSubscriptionRoomId = null;
+    _backgroundStateChannel?.unsubscribe();
+    _backgroundStateChannel = null;
+    _backgroundInventoryChannel?.unsubscribe();
+    _backgroundInventoryChannel = null;
+    _backgroundSubscriptionRoomId = null;
     _refreshPetState();
     unawaited(_refreshLatestFeed(roomId));
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
     _subscribeToFurniture(roomId);
+    unawaited(_loadRoomBackgrounds(roomId));
+    unawaited(_loadRoomBackgroundState(roomId));
+    _subscribeToBackgrounds(roomId);
     if (previousRoom != roomId) {
       AnalyticsService.instance.logEvent('room_switch');
     }
@@ -580,9 +603,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
 
-      final selectedPet = await Navigator.of(context).push<PetDefinition>(
-        PetSelectionPage.route(),
-      );
+      final selectedPet = await Navigator.of(
+        context,
+      ).push<PetDefinition>(PetSelectionPage.route());
       if (!mounted) {
         return;
       }
@@ -739,9 +762,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         message: l10n.roomJoinHelper,
         body: TextField(
           controller: controller,
-          decoration: InputDecoration(
-            hintText: l10n.roomJoinHint,
-          ),
+          decoration: InputDecoration(hintText: l10n.roomJoinHint),
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [
             UpperCaseTextFormatter(),
@@ -885,9 +906,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       if (showSnackBar) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.roomLeaveSuccess)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
       }
     } catch (error) {
       if (!mounted) {
@@ -1429,6 +1450,73 @@ class _HomeViewState extends ConsumerState<HomeView>
         ),
       ),
     );
+  }
+
+  Future<void> _renameRoomFromSelection(String roomId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final room = _myRooms.firstWhere(
+      (entry) => entry['id'] == roomId,
+      orElse: () => {},
+    );
+    final controller = TextEditingController(
+      text: (room['name'] as String?) ?? '',
+    );
+    final newName = await showAppDialog<String>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.roomRenameTitle,
+        message: l10n.roomRenameMessage,
+        body: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: l10n.roomNameLabel),
+        ),
+        actions: [
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
+            onPressed: () => Navigator.pop(context),
+          ),
+          AppDialogAction.primary(
+            label: l10n.commonSave,
+            onPressed: () {
+              final value = controller.text.trim();
+              Navigator.pop(context, value.isEmpty ? null : value);
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (newName == null || newName.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await Supabase.instance.client
+          .from('rooms')
+          .update({'name': newName.trim()})
+          .eq('id', roomId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _myRooms = _myRooms
+            .map((entry) {
+              if (entry['id'] != roomId) {
+                return entry;
+              }
+              return {...entry, 'name': newName.trim()};
+            })
+            .toList(growable: false);
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.roomNameUpdateFailed(error.toString()))),
+      );
+    }
   }
 
   void _openChatRoom() {
@@ -2244,6 +2332,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     _furnitureWiggleController.repeat(reverse: true);
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
+    unawaited(_loadRoomBackgrounds(roomId));
+    unawaited(_loadRoomBackgroundState(roomId));
   }
 
   void _closeFurnitureInventory() {
@@ -2253,6 +2343,205 @@ class _HomeViewState extends ConsumerState<HomeView>
     });
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
+  }
+
+  Future<void> _loadRoomBackgrounds(String roomId) async {
+    if (_backgroundLoading) {
+      return;
+    }
+    setState(() => _backgroundLoading = true);
+    try {
+      final response = await Supabase.instance.client
+          .from('room_backgrounds')
+          .select('item_id,items(*)')
+          .eq('room_id', roomId);
+
+      final items = <StoreItem>[];
+      for (final row in response as List<dynamic>) {
+        final record = row as Map<String, dynamic>;
+        final itemData = record['items'] as Map<String, dynamic>?;
+        if (itemData == null) {
+          continue;
+        }
+        final item = StoreItem.fromJson(itemData);
+        if (item.isBackground) {
+          items.add(item);
+        }
+      }
+
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      setState(() {
+        _ownedBackgroundsByRoom[roomId] = items;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _backgroundError = AppLocalizations.of(
+          context,
+        )!.storeLoadFailed(error.toString());
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _backgroundLoading = false);
+      } else {
+        _backgroundLoading = false;
+      }
+    }
+  }
+
+  Future<void> _loadRoomBackgroundState(String roomId) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('room_background_state')
+          .select('active_item_id')
+          .eq('room_id', roomId)
+          .maybeSingle();
+
+      final activeItemId = response?['active_item_id'] as String?;
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      setState(() {
+        _activeBackgroundByRoom[roomId] = activeItemId;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _backgroundError = AppLocalizations.of(
+          context,
+        )!.storeLoadFailed(error.toString());
+      });
+    }
+  }
+
+  void _subscribeToBackgrounds(String roomId) {
+    if (_backgroundSubscriptionRoomId == roomId) {
+      return;
+    }
+
+    _backgroundStateChannel?.unsubscribe();
+    _backgroundInventoryChannel?.unsubscribe();
+    _backgroundSubscriptionRoomId = roomId;
+
+    final stateChannel = Supabase.instance.client.channel(
+      'room_background_state_$roomId',
+    );
+    _backgroundStateChannel = stateChannel;
+    stateChannel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'room_background_state',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => unawaited(_loadRoomBackgroundState(roomId)),
+    );
+    stateChannel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'room_background_state',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => unawaited(_loadRoomBackgroundState(roomId)),
+    );
+    stateChannel.subscribe();
+
+    final inventoryChannel = Supabase.instance.client.channel(
+      'room_backgrounds_$roomId',
+    );
+    _backgroundInventoryChannel = inventoryChannel;
+    inventoryChannel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'room_backgrounds',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => unawaited(_loadRoomBackgrounds(roomId)),
+    );
+    inventoryChannel.onPostgresChanges(
+      event: PostgresChangeEvent.delete,
+      schema: 'public',
+      table: 'room_backgrounds',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => unawaited(_loadRoomBackgrounds(roomId)),
+    );
+    inventoryChannel.subscribe();
+  }
+
+  List<StoreItem> _ownedBackgroundsForRoom(String roomId) {
+    return _ownedBackgroundsByRoom[roomId] ?? const [];
+  }
+
+  Future<void> _applyRoomBackground(String itemId) async {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    final owned = _ownedBackgroundsForRoom(roomId);
+    if (!owned.any((item) => item.id == itemId)) {
+      return;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    setState(() => _backgroundApplyingItemId = itemId);
+    try {
+      await Supabase.instance.client.from('room_background_state').upsert({
+        'room_id': roomId,
+        'active_item_id': itemId,
+        'updated_by': userId,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+      _activeBackgroundByRoom[roomId] = itemId;
+    } finally {
+      if (mounted) {
+        setState(() => _backgroundApplyingItemId = null);
+      } else {
+        _backgroundApplyingItemId = null;
+      }
+    }
+  }
+
+  RoomBackgroundDefinition _currentBackgroundDefinition() {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return RoomBackgrounds.resolve(null);
+    }
+    final activeItemId = _activeBackgroundByRoom[roomId];
+    if (activeItemId == null) {
+      return RoomBackgrounds.resolve(null);
+    }
+    final items = _ownedBackgroundsByRoom[roomId];
+    if (items == null) {
+      return RoomBackgrounds.resolve(null);
+    }
+    StoreItem? activeItem;
+    for (final item in items) {
+      if (item.id == activeItemId) {
+        activeItem = item;
+        break;
+      }
+    }
+    return RoomBackgrounds.resolve(activeItem?.backgroundKey);
   }
 
   void _placeFurnitureAt(Offset localPosition, Size fieldSize) {
@@ -2795,6 +3084,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           onJoinRoom: _joinRoomByCode,
           onSelectRoom: _enterRoomFromSelection,
           onLeaveRoom: _confirmLeaveRoom,
+          onRenameRoom: _renameRoomFromSelection,
           selectedRoomId: _roomSelectionId ?? _roomId,
           userAvatarUrl: _myAvatarUrl,
         ),
@@ -2808,17 +3098,8 @@ class _HomeViewState extends ConsumerState<HomeView>
         children: [
           // Layer 1: Background
           Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFFFFF9E5),
-                    Color(0xFFFFECE5),
-                  ], // Warm Pudding colors
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
+            child: DecoratedBox(
+              decoration: _currentBackgroundDefinition().decoration,
             ),
           ),
 
@@ -2959,18 +3240,28 @@ class _HomeViewState extends ConsumerState<HomeView>
                   child: AnimatedOpacity(
                     opacity: _furnitureMode ? 1 : 0,
                     duration: 160.ms,
-                    child: HomeFurnitureInventoryPanel(
+                    child: HomeRoomInventoryPanel(
                       furnitureCatalog: _furnitureCatalog,
                       furnitureInventory: _furnitureInventory,
-                      selectedItemId: _selectedFurnitureItemId,
-                      availableCount: _availableFurnitureCount,
-                      loading: _furnitureLoading,
-                      errorText: _furnitureError,
+                      selectedFurnitureItemId: _selectedFurnitureItemId,
+                      availableFurnitureCount: _availableFurnitureCount,
+                      furnitureLoading: _furnitureLoading,
+                      furnitureErrorText: _furnitureError,
+                      backgroundItems: _roomId == null
+                          ? const []
+                          : _ownedBackgroundsForRoom(_roomId!),
+                      activeBackgroundId: _roomId == null
+                          ? null
+                          : _activeBackgroundByRoom[_roomId!],
+                      backgroundLoading: _backgroundLoading,
+                      backgroundErrorText: _backgroundError,
+                      applyingBackgroundId: _backgroundApplyingItemId,
                       onClose: _closeFurnitureInventory,
-                      onItemTap: (itemId) {
+                      onFurnitureTap: (itemId) {
                         setState(() => _selectedFurnitureItemId = itemId);
                         _autoPlaceFurnitureFromInventory(itemId);
                       },
+                      onBackgroundApply: _applyRoomBackground,
                     ),
                   ),
                 ),
@@ -3198,171 +3489,5 @@ class _HomeViewState extends ConsumerState<HomeView>
         ],
       ),
     );
-  }
-}
-
-class _ProfileSummary {
-  const _ProfileSummary({required this.nickname, required this.avatarUrl});
-
-  final String? nickname;
-  final String? avatarUrl;
-}
-
-class _PlacedFurniture {
-  _PlacedFurniture({
-    required this.id,
-    required this.itemId,
-    required this.ownerUserId,
-    required this.emoji,
-    required this.normalizedPosition,
-    required this.isPending,
-  });
-
-  String id;
-  String itemId;
-  String? ownerUserId;
-  String emoji;
-  Offset normalizedPosition;
-  bool isPending;
-}
-
-class _PoopSpot {
-  const _PoopSpot({required this.index, required this.normalized});
-
-  final int index;
-  final Offset normalized;
-}
-
-class _RoomCreationDetails {
-  const _RoomCreationDetails({required this.roomName, required this.petName});
-
-  final String roomName;
-  final String petName;
-}
-
-class _RoomCreationDialog extends StatefulWidget {
-  const _RoomCreationDialog({
-    required this.initialRoomName,
-    required this.maxPetNameLength,
-  });
-
-  final String initialRoomName;
-  final int maxPetNameLength;
-
-  @override
-  State<_RoomCreationDialog> createState() => _RoomCreationDialogState();
-}
-
-class _RoomCreationDialogState extends State<_RoomCreationDialog> {
-  late final TextEditingController _roomController;
-  late final TextEditingController _petController;
-  String? _roomError;
-  String? _petError;
-
-  @override
-  void initState() {
-    super.initState();
-    _roomController = TextEditingController(
-      text: widget.initialRoomName.isEmpty ? null : widget.initialRoomName,
-    );
-    _petController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _roomController.dispose();
-    _petController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final l10n = AppLocalizations.of(context)!;
-    final roomName = _roomController.text.trim();
-    final petName = _petController.text.trim();
-    var hasError = false;
-    if (roomName.isEmpty) {
-      _roomError = l10n.roomNameEmptyError;
-      hasError = true;
-    } else {
-      _roomError = null;
-    }
-    if (petName.isEmpty) {
-      _petError = l10n.petNameEmptyError;
-      hasError = true;
-    } else {
-      _petError = null;
-    }
-    if (hasError) {
-      setState(() {});
-      return;
-    }
-    Navigator.of(context).pop(
-      _RoomCreationDetails(roomName: roomName, petName: petName),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return AppDialog(
-      tone: AppDialogTone.info,
-      title: l10n.roomCreateTitle,
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _roomController,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: l10n.roomNameLabel,
-                helperText: l10n.roomDefaultName,
-                helperStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                errorText: _roomError,
-              ),
-              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-            ),
-            const Gap(12),
-            TextField(
-              controller: _petController,
-              textInputAction: TextInputAction.done,
-              maxLength: widget.maxPetNameLength,
-              decoration: InputDecoration(
-                labelText: l10n.petNameLabel,
-                helperText: l10n.petNameHint,
-                helperStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                errorText: _petError,
-              ),
-              onSubmitted: (_) => _submit(),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        AppDialogAction.secondary(
-          label: l10n.commonCancel,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        AppDialogAction.primary(
-          label: l10n.roomCreateAction,
-          onPressed: _submit,
-        ),
-      ],
-    );
-  }
-}
-
-class UpperCaseTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }

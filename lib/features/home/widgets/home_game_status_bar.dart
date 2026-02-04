@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -320,15 +321,64 @@ class _RightCluster extends StatelessWidget {
   }
 }
 
-class _HealthBar extends StatelessWidget {
+class _HealthBar extends StatefulWidget {
   const _HealthBar({required this.value});
 
   final double value;
 
   @override
+  State<_HealthBar> createState() => _HealthBarState();
+}
+
+class _HealthBarState extends State<_HealthBar> {
+  static const _riseThreshold = 0.002;
+  static const _riseTint = Color(0xFFEE6D85);
+  static const _restTint = Color(0xFFF2C2C9);
+
+  double _lastValue = 0.0;
+  bool _isRising = false;
+  Timer? _riseTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastValue = widget.value.isFinite ? widget.value : 0.0;
+  }
+
+  @override
+  void didUpdateWidget(_HealthBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nextValue = widget.value.isFinite ? widget.value : 0.0;
+    if (nextValue > _lastValue + _riseThreshold) {
+      _riseTimer?.cancel();
+      setState(() {
+        _isRising = true;
+      });
+      _riseTimer = Timer(const Duration(milliseconds: 900), () {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _isRising = false;
+        });
+      });
+    } else if (nextValue < _lastValue - _riseThreshold) {
+      _isRising = false;
+    }
+    _lastValue = nextValue;
+  }
+
+  @override
+  void dispose() {
+    _riseTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final safeValue = value.isFinite ? value : 0.0;
+    final safeValue = widget.value.isFinite ? widget.value : 0.0;
     final clamped = safeValue.clamp(0.0, 1.0);
+    final fillColor = _isRising ? _riseTint : _restTint;
     return LayoutBuilder(
       builder: (context, constraints) {
         final fallbackWidth = MediaQuery.of(context).size.width * 0.35;
@@ -354,7 +404,7 @@ class _HealthBar extends StatelessWidget {
                     widthFactor: clamped,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEE6D85),
+                        color: fillColor,
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),

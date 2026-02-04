@@ -177,7 +177,16 @@
 - Refined room creation input fields to use dim helper text below the fields instead of inline placeholders.
 - Applied room name after creation via direct update to match initial pet name logic and added error messaging for failures.
 - Room name now shows the default “New Room” as dim helper text (not prefilled in the input).
+- Removed helper guide text under the room/pet name inputs.
 - Updated hunger decay tuning (base -4/hour) with new mood modifiers; kept night mode behavior.
+- Applied the Home polaroid latest photo frame to room selection cards, wiring per-room uploader avatars and captions.
+- Added a room selection long-press action sheet for renaming or leaving a room.
+- Added shared room background inventory/state with realtime sync, background gallery tab, and IAP-backed test background grant.
+- Implemented pet departure flow with note reveal, recovery letter guidance dialog, and store-gated letter purchase to return pets.
+- Adjusted overfed logic to allow two feeds within 10 minutes via burst tracking.
+- Added overfed speech bubble trigger when the pet is fed too many times in a short window.
+- Shared room background selection across members by syncing `room_background_state` and `room_backgrounds` in Home view.
+- Updated store flow to limit IAP to subscription + diamond pack; all non-IAP items now support candy or diamond purchase, and backgrounds use room-scoped purchase RPCs.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

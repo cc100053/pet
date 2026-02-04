@@ -76,6 +76,8 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   late AnimationController _zoomAnimController;
   Animation<Matrix4>? _zoomAnimation;
   TapDownDetails? _doubleTapDetails;
+  final Map<int, double> _aspectRatios = {};
+  final Set<int> _resolvingAspect = {};
 
   @override
   void initState() {
@@ -160,6 +162,41 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     });
   }
 
+  void _ensureAspectRatio(int index) {
+    if (_aspectRatios.containsKey(index) || _resolvingAspect.contains(index)) {
+      return;
+    }
+    final url = widget.imageUrls[index];
+    final localPath = widget.localImagePaths[index];
+    final ImageProvider provider;
+    if (localPath != null && File(localPath).existsSync()) {
+      provider = FileImage(File(localPath));
+    } else if (url.isNotEmpty) {
+      provider = NetworkImage(url);
+    } else {
+      return;
+    }
+    _resolvingAspect.add(index);
+    final stream = provider.resolve(const ImageConfiguration());
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener((info, _) {
+      final ratio = info.image.width / info.image.height;
+      if (mounted) {
+        setState(() {
+          _aspectRatios[index] = ratio.isFinite && ratio > 0 ? ratio : 1;
+        });
+      } else {
+        _aspectRatios[index] = ratio.isFinite && ratio > 0 ? ratio : 1;
+      }
+      _resolvingAspect.remove(index);
+      stream.removeListener(listener);
+    }, onError: (error, stackTrace) {
+      _resolvingAspect.remove(index);
+      stream.removeListener(listener);
+    });
+    stream.addListener(listener);
+  }
+
   String? _captionFor(int index) {
     if (widget.captions.length <= index) {
       return null;
@@ -208,19 +245,27 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
 
   Widget _buildImagePage(int index, BoxConstraints constraints) {
     final caption = _captionFor(index);
-    final hasCaption = caption != null;
-    final reservedHeight = hasCaption ? 56.0 : 0.0;
+    _ensureAspectRatio(index);
+    final aspectRatio = _aspectRatios[index] ?? (4 / 5);
+    final maxWidth = constraints.maxWidth;
     final maxHeight = constraints.maxHeight.isFinite
-        ? (constraints.maxHeight - reservedHeight).clamp(0.0, double.infinity)
-        : constraints.maxHeight;
-
+        ? constraints.maxHeight
+        : MediaQuery.of(context).size.height;
+    final reserved = caption == null ? 0.0 : 56.0;
+    final maxImageHeight = (maxHeight - reserved - 24).clamp(0.0, maxHeight);
+    var imageWidth = maxWidth;
+    var imageHeight = imageWidth / aspectRatio;
+    if (imageHeight > maxImageHeight) {
+      imageHeight = maxImageHeight;
+      imageWidth = imageHeight * aspectRatio;
+    }
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            height: maxHeight,
-            width: constraints.maxWidth,
+            width: imageWidth,
+            height: imageHeight,
             child: _buildImage(index),
           ),
           if (caption != null) ...[

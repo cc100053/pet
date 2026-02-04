@@ -50,6 +50,9 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `poop_count` (int, 0-3), `poop_positions` (jsonb, array of {x, y})
   - `last_poop_spawn_at` (timestamptz; reset on clean to now; next spawn after 8 hours)
   - `mood_boost` (int), `mood_boost_expires_at` (timestamptz)
+  - `feed_burst_count` (int; feeds within 10-minute window)
+  - `feed_burst_started_at` (timestamptz; start of burst window)
+  - `last_overfed_at` (timestamptz; last time overfed message triggered)
   - `feed_count_since_poop` (int)
   - `last_decay_at` (timestamptz)
   - `last_feed_at`, `last_touch_at`, `last_clean_at` (timestamptz)
@@ -125,7 +128,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `type` (text: cosmetic/consumable/subscription)
   - `name` (text)
   - `price_coins` (int), `price_diamonds` (int), `price_usd` (numeric)
-  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`), `is_active` (bool)
+  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`; background items include `category: background` + `background_key`), `is_active` (bool)
 
 - `inventories`
   - `user_id` (uuid, fk)
@@ -141,6 +144,19 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `position_x` (numeric, 0-1 normalized)
   - `position_y` (numeric, 0-1 normalized)
   - `created_at`, `updated_at`
+
+- `room_backgrounds`
+  - `room_id` (uuid, fk)
+  - `item_id` (uuid, fk)
+  - `acquired_by` (uuid, fk)
+  - `created_at`
+  - unique (`room_id`, `item_id`)
+
+- `room_background_state`
+  - `room_id` (uuid, pk, fk)
+  - `active_item_id` (uuid, fk)
+  - `updated_by` (uuid, fk)
+  - `updated_at`
 
 - `purchases`
   - `id` (uuid, pk)

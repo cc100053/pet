@@ -6,11 +6,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/app_dialog.dart';
+import '../pet/pet_departure.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
 
 class StoreView extends StatefulWidget {
-  const StoreView({super.key});
+  const StoreView({
+    super.key,
+    this.roomId,
+    this.departedPets = const [],
+    this.onReturnPet,
+  });
+
+  final String? roomId;
+  final List<DepartedPetInfo> departedPets;
+  final Future<void> Function(DepartedPetInfo pet)? onReturnPet;
 
   @override
   State<StoreView> createState() => _StoreViewState();
@@ -25,16 +36,19 @@ class _StoreViewState extends State<StoreView> {
   int _diamonds = 0;
   List<StoreItem> _items = [];
   final Map<String, int> _inventory = {};
+  final Set<String> _roomBackgroundOwned = {};
   bool _iapConfigured = false;
   bool _iapLoading = false;
   String? _iapError;
   final Map<String, Package> _packagesByProductId = {};
   Set<String> _activeEntitlements = {};
+  late List<DepartedPetInfo> _departedPets;
 
   @override
   void initState() {
     super.initState();
     AnalyticsService.instance.logEvent('store_open');
+    _departedPets = List.of(widget.departedPets);
     _loadStore();
   }
 
@@ -71,6 +85,15 @@ class _StoreViewState extends State<StoreView> {
           .select('item_id,quantity')
           .eq('user_id', user.id);
 
+      final roomId = widget.roomId;
+      List<dynamic> roomBackgroundRows = const [];
+      if (roomId != null) {
+        roomBackgroundRows = await Supabase.instance.client
+            .from('room_backgrounds')
+            .select('item_id')
+            .eq('room_id', roomId);
+      }
+
       final items = (itemsResponse as List<dynamic>)
           .map((row) => StoreItem.fromJson(row as Map<String, dynamic>))
           .toList();
@@ -81,6 +104,16 @@ class _StoreViewState extends State<StoreView> {
         final quantity = row['quantity'] as int?;
         if (itemId != null && quantity != null) {
           inventory[itemId] = quantity;
+        }
+      }
+
+      final ownedBackgrounds = <String>{};
+      for (final row in roomBackgroundRows) {
+        if (row is Map<String, dynamic>) {
+          final itemId = row['item_id'] as String?;
+          if (itemId != null) {
+            ownedBackgrounds.add(itemId);
+          }
         }
       }
 
@@ -95,6 +128,9 @@ class _StoreViewState extends State<StoreView> {
         _inventory
           ..clear()
           ..addAll(inventory);
+        _roomBackgroundOwned
+          ..clear()
+          ..addAll(ownedBackgrounds);
       });
 
       await _loadIap(user.id);
@@ -199,14 +235,145 @@ class _StoreViewState extends State<StoreView> {
     return packagesByProductId;
   }
 
-  Future<void> _purchaseItem(StoreItem item) async {
+  bool get _hasDepartedPets => _departedPets.isNotEmpty;
+
+  Future<void> _handleLetterPurchase(StoreItem item) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_purchasing) {
       return;
+    }
+    if (!_hasDepartedPets) {
+      await _showNoDepartedPetsDialog(l10n);
+      return;
+    }
+
+    DepartedPetInfo? target;
+    if (_departedPets.length == 1) {
+      target = _departedPets.first;
+    } else {
+      target = await _selectDepartedPet(l10n);
+      if (target == null) {
+        return;
+      }
+    }
+
+    final confirmed = await _confirmLetterPurchase(l10n, target);
+    if (!confirmed) {
+      return;
+    }
+
+    bool success;
+    if (item.priceCoins != null) {
+      success = await _purchaseItem(item);
+    } else if (item.priceDiamonds != null) {
+      success = await _purchaseDiamondItem(item);
+    } else {
+      return;
+    }
+
+    if (!success) {
+      return;
+    }
+
+    final DepartedPetInfo selectedPet = target;
+    if (widget.onReturnPet != null) {
+      await widget.onReturnPet!(selectedPet);
+    }
+
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _departedPets.removeWhere((pet) => pet.petId == selectedPet.petId);
+    });
+  }
+
+  Future<void> _showNoDepartedPetsDialog(AppLocalizations l10n) async {
+    await showAppDialog<void>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.petDepartureLetterUnavailableTitle,
+        message: l10n.petDepartureLetterUnavailableMessage,
+        actions: [
+          AppDialogAction.primary(
+            label: l10n.commonClose,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<DepartedPetInfo?> _selectDepartedPet(AppLocalizations l10n) {
+    return showAppDialog<DepartedPetInfo>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.petDepartureLetterSelectTitle,
+        message: l10n.petDepartureLetterSelectMessage,
+        body: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 280),
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: _departedPets.length,
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final pet = _departedPets[index];
+              final subtitle = pet.roomName.trim().isEmpty
+                  ? null
+                  : pet.roomName;
+              return ListTile(
+                title: Text(pet.petName),
+                subtitle: subtitle == null ? null : Text(subtitle),
+                onTap: () => Navigator.of(context).pop(pet),
+              );
+            },
+          ),
+        ),
+        actions: [
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _confirmLetterPurchase(
+    AppLocalizations l10n,
+    DepartedPetInfo pet,
+  ) async {
+    final result = await showAppDialog<bool>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.petDepartureLetterConfirmTitle(pet.petName),
+        message: l10n.petDepartureLetterConfirmMessage(pet.petName),
+        actions: [
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          AppDialogAction.primary(
+            label: l10n.petDepartureLetterConfirmAction,
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<bool> _purchaseItem(StoreItem item) async {
+    if (_purchasing) {
+      return false;
     }
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      return;
+      return false;
     }
 
     setState(() {
@@ -214,33 +381,40 @@ class _StoreViewState extends State<StoreView> {
     });
 
     try {
-      final response = await Supabase.instance.client.rpc(
-        'purchase_item_with_coins',
-        params: {'p_item_id': item.id, 'p_quantity': 1},
-      );
+      if (item.isBackground) {
+        final success = await _purchaseBackgroundWithCoins(item);
+        if (!success) {
+          return false;
+        }
+      } else {
+        final response = await Supabase.instance.client.rpc(
+          'purchase_item_with_coins',
+          params: {'p_item_id': item.id, 'p_quantity': 1},
+        );
 
-      Map<String, dynamic>? row;
-      if (response is List && response.isNotEmpty) {
-        row = response.first as Map<String, dynamic>;
-      } else if (response is Map) {
-        row = response.cast<String, dynamic>();
-      }
+        Map<String, dynamic>? row;
+        if (response is List && response.isNotEmpty) {
+          row = response.first as Map<String, dynamic>;
+        } else if (response is Map) {
+          row = response.cast<String, dynamic>();
+        }
 
-      if (row != null) {
-        final remaining = row['remaining_coins'] as int?;
-        final newQuantity = row['new_quantity'] as int?;
-        setState(() {
-          if (remaining != null) {
-            _coins = remaining;
-          }
-          if (newQuantity != null) {
-            _inventory[item.id] = newQuantity;
-          }
-        });
+        if (row != null) {
+          final remaining = row['remaining_coins'] as int?;
+          final newQuantity = row['new_quantity'] as int?;
+          setState(() {
+            if (remaining != null) {
+              _coins = remaining;
+            }
+            if (newQuantity != null) {
+              _inventory[item.id] = newQuantity;
+            }
+          });
+        }
       }
 
       if (!mounted) {
-        return;
+        return false;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -253,9 +427,10 @@ class _StoreViewState extends State<StoreView> {
         'purchase_coins',
         parameters: {'result': 'success', 'sku': item.sku},
       );
+      return true;
     } catch (error) {
       if (!mounted) {
-        return;
+        return false;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -268,6 +443,7 @@ class _StoreViewState extends State<StoreView> {
         'purchase_coins',
         parameters: {'result': 'failure', 'sku': item.sku},
       );
+      return false;
     } finally {
       if (mounted) {
         setState(() {
@@ -277,14 +453,14 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
-  Future<void> _purchaseDiamondItem(StoreItem item) async {
+  Future<bool> _purchaseDiamondItem(StoreItem item) async {
     if (_purchasing) {
-      return;
+      return false;
     }
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      return;
+      return false;
     }
 
     setState(() {
@@ -292,37 +468,44 @@ class _StoreViewState extends State<StoreView> {
     });
 
     try {
-      final response = await Supabase.instance.client.rpc(
-        'purchase_item_with_diamonds',
-        params: {'p_item_id': item.id, 'p_quantity': 1},
-      );
+      if (item.isBackground) {
+        final success = await _purchaseBackgroundWithDiamonds(item);
+        if (!success) {
+          return false;
+        }
+      } else {
+        final response = await Supabase.instance.client.rpc(
+          'purchase_item_with_diamonds',
+          params: {'p_item_id': item.id, 'p_quantity': 1},
+        );
 
-      Map<String, dynamic>? row;
-      if (response is List && response.isNotEmpty) {
-        row = response.first as Map<String, dynamic>;
-      } else if (response is Map) {
-        row = response.cast<String, dynamic>();
-      }
+        Map<String, dynamic>? row;
+        if (response is List && response.isNotEmpty) {
+          row = response.first as Map<String, dynamic>;
+        } else if (response is Map) {
+          row = response.cast<String, dynamic>();
+        }
 
-      if (row != null) {
-        final remaining = row['remaining_diamonds'] as int?;
-        final newQuantity = row['new_quantity'] as int?;
-        final newCoinBalance = row['new_coin_balance'] as int?;
-        setState(() {
-          if (remaining != null) {
-            _diamonds = remaining;
-          }
-          if (newQuantity != null) {
-            _inventory[item.id] = newQuantity;
-          }
-          if (newCoinBalance != null) {
-            _coins = newCoinBalance;
-          }
-        });
+        if (row != null) {
+          final remaining = row['remaining_diamonds'] as int?;
+          final newQuantity = row['new_quantity'] as int?;
+          final newCoinBalance = row['new_coin_balance'] as int?;
+          setState(() {
+            if (remaining != null) {
+              _diamonds = remaining;
+            }
+            if (newQuantity != null) {
+              _inventory[item.id] = newQuantity;
+            }
+            if (newCoinBalance != null) {
+              _coins = newCoinBalance;
+            }
+          });
+        }
       }
 
       if (!mounted) {
-        return;
+        return false;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -335,9 +518,10 @@ class _StoreViewState extends State<StoreView> {
         'purchase_diamonds',
         parameters: {'result': 'success', 'sku': item.sku},
       );
+      return true;
     } catch (error) {
       if (!mounted) {
-        return;
+        return false;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -350,6 +534,7 @@ class _StoreViewState extends State<StoreView> {
         'purchase_diamonds',
         parameters: {'result': 'failure', 'sku': item.sku},
       );
+      return false;
     } finally {
       if (mounted) {
         setState(() {
@@ -357,6 +542,86 @@ class _StoreViewState extends State<StoreView> {
         });
       }
     }
+  }
+
+  Future<bool> _purchaseBackgroundWithCoins(StoreItem item) async {
+    final roomId = widget.roomId;
+    if (roomId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+          ),
+        ),
+      );
+      return false;
+    }
+
+    final response = await Supabase.instance.client.rpc(
+      'purchase_room_background_with_coins',
+      params: {'p_room_id': roomId, 'p_item_id': item.id},
+    );
+
+    Map<String, dynamic>? row;
+    if (response is List && response.isNotEmpty) {
+      row = response.first as Map<String, dynamic>;
+    } else if (response is Map) {
+      row = response.cast<String, dynamic>();
+    }
+
+    if (row != null) {
+      final remaining = row['remaining_coins'] as int?;
+      final alreadyOwned = row['already_owned'] as bool? ?? false;
+      setState(() {
+        if (remaining != null) {
+          _coins = remaining;
+        }
+        if (!alreadyOwned) {
+          _roomBackgroundOwned.add(item.id);
+        }
+      });
+    }
+    return true;
+  }
+
+  Future<bool> _purchaseBackgroundWithDiamonds(StoreItem item) async {
+    final roomId = widget.roomId;
+    if (roomId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+          ),
+        ),
+      );
+      return false;
+    }
+
+    final response = await Supabase.instance.client.rpc(
+      'purchase_room_background_with_diamonds',
+      params: {'p_room_id': roomId, 'p_item_id': item.id},
+    );
+
+    Map<String, dynamic>? row;
+    if (response is List && response.isNotEmpty) {
+      row = response.first as Map<String, dynamic>;
+    } else if (response is Map) {
+      row = response.cast<String, dynamic>();
+    }
+
+    if (row != null) {
+      final remaining = row['remaining_diamonds'] as int?;
+      final alreadyOwned = row['already_owned'] as bool? ?? false;
+      setState(() {
+        if (remaining != null) {
+          _diamonds = remaining;
+        }
+        if (!alreadyOwned) {
+          _roomBackgroundOwned.add(item.id);
+        }
+      });
+    }
+    return true;
   }
 
   Future<void> _purchaseIapItem(StoreItem item) async {
@@ -523,6 +788,7 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
+
   Future<void> _restorePurchases() async {
     if (_iapLoading) {
       return;
@@ -567,8 +833,10 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
-  List<StoreItem> get _iapItems =>
-      _items.where((item) => item.isIap).toList(growable: false);
+  List<StoreItem> get _iapItems => _items
+      .where((item) => item.isIap)
+      .where((item) => item.iapType == 'subscription' || item.isDiamondIap)
+      .toList(growable: false);
 
   List<StoreItem> get _subscriptionItems => _iapItems
       .where((item) => item.iapType == 'subscription')
@@ -585,29 +853,25 @@ class _StoreViewState extends State<StoreView> {
     return items;
   }
 
-  List<StoreItem> get _iapCoinPackItems {
-    final items =
-        _iapConsumableItems.where((item) => !item.isDiamondIap).toList();
-    items.sort((a, b) => (a.coinAmount ?? 0).compareTo(b.coinAmount ?? 0));
+  List<StoreItem> get _storeItems {
+    final items = _items.where((item) => !item.isIap).toList();
+    items.sort((a, b) => _itemSortPrice(a).compareTo(_itemSortPrice(b)));
     return items;
   }
 
-  List<StoreItem> get _coinItems {
-    final items = _items
-        .where((item) => !item.isIap && item.priceCoins != null)
-        .toList();
-    items.sort((a, b) => (a.priceCoins ?? 0).compareTo(b.priceCoins ?? 0));
-    return items;
-  }
-
-  List<StoreItem> get _diamondItems {
-    final items = _items
-        .where((item) => !item.isIap && item.priceDiamonds != null)
-        .toList();
-    items.sort(
-      (a, b) => (a.priceDiamonds ?? 0).compareTo(b.priceDiamonds ?? 0),
-    );
-    return items;
+  int _itemSortPrice(StoreItem item) {
+    final coin = item.priceCoins;
+    final diamond = item.priceDiamonds;
+    if (coin == null && diamond == null) {
+      return 999999;
+    }
+    if (coin == null) {
+      return diamond ?? 999999;
+    }
+    if (diamond == null) {
+      return coin;
+    }
+    return coin < diamond ? coin : diamond;
   }
 
   @override
@@ -705,19 +969,9 @@ class _StoreViewState extends State<StoreView> {
           for (final item in _iapDiamondPackItems) _buildIapCard(item, l10n),
           const SizedBox(height: 8),
         ],
-        if (_iapCoinPackItems.isNotEmpty) ...[
-          _SectionHeader(title: l10n.storeSectionCoinPacks),
-          for (final item in _iapCoinPackItems) _buildIapCard(item, l10n),
-          const SizedBox(height: 8),
-        ],
-        if (_diamondItems.isNotEmpty) ...[
-          _SectionHeader(title: l10n.storeSectionDiamondStore),
-          for (final item in _diamondItems) _buildDiamondCard(item, l10n),
-          const SizedBox(height: 8),
-        ],
-        if (_coinItems.isNotEmpty) ...[
-          _SectionHeader(title: l10n.storeSectionCoinStore),
-          for (final item in _coinItems) _buildCoinCard(item, l10n),
+        if (_storeItems.isNotEmpty) ...[
+          _SectionHeader(title: l10n.storeSectionItems),
+          for (final item in _storeItems) _buildStoreItemCard(item, l10n),
         ],
       ],
     );
@@ -908,146 +1162,39 @@ class _StoreViewState extends State<StoreView> {
     );
   }
 
-  Widget _buildCoinCard(StoreItem item, AppLocalizations l10n) {
-    final ownedQty = _inventory[item.id] ?? 0;
-    final isCosmetic = item.type == 'cosmetic';
-    final isOwned = isCosmetic && ownedQty > 0;
-    final canAfford = item.priceCoins != null && _coins >= item.priceCoins!;
-    final showQuantity = !isCosmetic && ownedQty > 0;
-    final canBuy =
-        !_purchasing && !isOwned && canAfford && item.priceCoins != null;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              item.emoji ?? '🎁',
-              style: const TextStyle(fontSize: 30),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                Text(
-                  item.description ?? _displayTypeLabel(item, l10n),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                if (item.priceCoins != null)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.monetization_on_rounded,
-                        size: 16,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${item.priceCoins}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: canAfford ? Colors.amber[800] : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                if (showQuantity) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.storeOwnedCount(ownedQty),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: canBuy ? () => _purchaseItem(item) : null,
-            child: Opacity(
-              opacity: canBuy || isOwned ? 1.0 : 0.5,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  gradient: isOwned ? null : AppTheme.primaryGradient,
-                  color: isOwned ? Colors.grey[200] : null,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: isOwned || !canBuy
-                      ? []
-                      : [
-                          BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                ),
-                child: Text(
-                  isOwned ? l10n.commonOwned : l10n.commonBuy,
-                  style: TextStyle(
-                    color: isOwned ? Colors.grey : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  bool _isItemOwned(StoreItem item) {
+    if (item.type != 'cosmetic') {
+      return false;
+    }
+    if (item.isBackground) {
+      return _roomBackgroundOwned.contains(item.id);
+    }
+    return (_inventory[item.id] ?? 0) > 0;
   }
 
-  Widget _buildDiamondCard(StoreItem item, AppLocalizations l10n) {
-    final ownedQty = _inventory[item.id] ?? 0;
+  int _ownedQuantity(StoreItem item) => _inventory[item.id] ?? 0;
+
+  Widget _buildStoreItemCard(StoreItem item, AppLocalizations l10n) {
+    final ownedQty = _ownedQuantity(item);
     final isCosmetic = item.type == 'cosmetic';
-    final isOwned = isCosmetic && ownedQty > 0;
-    final canAfford =
+    final isOwned = isCosmetic && _isItemOwned(item);
+    final isLetter = item.isRecoveryLetter;
+    final canAffordCoins =
+        item.priceCoins != null && _coins >= item.priceCoins!;
+    final canAffordDiamonds =
         item.priceDiamonds != null && _diamonds >= item.priceDiamonds!;
     final showQuantity = !isCosmetic && ownedQty > 0;
-    final canBuy =
-        !_purchasing && !isOwned && canAfford && item.priceDiamonds != null;
+    final baseCanBuyCoins =
+        !_purchasing && !isOwned && canAffordCoins && item.priceCoins != null;
+    final baseCanBuyDiamonds =
+        !_purchasing &&
+        !isOwned &&
+        canAffordDiamonds &&
+        item.priceDiamonds != null;
+    final canBuyCoins =
+        isLetter ? baseCanBuyCoins && _hasDepartedPets : baseCanBuyCoins;
+    final canBuyDiamonds =
+        isLetter ? baseCanBuyDiamonds && _hasDepartedPets : baseCanBuyDiamonds;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -1069,12 +1216,14 @@ class _StoreViewState extends State<StoreView> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: _diamondColor.withValues(alpha: 0.12),
+              color: isOwned
+                  ? Colors.grey.withValues(alpha: 0.15)
+                  : AppTheme.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             alignment: Alignment.center,
             child: Text(
-              item.emoji ?? '💎',
+              item.emoji ?? (item.isBackground ? '🖼️' : '🎁'),
               style: const TextStyle(fontSize: 30),
             ),
           ),
@@ -1083,15 +1232,6 @@ class _StoreViewState extends State<StoreView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (item.coinAmount != null)
-                  Text(
-                    l10n.storeCoinsReward(item.coinAmount!),
-                    style: TextStyle(
-                      color: _diamondColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
                 Text(
                   item.name,
                   style: const TextStyle(
@@ -1110,26 +1250,7 @@ class _StoreViewState extends State<StoreView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                if (item.priceDiamonds != null)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.diamond_rounded,
-                        size: 16,
-                        color: _diamondColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${item.priceDiamonds}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: canAfford ? _diamondColor : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
                 if (showQuantity) ...[
-                  const SizedBox(height: 4),
                   Text(
                     l10n.storeOwnedCount(ownedQty),
                     style: const TextStyle(
@@ -1138,42 +1259,60 @@ class _StoreViewState extends State<StoreView> {
                     ),
                   ),
                 ],
+                if (isOwned)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      l10n.commonOwned,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-          GestureDetector(
-            onTap: canBuy ? () => _purchaseDiamondItem(item) : null,
-            child: Opacity(
-              opacity: canBuy || isOwned ? 1.0 : 0.5,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+          Column(
+            children: [
+              if (item.priceCoins != null)
+                _CurrencyBuyButton(
+                  label: l10n.storeBuyWithCandies(item.priceCoins!),
+                  icon: Icons.monetization_on_rounded,
+                  color: Colors.amber,
+                  enabled: canBuyCoins,
+                  onPressed: () {
+                    if (!canBuyCoins) {
+                      return;
+                    }
+                    if (isLetter) {
+                      _handleLetterPurchase(item);
+                    } else {
+                      _purchaseItem(item);
+                    }
+                  },
                 ),
-                decoration: BoxDecoration(
-                  gradient: isOwned ? null : AppTheme.primaryGradient,
-                  color: isOwned ? Colors.grey[200] : null,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: isOwned || !canBuy
-                      ? []
-                      : [
-                          BoxShadow(
-                            color: _diamondColor.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+              if (item.priceCoins != null && item.priceDiamonds != null)
+                const SizedBox(height: 6),
+              if (item.priceDiamonds != null)
+                _CurrencyBuyButton(
+                  label: l10n.storeBuyWithDiamonds(item.priceDiamonds!),
+                  icon: Icons.diamond_rounded,
+                  color: _diamondColor,
+                  enabled: canBuyDiamonds,
+                  onPressed: () {
+                    if (!canBuyDiamonds) {
+                      return;
+                    }
+                    if (isLetter) {
+                      _handleLetterPurchase(item);
+                    } else {
+                      _purchaseDiamondItem(item);
+                    }
+                  },
                 ),
-                child: Text(
-                  isOwned ? l10n.commonOwned : l10n.commonBuy,
-                  style: TextStyle(
-                    color: isOwned ? Colors.grey : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -1215,6 +1354,7 @@ class StoreItem {
     required this.iapCurrency,
     required this.category,
     required this.emoji,
+    this.backgroundKey,
   });
 
   final String id;
@@ -1233,12 +1373,22 @@ class StoreItem {
   final String? iapCurrency;
   final String? category;
   final String? emoji;
+  final String? backgroundKey;
 
   bool get isIap => iapProductId != null && iapProductId!.isNotEmpty;
+  bool get isBackground => category == 'background';
   bool get isDiamondIap =>
       iapType != 'subscription' &&
       (iapCurrency == 'diamond' || diamondAmount != null);
   bool get isFurniture => category == 'furniture';
+  bool get isRecoveryLetter {
+    final skuLower = sku.toLowerCase();
+    final categoryLower = (category ?? '').toLowerCase();
+    return skuLower == 'letter' ||
+        skuLower == 'recovery_letter' ||
+        categoryLower == 'letter' ||
+        categoryLower == 'recovery_letter';
+  }
 
   String get displayType {
     if (iapType == 'subscription') {
@@ -1268,6 +1418,7 @@ class StoreItem {
     final iapCurrency = metadata['iap_currency'] as String?;
     final category = metadata['category'] as String?;
     final emoji = metadata['emoji'] as String?;
+    final backgroundKey = metadata['background_key'] as String?;
 
     int? priceJpy;
     if (priceJpyRaw is int) {
@@ -1313,6 +1464,7 @@ class StoreItem {
       iapCurrency: iapCurrency,
       category: category,
       emoji: emoji,
+      backgroundKey: backgroundKey,
     );
   }
 }
@@ -1327,6 +1479,44 @@ class _SectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+}
+
+class _CurrencyBuyButton extends StatelessWidget {
+  const _CurrencyBuyButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      child: FilledButton.icon(
+        onPressed: enabled ? onPressed : null,
+        icon: Icon(icon, size: 16),
+        label: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+        ),
+        style: FilledButton.styleFrom(
+          backgroundColor: enabled ? color : Colors.grey.shade300,
+          foregroundColor: enabled ? Colors.white : Colors.black54,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          minimumSize: const Size(0, 34),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      ),
     );
   }
 }
