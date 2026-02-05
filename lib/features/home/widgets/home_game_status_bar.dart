@@ -25,6 +25,9 @@ class HomeGameStatusBar extends StatelessWidget {
     this.coinReward,
     this.coinRewardEventId = 0,
     this.onPetNameTap,
+    this.onInviteTap,
+    this.inviteLabel,
+    this.inviteLoading = false,
   });
 
   final Widget petAvatar;
@@ -38,6 +41,9 @@ class HomeGameStatusBar extends StatelessWidget {
   final VoidCallback onPetTap;
   final VoidCallback onStoreTap;
   final VoidCallback? onPetNameTap;
+  final VoidCallback? onInviteTap;
+  final String? inviteLabel;
+  final bool inviteLoading;
 
   /// When set, triggers the coin reward animation showing "+X" and bounce.
   /// Treated as a one-shot trigger; it can be cleared on the next frame.
@@ -62,6 +68,9 @@ class HomeGameStatusBar extends StatelessWidget {
             petName: petName,
             onPetTap: onPetTap,
             onPetNameTap: onPetNameTap,
+            onInviteTap: onInviteTap,
+            inviteLabel: inviteLabel,
+            inviteLoading: inviteLoading,
           ),
           _RightCluster(
             healthValue: healthValue,
@@ -86,6 +95,9 @@ class _LeftCluster extends StatelessWidget {
     required this.petName,
     required this.onPetTap,
     this.onPetNameTap,
+    this.onInviteTap,
+    this.inviteLabel,
+    required this.inviteLoading,
   });
 
   final Widget petAvatar;
@@ -94,6 +106,9 @@ class _LeftCluster extends StatelessWidget {
   final String petName;
   final VoidCallback onPetTap;
   final VoidCallback? onPetNameTap;
+  final VoidCallback? onInviteTap;
+  final String? inviteLabel;
+  final bool inviteLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -108,51 +123,127 @@ class _LeftCluster extends StatelessWidget {
           ),
         ),
         const Gap(10),
-        GestureDetector(
-          onTap: onPetNameTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.black87, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: onPetNameTap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
                 ),
-              ],
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.black87, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Lv $level',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        color: AppTheme.secondaryColor,
+                        height: 1,
+                      ),
+                    ),
+                    const Gap(8),
+                    Text(
+                      petName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: Colors.black,
+                        height: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Lv $level',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                    color: AppTheme.secondaryColor,
-                    height: 1,
-                  ),
-                ),
-                const Gap(8),
-                Text(
-                  petName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: Colors.black,
-                    height: 1,
-                  ),
-                ),
-              ],
-            ),
-          ),
+            if (inviteLabel != null && onInviteTap != null) ...[
+              const Gap(6),
+              _InviteChip(
+                label: inviteLabel!,
+                onTap: onInviteTap!,
+                loading: inviteLoading,
+              ),
+            ],
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _InviteChip extends StatelessWidget {
+  const _InviteChip({
+    required this.label,
+    required this.onTap,
+    required this.loading,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: loading ? null : onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.black87, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (loading)
+                const SizedBox(
+                  height: 12,
+                  width: 12,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                const Icon(Icons.mail_outline_rounded, size: 14),
+              const Gap(6),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -342,7 +433,7 @@ class _HealthBar extends StatefulWidget {
 class _HealthBarState extends State<_HealthBar> {
   static const _riseThreshold = 0.002;
   static const _riseTint = Color(0xFFEE6D85);
-  static const _restTint = Color(0xFFF2C2C9);
+  static const _restTint = Color(0xFFed8787);
 
   double _lastValue = 0.0;
   bool _isRising = false;
@@ -388,8 +479,8 @@ class _HealthBarState extends State<_HealthBar> {
     final safeValue = widget.value.isFinite ? widget.value : 0.0;
     final clamped = safeValue.clamp(0.0, 1.0);
     final fillColor = _isRising ? _riseTint : _restTint;
-    final debugText = widget.debugValue?.toString() ??
-        (clamped * 100).round().toString();
+    final debugText =
+        widget.debugValue?.toString() ?? (clamped * 100).round().toString();
     return LayoutBuilder(
       builder: (context, constraints) {
         final fallbackWidth = MediaQuery.of(context).size.width * 0.35;
@@ -416,7 +507,7 @@ class _HealthBarState extends State<_HealthBar> {
                 top: 2,
                 bottom: 2,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
+                  duration: const Duration(milliseconds: 750),
                   curve: Curves.easeOut,
                   width: fillWidth,
                   decoration: BoxDecoration(

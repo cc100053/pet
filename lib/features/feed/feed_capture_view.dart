@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +14,7 @@ import '../../services/auth/session_utils.dart';
 import '../../services/image_labeling/image_labeling.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/status_bar_style.dart';
 
 class FeedCaptureView extends StatefulWidget {
   const FeedCaptureView({
@@ -424,22 +426,25 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.feedCameraTitle),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: AppTheme.textPrimary,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text(
-            l10n.feedCameraSubtitle,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
-          ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppStatusBarStyles.light,
+      child: Scaffold(
+        appBar: AppBar(
+          systemOverlayStyle: AppStatusBarStyles.light,
+          title: Text(l10n.feedCameraTitle),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppTheme.textPrimary,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            Text(
+              l10n.feedCameraSubtitle,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
+            ),
           // Photo labeling UI is currently disabled
           // const SizedBox(height: 12),
           // Text(
@@ -589,7 +594,8 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
             ),
           ],
           const SizedBox(height: 40),
-        ],
+          ],
+        ),
       ),
     );
   }

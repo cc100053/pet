@@ -237,10 +237,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTools => 'デバッグツール';
 
   @override
-  String get drawerForceRefreshPet => 'ペットを強制更新';
+  String get drawerFreePlan => '無料プラン';
 
   @override
-  String get drawerFreePlan => '無料プラン';
+  String get drawerProPlan => 'プロプラン';
+
+  @override
+  String get drawerDebugAddCandy => '+100 キャンディ';
+
+  @override
+  String get drawerDebugAddDiamonds => '+100 ダイヤ';
+
+  @override
+  String get drawerDebugTogglePlan => 'プラン切り替え';
+
+  @override
+  String get drawerDebugHungerDown => 'ペット空腹度 -10';
+
+  @override
+  String get drawerDebugAddExp => '経験値 +10';
+
+  @override
+  String get drawerDebugSpawnPoop => 'うんちさせる';
 
   @override
   String drawerInviteCode(Object code) {
@@ -541,6 +559,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomDefaultName => '新しいルーム';
+
+  @override
+  String get roomInviteCta => '招待';
+
+  @override
+  String get roomInvitePromptTitle => '誰かを招待';
+
+  @override
+  String get roomInvitePromptBody => 'あなた一人だけです。コードを生成して招待しましょう。';
+
+  @override
+  String get roomInvitePromptAction => 'コードを生成';
+
+  @override
+  String get roomInvitePromptGenerating => '生成中...';
+
+  @override
+  String get roomInviteCodeTitle => '招待コード';
+
+  @override
+  String get roomInviteCodeMessage => 'このコードを共有してルームに招待してください。';
 
   @override
   String get roomInviteCodeRegenerated => '招待コードを再生成しました。';

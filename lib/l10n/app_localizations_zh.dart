@@ -237,10 +237,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTools => '除錯工具';
 
   @override
-  String get drawerForceRefreshPet => '強制更新寵物';
+  String get drawerFreePlan => '免費方案';
 
   @override
-  String get drawerFreePlan => '免費方案';
+  String get drawerProPlan => 'Pro 方案';
+
+  @override
+  String get drawerDebugAddCandy => '+100 糖果';
+
+  @override
+  String get drawerDebugAddDiamonds => '+100 鑽石';
+
+  @override
+  String get drawerDebugTogglePlan => '切換方案';
+
+  @override
+  String get drawerDebugHungerDown => '寵物飢餓度 -10';
+
+  @override
+  String get drawerDebugAddExp => '+10 經驗';
+
+  @override
+  String get drawerDebugSpawnPoop => '讓寵物便便';
 
   @override
   String drawerInviteCode(Object code) {
@@ -541,6 +559,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get roomDefaultName => '新房間';
+
+  @override
+  String get roomInviteCta => '邀請';
+
+  @override
+  String get roomInvitePromptTitle => '邀請朋友';
+
+  @override
+  String get roomInvitePromptBody => '目前只有你。產生邀請碼來邀請朋友加入。';
+
+  @override
+  String get roomInvitePromptAction => '產生邀請碼';
+
+  @override
+  String get roomInvitePromptGenerating => '產生中...';
+
+  @override
+  String get roomInviteCodeTitle => '邀請碼';
+
+  @override
+  String get roomInviteCodeMessage => '分享此邀請碼讓朋友加入房間。';
 
   @override
   String get roomInviteCodeRegenerated => '邀請碼已重新產生。';
@@ -1068,6 +1107,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatUserBlocked => '已封鎖用戶。';
 
   @override
+  String chatMemberCount(num count) {
+    return '$count 位成員';
+  }
+
+  @override
+  String get calendarYesterday => '昨天';
+
+  @override
   String get commonBuy => '購買';
 
   @override
@@ -1133,10 +1180,28 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerDebugTools => '除錯工具';
 
   @override
-  String get drawerForceRefreshPet => '強制更新寵物';
+  String get drawerFreePlan => '免費方案';
 
   @override
-  String get drawerFreePlan => '免費方案';
+  String get drawerProPlan => 'Pro 方案';
+
+  @override
+  String get drawerDebugAddCandy => '+100 糖果';
+
+  @override
+  String get drawerDebugAddDiamonds => '+100 鑽石';
+
+  @override
+  String get drawerDebugTogglePlan => '切換方案';
+
+  @override
+  String get drawerDebugHungerDown => '寵物飢餓度 -10';
+
+  @override
+  String get drawerDebugAddExp => '+10 經驗';
+
+  @override
+  String get drawerDebugSpawnPoop => '讓寵物便便';
 
   @override
   String drawerInviteCode(Object code) {
@@ -1437,6 +1502,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomDefaultName => '新房間';
+
+  @override
+  String get roomInviteCta => '邀請';
+
+  @override
+  String get roomInvitePromptTitle => '邀請朋友';
+
+  @override
+  String get roomInvitePromptBody => '目前只有你。產生邀請碼來邀請朋友加入。';
+
+  @override
+  String get roomInvitePromptAction => '產生邀請碼';
+
+  @override
+  String get roomInvitePromptGenerating => '產生中...';
+
+  @override
+  String get roomInviteCodeTitle => '邀請碼';
+
+  @override
+  String get roomInviteCodeMessage => '分享此邀請碼讓朋友加入房間。';
 
   @override
   String get roomInviteCodeRegenerated => '邀請碼已重新產生。';

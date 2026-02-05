@@ -243,10 +243,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTools => 'Debug Tools';
 
   @override
-  String get drawerForceRefreshPet => 'Force Refresh Pet';
+  String get drawerFreePlan => 'Free Plan';
 
   @override
-  String get drawerFreePlan => 'Free Plan';
+  String get drawerProPlan => 'Pro Plan';
+
+  @override
+  String get drawerDebugAddCandy => '+100 Candy';
+
+  @override
+  String get drawerDebugAddDiamonds => '+100 Diamonds';
+
+  @override
+  String get drawerDebugTogglePlan => 'Toggle Plan';
+
+  @override
+  String get drawerDebugHungerDown => '-10 Pet Hunger';
+
+  @override
+  String get drawerDebugAddExp => '+10 EXP';
+
+  @override
+  String get drawerDebugSpawnPoop => 'Make Pet Poop';
 
   @override
   String drawerInviteCode(Object code) {
@@ -550,6 +568,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roomDefaultName => 'New Room';
+
+  @override
+  String get roomInviteCta => 'Invite';
+
+  @override
+  String get roomInvitePromptTitle => 'Invite someone';
+
+  @override
+  String get roomInvitePromptBody =>
+      'You\'re the only one here. Generate a code to invite someone.';
+
+  @override
+  String get roomInvitePromptAction => 'Generate code';
+
+  @override
+  String get roomInvitePromptGenerating => 'Generating...';
+
+  @override
+  String get roomInviteCodeTitle => 'Invite code';
+
+  @override
+  String get roomInviteCodeMessage =>
+      'Share this code to invite someone to your room.';
 
   @override
   String get roomInviteCodeRegenerated => 'Invite code regenerated.';

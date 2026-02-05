@@ -187,8 +187,28 @@
 - Added overfed speech bubble trigger when the pet is fed too many times in a short window.
 - Shared room background selection across members by syncing `room_background_state` and `room_backgrounds` in Home view.
 - Updated store flow to limit IAP to subscription + diamond pack; all non-IAP items now support candy or diamond purchase, and backgrounds use room-scoped purchase RPCs.
+- Refined chat room UI to a Telegram-like layout with glass pill top/bottom bars, inline timestamps, and photo timestamp overlays.
+- Tweaked chat timestamps to align right, moved feed-caption timestamps below images, and increased composer transparency.
+- Adjusted non-me timestamp alignment to far right and forced transparent fill on the composer input.
+- Made composer float over chat content for true transparency; removed forced min width so non-me bubbles size to content.
+- Aligned non-me timestamps to the bubble’s right edge even when sender names are longer than the message.
+- Made feed captions share the inline timestamp style so timestamps stay on the same line.
+- Ensured feed caption timestamps align to the far right edge of the fixed photo card width.
 - Wired Home health bar to hunger-only value per GDD and hardened numeric parsing.
 - Implemented overfed bubble UI driven by `pet_state.last_overfed_at` with a timed display.
+- Added `test1` room background asset entry with store seed data and asset-backed background definition.
+- Passed the current room id into the Store view so background purchases apply without reselecting a room.
+- Added a first-time solo-room invite prompt on the Pet screen plus a persistent invite chip under the pet name for generating invite codes.
+- Marked the `test1` background as dark so status bar uses light content on the pet screen and chat room.
+- Added dynamic status-bar styling with a light-default overlay and per-screen overrides for dark overlays; room backgrounds now carry an `isDark` flag for future dark themes.
+- Extended light status-bar styling to Store and Chat screens to keep indicators readable on light UI.
+- Wired chat status-bar styling to follow the current room background brightness flag.
+- Standardized status-bar styles (explicit iOS + Android brightness) via shared helper to prevent white text on light screens.
+- Set chat AppBar systemOverlayStyle to ensure status-bar brightness updates on that route.
+- Applied explicit light status-bar styling to the feed camera screen.
+- Fixed MemoryCalendarView crash when no latest feed exists by avoiding sorting a const list.
+- Refined room selection cards to show the room name with pet icon and health bar (removed mood dots).
+- Added debug drawer tools for currency boosts, plan toggle, and pet state tweaks; removed the refresh pet debug action.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

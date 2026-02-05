@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
+import 'package:pet/shared/ui/status_bar_style.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
@@ -24,6 +27,7 @@ class ChatRoomView extends StatefulWidget {
     this.roomName,
     this.memberCount,
     this.petAssetPath,
+    this.isDarkBackground = false,
   });
 
   final String roomId;
@@ -31,6 +35,7 @@ class ChatRoomView extends StatefulWidget {
   final String? roomName;
   final int? memberCount;
   final String? petAssetPath;
+  final bool isDarkBackground;
 
   @override
   State<ChatRoomView> createState() => _ChatRoomViewState();
@@ -43,6 +48,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
   bool _sending = false;
   int? _memberCount;
+  static const double _topBarHeight = 64;
 
   @override
   void initState() {
@@ -254,140 +260,177 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   Widget build(BuildContext context) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final l10n = AppLocalizations.of(context)!;
+    final media = MediaQuery.of(context);
+    final listTopPadding = media.padding.top + _topBarHeight + 12;
+    final composerBottomInset = media.padding.bottom;
+    const composerHeight = 64.0;
+    final listBottomPadding = composerHeight + composerBottomInset + 16;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.roomName ?? l10n.chatTitle,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    final overlayStyle = AppStatusBarStyles.forBackground(
+      isDark: widget.isDarkBackground,
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          systemOverlayStyle: overlayStyle,
+          toolbarHeight: _topBarHeight,
+          automaticallyImplyLeading: false,
+          titleSpacing: 0,
+          title: _ChatTopBar(
+            roomName: widget.roomName ?? l10n.chatTitle,
+            memberCount: _memberCount == null
+                ? null
+                : l10n.chatMemberCount(_memberCount!),
+            onBack: () => Navigator.of(context).maybePop(),
+            menuButton: Theme(
+              data: Theme.of(context).copyWith(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+              ),
+              child: PopupMenuButton<String>(
+                offset: const Offset(0, 8),
+                position: PopupMenuPosition.under,
+                onSelected: (value) {
+                  if (value == 'block' && currentUserId != null) {
+                    _openBlockedUsers();
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'block',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.block, size: 20),
+                        const SizedBox(width: 12),
+                        Text(l10n.blockedUsersTitle),
+                      ],
+                    ),
+                  ),
+                ],
+                child: _ChatMenuAvatar(petAssetPath: widget.petAssetPath),
+              ),
             ),
-            if (_memberCount != null)
-              Text(
-                l10n.chatMemberCount(_memberCount!),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.normal,
+          ),
+        ),
+        body: Container(
+          decoration: widget.backgroundDecoration,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ChatMessageList(
+                  key: _chatMessageListKey,
+                  roomId: widget.roomId,
+                  currentUserId: currentUserId,
+                  contentPadding: EdgeInsets.fromLTRB(
+                    16,
+                    listTopPadding,
+                    16,
+                    listBottomPadding,
+                  ),
                 ),
               ),
-          ],
-        ),
-        actions: [
-          if (widget.petAssetPath != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Image.asset(
-                widget.petAssetPath!,
-                width: 36,
-                height: 36,
-              ),
-            ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'block' && currentUserId != null) {
-                _openBlockedUsers();
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'block',
-                child: Row(
-                  children: [
-                    const Icon(Icons.block, size: 20),
-                    const SizedBox(width: 12),
-                    Text(l10n.blockedUsersTitle),
-                  ],
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 10,
+                child: SafeArea(
+                  top: false,
+                  child: _GlassPill(
+                    backgroundOpacity: 0.55,
+                    padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: _sending ? null : _openFeedCamera,
+                          icon: SvgPicture.asset(
+                            'assets/icon/solar--camera-linear.svg',
+                            width: 26,
+                            height: 26,
+                            colorFilter: const ColorFilter.mode(
+                              AppTheme.textSecondary,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                          tooltip: l10n.feedTitle,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) =>
+                                _sending ? null : _sendMessage(),
+                            decoration: InputDecoration(
+                              hintText: l10n.chatMessageHint,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
+                              isDense: true,
+                              filled: true,
+                              fillColor: Colors.transparent,
+                            ),
+                            minLines: 1,
+                            maxLines: 4,
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: l10n.commonSend,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _sending ? null : _sendMessage,
+                              borderRadius: BorderRadius.circular(999),
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.12,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/icon/mingcute--send-plane-line.svg',
+                                    width: 26,
+                                    height: 26,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-      body: Container(
-        decoration: widget.backgroundDecoration,
-        child: Column(
-          children: [
-            Expanded(
-              child: ChatMessageList(
-                key: _chatMessageListKey,
-                roomId: widget.roomId,
-                currentUserId: currentUserId,
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 5,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: _sending ? null : _openFeedCamera,
-                      icon: const Icon(Icons.camera_alt_rounded),
-                      color: AppTheme.textSecondary,
-                      tooltip: l10n.feedTitle,
-                    ),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.backgroundColor,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: TextField(
-                          controller: _messageController,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sending ? null : _sendMessage(),
-                          decoration: InputDecoration(
-                            hintText: l10n.chatMessageHint,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                            ),
-                            isDense: true,
-                            filled: false,
-                          ),
-                          minLines: 1,
-                          maxLines: 4,
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: _sending ? null : _sendMessage,
-                      icon: SvgPicture.asset(
-                        'assets/icon/mingcute--send-plane-line.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: const ColorFilter.mode(
-                          AppTheme.primaryColor,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      tooltip: l10n.commonSend,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -932,7 +975,11 @@ class ChatMessageListState extends State<ChatMessageList> {
   @override
   Widget build(BuildContext context) {
     if (_loadingInitial && _messages.isEmpty) {
-      return const _ChatLoadingList();
+      return _ChatLoadingList(
+        padding:
+            widget.contentPadding ??
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      );
     }
 
     final theme = Theme.of(context);
@@ -1054,20 +1101,22 @@ class ChatMessageListState extends State<ChatMessageList> {
                               : null,
                           onImageTap: imageIndex == null
                               ? null
-                                  : () => FullScreenPhotoViewer.open(
-                                        context,
-                                        imageUrls: imageUrls,
-                                        initialIndex: imageIndex,
-                                        localImagePaths: localImagePaths,
-                                        showIndicator: false,
-                                        captions: imageCaptions,
-                                      ),
+                              : () => FullScreenPhotoViewer.open(
+                                  context,
+                                  imageUrls: imageUrls,
+                                  initialIndex: imageIndex,
+                                  localImagePaths: localImagePaths,
+                                  showIndicator: false,
+                                  captions: imageCaptions,
+                                ),
                         );
                       },
                       separatorBuilder: (context, index) {
                         if (index == _messages.length - 1) {
                           // Separator between oldest message and loader/footer
-                          return _DateSeparator(date: _messages[index].createdAt);
+                          return _DateSeparator(
+                            date: _messages[index].createdAt,
+                          );
                         }
                         if (index < _messages.length - 1) {
                           final newer = _messages[index];
@@ -1083,7 +1132,7 @@ class ChatMessageListState extends State<ChatMessageList> {
               if (_showScrollToBottom)
                 Positioned(
                   right: 16,
-                  bottom: 16,
+                  bottom: 120,
                   child: FloatingActionButton.small(
                     onPressed: _scrollToBottom,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
@@ -1290,7 +1339,9 @@ class ChatMessageListState extends State<ChatMessageList> {
 }
 
 class _ChatLoadingList extends StatelessWidget {
-  const _ChatLoadingList();
+  const _ChatLoadingList({required this.padding});
+
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -1316,7 +1367,7 @@ class _ChatLoadingList extends StatelessWidget {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: padding,
       children: [
         bubble(alignment: Alignment.centerRight, widthFactor: 0.45),
         const SizedBox(height: 12),
@@ -1330,6 +1381,158 @@ class _ChatLoadingList extends StatelessWidget {
         const SizedBox(height: 24),
         const Center(child: CircularProgressIndicator()),
       ],
+    );
+  }
+}
+
+class _ChatTopBar extends StatelessWidget {
+  const _ChatTopBar({
+    required this.roomName,
+    required this.memberCount,
+    required this.onBack,
+    required this.menuButton,
+  });
+
+  final String roomName;
+  final String? memberCount;
+  final VoidCallback onBack;
+  final Widget menuButton;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        child: Row(
+          children: [
+            _GlassPill(
+              padding: const EdgeInsets.all(4),
+              child: IconButton(
+                iconSize: 20,
+                constraints: const BoxConstraints(), // Remove 48px limit
+                padding: const EdgeInsets.all(8), // Tighter tap area
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                color: AppTheme.textPrimary,
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              fit: FlexFit.loose,
+              child: Align(
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: _GlassPill(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          roomName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        if (memberCount != null)
+                          Text(
+                            memberCount!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black.withValues(alpha: 0.55),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            _GlassPill(
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              child: menuButton,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatMenuAvatar extends StatelessWidget {
+  const _ChatMenuAvatar({required this.petAssetPath});
+
+  final String? petAssetPath;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Center(
+        child: CircleAvatar(
+          radius: 24,
+          backgroundColor: Colors.white.withValues(alpha: 0.9),
+          child: petAssetPath == null
+              ? const Icon(Icons.pets, size: 24, color: AppTheme.textPrimary)
+              : Image.asset(petAssetPath!, width: 40, height: 40),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassPill extends StatelessWidget {
+  const _GlassPill({
+    required this.child,
+    this.padding,
+    this.backgroundOpacity = 0.72,
+  });
+
+  final Widget child;
+  final EdgeInsets? padding;
+  final double backgroundOpacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: backgroundOpacity),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.6),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }

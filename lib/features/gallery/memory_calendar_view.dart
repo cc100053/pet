@@ -209,7 +209,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
         ? null
         : _dayKeyForDate(latestFeed.createdAt.toLocal());
     final latestDayFeeds = latestDateKey == null
-        ? const <MemoryFeed>[]
+        ? <MemoryFeed>[]
         : List<MemoryFeed>.from(
             _feedsByDay[latestDateKey] ?? [latestFeed],
           );

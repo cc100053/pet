@@ -130,6 +130,16 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     true
   ),
   (
+    'background_test1',
+    'cosmetic',
+    'Test1 Background',
+    120,
+    120,
+    null,
+    '{"price_jpy":120,"currency":"JPY","category":"background","background_key":"test1","description":"Test1 asset background."}'::jsonb,
+    true
+  ),
+  (
     'cosmetic_room_cozy',
     'cosmetic',
     'Cozy Room Wallpaper',

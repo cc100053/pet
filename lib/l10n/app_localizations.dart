@@ -491,17 +491,53 @@ abstract class AppLocalizations {
   /// **'Debug Tools'**
   String get drawerDebugTools;
 
-  /// No description provided for @drawerForceRefreshPet.
-  ///
-  /// In en, this message translates to:
-  /// **'Force Refresh Pet'**
-  String get drawerForceRefreshPet;
-
   /// No description provided for @drawerFreePlan.
   ///
   /// In en, this message translates to:
   /// **'Free Plan'**
   String get drawerFreePlan;
+
+  /// No description provided for @drawerProPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro Plan'**
+  String get drawerProPlan;
+
+  /// No description provided for @drawerDebugAddCandy.
+  ///
+  /// In en, this message translates to:
+  /// **'+100 Candy'**
+  String get drawerDebugAddCandy;
+
+  /// No description provided for @drawerDebugAddDiamonds.
+  ///
+  /// In en, this message translates to:
+  /// **'+100 Diamonds'**
+  String get drawerDebugAddDiamonds;
+
+  /// No description provided for @drawerDebugTogglePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Plan'**
+  String get drawerDebugTogglePlan;
+
+  /// No description provided for @drawerDebugHungerDown.
+  ///
+  /// In en, this message translates to:
+  /// **'-10 Pet Hunger'**
+  String get drawerDebugHungerDown;
+
+  /// No description provided for @drawerDebugAddExp.
+  ///
+  /// In en, this message translates to:
+  /// **'+10 EXP'**
+  String get drawerDebugAddExp;
+
+  /// No description provided for @drawerDebugSpawnPoop.
+  ///
+  /// In en, this message translates to:
+  /// **'Make Pet Poop'**
+  String get drawerDebugSpawnPoop;
 
   /// No description provided for @drawerInviteCode.
   ///
@@ -1030,6 +1066,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New Room'**
   String get roomDefaultName;
+
+  /// No description provided for @roomInviteCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get roomInviteCta;
+
+  /// No description provided for @roomInvitePromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite someone'**
+  String get roomInvitePromptTitle;
+
+  /// No description provided for @roomInvitePromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re the only one here. Generate a code to invite someone.'**
+  String get roomInvitePromptBody;
+
+  /// No description provided for @roomInvitePromptAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate code'**
+  String get roomInvitePromptAction;
+
+  /// No description provided for @roomInvitePromptGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating...'**
+  String get roomInvitePromptGenerating;
+
+  /// No description provided for @roomInviteCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get roomInviteCodeTitle;
+
+  /// No description provided for @roomInviteCodeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this code to invite someone to your room.'**
+  String get roomInviteCodeMessage;
 
   /// No description provided for @roomInviteCodeRegenerated.
   ///

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,6 +8,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/status_bar_style.dart';
 import '../pet/pet_departure.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
@@ -877,34 +879,38 @@ class _StoreViewState extends State<StoreView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.storeTitle),
-        actions: [
-          if (_subscriptionItems.isNotEmpty)
-            IconButton(
-              onPressed: _iapLoading ? null : _restorePurchases,
-              icon: const Icon(Icons.restore),
-              tooltip: l10n.storeRestoreTooltip,
-            ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Chip(label: Text(l10n.storeDiamondsLabel(_diamonds))),
-                  const SizedBox(width: 8),
-                  Chip(label: Text(l10n.storeCoinsLabel(_coins))),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppStatusBarStyles.light,
+      child: Scaffold(
+        appBar: AppBar(
+          systemOverlayStyle: AppStatusBarStyles.light,
+          title: Text(l10n.storeTitle),
+          actions: [
+            if (_subscriptionItems.isNotEmpty)
+              IconButton(
+                onPressed: _iapLoading ? null : _restorePurchases,
+                icon: const Icon(Icons.restore),
+                tooltip: l10n.storeRestoreTooltip,
+              ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Chip(label: Text(l10n.storeDiamondsLabel(_diamonds))),
+                    const SizedBox(width: 8),
+                    Chip(label: Text(l10n.storeCoinsLabel(_coins))),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadStore,
-        child: _buildBody(context, l10n),
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: _loadStore,
+          child: _buildBody(context, l10n),
+        ),
       ),
     );
   }

@@ -22,6 +22,7 @@ class HomeDrawer extends ConsumerWidget {
   final VoidCallback onInventoryTap;
   final VoidCallback onSignOut;
   final Widget? debugActions;
+  final bool isProPlan;
 
   const HomeDrawer({
     super.key,
@@ -37,6 +38,7 @@ class HomeDrawer extends ConsumerWidget {
     required this.onInventoryTap,
     required this.onSignOut,
     this.debugActions,
+    this.isProPlan = false,
   });
 
   @override
@@ -96,7 +98,8 @@ class HomeDrawer extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    l10n.drawerFreePlan.toUpperCase(),
+                    (isProPlan ? l10n.drawerProPlan : l10n.drawerFreePlan)
+                        .toUpperCase(),
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,

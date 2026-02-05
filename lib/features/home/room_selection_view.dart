@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import '../pet/pet_catalog.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'widgets/home_polaroid_memory_frame.dart';
@@ -38,12 +39,7 @@ class RoomSelectionView extends StatelessWidget {
   final String? selectedRoomId;
   final String? userAvatarUrl;
 
-  static const _mint = Color(0xFF7ED9C0);
   static const _filmBase = Color(0xFFFFF9F2);
-  static const _moodHigh = Color(0xFF67CBA0);
-  static const _moodMid = Color(0xFFF3B562);
-  static const _moodLow = Color(0xFF9CB1C7);
-  static const _moodSad = Color(0xFFF28B82);
 
   @override
   Widget build(BuildContext context) {
@@ -201,9 +197,6 @@ class RoomSelectionView extends StatelessWidget {
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
-    final mood = room['mood'] as String?;
-    final moodColor = _moodColor(mood);
-    final moodDotCount = _moodDotCount(mood);
     final latestPhoto = room['latest_photo'] as String?;
     final latestCaption = (room['latest_caption'] as String? ?? '').trim();
     final latestSenderId = room['latest_sender_id'] as String?;
@@ -214,6 +207,9 @@ class RoomSelectionView extends StatelessWidget {
     final rawName = (room['name'] as String?)?.trim();
     final roomName =
         rawName == null || rawName.isEmpty ? l10n.roomDefaultName : rawName;
+    final petType = room['pet_type'] as String?;
+    final petDefinition = PetCatalog.byId(petType);
+    final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -268,7 +264,10 @@ class RoomSelectionView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    _buildMoodDots(moodDotCount, moodColor),
+                    const Gap(6),
+                    _buildPetIcon(petDefinition.stayAsset),
+                    const Gap(6),
+                    _RoomHealthBar(value: healthValue),
                   ],
                 ),
               ],
@@ -429,52 +428,56 @@ class RoomSelectionView extends StatelessWidget {
     );
   }
 
-  Widget _buildMoodDots(int filled, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: List.generate(4, (index) {
-        final isActive = index < filled;
-        return Container(
-          margin: const EdgeInsets.only(right: 6),
-          width: 5,
-          height: 5,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive ? color : Colors.black12,
-          ),
-        );
-      }),
+  Widget _buildPetIcon(String assetPath) {
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        gaplessPlayback: true,
+      ),
     );
   }
+}
 
-  int _moodDotCount(String? mood) {
-    switch (mood) {
-      case 'high':
-        return 4;
-      case 'mid':
-        return 3;
-      case 'low':
-        return 2;
-      case 'sad':
-        return 1;
-      default:
-        return 0;
-    }
-  }
+class _RoomHealthBar extends StatelessWidget {
+  const _RoomHealthBar({required this.value});
 
-  Color _moodColor(String? mood) {
-    switch (mood) {
-      case 'high':
-        return _moodHigh;
-      case 'mid':
-        return _moodMid;
-      case 'low':
-        return _moodLow;
-      case 'sad':
-        return _moodSad;
-      default:
-        return _mint;
-    }
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    final clamped = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
+    return SizedBox(
+      width: 70,
+      height: 12,
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.black87, width: 1.5),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(1.5),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                widthFactor: clamped,
+                child: Container(
+                  color: const Color(0xFFed8787),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

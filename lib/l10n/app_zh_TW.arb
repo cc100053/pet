@@ -37,6 +37,7 @@
   "calendarNoPhotoYet": "尚無照片",
   "calendarTitle": "回憶錄",
   "calendarToday": "今天",
+  "calendarYesterday": "昨天",
   "chatBlockFailed": "封鎖失敗：{error}",
   "@chatBlockFailed": {
     "placeholders": {
@@ -51,6 +52,7 @@
     }
   },
   "chatEmptyState": "尚無訊息，從下方開始聊天吧。",
+  "chatMemberCount": "{count} 位成員",
   "chatLoadBlockedUsersFailed": "載入封鎖名單失敗：{error}",
   "@chatLoadBlockedUsersFailed": {
     "placeholders": {
@@ -140,8 +142,14 @@
   },
   "drawerCreateRoom": "建立新房間",
   "drawerDebugTools": "除錯工具",
-  "drawerForceRefreshPet": "強制更新寵物",
   "drawerFreePlan": "免費方案",
+  "drawerProPlan": "Pro 方案",
+  "drawerDebugAddCandy": "+100 糖果",
+  "drawerDebugAddDiamonds": "+100 鑽石",
+  "drawerDebugTogglePlan": "切換方案",
+  "drawerDebugHungerDown": "寵物飢餓度 -10",
+  "drawerDebugAddExp": "+10 經驗",
+  "drawerDebugSpawnPoop": "讓寵物便便",
   "drawerInviteCode": "代碼：{code}",
   "@drawerInviteCode": {
     "placeholders": {
@@ -317,6 +325,13 @@
   "roomRenameTitle": "變更房間名稱",
   "roomRenameMessage": "輸入新的房間名稱。",
   "roomDefaultName": "新房間",
+  "roomInviteCta": "邀請",
+  "roomInvitePromptTitle": "邀請朋友",
+  "roomInvitePromptBody": "目前只有你。產生邀請碼來邀請朋友加入。",
+  "roomInvitePromptAction": "產生邀請碼",
+  "roomInvitePromptGenerating": "產生中...",
+  "roomInviteCodeTitle": "邀請碼",
+  "roomInviteCodeMessage": "分享此邀請碼讓朋友加入房間。",
   "roomInviteCodeRegenerated": "邀請碼已重新產生。",
   "roomInviteCodeRegenerateFailed": "重新產生邀請碼失敗：{error}",
   "@roomInviteCodeRegenerateFailed": {

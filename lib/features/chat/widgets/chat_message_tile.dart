@@ -68,8 +68,6 @@ class ChatMessageTile extends StatelessWidget {
     }
 
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    final crossAxisAlignment =
-        isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
 
     // Build the message content (bubble)
     final bubbleContent = message.isImageFeed
@@ -78,40 +76,19 @@ class ChatMessageTile extends StatelessWidget {
             isMe: isMe,
             isOptimistic: isOptimistic,
             onImageTap: onImageTap,
+            senderName: senderName,
           )
-        : _TextMessageBubble(message: message, isMe: isMe);
-
-    // Build sender name widget (shown above bubble for non-me messages)
-    Widget? senderWidget;
-    if (!isMe && senderName != null && senderName!.isNotEmpty) {
-      senderWidget = Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 2),
-        child: Text(
-          senderName!,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: colorForUserId(message.senderId),
-          ),
-        ),
-      );
-    }
+        : _TextMessageBubble(
+            message: message,
+            isMe: isMe,
+            senderName: senderName,
+          );
 
     return Align(
       alignment: alignment,
       child: GestureDetector(
         onLongPress: onLongPress,
-        child: Opacity(
-          opacity: isOptimistic ? 0.7 : 1.0,
-          child: Column(
-            crossAxisAlignment: crossAxisAlignment,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (senderWidget != null) senderWidget,
-              bubbleContent,
-            ],
-          ),
-        ),
+        child: Opacity(opacity: isOptimistic ? 0.7 : 1.0, child: bubbleContent),
       ),
     );
   }
@@ -131,10 +108,10 @@ class ChatMessageTile extends StatelessWidget {
     if (matchedPhrase.isNotEmpty) {
       final phraseIndex = lower.indexOf(matchedPhrase);
       final nameRaw = phraseIndex > 0 ? raw.substring(0, phraseIndex) : '';
-      final name = nameRaw.trim().isEmpty ? l10n.chatSystemUpdate : nameRaw.trim();
-      final amountFromBody = RegExp(r'\\+(\\d+)')
-          .firstMatch(raw)
-          ?.group(1);
+      final name = nameRaw.trim().isEmpty
+          ? l10n.chatSystemUpdate
+          : nameRaw.trim();
+      final amountFromBody = RegExp(r'\\+(\\d+)').firstMatch(raw)?.group(1);
       final amount = message.coinsAwarded > 0
           ? message.coinsAwarded.toString()
           : (amountFromBody ?? '0');
@@ -156,11 +133,7 @@ class ChatMessageTile extends StatelessWidget {
           : renameMatch.group(1)!.trim();
       final petName = (renameMatch.group(2) ?? '').trim();
       if (petName.isNotEmpty) {
-        return l10n.chatPetRenamedMessage(
-          name,
-          l10n.petNameUnnamed,
-          petName,
-        );
+        return l10n.chatPetRenamedMessage(name, l10n.petNameUnnamed, petName);
       }
     }
 
@@ -174,11 +147,7 @@ class ChatMessageTile extends StatelessWidget {
           : renameLocalizedMatch.group(1)!.trim();
       final petName = (renameLocalizedMatch.group(2) ?? '').trim();
       if (petName.isNotEmpty) {
-        return l10n.chatPetRenamedMessage(
-          name,
-          l10n.petNameUnnamed,
-          petName,
-        );
+        return l10n.chatPetRenamedMessage(name, l10n.petNameUnnamed, petName);
       }
     }
 
@@ -214,8 +183,8 @@ class ChatMessageTile extends StatelessWidget {
     }
 
     final normalizedOld = oldNameRaw.trim();
-    final isUnnamed = normalizedOld.isEmpty ||
-        normalizedOld.toLowerCase() == 'unnamed';
+    final isUnnamed =
+        normalizedOld.isEmpty || normalizedOld.toLowerCase() == 'unnamed';
     final oldName = isUnnamed ? l10n.petNameUnnamed : normalizedOld;
 
     return l10n.chatPetRenamedMessage(userName, oldName, newName);
@@ -223,10 +192,15 @@ class ChatMessageTile extends StatelessWidget {
 }
 
 class _TextMessageBubble extends StatelessWidget {
-  const _TextMessageBubble({required this.message, required this.isMe});
+  const _TextMessageBubble({
+    required this.message,
+    required this.isMe,
+    this.senderName,
+  });
 
   final ChatMessage message;
   final bool isMe;
+  final String? senderName;
 
   @override
   Widget build(BuildContext context) {
@@ -250,9 +224,7 @@ class _TextMessageBubble extends StatelessWidget {
     final decoration = BoxDecoration(
       color: bubbleColor,
       borderRadius: bubbleRadius,
-      border: isMe
-          ? null
-          : Border.all(color: Colors.black.withValues(alpha: 0.04)),
+      border: null,
     );
 
     final textColor = AppTheme.textPrimary;
@@ -261,26 +233,54 @@ class _TextMessageBubble extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: decoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message.body ?? '',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: textColor,
-              fontSize: 15,
+      child: IntrinsicWidth(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!isMe && senderName != null && senderName!.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(
+                  senderName!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: ChatMessageTile.colorForUserId(message.senderId),
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 42),
+                    child: Text(
+                      message.body ?? '',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: textColor,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Text(
+                      _formatMessageTime(message.createdAt),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.black45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Text(
-              _formatTime(message.createdAt),
-              style: const TextStyle(fontSize: 10, color: Colors.black38),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -290,7 +290,7 @@ class _TextMessageBubble extends StatelessWidget {
       painter: _BubbleTailPainter(
         color: bubbleColor,
         isMe: isMe,
-        hasBorder: !isMe,
+        hasBorder: false,
       ),
     );
 
@@ -308,13 +308,13 @@ class _TextMessageBubble extends StatelessWidget {
       );
     }
   }
+}
 
-  String _formatTime(DateTime date) {
-    final local = date.toLocal();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
+String _formatMessageTime(DateTime date) {
+  final local = date.toLocal();
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
 }
 
 /// Custom painter for Telegram-style bubble tail
@@ -340,13 +340,23 @@ class _BubbleTailPainter extends CustomPainter {
     if (isMe) {
       // Tail on right side, pointing right-down
       path.moveTo(0, 0);
-      path.quadraticBezierTo(size.width * 0.8, size.height * 0.3, size.width, size.height);
+      path.quadraticBezierTo(
+        size.width * 0.8,
+        size.height * 0.3,
+        size.width,
+        size.height,
+      );
       path.lineTo(0, size.height);
       path.close();
     } else {
       // Tail on left side, pointing left-down
       path.moveTo(size.width, 0);
-      path.quadraticBezierTo(size.width * 0.2, size.height * 0.3, 0, size.height);
+      path.quadraticBezierTo(
+        size.width * 0.2,
+        size.height * 0.3,
+        0,
+        size.height,
+      );
       path.lineTo(size.width, size.height);
       path.close();
     }
@@ -377,15 +387,18 @@ class _FeedMessageCard extends StatelessWidget {
     required this.isMe,
     required this.isOptimistic,
     required this.onImageTap,
+    this.senderName,
   });
 
   final ChatMessage message;
   final bool isMe;
   final bool isOptimistic;
   final VoidCallback? onImageTap;
+  final String? senderName;
 
   @override
   Widget build(BuildContext context) {
+    final hasCaption = message.caption != null && message.caption!.isNotEmpty;
     final decoration = isMe
         ? BoxDecoration(
             color: AppTheme.chatBubbleMe,
@@ -404,41 +417,59 @@ class _FeedMessageCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header (Coins badge only - sender name is shown above the card)
-          if (message.coinsAwarded > 0)
+          // Header (sender name on left, coins on right)
+          if ((!isMe && senderName != null && senderName!.isNotEmpty) ||
+              message.coinsAwarded > 0)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.monetization_on_rounded,
-                        size: 14,
-                        color: Colors.orange,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '+${message.coinsAwarded}',
-                        style: const TextStyle(
-                          color: Colors.brown,
-                          fontWeight: FontWeight.bold,
+              child: Row(
+                children: [
+                  if (!isMe && senderName != null && senderName!.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        senderName!,
+                        style: TextStyle(
                           fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: ChatMessageTile.colorForUserId(
+                            message.senderId,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    )
+                  else
+                    const Spacer(),
+                  if (message.coinsAwarded > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.monetization_on_rounded,
+                            size: 14,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '+${message.coinsAwarded}',
+                            style: const TextStyle(
+                              color: Colors.brown,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ),
 
@@ -451,7 +482,35 @@ class _FeedMessageCard extends StatelessWidget {
                 onTap: onImageTap,
                 child: AspectRatio(
                   aspectRatio: 1.0,
-                  child: _buildImageContent(),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _buildImageContent(),
+                      if (!hasCaption)
+                        Positioned(
+                          right: 8,
+                          bottom: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _formatMessageTime(message.createdAt),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -460,13 +519,34 @@ class _FeedMessageCard extends StatelessWidget {
           const SizedBox(height: 8),
 
           // Caption or Label
-          if (message.caption != null && message.caption!.isNotEmpty)
-            Text(
-              message.caption!,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
+          if (hasCaption)
+            SizedBox(
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 42),
+                    child: Text(
+                      message.caption!,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Text(
+                      _formatMessageTime(message.createdAt),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.black45,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -493,5 +573,4 @@ class _FeedMessageCard extends StatelessWidget {
     }
     return Container(color: Colors.grey[300]);
   }
-
 }

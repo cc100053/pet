@@ -6,6 +6,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import '../features/auth/auth_gate.dart';
 import '../shared/localization/app_locale_controller.dart';
 import '../shared/theme/app_theme.dart';
+import '../shared/ui/status_bar_style.dart';
 import '../shared/force_update/force_update_gate.dart';
 
 class PicPetApp extends ConsumerWidget {
@@ -14,30 +15,33 @@ class PicPetApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localeState = ref.watch(appLocaleProvider);
-    return MaterialApp(
-      title: 'PicPet',
-      theme: AppTheme.lightTheme,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: localeState.locale,
-      localeResolutionCallback: (locale, supportedLocales) {
-        if (locale == null) {
-          return supportedLocales.first;
-        }
-        if (locale.languageCode == 'zh') {
-          return const Locale('zh', 'TW');
-        }
-        for (final supported in supportedLocales) {
-          if (supported.languageCode == locale.languageCode) {
-            return supported;
+    return AnnotatedRegion(
+      value: AppStatusBarStyles.light,
+      child: MaterialApp(
+        title: 'PicPet',
+        theme: AppTheme.lightTheme,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: localeState.locale,
+        localeResolutionCallback: (locale, supportedLocales) {
+          if (locale == null) {
+            return supportedLocales.first;
           }
-        }
-        return supportedLocales.first;
-      },
-      navigatorObservers: [
-        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-      ],
-      home: const ForceUpdateGate(child: AuthGate()),
+          if (locale.languageCode == 'zh') {
+            return const Locale('zh', 'TW');
+          }
+          for (final supported in supportedLocales) {
+            if (supported.languageCode == locale.languageCode) {
+              return supported;
+            }
+          }
+          return supportedLocales.first;
+        },
+        navigatorObservers: [
+          FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+        ],
+        home: const ForceUpdateGate(child: AuthGate()),
+      ),
     );
   }
 }

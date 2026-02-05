@@ -4,17 +4,20 @@ class RoomBackgroundDefinition {
   const RoomBackgroundDefinition({
     required this.key,
     required this.decoration,
+    this.isDark = false,
     BoxDecoration? previewDecoration,
   }) : previewDecoration = previewDecoration ?? decoration;
 
   final String key;
   final BoxDecoration decoration;
   final BoxDecoration previewDecoration;
+  final bool isDark;
 }
 
 class RoomBackgrounds {
   static const String defaultKey = 'default';
   static const String testKey = 'test';
+  static const String test1Key = 'test1';
 
   static final Map<String, RoomBackgroundDefinition> definitions = {
     defaultKey: RoomBackgroundDefinition(
@@ -53,6 +56,16 @@ class RoomBackgrounds {
         ),
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
+    ),
+    test1Key: RoomBackgroundDefinition(
+      key: test1Key,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/bg/test1.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      isDark: true,
     ),
   };
 

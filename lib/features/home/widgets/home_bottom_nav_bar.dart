@@ -74,18 +74,27 @@ class _NavIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 52,
-        height: 52,
-        child: Center(
-          child: SvgPicture.asset(
-            iconAsset,
-            width: 32,
-            height: 32,
-            colorFilter: const ColorFilter.mode(Colors.black87, BlendMode.srcIn),
+    return SizedBox(
+      width: 52,
+      height: 52,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          splashColor: Colors.black.withValues(alpha: 0.12),
+          highlightColor: Colors.black.withValues(alpha: 0.08),
+          child: Center(
+            child: SvgPicture.asset(
+              iconAsset,
+              width: 32,
+              height: 32,
+              colorFilter: const ColorFilter.mode(
+                Colors.black87,
+                BlendMode.srcIn,
+              ),
+            ),
           ),
         ),
       ),
@@ -100,36 +109,45 @@ class _CameraButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: HomeBottomNavBar._cameraSize,
-        height: HomeBottomNavBar._cameraSize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: Colors.black87, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        splashColor: Colors.black.withValues(alpha: 0.12),
+        highlightColor: Colors.black.withValues(alpha: 0.08),
         child: Container(
-          margin: const EdgeInsets.all(6),
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
+          width: HomeBottomNavBar._cameraSize,
+          height: HomeBottomNavBar._cameraSize,
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppTheme.primaryColor,
+            color: Colors.white,
+            border: Border.all(color: Colors.black87, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          child: SvgPicture.asset(
-            'assets/icon/solar--camera-linear.svg',
-            width: 32,
-            height: 32,
-            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          child: Container(
+            margin: const EdgeInsets.all(6),
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.primaryColor,
+            ),
+            child: SvgPicture.asset(
+              'assets/icon/solar--camera-linear.svg',
+              width: 32,
+              height: 32,
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
+            ),
           ),
         ),
       ),

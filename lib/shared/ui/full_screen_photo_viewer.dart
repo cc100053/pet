@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'cached_network_image_view.dart';
+import 'status_bar_style.dart';
 
 /// iPhone-style full-screen photo viewer with:
 /// - Double-tap to zoom
@@ -281,87 +283,90 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   Widget build(BuildContext context) {
     final imageCount = widget.imageUrls.length;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GestureDetector(
-        onVerticalDragUpdate: _onVerticalDragUpdate,
-        onVerticalDragEnd: _onVerticalDragEnd,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 100),
-          opacity: _dragOpacity,
-          child: Transform.translate(
-            offset: Offset(0, _dragOffset),
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Stack(
-                    children: [
-                      // Image viewer
-                      imageCount == 1
-                          ? _buildImagePage(0, constraints)
-                          : PageView.builder(
-                              controller: _pageController,
-                              itemCount: imageCount,
-                              onPageChanged: _onPageChanged,
-                              physics: _transformController.value
-                                          .getMaxScaleOnAxis() >
-                                      1.05
-                                  ? const NeverScrollableScrollPhysics()
-                                  : const BouncingScrollPhysics(),
-                              itemBuilder: (_, index) =>
-                                  _buildImagePage(index, constraints),
-                            ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppStatusBarStyles.dark,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: GestureDetector(
+          onVerticalDragUpdate: _onVerticalDragUpdate,
+          onVerticalDragEnd: _onVerticalDragEnd,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 100),
+            opacity: _dragOpacity,
+            child: Transform.translate(
+              offset: Offset(0, _dragOffset),
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Stack(
+                      children: [
+                        // Image viewer
+                        imageCount == 1
+                            ? _buildImagePage(0, constraints)
+                            : PageView.builder(
+                                controller: _pageController,
+                                itemCount: imageCount,
+                                onPageChanged: _onPageChanged,
+                                physics: _transformController.value
+                                            .getMaxScaleOnAxis() >
+                                        1.05
+                                    ? const NeverScrollableScrollPhysics()
+                                    : const BouncingScrollPhysics(),
+                                itemBuilder: (_, index) =>
+                                    _buildImagePage(index, constraints),
+                              ),
 
-                      // Close button
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Page indicator (only if multiple images)
-                      if (widget.showIndicator && imageCount > 1)
+                        // Close button
                         Positioned(
-                          bottom: 24,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(imageCount, (i) {
-                              final isActive = i == _currentIndex;
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 3),
-                                width: isActive ? 10 : 6,
-                                height: isActive ? 10 : 6,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isActive
-                                      ? Colors.white
-                                      : Colors.white.withValues(alpha: 0.4),
-                                ),
-                              );
-                            }),
+                          top: 8,
+                          right: 8,
+                          child: IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
                           ),
                         ),
-                    ],
-                  );
-                },
+
+                        // Page indicator (only if multiple images)
+                        if (widget.showIndicator && imageCount > 1)
+                          Positioned(
+                            bottom: 24,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(imageCount, (i) {
+                                final isActive = i == _currentIndex;
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 3),
+                                  width: isActive ? 10 : 6,
+                                  height: isActive ? 10 : 6,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isActive
+                                        ? Colors.white
+                                        : Colors.white.withValues(alpha: 0.4),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),

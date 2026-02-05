@@ -21,6 +21,13 @@ class _RoomLatestFeed {
   final List<String> imageUrls;
 }
 
+class _RoomPetSummary {
+  const _RoomPetSummary({required this.petType, required this.healthValue});
+
+  final String petType;
+  final double healthValue;
+}
+
 class _PlacedFurniture {
   _PlacedFurniture({
     required this.id,
