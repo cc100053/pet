@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,6 +26,8 @@ import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../pet/pet_catalog.dart';
 import '../pet/leveling.dart';
+import '../pet/pet_departure.dart';
+import '../pet/pet_departure_note_view.dart';
 import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../store/store_view.dart';
@@ -74,6 +77,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   String _petType = PetCatalog.defaultPetId;
   bool _petBusy = false;
   Map<String, dynamic>? _petState;
+  bool _petDeparted = false;
+  bool _petDeparturePrompted = false;
+  String? _lastDeparturePetId;
+  final Map<String, DepartedPetInfo> _departedPetsByRoom = {};
   String? _petError;
   DateTime? _lastOverfedAt;
   bool _showOverfedBubble = false;
@@ -568,6 +575,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           .toList();
     });
     _handleOverfedState();
+    _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
   }
 
   List<Map<String, double>> _normalizePoopPositions(dynamic raw) {
@@ -632,7 +640,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
       final responses = await Supabase.instance.client
           .from('room_members')
-          .select('room_id, role, rooms(name, invite_code)')
+          .select('room_id, role, rooms(invite_code)')
           .eq('user_id', userId)
           .eq('is_active', true)
           .order('joined_at', ascending: false);
@@ -643,7 +651,6 @@ class _HomeViewState extends ConsumerState<HomeView>
         if (roomData != null) {
           rooms.add({
             'id': r['room_id'],
-            'name': roomData['name'],
             'invite_code': roomData['invite_code'],
             'role': r['role'],
           });
@@ -668,6 +675,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           if (summary != null) {
             room['pet_type'] = summary.petType;
             room['pet_health'] = summary.healthValue;
+            room['pet_name'] = summary.petName;
           }
           if (roomId != null && feeds.containsKey(roomId)) {
             final latest = feeds[roomId]!;
@@ -853,6 +861,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       _petId = null;
       _lastOverfedAt = null;
       _showOverfedBubble = false;
+      _petDeparted = false;
+      _petDeparturePrompted = false;
+      _lastDeparturePetId = null;
       _petType = petType ?? PetCatalog.defaultPetId;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
@@ -871,7 +882,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _backgroundInventoryChannel?.unsubscribe();
     _backgroundInventoryChannel = null;
     _backgroundSubscriptionRoomId = null;
-    _refreshPetState();
+    _refreshPetState(tick: true);
     unawaited(_refreshLatestFeed(roomId));
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
@@ -932,15 +943,13 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() => _creatingRoom = true);
     try {
       final response = await Supabase.instance.client
-          .rpc('create_room', params: {'p_name': l10n.roomDefaultName})
+          .rpc('create_room', params: {'p_name': creation.petName.trim()})
           .single();
 
       final newId = response['room_id'] as String?;
       if (newId == null) {
         throw Exception('room_id_missing');
       }
-
-      await _applyInitialRoomName(newId, creation.roomName);
 
       // Refresh list and switch
       await _fetchRooms();
@@ -1054,9 +1063,18 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
-      if (_petId == petId) {
-        setState(() => _petName = trimmed);
-      }
+      setState(() {
+        if (_petId == petId) {
+          _petName = trimmed;
+        }
+        _myRooms = _myRooms
+            .map(
+              (entry) => entry['id'] == roomId
+                  ? {...entry, 'pet_name': trimmed}
+                  : entry,
+            )
+            .toList(growable: false);
+      });
     } catch (error) {
       if (!mounted) {
         return;
@@ -1067,34 +1085,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _applyInitialRoomName(String roomId, String roomName) async {
-    final trimmed = roomName.trim();
-    if (trimmed.isEmpty) {
-      return;
-    }
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      await Supabase.instance.client
-          .from('rooms')
-          .update({'name': trimmed})
-          .eq('id', roomId);
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.roomNameUpdateFailed(error.toString()))),
-      );
-    }
-  }
-
   Future<_RoomCreationDetails?> _promptRoomCreationDetails() async {
     return showAppDialog<_RoomCreationDetails>(
       context: context,
-      builder: (context) => const _RoomCreationDialog(
-        initialRoomName: '',
-        maxPetNameLength: _petNameMaxLength,
-      ),
+      builder: (context) =>
+          const _RoomCreationDialog(maxPetNameLength: _petNameMaxLength),
     );
   }
 
@@ -1310,14 +1305,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       (entry) => entry['id'] == roomId,
       orElse: () => const {},
     );
-    final roomName = room['name'] as String?;
+    final petName = (room['pet_name'] as String?)?.trim();
+    final petType = room['pet_type'] as String?;
+    final fallbackName = PetCatalog.byId(petType).name(l10n);
     final confirmed = await showAppDialog<bool>(
       context: context,
       builder: (context) => AppDialog(
         tone: AppDialogTone.warning,
         title: l10n.roomLeaveTitle,
         message: l10n.roomLeaveMessage(
-          roomName?.trim().isEmpty ?? true ? l10n.roomDefaultName : roomName!,
+          petName == null || petName.isEmpty ? fallbackName : petName,
         ),
         actions: [
           AppDialogAction.secondary(
@@ -1535,7 +1532,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     final rows = await Supabase.instance.client
         .from('pets')
-        .select('room_id, color_dna, pet_state(hunger)')
+        .select('room_id, name, color_dna, pet_state(hunger)')
         .inFilter('room_id', roomIds);
 
     final summaries = <String, _RoomPetSummary>{};
@@ -1560,6 +1557,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       summaries[roomId] = _RoomPetSummary(
         petType: petType,
         healthValue: _healthValueFromHunger(hunger),
+        petName: (row['name'] as String?)?.trim(),
       );
     }
     return summaries;
@@ -1736,6 +1734,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             .toList();
       });
       _handleOverfedState();
+      _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
@@ -1785,6 +1784,14 @@ class _HomeViewState extends ConsumerState<HomeView>
         }
       });
       _handleOverfedState();
+      final roomId = _roomId;
+      if (roomId != null) {
+        _handlePetDepartureState(
+          roomId: roomId,
+          petId: petId,
+          state: _petState,
+        );
+      }
     }
 
     channel.onPostgresChanges(
@@ -1817,6 +1824,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _applyPetAction(String action) async {
     final roomId = _roomId;
     if (roomId == null) return;
+    if (_petDeparted) {
+      final info = _currentDepartedPetInfo();
+      if (info != null) {
+        await _showPetDepartureFlow(info);
+      }
+      return;
+    }
 
     setState(() {
       _petBusy = true;
@@ -1859,6 +1873,24 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _openFeedCamera() async {
     final roomId = _roomId;
     if (roomId == null) return;
+    if (_petDeparted) {
+      final l10n = AppLocalizations.of(context)!;
+      await showAppDialog<void>(
+        context: context,
+        builder: (context) => AppDialog(
+          tone: AppDialogTone.info,
+          title: l10n.petDepartureFeedDisabledTitle,
+          message: l10n.petDepartureFeedDisabledMessage,
+          actions: [
+            AppDialogAction.primary(
+              label: l10n.commonClose,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
 
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -1971,84 +2003,19 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Future<void> _renameRoomFromSelection(String roomId) async {
-    final l10n = AppLocalizations.of(context)!;
-    final room = _myRooms.firstWhere(
-      (entry) => entry['id'] == roomId,
-      orElse: () => {},
-    );
-    final controller = TextEditingController(
-      text: (room['name'] as String?) ?? '',
-    );
-    final newName = await showAppDialog<String>(
-      context: context,
-      builder: (context) => AppDialog(
-        tone: AppDialogTone.info,
-        title: l10n.roomRenameTitle,
-        message: l10n.roomRenameMessage,
-        body: TextField(
-          controller: controller,
-          decoration: InputDecoration(hintText: l10n.roomNameLabel),
-        ),
-        actions: [
-          AppDialogAction.secondary(
-            label: l10n.commonCancel,
-            onPressed: () => Navigator.pop(context),
-          ),
-          AppDialogAction.primary(
-            label: l10n.commonSave,
-            onPressed: () {
-              final value = controller.text.trim();
-              Navigator.pop(context, value.isEmpty ? null : value);
-            },
-          ),
-        ],
-      ),
-    );
-
-    if (newName == null || newName.trim().isEmpty) {
-      return;
-    }
-
-    try {
-      await Supabase.instance.client
-          .from('rooms')
-          .update({'name': newName.trim()})
-          .eq('id', roomId);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _myRooms = _myRooms
-            .map((entry) {
-              if (entry['id'] != roomId) {
-                return entry;
-              }
-              return {...entry, 'name': newName.trim()};
-            })
-            .toList(growable: false);
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.roomNameUpdateFailed(error.toString()))),
-      );
-    }
-  }
-
   void _openChatRoom() {
     final roomId = _roomId;
     if (roomId == null) {
       return;
     }
 
+    final l10n = AppLocalizations.of(context)!;
     final room = _myRooms.firstWhere(
       (r) => r['id'] == roomId,
       orElse: () => {},
     );
-    final roomName = room['name'] as String?;
+    final petName = (_petName ?? room['pet_name'] as String?)?.trim();
+    final fallbackName = PetCatalog.byId(_petType).name(l10n);
     final petAssetPath = PetCatalog.byId(_petType).stayAsset;
     final backgroundDecoration = _currentBackgroundDefinition().decoration;
     final isDarkBackground = _currentBackgroundDefinition().isDark;
@@ -2060,8 +2027,11 @@ class _HomeViewState extends ConsumerState<HomeView>
               roomId: roomId,
               backgroundDecoration: backgroundDecoration,
               isDarkBackground: isDarkBackground,
-              roomName: roomName,
+              petName: petName == null || petName.isEmpty
+                  ? fallbackName
+                  : petName,
               petAssetPath: petAssetPath,
+              isPetDeparted: _petDeparted,
             ),
           ),
         )
@@ -2167,6 +2137,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       setState(() {
         _petName = trimmed;
+        final roomId = _roomId;
+        if (roomId != null) {
+          _myRooms = _myRooms
+              .map(
+                (entry) => entry['id'] == roomId
+                    ? {...entry, 'pet_name': trimmed}
+                    : entry,
+              )
+              .toList(growable: false);
+        }
       });
       unawaited(_loadPetInfo(petId));
     } catch (error) {
@@ -2183,6 +2163,178 @@ class _HomeViewState extends ConsumerState<HomeView>
     return _healthValueFromHunger(_petState?['hunger'] as num?);
   }
 
+  String _departureHeroTag(String petId) => 'pet_departure_note_$petId';
+
+  DepartedPetInfo? _currentDepartedPetInfo() {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return null;
+    }
+    return _departedPetsByRoom[roomId];
+  }
+
+  List<DepartedPetInfo> _departedPetsList() {
+    return _departedPetsByRoom.values.toList(growable: false);
+  }
+
+  String _resolvePetNameForRoom(String roomId) {
+    if (roomId == _roomId) {
+      final name = _petName?.trim();
+      if (name != null && name.isNotEmpty) {
+        return name;
+      }
+    }
+    for (final room in _myRooms) {
+      if (room['id'] != roomId) {
+        continue;
+      }
+      final name = (room['pet_name'] as String?)?.trim();
+      if (name != null && name.isNotEmpty) {
+        return name;
+      }
+      break;
+    }
+    return AppLocalizations.of(context)!.petNameUnknown;
+  }
+
+  void _handlePetDepartureState({
+    required String roomId,
+    required String petId,
+    required Map<String, dynamic>? state,
+  }) {
+    if (state == null) {
+      return;
+    }
+    final hungerValue = state['hunger'];
+    if (hungerValue is! num) {
+      return;
+    }
+    final isDeparted = hungerValue <= 0;
+    if (!isDeparted) {
+      _departedPetsByRoom.remove(roomId);
+      if (roomId == _roomId && _petDeparted && mounted) {
+        setState(() => _petDeparted = false);
+      }
+      if (roomId == _roomId) {
+        _petDeparturePrompted = false;
+        _lastDeparturePetId = null;
+      }
+      return;
+    }
+
+    final info = DepartedPetInfo(
+      petId: petId,
+      roomId: roomId,
+      petName: _resolvePetNameForRoom(roomId),
+    );
+    _departedPetsByRoom[roomId] = info;
+
+    if (roomId != _roomId || _showRoomSelection) {
+      return;
+    }
+
+    if (!_petDeparted && mounted) {
+      setState(() => _petDeparted = true);
+    }
+
+    final shouldPrompt = !_petDeparturePrompted || _lastDeparturePetId != petId;
+    if (!shouldPrompt) {
+      return;
+    }
+    _petDeparturePrompted = true;
+    _lastDeparturePetId = petId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(_showPetDepartureFlow(info));
+    });
+  }
+
+  Future<void> _showPetDepartureFlow(DepartedPetInfo info) async {
+    final l10n = AppLocalizations.of(context)!;
+    await Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            PetDepartureNoteView(
+              heroTag: _departureHeroTag(info.petId),
+              noteText: l10n.petDepartureNoteMessage,
+              onReturnPressed: () {
+                Navigator.of(context).pop();
+                unawaited(_openStoreWithDepartures());
+              },
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+  }
+
+  Future<void> _openStoreWithDepartures() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StoreView(
+          roomId: _roomId,
+          departedPets: _departedPetsList(),
+          onReturnPet: _returnDepartedPet,
+        ),
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    await _loadCoins();
+    await _loadFurnitureInventory();
+  }
+
+  Future<void> _returnDepartedPet(DepartedPetInfo pet) async {
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    try {
+      await Supabase.instance.client
+          .from('pet_state')
+          .update({
+            'hunger': 40,
+            'last_decay_at': nowIso,
+            'mood_boost': 0,
+            'mood_boost_expires_at': null,
+          })
+          .eq('pet_id', pet.petId);
+      await Supabase.instance.client.rpc(
+        'tick_pet_state',
+        params: {'p_pet_id': pet.petId, 'p_now': nowIso},
+      );
+    } catch (error) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.petActionFailed(error.toString()))),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _departedPetsByRoom.remove(pet.roomId);
+      if (pet.roomId == _roomId) {
+        _petDeparted = false;
+        _petDeparturePrompted = false;
+        _lastDeparturePetId = null;
+      }
+    });
+
+    if (pet.roomId == _roomId) {
+      await _refreshPetState();
+    } else {
+      unawaited(_fetchRooms());
+    }
+  }
+
   void _onHomeNavPressed() {
     if (_furnitureMode) {
       _closeFurnitureInventory();
@@ -2194,14 +2346,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _openStoreFromNav() async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => StoreView(roomId: _roomId)));
-    if (!mounted) {
-      return;
-    }
-    await _loadCoins();
-    await _loadFurnitureInventory();
+    await _openStoreWithDepartures();
   }
 
   Future<void> _refreshLatestFeed(String roomId) async {
@@ -2359,9 +2504,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _tickPetState() async {
-    if (_showRoomSelection) {
-      return;
-    }
     final roomId = _roomId;
     if (roomId == null) {
       return;
@@ -2423,7 +2565,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _maybeTriggerWander() {
-    if (!mounted || _isDraggingPet) {
+    if (!mounted || _isDraggingPet || _petDeparted) {
       return;
     }
     final now = DateTime.now();
@@ -2537,6 +2679,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetFieldTap(Offset localPosition, Size fieldSize) {
+    if (_petDeparted) {
+      return;
+    }
     final desiredTopLeft =
         localPosition -
         Offset(_petAvatarSize.width / 2, _petAvatarSize.height / 2);
@@ -2555,6 +2700,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragStart(DragStartDetails details, Size fieldSize) {
+    if (_petDeparted) {
+      return;
+    }
     final localPosition = _globalToPetField(details.globalPosition);
     if (localPosition == null) {
       return;
@@ -2575,6 +2723,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragUpdate(DragUpdateDetails details, Size fieldSize) {
+    if (_petDeparted) {
+      return;
+    }
     final localPosition = _globalToPetField(details.globalPosition);
     if (localPosition == null) {
       return;
@@ -3460,9 +3611,11 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Widget _buildPoopEmoji(int index) {
     return IgnorePointer(
-      ignoring: _petBusy,
+      ignoring: _petBusy || _petDeparted,
       child: GestureDetector(
-        onTap: _petBusy ? null : () => unawaited(_cleanPoopAt(index)),
+        onTap: (_petBusy || _petDeparted)
+            ? null
+            : () => unawaited(_cleanPoopAt(index)),
         child: const Text('💩', style: TextStyle(fontSize: 24)),
       ),
     );
@@ -3629,6 +3782,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _cleanPoopAt(int index) async {
     final roomId = _roomId;
     if (roomId == null) return;
+    if (_petDeparted) {
+      final info = _currentDepartedPetInfo();
+      if (info != null) {
+        await _showPetDepartureFlow(info);
+      }
+      return;
+    }
 
     setState(() {
       _petBusy = true;
@@ -3671,6 +3831,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildDraggablePet(Size fieldSize) {
+    if (_petDeparted) {
+      return _buildDepartedPetPlaceholder();
+    }
     return IgnorePointer(
       ignoring: _furnitureMode,
       child: GestureDetector(
@@ -3700,6 +3863,66 @@ class _HomeViewState extends ConsumerState<HomeView>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDepartedPetPlaceholder() {
+    final l10n = AppLocalizations.of(context)!;
+    final info = _currentDepartedPetInfo();
+    final heroTag = _departureHeroTag(info?.petId ?? 'pet');
+    return Hero(
+      tag: heroTag,
+      child: Material(
+        color: Colors.transparent,
+        child: GestureDetector(
+          onTap: info == null
+              ? null
+              : () => unawaited(_showPetDepartureFlow(info)),
+          child: Container(
+            width: 95,
+            height: 95,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF7E6),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE8D8B5)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/icon/solar--letter-outline.svg',
+                  width: 28,
+                  height: 28,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF4A3B2A),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.petDepartureGuideTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF4A3B2A),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -3857,7 +4080,6 @@ class _HomeViewState extends ConsumerState<HomeView>
             onJoinRoom: _joinRoomByCode,
             onSelectRoom: _enterRoomFromSelection,
             onLeaveRoom: _confirmLeaveRoom,
-            onRenameRoom: _renameRoomFromSelection,
             userAvatarById: _profileByUserId.map(
               (key, value) => MapEntry(key, value.avatarUrl),
             ),
@@ -4012,6 +4234,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                       onCamera: _openFeedCamera,
                       onStore: _openStoreFromNav,
                       onChat: _openChatRoom,
+                      cameraEnabled: !_petDeparted,
                     ),
                   ),
                 ],
@@ -4229,14 +4452,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       },
       onStoreTap: () {
         Navigator.pop(context);
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => StoreView(roomId: _roomId)))
-            .then((_) {
-              if (mounted) {
-                unawaited(_loadCoins());
-                _loadFurnitureInventory();
-              }
-            });
+        unawaited(_openStoreWithDepartures());
       },
       onInventoryTap: () {
         Navigator.pop(context);

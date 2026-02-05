@@ -17,7 +17,6 @@ class RoomSelectionView extends StatelessWidget {
     required this.onJoinRoom,
     required this.onSelectRoom,
     required this.onLeaveRoom,
-    required this.onRenameRoom,
     required this.creatingRoom,
     required this.joiningRoom,
     this.userAvatarById = const {},
@@ -31,7 +30,6 @@ class RoomSelectionView extends StatelessWidget {
   final VoidCallback onJoinRoom;
   final ValueChanged<String> onSelectRoom;
   final ValueChanged<String> onLeaveRoom;
-  final ValueChanged<String> onRenameRoom;
   final bool creatingRoom;
   final bool joiningRoom;
   final Map<String, String?> userAvatarById;
@@ -204,11 +202,11 @@ class RoomSelectionView extends StatelessWidget {
         latestSenderId == null ? null : userAvatarById[latestSenderId];
     final senderName =
         latestSenderId == null ? null : userNameById[latestSenderId];
-    final rawName = (room['name'] as String?)?.trim();
-    final roomName =
-        rawName == null || rawName.isEmpty ? l10n.roomDefaultName : rawName;
+    final petName = (room['pet_name'] as String?)?.trim();
     final petType = room['pet_type'] as String?;
     final petDefinition = PetCatalog.byId(petType);
+    final displayName =
+        petName == null || petName.isEmpty ? petDefinition.name(l10n) : petName;
     final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
     return Material(
       color: Colors.transparent,
@@ -217,7 +215,7 @@ class RoomSelectionView extends StatelessWidget {
         onTap: roomId == null ? null : () => onSelectRoom(roomId),
         onLongPress: roomId == null
             ? null
-            : () => _showRoomOptions(context, roomId, roomName, l10n),
+            : () => _showRoomOptions(context, roomId, displayName, l10n),
         child: Ink(
           decoration: BoxDecoration(
             color: _filmBase,
@@ -255,7 +253,7 @@ class RoomSelectionView extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        roomName,
+                        displayName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -281,7 +279,7 @@ class RoomSelectionView extends StatelessWidget {
   Future<void> _showRoomOptions(
     BuildContext context,
     String roomId,
-    String roomName,
+    String petName,
     AppLocalizations l10n,
   ) async {
     await showModalBottomSheet<void>(
@@ -306,7 +304,7 @@ class RoomSelectionView extends StatelessWidget {
               Text(l10n.roomOptionsTitle, style: titleStyle),
               const Gap(4),
               Text(
-                roomName,
+                petName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -314,14 +312,6 @@ class RoomSelectionView extends StatelessWidget {
                     ),
               ),
               const Gap(16),
-              _RoomActionTile(
-                icon: Icons.edit_rounded,
-                label: l10n.roomOptionRename,
-                onTap: () {
-                  Navigator.pop(context);
-                  onRenameRoom(roomId);
-                },
-              ),
               _RoomActionTile(
                 icon: Icons.exit_to_app_rounded,
                 label: l10n.roomOptionLeave,

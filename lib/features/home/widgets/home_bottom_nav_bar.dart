@@ -11,6 +11,7 @@ class HomeBottomNavBar extends StatelessWidget {
     required this.onCamera,
     required this.onStore,
     required this.onChat,
+    this.cameraEnabled = true,
   });
 
   final VoidCallback onHome;
@@ -18,6 +19,7 @@ class HomeBottomNavBar extends StatelessWidget {
   final VoidCallback onCamera;
   final VoidCallback onStore;
   final VoidCallback onChat;
+  final bool cameraEnabled;
 
   static const double _height = 68;
   static const double _cameraSize = 60;
@@ -51,7 +53,7 @@ class HomeBottomNavBar extends StatelessWidget {
             iconAsset: 'assets/icon/mage--calendar-2.svg',
             onTap: onCalendar,
           ),
-          _CameraButton(onTap: onCamera),
+          _CameraButton(onTap: onCamera, enabled: cameraEnabled),
           _NavIconButton(
             iconAsset: 'assets/icon/icon-park-outline--shopping-bag.svg',
             onTap: onStore,
@@ -103,9 +105,10 @@ class _NavIconButton extends StatelessWidget {
 }
 
 class _CameraButton extends StatelessWidget {
-  const _CameraButton({required this.onTap});
+  const _CameraButton({required this.onTap, required this.enabled});
 
   final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +125,7 @@ class _CameraButton extends StatelessWidget {
           height: HomeBottomNavBar._cameraSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: Colors.white.withValues(alpha: enabled ? 1 : 0.5),
             border: Border.all(color: Colors.black87, width: 2),
             boxShadow: [
               BoxShadow(
@@ -135,9 +138,9 @@ class _CameraButton extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.all(6),
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppTheme.primaryColor,
+              color: AppTheme.primaryColor.withValues(alpha: enabled ? 1 : 0.5),
             ),
             child: SvgPicture.asset(
               'assets/icon/solar--camera-linear.svg',

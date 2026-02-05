@@ -322,12 +322,8 @@ class _StoreViewState extends State<StoreView> {
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final pet = _departedPets[index];
-              final subtitle = pet.roomName.trim().isEmpty
-                  ? null
-                  : pet.roomName;
               return ListTile(
                 title: Text(pet.petName),
-                subtitle: subtitle == null ? null : Text(subtitle),
                 onTap: () => Navigator.of(context).pop(pet),
               );
             },

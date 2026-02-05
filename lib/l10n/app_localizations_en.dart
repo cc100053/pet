@@ -918,7 +918,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petDepartureNoteMessage => 'Why treat me like this...';
 
   @override
-  String get petDepartureGuideTitle => 'Recovery Letter';
+  String get petDepartureGuideTitle => 'Letter from your pet';
 
   @override
   String get petDepartureGuideMessage =>
@@ -952,6 +952,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petDepartureLetterConfirmAction => 'Buy Letter';
+
+  @override
+  String get petDepartureFeedDisabledTitle => 'No pet to feed';
+
+  @override
+  String get petDepartureFeedDisabledMessage =>
+      'Your pet has left, so there’s no one to feed right now.';
 
   @override
   String get petOverfedBubble => 'I\'m full!';

@@ -556,7 +556,7 @@
   }
   ,
   "petDepartureNoteMessage": "どうしてこんな扱いをするの…",
-  "petDepartureGuideTitle": "回復の手紙",
+  "petDepartureGuideTitle": "ペットからの手紙",
   "petDepartureGuideMessage": "ストアで「手紙」を買って、ペットを呼び戻してください。",
   "petDepartureGuideGoStore": "ストアへ",
   "petDepartureLetterUnavailableTitle": "手紙は使えません",
@@ -576,6 +576,8 @@
     }
   },
   "petDepartureLetterConfirmAction": "手紙を購入",
+  "petDepartureFeedDisabledTitle": "ごはんをあげる相手がいません",
+  "petDepartureFeedDisabledMessage": "ペットがいないため、今はごはんをあげられません。",
   "petOverfedBubble": "おなかいっぱい！",
   "petNameUnknown": "あなたのペット",
   "roomNameUnknown": "不明なルーム",

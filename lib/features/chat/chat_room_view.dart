@@ -24,18 +24,20 @@ class ChatRoomView extends StatefulWidget {
     super.key,
     required this.roomId,
     this.backgroundDecoration,
-    this.roomName,
+    this.petName,
     this.memberCount,
     this.petAssetPath,
     this.isDarkBackground = false,
+    this.isPetDeparted = false,
   });
 
   final String roomId;
   final BoxDecoration? backgroundDecoration;
-  final String? roomName;
+  final String? petName;
   final int? memberCount;
   final String? petAssetPath;
   final bool isDarkBackground;
+  final bool isPetDeparted;
 
   @override
   State<ChatRoomView> createState() => _ChatRoomViewState();
@@ -173,6 +175,24 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   }
 
   Future<void> _openFeedCamera() async {
+    if (widget.isPetDeparted) {
+      final l10n = AppLocalizations.of(context)!;
+      await showAppDialog<void>(
+        context: context,
+        builder: (context) => AppDialog(
+          tone: AppDialogTone.info,
+          title: l10n.petDepartureFeedDisabledTitle,
+          message: l10n.petDepartureFeedDisabledMessage,
+          actions: [
+            AppDialogAction.primary(
+              label: l10n.commonClose,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     AnalyticsService.instance.logEvent('feed_camera_open');
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -285,7 +305,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           automaticallyImplyLeading: false,
           titleSpacing: 0,
           title: _ChatTopBar(
-            roomName: widget.roomName ?? l10n.chatTitle,
+            petName: widget.petName ?? l10n.chatTitle,
             memberCount: _memberCount == null
                 ? null
                 : l10n.chatMemberCount(_memberCount!),
@@ -1387,13 +1407,13 @@ class _ChatLoadingList extends StatelessWidget {
 
 class _ChatTopBar extends StatelessWidget {
   const _ChatTopBar({
-    required this.roomName,
+    required this.petName,
     required this.memberCount,
     required this.onBack,
     required this.menuButton,
   });
 
-  final String roomName;
+  final String petName;
   final String? memberCount;
   final VoidCallback onBack;
   final Widget menuButton;
@@ -1437,7 +1457,7 @@ class _ChatTopBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          roomName,
+                          petName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(

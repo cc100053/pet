@@ -1658,7 +1658,7 @@ abstract class AppLocalizations {
   /// No description provided for @petDepartureGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Recovery Letter'**
+  /// **'Letter from your pet'**
   String get petDepartureGuideTitle;
 
   /// No description provided for @petDepartureGuideMessage.
@@ -1714,6 +1714,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buy Letter'**
   String get petDepartureLetterConfirmAction;
+
+  /// No description provided for @petDepartureFeedDisabledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No pet to feed'**
+  String get petDepartureFeedDisabledTitle;
+
+  /// No description provided for @petDepartureFeedDisabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet has left, so there’s no one to feed right now.'**
+  String get petDepartureFeedDisabledMessage;
 
   /// No description provided for @petOverfedBubble.
   ///

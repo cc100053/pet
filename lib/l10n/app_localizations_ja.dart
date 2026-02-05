@@ -900,7 +900,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petDepartureNoteMessage => 'どうしてこんな扱いをするの…';
 
   @override
-  String get petDepartureGuideTitle => '回復の手紙';
+  String get petDepartureGuideTitle => 'ペットからの手紙';
 
   @override
   String get petDepartureGuideMessage => 'ストアで「手紙」を買って、ペットを呼び戻してください。';
@@ -932,6 +932,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get petDepartureLetterConfirmAction => '手紙を購入';
+
+  @override
+  String get petDepartureFeedDisabledTitle => 'ごはんをあげる相手がいません';
+
+  @override
+  String get petDepartureFeedDisabledMessage => 'ペットがいないため、今はごはんをあげられません。';
 
   @override
   String get petOverfedBubble => 'おなかいっぱい！';

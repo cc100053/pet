@@ -556,7 +556,7 @@
   }
   ,
   "petDepartureNoteMessage": "為什麼要這樣對我...",
-  "petDepartureGuideTitle": "回家信",
+  "petDepartureGuideTitle": "來自寵物的信",
   "petDepartureGuideMessage": "前往商店購買「信」來把你的寵物叫回來。",
   "petDepartureGuideGoStore": "前往商店",
   "petDepartureLetterUnavailableTitle": "無法使用信",
@@ -576,6 +576,8 @@
     }
   },
   "petDepartureLetterConfirmAction": "購買信",
+  "petDepartureFeedDisabledTitle": "沒有寵物可以餵食",
+  "petDepartureFeedDisabledMessage": "寵物已離開，現在沒有可以餵食的對象。",
   "petOverfedBubble": "我吃飽了！",
   "petNameUnknown": "你的寵物",
   "roomNameUnknown": "未知的房間",

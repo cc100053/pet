@@ -899,7 +899,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petDepartureNoteMessage => '為什麼要這樣對我...';
 
   @override
-  String get petDepartureGuideTitle => '回家信';
+  String get petDepartureGuideTitle => '來自寵物的信';
 
   @override
   String get petDepartureGuideMessage => '前往商店購買「信」來把你的寵物叫回來。';
@@ -931,6 +931,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get petDepartureLetterConfirmAction => '購買信';
+
+  @override
+  String get petDepartureFeedDisabledTitle => '沒有寵物可以餵食';
+
+  @override
+  String get petDepartureFeedDisabledMessage => '寵物已離開，現在沒有可以餵食的對象。';
 
   @override
   String get petOverfedBubble => '我吃飽了！';
@@ -1842,7 +1848,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get petDepartureNoteMessage => '為什麼要這樣對我...';
 
   @override
-  String get petDepartureGuideTitle => '回家信';
+  String get petDepartureGuideTitle => '來自寵物的信';
 
   @override
   String get petDepartureGuideMessage => '前往商店購買「信」來把你的寵物叫回來。';
@@ -1874,6 +1880,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get petDepartureLetterConfirmAction => '購買信';
+
+  @override
+  String get petDepartureFeedDisabledTitle => '沒有寵物可以餵食';
+
+  @override
+  String get petDepartureFeedDisabledMessage => '寵物已離開，現在沒有可以餵食的對象。';
 
   @override
   String get petOverfedBubble => '我吃飽了！';

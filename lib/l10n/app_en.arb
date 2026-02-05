@@ -556,7 +556,7 @@
   }
   ,
   "petDepartureNoteMessage": "Why treat me like this...",
-  "petDepartureGuideTitle": "Recovery Letter",
+  "petDepartureGuideTitle": "Letter from your pet",
   "petDepartureGuideMessage": "Visit the Store and buy a Letter to invite your pet back.",
   "petDepartureGuideGoStore": "Go to Store",
   "petDepartureLetterUnavailableTitle": "Letter unavailable",
@@ -576,6 +576,8 @@
     }
   },
   "petDepartureLetterConfirmAction": "Buy Letter",
+  "petDepartureFeedDisabledTitle": "No pet to feed",
+  "petDepartureFeedDisabledMessage": "Your pet has left, so there’s no one to feed right now.",
   "petOverfedBubble": "I'm full!",
   "petNameUnknown": "Your pet",
   "roomNameUnknown": "Unknown room",

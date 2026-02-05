@@ -22,10 +22,15 @@ class _RoomLatestFeed {
 }
 
 class _RoomPetSummary {
-  const _RoomPetSummary({required this.petType, required this.healthValue});
+  const _RoomPetSummary({
+    required this.petType,
+    required this.healthValue,
+    required this.petName,
+  });
 
   final String petType;
   final double healthValue;
+  final String? petName;
 }
 
 class _PlacedFurniture {
@@ -54,19 +59,14 @@ class _PoopSpot {
 }
 
 class _RoomCreationDetails {
-  const _RoomCreationDetails({required this.roomName, required this.petName});
+  const _RoomCreationDetails({required this.petName});
 
-  final String roomName;
   final String petName;
 }
 
 class _RoomCreationDialog extends StatefulWidget {
-  const _RoomCreationDialog({
-    required this.initialRoomName,
-    required this.maxPetNameLength,
-  });
+  const _RoomCreationDialog({required this.maxPetNameLength});
 
-  final String initialRoomName;
   final int maxPetNameLength;
 
   @override
@@ -74,38 +74,25 @@ class _RoomCreationDialog extends StatefulWidget {
 }
 
 class _RoomCreationDialogState extends State<_RoomCreationDialog> {
-  late final TextEditingController _roomController;
   late final TextEditingController _petController;
-  String? _roomError;
   String? _petError;
 
   @override
   void initState() {
     super.initState();
-    _roomController = TextEditingController(
-      text: widget.initialRoomName.isEmpty ? null : widget.initialRoomName,
-    );
     _petController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _roomController.dispose();
     _petController.dispose();
     super.dispose();
   }
 
   void _submit() {
     final l10n = AppLocalizations.of(context)!;
-    final roomName = _roomController.text.trim();
     final petName = _petController.text.trim();
     var hasError = false;
-    if (roomName.isEmpty) {
-      _roomError = l10n.roomNameEmptyError;
-      hasError = true;
-    } else {
-      _roomError = null;
-    }
     if (petName.isEmpty) {
       _petError = l10n.petNameEmptyError;
       hasError = true;
@@ -116,9 +103,7 @@ class _RoomCreationDialogState extends State<_RoomCreationDialog> {
       setState(() {});
       return;
     }
-    Navigator.of(
-      context,
-    ).pop(_RoomCreationDetails(roomName: roomName, petName: petName));
+    Navigator.of(context).pop(_RoomCreationDetails(petName: petName));
   }
 
   @override
@@ -132,20 +117,6 @@ class _RoomCreationDialogState extends State<_RoomCreationDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _roomController,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: l10n.roomNameLabel,
-                helperText: l10n.roomDefaultName,
-                helperStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                errorText: _roomError,
-              ),
-              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-            ),
-            const Gap(12),
             TextField(
               controller: _petController,
               textInputAction: TextInputAction.done,

@@ -209,6 +209,13 @@
 - Fixed MemoryCalendarView crash when no latest feed exists by avoiding sorting a const list.
 - Refined room selection cards to show the room name with pet icon and health bar (removed mood dots).
 - Added debug drawer tools for currency boosts, plan toggle, and pet state tweaks; removed the refresh pet debug action.
+- Removed room name UI and logic; room creation now uses pet name and room selection/chat/leave flows display pet names.
+- Fixed hunger decay accumulation by preserving `last_decay_at` when no decay is applied in `tick_pet_state`.
+- Added client-side pet departure detection (note + recovery letter flow) and wired departed pets into the Store return flow.
+- Disabled the feed camera when a pet has departed.
+- Added a localized prompt when trying to open the feed camera after a pet departs (home + chat).
+- Ensure pet state ticks even while on the room selection screen and force a tick on room switch.
+- Prevent poop spawning when the pet has departed (hunger <= 0).
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.
