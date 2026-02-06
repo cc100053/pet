@@ -1075,18 +1075,20 @@ class ChatMessageListState extends State<ChatMessageList> {
       }
     }
     final errorBanner = _error == null
-        ? null
-        : Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              _error!,
-              style: TextStyle(color: theme.colorScheme.error),
+        ? const <Widget>[]
+        : <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                _error!,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
             ),
-          );
+          ];
 
     return Column(
       children: [
-        if (errorBanner != null) errorBanner,
+        ...errorBanner,
         Expanded(
           child: Stack(
             children: [

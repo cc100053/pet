@@ -20,7 +20,7 @@ class _TestEnv {
   static _TestEnv load() {
     final envFile = File('.env');
     if (envFile.existsSync()) {
-      dotenv.testLoad(fileInput: envFile.readAsStringSync());
+      dotenv.loadFromString(envString: envFile.readAsStringSync());
     }
 
     String? readEnv(String key) => Platform.environment[key] ?? dotenv.env[key];

@@ -1,6 +1,10 @@
 # Progress
 
 ## Done
+- Pinned `purchases_flutter`/`purchases_ui_flutter` to `9.10.6` (from `9.11.0`) to avoid unresolved CocoaPods `PurchasesHybridCommon 17.31.0` in offline environments; full pod refresh now requires networked `pod repo update`.
+- Raised iOS minimum deployment target from 13.0 to 15.0 in `ios/Podfile` and `ios/Runner.xcodeproj/project.pbxproj` to satisfy upgraded RevenueCat dependency requirements (`PurchasesHybridCommon` via `purchases_flutter`).
+- Upgraded app dependencies to latest major resolvable versions (including Riverpod 3, Firebase 4/12/5/16, Google Fonts 8, Sign in with Apple 7, image picker patches, timezone 0.10.1, and url_launcher_web 2.4.2), then migrated code for breaking API changes (`flutter_local_notifications` named params, Riverpod legacy import for `StateNotifierProvider`, dotenv test loading, and chat lint cleanup).
+- Updated iOS push entitlement to use build-config-specific APNs environment (`development` in Debug, `production` in Profile/Release) and aligned iOS permission copy branding to `PetTomo`.
 - Finalized native-only launch flow: removed Flutter `LaunchView` entirely so startup branding comes only from iOS native launch (`launch_icon.png` on `#FFFBF3`).
 - Replaced launch artwork with `assets/app/launch_icon.png` for both Flutter `LaunchView` and native iOS launch assets, while keeping iOS launch background at `#FFFBF3`.
 - Tuned native iOS launch screen background color to match `AppTheme.backgroundColor` (`#FFFBF3`) for seamless startup transition.
