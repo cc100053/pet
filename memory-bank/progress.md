@@ -1,6 +1,12 @@
 # Progress
 
 ## Done
+- Finalized native-only launch flow: removed Flutter `LaunchView` entirely so startup branding comes only from iOS native launch (`launch_icon.png` on `#FFFBF3`).
+- Replaced launch artwork with `assets/app/launch_icon.png` for both Flutter `LaunchView` and native iOS launch assets, while keeping iOS launch background at `#FFFBF3`.
+- Tuned native iOS launch screen background color to match `AppTheme.backgroundColor` (`#FFFBF3`) for seamless startup transition.
+- Removed the duplicate in-app launch screen during Home room-loading so startup now shows only one launch phase (native splash, then app content).
+- Replaced iOS/Android launcher icons with `assets/app/PetTomo_appicon.png`, updated launch loading screen to use the same icon asset, and localized launch app-name text (`PetTomo` / `ぺットモ`).
+- Renamed app display name to `PetTomo` and added Japanese app label localization (`ぺットモ`) for iOS/Android launcher metadata.
 - Added a persistent locked-room prompt inside Pet Home (with Store CTA) and blocked pet-home interactions while locked until the room unlocks.
 - Refined Return Letter pet picker UX: departed-pet selection now uses rounded button-style rows with each pet's icon shown next to the localized pet name, and departed pet metadata now carries `petType` so the selector can render the correct pet image.
 - Removed the “Starter/入門” badge from pet selection cards to simplify the new-room pet picker UI.

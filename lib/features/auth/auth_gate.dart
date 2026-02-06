@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../home/home_view.dart';
 import 'sign_in_view.dart';
 import '../../services/analytics/analytics_service.dart';
-import '../launch/launch_view.dart';
 
 class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
@@ -56,9 +55,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LaunchView();
-        }
         final session =
             snapshot.data?.session ??
             Supabase.instance.client.auth.currentSession;

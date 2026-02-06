@@ -413,6 +413,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageTitle => 'Language';
 
   @override
+  String get launchAppName => 'PetTomo';
+
+  @override
   String get launchTagline => 'Share moments. Grow together.';
 
   @override

@@ -401,6 +401,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get languageTitle => '言語';
 
   @override
+  String get launchAppName => 'ぺットモ';
+
+  @override
   String get launchTagline => '思い出を共有して、一緒に育てよう。';
 
   @override

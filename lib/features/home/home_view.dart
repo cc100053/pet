@@ -17,6 +17,7 @@ import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/full_screen_photo_viewer.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -25,7 +26,6 @@ import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
-import '../launch/launch_view.dart';
 import '../pet/pet_catalog.dart';
 import '../pet/leveling.dart';
 import '../pet/pet_departure.dart';
@@ -4316,7 +4316,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget build(BuildContext context) {
     final overlayStyle = _currentOverlayStyle();
     if (_loadingRoom) {
-      return const LaunchView();
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlayStyle,
+        child: const Scaffold(body: ColoredBox(color: AppTheme.backgroundColor)),
+      );
     }
 
     final bottomInset = MediaQuery.of(context).padding.bottom;

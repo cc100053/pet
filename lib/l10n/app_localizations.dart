@@ -791,6 +791,12 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get languageTitle;
 
+  /// No description provided for @launchAppName.
+  ///
+  /// In en, this message translates to:
+  /// **'PetTomo'**
+  String get launchAppName;
+
   /// No description provided for @launchTagline.
   ///
   /// In en, this message translates to:

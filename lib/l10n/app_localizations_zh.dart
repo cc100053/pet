@@ -401,6 +401,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get languageTitle => '語言';
 
   @override
+  String get launchAppName => 'PetTomo';
+
+  @override
   String get launchTagline => '分享日常，一起成長。';
 
   @override
@@ -1473,6 +1476,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get languageTitle => '語言';
+
+  @override
+  String get launchAppName => 'PetTomo';
 
   @override
   String get launchTagline => '分享日常，一起成長。';
