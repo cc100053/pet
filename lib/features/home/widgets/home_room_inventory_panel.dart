@@ -285,6 +285,7 @@ class _FurnitureInventoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final canSelect = available > 0;
     return GestureDetector(
       onTap: canSelect ? onTap : null,
@@ -314,7 +315,7 @@ class _FurnitureInventoryItem extends StatelessWidget {
             Text(item.emoji ?? '🪑', style: const TextStyle(fontSize: 22)),
             const SizedBox(height: 3),
             Text(
-              item.name,
+              item.localizedName(l10n),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -415,7 +416,7 @@ class _BackgroundInventoryItem extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              item.name,
+              item.localizedName(l10n),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(

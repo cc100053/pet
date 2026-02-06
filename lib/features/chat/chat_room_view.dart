@@ -231,8 +231,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     _chatMessageListKey.currentState?.addOptimisticMessage(optimisticMessage);
   }
 
-  void _handleFeedUploadCompleted(String tempId) {
-    _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
+  void _handleFeedUploadCompleted(FeedUploadResult result) {
+    _chatMessageListKey.currentState?.removeOptimisticMessage(result.tempId);
     _chatMessageListKey.currentState?.refreshLatest();
   }
 

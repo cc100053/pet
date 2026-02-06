@@ -127,16 +127,16 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     120,
     null,
     '{"price_jpy":120,"currency":"JPY","category":"background","background_key":"test","description":"Example background for testing."}'::jsonb,
-    true
+    false
   ),
   (
     'background_test1',
     'cosmetic',
-    'Test1 Background',
+    'Moonlight Background',
     120,
     120,
     null,
-    '{"price_jpy":120,"currency":"JPY","category":"background","background_key":"test1","description":"Test1 asset background."}'::jsonb,
+    '{"price_jpy":120,"currency":"JPY","category":"background","background_key":"test1","description":"A calm moonlit room backdrop."}'::jsonb,
     true
   ),
   (
@@ -147,7 +147,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     120,
     null,
     '{"price_jpy":120,"currency":"JPY","category":"room","description":"Warm wooden room skin."}'::jsonb,
-    true
+    false
   ),
   (
     'cosmetic_room_sky',
@@ -157,7 +157,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     180,
     null,
     '{"price_jpy":180,"currency":"JPY","category":"room","description":"Bright sky window backdrop."}'::jsonb,
-    true
+    false
   ),
   (
     'cosmetic_furniture_cozy_chair',
@@ -197,7 +197,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     40,
     null,
     '{"price_jpy":40,"currency":"JPY","category":"pet","description":"Small treat for quick care."}'::jsonb,
-    true
+    false
   ),
   (
     'consumable_clean_kit',
@@ -207,26 +207,26 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     60,
     null,
     '{"price_jpy":60,"currency":"JPY","category":"pet","description":"Basic cleaning supplies."}'::jsonb,
-    true
+    false
   ),
   (
     'subscription_premium_monthly',
     'subscription',
-    'Premium Monthly',
+    'Pro Monthly Plan',
     null,
     null,
     null,
-    '{"price_jpy":480,"currency":"JPY","category":"subscription","description":"Unlimited rooms and no ads.","iap_product_id":"Petmonthly","iap_type":"subscription","rc_entitlement_id":"Petmonthly"}'::jsonb,
+    '{"price_jpy":300,"currency":"JPY","category":"subscription","description":"Monthly Pro plan.","iap_product_id":"Petmonthly","iap_type":"subscription","rc_entitlement_id":"Petmonthly"}'::jsonb,
     true
   ),
   (
     'iap_diamond_pack_small',
     'consumable',
-    'Diamond Pack Small',
+    'Diamond Pack 300',
     null,
     null,
     null,
-    '{"price_jpy":120,"currency":"JPY","category":"diamond_pack","description":"One-time diamond pack.","iap_product_id":"Petdiamonds120","iap_type":"consumable","diamond_amount":120,"iap_currency":"diamond"}'::jsonb,
+    '{"price_jpy":300,"currency":"JPY","category":"diamond_pack","description":"One-time 300 diamond pack.","iap_product_id":"Petdiamonds300","iap_type":"consumable","diamond_amount":300,"iap_currency":"diamond"}'::jsonb,
     true
   ),
   (

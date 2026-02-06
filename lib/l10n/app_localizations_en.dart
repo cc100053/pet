@@ -756,6 +756,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeNotEnoughCoins => 'Not enough candy.';
 
   @override
+  String get storeNotEnoughDiamonds => 'Not enough diamonds.';
+
+  @override
   String storeOwnedCount(Object amount) {
     return 'Owned: $amount';
   }
@@ -801,6 +804,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeSectionSubscription => 'Subscription';
+
+  @override
+  String get storeTabPremium => 'Premium';
+
+  @override
+  String get storeTabFurniture => 'Furniture';
+
+  @override
+  String get storeTabThemes => 'Themes';
+
+  @override
+  String get storeThemePreviewAction => 'Preview';
+
+  @override
+  String storeThemePreviewTitle(Object name) {
+    return '$name Preview';
+  }
+
+  @override
+  String get storeItemNameProMonthly => 'Pro Monthly Plan';
+
+  @override
+  String get storeItemDescProMonthly => 'Monthly Pro plan.';
+
+  @override
+  String get storeItemNameDiamondPack300 => 'Diamond Pack 300';
+
+  @override
+  String get storeItemDescDiamondPack300 => 'One-time 300 diamond pack.';
+
+  @override
+  String get storeItemNameReturnLetter => 'Return Letter';
+
+  @override
+  String get storeItemDescReturnLetter => 'Call back a departed pet.';
+
+  @override
+  String get storeItemNameBackgroundDefault => 'Default Background';
+
+  @override
+  String get storeItemDescBackgroundDefault => 'Original cozy room backdrop.';
+
+  @override
+  String get storeItemNameBackgroundMoonlight => 'Moonlight Background';
+
+  @override
+  String get storeItemDescBackgroundMoonlight =>
+      'A calm moonlit room backdrop.';
+
+  @override
+  String get storeItemNameFurnitureSofa => 'Sofa';
+
+  @override
+  String get storeItemDescFurnitureSofa => 'Comfy sofa.';
+
+  @override
+  String get storeItemNameFurniturePlant => 'Plant';
+
+  @override
+  String get storeItemDescFurniturePlant => 'Fresh green corner.';
+
+  @override
+  String get storeItemNameFurnitureFrame => 'Picture Frame';
+
+  @override
+  String get storeItemDescFurnitureFrame => 'Picture frame.';
+
+  @override
+  String get storeItemNameFurnitureTeddy => 'Teddy Bear';
+
+  @override
+  String get storeItemDescFurnitureTeddy => 'Soft teddy.';
+
+  @override
+  String get storeItemNameFurnitureBricks => 'Bricks';
+
+  @override
+  String get storeItemDescFurnitureBricks => 'Block accent.';
+
+  @override
+  String get storeItemNameFurnitureTv => 'TV';
+
+  @override
+  String get storeItemDescFurnitureTv => 'Tiny TV.';
+
+  @override
+  String get storeItemNameFurnitureBath => 'Bath';
+
+  @override
+  String get storeItemDescFurnitureBath => 'Mini bath.';
+
+  @override
+  String get storeItemNameFurnitureRibbon => 'Ribbon';
+
+  @override
+  String get storeItemDescFurnitureRibbon => 'Decor ribbon.';
 
   @override
   String get storeSignInPrompt => 'Please sign in to access the store.';

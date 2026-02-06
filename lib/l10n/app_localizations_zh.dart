@@ -740,6 +740,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeNotEnoughCoins => '糖果不足。';
 
   @override
+  String get storeNotEnoughDiamonds => '鑽石不足。';
+
+  @override
   String storeOwnedCount(Object amount) {
     return '已擁有：$amount';
   }
@@ -785,6 +788,101 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get storeSectionSubscription => '訂閱';
+
+  @override
+  String get storeTabPremium => '高級';
+
+  @override
+  String get storeTabFurniture => '家具';
+
+  @override
+  String get storeTabThemes => '主題';
+
+  @override
+  String get storeThemePreviewAction => '預覽';
+
+  @override
+  String storeThemePreviewTitle(Object name) {
+    return '$name 預覽';
+  }
+
+  @override
+  String get storeItemNameProMonthly => 'Pro 月訂閱';
+
+  @override
+  String get storeItemDescProMonthly => '每月 Pro 方案。';
+
+  @override
+  String get storeItemNameDiamondPack300 => '300 鑽石包';
+
+  @override
+  String get storeItemDescDiamondPack300 => '一次性 300 鑽石。';
+
+  @override
+  String get storeItemNameReturnLetter => '回家信';
+
+  @override
+  String get storeItemDescReturnLetter => '召回離開的寵物。';
+
+  @override
+  String get storeItemNameBackgroundDefault => '預設背景';
+
+  @override
+  String get storeItemDescBackgroundDefault => '原始溫馨房間背景。';
+
+  @override
+  String get storeItemNameBackgroundMoonlight => '月光背景';
+
+  @override
+  String get storeItemDescBackgroundMoonlight => '寧靜月光房間背景。';
+
+  @override
+  String get storeItemNameFurnitureSofa => '沙發';
+
+  @override
+  String get storeItemDescFurnitureSofa => '舒適沙發。';
+
+  @override
+  String get storeItemNameFurniturePlant => '盆栽';
+
+  @override
+  String get storeItemDescFurniturePlant => '增添生氣的小綠角。';
+
+  @override
+  String get storeItemNameFurnitureFrame => '畫框';
+
+  @override
+  String get storeItemDescFurnitureFrame => '照片畫框。';
+
+  @override
+  String get storeItemNameFurnitureTeddy => '泰迪熊';
+
+  @override
+  String get storeItemDescFurnitureTeddy => '柔軟玩偶。';
+
+  @override
+  String get storeItemNameFurnitureBricks => '積木牆';
+
+  @override
+  String get storeItemDescFurnitureBricks => '方塊風格點綴。';
+
+  @override
+  String get storeItemNameFurnitureTv => '電視';
+
+  @override
+  String get storeItemDescFurnitureTv => '迷你電視。';
+
+  @override
+  String get storeItemNameFurnitureBath => '浴缸';
+
+  @override
+  String get storeItemDescFurnitureBath => '迷你浴缸。';
+
+  @override
+  String get storeItemNameFurnitureRibbon => '緞帶';
+
+  @override
+  String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
 
   @override
   String get storeSignInPrompt => '請先登入才能使用商店。';
@@ -1707,6 +1805,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeNotEnoughCoins => '糖果不足。';
 
   @override
+  String get storeNotEnoughDiamonds => '鑽石不足。';
+
+  @override
   String storeOwnedCount(Object amount) {
     return '已擁有：$amount';
   }
@@ -1752,6 +1853,101 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeSectionSubscription => '訂閱';
+
+  @override
+  String get storeTabPremium => '高級';
+
+  @override
+  String get storeTabFurniture => '家具';
+
+  @override
+  String get storeTabThemes => '主題';
+
+  @override
+  String get storeThemePreviewAction => '預覽';
+
+  @override
+  String storeThemePreviewTitle(Object name) {
+    return '$name 預覽';
+  }
+
+  @override
+  String get storeItemNameProMonthly => 'Pro 月訂閱';
+
+  @override
+  String get storeItemDescProMonthly => '每月 Pro 方案。';
+
+  @override
+  String get storeItemNameDiamondPack300 => '300 鑽石包';
+
+  @override
+  String get storeItemDescDiamondPack300 => '一次性 300 鑽石。';
+
+  @override
+  String get storeItemNameReturnLetter => '回家信';
+
+  @override
+  String get storeItemDescReturnLetter => '召回離開的寵物。';
+
+  @override
+  String get storeItemNameBackgroundDefault => '預設背景';
+
+  @override
+  String get storeItemDescBackgroundDefault => '原始溫馨房間背景。';
+
+  @override
+  String get storeItemNameBackgroundMoonlight => '月光背景';
+
+  @override
+  String get storeItemDescBackgroundMoonlight => '寧靜月光房間背景。';
+
+  @override
+  String get storeItemNameFurnitureSofa => '沙發';
+
+  @override
+  String get storeItemDescFurnitureSofa => '舒適沙發。';
+
+  @override
+  String get storeItemNameFurniturePlant => '盆栽';
+
+  @override
+  String get storeItemDescFurniturePlant => '增添生氣的小綠角。';
+
+  @override
+  String get storeItemNameFurnitureFrame => '畫框';
+
+  @override
+  String get storeItemDescFurnitureFrame => '照片畫框。';
+
+  @override
+  String get storeItemNameFurnitureTeddy => '泰迪熊';
+
+  @override
+  String get storeItemDescFurnitureTeddy => '柔軟玩偶。';
+
+  @override
+  String get storeItemNameFurnitureBricks => '積木牆';
+
+  @override
+  String get storeItemDescFurnitureBricks => '方塊風格點綴。';
+
+  @override
+  String get storeItemNameFurnitureTv => '電視';
+
+  @override
+  String get storeItemDescFurnitureTv => '迷你電視。';
+
+  @override
+  String get storeItemNameFurnitureBath => '浴缸';
+
+  @override
+  String get storeItemDescFurnitureBath => '迷你浴缸。';
+
+  @override
+  String get storeItemNameFurnitureRibbon => '緞帶';
+
+  @override
+  String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
 
   @override
   String get storeSignInPrompt => '請先登入才能使用商店。';

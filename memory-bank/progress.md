@@ -1,6 +1,12 @@
 # Progress
 
 ## Done
+- Improved Store theme-item UX: background cards now use real background thumbnail previews as icons and include a dedicated preview mode dialog before purchase.
+- Localized all active store item names/descriptions by SKU in client UI (store + room inventory), removed "Emoji" wording from furniture labels, and applied a migration to normalize base DB item labels accordingly.
+- Removed legacy store items from active catalog (Snack Pack, Clean Kit, Cozy Room Wallpaper, Sky Window Theme, Test Background) via migration and aligned seed defaults to keep them hidden after reseed.
+- Refined Store navigation from 3 tabs to a single scrollable page with two jump buttons (Furniture/Themes) that scroll to anchored sections.
+- Refactored Store UI to tabbed categories (Premium / Furniture / Themes), added strict candy-vs-diamond pre-purchase checks, ensured default background is always treated as owned, and made Return Letter purchases auto-consume after triggering pet return.
+- Added store catalog migration `20260206170000_refactor_store_catalog.sql` to align pricing/category requirements: Pro monthly base ¥300 (localized via store), diamond pack ¥300 -> 300 diamonds, Return Letter 150 diamonds, backgrounds 200 candy, and 8 emoji furniture items priced 100-250 candy.
 - Created initial memory-bank docs: `tech-stack.md`, `architecture.md`, `implementation-plan.md`, `progress.md`.
 - Captured stack details from GDD into `tech-stack.md`.
 - Integrated critical review updates into GDD (night mode, label mapping, UI gesture handling, opt-in ads, RLS, backend validation).
@@ -238,6 +244,7 @@
 - Refined Home HUD loading states to remove hardcoded template pet name/level defaults; now shows room-derived name (or localized unnamed) and `Lv --` until level is loaded.
 - Replaced Home startup room-loading spinner with the branded launch logo screen so app launch shows logo-only loading.
 - Made launch screen rendering continuous by removing launch fade/scale animation replay and the AuthGate fixed-delay handoff.
+- Hardened feed reward handling: `feed_validate` now returns user-room feed cooldown metadata (`last_fed_at`, `next_eligible_at`, scoped identifiers), and client feed upload completion now uses backend `coins_awarded` instead of assuming a fixed +10.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

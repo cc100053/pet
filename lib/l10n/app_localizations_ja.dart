@@ -740,6 +740,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeNotEnoughCoins => 'キャンディが足りません。';
 
   @override
+  String get storeNotEnoughDiamonds => 'ダイヤが足りません。';
+
+  @override
   String storeOwnedCount(Object amount) {
     return '所持数: $amount';
   }
@@ -785,6 +788,101 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeSectionSubscription => 'サブスクリプション';
+
+  @override
+  String get storeTabPremium => 'プレミアム';
+
+  @override
+  String get storeTabFurniture => '家具';
+
+  @override
+  String get storeTabThemes => 'テーマ';
+
+  @override
+  String get storeThemePreviewAction => 'プレビュー';
+
+  @override
+  String storeThemePreviewTitle(Object name) {
+    return '$name のプレビュー';
+  }
+
+  @override
+  String get storeItemNameProMonthly => 'プロ月額プラン';
+
+  @override
+  String get storeItemDescProMonthly => '月額のプロプラン。';
+
+  @override
+  String get storeItemNameDiamondPack300 => 'ダイヤパック 300';
+
+  @override
+  String get storeItemDescDiamondPack300 => '1回限定の300ダイヤパック。';
+
+  @override
+  String get storeItemNameReturnLetter => 'おかえりの手紙';
+
+  @override
+  String get storeItemDescReturnLetter => '旅立ったペットを呼び戻します。';
+
+  @override
+  String get storeItemNameBackgroundDefault => 'デフォルト背景';
+
+  @override
+  String get storeItemDescBackgroundDefault => '元の落ち着いた部屋の背景。';
+
+  @override
+  String get storeItemNameBackgroundMoonlight => '月明かり背景';
+
+  @override
+  String get storeItemDescBackgroundMoonlight => '月明かりの静かな部屋背景。';
+
+  @override
+  String get storeItemNameFurnitureSofa => 'ソファ';
+
+  @override
+  String get storeItemDescFurnitureSofa => '座り心地のよいソファ。';
+
+  @override
+  String get storeItemNameFurniturePlant => '観葉植物';
+
+  @override
+  String get storeItemDescFurniturePlant => '部屋の角を彩るグリーン。';
+
+  @override
+  String get storeItemNameFurnitureFrame => 'フォトフレーム';
+
+  @override
+  String get storeItemDescFurnitureFrame => '写真フレーム。';
+
+  @override
+  String get storeItemNameFurnitureTeddy => 'ぬいぐるみ';
+
+  @override
+  String get storeItemDescFurnitureTeddy => 'やわらかいぬいぐるみ。';
+
+  @override
+  String get storeItemNameFurnitureBricks => 'レンガ';
+
+  @override
+  String get storeItemDescFurnitureBricks => 'ブロック調のアクセント。';
+
+  @override
+  String get storeItemNameFurnitureTv => 'テレビ';
+
+  @override
+  String get storeItemDescFurnitureTv => '小さなテレビ。';
+
+  @override
+  String get storeItemNameFurnitureBath => 'バス';
+
+  @override
+  String get storeItemDescFurnitureBath => 'ミニバス。';
+
+  @override
+  String get storeItemNameFurnitureRibbon => 'リボン';
+
+  @override
+  String get storeItemDescFurnitureRibbon => '飾りリボン。';
 
   @override
   String get storeSignInPrompt => 'ストアを利用するにはサインインしてください。';

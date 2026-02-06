@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -10,9 +11,12 @@ import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
+import '../home/room_backgrounds.dart';
 import '../pet/pet_departure.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
+
+enum _StoreCurrency { candy, diamonds }
 
 class StoreView extends StatefulWidget {
   const StoreView({
@@ -24,7 +28,7 @@ class StoreView extends StatefulWidget {
 
   final String? roomId;
   final List<DepartedPetInfo> departedPets;
-  final Future<void> Function(DepartedPetInfo pet)? onReturnPet;
+  final Future<bool> Function(DepartedPetInfo pet)? onReturnPet;
 
   @override
   State<StoreView> createState() => _StoreViewState();
@@ -45,6 +49,9 @@ class _StoreViewState extends State<StoreView> {
   String? _iapError;
   final Map<String, Package> _packagesByProductId = {};
   Set<String> _activeEntitlements = {};
+  final ScrollController _storeScrollController = ScrollController();
+  final GlobalKey _furnitureSectionKey = GlobalKey();
+  final GlobalKey _themeSectionKey = GlobalKey();
   late List<DepartedPetInfo> _departedPets;
 
   @override
@@ -53,6 +60,12 @@ class _StoreViewState extends State<StoreView> {
     AnalyticsService.instance.logEvent('store_open');
     _departedPets = List.of(widget.departedPets);
     _loadStore();
+  }
+
+  @override
+  void dispose() {
+    _storeScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadStore() async {
@@ -245,6 +258,12 @@ class _StoreViewState extends State<StoreView> {
     if (_purchasing) {
       return;
     }
+    if (widget.onReturnPet == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.storeProductUnavailable)));
+      return;
+    }
     if (!_hasDepartedPets) {
       await _showNoDepartedPetsDialog(l10n);
       return;
@@ -279,9 +298,11 @@ class _StoreViewState extends State<StoreView> {
     }
 
     final DepartedPetInfo selectedPet = target;
-    if (widget.onReturnPet != null) {
-      await widget.onReturnPet!(selectedPet);
+    final didReturn = await widget.onReturnPet!(selectedPet);
+    if (!didReturn) {
+      return;
     }
+    await _consumePurchasedItem(item.id);
 
     if (!mounted) {
       return;
@@ -289,6 +310,80 @@ class _StoreViewState extends State<StoreView> {
     setState(() {
       _departedPets.removeWhere((pet) => pet.petId == selectedPet.petId);
     });
+  }
+
+  Future<void> _consumePurchasedItem(String itemId) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      return;
+    }
+    final currentQty = _inventory[itemId] ?? 0;
+    if (currentQty <= 0) {
+      return;
+    }
+    final nextQty = currentQty - 1;
+    if (nextQty > 0) {
+      await Supabase.instance.client
+          .from('inventories')
+          .update({'quantity': nextQty})
+          .eq('user_id', user.id)
+          .eq('item_id', itemId);
+    } else {
+      await Supabase.instance.client
+          .from('inventories')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('item_id', itemId);
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      if (nextQty > 0) {
+        _inventory[itemId] = nextQty;
+      } else {
+        _inventory.remove(itemId);
+      }
+    });
+  }
+
+  bool _canAfford(StoreItem item, _StoreCurrency currency) {
+    final price = currency == _StoreCurrency.candy
+        ? item.priceCoins
+        : item.priceDiamonds;
+    if (price == null) {
+      return false;
+    }
+    return currency == _StoreCurrency.candy
+        ? _coins >= price
+        : _diamonds >= price;
+  }
+
+  bool _ensureCurrencyPurchasable(StoreItem item, _StoreCurrency currency) {
+    final l10n = AppLocalizations.of(context)!;
+    final price = currency == _StoreCurrency.candy
+        ? item.priceCoins
+        : item.priceDiamonds;
+    if (price == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.storeProductUnavailable)));
+      return false;
+    }
+    final canAfford = _canAfford(item, currency);
+    if (canAfford) {
+      return true;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          currency == _StoreCurrency.candy
+              ? l10n.storeNotEnoughCoins
+              : l10n.storeNotEnoughDiamonds,
+        ),
+      ),
+    );
+    return false;
   }
 
   Future<void> _showNoDepartedPetsDialog(AppLocalizations l10n) async {
@@ -369,6 +464,9 @@ class _StoreViewState extends State<StoreView> {
     if (_purchasing) {
       return false;
     }
+    if (!_ensureCurrencyPurchasable(item, _StoreCurrency.candy)) {
+      return false;
+    }
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -418,7 +516,9 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.storePurchaseSuccess(item.name),
+            AppLocalizations.of(context)!.storePurchaseSuccess(
+              item.localizedName(AppLocalizations.of(context)!),
+            ),
           ),
         ),
       );
@@ -456,6 +556,9 @@ class _StoreViewState extends State<StoreView> {
 
   Future<bool> _purchaseDiamondItem(StoreItem item) async {
     if (_purchasing) {
+      return false;
+    }
+    if (!_ensureCurrencyPurchasable(item, _StoreCurrency.diamonds)) {
       return false;
     }
 
@@ -511,7 +614,9 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.storePurchaseSuccess(item.name),
+            AppLocalizations.of(context)!.storePurchaseSuccess(
+              item.localizedName(AppLocalizations.of(context)!),
+            ),
           ),
         ),
       );
@@ -673,7 +778,9 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.storePurchaseSuccess(item.name),
+            AppLocalizations.of(context)!.storePurchaseSuccess(
+              item.localizedName(AppLocalizations.of(context)!),
+            ),
           ),
         ),
       );
@@ -866,6 +973,16 @@ class _StoreViewState extends State<StoreView> {
     return items;
   }
 
+  List<StoreItem> get _themeItems =>
+      _storeItems.where((item) => item.isBackground).toList(growable: false);
+
+  List<StoreItem> get _furnitureItems =>
+      _storeItems.where((item) => item.isFurniture).toList(growable: false);
+
+  List<StoreItem> get _premiumUtilityItems => _storeItems
+      .where((item) => !item.isBackground && !item.isFurniture)
+      .toList(growable: false);
+
   int _itemSortPrice(StoreItem item) {
     final coin = item.priceCoins;
     final diamond = item.priceDiamonds;
@@ -959,9 +1076,43 @@ class _StoreViewState extends State<StoreView> {
     }
 
     return ListView(
+      controller: _storeScrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 12),
       children: [
+        if (_furnitureItems.isNotEmpty || _themeItems.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _furnitureItems.isEmpty
+                        ? null
+                        : () => _jumpToSection(
+                            _furnitureSectionKey,
+                            fallbackFraction: 0.55,
+                          ),
+                    icon: const Icon(Icons.chair_rounded, size: 18),
+                    label: Text(l10n.storeTabFurniture),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _themeItems.isEmpty
+                        ? null
+                        : () => _jumpToSection(
+                            _themeSectionKey,
+                            fallbackFraction: 1,
+                          ),
+                    icon: const Icon(Icons.palette_rounded, size: 18),
+                    label: Text(l10n.storeTabThemes),
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (_subscriptionItems.isNotEmpty) ...[
           _SectionHeader(title: l10n.storeSectionSubscription),
           if (_iapError != null)
@@ -973,27 +1124,84 @@ class _StoreViewState extends State<StoreView> {
               ),
             ),
           for (final item in _subscriptionItems) _buildIapCard(item, l10n),
-          const SizedBox(height: 8),
         ],
         if (_iapDiamondPackItems.isNotEmpty) ...[
           _SectionHeader(title: l10n.storeSectionDiamondPacks),
           for (final item in _iapDiamondPackItems) _buildIapCard(item, l10n),
-          const SizedBox(height: 8),
         ],
-        if (_storeItems.isNotEmpty) ...[
+        if (_premiumUtilityItems.isNotEmpty) ...[
           _SectionHeader(title: l10n.storeSectionItems),
-          for (final item in _storeItems) _buildStoreItemCard(item, l10n),
+          for (final item in _premiumUtilityItems)
+            _buildStoreItemCard(item, l10n),
+        ],
+        if (_furnitureItems.isNotEmpty) ...[
+          KeyedSubtree(
+            key: _furnitureSectionKey,
+            child: _SectionHeader(title: l10n.storeTabFurniture),
+          ),
+          for (final item in _furnitureItems) _buildStoreItemCard(item, l10n),
+        ],
+        if (_themeItems.isNotEmpty) ...[
+          KeyedSubtree(
+            key: _themeSectionKey,
+            child: _SectionHeader(title: l10n.storeTabThemes),
+          ),
+          for (final item in _themeItems) _buildStoreItemCard(item, l10n),
         ],
       ],
+    );
+  }
+
+  Future<void> _jumpToSection(
+    GlobalKey key, {
+    required double fallbackFraction,
+  }) async {
+    if (!_storeScrollController.hasClients) {
+      return;
+    }
+    final position = _storeScrollController.position;
+    final targetContext = key.currentContext;
+    if (targetContext == null) {
+      final fallbackOffset = (position.maxScrollExtent * fallbackFraction)
+          .clamp(position.minScrollExtent, position.maxScrollExtent);
+      await _storeScrollController.animateTo(
+        fallbackOffset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+    final targetRenderObject = targetContext.findRenderObject();
+    if (targetRenderObject == null) {
+      final fallbackOffset = (position.maxScrollExtent * fallbackFraction)
+          .clamp(position.minScrollExtent, position.maxScrollExtent);
+      await _storeScrollController.animateTo(
+        fallbackOffset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+
+    final viewport = RenderAbstractViewport.of(targetRenderObject);
+    final revealOffset = viewport
+        .getOffsetToReveal(targetRenderObject, 0.05)
+        .offset;
+    final targetOffset = revealOffset.clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    await _storeScrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
     );
   }
 
   Widget _buildIapCard(StoreItem item, AppLocalizations l10n) {
     final productId = item.iapProductId;
     final package = productId == null ? null : _packagesByProductId[productId];
-    final priceString =
-        package?.storeProduct.priceString ??
-        (item.priceJpy != null ? l10n.currencyJpy(item.priceJpy!) : null);
+    final priceString = item.localizedIapPrice(package, l10n);
     final isSubscription = item.iapType == 'subscription';
     final isDiamondPack = item.isDiamondIap;
     final entitlementId = item.rcEntitlementId;
@@ -1060,8 +1268,7 @@ class _StoreViewState extends State<StoreView> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      l10n.storeSubscriptionActive, // Reusing label for "Premium" tag contextually? No, wait.
-                      // Actually "Subscription" label
+                      l10n.storeTabPremium,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -1089,16 +1296,16 @@ class _StoreViewState extends State<StoreView> {
                   ),
 
                 Text(
-                  item.name,
+                  item.localizedName(l10n),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
                 ),
-                if (item.description != null)
+                if (item.localizedDescription(l10n) != null)
                   Text(
-                    item.description!,
+                    item.localizedDescription(l10n)!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -1108,7 +1315,7 @@ class _StoreViewState extends State<StoreView> {
                   ),
                 const SizedBox(height: 4),
                 Text(
-                  priceString ?? l10n.storePriceUnavailable,
+                  priceString,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -1177,6 +1384,9 @@ class _StoreViewState extends State<StoreView> {
     if (item.type != 'cosmetic') {
       return false;
     }
+    if (item.isDefaultBackground) {
+      return true;
+    }
     if (item.isBackground) {
       return _roomBackgroundOwned.contains(item.id);
     }
@@ -1186,15 +1396,16 @@ class _StoreViewState extends State<StoreView> {
   int _ownedQuantity(StoreItem item) => _inventory[item.id] ?? 0;
 
   Widget _buildStoreItemCard(StoreItem item, AppLocalizations l10n) {
+    if (item.isBackground) {
+      return _buildThemeItemCard(item, l10n);
+    }
     final ownedQty = _ownedQuantity(item);
     final isCosmetic = item.type == 'cosmetic';
     final isOwned = isCosmetic && _isItemOwned(item);
     final isLetter = item.isRecoveryLetter;
-    final canAffordCoins =
-        item.priceCoins != null && _coins >= item.priceCoins!;
-    final canAffordDiamonds =
-        item.priceDiamonds != null && _diamonds >= item.priceDiamonds!;
-    final showQuantity = !isCosmetic && ownedQty > 0;
+    final canAffordCoins = _canAfford(item, _StoreCurrency.candy);
+    final canAffordDiamonds = _canAfford(item, _StoreCurrency.diamonds);
+    final showQuantity = !isCosmetic && !isLetter && ownedQty > 0;
     final baseCanBuyCoins =
         !_purchasing && !isOwned && canAffordCoins && item.priceCoins != null;
     final baseCanBuyDiamonds =
@@ -1246,7 +1457,7 @@ class _StoreViewState extends State<StoreView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
+                  item.localizedName(l10n),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -1254,7 +1465,8 @@ class _StoreViewState extends State<StoreView> {
                   ),
                 ),
                 Text(
-                  item.description ?? _displayTypeLabel(item, l10n),
+                  item.localizedDescription(l10n) ??
+                      _displayTypeLabel(item, l10n),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -1332,6 +1544,171 @@ class _StoreViewState extends State<StoreView> {
     );
   }
 
+  Widget _buildThemeItemCard(StoreItem item, AppLocalizations l10n) {
+    final isOwned = _isItemOwned(item);
+    final canAffordCoins = _canAfford(item, _StoreCurrency.candy);
+    final canAffordDiamonds = _canAfford(item, _StoreCurrency.diamonds);
+    final canBuyCoins =
+        !_purchasing && !isOwned && canAffordCoins && item.priceCoins != null;
+    final canBuyDiamonds =
+        !_purchasing &&
+        !isOwned &&
+        canAffordDiamonds &&
+        item.priceDiamonds != null;
+    final bg = RoomBackgrounds.resolve(item.backgroundKey);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              width: 60,
+              height: 60,
+              child: DecoratedBox(decoration: bg.previewDecoration),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.localizedName(l10n),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                Text(
+                  item.localizedDescription(l10n) ??
+                      _displayTypeLabel(item, l10n),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _openThemePreview(item),
+                    icon: const Icon(Icons.visibility_rounded, size: 16),
+                    label: Text(l10n.storeThemePreviewAction),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      minimumSize: const Size(0, 30),
+                    ),
+                  ),
+                ),
+                if (isOwned)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      l10n.commonOwned,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              if (item.priceCoins != null)
+                _CurrencyBuyButton(
+                  label: l10n.storeBuyWithCandies(item.priceCoins!),
+                  icon: Icons.monetization_on_rounded,
+                  color: Colors.amber,
+                  enabled: canBuyCoins,
+                  onPressed: () => _purchaseItem(item),
+                ),
+              if (item.priceCoins != null && item.priceDiamonds != null)
+                const SizedBox(height: 6),
+              if (item.priceDiamonds != null)
+                _CurrencyBuyButton(
+                  label: l10n.storeBuyWithDiamonds(item.priceDiamonds!),
+                  icon: Icons.diamond_rounded,
+                  color: _diamondColor,
+                  enabled: canBuyDiamonds,
+                  onPressed: () => _purchaseDiamondItem(item),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openThemePreview(StoreItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final bg = RoomBackgrounds.resolve(item.backgroundKey);
+    await showAppDialog<void>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.storeThemePreviewTitle(item.localizedName(l10n)),
+        body: AspectRatio(
+          aspectRatio: 16 / 10,
+          child: Container(
+            decoration: bg.previewDecoration,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  item.localizedName(l10n),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          AppDialogAction.primary(
+            label: l10n.commonClose,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _displayTypeLabel(StoreItem item, AppLocalizations l10n) {
     if (item.iapType == 'subscription') {
       return l10n.storeTypeSubscription;
@@ -1394,11 +1771,15 @@ class StoreItem {
       iapType != 'subscription' &&
       (iapCurrency == 'diamond' || diamondAmount != null);
   bool get isFurniture => category == 'furniture';
+  bool get isUtility => category == 'utility';
+  bool get isDefaultBackground => sku == 'background_default';
   bool get isRecoveryLetter {
     final skuLower = sku.toLowerCase();
     final categoryLower = (category ?? '').toLowerCase();
     return skuLower == 'letter' ||
+        skuLower == 'return_letter' ||
         skuLower == 'recovery_letter' ||
+        categoryLower == 'utility' ||
         categoryLower == 'letter' ||
         categoryLower == 'recovery_letter';
   }
@@ -1416,6 +1797,83 @@ class StoreItem {
         return 'Subscription';
       default:
         return type;
+    }
+  }
+
+  String localizedIapPrice(Package? package, AppLocalizations l10n) {
+    final appStorePrice = package?.storeProduct.priceString;
+    if (appStorePrice != null && appStorePrice.isNotEmpty) {
+      return appStorePrice;
+    }
+    if (priceJpy != null) {
+      return l10n.currencyJpy(priceJpy!);
+    }
+    return l10n.storePriceUnavailable;
+  }
+
+  String localizedName(AppLocalizations l10n) {
+    switch (sku) {
+      case 'subscription_premium_monthly':
+        return l10n.storeItemNameProMonthly;
+      case 'iap_diamond_pack_small':
+        return l10n.storeItemNameDiamondPack300;
+      case 'return_letter':
+        return l10n.storeItemNameReturnLetter;
+      case 'background_default':
+        return l10n.storeItemNameBackgroundDefault;
+      case 'background_test1':
+        return l10n.storeItemNameBackgroundMoonlight;
+      case 'furniture_emoji_sofa':
+        return l10n.storeItemNameFurnitureSofa;
+      case 'furniture_emoji_plant':
+        return l10n.storeItemNameFurniturePlant;
+      case 'furniture_emoji_frame':
+        return l10n.storeItemNameFurnitureFrame;
+      case 'furniture_emoji_teddy':
+        return l10n.storeItemNameFurnitureTeddy;
+      case 'furniture_emoji_brick':
+        return l10n.storeItemNameFurnitureBricks;
+      case 'furniture_emoji_tv':
+        return l10n.storeItemNameFurnitureTv;
+      case 'furniture_emoji_bath':
+        return l10n.storeItemNameFurnitureBath;
+      case 'furniture_emoji_ribbon':
+        return l10n.storeItemNameFurnitureRibbon;
+      default:
+        return name;
+    }
+  }
+
+  String? localizedDescription(AppLocalizations l10n) {
+    switch (sku) {
+      case 'subscription_premium_monthly':
+        return l10n.storeItemDescProMonthly;
+      case 'iap_diamond_pack_small':
+        return l10n.storeItemDescDiamondPack300;
+      case 'return_letter':
+        return l10n.storeItemDescReturnLetter;
+      case 'background_default':
+        return l10n.storeItemDescBackgroundDefault;
+      case 'background_test1':
+        return l10n.storeItemDescBackgroundMoonlight;
+      case 'furniture_emoji_sofa':
+        return l10n.storeItemDescFurnitureSofa;
+      case 'furniture_emoji_plant':
+        return l10n.storeItemDescFurniturePlant;
+      case 'furniture_emoji_frame':
+        return l10n.storeItemDescFurnitureFrame;
+      case 'furniture_emoji_teddy':
+        return l10n.storeItemDescFurnitureTeddy;
+      case 'furniture_emoji_brick':
+        return l10n.storeItemDescFurnitureBricks;
+      case 'furniture_emoji_tv':
+        return l10n.storeItemDescFurnitureTv;
+      case 'furniture_emoji_bath':
+        return l10n.storeItemDescFurnitureBath;
+      case 'furniture_emoji_ribbon':
+        return l10n.storeItemDescFurnitureRibbon;
+      default:
+        return description;
     }
   }
 
@@ -1481,6 +1939,8 @@ class StoreItem {
     );
   }
 }
+
+typedef ShopItem = StoreItem;
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title});

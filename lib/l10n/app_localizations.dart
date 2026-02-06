@@ -1373,6 +1373,12 @@ abstract class AppLocalizations {
   /// **'Not enough candy.'**
   String get storeNotEnoughCoins;
 
+  /// No description provided for @storeNotEnoughDiamonds.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough diamonds.'**
+  String get storeNotEnoughDiamonds;
+
   /// No description provided for @storeOwnedCount.
   ///
   /// In en, this message translates to:
@@ -1450,6 +1456,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscription'**
   String get storeSectionSubscription;
+
+  /// No description provided for @storeTabPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get storeTabPremium;
+
+  /// No description provided for @storeTabFurniture.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture'**
+  String get storeTabFurniture;
+
+  /// No description provided for @storeTabThemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Themes'**
+  String get storeTabThemes;
+
+  /// No description provided for @storeThemePreviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get storeThemePreviewAction;
+
+  /// No description provided for @storeThemePreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} Preview'**
+  String storeThemePreviewTitle(Object name);
+
+  /// No description provided for @storeItemNameProMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro Monthly Plan'**
+  String get storeItemNameProMonthly;
+
+  /// No description provided for @storeItemDescProMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Pro plan.'**
+  String get storeItemDescProMonthly;
+
+  /// No description provided for @storeItemNameDiamondPack300.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond Pack 300'**
+  String get storeItemNameDiamondPack300;
+
+  /// No description provided for @storeItemDescDiamondPack300.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time 300 diamond pack.'**
+  String get storeItemDescDiamondPack300;
+
+  /// No description provided for @storeItemNameReturnLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Return Letter'**
+  String get storeItemNameReturnLetter;
+
+  /// No description provided for @storeItemDescReturnLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Call back a departed pet.'**
+  String get storeItemDescReturnLetter;
+
+  /// No description provided for @storeItemNameBackgroundDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Background'**
+  String get storeItemNameBackgroundDefault;
+
+  /// No description provided for @storeItemDescBackgroundDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Original cozy room backdrop.'**
+  String get storeItemDescBackgroundDefault;
+
+  /// No description provided for @storeItemNameBackgroundMoonlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Moonlight Background'**
+  String get storeItemNameBackgroundMoonlight;
+
+  /// No description provided for @storeItemDescBackgroundMoonlight.
+  ///
+  /// In en, this message translates to:
+  /// **'A calm moonlit room backdrop.'**
+  String get storeItemDescBackgroundMoonlight;
+
+  /// No description provided for @storeItemNameFurnitureSofa.
+  ///
+  /// In en, this message translates to:
+  /// **'Sofa'**
+  String get storeItemNameFurnitureSofa;
+
+  /// No description provided for @storeItemDescFurnitureSofa.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfy sofa.'**
+  String get storeItemDescFurnitureSofa;
+
+  /// No description provided for @storeItemNameFurniturePlant.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant'**
+  String get storeItemNameFurniturePlant;
+
+  /// No description provided for @storeItemDescFurniturePlant.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh green corner.'**
+  String get storeItemDescFurniturePlant;
+
+  /// No description provided for @storeItemNameFurnitureFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture Frame'**
+  String get storeItemNameFurnitureFrame;
+
+  /// No description provided for @storeItemDescFurnitureFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture frame.'**
+  String get storeItemDescFurnitureFrame;
+
+  /// No description provided for @storeItemNameFurnitureTeddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Teddy Bear'**
+  String get storeItemNameFurnitureTeddy;
+
+  /// No description provided for @storeItemDescFurnitureTeddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft teddy.'**
+  String get storeItemDescFurnitureTeddy;
+
+  /// No description provided for @storeItemNameFurnitureBricks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bricks'**
+  String get storeItemNameFurnitureBricks;
+
+  /// No description provided for @storeItemDescFurnitureBricks.
+  ///
+  /// In en, this message translates to:
+  /// **'Block accent.'**
+  String get storeItemDescFurnitureBricks;
+
+  /// No description provided for @storeItemNameFurnitureTv.
+  ///
+  /// In en, this message translates to:
+  /// **'TV'**
+  String get storeItemNameFurnitureTv;
+
+  /// No description provided for @storeItemDescFurnitureTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny TV.'**
+  String get storeItemDescFurnitureTv;
+
+  /// No description provided for @storeItemNameFurnitureBath.
+  ///
+  /// In en, this message translates to:
+  /// **'Bath'**
+  String get storeItemNameFurnitureBath;
+
+  /// No description provided for @storeItemDescFurnitureBath.
+  ///
+  /// In en, this message translates to:
+  /// **'Mini bath.'**
+  String get storeItemDescFurnitureBath;
+
+  /// No description provided for @storeItemNameFurnitureRibbon.
+  ///
+  /// In en, this message translates to:
+  /// **'Ribbon'**
+  String get storeItemNameFurnitureRibbon;
+
+  /// No description provided for @storeItemDescFurnitureRibbon.
+  ///
+  /// In en, this message translates to:
+  /// **'Decor ribbon.'**
+  String get storeItemDescFurnitureRibbon;
 
   /// No description provided for @storeSignInPrompt.
   ///

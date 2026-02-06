@@ -28,7 +28,7 @@ class FeedCaptureView extends StatefulWidget {
 
   final String roomId;
   final ValueChanged<FeedOptimisticMessage>? onOptimisticMessage;
-  final ValueChanged<String>? onUploadCompleted;
+  final ValueChanged<FeedUploadResult>? onUploadCompleted;
   final void Function(String tempId, Object error)? onUploadFailed;
 
   @override
@@ -389,13 +389,38 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         );
       }
 
+      int parseInt(dynamic value) {
+        if (value is int) {
+          return value;
+        }
+        if (value is num) {
+          return value.toInt();
+        }
+        return 0;
+      }
+
+      bool parseBool(dynamic value) {
+        if (value is bool) {
+          return value;
+        }
+        return false;
+      }
+
+      String? parseString(dynamic value) {
+        if (value is String && value.isNotEmpty) {
+          return value;
+        }
+        return null;
+      }
+
       final accessToken = await ensureValidAccessToken();
       if (accessToken == null) {
         throw Exception('missing_session');
       }
 
+      FunctionResponse response;
       try {
-        await invokeWithToken(accessToken);
+        response = await invokeWithToken(accessToken);
       } on FunctionException catch (error) {
         if (error.status == 401) {
           final refreshed = await ensureValidAccessTokenWithDebug(
@@ -405,18 +430,44 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
           if (refreshedToken == null) {
             rethrow;
           }
-          await invokeWithToken(refreshedToken);
+          response = await invokeWithToken(refreshedToken);
         } else {
           rethrow;
         }
       }
+
+      if (response.status < 200 || response.status >= 300) {
+        throw Exception('feed_validate_failed_${response.status}');
+      }
+
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw Exception('feed_validate_invalid_response');
+      }
+      final ok = data['ok'] == true;
+      if (!ok) {
+        throw Exception('feed_validate_rejected');
+      }
+      final cooldownPayload = data['cooldown'];
+      final cooldown = cooldownPayload is Map<String, dynamic>
+          ? cooldownPayload
+          : <String, dynamic>{};
+
+      final reward = FeedUploadResult(
+        tempId: tempId,
+        coinsAwarded: parseInt(data['coins_awarded']),
+        rewardStatus: parseString(data['reward_status']),
+        cooldownActive: parseBool(cooldown['is_active']),
+        lastFedAt: parseString(cooldown['last_fed_at']),
+        nextEligibleAt: parseString(cooldown['next_eligible_at']),
+      );
 
       AnalyticsService.instance.logEvent(
         'feed_send',
         parameters: {'result': 'success'},
       );
 
-      widget.onUploadCompleted?.call(tempId);
+      widget.onUploadCompleted?.call(reward);
     } catch (error) {
       AnalyticsService.instance.logEvent(
         'feed_send',
@@ -639,4 +690,22 @@ class FeedOptimisticMessage {
   final String? caption;
   final DateTime clientCreatedAt;
   final List<Map<String, dynamic>> labels;
+}
+
+class FeedUploadResult {
+  const FeedUploadResult({
+    required this.tempId,
+    required this.coinsAwarded,
+    this.rewardStatus,
+    this.cooldownActive = false,
+    this.lastFedAt,
+    this.nextEligibleAt,
+  });
+
+  final String tempId;
+  final int coinsAwarded;
+  final String? rewardStatus;
+  final bool cooldownActive;
+  final String? lastFedAt;
+  final String? nextEligibleAt;
 }

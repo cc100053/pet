@@ -2001,11 +2001,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_ensureProfileSummary(entry.senderId));
   }
 
-  void _handleFeedUploadCompleted(String tempId) {
-    _chatListKey.currentState?.removeOptimisticMessage(tempId);
+  void _handleFeedUploadCompleted(FeedUploadResult result) {
+    _chatListKey.currentState?.removeOptimisticMessage(result.tempId);
     _chatListKey.currentState?.refreshLatest();
 
-    if (_latestFeedOptimisticTempId == tempId) {
+    if (_latestFeedOptimisticTempId == result.tempId) {
       _latestFeedOptimisticTempId = null;
       _latestFeedOptimisticRoomId = null;
       _latestFeedOptimisticPrevImageUrl = null;
@@ -2016,7 +2016,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (roomId != null) {
       _refreshLatestRoomPhoto(roomId);
       unawaited(_refreshLatestFeed(roomId));
-      unawaited(_loadCoins(expectedReward: 10)); // Feed = +10 coins
+      unawaited(_loadCoins(expectedReward: result.coinsAwarded));
 
       unawaited(_refreshPetState());
       unawaited(() async {
@@ -2353,7 +2353,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     await _loadFurnitureInventory();
   }
 
-  Future<void> _returnDepartedPet(DepartedPetInfo pet) async {
+  Future<bool> _returnDepartedPet(DepartedPetInfo pet) async {
     final nowIso = DateTime.now().toUtc().toIso8601String();
     try {
       await Supabase.instance.client
@@ -2380,11 +2380,11 @@ class _HomeViewState extends ConsumerState<HomeView>
           ),
         );
       }
-      return;
+      return false;
     }
 
     if (!mounted) {
-      return;
+      return false;
     }
 
     setState(() {
@@ -2401,6 +2401,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     } else {
       unawaited(_fetchRooms());
     }
+    return true;
   }
 
   void _onHomeNavPressed() {

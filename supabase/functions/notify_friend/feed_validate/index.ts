@@ -164,6 +164,58 @@ type WebhookResult = {
   error?: string;
 };
 
+type FeedCooldownState = {
+  lastFedAt: string | null;
+  nextEligibleAt: string | null;
+  isCoolingDown: boolean;
+};
+
+function isoPlusOneHour(iso: string) {
+  const date = new Date(iso);
+  date.setUTCHours(date.getUTCHours() + 1);
+  return date.toISOString();
+}
+
+async function getFeedCooldownState({
+  supabase,
+  userId,
+  roomId,
+}: {
+  supabase: SupabaseClient;
+  userId: string;
+  roomId: string;
+}): Promise<FeedCooldownState> {
+  const { data, error } = await supabase
+    .from("action_cooldowns")
+    .select("last_reward_at")
+    .eq("user_id", userId)
+    .eq("room_id", roomId)
+    .eq("action_type", "feed")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("cooldown_lookup_failed");
+  }
+
+  const lastFedAt = typeof data?.last_reward_at === "string"
+    ? data.last_reward_at
+    : null;
+  if (!lastFedAt) {
+    return {
+      lastFedAt: null,
+      nextEligibleAt: null,
+      isCoolingDown: false,
+    };
+  }
+
+  const nextEligibleAt = isoPlusOneHour(lastFedAt);
+  return {
+    lastFedAt,
+    nextEligibleAt,
+    isCoolingDown: new Date(nextEligibleAt).getTime() > Date.now(),
+  };
+}
+
 async function notifyPartner({
   supabase,
   roomId,
@@ -399,6 +451,12 @@ serve(async (req) => {
   }
 
   let baseReward = 0;
+  let rewardStatus = "no_eligible_labels";
+  let cooldownState: FeedCooldownState = {
+    lastFedAt: null,
+    nextEligibleAt: null,
+    isCoolingDown: false,
+  };
   if (eligibleLabels.length > 0) {
     const { data: reward, error: rewardError } = await supabase.rpc(
       "claim_action_reward",
@@ -408,6 +466,16 @@ serve(async (req) => {
       return jsonResponse(500, { error: "reward_failed" });
     }
     baseReward = typeof reward === "number" ? reward : 0;
+    try {
+      cooldownState = await getFeedCooldownState({
+        supabase,
+        userId: authData.user.id,
+        roomId,
+      });
+    } catch (_) {
+      return jsonResponse(500, { error: "cooldown_lookup_failed" });
+    }
+    rewardStatus = baseReward > 0 ? "granted" : "cooldown";
   }
 
   const labelVariants = buildLabelVariants(
@@ -557,5 +625,16 @@ serve(async (req) => {
     webhook_skipped: webhookResult.skipped,
     webhook_status: webhookResult.status ?? null,
     webhook_error: webhookResult.error ?? null,
+    reward_status: rewardStatus,
+    cooldown_scope: {
+      user_id: authData.user.id,
+      room_id: roomId,
+      action_type: "feed",
+    },
+    cooldown: {
+      is_active: cooldownState.isCoolingDown,
+      last_fed_at: cooldownState.lastFedAt,
+      next_eligible_at: cooldownState.nextEligibleAt,
+    },
   });
 });
