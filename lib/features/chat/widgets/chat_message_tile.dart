@@ -13,6 +13,7 @@ class ChatMessageTile extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.isOptimistic,
+    this.useLightForeground = false,
     this.senderName,
     this.onLongPress,
     this.onImageTap,
@@ -21,6 +22,7 @@ class ChatMessageTile extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
   final bool isOptimistic;
+  final bool useLightForeground;
   final String? senderName;
   final VoidCallback? onLongPress;
   final VoidCallback? onImageTap;
@@ -53,13 +55,17 @@ class ChatMessageTile extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: useLightForeground
+                ? Colors.white.withValues(alpha: 0.16)
+                : Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.grey[600],
+              color: useLightForeground
+                  ? Colors.white.withValues(alpha: 0.9)
+                  : Colors.grey[600],
               fontSize: 10,
             ),
           ),

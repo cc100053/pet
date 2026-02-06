@@ -32,7 +32,7 @@ class HomeGameStatusBar extends StatelessWidget {
 
   final Widget petAvatar;
   final double expProgress;
-  final int level;
+  final int? level;
   final String petName;
   final double healthValue;
   final int? healthDebugValue;
@@ -61,17 +61,20 @@ class HomeGameStatusBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LeftCluster(
-            petAvatar: petAvatar,
-            expProgress: expProgress,
-            level: level,
-            petName: petName,
-            onPetTap: onPetTap,
-            onPetNameTap: onPetNameTap,
-            onInviteTap: onInviteTap,
-            inviteLabel: inviteLabel,
-            inviteLoading: inviteLoading,
+          Expanded(
+            child: _LeftCluster(
+              petAvatar: petAvatar,
+              expProgress: expProgress,
+              level: level,
+              petName: petName,
+              onPetTap: onPetTap,
+              onPetNameTap: onPetNameTap,
+              onInviteTap: onInviteTap,
+              inviteLabel: inviteLabel,
+              inviteLoading: inviteLoading,
+            ),
           ),
+          const Gap(8),
           _RightCluster(
             healthValue: healthValue,
             healthDebugValue: healthDebugValue,
@@ -102,7 +105,7 @@ class _LeftCluster extends StatelessWidget {
 
   final Widget petAvatar;
   final double expProgress;
-  final int level;
+  final int? level;
   final String petName;
   final VoidCallback onPetTap;
   final VoidCallback? onPetNameTap;
@@ -112,78 +115,109 @@ class _LeftCluster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: onPetTap,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [_ExpRingAvatar(progress: expProgress, child: petAvatar)],
-          ),
-        ),
-        const Gap(10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxNameWidth = max(120.0, constraints.maxWidth * 0.72);
+
+        return Row(
+          mainAxisSize: MainAxisSize.max,
           children: [
-            GestureDetector(
-              onTap: onPetNameTap,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: onPetTap,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _ExpRingAvatar(progress: expProgress, child: petAvatar),
+                    ],
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.black87, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 8),
+                const Gap(0),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.black87, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    level == null ? 'Lv --' : 'Lv $level',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                      color: AppTheme.secondaryColor,
+                      height: 1,
                     ),
-                  ],
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Lv $level',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                        color: AppTheme.secondaryColor,
-                        height: 1,
+              ],
+            ),
+            const Gap(10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: onPetNameTap,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxNameWidth),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.black87, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 12,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          petName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: Colors.black,
+                            height: 1,
+                          ),
+                        ),
                       ),
                     ),
-                    const Gap(8),
-                    Text(
-                      petName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                        color: Colors.black,
-                        height: 1,
-                      ),
+                  ),
+                  if (inviteLabel != null && onInviteTap != null) ...[
+                    const Gap(6),
+                    _InviteChip(
+                      label: inviteLabel!,
+                      onTap: onInviteTap!,
+                      loading: inviteLoading,
                     ),
                   ],
-                ),
+                ],
               ),
             ),
-            if (inviteLabel != null && onInviteTap != null) ...[
-              const Gap(6),
-              _InviteChip(
-                label: inviteLabel!,
-                onTap: onInviteTap!,
-                loading: inviteLoading,
-              ),
-            ],
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -382,6 +416,7 @@ class _RightCluster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double rowLeftInset = 10;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -390,29 +425,32 @@ class _RightCluster extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 16),
+              padding: const EdgeInsets.only(left: rowLeftInset),
               child: _HealthBar(
                 value: healthValue,
                 debugValue: healthDebugValue,
               ),
             ),
-            const SizedBox(height: 8),
-            _CombinedCurrencyPill(
-              coins: coins,
-              diamonds: diamonds,
-              coinReward: coinReward,
-              coinRewardEventId: coinRewardEventId,
-              onStoreTap: onStoreTap,
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: rowLeftInset),
+              child: _CombinedCurrencyPill(
+                coins: coins,
+                diamonds: diamonds,
+                coinReward: coinReward,
+                coinRewardEventId: coinRewardEventId,
+                onStoreTap: onStoreTap,
+              ),
             ),
           ],
         ),
         const Positioned(
-          top: -11,
-          left: -5,
+          top: -9,
+          left: -2,
           child: Icon(
             Icons.favorite_rounded,
             color: Color(0xFFEE6D85),
-            size: 40,
+            size: 34,
           ),
         ),
       ],
@@ -483,7 +521,7 @@ class _HealthBarState extends State<_HealthBar> {
         widget.debugValue?.toString() ?? (clamped * 100).round().toString();
     return LayoutBuilder(
       builder: (context, constraints) {
-        final fallbackWidth = MediaQuery.of(context).size.width * 0.35;
+        final fallbackWidth = MediaQuery.of(context).size.width * 0.28;
         final width = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : fallbackWidth;
@@ -491,7 +529,7 @@ class _HealthBarState extends State<_HealthBar> {
         final fillWidth = (innerWidth * clamped).clamp(0.0, innerWidth);
         return SizedBox(
           width: width,
-          height: 18,
+          height: 16,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -520,7 +558,7 @@ class _HealthBarState extends State<_HealthBar> {
                 debugText,
                 style: const TextStyle(
                   color: Colors.black,
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -659,7 +697,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
             onTap: widget.onStoreTap,
             borderRadius: BorderRadius.circular(999),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 6, 20, 6),
+              padding: const EdgeInsets.fromLTRB(10, 5, 16, 5),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.92),
                 borderRadius: BorderRadius.circular(999),
@@ -681,27 +719,27 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                     children: [
                       const Icon(
                         Icons.diamond_rounded,
-                        size: 18,
+                        size: 16,
                         color: _diamondColor,
                       ),
-                      const Gap(6),
+                      const Gap(4),
                       Text(
                         '${widget.diamonds}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
-                          fontSize: 14,
+                          fontSize: 13,
                           height: 1,
                         ),
                       ),
                     ],
                   ),
-                  const Gap(12),
+                  const Gap(8),
                   Container(
                     width: 1,
-                    height: 14,
+                    height: 12,
                     color: Colors.black.withValues(alpha: 0.1),
                   ),
-                  const Gap(12),
+                  const Gap(8),
                   // Coins Part
                   AnimatedBuilder(
                     animation: _bounceAnimation,
@@ -713,20 +751,20 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                             scale: _bounceAnimation.value,
                             child: SvgPicture.asset(
                               'assets/icon/icon-park--candy.svg',
-                              width: 18,
-                              height: 18,
+                              width: 16,
+                              height: 16,
                               colorFilter: const ColorFilter.mode(
                                 AppTheme.secondaryColor,
                                 BlendMode.srcIn,
                               ),
                             ),
                           ),
-                          const Gap(6),
+                          const Gap(4),
                           Text(
                             '${widget.coins}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w800,
-                              fontSize: 14,
+                              fontSize: 13,
                               height: 1,
                             ),
                           ),
@@ -734,16 +772,16 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                       );
                     },
                   ),
-                  const Gap(8),
+                  const Gap(6),
                   Transform.translate(
-                    offset: const Offset(10, 0),
+                    offset: const Offset(8, 0),
                     child: SizedBox(
-                      width: 26,
-                      height: 26,
+                      width: 22,
+                      height: 22,
                       child: Center(
                         child: Container(
-                          width: 18,
-                          height: 18,
+                          width: 16,
+                          height: 16,
                           decoration: BoxDecoration(
                             color: const Color(0xFFEE6D85),
                             shape: BoxShape.circle,
@@ -751,7 +789,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                           ),
                           child: const Icon(
                             Icons.add,
-                            size: 12,
+                            size: 10,
                             color: Colors.white,
                           ),
                         ),

@@ -98,6 +98,17 @@ flutter:
     - assets/pet/fish/
     - assets/icon/
 
+  fonts:
+    - family: Heiseijyoji
+      fonts:
+        - asset: assets/font/HeiseijyojiFont.otf
+    - family: ChildJPZh
+      fonts:
+        - asset: assets/font/child_JP_zh.otf
+    - family: LittleKidsHandwriting
+      fonts:
+        - asset: assets/font/LittleKidsHandwriting-Regular.otf
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

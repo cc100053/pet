@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/auth/session_utils.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/user_avatar.dart';
@@ -344,7 +345,9 @@ class _ProfileViewState extends State<ProfileView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.profileDeleteFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.profileDeleteFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -458,7 +461,11 @@ class _ProfileViewState extends State<ProfileView> {
           }
           if (snapshot.hasError) {
             return Center(
-              child: Text(l10n.profileLoadFailed(snapshot.error.toString())),
+              child: Text(
+                l10n.profileLoadFailed(
+                  userFacingError(context, snapshot.error!),
+                ),
+              ),
             );
           }
           final profile = snapshot.data;

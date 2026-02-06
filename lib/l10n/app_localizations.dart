@@ -473,6 +473,42 @@ abstract class AppLocalizations {
   /// **'User'**
   String get commonUser;
 
+  /// No description provided for @errorInvalidInviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That invite code is invalid or expired.'**
+  String get errorInvalidInviteCode;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please check your connection and try again.'**
+  String get errorNetwork;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested data was not found.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to do that.'**
+  String get errorPermissionDenied;
+
+  /// No description provided for @errorPetNameInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That pet name is not allowed. Please use a different name.'**
+  String get errorPetNameInvalid;
+
+  /// No description provided for @errorUnexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errorUnexpected;
+
   /// No description provided for @currencyJpy.
   ///
   /// In en, this message translates to:

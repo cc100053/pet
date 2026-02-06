@@ -13,6 +13,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/image_labeling/image_labeling.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/status_bar_style.dart';
 
@@ -160,7 +161,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.feedLabelingFailed(error.toString());
+        )!.feedLabelingFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted && _imageRequestId == requestId) {
@@ -256,7 +257,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         return;
       }
       setState(() {
-        _error = AppLocalizations.of(context)!.feedSendFailed(error.toString());
+        _error = AppLocalizations.of(
+          context,
+        )!.feedSendFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -445,155 +448,158 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
                 context,
               ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
             ),
-          // Photo labeling UI is currently disabled
-          // const SizedBox(height: 12),
-          // Text(
-          //   mappingStatus,
-          //   style: Theme.of(
-          //     context,
-          //   ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-          // ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            alignment: WrapAlignment.center,
-            children: [
-              FilledButton.icon(
-                onPressed: _sending
-                    ? null
-                    : () => _pickImage(ImageSource.camera),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.secondaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+            // Photo labeling UI is currently disabled
+            // const SizedBox(height: 12),
+            // Text(
+            //   mappingStatus,
+            //   style: Theme.of(
+            //     context,
+            //   ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+            // ),
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              alignment: WrapAlignment.center,
+              children: [
+                FilledButton.icon(
+                  onPressed: _sending
+                      ? null
+                      : () => _pickImage(ImageSource.camera),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.secondaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                  icon: const Icon(Icons.photo_camera),
+                  label: Text(l10n.commonCamera),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _sending
+                      ? null
+                      : () => _pickImage(ImageSource.gallery),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textPrimary,
+                    side: const BorderSide(color: Colors.black12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  icon: const Icon(Icons.photo_library),
+                  label: Text(l10n.commonGallery),
+                ),
+              ],
+            ),
+            if (_previewBytes != null) ...[
+              const SizedBox(height: 24),
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cacheWidth = _cacheDimension(
+                        context,
+                        constraints.maxWidth,
+                      );
+                      final cacheHeight = _cacheDimension(context, 300);
+                      return Image.memory(
+                        _previewBytes!,
+                        height: 300,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        cacheWidth: cacheWidth,
+                        cacheHeight: cacheHeight,
+                      );
+                    },
                   ),
                 ),
-                icon: const Icon(Icons.photo_camera),
-                label: Text(l10n.commonCamera),
-              ),
-              OutlinedButton.icon(
-                onPressed: _sending
-                    ? null
-                    : () => _pickImage(ImageSource.gallery),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.textPrimary,
-                  side: const BorderSide(color: Colors.black12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-                icon: const Icon(Icons.photo_library),
-                label: Text(l10n.commonGallery),
               ),
             ],
-          ),
-          if (_previewBytes != null) ...[
+            // Photo labeling UI is currently disabled
+            // const SizedBox(height: 24),
+            // if (_analyzing)
+            //   const Center(child: CircularProgressIndicator())
+            // else if (_observations.isNotEmpty)
+            //   _LabelsPreview(observations: _observations, matches: _matches)
+            // else
+            //   Center(
+            //     child: Text(
+            //       l10n.feedNoLabels,
+            //       style: Theme.of(
+            //         context,
+            //       ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+            //     ),
+            //   ),
             const SizedBox(height: 24),
-            Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final cacheWidth = _cacheDimension(
-                      context,
-                      constraints.maxWidth,
-                    );
-                    final cacheHeight = _cacheDimension(context, 300);
-                    return Image.memory(
-                      _previewBytes!,
-                      height: 300,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      cacheWidth: cacheWidth,
-                      cacheHeight: cacheHeight,
-                    );
-                  },
+            TextField(
+              controller: _captionController,
+              decoration: InputDecoration(
+                labelText: l10n.feedCaptionLabel,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Colors.black12),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Colors.black12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppTheme.primaryColor),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              maxLines: 2,
+              maxLength: 40,
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _sending || _analyzing ? null : _sendFeed,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                minimumSize: const Size.fromHeight(56),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                elevation: 4,
+                shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+              ),
+              child: Text(
+                _sending ? l10n.commonSending : l10n.feedSendButton,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-          ],
-          // Photo labeling UI is currently disabled
-          // const SizedBox(height: 24),
-          // if (_analyzing)
-          //   const Center(child: CircularProgressIndicator())
-          // else if (_observations.isNotEmpty)
-          //   _LabelsPreview(observations: _observations, matches: _matches)
-          // else
-          //   Center(
-          //     child: Text(
-          //       l10n.feedNoLabels,
-          //       style: Theme.of(
-          //         context,
-          //       ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-          //     ),
-          //   ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _captionController,
-            decoration: InputDecoration(
-              labelText: l10n.feedCaptionLabel,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Colors.black12),
+            // Photo labeling canonical tags display is disabled
+            // if (_canonicalTags.isNotEmpty) ...[
+            //   const SizedBox(height: 12),
+            //   Text(l10n.feedCanonicalTags(_canonicalTags.join(', '))),
+            // ],
+            // if (_result != null) ...[
+            //   const SizedBox(height: 12),
+            //   Text(l10n.feedResponse(_result!)),
+            // ],
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Colors.black12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: AppTheme.primaryColor),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            maxLines: 2,
-            maxLength: 40,
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _sending || _analyzing ? null : _sendFeed,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              minimumSize: const Size.fromHeight(56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              elevation: 4,
-              shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-            ),
-            child: Text(
-              _sending ? l10n.commonSending : l10n.feedSendButton,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          // Photo labeling canonical tags display is disabled
-          // if (_canonicalTags.isNotEmpty) ...[
-          //   const SizedBox(height: 12),
-          //   Text(l10n.feedCanonicalTags(_canonicalTags.join(', '))),
-          // ],
-          // if (_result != null) ...[
-          //   const SizedBox(height: 12),
-          //   Text(l10n.feedResponse(_result!)),
-          // ],
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-          const SizedBox(height: 40),
+            ],
+            const SizedBox(height: 40),
           ],
         ),
       ),

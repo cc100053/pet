@@ -183,6 +183,18 @@
 - Added a room selection long-press action sheet for renaming or leaving a room.
 - Added shared room background inventory/state with realtime sync, background gallery tab, and IAP-backed test background grant.
 - Implemented pet departure flow with note reveal, recovery letter guidance dialog, and store-gated letter purchase to return pets.
+- Fixed pet departure letter layout to avoid RenderFlex overflow by making the content scroll within the card.
+- Updated pet departure letter layout to keep the pet message centered and anchor the system guidance section at the bottom.
+- Styled the pet departure message with a handwriting font and CJK fallbacks for EN/JA/zh-TW rendering.
+- Fixed pet departure letter overflow in JA/zh by bounding and scrolling the bottom system prompt section.
+- Added a Japanese-locale font override for pet departure messages using `assets/font/HeiseijyojiFont.otf`.
+- Refined pet departure letter layout to an all-flex/scroll-safe structure to prevent localized (especially zh) RenderFlex overflows during constrained layouts.
+- Added a Chinese-locale font override for pet departure messages using `assets/font/child_JP_zh.otf`.
+- Added an English-locale font override for pet departure messages using `assets/font/LittleKidsHandwriting-Regular.otf`.
+- Identified and fixed departure-letter root cause: mixed loose/tight flex in the inner content column caused localized overflow and bottom prompt drift; replaced with strict flex regions and bottom alignment.
+- Further hardened departure-letter layout by replacing inner flex columns with a constraint-driven stack (`LayoutBuilder + Positioned`) to eliminate residual sub-pixel RenderFlex overflows and keep the system prompt pinned to the bottom.
+- Enabled outside-tap dismissal for the departure letter route (`PageRouteBuilder` barrier dismissible).
+- Fixed outside-tap dismissal by handling taps in `PetDepartureNoteView` background layer (full-screen gesture) while consuming taps on the letter card.
 - Adjusted overfed logic to allow two feeds within 10 minutes via burst tracking.
 - Added overfed speech bubble trigger when the pet is fed too many times in a short window.
 - Shared room background selection across members by syncing `room_background_state` and `room_backgrounds` in Home view.
@@ -198,17 +210,20 @@
 - Implemented overfed bubble UI driven by `pet_state.last_overfed_at` with a timed display.
 - Added `test1` room background asset entry with store seed data and asset-backed background definition.
 - Passed the current room id into the Store view so background purchases apply without reselecting a room.
+- Added centralized user-facing error mapping with localization fallback; UI now shows friendly localized failures while raw Supabase/PostgREST details are logged to console for debugging.
 - Added a first-time solo-room invite prompt on the Pet screen plus a persistent invite chip under the pet name for generating invite codes.
 - Marked the `test1` background as dark so status bar uses light content on the pet screen and chat room.
 - Added dynamic status-bar styling with a light-default overlay and per-screen overrides for dark overlays; room backgrounds now carry an `isDark` flag for future dark themes.
 - Extended light status-bar styling to Store and Chat screens to keep indicators readable on light UI.
 - Wired chat status-bar styling to follow the current room background brightness flag.
+- Added dark-background chat readability variants: light system-message chips and dark-glass input/top bars with light text/icons when `isDarkBackground` is enabled.
 - Standardized status-bar styles (explicit iOS + Android brightness) via shared helper to prevent white text on light screens.
 - Set chat AppBar systemOverlayStyle to ensure status-bar brightness updates on that route.
 - Applied explicit light status-bar styling to the feed camera screen.
 - Fixed MemoryCalendarView crash when no latest feed exists by avoiding sorting a const list.
 - Refined room selection cards to show the room name with pet icon and health bar (removed mood dots).
 - Added debug drawer tools for currency boosts, plan toggle, and pet state tweaks; removed the refresh pet debug action.
+- Fixed room creation cap to apply only on Free Plan so debug Pro Plan toggle can create 3+ rooms.
 - Removed room name UI and logic; room creation now uses pet name and room selection/chat/leave flows display pet names.
 - Fixed hunger decay accumulation by preserving `last_decay_at` when no decay is applied in `tick_pet_state`.
 - Added client-side pet departure detection (note + recovery letter flow) and wired departed pets into the Store return flow.
@@ -216,6 +231,13 @@
 - Added a localized prompt when trying to open the feed camera after a pet departs (home + chat).
 - Ensure pet state ticks even while on the room selection screen and force a tick on room switch.
 - Prevent poop spawning when the pet has departed (hunger <= 0).
+- Hide pet rendering until the first post-switch pet state refresh completes to avoid flicker.
+- Use cached pet_state on room switch to avoid entry flicker, then reconcile after tick.
+- Updated room switching to hard-reset pet render/state (no cached pet_state reuse) so previous-room pets do not flash before the new room loads.
+- Guarded pet info hydration (`name/level/exp/type`) with room/pet checks so stale async responses from a previous room cannot overwrite the current room status.
+- Refined Home HUD loading states to remove hardcoded template pet name/level defaults; now shows room-derived name (or localized unnamed) and `Lv --` until level is loaded.
+- Replaced Home startup room-loading spinner with the branded launch logo screen so app launch shows logo-only loading.
+- Made launch screen rendering continuous by removing launch fade/scale animation replay and the AuthGate fixed-delay handoff.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.

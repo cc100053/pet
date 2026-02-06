@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../services/chat/chat_message_repository.dart';
 import '../../services/performance/performance_service.dart';
 import '../feed/feed_capture_view.dart';
@@ -161,7 +162,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.chatSendFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.chatSendFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -241,7 +244,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)!.feedUploadFailed(error.toString()),
+          AppLocalizations.of(
+            context,
+          )!.feedUploadFailed(userFacingError(context, error)),
         ),
       ),
     );
@@ -280,6 +285,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   Widget build(BuildContext context) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final l10n = AppLocalizations.of(context)!;
+    final useLightForeground = widget.isDarkBackground;
     final media = MediaQuery.of(context);
     final listTopPadding = media.padding.top + _topBarHeight + 12;
     final composerBottomInset = media.padding.bottom;
@@ -309,6 +315,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
             memberCount: _memberCount == null
                 ? null
                 : l10n.chatMemberCount(_memberCount!),
+            useLightForeground: useLightForeground,
             onBack: () => Navigator.of(context).maybePop(),
             menuButton: Theme(
               data: Theme.of(context).copyWith(
@@ -350,6 +357,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                   key: _chatMessageListKey,
                   roomId: widget.roomId,
                   currentUserId: currentUserId,
+                  useLightForeground: useLightForeground,
                   contentPadding: EdgeInsets.fromLTRB(
                     16,
                     listTopPadding,
@@ -365,7 +373,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                 child: SafeArea(
                   top: false,
                   child: _GlassPill(
-                    backgroundOpacity: 0.55,
+                    backgroundOpacity: useLightForeground ? 0.35 : 0.55,
+                    useDarkSurface: useLightForeground,
                     padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
                     child: Row(
                       children: [
@@ -375,8 +384,10 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                             'assets/icon/solar--camera-linear.svg',
                             width: 26,
                             height: 26,
-                            colorFilter: const ColorFilter.mode(
-                              AppTheme.textSecondary,
+                            colorFilter: ColorFilter.mode(
+                              useLightForeground
+                                  ? Colors.white.withValues(alpha: 0.9)
+                                  : AppTheme.textSecondary,
                               BlendMode.srcIn,
                             ),
                           ),
@@ -399,10 +410,23 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                               isDense: true,
                               filled: true,
                               fillColor: Colors.transparent,
+                              hintStyle: TextStyle(
+                                color: useLightForeground
+                                    ? Colors.white.withValues(alpha: 0.72)
+                                    : AppTheme.textSecondary,
+                              ),
                             ),
                             minLines: 1,
                             maxLines: 4,
-                            style: const TextStyle(fontSize: 15),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: useLightForeground
+                                  ? Colors.white
+                                  : AppTheme.textPrimary,
+                            ),
+                            cursorColor: useLightForeground
+                                ? Colors.white
+                                : AppTheme.primaryColor,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -462,12 +486,14 @@ class ChatMessageList extends StatefulWidget {
     super.key,
     required this.roomId,
     required this.currentUserId,
+    this.useLightForeground = false,
     this.scrollController,
     this.contentPadding,
   });
 
   final String roomId;
   final String? currentUserId;
+  final bool useLightForeground;
   final ScrollController? scrollController;
   final EdgeInsetsGeometry? contentPadding;
 
@@ -538,7 +564,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.chatRefreshFailed(error.toString());
+        )!.chatRefreshFailed(userFacingError(context, error));
       });
     }
   }
@@ -621,7 +647,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.chatLoadCacheFailed(error.toString());
+        )!.chatLoadCacheFailed(userFacingError(context, error));
       });
     }
   }
@@ -652,7 +678,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.chatLoadBlockedUsersFailed(error.toString());
+        )!.chatLoadBlockedUsersFailed(userFacingError(context, error));
       });
     }
   }
@@ -767,7 +793,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.chatLoadMessagesFailed(error.toString());
+        )!.chatLoadMessagesFailed(userFacingError(context, error));
       });
       PerformanceService.instance.markChatColdLoaded(
         messageCount: _messages.length,
@@ -835,7 +861,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.chatLoadMoreFailed(error.toString());
+        )!.chatLoadMoreFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -1058,6 +1084,11 @@ class ChatMessageListState extends State<ChatMessageList> {
                           child: Text(
                             l10n.chatEmptyState,
                             textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.useLightForeground
+                                  ? Colors.white.withValues(alpha: 0.9)
+                                  : null,
+                            ),
                           ),
                         ),
                       ],
@@ -1115,6 +1146,7 @@ class ChatMessageListState extends State<ChatMessageList> {
                           message: message,
                           isMe: isMe,
                           isOptimistic: isOptimistic,
+                          useLightForeground: widget.useLightForeground,
                           senderName: senderName,
                           onLongPress: _shouldShowActions(message, isMe)
                               ? () => _showMessageActions(message)
@@ -1259,7 +1291,9 @@ class ChatMessageListState extends State<ChatMessageList> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.chatReportFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.chatReportFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -1314,7 +1348,9 @@ class ChatMessageListState extends State<ChatMessageList> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.chatBlockFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.chatBlockFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -1409,12 +1445,14 @@ class _ChatTopBar extends StatelessWidget {
   const _ChatTopBar({
     required this.petName,
     required this.memberCount,
+    required this.useLightForeground,
     required this.onBack,
     required this.menuButton,
   });
 
   final String petName;
   final String? memberCount;
+  final bool useLightForeground;
   final VoidCallback onBack;
   final Widget menuButton;
 
@@ -1427,6 +1465,7 @@ class _ChatTopBar extends StatelessWidget {
         child: Row(
           children: [
             _GlassPill(
+              useDarkSurface: useLightForeground,
               padding: const EdgeInsets.all(4),
               child: IconButton(
                 iconSize: 20,
@@ -1437,7 +1476,7 @@ class _ChatTopBar extends StatelessWidget {
                 ),
                 onPressed: onBack,
                 icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                color: AppTheme.textPrimary,
+                color: useLightForeground ? Colors.white : AppTheme.textPrimary,
                 tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               ),
             ),
@@ -1449,6 +1488,7 @@ class _ChatTopBar extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
                   child: _GlassPill(
+                    useDarkSurface: useLightForeground,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -1460,10 +1500,12 @@ class _ChatTopBar extends StatelessWidget {
                           petName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
+                            color: useLightForeground
+                                ? Colors.white
+                                : AppTheme.textPrimary,
                           ),
                         ),
                         if (memberCount != null)
@@ -1471,7 +1513,9 @@ class _ChatTopBar extends StatelessWidget {
                             memberCount!,
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.black.withValues(alpha: 0.55),
+                              color: useLightForeground
+                                  ? Colors.white.withValues(alpha: 0.75)
+                                  : Colors.black.withValues(alpha: 0.55),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1483,6 +1527,7 @@ class _ChatTopBar extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             _GlassPill(
+              useDarkSurface: useLightForeground,
               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
               child: menuButton,
             ),
@@ -1521,11 +1566,13 @@ class _GlassPill extends StatelessWidget {
     required this.child,
     this.padding,
     this.backgroundOpacity = 0.72,
+    this.useDarkSurface = false,
   });
 
   final Widget child;
   final EdgeInsets? padding;
   final double backgroundOpacity;
+  final bool useDarkSurface;
 
   @override
   Widget build(BuildContext context) {
@@ -1536,15 +1583,21 @@ class _GlassPill extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: backgroundOpacity),
+            color: useDarkSurface
+                ? Colors.black.withValues(alpha: backgroundOpacity)
+                : Colors.white.withValues(alpha: backgroundOpacity),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.6),
+              color: useDarkSurface
+                  ? Colors.white.withValues(alpha: 0.24)
+                  : Colors.white.withValues(alpha: 0.6),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: Colors.black.withValues(
+                  alpha: useDarkSurface ? 0.18 : 0.08,
+                ),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),

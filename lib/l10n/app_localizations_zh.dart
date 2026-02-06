@@ -226,6 +226,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonUser => '用戶';
 
   @override
+  String get errorInvalidInviteCode => '邀請碼無效或已過期。';
+
+  @override
+  String get errorNetwork => '網路異常，請檢查連線後再試一次。';
+
+  @override
+  String get errorNotFound => '找不到指定資料。';
+
+  @override
+  String get errorPermissionDenied => '你沒有權限執行這個操作。';
+
+  @override
+  String get errorPetNameInvalid => '這個寵物名稱不可用，請換一個名稱。';
+
+  @override
+  String get errorUnexpected => '發生錯誤，請稍後再試。';
+
+  @override
   String currencyJpy(Object amount) {
     return 'JPY $amount';
   }
@@ -1173,6 +1191,24 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get commonUser => '用戶';
+
+  @override
+  String get errorInvalidInviteCode => '邀請碼無效或已過期。';
+
+  @override
+  String get errorNetwork => '網路異常，請檢查連線後再試一次。';
+
+  @override
+  String get errorNotFound => '找不到指定資料。';
+
+  @override
+  String get errorPermissionDenied => '你沒有權限執行這個操作。';
+
+  @override
+  String get errorPetNameInvalid => '這個寵物名稱不可用，請換一個名稱。';
+
+  @override
+  String get errorUnexpected => '發生錯誤，請稍後再試。';
 
   @override
   String currencyJpy(Object amount) {

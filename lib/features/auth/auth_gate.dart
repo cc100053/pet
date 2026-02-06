@@ -19,17 +19,10 @@ class AuthGate extends ConsumerStatefulWidget {
 
 class _AuthGateState extends ConsumerState<AuthGate> {
   StreamSubscription<AuthState>? _authSubscription;
-  bool _showLaunch = true;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 900), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _showLaunch = false);
-    });
     final currentSession = Supabase.instance.client.auth.currentSession;
     AnalyticsService.instance.setUserId(currentSession?.user.id);
     FirebaseCrashlytics.instance.setUserIdentifier(
@@ -60,9 +53,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_showLaunch) {
-      return const LaunchView();
-    }
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {

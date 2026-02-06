@@ -141,6 +141,12 @@
   "commonUnblock": "解除",
   "commonUploading": "アップロード中",
   "commonUser": "ユーザー",
+  "errorInvalidInviteCode": "招待コードが無効か期限切れです。",
+  "errorNetwork": "通信エラーです。接続を確認して再試行してください。",
+  "errorNotFound": "対象のデータが見つかりませんでした。",
+  "errorPermissionDenied": "この操作を実行する権限がありません。",
+  "errorPetNameInvalid": "そのペット名は使用できません。別の名前を入力してください。",
+  "errorUnexpected": "問題が発生しました。もう一度お試しください。",
   "currencyJpy": "JPY {amount}",
   "@currencyJpy": {
     "placeholders": {

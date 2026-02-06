@@ -3,6 +3,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 
 class MemoryCalendarView extends StatefulWidget {
@@ -52,7 +53,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.calendarLoadFailed(error.toString());
+        )!.calendarLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -210,9 +211,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
         : _dayKeyForDate(latestFeed.createdAt.toLocal());
     final latestDayFeeds = latestDateKey == null
         ? <MemoryFeed>[]
-        : List<MemoryFeed>.from(
-            _feedsByDay[latestDateKey] ?? [latestFeed],
-          );
+        : List<MemoryFeed>.from(_feedsByDay[latestDateKey] ?? [latestFeed]);
     latestDayFeeds.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     final recentFeeds = _buildRecentFeeds(latestFeed);
 
@@ -268,8 +267,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
                 onTap: latestFeed == null
                     ? null
                     : () {
-                        final dateKey =
-                            latestDateKey ?? _dayKeyForDate(now);
+                        final dateKey = latestDateKey ?? _dayKeyForDate(now);
                         _openDayDetails(context, dateKey, latestDayFeeds);
                       },
               ),

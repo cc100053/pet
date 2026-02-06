@@ -232,6 +232,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonUser => 'User';
 
   @override
+  String get errorInvalidInviteCode =>
+      'That invite code is invalid or expired.';
+
+  @override
+  String get errorNetwork =>
+      'Network error. Please check your connection and try again.';
+
+  @override
+  String get errorNotFound => 'Requested data was not found.';
+
+  @override
+  String get errorPermissionDenied => 'You don\'t have permission to do that.';
+
+  @override
+  String get errorPetNameInvalid =>
+      'That pet name is not allowed. Please use a different name.';
+
+  @override
+  String get errorUnexpected => 'Something went wrong. Please try again.';
+
+  @override
   String currencyJpy(Object amount) {
     return 'JPY $amount';
   }

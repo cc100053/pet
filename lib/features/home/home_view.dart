@@ -16,6 +16,7 @@ import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/full_screen_photo_viewer.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -24,6 +25,7 @@ import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
+import '../launch/launch_view.dart';
 import '../pet/pet_catalog.dart';
 import '../pet/leveling.dart';
 import '../pet/pet_departure.dart';
@@ -77,10 +79,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   String _petType = PetCatalog.defaultPetId;
   bool _petBusy = false;
   Map<String, dynamic>? _petState;
+  bool _petStateReady = false;
   bool _petDeparted = false;
   bool _petDeparturePrompted = false;
   String? _lastDeparturePetId;
   final Map<String, DepartedPetInfo> _departedPetsByRoom = {};
+  final Map<String, Map<String, dynamic>> _petStateByRoom = {};
+  final Map<String, String> _petIdByRoom = {};
   String? _petError;
   DateTime? _lastOverfedAt;
   bool _showOverfedBubble = false;
@@ -118,6 +123,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _petAssetsPrecached = false;
   final Set<String> _cachedPetAssets = {};
   static const int _petNameMaxLength = 20;
+  static const int _freePlanRoomLimit = 2;
   bool _inviteCodeLoading = false;
   bool _showNewRoomInvitePrompt = false;
   String? _newRoomInviteRoomId;
@@ -438,7 +444,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(
         () => _petError = AppLocalizations.of(
           context,
-        )!.petActionFailed(error.toString()),
+        )!.petActionFailed(userFacingError(context, error)),
       );
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -476,12 +482,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           .from('pets')
           .update({'level': updated.level, 'exp': updated.exp})
           .eq('id', petId);
-      await _loadPetInfo(petId);
+      await _loadPetInfo(petId, roomId: roomId);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
           context,
-        )!.petActionFailed(error.toString()),
+        )!.petActionFailed(userFacingError(context, error)),
       );
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -532,7 +538,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(
         () => _petError = AppLocalizations.of(
           context,
-        )!.petActionFailed(error.toString()),
+        )!.petActionFailed(userFacingError(context, error)),
       );
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -547,6 +553,11 @@ class _HomeViewState extends ConsumerState<HomeView>
         .maybeSingle();
   }
 
+  void _cachePetState(String roomId, String petId, Map<String, dynamic> state) {
+    _petStateByRoom[roomId] = Map<String, dynamic>.from(state);
+    _petIdByRoom[roomId] = petId;
+  }
+
   void _applyPetStateUpdate(
     String roomId,
     String petId,
@@ -555,17 +566,20 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (state == null) {
       return;
     }
+    _cachePetState(roomId, petId, state);
     _subscribeToPetState(petId);
     final hunger = state['hunger'] as num?;
     final healthValue = _healthValueFromHunger(hunger);
     if (!mounted) {
       _petId = petId;
       _petState = state;
+      _petStateReady = true;
       return;
     }
     setState(() {
       _petId = petId;
       _petState = state;
+      _petStateReady = true;
       _myRooms = _myRooms
           .map(
             (room) => room['id'] == roomId
@@ -843,7 +857,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(() async {
         final petId = _petId ?? await _loadPetId(roomId);
         if (petId != null) {
-          await _loadPetInfo(petId);
+          await _loadPetInfo(petId, roomId: roomId);
         }
       }());
     }
@@ -855,16 +869,26 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   void _switchRoom(String roomId, {String? petType}) {
     final previousRoom = _roomId;
+    final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+      (room) => room?['id'] == roomId,
+      orElse: () => null,
+    );
+    final roomPetType = roomSnapshot?['pet_type'] as String?;
+    final nextPetType = petType ?? roomPetType ?? PetCatalog.defaultPetId;
     setState(() {
       _roomId = roomId;
-      _petState = null; // Clear old state
+      _petState = null;
       _petId = null;
+      _petStateReady = false;
       _lastOverfedAt = null;
       _showOverfedBubble = false;
       _petDeparted = false;
       _petDeparturePrompted = false;
       _lastDeparturePetId = null;
-      _petType = petType ?? PetCatalog.defaultPetId;
+      _petName = null;
+      _petLevel = null;
+      _petExp = null;
+      _petType = nextPetType;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
     });
@@ -928,7 +952,9 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _createRoom() async {
     final l10n = AppLocalizations.of(context)!;
-    if (_myRooms.length >= 2) {
+    final reachedFreePlanLimit =
+        !_debugProPlan && _myRooms.length >= _freePlanRoomLimit;
+    if (reachedFreePlanLimit) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.roomLimitReached)));
@@ -995,7 +1021,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.roomCreateFailed(error.toString()))),
+        SnackBar(
+          content: Text(l10n.roomCreateFailed(userFacingError(context, error))),
+        ),
       );
     } finally {
       if (mounted) setState(() => _creatingRoom = false);
@@ -1026,12 +1054,16 @@ class _HomeViewState extends ConsumerState<HomeView>
           .eq('id', petId);
 
       _updatePetType(selectedPet.id);
-      unawaited(_loadPetInfo(petId));
+      unawaited(_loadPetInfo(petId, roomId: roomId));
       return true;
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.petSelectionFailed(error.toString()))),
+          SnackBar(
+            content: Text(
+              l10n.petSelectionFailed(userFacingError(context, error)),
+            ),
+          ),
         );
       }
       return false;
@@ -1080,7 +1112,11 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.petNameUpdateFailed(error.toString()))),
+        SnackBar(
+          content: Text(
+            l10n.petNameUpdateFailed(userFacingError(context, error)),
+          ),
+        ),
       );
     }
   }
@@ -1182,7 +1218,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.roomJoinFailed(error.toString()))),
+        SnackBar(
+          content: Text(l10n.roomJoinFailed(userFacingError(context, error))),
+        ),
       );
     } finally {
       if (mounted) setState(() => _joiningRoom = false);
@@ -1288,7 +1326,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.roomInviteCodeRegenerateFailed(error.toString())),
+          content: Text(
+            l10n.roomInviteCodeRegenerateFailed(
+              userFacingError(context, error),
+            ),
+          ),
         ),
       );
     } finally {
@@ -1369,7 +1411,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       if (showSnackBar) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.roomLeaveFailed(error.toString()))),
+          SnackBar(
+            content: Text(
+              l10n.roomLeaveFailed(userFacingError(context, error)),
+            ),
+          ),
         );
       }
     } finally {
@@ -1702,7 +1748,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       _subscribeToPetState(petId);
-      unawaited(_loadPetInfo(petId));
+      unawaited(_loadPetInfo(petId, roomId: roomId));
 
       if (tick) {
         await Supabase.instance.client.rpc(
@@ -1725,6 +1771,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _petId = petId;
         _petState = state;
+        _petStateReady = true;
         _myRooms = _myRooms
             .map(
               (room) => room['id'] == roomId
@@ -1733,14 +1780,20 @@ class _HomeViewState extends ConsumerState<HomeView>
             )
             .toList();
       });
+      if (state != null) {
+        _cachePetState(roomId, petId, state);
+      }
       _handleOverfedState();
       _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
           context,
-        )!.petSyncFailed(error.toString()),
+        )!.petSyncFailed(userFacingError(context, error)),
       );
+      if (mounted && !_petStateReady) {
+        setState(() => _petStateReady = true);
+      }
     } finally {
       if (mounted) setState(() => _petBusy = false);
     }
@@ -1770,10 +1823,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _petId = petId;
         _petState = Map<String, dynamic>.from(record);
+        _petStateReady = true;
         final hunger = _petState?['hunger'] as num?;
         final healthValue = _healthValueFromHunger(hunger);
         final roomId = _roomId;
         if (roomId != null) {
+          _cachePetState(roomId, petId, _petState!);
           _myRooms = _myRooms
               .map(
                 (room) => room['id'] == roomId
@@ -1858,12 +1913,12 @@ class _HomeViewState extends ConsumerState<HomeView>
 
       await _refreshPetState();
       await _loadCoins(expectedReward: actualReward);
-      await _loadPetInfo(petId);
+      await _loadPetInfo(petId, roomId: roomId);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
           context,
-        )!.petActionFailed(error.toString()),
+        )!.petActionFailed(userFacingError(context, error)),
       );
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -1967,7 +2022,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(() async {
         final petId = _petId ?? await _loadPetId(roomId);
         if (petId != null) {
-          await _loadPetInfo(petId);
+          await _loadPetInfo(petId, roomId: roomId);
         }
       }());
     }
@@ -1997,7 +2052,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          AppLocalizations.of(context)!.feedUploadFailed(error.toString()),
+          AppLocalizations.of(
+            context,
+          )!.feedUploadFailed(userFacingError(context, error)),
         ),
       ),
     );
@@ -2060,6 +2117,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _openPetNameEditor() async {
     final petId = _petId;
+    final roomId = _roomId;
     if (petId == null) {
       if (!mounted) {
         return;
@@ -2148,13 +2206,17 @@ class _HomeViewState extends ConsumerState<HomeView>
               .toList(growable: false);
         }
       });
-      unawaited(_loadPetInfo(petId));
+      unawaited(_loadPetInfo(petId, roomId: roomId));
     } catch (error) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.petNameUpdateFailed(error.toString()))),
+        SnackBar(
+          content: Text(
+            l10n.petNameUpdateFailed(userFacingError(context, error)),
+          ),
+        ),
       );
     }
   }
@@ -2257,6 +2319,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.transparent,
+        barrierDismissible: true,
+        barrierLabel: l10n.commonClose,
         pageBuilder: (context, animation, secondaryAnimation) =>
             PetDepartureNoteView(
               heroTag: _departureHeroTag(info.petId),
@@ -2309,7 +2373,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.petActionFailed(error.toString()))),
+          SnackBar(
+            content: Text(
+              l10n.petActionFailed(userFacingError(context, error)),
+            ),
+          ),
         );
       }
       return;
@@ -2444,7 +2512,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _loadPetInfo(String petId) async {
+  Future<void> _loadPetInfo(String petId, {String? roomId}) async {
+    final expectedRoomId = roomId ?? _roomId;
     try {
       final row = await Supabase.instance.client
           .from('pets')
@@ -2466,16 +2535,23 @@ class _HomeViewState extends ConsumerState<HomeView>
         _petType = resolvedPetType;
         return;
       }
+      if (expectedRoomId != null && _roomId != expectedRoomId) {
+        return;
+      }
+      final activePetId = _petId;
+      if (activePetId != null && activePetId != petId) {
+        return;
+      }
       setState(() {
         _petName = name;
         _petLevel = level;
         _petExp = exp;
         _petType = resolvedPetType;
-        final roomId = _roomId;
-        if (roomId != null) {
+        final activeRoomId = _roomId;
+        if (activeRoomId != null) {
           _myRooms = _myRooms
               .map(
-                (room) => room['id'] == roomId
+                (room) => room['id'] == activeRoomId
                     ? {...room, 'pet_type': resolvedPetType}
                     : room,
               )
@@ -2863,7 +2939,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _furnitureError = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(error.toString());
+        )!.storeLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -2916,7 +2992,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _furnitureError = AppLocalizations.of(
             context,
-          )!.storeLoadFailed(error.toString());
+          )!.storeLoadFailed(userFacingError(context, error));
         });
       }
     }
@@ -3125,7 +3201,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _backgroundError = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(error.toString());
+        )!.storeLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -3158,7 +3234,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _backgroundError = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(error.toString());
+        )!.storeLoadFailed(userFacingError(context, error));
       });
     }
   }
@@ -3450,7 +3526,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         _activeFurnitureForRoom().removeWhere((entry) => entry.id == item.id);
         _furnitureError = AppLocalizations.of(
           context,
-        )!.storePurchaseFailed(error.toString());
+        )!.storePurchaseFailed(userFacingError(context, error));
       });
     }
   }
@@ -3473,7 +3549,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _furnitureError = AppLocalizations.of(
             context,
-          )!.storeLoadFailed(error.toString());
+          )!.storeLoadFailed(userFacingError(context, error));
         });
       }
       final roomId = _roomId;
@@ -3506,7 +3582,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _furnitureError = AppLocalizations.of(
             context,
-          )!.storeLoadFailed(error.toString());
+          )!.storeLoadFailed(userFacingError(context, error));
         });
       }
       unawaited(_loadRoomFurniture(roomId));
@@ -3818,12 +3894,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       // Refresh state and rewards immediately after clean action
       await _refreshPetState();
       await _loadCoins(expectedReward: actualReward);
-      await _loadPetInfo(petId);
+      await _loadPetInfo(petId, roomId: roomId);
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
           context,
-        )!.petActionFailed(error.toString()),
+        )!.petActionFailed(userFacingError(context, error)),
       );
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -3831,6 +3907,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildDraggablePet(Size fieldSize) {
+    if (!_petStateReady) {
+      return _buildPetLoadingPlaceholder();
+    }
     if (_petDeparted) {
       return _buildDepartedPetPlaceholder();
     }
@@ -3863,6 +3942,19 @@ class _HomeViewState extends ConsumerState<HomeView>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPetLoadingPlaceholder() {
+    return SizedBox(
+      width: _petAvatarSize.width,
+      height: _petAvatarSize.height,
+      child: Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Colors.white.withValues(alpha: 0.7),
         ),
       ),
     );
@@ -4059,10 +4151,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget build(BuildContext context) {
     final overlayStyle = _currentOverlayStyle();
     if (_loadingRoom) {
-      return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: overlayStyle,
-        child: const Scaffold(body: Center(child: CircularProgressIndicator())),
-      );
+      return const LaunchView();
     }
 
     final bottomInset = MediaQuery.of(context).padding.bottom;
@@ -4147,13 +4236,24 @@ class _HomeViewState extends ConsumerState<HomeView>
                   Builder(
                     builder: (context) {
                       final l10n = AppLocalizations.of(context)!;
-                      final level = _petLevel ?? 17;
+                      final level = _petLevel;
                       final exp = _petExp ?? 0;
                       final petDefinition = PetCatalog.byId(_petType);
-                      final expProgressValue = expProgress(
-                        level: level,
-                        exp: exp,
-                      );
+                      final expProgressValue = level == null
+                          ? 0.0
+                          : expProgress(level: level, exp: exp);
+                      final roomPetName =
+                          _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+                                (room) => room?['id'] == _roomId,
+                                orElse: () => null,
+                              )?['pet_name']
+                              as String?;
+                      final resolvedPetName =
+                          (_petName?.trim().isNotEmpty ?? false)
+                          ? _petName!.trim()
+                          : ((roomPetName?.trim().isNotEmpty ?? false)
+                                ? roomPetName!.trim()
+                                : l10n.petNameUnnamed);
                       final healthDebugValue = (_petState?['hunger'] as num?)
                           ?.round();
                       return HomeGameStatusBar(
@@ -4164,9 +4264,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                         ),
                         expProgress: expProgressValue,
                         level: level,
-                        petName: (_petName == null || _petName!.trim().isEmpty)
-                            ? '貪吃鬼鬼'
-                            : _petName!.trim(),
+                        petName: resolvedPetName,
                         healthValue: _healthValue(),
                         healthDebugValue: healthDebugValue,
                         coins: _coins,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/user_avatar.dart';
 
 class BlockedUsersSheet extends StatefulWidget {
@@ -100,7 +101,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.blockedUsersLoadFailed(error.toString());
+        )!.blockedUsersLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -169,7 +170,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
           content: Text(
             AppLocalizations.of(
               context,
-            )!.blockedUserUnblockFailed(error.toString()),
+            )!.blockedUserUnblockFailed(userFacingError(context, error)),
           ),
         ),
       );

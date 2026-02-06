@@ -226,6 +226,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commonUser => 'ユーザー';
 
   @override
+  String get errorInvalidInviteCode => '招待コードが無効か期限切れです。';
+
+  @override
+  String get errorNetwork => '通信エラーです。接続を確認して再試行してください。';
+
+  @override
+  String get errorNotFound => '対象のデータが見つかりませんでした。';
+
+  @override
+  String get errorPermissionDenied => 'この操作を実行する権限がありません。';
+
+  @override
+  String get errorPetNameInvalid => 'そのペット名は使用できません。別の名前を入力してください。';
+
+  @override
+  String get errorUnexpected => '問題が発生しました。もう一度お試しください。';
+
+  @override
   String currencyJpy(Object amount) {
     return 'JPY $amount';
   }

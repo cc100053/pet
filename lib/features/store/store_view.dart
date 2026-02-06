@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -143,7 +144,7 @@ class _StoreViewState extends State<StoreView> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(error.toString());
+        )!.storeLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -202,7 +203,7 @@ class _StoreViewState extends State<StoreView> {
         _iapConfigured = false;
         _iapError = AppLocalizations.of(
           context,
-        )!.storeIapUnavailable(error.toString());
+        )!.storeIapUnavailable(userFacingError(context, error));
         _packagesByProductId.clear();
         _activeEntitlements = {};
       });
@@ -433,7 +434,9 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.storePurchaseFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.storePurchaseFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -524,7 +527,9 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.storePurchaseFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.storePurchaseFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -687,7 +692,9 @@ class _StoreViewState extends State<StoreView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.storePurchaseFailed(error.toString()),
+            AppLocalizations.of(
+              context,
+            )!.storePurchaseFailed(userFacingError(context, error)),
           ),
         ),
       );
@@ -786,7 +793,6 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
-
   Future<void> _restorePurchases() async {
     if (_iapLoading) {
       return;
@@ -816,7 +822,7 @@ class _StoreViewState extends State<StoreView> {
       setState(() {
         _iapError = AppLocalizations.of(
           context,
-        )!.storeRestoreFailed(error.toString());
+        )!.storeRestoreFailed(userFacingError(context, error));
       });
       AnalyticsService.instance.logEvent(
         'restore_purchases_result',
@@ -845,9 +851,12 @@ class _StoreViewState extends State<StoreView> {
       .toList(growable: false);
 
   List<StoreItem> get _iapDiamondPackItems {
-    final items =
-        _iapConsumableItems.where((item) => item.isDiamondIap).toList();
-    items.sort((a, b) => (a.diamondAmount ?? 0).compareTo(b.diamondAmount ?? 0));
+    final items = _iapConsumableItems
+        .where((item) => item.isDiamondIap)
+        .toList();
+    items.sort(
+      (a, b) => (a.diamondAmount ?? 0).compareTo(b.diamondAmount ?? 0),
+    );
     return items;
   }
 
@@ -1193,10 +1202,12 @@ class _StoreViewState extends State<StoreView> {
         !isOwned &&
         canAffordDiamonds &&
         item.priceDiamonds != null;
-    final canBuyCoins =
-        isLetter ? baseCanBuyCoins && _hasDepartedPets : baseCanBuyCoins;
-    final canBuyDiamonds =
-        isLetter ? baseCanBuyDiamonds && _hasDepartedPets : baseCanBuyDiamonds;
+    final canBuyCoins = isLetter
+        ? baseCanBuyCoins && _hasDepartedPets
+        : baseCanBuyCoins;
+    final canBuyDiamonds = isLetter
+        ? baseCanBuyDiamonds && _hasDepartedPets
+        : baseCanBuyDiamonds;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
