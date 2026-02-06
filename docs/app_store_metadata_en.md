@@ -2,7 +2,7 @@ App Store Connect Metadata (English)
 
 App Information
 
-Name: PicPet
+Name: PetTomo
 Subtitle: Social Photo Pet Game
 Privacy Policy URL: https://your-domain.com/privacy
 
@@ -12,9 +12,9 @@ Promotional Text (Max 170 chars)
 > Raise a digital pet with real photos! Invite friends to a shared room, snap pictures to feed your pet, and watch it grow together. The cutest social pet game is here!
 
 Description
-PicPet is the first social pet game powered by your real-world photos!
+PetTomo is the first social pet game powered by your real-world photos!
 
-Turn your daily snaps into pet food and magic moments. PicPet isn't just a game; it's a shared experience where you and your friends, partner, or family can raise a unique digital companion together.
+Turn your daily snaps into pet food and magic moments. PetTomo isn't just a game; it's a shared experience where you and your friends, partner, or family can raise a unique digital companion together.
 
 Key Features:
 
@@ -24,7 +24,7 @@ AI-Powered Interactions: Our smart pet recognizes what you show it. Discover dif
 Watch It Grow: Start with an egg and nurture your pet through different stages. Your care determines its growth and personality.
 Social Log: Keep a shared memory of your best moments. Every feeding photo becomes a part of your shared history.
 
-Join the fun and start raising your PicPet today!
+Join the fun and start raising your PetTomo today!
 
 Keywords
 pet, game, social, raise, photo, camera, ai, cat, dog, cute, tamagotchi, widget, shared, couple, friends, multiplayer, care, virtual, feeding
