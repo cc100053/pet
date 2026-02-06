@@ -1012,6 +1012,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomLeaveConfirm => '離開房間';
 
   @override
+  String get roomLockedBadge => '已鎖定';
+
+  @override
+  String get roomLockedTitle => '此房間在免費方案已鎖定';
+
+  @override
+  String get roomLockedMessage => '免費方案僅可保留最早的 2 個房間可互動。升級 Pro 可在此房間繼續餵食與成長。';
+
+  @override
   String get petDepartureNoteMessage => '為什麼要這樣對我...';
 
   @override
@@ -2075,6 +2084,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomLeaveConfirm => '離開房間';
+
+  @override
+  String get roomLockedBadge => '已鎖定';
+
+  @override
+  String get roomLockedTitle => '此房間在免費方案已鎖定';
+
+  @override
+  String get roomLockedMessage => '免費方案僅可保留最早的 2 個房間可互動。升級 Pro 可在此房間繼續餵食與成長。';
 
   @override
   String get petDepartureNoteMessage => '為什麼要這樣對我...';

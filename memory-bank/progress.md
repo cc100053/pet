@@ -1,6 +1,10 @@
 # Progress
 
 ## Done
+- Added a persistent locked-room prompt inside Pet Home (with Store CTA) and blocked pet-home interactions while locked until the room unlocks.
+- Refined Return Letter pet picker UX: departed-pet selection now uses rounded button-style rows with each pet's icon shown next to the localized pet name, and departed pet metadata now carries `petType` so the selector can render the correct pet image.
+- Removed the “Starter/入門” badge from pet selection cards to simplify the new-room pet picker UI.
+- Implemented legacy room locking for Free users: room membership is now ordered by oldest joined/created timestamp, only the first 2 rooms remain interactive, feed/growth actions are blocked in locked rooms, and room cards show a localized lock badge.
 - Improved Store theme-item UX: background cards now use real background thumbnail previews as icons and include a dedicated preview mode dialog before purchase.
 - Localized all active store item names/descriptions by SKU in client UI (store + room inventory), removed "Emoji" wording from furniture labels, and applied a migration to normalize base DB item labels accordingly.
 - Removed legacy store items from active catalog (Snack Pack, Clean Kit, Cozy Room Wallpaper, Sky Window Theme, Test Background) via migration and aligned seed defaults to keep them hidden after reseed.

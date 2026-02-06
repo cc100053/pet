@@ -12,6 +12,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../home/room_backgrounds.dart';
+import '../pet/pet_catalog.dart';
 import '../pet/pet_departure.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
@@ -415,12 +416,68 @@ class _StoreViewState extends State<StoreView> {
           child: ListView.separated(
             shrinkWrap: true,
             itemCount: _departedPets.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final pet = _departedPets[index];
-              return ListTile(
-                title: Text(pet.petName),
-                onTap: () => Navigator.of(context).pop(pet),
+              final petDefinition = PetCatalog.byId(pet.petType);
+              return Material(
+                color: Colors.transparent,
+                child: Ink(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: petDefinition.accent.withValues(alpha: 0.28),
+                    ),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.38),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.of(context).pop(pet),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              color: petDefinition.accent.withValues(
+                                alpha: 0.14,
+                              ),
+                              alignment: Alignment.center,
+                              child: Image.asset(
+                                petDefinition.stayAsset,
+                                width: 34,
+                                height: 34,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              pet.petName,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 16,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               );
             },
           ),

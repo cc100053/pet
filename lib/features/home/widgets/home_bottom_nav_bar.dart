@@ -116,7 +116,7 @@ class _CameraButton extends StatelessWidget {
       color: Colors.transparent,
       shape: const CircleBorder(),
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         customBorder: const CircleBorder(),
         splashColor: Colors.black.withValues(alpha: 0.12),
         highlightColor: Colors.black.withValues(alpha: 0.08),

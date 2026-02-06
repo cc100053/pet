@@ -195,18 +195,22 @@ class RoomSelectionView extends StatelessWidget {
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
+    final isLocked = room['is_locked'] == true;
     final latestPhoto = room['latest_photo'] as String?;
     final latestCaption = (room['latest_caption'] as String? ?? '').trim();
     final latestSenderId = room['latest_sender_id'] as String?;
-    final senderAvatar =
-        latestSenderId == null ? null : userAvatarById[latestSenderId];
-    final senderName =
-        latestSenderId == null ? null : userNameById[latestSenderId];
+    final senderAvatar = latestSenderId == null
+        ? null
+        : userAvatarById[latestSenderId];
+    final senderName = latestSenderId == null
+        ? null
+        : userNameById[latestSenderId];
     final petName = (room['pet_name'] as String?)?.trim();
     final petType = room['pet_type'] as String?;
     final petDefinition = PetCatalog.byId(petType);
-    final displayName =
-        petName == null || petName.isEmpty ? petDefinition.name(l10n) : petName;
+    final displayName = petName == null || petName.isEmpty
+        ? petDefinition.name(l10n)
+        : petName;
     final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
     return Material(
       color: Colors.transparent,
@@ -221,7 +225,9 @@ class RoomSelectionView extends StatelessWidget {
             color: _filmBase,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isSelected ? AppTheme.textPrimary : Colors.black12,
+              color: isSelected
+                  ? AppTheme.textPrimary
+                  : (isLocked ? Colors.black38 : Colors.black12),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: [
@@ -232,44 +238,84 @@ class RoomSelectionView extends StatelessWidget {
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: IgnorePointer(
-                    child: HomePolaroidMemoryFrame(
-                      imageUrl: latestPhoto ?? '',
-                      caption: latestCaption,
-                      userLabel: '',
-                      senderAvatar: senderAvatar,
-                      senderFallbackText: senderName,
-                    ),
-                  ),
-                ),
-                const Gap(8),
-                Row(
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                      child: IgnorePointer(
+                        child: HomePolaroidMemoryFrame(
+                          imageUrl: latestPhoto ?? '',
+                          caption: latestCaption,
+                          userLabel: '',
+                          senderAvatar: senderAvatar,
+                          senderFallbackText: senderName,
                         ),
                       ),
                     ),
-                    const Gap(6),
-                    _buildPetIcon(petDefinition.stayAsset),
-                    const Gap(6),
-                    _RoomHealthBar(value: healthValue),
+                    const Gap(8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                          ),
+                        ),
+                        const Gap(6),
+                        _buildPetIcon(petDefinition.stayAsset),
+                        const Gap(6),
+                        _RoomHealthBar(value: healthValue),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              if (isLocked)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                  ),
+                ),
+              if (isLocked)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      l10n.roomLockedBadge,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -292,9 +338,9 @@ class RoomSelectionView extends StatelessWidget {
       ),
       builder: (context) {
         final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            );
+          fontWeight: FontWeight.w700,
+          color: AppTheme.textPrimary,
+        );
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
@@ -307,9 +353,9 @@ class RoomSelectionView extends StatelessWidget {
                 petName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
               ),
               const Gap(16),
               _RoomActionTile(
@@ -459,9 +505,7 @@ class _RoomHealthBar extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 widthFactor: clamped,
-                child: Container(
-                  color: const Color(0xFFed8787),
-                ),
+                child: Container(color: const Color(0xFFed8787)),
               ),
             ),
           ),
@@ -497,18 +541,16 @@ class _RoomActionTile extends StatelessWidget {
           child: Ink(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.black.withValues(alpha: 0.08),
-              ),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
             ),
             child: ListTile(
               leading: Icon(icon, color: color),
               title: Text(
                 label,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: color,
-                    ),
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
             ),
           ),

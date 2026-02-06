@@ -583,6 +583,9 @@
     }
   },
   "roomLeaveConfirm": "離開房間",
+  "roomLockedBadge": "已鎖定",
+  "roomLockedTitle": "此房間在免費方案已鎖定",
+  "roomLockedMessage": "免費方案僅可保留最早的 2 個房間可互動。升級 Pro 可在此房間繼續餵食與成長。",
   "roomLeaveSuccess": "已離開房間。",
   "roomLeaveFailed": "離開房間失敗：{error}",
   "@roomLeaveFailed": {

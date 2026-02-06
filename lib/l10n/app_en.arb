@@ -590,6 +590,9 @@
     }
   },
   "roomLeaveConfirm": "Leave room",
+  "roomLockedBadge": "LOCKED",
+  "roomLockedTitle": "Room locked on Free plan",
+  "roomLockedMessage": "Only your first 2 rooms stay active on Free. Upgrade to Pro to feed and grow pets in this room.",
   "roomLeaveSuccess": "Left the room.",
   "roomLeaveFailed": "Failed to leave room: {error}",
   "@roomLeaveFailed": {

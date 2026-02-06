@@ -30,6 +30,7 @@ class ChatRoomView extends StatefulWidget {
     this.petAssetPath,
     this.isDarkBackground = false,
     this.isPetDeparted = false,
+    this.isRoomLocked = false,
   });
 
   final String roomId;
@@ -39,6 +40,7 @@ class ChatRoomView extends StatefulWidget {
   final String? petAssetPath;
   final bool isDarkBackground;
   final bool isPetDeparted;
+  final bool isRoomLocked;
 
   @override
   State<ChatRoomView> createState() => _ChatRoomViewState();
@@ -178,6 +180,24 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   }
 
   Future<void> _openFeedCamera() async {
+    if (widget.isRoomLocked) {
+      final l10n = AppLocalizations.of(context)!;
+      await showAppDialog<void>(
+        context: context,
+        builder: (context) => AppDialog(
+          tone: AppDialogTone.info,
+          title: l10n.roomLockedTitle,
+          message: l10n.roomLockedMessage,
+          actions: [
+            AppDialogAction.primary(
+              label: l10n.commonClose,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     if (widget.isPetDeparted) {
       final l10n = AppLocalizations.of(context)!;
       await showAppDialog<void>(
@@ -379,7 +399,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                     child: Row(
                       children: [
                         IconButton(
-                          onPressed: _sending ? null : _openFeedCamera,
+                          onPressed: (_sending || widget.isRoomLocked)
+                              ? null
+                              : _openFeedCamera,
                           icon: SvgPicture.asset(
                             'assets/icon/solar--camera-linear.svg',
                             width: 26,

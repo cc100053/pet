@@ -1877,6 +1877,24 @@ abstract class AppLocalizations {
   /// **'Leave room'**
   String get roomLeaveConfirm;
 
+  /// No description provided for @roomLockedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCKED'**
+  String get roomLockedBadge;
+
+  /// No description provided for @roomLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Room locked on Free plan'**
+  String get roomLockedTitle;
+
+  /// No description provided for @roomLockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Only your first 2 rooms stay active on Free. Upgrade to Pro to feed and grow pets in this room.'**
+  String get roomLockedMessage;
+
   /// No description provided for @petDepartureNoteMessage.
   ///
   /// In en, this message translates to:

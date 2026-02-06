@@ -590,6 +590,9 @@
     }
   },
   "roomLeaveConfirm": "退出する",
+  "roomLockedBadge": "LOCKED",
+  "roomLockedTitle": "このルームは無料プランでロック中",
+  "roomLockedMessage": "無料プランでは参加・作成が古い順で最初の2ルームのみ利用できます。Proにアップグレードすると、このルームでもフィードと成長アクションを使えます。",
   "roomLeaveSuccess": "ルームを退出しました。",
   "roomLeaveFailed": "退出に失敗しました：{error}",
   "@roomLeaveFailed": {

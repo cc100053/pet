@@ -1035,6 +1035,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomLeaveConfirm => 'Leave room';
 
   @override
+  String get roomLockedBadge => 'LOCKED';
+
+  @override
+  String get roomLockedTitle => 'Room locked on Free plan';
+
+  @override
+  String get roomLockedMessage =>
+      'Only your first 2 rooms stay active on Free. Upgrade to Pro to feed and grow pets in this room.';
+
+  @override
   String get petDepartureNoteMessage => 'Why treat me like this...';
 
   @override

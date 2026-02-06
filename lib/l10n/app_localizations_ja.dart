@@ -1013,6 +1013,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomLeaveConfirm => '退出する';
 
   @override
+  String get roomLockedBadge => 'LOCKED';
+
+  @override
+  String get roomLockedTitle => 'このルームは無料プランでロック中';
+
+  @override
+  String get roomLockedMessage =>
+      '無料プランでは参加・作成が古い順で最初の2ルームのみ利用できます。Proにアップグレードすると、このルームでもフィードと成長アクションを使えます。';
+
+  @override
   String get petDepartureNoteMessage => 'どうしてこんな扱いをするの…';
 
   @override

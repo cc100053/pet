@@ -78,8 +78,9 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                     child: Row(
                       children: [
                         IconButton(
-                          tooltip:
-                              MaterialLocalizations.of(context).backButtonTooltip,
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).backButtonTooltip,
                           icon: const Icon(Icons.arrow_back_rounded),
                           color: AppTheme.textPrimary,
                           onPressed: () => Navigator.of(context).pop(),
@@ -114,21 +115,21 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                       ),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: 0.8,
-                      ),
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 0.8,
+                          ),
                       itemCount: pets.length,
                       itemBuilder: (context, index) {
                         final pet = pets[index];
                         final isSelected = pet.id == _selectedPetId;
                         return _buildPetCard(
-                          context,
-                          pet: pet,
-                          isSelected: isSelected,
-                          l10n: l10n,
-                        )
+                              context,
+                              pet: pet,
+                              isSelected: isSelected,
+                              l10n: l10n,
+                            )
                             .animate()
                             .fadeIn(delay: (80 * index).ms)
                             .slideY(begin: 0.08, end: 0);
@@ -150,8 +151,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                             )
                           : Text(
                               l10n.petSelectionSelected(
-                                PetCatalog.byId(_selectedPetId)
-                                    .name(l10n),
+                                PetCatalog.byId(_selectedPetId).name(l10n),
                               ),
                               key: const ValueKey('petSelectionSelected'),
                               style: theme.textTheme.bodySmall?.copyWith(
@@ -167,8 +167,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                       onPressed: _selectedPetId == null
                           ? null
                           : () {
-                              final selected =
-                                  PetCatalog.byId(_selectedPetId);
+                              final selected = PetCatalog.byId(_selectedPetId);
                               Navigator.of(context).pop(selected);
                             },
                       child: Text(l10n.petSelectionConfirm),
@@ -191,8 +190,9 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
   }) {
     final theme = Theme.of(context);
     final borderColor = isSelected ? pet.accent : Colors.black12;
-    final shadowColor =
-        isSelected ? pet.accent.withValues(alpha: 0.2) : Colors.black12;
+    final shadowColor = isSelected
+        ? pet.accent.withValues(alpha: 0.2)
+        : Colors.black12;
 
     return Material(
       color: Colors.transparent,
@@ -221,28 +221,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: pet.isStarter
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: pet.accent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          l10n.petSelectionStarterBadge,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: pet.accent,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      )
-                    : const SizedBox(height: 22),
-              ),
+              const SizedBox(height: 22),
               const Gap(8),
               Expanded(
                 child: Container(

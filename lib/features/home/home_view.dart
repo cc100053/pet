@@ -654,10 +654,10 @@ class _HomeViewState extends ConsumerState<HomeView>
 
       final responses = await Supabase.instance.client
           .from('room_members')
-          .select('room_id, role, rooms(invite_code)')
+          .select('room_id, role, joined_at, rooms(invite_code, created_at)')
           .eq('user_id', userId)
           .eq('is_active', true)
-          .order('joined_at', ascending: false);
+          .order('joined_at', ascending: true);
 
       final List<Map<String, dynamic>> rooms = [];
       for (final r in responses) {
@@ -667,6 +667,8 @@ class _HomeViewState extends ConsumerState<HomeView>
             'id': r['room_id'],
             'invite_code': roomData['invite_code'],
             'role': r['role'],
+            'joined_at': r['joined_at'],
+            'room_created_at': roomData['created_at'],
           });
         }
       }
@@ -708,14 +710,15 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       _syncMessageSubscriptions(roomIds);
+      final sortedRooms = _applyLegacyRoomLocking(rooms);
 
       setState(() {
-        _myRooms = rooms;
+        _myRooms = sortedRooms;
         if (rooms.isEmpty) {
           _showRoomSelection = true;
           _roomSelectionId = null;
         } else {
-          _roomSelectionId ??= _roomId ?? rooms.first['id'] as String?;
+          _roomSelectionId ??= _roomId ?? sortedRooms.first['id'] as String?;
         }
       });
       for (final senderId in senderIds) {
@@ -724,10 +727,10 @@ class _HomeViewState extends ConsumerState<HomeView>
 
       if (_roomId != null) {}
 
-      if (rooms.isNotEmpty) {
+      if (sortedRooms.isNotEmpty) {
         // If no room selected, or selected room not in list, select first
-        if (_roomId == null || !rooms.any((r) => r['id'] == _roomId)) {
-          _switchRoom(rooms.first['id'] as String);
+        if (_roomId == null || !sortedRooms.any((r) => r['id'] == _roomId)) {
+          _switchRoom(sortedRooms.first['id'] as String);
         }
       }
     } catch (_) {
@@ -758,6 +761,71 @@ class _HomeViewState extends ConsumerState<HomeView>
       return false;
     }
     return _memberCountForRoom(roomId) <= 1;
+  }
+
+  DateTime _legacyRoomSortTimestamp(Map<String, dynamic> room) {
+    final joinedAt = DateTime.tryParse(room['joined_at'] as String? ?? '');
+    final createdAt = DateTime.tryParse(
+      room['room_created_at'] as String? ?? '',
+    );
+    return joinedAt ??
+        createdAt ??
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  }
+
+  List<Map<String, dynamic>> _applyLegacyRoomLocking(
+    List<Map<String, dynamic>> rooms,
+  ) {
+    final sorted = rooms.map((room) => {...room}).toList(growable: false)
+      ..sort((a, b) {
+        final aTime = _legacyRoomSortTimestamp(a);
+        final bTime = _legacyRoomSortTimestamp(b);
+        final byTime = aTime.compareTo(bTime);
+        if (byTime != 0) {
+          return byTime;
+        }
+        final aId = a['id'] as String? ?? '';
+        final bId = b['id'] as String? ?? '';
+        return aId.compareTo(bId);
+      });
+
+    for (var i = 0; i < sorted.length; i++) {
+      sorted[i]['legacy_order_index'] = i;
+      sorted[i]['is_locked'] = !_debugProPlan && i >= _freePlanRoomLimit;
+    }
+    return sorted;
+  }
+
+  bool _isRoomLocked(String? roomId) {
+    if (roomId == null || _debugProPlan) {
+      return false;
+    }
+    for (final room in _myRooms) {
+      if (room['id'] == roomId) {
+        return room['is_locked'] == true;
+      }
+    }
+    return false;
+  }
+
+  bool get _isCurrentRoomLocked => _isRoomLocked(_roomId);
+
+  Future<void> _showRoomLockedDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showAppDialog<void>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.info,
+        title: l10n.roomLockedTitle,
+        message: l10n.roomLockedMessage,
+        actions: [
+          AppDialogAction.primary(
+            label: l10n.commonClose,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   bool get _shouldShowNewRoomInvitePrompt {
@@ -1879,6 +1947,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _applyPetAction(String action) async {
     final roomId = _roomId;
     if (roomId == null) return;
+    if (_isRoomLocked(roomId)) {
+      await _showRoomLockedDialog();
+      return;
+    }
     if (_petDeparted) {
       final info = _currentDepartedPetInfo();
       if (info != null) {
@@ -1928,6 +2000,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _openFeedCamera() async {
     final roomId = _roomId;
     if (roomId == null) return;
+    if (_isRoomLocked(roomId)) {
+      await _showRoomLockedDialog();
+      return;
+    }
     if (_petDeparted) {
       final l10n = AppLocalizations.of(context)!;
       await showAppDialog<void>(
@@ -2076,6 +2152,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final petAssetPath = PetCatalog.byId(_petType).stayAsset;
     final backgroundDecoration = _currentBackgroundDefinition().decoration;
     final isDarkBackground = _currentBackgroundDefinition().isDark;
+    final isRoomLocked = _isRoomLocked(roomId);
 
     Navigator.of(context)
         .push(
@@ -2089,6 +2166,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   : petName,
               petAssetPath: petAssetPath,
               isPetDeparted: _petDeparted,
+              isRoomLocked: isRoomLocked,
             ),
           ),
         )
@@ -2259,6 +2337,20 @@ class _HomeViewState extends ConsumerState<HomeView>
     return AppLocalizations.of(context)!.petNameUnknown;
   }
 
+  String _resolvePetTypeForRoom(String roomId) {
+    if (roomId == _roomId) {
+      return PetCatalog.resolveId(_petType);
+    }
+    for (final room in _myRooms) {
+      if (room['id'] != roomId) {
+        continue;
+      }
+      final type = room['pet_type'] as String?;
+      return PetCatalog.resolveId(type);
+    }
+    return PetCatalog.defaultPetId;
+  }
+
   void _handlePetDepartureState({
     required String roomId,
     required String petId,
@@ -2288,6 +2380,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       petId: petId,
       roomId: roomId,
       petName: _resolvePetNameForRoom(roomId),
+      petType: _resolvePetTypeForRoom(roomId),
     );
     _departedPetsByRoom[roomId] = info;
 
@@ -3649,10 +3742,77 @@ class _HomeViewState extends ConsumerState<HomeView>
                   bottom: 12,
                   child: _buildFurnitureEditHint(),
                 ),
+              if (_isCurrentRoomLocked)
+                Positioned.fill(
+                  child: AbsorbPointer(
+                    absorbing: true,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_isCurrentRoomLocked)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 12,
+                  child: _buildLockedRoomHomePrompt(),
+                ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildLockedRoomHomePrompt() {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.black87, width: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_rounded, size: 18, color: Colors.black87),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.roomLockedMessage,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.2,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: () => unawaited(_openStoreFromNav()),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 34),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(l10n.storeTitle),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3859,6 +4019,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _cleanPoopAt(int index) async {
     final roomId = _roomId;
     if (roomId == null) return;
+    if (_isRoomLocked(roomId)) {
+      await _showRoomLockedDialog();
+      return;
+    }
     if (_petDeparted) {
       final info = _currentDepartedPetInfo();
       if (info != null) {
@@ -4333,7 +4497,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                       onCamera: _openFeedCamera,
                       onStore: _openStoreFromNav,
                       onChat: _openChatRoom,
-                      cameraEnabled: !_petDeparted,
+                      cameraEnabled: !_petDeparted && !_isCurrentRoomLocked,
                     ),
                   ),
                 ],
@@ -4593,7 +4757,10 @@ class _HomeViewState extends ConsumerState<HomeView>
               _debugProPlan ? l10n.drawerProPlan : l10n.drawerFreePlan,
             ),
             value: _debugProPlan,
-            onChanged: (value) => setState(() => _debugProPlan = value),
+            onChanged: (value) => setState(() {
+              _debugProPlan = value;
+              _myRooms = _applyLegacyRoomLocking(_myRooms);
+            }),
           ),
           ListTile(
             title: Text(l10n.drawerDebugHungerDown),
