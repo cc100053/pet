@@ -26,11 +26,13 @@ class _RoomPetSummary {
     required this.petType,
     required this.healthValue,
     required this.petName,
+    required this.petLevel,
   });
 
   final String petType;
   final double healthValue;
   final String? petName;
+  final int? petLevel;
 }
 
 class _PlacedFurniture {

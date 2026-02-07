@@ -7,6 +7,7 @@ class AppSettingsRepository {
 
   static const String _boxName = 'app_settings';
   static const String _preferredLocaleKey = 'preferred_locale_tag';
+  static const String _debugProPlanEnabledKey = 'debug_pro_plan_enabled';
 
   Box<dynamic>? _box;
 
@@ -23,5 +24,12 @@ class AppSettingsRepository {
     } else {
       await _box?.put(_preferredLocaleKey, tag);
     }
+  }
+
+  bool get debugProPlanEnabled =>
+      (_box?.get(_debugProPlanEnabledKey) as bool?) ?? false;
+
+  Future<void> setDebugProPlanEnabled(bool enabled) async {
+    await _box?.put(_debugProPlanEnabledKey, enabled);
   }
 }

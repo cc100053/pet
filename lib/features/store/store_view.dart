@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -1077,9 +1078,27 @@ class _StoreViewState extends State<StoreView> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Chip(label: Text(l10n.storeDiamondsLabel(_diamonds))),
+                    _CurrencyBalanceChip(
+                      amount: _diamonds,
+                      icon: Icon(
+                        Icons.diamond_rounded,
+                        size: 16,
+                        color: _diamondColor,
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    Chip(label: Text(l10n.storeCoinsLabel(_coins))),
+                    _CurrencyBalanceChip(
+                      amount: _coins,
+                      icon: SvgPicture.asset(
+                        'assets/icon/icon-park--candy.svg',
+                        width: 16,
+                        height: 16,
+                        colorFilter: ColorFilter.mode(
+                          Colors.amber.shade700,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1334,22 +1353,16 @@ class _StoreViewState extends State<StoreView> {
                     ),
                   )
                 else if (isDiamondPack && item.diamondAmount != null)
-                  Text(
-                    l10n.storeDiamondsReward(item.diamondAmount!),
-                    style: TextStyle(
-                      color: packColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                  _CurrencyDeltaLabel(
+                    amount: item.diamondAmount!,
+                    icon: Icons.diamond_rounded,
+                    color: packColor,
                   )
                 else if (item.coinAmount != null)
-                  Text(
-                    l10n.storeCoinsReward(item.coinAmount!),
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                  _CurrencyDeltaLabel(
+                    amount: item.coinAmount!,
+                    icon: Icons.monetization_on_rounded,
+                    color: Colors.amber.shade700,
                   ),
 
                 Text(
@@ -1560,7 +1573,7 @@ class _StoreViewState extends State<StoreView> {
             children: [
               if (item.priceCoins != null)
                 _CurrencyBuyButton(
-                  label: l10n.storeBuyWithCandies(item.priceCoins!),
+                  amount: item.priceCoins!,
                   icon: Icons.monetization_on_rounded,
                   color: Colors.amber,
                   enabled: canBuyCoins,
@@ -1579,7 +1592,7 @@ class _StoreViewState extends State<StoreView> {
                 const SizedBox(height: 6),
               if (item.priceDiamonds != null)
                 _CurrencyBuyButton(
-                  label: l10n.storeBuyWithDiamonds(item.priceDiamonds!),
+                  amount: item.priceDiamonds!,
                   icon: Icons.diamond_rounded,
                   color: _diamondColor,
                   enabled: canBuyDiamonds,
@@ -1697,7 +1710,7 @@ class _StoreViewState extends State<StoreView> {
             children: [
               if (item.priceCoins != null)
                 _CurrencyBuyButton(
-                  label: l10n.storeBuyWithCandies(item.priceCoins!),
+                  amount: item.priceCoins!,
                   icon: Icons.monetization_on_rounded,
                   color: Colors.amber,
                   enabled: canBuyCoins,
@@ -1707,7 +1720,7 @@ class _StoreViewState extends State<StoreView> {
                 const SizedBox(height: 6),
               if (item.priceDiamonds != null)
                 _CurrencyBuyButton(
-                  label: l10n.storeBuyWithDiamonds(item.priceDiamonds!),
+                  amount: item.priceDiamonds!,
                   icon: Icons.diamond_rounded,
                   color: _diamondColor,
                   enabled: canBuyDiamonds,
@@ -2015,14 +2028,14 @@ class _SectionHeader extends StatelessWidget {
 
 class _CurrencyBuyButton extends StatelessWidget {
   const _CurrencyBuyButton({
-    required this.label,
+    required this.amount,
     required this.icon,
     required this.color,
     required this.enabled,
     required this.onPressed,
   });
 
-  final String label;
+  final int amount;
   final IconData icon;
   final Color color;
   final bool enabled;
@@ -2036,7 +2049,7 @@ class _CurrencyBuyButton extends StatelessWidget {
         onPressed: enabled ? onPressed : null,
         icon: Icon(icon, size: 16),
         label: Text(
-          label,
+          '$amount',
           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
         ),
         style: FilledButton.styleFrom(
@@ -2047,6 +2060,55 @@ class _CurrencyBuyButton extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
+    );
+  }
+}
+
+class _CurrencyBalanceChip extends StatelessWidget {
+  const _CurrencyBalanceChip({required this.amount, required this.icon});
+
+  final int amount;
+  final Widget icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      labelPadding: const EdgeInsets.only(left: 2, right: 2),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [icon, const SizedBox(width: 4), Text('$amount')],
+      ),
+    );
+  }
+}
+
+class _CurrencyDeltaLabel extends StatelessWidget {
+  const _CurrencyDeltaLabel({
+    required this.amount,
+    required this.icon,
+    required this.color,
+  });
+
+  final int amount;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          '+$amount',
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -667,7 +667,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get roomSelectionCreatePet => 'Create New Pet';
+  String get roomSelectionCreatePet => 'Create New Room';
 
   @override
   String get roomSelectionCreating => 'Creating...';

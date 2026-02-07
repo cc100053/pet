@@ -20,8 +20,6 @@ Key Features:
 
 Snap to Feed: Don't just tap a button—take a photo! Your pet recognizes real-world objects. A photo of a coffee might give it a caffeine boost, while a flower makes it happy!
 Shared Rooms: Create a room and invite your friends. Co-parent your pet, decorate your shared space, and see who takes the best care of your little companion.
-AI-Powered Interactions: Our smart pet recognizes what you show it. Discover different reactions and unlock special rewards based on what you photograph.
-Watch It Grow: Start with an egg and nurture your pet through different stages. Your care determines its growth and personality.
 Social Log: Keep a shared memory of your best moments. Every feeding photo becomes a part of your shared history.
 
 Join the fun and start raising your PetTomo today!

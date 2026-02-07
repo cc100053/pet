@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/status_bar_style.dart';
@@ -95,11 +96,18 @@ class PetDepartureNoteView extends StatelessWidget {
                             child: Container(
                               width: width,
                               height: cardHeight,
-                              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                20,
+                                24,
+                                24,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFFF7E6),
                                 borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: const Color(0xFFE8D8B5)),
+                                border: Border.all(
+                                  color: const Color(0xFFE8D8B5),
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.2),
@@ -146,7 +154,8 @@ class PetDepartureNoteView extends StatelessWidget {
                                                         ),
                                                     child: Text(
                                                       noteText,
-                                                      textAlign: TextAlign.center,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       style: petNoteStyle,
                                                     ),
                                                   ),
@@ -177,55 +186,80 @@ class PetDepartureNoteView extends StatelessWidget {
                                                           l10n.petDepartureGuideTitle,
                                                           textAlign:
                                                               TextAlign.center,
-                                                          style: Theme.of(
-                                                            context,
-                                                          ).textTheme.titleSmall?.copyWith(
-                                                            color: const Color(
-                                                              0xFF4A3B2A,
-                                                            ),
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                          ),
+                                                          style: Theme.of(context)
+                                                              .textTheme
+                                                              .titleSmall
+                                                              ?.copyWith(
+                                                                color:
+                                                                    const Color(
+                                                                      0xFF4A3B2A,
+                                                                    ),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
                                                         ),
-                                                        const SizedBox(height: 8),
+                                                        const SizedBox(
+                                                          height: 8,
+                                                        ),
                                                         Text(
                                                           l10n.petDepartureGuideMessage,
                                                           textAlign:
                                                               TextAlign.center,
-                                                          style: Theme.of(
-                                                            context,
-                                                          ).textTheme.bodySmall?.copyWith(
-                                                            color: const Color(
-                                                              0xFF4A3B2A,
-                                                            ),
-                                                            height: 1.4,
-                                                          ),
+                                                          style: Theme.of(context)
+                                                              .textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                                color:
+                                                                    const Color(
+                                                                      0xFF4A3B2A,
+                                                                    ),
+                                                                height: 1.4,
+                                                              ),
                                                         ),
-                                                        const SizedBox(height: 20),
-                                                        ElevatedButton(
-                                                          onPressed:
-                                                              onReturnPressed,
-                                                          style: ElevatedButton.styleFrom(
-                                                            backgroundColor:
-                                                                const Color(
-                                                                  0xFF4A3B2A,
+                                                        const SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        Tooltip(
+                                                          message: l10n
+                                                              .petDepartureGuideGoStore,
+                                                          child: SizedBox(
+                                                            width: 64,
+                                                            height: 44,
+                                                            child: ElevatedButton(
+                                                              onPressed:
+                                                                  onReturnPressed,
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    const Color(
+                                                                      0xFF4A3B2A,
+                                                                    ),
+                                                                foregroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .zero,
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        12,
+                                                                      ),
                                                                 ),
-                                                            foregroundColor:
-                                                                Colors.white,
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal: 32,
-                                                                  vertical: 12,
-                                                                ),
-                                                            shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    12,
-                                                                  ),
+                                                              ),
+                                                              child: SvgPicture.asset(
+                                                                'assets/icon/icon-park-outline--shopping-bag.svg',
+                                                                width: 20,
+                                                                height: 20,
+                                                                colorFilter:
+                                                                    const ColorFilter.mode(
+                                                                      Colors
+                                                                          .white,
+                                                                      BlendMode
+                                                                          .srcIn,
+                                                                    ),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          child: Text(
-                                                            l10n.petDepartureGuideGoStore,
                                                           ),
                                                         ),
                                                       ],

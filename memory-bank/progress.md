@@ -1,6 +1,28 @@
 # Progress
 
 ## Done
+- Restyled the left side drawer to a warmer card-based visual style and simplified it to only four user-facing options: Profile, Language, Debug Tools, and Sign Out.
+- Restyled the sign-in page to a more playful card-based layout with decorative background shapes, integrated the app icon (`assets/app/PetTomo_appicon.png`), and removed the non-user-facing sign-in reminder note text from the UI.
+- Updated the Store top-right candy balance chip to use the same candy SVG icon (`assets/icon/icon-park--candy.svg`) as Home HUD for visual consistency.
+- Updated PetDepartureNoteView store action style from a circular icon chip to a rounded rectangle icon button for stronger CTA affordance.
+- Updated Store currency presentation to icon-first format: candy/diamond text labels were replaced with currency icons + numeric amounts in the top balance chips and purchase price buttons/reward tags.
+- Changed the pet departure letter "Go to Store" action to an icon-only button using the same store icon as Home nav/lock prompt (tooltip keeps localized label).
+- Refined room selection memory cards to a two-zone layout: the latest photo now keeps a fixed top media area while caption text lives in a separate bottom zone; long captions truncate with ellipsis so they no longer compress photo height.
+- Tuned room selection memory cards per design feedback: description supports 2 lines while keeping fixed top media-zone height, with a taller photo ratio and deeper avatar overlap into the image area.
+- Increased room-selection grid card height to prevent second caption line clipping in the two-zone memory card layout.
+- Updated room selection card footer to include `Lv` status and replaced the horizontal health bar with a 12-o'clock circular health ring showing numeric health in the center, improving pet-name space without changing name font or pet icon size.
+- Refined room selection footer layout: moved the `Lv` badge under the circular health ring into a compact vertical status stack and matched the pet-home badge visual style.
+- Updated room selection footer again per UX feedback: `Lv` badge now floats above/overlays the pet icon while the circular health ring remains separate.
+- Updated room selection primary CTA wording from “Create New Pet” to “Create New Room” across EN/JA/zh localizations.
+- Adjusted Pet Home HUD alignment: health bar now lines up with the pet name bar, currency pill lines up with the invite chip row, and both health/currency bars share the same width for consistent length.
+- Unified candy reward animation triggering across pet actions: `feed`, `touch`, and `clean_poop` now all drive the same `+X` animation when coin balance actually increases (cooldown/no-reward cases remain silent), with robust RPC reward parsing.
+- Fixed missing `+X` animation on `touch`/`clean_poop`: reward actions now skip `_refreshPetState`'s generic coin reload and use only reward-aware coin reload, preventing delta consumption before animation trigger.
+- Re-anchored the Pet Home `+X` reward bubble to the candy section inside the currency pill so the rise-up animation remains visually aligned after moving the currency bar layout.
+- Refined Room Selection primary CTA visual treatment: enforced rounded clipping to remove rectangular background bleed and increased gradient/shadow contrast so “Create New Room” pops more.
+- Adjusted Room Selection primary CTA color back to theme green gradient while keeping the rounded clipping fix and elevated contrast treatment.
+- Center-aligned the left lock icon in the locked-room Pet Home prompt row to match the store CTA icon alignment.
+- Updated the locked-room Pet Home prompt layout for long locales: message now supports 3 lines and the Store CTA is icon-only (with tooltip) instead of text.
+- Added a one-time status bar refresh when entering Pet Selection and pinned the page overlay style to light to prevent stale status-bar appearance from previous screens.
 - Pinned `purchases_flutter`/`purchases_ui_flutter` to `9.10.6` (from `9.11.0`) to avoid unresolved CocoaPods `PurchasesHybridCommon 17.31.0` in offline environments; full pod refresh now requires networked `pod repo update`.
 - Raised iOS minimum deployment target from 13.0 to 15.0 in `ios/Podfile` and `ios/Runner.xcodeproj/project.pbxproj` to satisfy upgraded RevenueCat dependency requirements (`PurchasesHybridCommon` via `purchases_flutter`).
 - Upgraded app dependencies to latest major resolvable versions (including Riverpod 3, Firebase 4/12/5/16, Google Fonts 8, Sign in with Apple 7, image picker patches, timezone 0.10.1, and url_launcher_web 2.4.2), then migrated code for breaking API changes (`flutter_local_notifications` named params, Riverpod legacy import for `StateNotifierProvider`, dotenv test loading, and chat lint cleanup).
@@ -244,6 +266,7 @@
 - Refined room selection cards to show the room name with pet icon and health bar (removed mood dots).
 - Added debug drawer tools for currency boosts, plan toggle, and pet state tweaks; removed the refresh pet debug action.
 - Fixed room creation cap to apply only on Free Plan so debug Pro Plan toggle can create 3+ rooms.
+- Persisted debug Pro Plan toggle in app settings so plan state survives app refresh/restart.
 - Removed room name UI and logic; room creation now uses pet name and room selection/chat/leave flows display pet names.
 - Fixed hunger decay accumulation by preserving `last_decay_at` when no decay is applied in `tick_pet_state`.
 - Added client-side pet departure detection (note + recovery letter flow) and wired departed pets into the Store return flow.

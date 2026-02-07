@@ -417,6 +417,9 @@ class _RightCluster extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const double rowLeftInset = 10;
+    const double rowTopInset = 14;
+    const double rowGap = 10;
+    const double statusWidth = 176;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -425,27 +428,37 @@ class _RightCluster extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: rowLeftInset),
-              child: _HealthBar(
-                value: healthValue,
-                debugValue: healthDebugValue,
+              padding: const EdgeInsets.only(
+                left: rowLeftInset,
+                top: rowTopInset,
+              ),
+              child: SizedBox(
+                width: statusWidth,
+                child: _HealthBar(
+                  value: healthValue,
+                  debugValue: healthDebugValue,
+                ),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: rowGap),
             Padding(
               padding: const EdgeInsets.only(left: rowLeftInset),
-              child: _CombinedCurrencyPill(
-                coins: coins,
-                diamonds: diamonds,
-                coinReward: coinReward,
-                coinRewardEventId: coinRewardEventId,
-                onStoreTap: onStoreTap,
+              child: SizedBox(
+                width: statusWidth,
+                child: _CombinedCurrencyPill(
+                  coins: coins,
+                  diamonds: diamonds,
+                  coinReward: coinReward,
+                  coinRewardEventId: coinRewardEventId,
+                  onStoreTap: onStoreTap,
+                  expandToWidth: true,
+                ),
               ),
             ),
           ],
         ),
         const Positioned(
-          top: -9,
+          top: 4,
           left: -2,
           child: Icon(
             Icons.favorite_rounded,
@@ -577,6 +590,7 @@ class _CombinedCurrencyPill extends StatefulWidget {
     required this.coinRewardEventId,
     required this.onStoreTap,
     this.coinReward,
+    this.expandToWidth = false,
   });
 
   final int coins;
@@ -584,6 +598,7 @@ class _CombinedCurrencyPill extends StatefulWidget {
   final int? coinReward;
   final int coinRewardEventId;
   final VoidCallback onStoreTap;
+  final bool expandToWidth;
 
   @override
   State<_CombinedCurrencyPill> createState() => _CombinedCurrencyPillState();
@@ -697,7 +712,13 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
             onTap: widget.onStoreTap,
             borderRadius: BorderRadius.circular(999),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 5, 16, 5),
+              width: widget.expandToWidth ? double.infinity : null,
+              padding: EdgeInsets.fromLTRB(
+                10,
+                5,
+                widget.expandToWidth ? 10 : 16,
+                5,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.92),
                 borderRadius: BorderRadius.circular(999),
@@ -711,7 +732,9 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                 ],
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize: widget.expandToWidth
+                    ? MainAxisSize.max
+                    : MainAxisSize.min,
                 children: [
                   // Diamonds Part
                   Row(
@@ -744,54 +767,95 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                   AnimatedBuilder(
                     animation: _bounceAnimation,
                     builder: (context, child) {
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
+                      return Stack(
+                        clipBehavior: Clip.none,
                         children: [
-                          Transform.scale(
-                            scale: _bounceAnimation.value,
-                            child: SvgPicture.asset(
-                              'assets/icon/icon-park--candy.svg',
-                              width: 16,
-                              height: 16,
-                              colorFilter: const ColorFilter.mode(
-                                AppTheme.secondaryColor,
-                                BlendMode.srcIn,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Transform.scale(
+                                scale: _bounceAnimation.value,
+                                child: SvgPicture.asset(
+                                  'assets/icon/icon-park--candy.svg',
+                                  width: 16,
+                                  height: 16,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppTheme.secondaryColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ),
+                              const Gap(4),
+                              Text(
+                                '${widget.coins}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  height: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_displayReward != null)
+                            Positioned(
+                              right: -10,
+                              top: -20,
+                              child: SlideTransition(
+                                position: _floatOffset,
+                                child: FadeTransition(
+                                  opacity: _floatOpacity,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.secondaryColor,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppTheme.secondaryColor
+                                              .withValues(alpha: 0.4),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '+$_displayReward',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                        height: 1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                          const Gap(4),
-                          Text(
-                            '${widget.coins}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                              height: 1,
-                            ),
-                          ),
                         ],
                       );
                     },
                   ),
+                  if (widget.expandToWidth) const Spacer(),
                   const Gap(6),
-                  Transform.translate(
-                    offset: const Offset(8, 0),
-                    child: SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: Center(
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEE6D85),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black87, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            size: 10,
-                            color: Colors.white,
-                          ),
+                  SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: Center(
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEE6D85),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.black87, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 10,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -801,45 +865,6 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
             ),
           ),
         ),
-
-        // Floating "+X" text
-        if (_displayReward != null)
-          Positioned(
-            right: 0,
-            top: -20,
-            child: SlideTransition(
-              position: _floatOffset,
-              child: FadeTransition(
-                opacity: _floatOpacity,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.secondaryColor.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    '+$_displayReward',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                      color: Colors.white,
-                      height: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }

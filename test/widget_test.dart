@@ -15,8 +15,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('PicPet'), findsOneWidget);
-    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.text('PetTomo'), findsOneWidget);
+    expect(find.bySemanticsLabel('Continue with Google'), findsOneWidget);
     expect(find.text('Continue with Apple'), findsOneWidget);
   });
 }

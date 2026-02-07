@@ -652,7 +652,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get roomSelectionCreatePet => '建立新寵物';
+  String get roomSelectionCreatePet => '建立新房間';
 
   @override
   String get roomSelectionCreating => '建立中...';
@@ -1729,7 +1729,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get roomSelectionCreatePet => '建立新寵物';
+  String get roomSelectionCreatePet => '建立新房間';
 
   @override
   String get roomSelectionCreating => '建立中...';

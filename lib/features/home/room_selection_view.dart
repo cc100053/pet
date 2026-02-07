@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -41,7 +41,7 @@ class RoomSelectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalSlots = max(4, rooms.length + 1);
+    final totalSlots = math.max(4, rooms.length + 1);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -129,7 +129,7 @@ class RoomSelectionView extends StatelessWidget {
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: 0.82,
+                    childAspectRatio: 0.76,
                   ),
                   itemCount: totalSlots,
                   itemBuilder: (context, index) {
@@ -212,6 +212,7 @@ class RoomSelectionView extends StatelessWidget {
         ? petDefinition.name(l10n)
         : petName;
     final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
+    final petLevel = (room['pet_level'] as num?)?.toInt();
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -253,6 +254,12 @@ class RoomSelectionView extends StatelessWidget {
                           userLabel: '',
                           senderAvatar: senderAvatar,
                           senderFallbackText: senderName,
+                          fixedMediaZone: true,
+                          mediaZoneFraction: 0.64,
+                          photoAspectRatio: 1.45,
+                          captionMaxLines: 2,
+                          avatarOverlapOffset: -2,
+                          captionTopInset: 24,
                         ),
                       ),
                     ),
@@ -272,9 +279,12 @@ class RoomSelectionView extends StatelessWidget {
                           ),
                         ),
                         const Gap(6),
-                        _buildPetIcon(petDefinition.stayAsset),
+                        _RoomPetIconWithFloatingLevel(
+                          assetPath: petDefinition.stayAsset,
+                          level: petLevel,
+                        ),
                         const Gap(6),
-                        _RoomHealthBar(value: healthValue),
+                        _RoomHealthRing(value: healthValue),
                       ],
                     ),
                   ],
@@ -425,25 +435,31 @@ class RoomSelectionView extends StatelessWidget {
   }
 
   Widget _buildPrimaryCta(BuildContext context, AppLocalizations l10n) {
+    final radius = BorderRadius.circular(28);
     return Opacity(
       opacity: creatingRoom ? 0.6 : 1,
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: creatingRoom ? null : onCreateRoom,
-          borderRadius: BorderRadius.circular(28),
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.35),
-                  blurRadius: 22,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            gradient: AppTheme.primaryGradient,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.42),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: InkWell(
+            onTap: creatingRoom ? null : onCreateRoom,
+            borderRadius: radius,
+            splashColor: Colors.white.withValues(alpha: 0.2),
+            highlightColor: Colors.white.withValues(alpha: 0.08),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
@@ -463,55 +479,131 @@ class RoomSelectionView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildPetIcon(String assetPath) {
+class _RoomPetIconWithFloatingLevel extends StatelessWidget {
+  const _RoomPetIconWithFloatingLevel({
+    required this.assetPath,
+    required this.level,
+  });
+
+  final String assetPath;
+  final int? level;
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
-      width: 22,
-      height: 22,
-      child: Image.asset(
-        assetPath,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-        gaplessPlayback: true,
+      width: 28,
+      height: 28,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 22,
+            height: 22,
+            child: Image.asset(
+              assetPath,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              gaplessPlayback: true,
+            ),
+          ),
+          Positioned(top: 26, child: _RoomLevelBadge(level: level)),
+        ],
       ),
     );
   }
 }
 
-class _RoomHealthBar extends StatelessWidget {
-  const _RoomHealthBar({required this.value});
+class _RoomHealthRing extends StatelessWidget {
+  const _RoomHealthRing({required this.value});
 
   final double value;
 
   @override
   Widget build(BuildContext context) {
     final clamped = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
+    final healthNumber = (clamped * 100).round();
     return SizedBox(
-      width: 70,
-      height: 12,
+      width: 28,
+      height: 28,
       child: Stack(
+        alignment: Alignment.center,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.black87, width: 1.5),
-            ),
+          CustomPaint(
+            size: const Size.square(28),
+            painter: _RoomHealthRingPainter(progress: clamped),
           ),
-          Padding(
-            padding: const EdgeInsets.all(1.5),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                widthFactor: clamped,
-                child: Container(color: const Color(0xFFed8787)),
-              ),
+          Text(
+            '$healthNumber',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimary,
+              height: 1.0,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _RoomLevelBadge extends StatelessWidget {
+  const _RoomLevelBadge({required this.level});
+
+  final int? level;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      level == null ? 'Lv --' : 'Lv $level',
+      style: const TextStyle(
+        fontWeight: FontWeight.w900,
+        fontSize: 10,
+        color: AppTheme.secondaryColor,
+        height: 1,
+      ),
+    );
+  }
+}
+
+class _RoomHealthRingPainter extends CustomPainter {
+  _RoomHealthRingPainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final strokeWidth = 3.0;
+    final radius = (size.shortestSide - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final trackPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = Colors.black26;
+    canvas.drawArc(rect, 0, math.pi * 2, false, trackPaint);
+
+    final progressPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFFed8787);
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      math.pi * 2 * progress,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoomHealthRingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 

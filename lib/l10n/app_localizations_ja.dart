@@ -652,7 +652,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get roomSelectionCreatePet => '新しいペットを作成';
+  String get roomSelectionCreatePet => '新しいルームを作成';
 
   @override
   String get roomSelectionCreating => '作成中...';

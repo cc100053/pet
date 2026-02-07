@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:flutter/services.dart';
 
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/status_bar_style.dart';
 import 'pet_catalog.dart';
 
 class PetSelectionPage extends StatefulWidget {
@@ -40,6 +42,7 @@ class PetSelectionPage extends StatefulWidget {
 
 class _PetSelectionPageState extends State<PetSelectionPage> {
   String? _selectedPetId;
+  bool _didRefreshStatusBar = false;
 
   @override
   void initState() {
@@ -48,135 +51,155 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didRefreshStatusBar) {
+      return;
+    }
+    _didRefreshStatusBar = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      SystemChrome.setSystemUIOverlayStyle(AppStatusBarStyles.light);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final pets = PetCatalog.pets;
 
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
-        body: Stack(
-          children: [
-            Positioned(
-              top: -90,
-              right: -40,
-              child: _bubble(size: 200, opacity: 0.5),
-            ),
-            Positioned(
-              bottom: 140,
-              left: -60,
-              child: _bubble(size: 220, opacity: 0.4),
-            ),
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 20, 8),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).backButtonTooltip,
-                          icon: const Icon(Icons.arrow_back_rounded),
-                          color: AppTheme.textPrimary,
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        Expanded(
-                          child: Text(
-                            l10n.petSelectionTitle,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                    child: Text(
-                      l10n.petSelectionSubtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: 0.8,
-                          ),
-                      itemCount: pets.length,
-                      itemBuilder: (context, index) {
-                        final pet = pets[index];
-                        final isSelected = pet.id == _selectedPetId;
-                        return _buildPetCard(
-                              context,
-                              pet: pet,
-                              isSelected: isSelected,
-                              l10n: l10n,
-                            )
-                            .animate()
-                            .fadeIn(delay: (80 * index).ms)
-                            .slideY(begin: 0.08, end: 0);
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                    child: AnimatedSwitcher(
-                      duration: 200.ms,
-                      child: _selectedPetId == null
-                          ? Text(
-                              l10n.petSelectionHint,
-                              key: const ValueKey('petSelectionHint'),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            )
-                          : Text(
-                              l10n.petSelectionSelected(
-                                PetCatalog.byId(_selectedPetId).name(l10n),
-                              ),
-                              key: const ValueKey('petSelectionSelected'),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppTheme.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: FilledButton(
-                      onPressed: _selectedPetId == null
-                          ? null
-                          : () {
-                              final selected = PetCatalog.byId(_selectedPetId);
-                              Navigator.of(context).pop(selected);
-                            },
-                      child: Text(l10n.petSelectionConfirm),
-                    ),
-                  ),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: AppStatusBarStyles.light,
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
+          backgroundColor: AppTheme.backgroundColor,
+          body: Stack(
+            children: [
+              Positioned(
+                top: -90,
+                right: -40,
+                child: _bubble(size: 200, opacity: 0.5),
               ),
-            ),
-          ],
+              Positioned(
+                bottom: 140,
+                left: -60,
+                child: _bubble(size: 220, opacity: 0.4),
+              ),
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 20, 8),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).backButtonTooltip,
+                            icon: const Icon(Icons.arrow_back_rounded),
+                            color: AppTheme.textPrimary,
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          Expanded(
+                            child: Text(
+                              l10n.petSelectionTitle,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      child: Text(
+                        l10n.petSelectionSubtitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 0.8,
+                            ),
+                        itemCount: pets.length,
+                        itemBuilder: (context, index) {
+                          final pet = pets[index];
+                          final isSelected = pet.id == _selectedPetId;
+                          return _buildPetCard(
+                                context,
+                                pet: pet,
+                                isSelected: isSelected,
+                                l10n: l10n,
+                              )
+                              .animate()
+                              .fadeIn(delay: (80 * index).ms)
+                              .slideY(begin: 0.08, end: 0);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                      child: AnimatedSwitcher(
+                        duration: 200.ms,
+                        child: _selectedPetId == null
+                            ? Text(
+                                l10n.petSelectionHint,
+                                key: const ValueKey('petSelectionHint'),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppTheme.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            : Text(
+                                l10n.petSelectionSelected(
+                                  PetCatalog.byId(_selectedPetId).name(l10n),
+                                ),
+                                key: const ValueKey('petSelectionSelected'),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: FilledButton(
+                        onPressed: _selectedPetId == null
+                            ? null
+                            : () {
+                                final selected = PetCatalog.byId(
+                                  _selectedPetId,
+                                );
+                                Navigator.of(context).pop(selected);
+                              },
+                        child: Text(l10n.petSelectionConfirm),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

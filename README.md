@@ -33,3 +33,18 @@ or run it with elevated permissions.
 - OAuth providers (Google/Apple) must be configured in Supabase.
 - The current UI is a Phase 0 scaffold: auth gate + profile stub.
 - Testing helpers: see `docs/testing.md`.
+
+## HTML pages are now live on Firebase Hosting.
+
+- Privacy Policy (English): https://pet-app-702be.web.app/privacy_policy.html
+- Support (English): https://pet-app-702be.web.app/support.html
+- Privacy Policy (Traditional Chinese): https://pet-app-702be.web.app/privacy_policy_zh_TW.html
+- Support (Traditional Chinese): https://pet-app-702be.web.app/support_zh_TW.html
+- Privacy Policy (Japanese): https://pet-app-702be.web.app/privacy_policy_ja.html
+- Support (Japanese): https://pet-app-702be.web.app/support_ja.html
+
+## Deploying Web Pages
+To update the HTML pages (privacy policy, support), run:
+```bash
+firebase deploy --only hosting
+```

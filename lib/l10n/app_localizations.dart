@@ -1232,7 +1232,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomSelectionCreatePet.
   ///
   /// In en, this message translates to:
-  /// **'Create New Pet'**
+  /// **'Create New Room'**
   String get roomSelectionCreatePet;
 
   /// No description provided for @roomSelectionCreating.

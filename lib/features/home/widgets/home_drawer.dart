@@ -10,35 +10,17 @@ import '../../../shared/localization/app_locale_controller.dart';
 import '../../../shared/localization/language_selector_sheet.dart';
 
 class HomeDrawer extends ConsumerWidget {
-  final List<Map<String, dynamic>> rooms;
-  final String? currentRoomId;
   final String? userAvatarUrl;
-  final VoidCallback onNavigateToRoomSelection;
-  final VoidCallback onCreateRoom;
-  final VoidCallback onJoinRoom;
   final VoidCallback onProfileTap;
-  final Function(String roomId) onCalendarTap;
-  final VoidCallback onStoreTap;
-  final VoidCallback onInventoryTap;
   final VoidCallback onSignOut;
   final Widget? debugActions;
-  final bool isProPlan;
 
   const HomeDrawer({
     super.key,
-    required this.rooms,
-    required this.currentRoomId,
     this.userAvatarUrl,
-    required this.onNavigateToRoomSelection,
-    required this.onCreateRoom,
-    required this.onJoinRoom,
     required this.onProfileTap,
-    required this.onCalendarTap,
-    required this.onStoreTap,
-    required this.onInventoryTap,
     required this.onSignOut,
     this.debugActions,
-    this.isProPlan = false,
   });
 
   @override
@@ -48,7 +30,7 @@ class HomeDrawer extends ConsumerWidget {
     final localeState = ref.watch(appLocaleProvider);
 
     return Drawer(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: const Color(0xFFFFF8ED),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(32),
@@ -57,125 +39,76 @@ class HomeDrawer extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Premium Header
           Container(
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
-            decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+            padding: const EdgeInsets.fromLTRB(24, 56, 24, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFD89A), Color(0xFFFFB56A)],
+              ),
+            ),
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: UserAvatar(
-                    avatar: userAvatarUrl,
-                    fallbackText: userId?.substring(0, 1),
-                    size: 72,
-                  ),
-                ),
-                const Gap(16),
-                Text(
-                  l10n.drawerMyRooms,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Gap(4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    (isProPlan ? l10n.drawerProPlan : l10n.drawerFreePlan)
-                        .toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 1.0,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.28),
+                        shape: BoxShape.circle,
+                      ),
+                      child: UserAvatar(
+                        avatar: userAvatarUrl,
+                        fallbackText: userId?.substring(0, 1),
+                        size: 56,
+                      ),
                     ),
+                    const Gap(12),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset('assets/app/PetTomo_appicon.png'),
+                    ),
+                  ],
+                ),
+                const Gap(14),
+                Text(
+                  'PetTomo',
+                  style: const TextStyle(
+                    fontSize: 23,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF3A2818),
+                  ),
+                ),
+                Text(
+                  l10n.profileTitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6C4D2F),
                   ),
                 ),
               ],
             ),
           ),
-
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
               children: [
-                // Quick Room Actions
                 _DrawerItem(
-                  icon: Icons.list_alt_rounded,
-                  title: l10n.roomSelectionTitle,
-                  subtitle: l10n.roomSelectionSubtitle,
-                  onTap: onNavigateToRoomSelection,
-                  isHighlight: true,
-                ),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(height: 1),
-                ),
-
-                _DrawerHeader(title: 'ACTIONS'),
-
-                _DrawerItem(
-                  icon: Icons.add_circle_outline,
-                  title: l10n.drawerCreateRoom,
-                  onTap: onCreateRoom,
-                ),
-                _DrawerItem(
-                  icon: Icons.meeting_room_outlined,
-                  title: l10n.drawerJoinWithCode,
-                  onTap: onJoinRoom,
-                ),
-
-                const Gap(24),
-                _DrawerHeader(title: 'UTILITIES'),
-
-                _DrawerItem(
-                  icon: Icons.calendar_month_outlined,
-                  title: l10n.calendarTitle,
-                  onTap: () {
-                    if (currentRoomId != null) {
-                      onCalendarTap(currentRoomId!);
-                    }
-                  },
-                ),
-                _DrawerItem(
-                  icon: Icons.storefront_outlined,
-                  title: l10n.storeTitle,
-                  onTap: onStoreTap,
-                ),
-                _DrawerItem(
-                  icon: Icons.chair_alt_outlined,
-                  title: l10n.furnitureInventoryTitle,
-                  subtitle: l10n.furnitureInventorySubtitle,
-                  onTap: onInventoryTap,
-                ),
-
-                const Gap(24),
-                _DrawerHeader(title: 'PREFERENCES'),
-
-                _DrawerItem(
-                  icon: Icons.person_outline,
+                  icon: Icons.account_circle_outlined,
                   title: l10n.drawerProfile,
                   onTap: onProfileTap,
+                  isPrimary: true,
                 ),
-
                 _DrawerItem(
                   icon: Icons.language_outlined,
                   title: l10n.languageTitle,
@@ -195,13 +128,18 @@ class HomeDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-
-                if (debugActions != null) ...[
-                  const Gap(24),
-                  _DrawerHeader(title: 'DEBUG'),
-                  debugActions!,
-                ],
-
+                if (debugActions != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: AppTheme.textSecondary.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: debugActions!,
+                  ),
                 _DrawerItem(
                   icon: Icons.logout_rounded,
                   title: l10n.commonSignOut,
@@ -231,33 +169,12 @@ class HomeDrawer extends ConsumerWidget {
   }
 }
 
-class _DrawerHeader extends StatelessWidget {
-  final String title;
-  const _DrawerHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 12, bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: AppTheme.textSecondary.withValues(alpha: 0.5),
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-}
-
 class _DrawerItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
-  final bool isHighlight;
+  final bool isPrimary;
   final Color? textColor;
   final Color? iconColor;
 
@@ -266,7 +183,7 @@ class _DrawerItem extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.onTap,
-    this.isHighlight = false,
+    this.isPrimary = false,
     this.textColor,
     this.iconColor,
   });
@@ -274,38 +191,42 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: isHighlight
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: isPrimary
           ? BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              ),
+              color: const Color(0xFFFFE7BF),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFFFC670)),
             )
-          : null,
+          : BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppTheme.textSecondary.withValues(alpha: 0.12),
+              ),
+            ),
       child: ListTile(
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: isHighlight
-                ? AppTheme.primaryColor.withValues(alpha: 0.1)
-                : Colors.transparent,
-            shape: BoxShape.circle,
+            color: isPrimary
+                ? const Color(0xFFFFC670).withValues(alpha: 0.25)
+                : const Color(0xFFFFF2DE),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
             color:
                 iconColor ??
-                (isHighlight ? AppTheme.primaryColor : AppTheme.textSecondary),
-            size: 22,
+                (isPrimary ? const Color(0xFF8A4D1D) : AppTheme.textSecondary),
+            size: 20,
           ),
         ),
         title: Text(
           title,
           style: TextStyle(
-            color: textColor ?? AppTheme.textPrimary,
-            fontWeight: isHighlight ? FontWeight.w600 : FontWeight.w500,
+            color: textColor ?? const Color(0xFF2F261F),
+            fontWeight: FontWeight.w700,
             fontSize: 15,
           ),
         ),
@@ -315,14 +236,14 @@ class _DrawerItem extends StatelessWidget {
                 style: TextStyle(
                   color:
                       textColor?.withValues(alpha: 0.7) ??
-                      AppTheme.textSecondary,
+                      const Color(0xFF7B6955),
                   fontSize: 12,
                 ),
               )
             : null,
         onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       ),
     );
   }

@@ -14,6 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
+import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
@@ -168,6 +169,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void initState() {
     super.initState();
+    _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
@@ -332,9 +334,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           _coinReward = null;
         }
 
-        // Trigger animation only for expected reward events that actually
-        // increased the balance.
-        if (normalizedExpected > 0 && newValue > oldValue) {
+        // Trigger animation for reward-expected loads only when the balance
+        // actually increased (cooldown/no-op stays quiet).
+        if (expectedReward != null && newValue > oldValue) {
           _coinReward = newValue - oldValue;
           _coinRewardEventId++;
           rewardEventIdToClear = _coinRewardEventId;
@@ -410,6 +412,32 @@ class _HomeViewState extends ConsumerState<HomeView>
     } catch (_) {
       // Best-effort debug tool.
     }
+  }
+
+  int _extractRewardAmount(dynamic payload) {
+    if (payload == null) {
+      return 0;
+    }
+    if (payload is int) {
+      return payload;
+    }
+    if (payload is num) {
+      return payload.round();
+    }
+    if (payload is String) {
+      return int.tryParse(payload) ?? 0;
+    }
+    if (payload is List) {
+      if (payload.isEmpty) {
+        return 0;
+      }
+      return _extractRewardAmount(payload.first);
+    }
+    if (payload is Map) {
+      final dynamic row = payload['coins_awarded'] ?? payload['reward'];
+      return _extractRewardAmount(row);
+    }
+    return 0;
   }
 
   Future<void> _debugAdjustPetHunger(int delta) async {
@@ -644,6 +672,21 @@ class _HomeViewState extends ConsumerState<HomeView>
     return _PetExpUpdate(level: nextLevel, exp: nextExp);
   }
 
+  Future<void> _setDebugProPlan(bool value) async {
+    if (_debugProPlan == value) {
+      return;
+    }
+    setState(() {
+      _debugProPlan = value;
+      _myRooms = _applyLegacyRoomLocking(_myRooms);
+    });
+    try {
+      await AppSettingsRepository.instance.setDebugProPlanEnabled(value);
+    } catch (error) {
+      debugPrint('[settings] failed to save debug pro plan: $error');
+    }
+  }
+
   Future<void> _fetchRooms() async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -692,6 +735,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             room['pet_type'] = summary.petType;
             room['pet_health'] = summary.healthValue;
             room['pet_name'] = summary.petName;
+            room['pet_level'] = summary.petLevel;
           }
           if (roomId != null && feeds.containsKey(roomId)) {
             final latest = feeds[roomId]!;
@@ -1646,7 +1690,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     final rows = await Supabase.instance.client
         .from('pets')
-        .select('room_id, name, color_dna, pet_state(hunger)')
+        .select('room_id, name, level, color_dna, pet_state(hunger)')
         .inFilter('room_id', roomIds);
 
     final summaries = <String, _RoomPetSummary>{};
@@ -1672,6 +1716,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         petType: petType,
         healthValue: _healthValueFromHunger(hunger),
         petName: (row['name'] as String?)?.trim(),
+        petLevel: row['level'] as int?,
       );
     }
     return summaries;
@@ -1799,7 +1844,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _refreshPetState({bool tick = false}) async {
+  Future<void> _refreshPetState({
+    bool tick = false,
+    bool refreshCoins = true,
+  }) async {
     final roomId = _roomId;
     if (roomId == null) return;
 
@@ -1866,7 +1914,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (mounted) setState(() => _petBusy = false);
     }
 
-    unawaited(_loadCoins());
+    if (refreshCoins) {
+      unawaited(_loadCoins());
+    }
   }
 
   void _subscribeToPetState(String petId) {
@@ -1981,9 +2031,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         'claim_action_reward',
         params: {'p_action_type': action, 'p_room_id': roomId},
       );
-      final actualReward = (reward as int?) ?? 0;
+      final actualReward = _extractRewardAmount(reward);
 
-      await _refreshPetState();
+      await _refreshPetState(refreshCoins: false);
       await _loadCoins(expectedReward: actualReward);
       await _loadPetInfo(petId, roomId: roomId);
     } catch (error) {
@@ -2646,7 +2696,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           _myRooms = _myRooms
               .map(
                 (room) => room['id'] == activeRoomId
-                    ? {...room, 'pet_type': resolvedPetType}
+                    ? {...room, 'pet_type': resolvedPetType, 'pet_level': level}
                     : room,
               )
               .toList();
@@ -3785,31 +3835,47 @@ class _HomeViewState extends ConsumerState<HomeView>
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Icon(Icons.lock_rounded, size: 18, color: Colors.black87),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               l10n.roomLockedMessage,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 height: 1.2,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: () => unawaited(_openStoreFromNav()),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(0, 34),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          const SizedBox(width: 6),
+          Tooltip(
+            message: l10n.storeTitle,
+            child: SizedBox(
+              width: 34,
+              height: 34,
+              child: FilledButton(
+                onPressed: () => unawaited(_openStoreFromNav()),
+                style: FilledButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: const CircleBorder(),
+                ),
+                child: SvgPicture.asset(
+                  'assets/icon/icon-park-outline--shopping-bag.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
             ),
-            child: Text(l10n.storeTitle),
           ),
         ],
       ),
@@ -4048,16 +4114,11 @@ class _HomeViewState extends ConsumerState<HomeView>
         params: {'p_pet_id': petId, 'p_poop_index': index},
       );
 
-      // Extract coins_awarded from the result
-      int actualReward = 0;
-      if (result is List && result.isNotEmpty) {
-        actualReward = (result[0]['coins_awarded'] as int?) ?? 0;
-      } else if (result is Map) {
-        actualReward = (result['coins_awarded'] as int?) ?? 0;
-      }
+      // Extract coins_awarded from the result shape safely.
+      final actualReward = _extractRewardAmount(result);
 
       // Refresh state and rewards immediately after clean action
-      await _refreshPetState();
+      await _refreshPetState(refreshCoins: false);
       await _loadCoins(expectedReward: actualReward);
       await _loadPetInfo(petId, roomId: roomId);
     } catch (error) {
@@ -4318,7 +4379,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (_loadingRoom) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
-        child: const Scaffold(body: ColoredBox(color: AppTheme.backgroundColor)),
+        child: const Scaffold(
+          body: ColoredBox(color: AppTheme.backgroundColor),
+        ),
       );
     }
 
@@ -4678,51 +4741,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget _buildSideDrawer() {
     final l10n = AppLocalizations.of(context)!;
     return HomeDrawer(
-      rooms: _myRooms,
-      currentRoomId: _roomId,
       userAvatarUrl: _myAvatarUrl,
-      isProPlan: _debugProPlan,
-      onNavigateToRoomSelection: () {
-        setState(() {
-          _roomSelectionId = _roomId;
-          _showRoomSelection = true;
-          _furnitureMode = false;
-          _selectedFurnitureItemId = null;
-        });
-        Navigator.pop(context);
-      },
-      onCreateRoom: () {
-        Navigator.pop(context);
-        _createRoom();
-      },
-      onJoinRoom: () {
-        if (!_joiningRoom) {
-          Navigator.pop(context);
-          _joinRoomByCode();
-        }
-      },
       onProfileTap: () {
         Navigator.pop(context);
         unawaited(_openProfile());
-      },
-      onCalendarTap: (roomId) {
-        Navigator.pop(context);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MemoryCalendarView(
-              roomId: roomId,
-              currentUserId: Supabase.instance.client.auth.currentUser?.id,
-            ),
-          ),
-        );
-      },
-      onStoreTap: () {
-        Navigator.pop(context);
-        unawaited(_openStoreWithDepartures());
-      },
-      onInventoryTap: () {
-        Navigator.pop(context);
-        _openFurnitureInventory();
       },
       onSignOut: _signOut,
       debugActions: ExpansionTile(
@@ -4760,10 +4782,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               _debugProPlan ? l10n.drawerProPlan : l10n.drawerFreePlan,
             ),
             value: _debugProPlan,
-            onChanged: (value) => setState(() {
-              _debugProPlan = value;
-              _myRooms = _applyLegacyRoomLocking(_myRooms);
-            }),
+            onChanged: (value) => unawaited(_setDebugProPlan(value)),
           ),
           ListTile(
             title: Text(l10n.drawerDebugHungerDown),
