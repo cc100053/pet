@@ -585,6 +585,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomInviteCta => '招待';
 
   @override
+  String get roomInventoryCta => '在庫';
+
+  @override
   String get roomInvitePromptTitle => '誰かを招待';
 
   @override

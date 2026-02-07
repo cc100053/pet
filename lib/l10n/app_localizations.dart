@@ -1115,6 +1115,12 @@ abstract class AppLocalizations {
   /// **'Invite'**
   String get roomInviteCta;
 
+  /// No description provided for @roomInventoryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get roomInventoryCta;
+
   /// No description provided for @roomInvitePromptTitle.
   ///
   /// In en, this message translates to:

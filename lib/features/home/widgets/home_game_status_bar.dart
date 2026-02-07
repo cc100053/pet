@@ -28,6 +28,8 @@ class HomeGameStatusBar extends StatelessWidget {
     this.onInviteTap,
     this.inviteLabel,
     this.inviteLoading = false,
+    this.onInventoryTap,
+    this.inventoryLabel,
   });
 
   final Widget petAvatar;
@@ -44,6 +46,8 @@ class HomeGameStatusBar extends StatelessWidget {
   final VoidCallback? onInviteTap;
   final String? inviteLabel;
   final bool inviteLoading;
+  final VoidCallback? onInventoryTap;
+  final String? inventoryLabel;
 
   /// When set, triggers the coin reward animation showing "+X" and bounce.
   /// Treated as a one-shot trigger; it can be cleared on the next frame.
@@ -72,6 +76,8 @@ class HomeGameStatusBar extends StatelessWidget {
               onInviteTap: onInviteTap,
               inviteLabel: inviteLabel,
               inviteLoading: inviteLoading,
+              onInventoryTap: onInventoryTap,
+              inventoryLabel: inventoryLabel,
             ),
           ),
           const Gap(8),
@@ -101,6 +107,8 @@ class _LeftCluster extends StatelessWidget {
     this.onInviteTap,
     this.inviteLabel,
     required this.inviteLoading,
+    this.onInventoryTap,
+    this.inventoryLabel,
   });
 
   final Widget petAvatar;
@@ -112,6 +120,8 @@ class _LeftCluster extends StatelessWidget {
   final VoidCallback? onInviteTap;
   final String? inviteLabel;
   final bool inviteLoading;
+  final VoidCallback? onInventoryTap;
+  final String? inventoryLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -204,12 +214,32 @@ class _LeftCluster extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (inviteLabel != null && onInviteTap != null) ...[
+                  if ((inviteLabel != null && onInviteTap != null) ||
+                      (inventoryLabel != null && onInventoryTap != null)) ...[
                     const Gap(6),
-                    _InviteChip(
-                      label: inviteLabel!,
-                      onTap: onInviteTap!,
-                      loading: inviteLoading,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (inviteLabel != null && onInviteTap != null)
+                          _ActionChip(
+                            label: inviteLabel!,
+                            onTap: onInviteTap!,
+                            loading: inviteLoading,
+                            icon: Icons.mail_outline_rounded,
+                          ),
+                        if (inviteLabel != null &&
+                            onInviteTap != null &&
+                            inventoryLabel != null &&
+                            onInventoryTap != null)
+                          const Gap(8),
+                        if (inventoryLabel != null && onInventoryTap != null)
+                          _ActionChip(
+                            label: inventoryLabel!,
+                            onTap: onInventoryTap!,
+                            icon: Icons.inventory_2_outlined,
+                            iconOnly: true,
+                          ),
+                      ],
                     ),
                   ],
                 ],
@@ -222,59 +252,73 @@ class _LeftCluster extends StatelessWidget {
   }
 }
 
-class _InviteChip extends StatelessWidget {
-  const _InviteChip({
+class _ActionChip extends StatelessWidget {
+  const _ActionChip({
     required this.label,
     required this.onTap,
-    required this.loading,
+    this.loading = false,
+    required this.icon,
+    this.iconOnly = false,
   });
 
   final String label;
   final VoidCallback onTap;
   final bool loading;
+  final IconData icon;
+  final bool iconOnly;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: loading ? null : onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: Colors.black87, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (loading)
-                const SizedBox(
-                  height: 12,
-                  width: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                const Icon(Icons.mail_outline_rounded, size: 14),
-              const Gap(6),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black,
+    return Tooltip(
+      message: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: loading ? null : onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: Ink(
+            padding: EdgeInsets.symmetric(
+              horizontal: iconOnly ? 9 : 10,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.black87, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 6),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (loading)
+                  const SizedBox(
+                    height: 12,
+                    width: 12,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Icon(icon, size: 14),
+                if (!iconOnly) ...[
+                  const Gap(6),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

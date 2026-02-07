@@ -340,6 +340,7 @@
   "roomRenameMessage": "Enter a new name for this room.",
   "roomDefaultName": "New Room",
   "roomInviteCta": "Invite",
+  "roomInventoryCta": "Inventory",
   "roomInvitePromptTitle": "Invite someone",
   "roomInvitePromptBody": "You're the only one here. Generate a code to invite someone.",
   "roomInvitePromptAction": "Generate code",

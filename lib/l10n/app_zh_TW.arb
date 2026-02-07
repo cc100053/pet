@@ -333,6 +333,7 @@
   "roomRenameMessage": "輸入新的房間名稱。",
   "roomDefaultName": "新房間",
   "roomInviteCta": "邀請",
+  "roomInventoryCta": "背包",
   "roomInvitePromptTitle": "邀請朋友",
   "roomInvitePromptBody": "目前只有你。產生邀請碼來邀請朋友加入。",
   "roomInvitePromptAction": "產生邀請碼",

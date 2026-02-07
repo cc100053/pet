@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -41,6 +42,7 @@ import 'widgets/home_drawer.dart';
 import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_game_status_bar.dart';
 import 'widgets/home_polaroid_memory_frame.dart';
+import 'widgets/photo_food.dart';
 
 part 'home_view_models.dart';
 
@@ -56,8 +58,13 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin {
   static const _petAvatarSize = Size(100, 100);
+  static const _photoFoodSize = Size(82, 82);
+  static const int _optimisticFeedRewardCoins = 10;
+  static const Duration _localFeedCooldownFallback = Duration(minutes: 10);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
+  static const Duration _foodDropDuration = Duration(milliseconds: 760);
+  static const Duration _foodBiteStepDuration = Duration(milliseconds: 280);
   static const Duration _idleThreshold = Duration(seconds: 8);
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
@@ -164,6 +171,16 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _latestFeedOptimisticPrevImageUrl;
   String? _latestFeedOptimisticPrevSenderId;
   String? _latestFeedOptimisticPrevCaption;
+  final Map<String, String> _optimisticFeedImageByTempId = {};
+  final Map<String, String> _optimisticFeedRoomByTempId = {};
+  final Map<String, int> _optimisticFeedCoinsByTempId = {};
+  final Map<String, _LocalFeedCooldown> _localFeedCooldownByRoom = {};
+  String? _photoFoodImageSource;
+  Offset? _photoFoodNormalizedPosition;
+  bool _photoFoodDropping = false;
+  int _photoFoodBiteStage = 0;
+  bool _petEating = false;
+  int _feedingAnimationToken = 0;
   final Map<String, _ProfileSummary> _profileByUserId = {};
 
   @override
@@ -235,6 +252,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _messageChannels.clear();
     _wanderTimer?.cancel();
     _petTickTimer?.cancel();
+    _feedingAnimationToken++;
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
@@ -980,6 +998,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _switchRoom(String roomId, {String? petType}) {
+    _feedingAnimationToken++;
     final previousRoom = _roomId;
     final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
       (room) => room?['id'] == roomId,
@@ -1003,6 +1022,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       _petType = nextPetType;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
+      _photoFoodImageSource = null;
+      _photoFoodNormalizedPosition = null;
+      _photoFoodDropping = false;
+      _photoFoodBiteStage = 0;
+      _petEating = false;
     });
     _overfedBubbleTimer?.cancel();
     _furnitureWiggleController.stop();
@@ -1073,8 +1097,15 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
+    final selectedPet = await Navigator.of(
+      context,
+    ).push<PetDefinition>(PetSelectionPage.route());
+    if (!mounted || selectedPet == null) {
+      return;
+    }
+
     final creation = await _promptRoomCreationDetails();
-    if (creation == null) {
+    if (!mounted || creation == null) {
       return;
     }
 
@@ -1092,18 +1123,6 @@ class _HomeViewState extends ConsumerState<HomeView>
       // Refresh list and switch
       await _fetchRooms();
       if (!mounted) {
-        return;
-      }
-
-      final selectedPet = await Navigator.of(
-        context,
-      ).push<PetDefinition>(PetSelectionPage.route());
-      if (!mounted) {
-        return;
-      }
-
-      if (selectedPet == null) {
-        await _leaveRoom(newId, showSnackBar: false);
         return;
       }
 
@@ -2089,7 +2108,118 @@ class _HomeViewState extends ConsumerState<HomeView>
     _chatListKey.currentState?.refreshLatest();
   }
 
+  bool _isLocalFeedCooldownActive(String roomId) {
+    final local = _localFeedCooldownByRoom[roomId];
+    if (local == null) {
+      return false;
+    }
+    return DateTime.now().toUtc().isBefore(local.nextEligibleAt);
+  }
+
+  void _setLocalFeedCooldown({
+    required String roomId,
+    required DateTime nextEligibleAt,
+  }) {
+    _localFeedCooldownByRoom[roomId] = _LocalFeedCooldown(
+      nextEligibleAt: nextEligibleAt.toUtc(),
+    );
+  }
+
+  void _updateLocalFeedCooldownFromResult({
+    required String roomId,
+    required FeedUploadResult result,
+  }) {
+    DateTime? parseUtc(String? raw) {
+      if (raw == null || raw.isEmpty) {
+        return null;
+      }
+      return DateTime.tryParse(raw)?.toUtc();
+    }
+
+    final nextEligibleAt = parseUtc(result.nextEligibleAt);
+    if (nextEligibleAt != null) {
+      _setLocalFeedCooldown(roomId: roomId, nextEligibleAt: nextEligibleAt);
+      return;
+    }
+
+    if (result.cooldownActive) {
+      final fromLastFed = parseUtc(
+        result.lastFedAt,
+      )?.add(_localFeedCooldownFallback);
+      _setLocalFeedCooldown(
+        roomId: roomId,
+        nextEligibleAt:
+            fromLastFed ??
+            DateTime.now().toUtc().add(const Duration(minutes: 2)),
+      );
+      return;
+    }
+
+    if (result.coinsAwarded > 0) {
+      _setLocalFeedCooldown(
+        roomId: roomId,
+        nextEligibleAt: DateTime.now().toUtc().add(_localFeedCooldownFallback),
+      );
+      return;
+    }
+
+    _localFeedCooldownByRoom.remove(roomId);
+  }
+
+  void _applyOptimisticFeedReward({
+    required String tempId,
+    required String roomId,
+    required String imageSource,
+  }) {
+    final isActiveRoom = _roomId == roomId;
+    final cooldownActive = _isLocalFeedCooldownActive(roomId);
+    final optimisticCoins = cooldownActive ? 0 : _optimisticFeedRewardCoins;
+
+    _optimisticFeedCoinsByTempId[tempId] = optimisticCoins;
+    if (optimisticCoins > 0) {
+      _setLocalFeedCooldown(
+        roomId: roomId,
+        nextEligibleAt: DateTime.now().toUtc().add(_localFeedCooldownFallback),
+      );
+    }
+
+    if (!mounted || !isActiveRoom) {
+      return;
+    }
+
+    if (optimisticCoins > 0) {
+      setState(() {
+        _coins += optimisticCoins;
+        _coinReward = optimisticCoins;
+        _coinRewardEventId++;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _coinReward == null) {
+          return;
+        }
+        setState(() => _coinReward = null);
+      });
+      unawaited(_playFeedSequence(imageSource));
+    }
+  }
+
+  void _rollbackOptimisticFeedReward(String tempId) {
+    final optimisticCoins = _optimisticFeedCoinsByTempId.remove(tempId) ?? 0;
+    if (optimisticCoins <= 0) {
+      return;
+    }
+    if (!mounted) {
+      _coins = max(0, _coins - optimisticCoins);
+      return;
+    }
+    setState(() {
+      _coins = max(0, _coins - optimisticCoins);
+    });
+  }
+
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
+    _optimisticFeedRoomByTempId[entry.tempId] = entry.roomId;
     final optimisticMessage = ChatMessage(
       id: entry.tempId,
       roomId: entry.roomId,
@@ -2125,9 +2255,17 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedCaption = entry.caption;
     });
     unawaited(_ensureProfileSummary(entry.senderId));
+    _applyOptimisticFeedReward(
+      tempId: entry.tempId,
+      roomId: entry.roomId,
+      imageSource: entry.localImagePath,
+    );
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
+    _optimisticFeedImageByTempId.remove(result.tempId);
+    final optimisticRoomId = _optimisticFeedRoomByTempId.remove(result.tempId);
+    _optimisticFeedCoinsByTempId.remove(result.tempId);
     _chatListKey.currentState?.removeOptimisticMessage(result.tempId);
     _chatListKey.currentState?.refreshLatest();
 
@@ -2139,10 +2277,14 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedOptimisticPrevCaption = null;
     }
     final roomId = _roomId;
+    final resultRoomId = optimisticRoomId ?? roomId;
+    if (resultRoomId != null) {
+      _updateLocalFeedCooldownFromResult(roomId: resultRoomId, result: result);
+    }
+    unawaited(_loadCoins());
     if (roomId != null) {
       _refreshLatestRoomPhoto(roomId);
       unawaited(_refreshLatestFeed(roomId));
-      unawaited(_loadCoins(expectedReward: result.coinsAwarded));
 
       unawaited(_refreshPetState());
       unawaited(() async {
@@ -2155,6 +2297,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
+    _optimisticFeedImageByTempId.remove(tempId);
+    final optimisticRoomId = _optimisticFeedRoomByTempId.remove(tempId);
+    if (optimisticRoomId != null) {
+      _localFeedCooldownByRoom.remove(optimisticRoomId);
+    }
+    _rollbackOptimisticFeedReward(tempId);
     _chatListKey.currentState?.removeOptimisticMessage(tempId);
     if (_latestFeedOptimisticTempId == tempId) {
       final shouldRestore =
@@ -2555,6 +2703,44 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       _showRoomSelection = true;
     });
+    unawaited(_refreshRoomSelectionHealthBars());
+  }
+
+  Future<void> _refreshRoomSelectionHealthBars() async {
+    final roomIds = _myRooms
+        .map((room) => room['id'])
+        .whereType<String>()
+        .toList(growable: false);
+    if (roomIds.isEmpty) {
+      await _fetchRooms();
+      return;
+    }
+
+    try {
+      final pets = await Supabase.instance.client
+          .from('pets')
+          .select('id')
+          .inFilter('room_id', roomIds);
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+      for (final row in pets) {
+        final petId = row['id'] as String?;
+        if (petId == null || petId.isEmpty) {
+          continue;
+        }
+        try {
+          await Supabase.instance.client.rpc(
+            'tick_pet_state',
+            params: {'p_pet_id': petId, 'p_now': nowIso},
+          );
+        } catch (_) {
+          // Best-effort per room: continue refreshing others.
+        }
+      }
+    } catch (_) {
+      // Best-effort: still reload rooms below.
+    }
+
+    await _fetchRooms();
   }
 
   Future<void> _openStoreFromNav() async {
@@ -2860,6 +3046,17 @@ class _HomeViewState extends ConsumerState<HomeView>
     return Duration(milliseconds: max(_minMoveMs, rawMs));
   }
 
+  Duration _durationForFoodApproach({
+    required double distance,
+    required double hunger,
+  }) {
+    final hungerClamped = hunger.clamp(0.0, 100.0);
+    final hungerRatio = hungerClamped / 100.0;
+    final speedPxPerSec = lerpDouble(20, 95, hungerRatio) ?? _petMoveSpeed;
+    final rawMs = (distance / speedPxPerSec * 1000).round();
+    return Duration(milliseconds: max(_minMoveMs, rawMs));
+  }
+
   void _updateFacing(Offset from, Offset to) {
     final dx = to.dx - from.dx;
     if (dx.abs() < 0.001) {
@@ -2868,10 +3065,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petFacingRight = dx < 0;
   }
 
-  void _animatePetTo(
+  TickerFuture _startPetMove(
     Offset targetNormalized,
     Size fieldSize, {
     bool userInitiated = true,
+    Duration? duration,
   }) {
     final clampedTarget = _clampNormalized(targetNormalized);
     final current = _currentPetNormalized();
@@ -2879,9 +3077,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     final targetPx = _positionFromNormalized(clampedTarget, fieldSize);
     _updateFacing(current, clampedTarget);
     _petMoveController.stop();
-    _petMoveController.duration = _durationForDistance(
-      (targetPx - currentPx).distance,
-    );
+    _petMoveController.duration =
+        duration ?? _durationForDistance((targetPx - currentPx).distance);
     _petMoveAnimation = Tween<Offset>(begin: current, end: clampedTarget)
         .animate(
           CurvedAnimation(
@@ -2894,8 +3091,36 @@ class _HomeViewState extends ConsumerState<HomeView>
       _markUserInteraction();
     }
     _petIsMoving = true;
-    _petMoveController.forward(from: 0);
+    final ticker = _petMoveController.forward(from: 0);
     setState(() {});
+    return ticker;
+  }
+
+  void _animatePetTo(
+    Offset targetNormalized,
+    Size fieldSize, {
+    bool userInitiated = true,
+  }) {
+    _startPetMove(targetNormalized, fieldSize, userInitiated: userInitiated);
+  }
+
+  Future<void> _animatePetToAndWait(
+    Offset targetNormalized,
+    Size fieldSize, {
+    bool userInitiated = true,
+    Duration? duration,
+  }) async {
+    final ticker = _startPetMove(
+      targetNormalized,
+      fieldSize,
+      userInitiated: userInitiated,
+      duration: duration,
+    );
+    try {
+      await ticker.orCancel;
+    } catch (_) {
+      // Movement interrupted by another interaction.
+    }
   }
 
   void _handlePetFieldTap(Offset localPosition, Size fieldSize) {
@@ -2908,6 +3133,110 @@ class _HomeViewState extends ConsumerState<HomeView>
     final clampedTopLeft = _clampTopLeft(desiredTopLeft, fieldSize);
     final normalizedTarget = _normalizedFromTopLeft(clampedTopLeft, fieldSize);
     _animatePetTo(normalizedTarget, fieldSize);
+  }
+
+  Offset _pickFoodPlacement(Size fieldSize) {
+    final current = _currentPetNormalized();
+    var best = const Offset(0.72, 0.72);
+    var bestDistance = -1.0;
+    for (var i = 0; i < 16; i++) {
+      final candidate = Offset(
+        0.12 + (_random.nextDouble() * 0.76),
+        0.24 + (_random.nextDouble() * 0.62),
+      );
+      final candidatePx = _positionFromNormalizedSized(
+        candidate,
+        fieldSize,
+        _photoFoodSize,
+      );
+      final petPx = _positionFromNormalized(current, fieldSize);
+      final distance = (candidatePx - petPx).distance;
+      if (distance > bestDistance) {
+        bestDistance = distance;
+        best = candidate;
+      }
+    }
+    return best;
+  }
+
+  Future<void> _playFeedSequence(String? imageSource) async {
+    if (!mounted || _petDeparted) {
+      return;
+    }
+    final source = imageSource?.trim();
+    if (source == null || source.isEmpty) {
+      return;
+    }
+    final fieldSize = _petFieldSize();
+    if (fieldSize == null || fieldSize.isEmpty) {
+      return;
+    }
+    final token = ++_feedingAnimationToken;
+    final foodTarget = _pickFoodPlacement(fieldSize);
+
+    setState(() {
+      _photoFoodImageSource = source;
+      _photoFoodNormalizedPosition = foodTarget;
+      _photoFoodBiteStage = 0;
+      _photoFoodDropping = true;
+      _petEating = false;
+    });
+
+    await Future<void>.delayed(24.ms);
+    if (!mounted || token != _feedingAnimationToken) {
+      return;
+    }
+    setState(() => _photoFoodDropping = false);
+
+    await Future<void>.delayed(_foodDropDuration + 120.ms);
+    if (!mounted || token != _feedingAnimationToken) {
+      return;
+    }
+
+    final current = _currentPetNormalized();
+    final currentPx = _positionFromNormalized(current, fieldSize);
+    final targetPx = _positionFromNormalizedSized(
+      foodTarget,
+      fieldSize,
+      _photoFoodSize,
+    );
+    final hunger = (_petState?['hunger'] as num?)?.toDouble() ?? 50;
+    final approachDuration = _durationForFoodApproach(
+      distance: (targetPx - currentPx).distance,
+      hunger: hunger,
+    );
+
+    await _animatePetToAndWait(
+      foodTarget,
+      fieldSize,
+      userInitiated: false,
+      duration: approachDuration,
+    );
+    if (!mounted || token != _feedingAnimationToken) {
+      return;
+    }
+
+    setState(() => _petEating = true);
+    for (var stage = 1; stage <= 3; stage++) {
+      await Future<void>.delayed(_foodBiteStepDuration);
+      if (!mounted || token != _feedingAnimationToken) {
+        return;
+      }
+      setState(() => _photoFoodBiteStage = stage);
+    }
+
+    await Future<void>.delayed(180.ms);
+    if (!mounted || token != _feedingAnimationToken) {
+      return;
+    }
+    setState(() {
+      _photoFoodImageSource = null;
+      _photoFoodNormalizedPosition = null;
+      _photoFoodDropping = false;
+      _photoFoodBiteStage = 0;
+      _petEating = false;
+      _petStationaryState = _PetStationaryState.staying;
+    });
   }
 
   Offset? _globalToPetField(Offset globalPosition) {
@@ -3750,6 +4079,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           child: Stack(
             children: [
               ..._buildPlacedFurniture(fieldSize),
+              if (_photoFoodImageSource != null &&
+                  _photoFoodNormalizedPosition != null &&
+                  _photoFoodBiteStage < 3)
+                _buildPhotoFood(fieldSize),
               for (final spot in _poopSpots())
                 Positioned(
                   left: _positionFromNormalizedSized(
@@ -3780,6 +4113,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 },
                 child: _buildDraggablePet(fieldSize),
               ),
+              if (_petEating) _buildEatingHearts(fieldSize),
               if (_shouldShowNewRoomInvitePrompt)
                 Positioned(
                   top: 12,
@@ -3920,6 +4254,66 @@ class _HomeViewState extends ConsumerState<HomeView>
             ? null
             : () => unawaited(_cleanPoopAt(index)),
         child: const Text('💩', style: TextStyle(fontSize: 24)),
+      ),
+    );
+  }
+
+  Widget _buildPhotoFood(Size fieldSize) {
+    final source = _photoFoodImageSource;
+    final normalized = _photoFoodNormalizedPosition;
+    if (source == null || normalized == null) {
+      return const SizedBox.shrink();
+    }
+    final target = _positionFromNormalizedSized(
+      normalized,
+      fieldSize,
+      _photoFoodSize,
+    );
+    final offscreenTop = -_photoFoodSize.height - 12;
+    return AnimatedPositioned(
+      duration: _foodDropDuration,
+      curve: Curves.bounceOut,
+      left: target.dx,
+      top: _photoFoodDropping ? offscreenTop : target.dy,
+      child: PhotoFood(
+        imageSource: source,
+        biteStage: _photoFoodBiteStage,
+        size: _photoFoodSize,
+      ),
+    );
+  }
+
+  Widget _buildEatingHearts(Size fieldSize) {
+    final normalized = _currentPetNormalized();
+    final petTopLeft = _positionFromNormalized(normalized, fieldSize);
+    return Positioned(
+      left: petTopLeft.dx + (_petAvatarSize.width * 0.15),
+      top: petTopLeft.dy - 24,
+      child: IgnorePointer(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: _petEating ? 1 : 0),
+          duration: 220.ms,
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, -8 * value),
+                child: child,
+              ),
+            );
+          },
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.favorite_rounded, size: 14, color: Color(0xFFFF6D8A)),
+              SizedBox(width: 2),
+              Icon(Icons.favorite_rounded, size: 12, color: Color(0xFFFF8FA6)),
+              SizedBox(width: 2),
+              Icon(Icons.favorite_rounded, size: 10, color: Color(0xFFFFB1C2)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -4508,6 +4902,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                         onInviteTap: _generateInviteCode,
                         inviteLabel: l10n.roomInviteCta,
                         inviteLoading: _inviteCodeLoading,
+                        onInventoryTap: _openFurnitureInventory,
+                        inventoryLabel: l10n.roomInventoryCta,
                       );
                     },
                   ),

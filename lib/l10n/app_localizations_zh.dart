@@ -585,6 +585,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInviteCta => '邀請';
 
   @override
+  String get roomInventoryCta => '背包';
+
+  @override
   String get roomInvitePromptTitle => '邀請朋友';
 
   @override
@@ -1660,6 +1663,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomInviteCta => '邀請';
+
+  @override
+  String get roomInventoryCta => '背包';
 
   @override
   String get roomInvitePromptTitle => '邀請朋友';

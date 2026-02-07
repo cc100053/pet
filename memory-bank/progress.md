@@ -1,6 +1,13 @@
 # Progress
 
 ## Done
+- Adjusted Pet Home pills to keep `Invite` as text+icon while `Inventory` remains icon-only.
+- Converted Pet Home Invite/Inventory pills to icon-only chips (kept localized tooltip labels) to avoid text cutoff in tight layouts.
+- Redesigned Pet Home Invite/Inventory pills to an adaptive two-chip row with shared width and ellipsis-safe labels, plus a shorter localized inventory CTA to prevent right-edge cutoff on small layouts.
+- Added an Inventory pill to Pet Home HUD beside the Invite pill and wired it to open room inventory directly.
+- Switched new-room creation flow order: users now pick pet type first, then enter pet name, then room creation runs (removed the previous name-first then pet-select sequence).
+- Implemented client-first instant feed feedback: optimistic latest-photo update, immediate provisional coin reward + pet feed animation on upload start, server-authoritative reconciliation on completion/failure, and per-room local feed-cooldown mirror cache for instant gating while backend cooldown remains source of truth.
+- Implemented feed-to-pet two-stage animation in Home: uploaded photo food now drops into the room with bounce, captures a placement coordinate, drives hunger-scaled pet approach speed, runs a staged bite progression (full -> 1/3 bitten -> 2/3 bitten -> gone), shows a brief eating-heart interaction, then returns pet visuals to idle.
 - Restyled the left side drawer to a warmer card-based visual style and simplified it to only four user-facing options: Profile, Language, Debug Tools, and Sign Out.
 - Restyled the sign-in page to a more playful card-based layout with decorative background shapes, integrated the app icon (`assets/app/PetTomo_appicon.png`), and removed the non-user-facing sign-in reminder note text from the UI.
 - Updated the Store top-right candy balance chip to use the same candy SVG icon (`assets/icon/icon-park--candy.svg`) as Home HUD for visual consistency.
@@ -20,6 +27,7 @@
 - Re-anchored the Pet Home `+X` reward bubble to the candy section inside the currency pill so the rise-up animation remains visually aligned after moving the currency bar layout.
 - Refined Room Selection primary CTA visual treatment: enforced rounded clipping to remove rectangular background bleed and increased gradient/shadow contrast so “Create New Room” pops more.
 - Adjusted Room Selection primary CTA color back to theme green gradient while keeping the rounded clipping fix and elevated contrast treatment.
+- Added enter-page health refresh for Room/Pet Selection: tapping Home to open selection now ticks `pet_state` for each room pet and reloads room summaries so health bars refresh every entry.
 - Center-aligned the left lock icon in the locked-room Pet Home prompt row to match the store CTA icon alignment.
 - Updated the locked-room Pet Home prompt layout for long locales: message now supports 3 lines and the Store CTA is icon-only (with tooltip) instead of text.
 - Added a one-time status bar refresh when entering Pet Selection and pinned the page overlay style to light to prevent stale status-bar appearance from previous screens.

@@ -340,6 +340,7 @@
   "roomRenameMessage": "新しいルーム名を入力してください。",
   "roomDefaultName": "新しいルーム",
   "roomInviteCta": "招待",
+  "roomInventoryCta": "在庫",
   "roomInvitePromptTitle": "誰かを招待",
   "roomInvitePromptBody": "あなた一人だけです。コードを生成して招待しましょう。",
   "roomInvitePromptAction": "コードを生成",
