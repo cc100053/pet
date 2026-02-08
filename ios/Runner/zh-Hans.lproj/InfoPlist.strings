@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "PetTomo";
+"NSCameraUsageDescription" = "PetTomo 需要相机权限来拍摄宠物喂食照片。";
+"NSPhotoLibraryUsageDescription" = "PetTomo 需要照片权限来选择宠物喂食图片。";

@@ -29,3 +29,14 @@ Keywords
 
 Support URL
 https://your-domain.com/support
+
+App Review 備註（範本）
+- 購買需先登入，因為訂閱與商品需綁定帳號以支援共享房間與跨裝置同步。
+- App 內可直接刪除帳號：個人檔案 > 刪除帳號。
+
+上架前操作檢查清單
+- [ ] 已在 App Store Connect 設定 Privacy Policy URL。
+- [ ] App Description 已加入條款（EULA）連結: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+- [ ] App Store Connect > Business 的 Paid Apps Agreement 已啟用。
+- [ ] 已在 iPhone 與 iPad 沙盒環境測試每個 IAP Product ID 的購買流程。
+- [ ] 已在沙盒環境測試「恢復購買」。

@@ -7,6 +7,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../services/env.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
@@ -15,6 +16,7 @@ import '../../shared/ui/status_bar_style.dart';
 import '../home/room_backgrounds.dart';
 import '../pet/pet_catalog.dart';
 import '../pet/pet_departure.dart';
+import 'widgets/store_legal_links_row.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
 
@@ -55,12 +57,15 @@ class _StoreViewState extends State<StoreView> {
   final GlobalKey _furnitureSectionKey = GlobalKey();
   final GlobalKey _themeSectionKey = GlobalKey();
   late List<DepartedPetInfo> _departedPets;
+  Uri? _privacyPolicyUri;
+  late final Uri _termsOfUseUri;
 
   @override
   void initState() {
     super.initState();
     AnalyticsService.instance.logEvent('store_open');
     _departedPets = List.of(widget.departedPets);
+    _initializeLegalUris();
     _loadStore();
   }
 
@@ -68,6 +73,27 @@ class _StoreViewState extends State<StoreView> {
   void dispose() {
     _storeScrollController.dispose();
     super.dispose();
+  }
+
+  void _initializeLegalUris() {
+    try {
+      final policyUrl = Env.privacyPolicyUrl;
+      _privacyPolicyUri = Uri.tryParse(policyUrl);
+    } catch (_) {
+      _privacyPolicyUri = null;
+    }
+    _termsOfUseUri = Uri.parse(Env.appleStandardEulaUrl);
+  }
+
+  void _handleLegalLinkOpenFailed() {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.storeLegalOpenFailed),
+      ),
+    );
   }
 
   Future<void> _loadStore() async {
@@ -1200,6 +1226,18 @@ class _StoreViewState extends State<StoreView> {
               ),
             ),
           for (final item in _subscriptionItems) _buildIapCard(item, l10n),
+          if (_privacyPolicyUri != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 2, 20, 12),
+              child: StoreLegalLinksRow(
+                privacyPolicyUri: _privacyPolicyUri!,
+                termsOfUseUri: _termsOfUseUri,
+                privacyPolicyLabel: l10n.storePrivacyPolicy,
+                termsOfUseLabel: l10n.storeTermsOfUse,
+                separatorLabel: l10n.storeLegalSeparator,
+                onLaunchFailed: _handleLegalLinkOpenFailed,
+              ),
+            ),
         ],
         if (_iapDiamondPackItems.isNotEmpty) ...[
           _SectionHeader(title: l10n.storeSectionDiamondPacks),
@@ -1287,6 +1325,12 @@ class _StoreViewState extends State<StoreView> {
         _activeEntitlements.contains(entitlementId);
     final canBuy = _iapConfigured && !_purchasing && package != null;
     final packColor = isDiamondPack ? _diamondColor : Colors.amber;
+    final activeStatusText = isSubscription && isSubscribed
+        ? l10n.storeSubscriptionActive
+        : null;
+    final actionLabel = isSubscription
+        ? (isSubscribed ? l10n.commonOwned : l10n.storeSubscribe)
+        : l10n.commonBuy;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -1383,70 +1427,119 @@ class _StoreViewState extends State<StoreView> {
                       color: AppTheme.textSecondary,
                     ),
                   ),
-                const SizedBox(height: 4),
-                Text(
-                  priceString,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                if (activeStatusText != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    activeStatusText,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.secondaryColor,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
+                ],
+                if (isSubscription) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.storeSubscriptionRenewalNote,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: isSubscribed || !canBuy
-                ? null
-                : () => _purchaseIapItem(item),
-            child: Opacity(
-              opacity: isSubscribed || !canBuy ? 0.6 : 1.0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  gradient: isSubscribed
-                      ? null
-                      : (isSubscription
-                            ? AppTheme.accentGradient
-                            : AppTheme.primaryGradient),
-                  color: isSubscribed ? Colors.grey[200] : null,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: isSubscribed
-                      ? []
-                      : [
-                          BoxShadow(
-                            color:
-                                (isSubscription
-                                        ? AppTheme.secondaryColor
-                                        : AppTheme.primaryColor)
-                                    .withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                ),
-                child: Text(
-                  isSubscription
-                      ? (isSubscribed
-                            ? l10n
-                                  .commonOwned // "Active"
-                            : l10n.storeSubscribe)
-                      : l10n.commonBuy,
-                  style: TextStyle(
-                    color: isSubscribed ? Colors.grey : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: isSubscribed || !canBuy
+                    ? null
+                    : () => _purchaseIapItem(item),
+                child: Opacity(
+                  opacity: isSubscribed || !canBuy ? 0.6 : 1.0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: isSubscribed
+                          ? null
+                          : (isSubscription
+                                ? AppTheme.accentGradient
+                                : AppTheme.primaryGradient),
+                      color: isSubscribed ? Colors.grey[200] : null,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: isSubscribed
+                          ? []
+                          : [
+                              BoxShadow(
+                                color:
+                                    (isSubscription
+                                            ? AppTheme.secondaryColor
+                                            : AppTheme.primaryColor)
+                                        .withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                    ),
+                    child: _buildIapButtonLabel(
+                      priceString: priceString,
+                      actionLabel: actionLabel,
+                      isSubscribed: isSubscribed,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIapButtonLabel({
+    required String priceString,
+    required String actionLabel,
+    required bool isSubscribed,
+  }) {
+    final textColor = isSubscribed ? Colors.grey : Colors.white;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          priceString,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w800,
+            fontSize: 12,
+            height: 1.0,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          actionLabel,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+            height: 1.0,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1919,7 +2012,7 @@ class StoreItem {
       case 'subscription_premium_monthly':
         return l10n.storeItemDescProMonthly;
       case 'iap_diamond_pack_small':
-        return l10n.storeItemDescDiamondPack300;
+        return null;
       case 'return_letter':
         return l10n.storeItemDescReturnLetter;
       case 'background_default':

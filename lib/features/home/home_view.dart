@@ -70,6 +70,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
   static const Duration _petTickInterval = Duration(minutes: 5);
+  static const Duration _roomSelectionRefreshInterval = Duration(seconds: 45);
   static const _furnitureItemSize = Size(42, 42);
   static const _poopEmojiSize = Size(28, 28);
 
@@ -130,6 +131,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   DateTime _lastInteractionAt = DateTime.now();
   DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
   Timer? _petTickTimer;
+  Timer? _roomSelectionRefreshTimer;
   bool _petAssetsPrecached = false;
   final Set<String> _cachedPetAssets = {};
   static const int _petNameMaxLength = 20;
@@ -197,6 +199,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           await _ensureProfile();
           await _loadCoins();
           await _fetchRooms();
+          if (mounted && _showRoomSelection) {
+            await _refreshRoomSelectionHealthBars();
+          }
         }());
         _profileEnsured = true;
       }
@@ -223,6 +228,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
     _startWanderTimer();
     _startPetTickTimer();
+    _startRoomSelectionRefreshTimer();
 
     // Init FCM
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -256,6 +262,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _messageChannels.clear();
     _wanderTimer?.cancel();
     _petTickTimer?.cancel();
+    _roomSelectionRefreshTimer?.cancel();
     _feedingAnimationToken++;
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
@@ -2929,6 +2936,18 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petTickTimer?.cancel();
     _petTickTimer = Timer.periodic(_petTickInterval, (_) {
       unawaited(_tickPetState());
+    });
+  }
+
+  void _startRoomSelectionRefreshTimer() {
+    _roomSelectionRefreshTimer?.cancel();
+    _roomSelectionRefreshTimer = Timer.periodic(_roomSelectionRefreshInterval, (
+      _,
+    ) {
+      if (!mounted || !_showRoomSelection) {
+        return;
+      }
+      unawaited(_refreshRoomSelectionHealthBars());
     });
   }
 

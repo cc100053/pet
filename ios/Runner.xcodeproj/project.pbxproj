@@ -64,6 +64,8 @@
 		89DCEA26738EF102BDA56D0A /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8A68E0414A11B4E1E80F5D20 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		8A68E0424A11B4E1E80F5D20 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		8A68E0434A11B4E1E80F5D20 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		8A68E0444A11B4E1E80F5D20 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		8D39E1829C4C2DEF190C1AD0 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -426,15 +428,17 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		8A68E0404A11B4E1E80F5D20 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				8A68E0414A11B4E1E80F5D20 /* Base */,
-				8A68E0424A11B4E1E80F5D20 /* ja */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
+			8A68E0404A11B4E1E80F5D20 /* InfoPlist.strings */ = {
+				isa = PBXVariantGroup;
+				children = (
+					8A68E0414A11B4E1E80F5D20 /* Base */,
+					8A68E0424A11B4E1E80F5D20 /* ja */,
+					8A68E0434A11B4E1E80F5D20 /* zh-Hant */,
+					8A68E0444A11B4E1E80F5D20 /* zh-Hans */,
+				);
+				name = InfoPlist.strings;
+				sourceTree = "<group>";
+			};
 		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

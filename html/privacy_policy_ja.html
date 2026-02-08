@@ -20,6 +20,29 @@
             padding-bottom: 10px;
         }
 
+        .lang-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .lang-switcher a {
+            text-decoration: none;
+            color: #007AFF;
+            border: 1px solid #007AFF;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .lang-switcher a.active {
+            background: #007AFF;
+            color: #fff;
+        }
+
         h2 {
             margin-top: 30px;
         }
@@ -37,6 +60,11 @@
 <body>
     <div style="text-align: center; margin-bottom: 20px;">
         <img src="PetTomo_appicon.png" alt="PetTomo Logo" width="100" style="border-radius: 20px;">
+    </div>
+    <div class="lang-switcher" aria-label="Language switcher">
+        <a href="privacy_policy.html?lang=en">English</a>
+        <a class="active" href="privacy_policy_ja.html?lang=ja">日本語</a>
+        <a href="privacy_policy_zh_TW.html?lang=zh-TW">繁體中文</a>
     </div>
     <h1>プライバシーポリシー</h1>
     <p>最終更新日：2026年2月6日</p>

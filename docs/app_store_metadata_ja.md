@@ -29,3 +29,14 @@ Keywords
 
 Support URL
 https://your-domain.com/support
+
+App Review Notes（テンプレート）
+- 購入にはサインインが必要です。サブスクリプションとアイテムは、共有ルーム連携とデバイス間同期のためアカウントに紐づきます。
+- アカウント削除はアプリ内で実行できます: プロフィール > アカウント削除。
+
+提出前オペレーションチェック
+- [ ] App Store Connect の Privacy Policy URL を設定済み。
+- [ ] App Description に利用規約（EULA）リンクを記載済み: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+- [ ] App Store Connect > Business の Paid Apps Agreement が有効。
+- [ ] 各 IAP Product ID のサンドボックス購入を iPhone / iPad で検証済み。
+- [ ] サンドボックスで「購入を復元」を検証済み。

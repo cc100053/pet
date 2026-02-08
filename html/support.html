@@ -20,27 +20,35 @@
             padding-bottom: 10px;
         }
 
+        .lang-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .lang-switcher a {
+            text-decoration: none;
+            color: #007AFF;
+            border: 1px solid #007AFF;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .lang-switcher a.active {
+            background: #007AFF;
+            color: #fff;
+        }
+
         .contact-box {
             background: #f9f9f9;
             padding: 20px;
             border-radius: 8px;
             border: 1px solid #eee;
             margin-top: 20px;
-        }
-
-        .faq-item {
-            margin-bottom: 20px;
-        }
-
-        .faq-question {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #007AFF;
-            cursor: pointer;
-        }
-
-        .faq-answer {
-            margin-top: 5px;
         }
 
         button {
@@ -56,12 +64,45 @@
         button:hover {
             background-color: #0056b3;
         }
+
+        footer {
+            margin-top: 50px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
     </style>
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('lang')) {
+                return;
+            }
+            const lang = (navigator.language || '').toLowerCase();
+            const path = window.location.pathname;
+            if (!path.endsWith('/support.html') && !path.endsWith('support.html')) {
+                return;
+            }
+            if (lang.startsWith('ja')) {
+                window.location.replace('support_ja.html');
+                return;
+            }
+            if (lang.startsWith('zh-tw') || lang.startsWith('zh-hk') || lang.startsWith('zh-hant')) {
+                window.location.replace('support_zh_TW.html');
+            }
+        })();
+    </script>
 </head>
 
 <body>
     <div style="text-align: center; margin-bottom: 20px;">
         <img src="PetTomo_appicon.png" alt="PetTomo Logo" width="100" style="border-radius: 20px;">
+    </div>
+    <div class="lang-switcher" aria-label="Language switcher">
+        <a class="active" href="support.html?lang=en">English</a>
+        <a href="support_ja.html?lang=ja">日本語</a>
+        <a href="support_zh_TW.html?lang=zh-TW">繁體中文</a>
     </div>
     <h1>App Support</h1>
     <p>Need help with PetTomo? We're here to assist you!</p>

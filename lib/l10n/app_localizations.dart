@@ -1508,25 +1508,25 @@ abstract class AppLocalizations {
   /// No description provided for @storeItemNameProMonthly.
   ///
   /// In en, this message translates to:
-  /// **'Pro Monthly Plan'**
+  /// **'Pro Monthly Membership'**
   String get storeItemNameProMonthly;
 
   /// No description provided for @storeItemDescProMonthly.
   ///
   /// In en, this message translates to:
-  /// **'Monthly Pro plan.'**
+  /// **'Monthly Pro subscription with no ads, unlimited rooms, and auto-renewal.'**
   String get storeItemDescProMonthly;
 
   /// No description provided for @storeItemNameDiamondPack300.
   ///
   /// In en, this message translates to:
-  /// **'Diamond Pack 300'**
+  /// **'300 Diamond Pack'**
   String get storeItemNameDiamondPack300;
 
   /// No description provided for @storeItemDescDiamondPack300.
   ///
   /// In en, this message translates to:
-  /// **'One-time 300 diamond pack.'**
+  /// **'Get 300 diamonds instantly (one-time purchase).'**
   String get storeItemDescDiamondPack300;
 
   /// No description provided for @storeItemNameReturnLetter.
@@ -1678,6 +1678,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active'**
   String get storeSubscriptionActive;
+
+  /// No description provided for @storeSubscriptionRenewalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-renews monthly. Cancel anytime.'**
+  String get storeSubscriptionRenewalNote;
+
+  /// No description provided for @storePrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get storePrivacyPolicy;
+
+  /// No description provided for @storeTermsOfUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get storeTermsOfUse;
+
+  /// No description provided for @storeLegalSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **'|'**
+  String get storeLegalSeparator;
+
+  /// No description provided for @storeLegalOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the legal link.'**
+  String get storeLegalOpenFailed;
 
   /// No description provided for @storeTitle.
   ///

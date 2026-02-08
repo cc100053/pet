@@ -6,6 +6,9 @@ class Env {
   static String? get revenueCatApiKeyIos => _optional('REVENUECAT_API_KEY_IOS');
   static String? get revenueCatApiKeyAndroid =>
       _optional('REVENUECAT_API_KEY_ANDROID');
+  static String get privacyPolicyUrl => _require('PRIVACY_POLICY_URL');
+  static const String appleStandardEulaUrl =
+      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
   static String _require(String key) {
     final value = dotenv.env[key];

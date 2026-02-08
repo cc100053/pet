@@ -1,1 +1,3 @@
 "CFBundleDisplayName" = "PetTomo";
+"NSCameraUsageDescription" = "PetTomo needs camera access to capture pet feed photos.";
+"NSPhotoLibraryUsageDescription" = "PetTomo needs photo access to choose feed images.";

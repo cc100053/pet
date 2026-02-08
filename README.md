@@ -36,8 +36,8 @@ or run it with elevated permissions.
 
 ## HTML pages are now live on Firebase Hosting.
 
-- Privacy Policy (English): https://pet-app-702be.web.app/privacy_policy.html
-- Support (English): https://pet-app-702be.web.app/support.html
+- Privacy Policy (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/privacy_policy.html
+- Support (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/support.html
 - Privacy Policy (Traditional Chinese): https://pet-app-702be.web.app/privacy_policy_zh_TW.html
 - Support (Traditional Chinese): https://pet-app-702be.web.app/support_zh_TW.html
 - Privacy Policy (Japanese): https://pet-app-702be.web.app/privacy_policy_ja.html

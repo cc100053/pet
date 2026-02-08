@@ -831,16 +831,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeItemNameProMonthly => 'Pro Monthly Plan';
+  String get storeItemNameProMonthly => 'Pro Monthly Membership';
 
   @override
-  String get storeItemDescProMonthly => 'Monthly Pro plan.';
+  String get storeItemDescProMonthly =>
+      'Monthly Pro subscription with no ads, unlimited rooms, and auto-renewal.';
 
   @override
-  String get storeItemNameDiamondPack300 => 'Diamond Pack 300';
+  String get storeItemNameDiamondPack300 => '300 Diamond Pack';
 
   @override
-  String get storeItemDescDiamondPack300 => 'One-time 300 diamond pack.';
+  String get storeItemDescDiamondPack300 =>
+      'Get 300 diamonds instantly (one-time purchase).';
 
   @override
   String get storeItemNameReturnLetter => 'Return Letter';
@@ -917,6 +919,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeSubscriptionActive => 'Active';
+
+  @override
+  String get storeSubscriptionRenewalNote =>
+      'Auto-renews monthly. Cancel anytime.';
+
+  @override
+  String get storePrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get storeTermsOfUse => 'Terms of Use';
+
+  @override
+  String get storeLegalSeparator => '|';
+
+  @override
+  String get storeLegalOpenFailed => 'Could not open the legal link.';
 
   @override
   String get storeTitle => 'Store';

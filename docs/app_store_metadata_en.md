@@ -29,3 +29,14 @@ pet, game, social, raise, photo, camera, ai, cat, dog, cute, tamagotchi, widget,
 
 Support URL
 https://your-domain.com/support
+
+App Review Notes (Template)
+- Purchases require sign-in because subscriptions and items are account-bound to shared rooms and cross-device sync.
+- In-app account deletion is available at: Profile > Delete Account.
+
+Submission Operations Checklist
+- [ ] Privacy Policy URL is set in App Store Connect.
+- [ ] App Description includes Terms of Use (EULA) link: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+- [ ] Paid Apps Agreement is active in App Store Connect > Business.
+- [ ] Sandbox purchase flow tested on iPhone and iPad for each IAP product ID.
+- [ ] Restore Purchases tested successfully in sandbox.

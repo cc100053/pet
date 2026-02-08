@@ -816,16 +816,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeItemNameProMonthly => 'プロ月額プラン';
+  String get storeItemNameProMonthly => 'Pro 月額メンバーシップ';
 
   @override
-  String get storeItemDescProMonthly => '月額のプロプラン。';
+  String get storeItemDescProMonthly =>
+      '月額の Pro サブスクリプション。広告なし、ルーム無制限、毎月自動更新です。';
 
   @override
-  String get storeItemNameDiamondPack300 => 'ダイヤパック 300';
+  String get storeItemNameDiamondPack300 => '300ダイヤパック';
 
   @override
-  String get storeItemDescDiamondPack300 => '1回限定の300ダイヤパック。';
+  String get storeItemDescDiamondPack300 => '一度の購入で300ダイヤをすぐ獲得できます。';
 
   @override
   String get storeItemNameReturnLetter => 'おかえりの手紙';
@@ -901,6 +902,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeSubscriptionActive => '有効';
+
+  @override
+  String get storeSubscriptionRenewalNote => '毎月自動更新。いつでも解約できます。';
+
+  @override
+  String get storePrivacyPolicy => 'プライバシーポリシー';
+
+  @override
+  String get storeTermsOfUse => '利用規約';
+
+  @override
+  String get storeLegalSeparator => '|';
+
+  @override
+  String get storeLegalOpenFailed => '法的リンクを開けませんでした。';
 
   @override
   String get storeTitle => 'ストア';

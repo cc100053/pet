@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/cached_network_image_view.dart';
+import '../../shared/ui/user_avatar.dart';
 
 class MemoryCalendarView extends StatefulWidget {
   const MemoryCalendarView({
@@ -26,6 +27,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
   String? _error;
   final Map<DateTime, List<MemoryFeed>> _feedsByDay = {};
   final Set<String> _blockedUserIds = {};
+  final Map<String, _SenderProfile> _senderProfiles = {};
   MemoryFeed? _latestFeed;
 
   @override
@@ -46,6 +48,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
       await _loadBlockedUsers();
       await _loadLatestFeed();
       await _loadMonth();
+      await _loadSenderProfiles();
     } catch (error) {
       if (!mounted) {
         return;
@@ -133,6 +136,45 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
         .toList();
 
     _latestFeed = feeds.isEmpty ? null : feeds.first;
+  }
+
+  Future<void> _loadSenderProfiles() async {
+    final senderIds = <String>{};
+    for (final feeds in _feedsByDay.values) {
+      for (final feed in feeds) {
+        final senderId = feed.senderId;
+        if (senderId != null && senderId.isNotEmpty) {
+          senderIds.add(senderId);
+        }
+      }
+    }
+
+    final latestSenderId = _latestFeed?.senderId;
+    if (latestSenderId != null && latestSenderId.isNotEmpty) {
+      senderIds.add(latestSenderId);
+    }
+
+    _senderProfiles.clear();
+    if (senderIds.isEmpty) {
+      return;
+    }
+
+    final response = await Supabase.instance.client
+        .from('profiles')
+        .select('user_id,nickname,avatar_url')
+        .inFilter('user_id', senderIds.toList());
+
+    final rows = response as List<dynamic>;
+    for (final row in rows) {
+      final userId = row['user_id'] as String?;
+      if (userId == null || userId.isEmpty) {
+        continue;
+      }
+      _senderProfiles[userId] = _SenderProfile(
+        nickname: row['nickname'] as String?,
+        avatarUrl: row['avatar_url'] as String?,
+      );
+    }
   }
 
   Map<DateTime, List<MemoryFeed>> _groupByDay(List<MemoryFeed> feeds) {
@@ -226,6 +268,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
             children: [
               _CalendarHeader(
                 label: _monthLabel(context, _focusedMonth),
+                subtitle: l10n.calendarTitle,
                 onMenuTap: () => _handleHeaderTap(context),
               ),
               const SizedBox(height: 16),
@@ -244,6 +287,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
               _MonthCalendarCard(
                 focusedMonth: _focusedMonth,
                 feedsByDay: _feedsByDay,
+                senderProfiles: _senderProfiles,
                 onDayTap: (date, feeds) =>
                     _openDayDetails(context, date, feeds),
                 weekdayLabels: weekdayLabels,
@@ -259,6 +303,12 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
               const SizedBox(height: 12),
               _TodayCard(
                 feed: latestFeed,
+                senderProfile: latestFeed == null
+                    ? null
+                    : _senderProfiles[latestFeed.senderId],
+                senderFallbackText: latestFeed == null
+                    ? null
+                    : _fallbackSenderName(latestFeed.senderId),
                 dateLabel: latestFeed == null
                     ? _formatShortDate(context, now)
                     : _formatShortDate(context, latestFeed.createdAt.toLocal()),
@@ -282,6 +332,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
               const SizedBox(height: 12),
               _RecentRow(
                 feeds: recentFeeds,
+                senderProfiles: _senderProfiles,
                 onTap: (feed) {
                   final local = feed.createdAt.toLocal();
                   final dateKey = DateTime(local.year, local.month, local.day);
@@ -310,7 +361,11 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _MemoryDaySheet(date: date, feeds: feeds),
+      builder: (context) => _MemoryDaySheet(
+        date: date,
+        feeds: feeds,
+        senderProfiles: _senderProfiles,
+      ),
     );
   }
 
@@ -374,12 +429,29 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return DateFormat.Md(locale).format(date);
   }
+
+  String _fallbackSenderName(String? senderId) {
+    if (senderId == null || senderId.isEmpty) {
+      return '?';
+    }
+    final profile = _senderProfiles[senderId];
+    final nickname = profile?.nickname?.trim();
+    if (nickname != null && nickname.isNotEmpty) {
+      return nickname;
+    }
+    return senderId;
+  }
 }
 
 class _CalendarHeader extends StatelessWidget {
-  const _CalendarHeader({required this.label, required this.onMenuTap});
+  const _CalendarHeader({
+    required this.label,
+    required this.subtitle,
+    required this.onMenuTap,
+  });
 
   final String label;
+  final String subtitle;
   final VoidCallback onMenuTap;
 
   @override
@@ -388,11 +460,39 @@ class _CalendarHeader extends StatelessWidget {
       children: [
         _CircleIconButton(icon: Icons.arrow_back_rounded, onTap: onMenuTap),
         const SizedBox(width: 12),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: _CalendarColors.textStrong,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: _CalendarColors.textMuted,
+                ),
+              ),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: _CalendarColors.textStrong,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _CalendarColors.primarySoft,
+            border: Border.all(color: _CalendarColors.outlineSoft),
+          ),
+          child: const Icon(
+            Icons.auto_awesome_rounded,
+            size: 18,
+            color: _CalendarColors.primary,
           ),
         ),
       ],
@@ -506,6 +606,7 @@ class _MonthCalendarCard extends StatelessWidget {
   const _MonthCalendarCard({
     required this.focusedMonth,
     required this.feedsByDay,
+    required this.senderProfiles,
     required this.onDayTap,
     this.weekdayLabels = const [
       'Sun',
@@ -520,6 +621,7 @@ class _MonthCalendarCard extends StatelessWidget {
 
   final DateTime focusedMonth;
   final Map<DateTime, List<MemoryFeed>> feedsByDay;
+  final Map<String, _SenderProfile> senderProfiles;
   final List<String> weekdayLabels;
   final void Function(DateTime date, List<MemoryFeed> feeds) onDayTap;
 
@@ -542,13 +644,13 @@ class _MonthCalendarCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
       decoration: BoxDecoration(
         color: _CalendarColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: _CalendarColors.outlineSoft),
         boxShadow: [
           BoxShadow(
             color: _CalendarColors.shadow,
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -592,6 +694,15 @@ class _MonthCalendarCard extends StatelessWidget {
               return _MonthDayCell(
                 date: date,
                 feeds: feeds,
+                senderProfile: feeds.isEmpty
+                    ? null
+                    : senderProfiles[feeds.last.senderId],
+                senderFallbackText: feeds.isEmpty
+                    ? null
+                    : _senderDisplayName(
+                        senderId: feeds.last.senderId,
+                        senderProfiles: senderProfiles,
+                      ),
                 isToday: isToday,
                 onTap: feeds.isEmpty ? null : () => onDayTap(date, feeds),
               );
@@ -607,12 +718,16 @@ class _MonthDayCell extends StatelessWidget {
   const _MonthDayCell({
     required this.date,
     required this.feeds,
+    required this.senderProfile,
+    required this.senderFallbackText,
     required this.isToday,
     required this.onTap,
   });
 
   final DateTime date;
   final List<MemoryFeed> feeds;
+  final _SenderProfile? senderProfile;
+  final String? senderFallbackText;
   final bool isToday;
   final VoidCallback? onTap;
 
@@ -693,6 +808,16 @@ class _MonthDayCell extends StatelessWidget {
                   ),
                 ),
               ),
+              if (feed != null)
+                Positioned(
+                  right: 4,
+                  bottom: 4,
+                  child: _PhotoSenderBadge(
+                    avatarUrl: senderProfile?.avatarUrl,
+                    fallbackText: senderFallbackText,
+                    size: 20,
+                  ),
+                ),
             ],
           ),
         ),
@@ -742,6 +867,8 @@ class _DayBubble extends StatelessWidget {
 class _TodayCard extends StatelessWidget {
   const _TodayCard({
     required this.feed,
+    required this.senderProfile,
+    required this.senderFallbackText,
     required this.dateLabel,
     required this.emptyLabel,
     required this.fallbackLabel,
@@ -749,6 +876,8 @@ class _TodayCard extends StatelessWidget {
   });
 
   final MemoryFeed? feed;
+  final _SenderProfile? senderProfile;
+  final String? senderFallbackText;
   final String dateLabel;
   final String emptyLabel;
   final String fallbackLabel;
@@ -780,28 +909,63 @@ class _TodayCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: AspectRatio(
-                aspectRatio: 4 / 3,
-                child: feed == null
-                    ? Container(
-                        color: _CalendarColors.surfaceMuted,
-                        alignment: Alignment.center,
-                        child: Text(
-                          emptyLabel,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: _CalendarColors.textMuted,
+              child: Stack(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: feed == null
+                        ? Container(
+                            color: _CalendarColors.surfaceMuted,
+                            alignment: Alignment.center,
+                            child: Text(
+                              emptyLabel,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: _CalendarColors.textMuted,
+                              ),
+                            ),
+                          )
+                        : CachedNetworkImageView(
+                            imageUrl: feed!.imageUrl,
+                            fit: BoxFit.cover,
+                            errorWidget: Container(
+                              color: _CalendarColors.surfaceMuted,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image),
+                            ),
                           ),
-                        ),
-                      )
-                    : CachedNetworkImageView(
-                        imageUrl: feed!.imageUrl,
-                        fit: BoxFit.cover,
-                        errorWidget: Container(
-                          color: _CalendarColors.surfaceMuted,
-                          alignment: Alignment.center,
-                          child: const Icon(Icons.broken_image),
+                  ),
+                  if (feed != null)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: _PhotoSenderBadge(
+                        avatarUrl: senderProfile?.avatarUrl,
+                        fallbackText: senderFallbackText,
+                        size: 30,
+                      ),
+                    ),
+                  Positioned(
+                    left: 10,
+                    bottom: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.34),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        dateLabel,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -842,12 +1006,14 @@ class _TodayCard extends StatelessWidget {
 class _RecentRow extends StatelessWidget {
   const _RecentRow({
     required this.feeds,
+    required this.senderProfiles,
     required this.onTap,
     required this.emptyLabel,
     required this.placeholderLabel,
   });
 
   final List<MemoryFeed> feeds;
+  final Map<String, _SenderProfile> senderProfiles;
   final void Function(MemoryFeed feed) onTap;
   final String emptyLabel;
   final String placeholderLabel;
@@ -855,7 +1021,17 @@ class _RecentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = feeds
-        .map((feed) => _RecentMemoryCard(feed: feed, onTap: () => onTap(feed)))
+        .map(
+          (feed) => _RecentMemoryCard(
+            feed: feed,
+            senderProfile: senderProfiles[feed.senderId],
+            senderFallbackText: _senderDisplayName(
+              senderId: feed.senderId,
+              senderProfiles: senderProfiles,
+            ),
+            onTap: () => onTap(feed),
+          ),
+        )
         .toList();
 
     if (items.isEmpty) {
@@ -893,16 +1069,24 @@ class _RecentRow extends StatelessWidget {
 }
 
 class _RecentMemoryCard extends StatelessWidget {
-  const _RecentMemoryCard({required this.feed, required this.onTap})
-    : isPlaceholder = false,
-      placeholderLabel = null;
+  const _RecentMemoryCard({
+    required this.feed,
+    required this.senderProfile,
+    required this.senderFallbackText,
+    required this.onTap,
+  }) : isPlaceholder = false,
+       placeholderLabel = null;
 
   const _RecentMemoryCard.placeholder({required this.placeholderLabel})
     : feed = null,
+      senderProfile = null,
+      senderFallbackText = null,
       onTap = null,
       isPlaceholder = true;
 
   final MemoryFeed? feed;
+  final _SenderProfile? senderProfile;
+  final String? senderFallbackText;
   final VoidCallback? onTap;
   final bool isPlaceholder;
   final String? placeholderLabel;
@@ -923,28 +1107,66 @@ class _RecentMemoryCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: isPlaceholder || feed == null
-                    ? Container(
-                        color: _CalendarColors.surfaceMuted,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.photo_outlined,
-                          color: _CalendarColors.textMuted,
-                        ),
-                      )
-                    : CachedNetworkImageView(
-                        imageUrl: feed!.imageUrl,
-                        fit: BoxFit.cover,
-                        errorWidget: Container(
-                          color: _CalendarColors.surfaceMuted,
-                          alignment: Alignment.center,
-                          child: const Icon(Icons.broken_image),
-                        ),
+              child: Stack(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: isPlaceholder || feed == null
+                        ? Container(
+                            color: _CalendarColors.surfaceMuted,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.photo_outlined,
+                              color: _CalendarColors.textMuted,
+                            ),
+                          )
+                        : CachedNetworkImageView(
+                            imageUrl: feed!.imageUrl,
+                            fit: BoxFit.cover,
+                            errorWidget: Container(
+                              color: _CalendarColors.surfaceMuted,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image),
+                            ),
+                          ),
+                  ),
+                  if (!isPlaceholder && feed != null)
+                    Positioned(
+                      right: 6,
+                      bottom: 6,
+                      child: _PhotoSenderBadge(
+                        avatarUrl: senderProfile?.avatarUrl,
+                        fallbackText: senderFallbackText,
+                        size: 24,
                       ),
+                    ),
+                ],
               ),
             ),
+            if (!isPlaceholder && feed != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.circle,
+                      size: 7,
+                      color: _CalendarColors.secondary,
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        senderFallbackText ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: _CalendarColors.textMuted,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 8),
             Text(
               _buildCardLabel(context),
@@ -977,6 +1199,21 @@ class _RecentMemoryCard extends StatelessWidget {
   }
 }
 
+String _senderDisplayName({
+  required String? senderId,
+  required Map<String, _SenderProfile> senderProfiles,
+}) {
+  if (senderId == null || senderId.isEmpty) {
+    return '?';
+  }
+  final profile = senderProfiles[senderId];
+  final nickname = profile?.nickname?.trim();
+  if (nickname != null && nickname.isNotEmpty) {
+    return nickname;
+  }
+  return senderId;
+}
+
 class _CircleIconButton extends StatelessWidget {
   const _CircleIconButton({required this.icon, required this.onTap});
 
@@ -1007,10 +1244,15 @@ class _CircleIconButton extends StatelessWidget {
 }
 
 class _MemoryDaySheet extends StatelessWidget {
-  const _MemoryDaySheet({required this.date, required this.feeds});
+  const _MemoryDaySheet({
+    required this.date,
+    required this.feeds,
+    required this.senderProfiles,
+  });
 
   final DateTime date;
   final List<MemoryFeed> feeds;
+  final Map<String, _SenderProfile> senderProfiles;
 
   @override
   Widget build(BuildContext context) {
@@ -1067,25 +1309,61 @@ class _MemoryDaySheet extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: CachedNetworkImageView(
-                                imageUrl: feed.imageUrl,
-                                height: 200,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorWidget: Container(
-                                  height: 200,
-                                  color: theme.colorScheme.surface,
-                                  alignment: Alignment.center,
-                                  child: const Icon(Icons.broken_image),
-                                ),
+                              child: Stack(
+                                children: [
+                                  CachedNetworkImageView(
+                                    imageUrl: feed.imageUrl,
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorWidget: Container(
+                                      height: 200,
+                                      color: theme.colorScheme.surface,
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.broken_image),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: 10,
+                                    bottom: 10,
+                                    child: _PhotoSenderBadge(
+                                      avatarUrl: senderProfiles[feed.senderId]
+                                          ?.avatarUrl,
+                                      fallbackText: _senderDisplayName(
+                                        senderId: feed.senderId,
+                                        senderProfiles: senderProfiles,
+                                      ),
+                                      size: 30,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              timeLabel,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: _CalendarColors.textMuted,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  timeLabel,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: _CalendarColors.textMuted,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _senderDisplayName(
+                                      senderId: feed.senderId,
+                                      senderProfiles: senderProfiles,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: _CalendarColors.textMuted,
+                                        ),
+                                  ),
+                                ),
+                              ],
                             ),
                             if (feed.caption != null &&
                                 feed.caption!.trim().isNotEmpty)
@@ -1109,17 +1387,63 @@ class _MemoryDaySheet extends StatelessWidget {
 }
 
 class _CalendarColors {
-  static const Color background = Color(0xFFF8FAFC);
+  static const Color background = Color(0xFFFFF8EE);
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceMuted = Color(0xFFF1F5F9);
-  static const Color outline = Color(0xFFE2E8F0);
-  static const Color outlineSoft = Color(0xFFE5E7EB);
-  static const Color lineSoft = Color(0xFFCBD5F5);
-  static const Color textStrong = Color(0xFF1E293B);
-  static const Color textMuted = Color(0xFF64748B);
-  static const Color primary = Color(0xFF3B82F6);
-  static const Color primarySoft = Color(0xFFDBEAFE);
-  static const Color shadow = Color(0x1A1E293B);
+  static const Color surfaceMuted = Color(0xFFFFF1E3);
+  static const Color outline = Color(0xFFF6D8B4);
+  static const Color outlineSoft = Color(0xFFFBE5CC);
+  static const Color lineSoft = Color(0xFFFBCB99);
+  static const Color textStrong = Color(0xFF3D2A1A);
+  static const Color textMuted = Color(0xFF88674A);
+  static const Color primary = Color(0xFFFF8A3D);
+  static const Color primarySoft = Color(0xFFFFE6CE);
+  static const Color secondary = Color(0xFF43B581);
+  static const Color shadow = Color(0x1F6E3C0F);
+}
+
+class _PhotoSenderBadge extends StatelessWidget {
+  const _PhotoSenderBadge({
+    required this.avatarUrl,
+    required this.fallbackText,
+    required this.size,
+  });
+
+  final String? avatarUrl;
+  final String? fallbackText;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: _CalendarColors.surface, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: _CalendarColors.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: UserAvatar(
+        avatar: avatarUrl,
+        fallbackText: fallbackText,
+        size: size - 4,
+      ),
+    );
+  }
+}
+
+class _SenderProfile {
+  const _SenderProfile({required this.nickname, required this.avatarUrl});
+
+  final String? nickname;
+  final String? avatarUrl;
 }
 
 class MemoryFeed {

@@ -1,6 +1,10 @@
 # Progress
 
 ## Done
+- Updated hosted privacy/support web pages to use canonical entry URLs (`privacy_policy.html`, `support.html`) with a visible EN/JA/zh-TW language switcher and browser-language auto-detect redirect on canonical pages.
+- Hardened iOS App Store compliance for subscriptions: localized iOS permission usage strings (EN/JA/zh-Hant/zh-Hans), added subscription legal links (Privacy Policy + Apple standard EULA) on the Store subscription surface, documented required App Review notes and submission operations in localized App Store metadata docs, and added a widget test validating legal-link rendering and URL launch behavior.
+- Updated Store IAP cards for subscription compliance clarity: moved localized IAP price to the right action column above the buy/subscribe button, added explicit Pro auto-renew note copy, refined Pro description to include no ads + unlimited rooms + auto-renewal, and hid the 300 diamond pack description line in the card UI.
+- Redesigned the memory calendar page to a warmer/playful visual style (header badge, softer palette, rounder cards) and overlaid sender avatars directly on calendar photos (month cells, latest photo card, earlier memory cards, and day detail sheet) by loading sender profile metadata.
 - Added one-shot home SFX hooks: `assets/sound/eating.m4a` now plays when pet eating starts, and `assets/sound/get_candy.m4a` now plays in sync with the candy `+X` reward animation trigger.
 - Swapped feed camera source button positions: Gallery now appears left, Camera right.
 - Adjusted feed camera vertical composition so the photo frame section is vertically centered in the viewport (not just horizontally).
@@ -41,6 +45,7 @@
 - Added a slim outline frame to the floating Room Selection glass CTA button for clearer edge definition without heavy visual weight.
 - Updated the floating Room Selection CTA slim outline color from white to theme green for stronger brand consistency.
 - Fixed Room Selection health auto-refresh reliability in warm app sessions: added app lifecycle resume hook to trigger room-selection pet-status refresh and guarded concurrent refreshes.
+- Investigated remaining Room Selection refresh gaps and fixed uncovered paths: added startup refresh when Room Selection is initially shown and a periodic Room Selection auto-refresh timer (while visible) so health bars update without app kill/relaunch.
 - Center-aligned the left lock icon in the locked-room Pet Home prompt row to match the store CTA icon alignment.
 - Updated the locked-room Pet Home prompt layout for long locales: message now supports 3 lines and the Store CTA is icon-only (with tooltip) instead of text.
 - Added a one-time status bar refresh when entering Pet Selection and pinned the page overlay style to light to prevent stale status-bar appearance from previous screens.

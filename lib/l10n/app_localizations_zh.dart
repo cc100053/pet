@@ -816,16 +816,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get storeItemNameProMonthly => 'Pro 月訂閱';
+  String get storeItemNameProMonthly => 'Pro 月度會員';
 
   @override
-  String get storeItemDescProMonthly => '每月 Pro 方案。';
+  String get storeItemDescProMonthly => 'Pro 每月訂閱，享有無廣告、房間無上限，且每月自動續訂。';
 
   @override
-  String get storeItemNameDiamondPack300 => '300 鑽石包';
+  String get storeItemNameDiamondPack300 => '300 鑽石禮包';
 
   @override
-  String get storeItemDescDiamondPack300 => '一次性 300 鑽石。';
+  String get storeItemDescDiamondPack300 => '一次購買，立即獲得 300 鑽石。';
 
   @override
   String get storeItemNameReturnLetter => '回家信';
@@ -901,6 +901,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get storeSubscriptionActive => '已啟用';
+
+  @override
+  String get storeSubscriptionRenewalNote => '每月自動續訂，可隨時取消。';
+
+  @override
+  String get storePrivacyPolicy => '隱私政策';
+
+  @override
+  String get storeTermsOfUse => '使用條款';
+
+  @override
+  String get storeLegalSeparator => '|';
+
+  @override
+  String get storeLegalOpenFailed => '無法開啟法律連結。';
 
   @override
   String get storeTitle => '商店';
@@ -1902,7 +1917,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemNameProMonthly => 'Pro 月訂閱';
 
   @override
-  String get storeItemDescProMonthly => '每月 Pro 方案。';
+  String get storeItemDescProMonthly => 'Pro 每月訂閱，享有無廣告、房間無上限，且每月自動續訂。';
 
   @override
   String get storeItemNameDiamondPack300 => '300 鑽石包';
@@ -1984,6 +1999,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeSubscriptionActive => '已啟用';
+
+  @override
+  String get storeSubscriptionRenewalNote => '每月自動續訂，可隨時取消。';
+
+  @override
+  String get storePrivacyPolicy => '隱私權政策';
+
+  @override
+  String get storeTermsOfUse => '使用條款';
+
+  @override
+  String get storeLegalSeparator => '|';
+
+  @override
+  String get storeLegalOpenFailed => '無法開啟法律連結。';
 
   @override
   String get storeTitle => '商店';
