@@ -5,14 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:pet/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
-import '../../services/image_labeling/image_labeling.dart';
-import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -41,52 +39,22 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
 
   final _captionController = TextEditingController();
   final _picker = ImagePicker();
-  late final ImageLabelingService _labeler;
-
-  LabelMappingService? _mappingService;
 
   Uint8List? _previewBytes;
   XFile? _selectedImage;
 
-  bool _analyzing = false;
   bool _sending = false;
   String? _error;
-
-  List<LabelObservation> _observations = const [];
-  List<LabelMatch> _matches = const [];
-  List<String> _canonicalTags = const [];
-  int _imageRequestId = 0;
 
   @override
   void initState() {
     super.initState();
-    _labeler = createImageLabelingService(confidenceThreshold: 0.6);
-    _loadMappings();
   }
 
   @override
   void dispose() {
     _captionController.dispose();
-    _labeler.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadMappings() async {
-    try {
-      final repository = LabelMappingRepository(Supabase.instance.client);
-      final entries = await repository.fetch();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _mappingService = LabelMappingService(entries);
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      // Best-effort. Label mappings are optional when UI is hidden.
-    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -104,72 +72,11 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     }
 
     final previewBytes = await image.readAsBytes();
-    final requestId = ++_imageRequestId;
 
     setState(() {
       _previewBytes = previewBytes;
       _selectedImage = image;
-      _observations = const [];
-      _matches = const [];
-      _canonicalTags = const [];
     });
-
-    await _analyzeImage(image, requestId);
-  }
-
-  Future<void> _analyzeImage(XFile image, int requestId) async {
-    if (kIsWeb) {
-      setState(() {
-        _error = AppLocalizations.of(context)!.feedLabelingNotSupported;
-      });
-      return;
-    }
-
-    setState(() {
-      _analyzing = true;
-      _error = null;
-    });
-
-    try {
-      final labels = await _labeler.analyzeImage(image.path);
-      final observations = labels
-          .map(
-            (label) => LabelObservation(
-              text: label.label,
-              confidence: label.confidence,
-            ),
-          )
-          .toList();
-
-      final mappingService = _mappingService;
-      final matches = mappingService?.matchLabels(observations) ?? const [];
-      final tags = mappingService?.matchCanonicalTags(observations) ?? const [];
-
-      if (!mounted || _imageRequestId != requestId) {
-        return;
-      }
-
-      setState(() {
-        _observations = observations;
-        _matches = matches;
-        _canonicalTags = tags;
-      });
-    } catch (error) {
-      if (!mounted || _imageRequestId != requestId) {
-        return;
-      }
-      setState(() {
-        _error = AppLocalizations.of(
-          context,
-        )!.feedLabelingFailed(userFacingError(context, error));
-      });
-    } finally {
-      if (mounted && _imageRequestId == requestId) {
-        setState(() {
-          _analyzing = false;
-        });
-      }
-    }
   }
 
   Future<void> _sendFeed() async {
@@ -200,27 +107,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       final clientCreatedAt = DateTime.now().toUtc();
       final clientCreatedAtIso = clientCreatedAt.toIso8601String();
       final tempId = 'temp_${clientCreatedAt.microsecondsSinceEpoch}';
-      final matchByLabel = <String, String>{};
-      for (final match in _matches) {
-        matchByLabel[LabelMappingService.normalizeLabel(match.text)] =
-            match.canonicalTag;
-      }
-
-      final labelsPayload = _observations
-          .map(
-            (label) => {
-              'text': label.text,
-              'confidence': label.confidence,
-              if (matchByLabel.containsKey(
-                LabelMappingService.normalizeLabel(label.text),
-              ))
-                'canonical_tag':
-                    matchByLabel[LabelMappingService.normalizeLabel(
-                      label.text,
-                    )],
-            },
-          )
-          .toList();
+      final labelsPayload = <Map<String, dynamic>>[];
 
       final caption = _captionController.text.trim();
 
@@ -380,7 +267,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
           body: {
             'room_id': widget.roomId,
             'labels': labelsPayload,
-            'canonical_tags': _canonicalTags,
+            'canonical_tags': const <String>[],
             'caption': caption,
             'image_base64': dataUri,
             'image_content_type': imageContentType,
@@ -483,176 +370,313 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppStatusBarStyles.light,
       child: Scaffold(
+        backgroundColor: const Color(0xFFFFFBF3),
         appBar: AppBar(
           systemOverlayStyle: AppStatusBarStyles.light,
-          title: Text(l10n.feedCameraTitle),
+          title: Text(
+            l10n.feedCameraTitle,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
           elevation: 0,
           backgroundColor: Colors.transparent,
           foregroundColor: AppTheme.textPrimary,
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(24),
+        body: Stack(
           children: [
-            Text(
-              l10n.feedCameraSubtitle,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
-            ),
-            // Photo labeling UI is currently disabled
-            // const SizedBox(height: 12),
-            // Text(
-            //   mappingStatus,
-            //   style: Theme.of(
-            //     context,
-            //   ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-            // ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              alignment: WrapAlignment.center,
-              children: [
-                FilledButton.icon(
-                  onPressed: _sending
-                      ? null
-                      : () => _pickImage(ImageSource.camera),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.secondaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.photo_camera),
-                  label: Text(l10n.commonCamera),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _sending
-                      ? null
-                      : () => _pickImage(ImageSource.gallery),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.textPrimary,
-                    side: const BorderSide(color: Colors.black12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.photo_library),
-                  label: Text(l10n.commonGallery),
-                ),
-              ],
-            ),
-            if (_previewBytes != null) ...[
-              const SizedBox(height: 24),
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final cacheWidth = _cacheDimension(
-                        context,
-                        constraints.maxWidth,
-                      );
-                      final cacheHeight = _cacheDimension(context, 300);
-                      return Image.memory(
-                        _previewBytes!,
-                        height: 300,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        cacheWidth: cacheWidth,
-                        cacheHeight: cacheHeight,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-            // Photo labeling UI is currently disabled
-            // const SizedBox(height: 24),
-            // if (_analyzing)
-            //   const Center(child: CircularProgressIndicator())
-            // else if (_observations.isNotEmpty)
-            //   _LabelsPreview(observations: _observations, matches: _matches)
-            // else
-            //   Center(
-            //     child: Text(
-            //       l10n.feedNoLabels,
-            //       style: Theme.of(
-            //         context,
-            //       ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-            //     ),
-            //   ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _captionController,
-              decoration: InputDecoration(
-                labelText: l10n.feedCaptionLabel,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Colors.black12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Colors.black12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppTheme.primaryColor),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              maxLines: 2,
-              maxLength: 40,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _sending || _analyzing ? null : _sendFeed,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                elevation: 4,
-                shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-              ),
-              child: Text(
-                _sending ? l10n.commonSending : l10n.feedSendButton,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+            Positioned(
+              top: -70,
+              left: -50,
+              child: _Blob(
+                size: 180,
+                color: const Color(0xFFFFD68D).withValues(alpha: 0.45),
               ),
             ),
-            // Photo labeling canonical tags display is disabled
-            // if (_canonicalTags.isNotEmpty) ...[
-            //   const SizedBox(height: 12),
-            //   Text(l10n.feedCanonicalTags(_canonicalTags.join(', '))),
-            // ],
-            // if (_result != null) ...[
-            //   const SizedBox(height: 12),
-            //   Text(l10n.feedResponse(_result!)),
-            // ],
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            Positioned(
+              right: -42,
+              top: 120,
+              child: _Blob(
+                size: 130,
+                color: const Color(0xFFAED6B3).withValues(alpha: 0.35),
               ),
-            ],
-            const SizedBox(height: 40),
+            ),
+            SafeArea(
+              top: false,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 360),
+                              child: Container(
+                                height: 300,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(color: Colors.black12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: _previewBytes == null
+                                      ? const _EmptyPreviewState()
+                                      : LayoutBuilder(
+                                          builder: (context, constraints) {
+                                            final cacheWidth = _cacheDimension(
+                                              context,
+                                              constraints.maxWidth,
+                                            );
+                                            final cacheHeight = _cacheDimension(
+                                              context,
+                                              300,
+                                            );
+                                            return Image.memory(
+                                              _previewBytes!,
+                                              fit: BoxFit.cover,
+                                              cacheWidth: cacheWidth,
+                                              cacheHeight: cacheHeight,
+                                            );
+                                          },
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _PickSourceCard(
+                                  label: l10n.commonGallery,
+                                  icon: Icons.photo_library_rounded,
+                                  color: const Color(0xFFFFBE8A),
+                                  onTap: _sending
+                                      ? null
+                                      : () => _pickImage(ImageSource.gallery),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _PickSourceCard(
+                                  label: l10n.commonCamera,
+                                  icon: Icons.photo_camera_rounded,
+                                  color: const Color(0xFF8ED0A9),
+                                  onTap: _sending
+                                      ? null
+                                      : () => _pickImage(ImageSource.camera),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _captionController,
+                            decoration: InputDecoration(
+                              hintText: l10n.feedCaptionLabel,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withValues(alpha: 0.9),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                            ),
+                            maxLines: 2,
+                            maxLength: 40,
+                            buildCounter:
+                                (
+                                  BuildContext context, {
+                                  required int currentLength,
+                                  required bool isFocused,
+                                  required int? maxLength,
+                                }) {
+                                  return null;
+                                },
+                          ),
+                          FilledButton(
+                            onPressed: _sending || _selectedImage == null
+                                ? null
+                                : _sendFeed,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _sending
+                                      ? Icons.sync_rounded
+                                      : Icons.send_rounded,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _sending
+                                      ? l10n.commonSending
+                                      : l10n.feedSendButton,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                _error!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Blob extends StatelessWidget {
+  const _Blob({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
+
+class _PickSourceCard extends StatelessWidget {
+  const _PickSourceCard({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyPreviewState extends StatelessWidget {
+  const _EmptyPreviewState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFFFF7E8),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.add_a_photo_rounded,
+        size: 34,
+        color: Color(0xFF7A6A58),
       ),
     );
   }

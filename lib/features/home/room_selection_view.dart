@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -120,36 +121,45 @@ class RoomSelectionView extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.76,
-                  ),
-                  itemCount: totalSlots,
-                  itemBuilder: (context, index) {
-                    if (index < rooms.length) {
-                      final room = rooms[index];
-                      return _buildRoomCard(context, room, l10n)
-                          .animate()
-                          .fadeIn(delay: (80 * index).ms)
-                          .slideY(begin: 0.1, end: 0);
-                    }
-                    return _buildEmptySlot(context, l10n)
-                        .animate()
-                        .fadeIn(delay: (80 * index).ms)
-                        .slideY(begin: 0.1, end: 0);
-                  },
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 112),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 0.76,
+                            ),
+                        itemCount: totalSlots,
+                        itemBuilder: (context, index) {
+                          if (index < rooms.length) {
+                            final room = rooms[index];
+                            return _buildRoomCard(context, room, l10n)
+                                .animate()
+                                .fadeIn(delay: (80 * index).ms)
+                                .slideY(begin: 0.1, end: 0);
+                          }
+                          return _buildEmptySlot(context, l10n)
+                              .animate()
+                              .fadeIn(delay: (80 * index).ms)
+                              .slideY(begin: 0.1, end: 0);
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      left: 20,
+                      right: 20,
+                      bottom: 10,
+                      child: SafeArea(
+                        top: false,
+                        child: _buildPrimaryCta(context, l10n),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                child: _buildPrimaryCta(context, l10n),
               ),
             ],
           ),
@@ -435,41 +445,61 @@ class RoomSelectionView extends StatelessWidget {
   }
 
   Widget _buildPrimaryCta(BuildContext context, AppLocalizations l10n) {
-    final radius = BorderRadius.circular(28);
+    final radius = BorderRadius.circular(999);
     return Opacity(
       opacity: creatingRoom ? 0.6 : 1,
-      child: Material(
-        color: Colors.transparent,
+      child: ClipRRect(
         borderRadius: radius,
-        clipBehavior: Clip.antiAlias,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            gradient: AppTheme.primaryGradient,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryColor.withValues(alpha: 0.42),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              color: Colors.white.withValues(alpha: 0.34),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.72),
+                width: 0.8,
               ),
-            ],
-          ),
-          child: InkWell(
-            onTap: creatingRoom ? null : onCreateRoom,
-            borderRadius: radius,
-            splashColor: Colors.white.withValues(alpha: 0.2),
-            highlightColor: Colors.white.withValues(alpha: 0.08),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: Text(
-                  creatingRoom
-                      ? l10n.roomSelectionCreating
-                      : l10n.roomSelectionCreatePet,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: creatingRoom ? null : onCreateRoom,
+                borderRadius: radius,
+                splashColor: AppTheme.primaryColor.withValues(alpha: 0.14),
+                highlightColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 18,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_circle_outline_rounded,
+                        color: AppTheme.primaryColor,
+                        size: 20,
+                      ),
+                      const Gap(8),
+                      Text(
+                        creatingRoom
+                            ? l10n.roomSelectionCreating
+                            : l10n.roomSelectionCreatePet,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -314,11 +314,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerTestNotification => 'Test Local Notification';
 
   @override
-  String get feedCameraSubtitle =>
-      'Capture a feed photo and review labels before sending.';
+  String get feedCameraSubtitle => 'Capture a feed photo and send it.';
 
   @override
   String get feedCameraTitle => 'Feed Camera';
+
+  @override
+  String get feedPickPhotoHint => 'Pick a photo';
 
   @override
   String feedCanonicalTags(Object tags) {

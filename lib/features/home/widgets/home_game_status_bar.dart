@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
+import '../../../services/audio/app_sfx.dart';
 import '../../../shared/theme/app_theme.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
@@ -728,6 +729,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
     setState(() {
       _displayReward = reward;
     });
+    unawaited(AppSfx.playCandyGain());
     _triggerAnimation();
   }
 

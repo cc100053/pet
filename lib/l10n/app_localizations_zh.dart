@@ -305,10 +305,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerTestNotification => '測試本地通知';
 
   @override
-  String get feedCameraSubtitle => '拍照並檢查標籤後再送出。';
+  String get feedCameraSubtitle => '拍照後送出。';
 
   @override
   String get feedCameraTitle => '餵食相機';
+
+  @override
+  String get feedPickPhotoHint => '選擇照片';
 
   @override
   String feedCanonicalTags(Object tags) {
@@ -1385,10 +1388,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerTestNotification => '測試本地通知';
 
   @override
-  String get feedCameraSubtitle => '拍照並檢查標籤後再送出。';
+  String get feedCameraSubtitle => '拍照後送出。';
 
   @override
   String get feedCameraTitle => '餵食相機';
+
+  @override
+  String get feedPickPhotoHint => '選擇照片';
 
   @override
   String feedCanonicalTags(Object tags) {

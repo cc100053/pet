@@ -5,6 +5,7 @@
 - State management: Riverpod
 - Animation: Lottie (`lottie`) + asset images (GIF/PNG)
 - UI micro-animations: `flutter_animate` (duration extensions, `moveX`/`moveY`)
+- SFX playback: `audioplayers` (one-shot local asset effects)
 - Local storage/cache: Hive
 - Client SDK: `supabase_flutter`
 - Env config: `flutter_dotenv`

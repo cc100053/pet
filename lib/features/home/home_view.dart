@@ -13,6 +13,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 import '../../services/settings/app_settings_repository.dart';
@@ -56,7 +57,7 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   static const _petAvatarSize = Size(100, 100);
   static const _photoFoodSize = Size(82, 82);
   static const int _optimisticFeedRewardCoins = 10;
@@ -109,6 +110,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _coinRewardEventId = 0;
   bool _coinsLoadInFlight = false;
   int? _pendingCoinsExpectedReward;
+  bool _roomSelectionRefreshInFlight = false;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
   String? _petSubscriptionPetId;
@@ -186,6 +188,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -241,6 +244,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _petStateChannel?.unsubscribe();
     _furnitureChannel?.unsubscribe();
     _backgroundStateChannel?.unsubscribe();
@@ -256,6 +260,17 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      return;
+    }
+    if (!_showRoomSelection) {
+      return;
+    }
+    unawaited(_refreshRoomSelectionHealthBars());
   }
 
   void _precachePetAssets(PetDefinition pet) {
@@ -2707,40 +2722,48 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _refreshRoomSelectionHealthBars() async {
+    if (_roomSelectionRefreshInFlight) {
+      return;
+    }
+    _roomSelectionRefreshInFlight = true;
     final roomIds = _myRooms
         .map((room) => room['id'])
         .whereType<String>()
         .toList(growable: false);
-    if (roomIds.isEmpty) {
-      await _fetchRooms();
-      return;
-    }
-
     try {
-      final pets = await Supabase.instance.client
-          .from('pets')
-          .select('id')
-          .inFilter('room_id', roomIds);
-      final nowIso = DateTime.now().toUtc().toIso8601String();
-      for (final row in pets) {
-        final petId = row['id'] as String?;
-        if (petId == null || petId.isEmpty) {
-          continue;
-        }
-        try {
-          await Supabase.instance.client.rpc(
-            'tick_pet_state',
-            params: {'p_pet_id': petId, 'p_now': nowIso},
-          );
-        } catch (_) {
-          // Best-effort per room: continue refreshing others.
-        }
+      if (roomIds.isEmpty) {
+        await _fetchRooms();
+        return;
       }
-    } catch (_) {
-      // Best-effort: still reload rooms below.
-    }
 
-    await _fetchRooms();
+      try {
+        final pets = await Supabase.instance.client
+            .from('pets')
+            .select('id')
+            .inFilter('room_id', roomIds);
+        final nowIso = DateTime.now().toUtc().toIso8601String();
+        for (final row in pets) {
+          final petId = row['id'] as String?;
+          if (petId == null || petId.isEmpty) {
+            continue;
+          }
+          try {
+            await Supabase.instance.client.rpc(
+              'tick_pet_state',
+              params: {'p_pet_id': petId, 'p_now': nowIso},
+            );
+          } catch (_) {
+            // Best-effort per room: continue refreshing others.
+          }
+        }
+      } catch (_) {
+        // Best-effort: still reload rooms below.
+      }
+
+      await _fetchRooms();
+    } finally {
+      _roomSelectionRefreshInFlight = false;
+    }
   }
 
   Future<void> _openStoreFromNav() async {
@@ -3217,6 +3240,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
 
     setState(() => _petEating = true);
+    unawaited(AppSfx.playEating());
     for (var stage = 1; stage <= 3; stage++) {
       await Future<void>.delayed(_foodBiteStepDuration);
       if (!mounted || token != _feedingAnimationToken) {

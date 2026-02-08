@@ -176,8 +176,9 @@
   "drawerRegenerateInviteCode": "Regenerate invite code",
   "drawerSimulateFeed": "Simulate Feed",
   "drawerTestNotification": "Test Local Notification",
-  "feedCameraSubtitle": "Capture a feed photo and review labels before sending.",
+  "feedCameraSubtitle": "Capture a feed photo and send it.",
   "feedCameraTitle": "Feed Camera",
+  "feedPickPhotoHint": "Pick a photo",
   "feedCanonicalTags": "Canonical tags: {tags}",
   "@feedCanonicalTags": {
     "placeholders": {

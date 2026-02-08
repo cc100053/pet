@@ -305,10 +305,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerTestNotification => 'ローカル通知をテスト';
 
   @override
-  String get feedCameraSubtitle => '写真を撮ってラベルを確認してから送信します。';
+  String get feedCameraSubtitle => '写真を撮って送信します。';
 
   @override
   String get feedCameraTitle => 'フィードカメラ';
+
+  @override
+  String get feedPickPhotoHint => '写真を選択';
 
   @override
   String feedCanonicalTags(Object tags) {

@@ -626,7 +626,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedCameraSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Capture a feed photo and review labels before sending.'**
+  /// **'Capture a feed photo and send it.'**
   String get feedCameraSubtitle;
 
   /// No description provided for @feedCameraTitle.
@@ -634,6 +634,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Feed Camera'**
   String get feedCameraTitle;
+
+  /// No description provided for @feedPickPhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a photo'**
+  String get feedPickPhotoHint;
 
   /// No description provided for @feedCanonicalTags.
   ///

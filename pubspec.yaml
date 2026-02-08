@@ -54,6 +54,7 @@ dependencies:
   supabase_flutter: ^2.5.3
   url_launcher: ^6.3.1
   flutter_svg: ^2.0.17
+  audioplayers: ^6.5.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -98,6 +99,7 @@ flutter:
     - assets/pet/cat/
     - assets/pet/fish/
     - assets/icon/
+    - assets/sound/
 
   fonts:
     - family: Heiseijyoji

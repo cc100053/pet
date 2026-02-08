@@ -1,6 +1,13 @@
 # Progress
 
 ## Done
+- Added one-shot home SFX hooks: `assets/sound/eating.m4a` now plays when pet eating starts, and `assets/sound/get_candy.m4a` now plays in sync with the candy `+X` reward animation trigger.
+- Swapped feed camera source button positions: Gallery now appears left, Camera right.
+- Adjusted feed camera vertical composition so the photo frame section is vertically centered in the viewport (not just horizontally).
+- Refined feed camera layout by removing the top subtitle bar, moving Camera/Gallery selectors below the photo frame, and simplifying the empty-frame state to icon-only.
+- Disabled feed-camera label checking for now (no on-device analysis call and no label-check UI), and updated feed-camera prompt copy to remove label-check messaging.
+- Restored visible feed label-check feedback after camera redesign via a compact status card (analyzing/detected count + top canonical-tag chips) and disabled send until an image is selected.
+- Redesigned the feed camera page with a playful card-based layout (decorative blobs, large camera/gallery tiles, framed preview), removed dense helper text/counter noise, and simplified UI to focus on pick-preview-caption-send flow.
 - Adjusted Pet Home pills to keep `Invite` as text+icon while `Inventory` remains icon-only.
 - Converted Pet Home Invite/Inventory pills to icon-only chips (kept localized tooltip labels) to avoid text cutoff in tight layouts.
 - Redesigned Pet Home Invite/Inventory pills to an adaptive two-chip row with shared width and ellipsis-safe labels, plus a shorter localized inventory CTA to prevent right-edge cutoff on small layouts.
@@ -28,6 +35,12 @@
 - Refined Room Selection primary CTA visual treatment: enforced rounded clipping to remove rectangular background bleed and increased gradient/shadow contrast so “Create New Room” pops more.
 - Adjusted Room Selection primary CTA color back to theme green gradient while keeping the rounded clipping fix and elevated contrast treatment.
 - Added enter-page health refresh for Room/Pet Selection: tapping Home to open selection now ticks `pet_state` for each room pet and reloads room summaries so health bars refresh every entry.
+- Redesigned Room Selection bottom CTA to a transparent glass-style bar (blurred backdrop, translucent fill, subtle border/shadow) aligned with Chat room composer visual language.
+- Tuned Room Selection glass CTA to better match Chat bottom bar layering by lowering fill opacity and softening shadow so it no longer appears as a solid bottom overlay.
+- Restructured Room Selection bottom CTA layout to float as an overlay above the grid (chat-style) instead of occupying a dedicated bottom row, removing the solid-looking bottom zone.
+- Added a slim outline frame to the floating Room Selection glass CTA button for clearer edge definition without heavy visual weight.
+- Updated the floating Room Selection CTA slim outline color from white to theme green for stronger brand consistency.
+- Fixed Room Selection health auto-refresh reliability in warm app sessions: added app lifecycle resume hook to trigger room-selection pet-status refresh and guarded concurrent refreshes.
 - Center-aligned the left lock icon in the locked-room Pet Home prompt row to match the store CTA icon alignment.
 - Updated the locked-room Pet Home prompt layout for long locales: message now supports 3 lines and the Store CTA is icon-only (with tooltip) instead of text.
 - Added a one-time status bar refresh when entering Pet Selection and pinned the page overlay style to light to prevent stale status-bar appearance from previous screens.

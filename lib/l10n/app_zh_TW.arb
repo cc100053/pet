@@ -169,8 +169,9 @@
   "drawerRegenerateInviteCode": "重新產生邀請碼",
   "drawerSimulateFeed": "模擬餵食",
   "drawerTestNotification": "測試本地通知",
-  "feedCameraSubtitle": "拍照並檢查標籤後再送出。",
+  "feedCameraSubtitle": "拍照後送出。",
   "feedCameraTitle": "餵食相機",
+  "feedPickPhotoHint": "選擇照片",
   "feedCanonicalTags": "標準標籤：{tags}",
   "@feedCanonicalTags": {
     "placeholders": {

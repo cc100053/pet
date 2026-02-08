@@ -176,8 +176,9 @@
   "drawerRegenerateInviteCode": "招待コードを再生成",
   "drawerSimulateFeed": "フィードをシミュレーション",
   "drawerTestNotification": "ローカル通知をテスト",
-  "feedCameraSubtitle": "写真を撮ってラベルを確認してから送信します。",
+  "feedCameraSubtitle": "写真を撮って送信します。",
   "feedCameraTitle": "フィードカメラ",
+  "feedPickPhotoHint": "写真を選択",
   "feedCanonicalTags": "カノニカルタグ: {tags}",
   "@feedCanonicalTags": {
     "placeholders": {
