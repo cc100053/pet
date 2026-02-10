@@ -49,7 +49,7 @@ class FCMService {
 
   Future<void> _initLocalNotifications() async {
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@drawable/ic_notification',
     );
     const iosSettings = DarwinInitializationSettings();
     const settings = InitializationSettings(
@@ -73,8 +73,8 @@ class FCMService {
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
     final notification = message.notification;
-    final title = notification?.title ?? 'New Update';
-    final body = notification?.body ?? 'You have a new message.';
+    final title = notification?.title ?? 'PetTomo';
+    final body = notification?.body ?? '';
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -83,7 +83,7 @@ class FCMService {
         channelDescription: _channel.description,
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,

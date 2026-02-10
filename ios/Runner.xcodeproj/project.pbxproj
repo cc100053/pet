@@ -213,6 +213,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				E9BA7EBF3008AC2949424DEE /* [CP] Embed Pods Frameworks */,
 				C3EDFA75015E69D6BBA9D2B5 /* [CP] Copy Pods Resources */,
+				A1B2C3D44F0A4E1200AA1122 /* Generate objective_c dSYM */,
 			);
 			buildRules = (
 			);
@@ -251,6 +252,8 @@
 				en,
 				Base,
 				ja,
+				"zh-Hant",
+				"zh-Hans",
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
@@ -362,6 +365,21 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
 		};
+		A1B2C3D44F0A4E1200AA1122 /* Generate objective_c dSYM */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate objective_c dSYM";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n  exit 0\nfi\n\nFRAMEWORK_BINARY=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/objective_c.framework/objective_c\"\nif [ ! -f \"${FRAMEWORK_BINARY}\" ]; then\n  echo \"objective_c.framework not present; skipping dSYM generation\"\n  exit 0\nfi\n\nDSYM_OUTPUT=\"${DWARF_DSYM_FOLDER_PATH}/objective_c.framework.dSYM\"\nmkdir -p \"${DWARF_DSYM_FOLDER_PATH}\"\n\necho \"Generating dSYM for objective_c.framework\"\nxcrun dsymutil \"${FRAMEWORK_BINARY}\" -o \"${DSYM_OUTPUT}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		C3EDFA75015E69D6BBA9D2B5 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -428,17 +446,17 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-			8A68E0404A11B4E1E80F5D20 /* InfoPlist.strings */ = {
-				isa = PBXVariantGroup;
-				children = (
-					8A68E0414A11B4E1E80F5D20 /* Base */,
-					8A68E0424A11B4E1E80F5D20 /* ja */,
-					8A68E0434A11B4E1E80F5D20 /* zh-Hant */,
-					8A68E0444A11B4E1E80F5D20 /* zh-Hans */,
-				);
-				name = InfoPlist.strings;
-				sourceTree = "<group>";
-			};
+		8A68E0404A11B4E1E80F5D20 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				8A68E0414A11B4E1E80F5D20 /* Base */,
+				8A68E0424A11B4E1E80F5D20 /* ja */,
+				8A68E0434A11B4E1E80F5D20 /* zh-Hant */,
+				8A68E0444A11B4E1E80F5D20 /* zh-Hans */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

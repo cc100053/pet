@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Paw print notification icon (monochrome white) -->
+    <!-- Top-left pad -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6.5,3.5C7.33,3.5 8,4.17 8,5C8,5.83 7.33,6.5 6.5,6.5C5.67,6.5 5,5.83 5,5C5,4.17 5.67,3.5 6.5,3.5Z" />
+    <!-- Top-right pad -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17.5,3.5C18.33,3.5 19,4.17 19,5C19,5.83 18.33,6.5 17.5,6.5C16.67,6.5 16,5.83 16,5C16,4.17 16.67,3.5 17.5,3.5Z" />
+    <!-- Mid-left pad -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4,8.5C4.83,8.5 5.5,9.17 5.5,10C5.5,10.83 4.83,11.5 4,11.5C3.17,11.5 2.5,10.83 2.5,10C2.5,9.17 3.17,8.5 4,8.5Z" />
+    <!-- Mid-right pad -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,8.5C20.83,8.5 21.5,9.17 21.5,10C21.5,10.83 20.83,11.5 20,11.5C19.17,11.5 18.5,10.83 18.5,10C18.5,9.17 19.17,8.5 20,8.5Z" />
+    <!-- Main palm -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,8C14.76,8 17,10.24 17,13C17,15.07 15.84,16.85 14.13,17.73C13.5,18.07 12.77,18.5 12,18.5C11.23,18.5 10.5,18.07 9.87,17.73C8.16,16.85 7,15.07 7,13C7,10.24 9.24,8 12,8Z" />
+</vector>

@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Fixed `notify_friend` push localization query path to avoid dropping valid device tokens when recipient profile rows are missing: device tokens are now fetched independently, locales are loaded in a separate profiles query, and per-token locale fallback remains intact.
+- Fixed iOS App Store upload blockers: added full iPad orientation set in `Info.plist` (`UISupportedInterfaceOrientations~ipad`) to satisfy multitasking validation, and added a Runner archive build phase that generates `objective_c.framework.dSYM` from the embedded native asset binary so symbol upload includes the expected UUID.
 - Updated hosted privacy/support web pages to use canonical entry URLs (`privacy_policy.html`, `support.html`) with a visible EN/JA/zh-TW language switcher and browser-language auto-detect redirect on canonical pages.
 - Hardened iOS App Store compliance for subscriptions: localized iOS permission usage strings (EN/JA/zh-Hant/zh-Hans), added subscription legal links (Privacy Policy + Apple standard EULA) on the Store subscription surface, documented required App Review notes and submission operations in localized App Store metadata docs, and added a widget test validating legal-link rendering and URL launch behavior.
 - Updated Store IAP cards for subscription compliance clarity: moved localized IAP price to the right action column above the buy/subscribe button, added explicit Pro auto-renew note copy, refined Pro description to include no ads + unlimited rooms + auto-renewal, and hid the 300 diamond pack description line in the card UI.

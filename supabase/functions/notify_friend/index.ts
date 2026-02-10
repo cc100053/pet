@@ -22,6 +22,25 @@ const FCM_PRIVATE_KEY = (Deno.env.get("FCM_PRIVATE_KEY") ?? "").replace(
   "\n",
 );
 
+// Localization map for push notification strings
+type L10nStrings = { title: string; defaultBody: string };
+
+const l10n: Record<string, L10nStrings> = {
+  en: { title: "PetTomo", defaultBody: "Someone shared a photo!" },
+  ja: { title: "ペットモ", defaultBody: "誰かが写真をシェアしました！" },
+  "zh-TW": { title: "PetTomo", defaultBody: "有人分享了一張照片！" },
+};
+
+function getL10n(locale: string | null | undefined): L10nStrings {
+  if (!locale) return l10n["zh-TW"];
+  if (l10n[locale]) return l10n[locale];
+  // Language-only fallback: "zh" → "zh-TW", "en-US" → "en"
+  const lang = locale.split("-")[0];
+  if (lang === "zh") return l10n["zh-TW"];
+  if (l10n[lang]) return l10n[lang];
+  return l10n["zh-TW"];
+}
+
 // Type definitions
 type NotifyPayload = {
   type: "feed_event";
@@ -205,10 +224,10 @@ serve(async (req) => {
     return jsonResponse(200, { message: "recipients_blocked" });
   }
 
-  // 5. Fetch Device Tokens
-  const { data: tokens, error: tokensError } = await supabase
+  // 5. Fetch Device Tokens first (don't depend on profile row existence)
+  const { data: tokenRows, error: tokensError } = await supabase
     .from("device_tokens")
-    .select("token")
+    .select("token, user_id")
     .in("user_id", recipientIds);
 
   if (tokensError) {
@@ -218,12 +237,43 @@ serve(async (req) => {
     });
   }
 
-  if (!tokens || tokens.length === 0) {
+  if (!tokenRows || tokenRows.length === 0) {
     return jsonResponse(200, { message: "no_device_tokens_found" });
   }
 
-  // Deduplicate tokens
-  const fcmTokens = Array.from(new Set(tokens.map((t) => t.token)));
+  // 5b. Fetch recipient locales separately; fallback handles missing rows/locales.
+  const { data: profileRows, error: profilesError } = await supabase
+    .from("profiles")
+    .select("user_id, locale")
+    .in("user_id", recipientIds);
+
+  if (profilesError) {
+    return jsonResponse(500, {
+      error: "db_error",
+      details: profilesError.message,
+    });
+  }
+
+  const localeByUserId = new Map<string, string | null>();
+  for (const row of profileRows ?? []) {
+    const userId = row.user_id as string | null;
+    if (!userId) continue;
+    localeByUserId.set(userId, (row.locale as string | null) ?? null);
+  }
+
+  // Build token-to-locale list (deduplicated by token)
+  const seen = new Set<string>();
+  const tokenLocales: { token: string; locale: string | null }[] = [];
+  for (const row of tokenRows) {
+    const tk = row.token as string;
+    if (seen.has(tk)) continue;
+    seen.add(tk);
+    const userId = row.user_id as string | null;
+    tokenLocales.push({
+      token: tk,
+      locale: userId ? (localeByUserId.get(userId) ?? null) : null,
+    });
+  }
 
   let serviceAccount: ServiceAccount;
   if (GOOGLE_SERVICE_ACCOUNT) {
@@ -259,21 +309,19 @@ serve(async (req) => {
     });
   }
 
-  // 6. Send Notifications (Batching is manually done in basic HTTP v1)
-  // FCM HTTP v1 sends one by one, or use batch endpoint (deprecated?)
-  // We'll iterate for now. For scale, use a queue or parallel promises.
-
+  // 6. Send localized notifications per recipient
   const projectId = serviceAccount.project_id;
   const fcmEndpoint =
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
 
-  const results = await Promise.all(fcmTokens.map(async (token) => {
+  const results = await Promise.all(tokenLocales.map(async ({ token, locale }) => {
+    const strings = getL10n(locale);
     const message = {
       message: {
         token: token,
         notification: {
-          title: "New Post!",
-          body: payload.caption || "Someone shared a photo!",
+          title: strings.title,
+          body: payload.caption || strings.defaultBody,
         },
         data: {
           room_id: payload.room_id,
@@ -325,7 +373,7 @@ serve(async (req) => {
     success: failures.length === 0,
     sent_count: successes,
     failure_count: failures.length,
-    total_tokens: fcmTokens.length,
+    total_tokens: tokenLocales.length,
     failures: failures.map((f) => ({
       token: f.token,
       error: f.error,

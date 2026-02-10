@@ -2,33 +2,37 @@ App Store Connect Metadata (English)
 
 App Information
 
-Name: PetTomo
-Subtitle: Social Photo Pet Game
-Privacy Policy URL: https://your-domain.com/privacy
+Name: PetTomo: Shared Pet Care
+Subtitle: Feed with Photos Together
+Privacy Policy URL: https://pet-app-702be.web.app/privacy_policy.html
 
 App Store Version Information
 
 Promotional Text (Max 170 chars)
-> Raise a digital pet with real photos! Invite friends to a shared room, snap pictures to feed your pet, and watch it grow together. The cutest social pet game is here!
+> Raise one adorable pet together with friends or your partner. Feed with photos, decorate your room, and turn daily moments into shared memories.
 
 Description
-PetTomo is the first social pet game powered by your real-world photos!
+PetTomo is a social virtual pet game where your daily photos become care, play, and shared memories.
 
-Turn your daily snaps into pet food and magic moments. PetTomo isn't just a game; it's a shared experience where you and your friends, partner, or family can raise a unique digital companion together.
+Create a room with friends, your partner, or family and raise one pet together. Feed your pet with camera or gallery photos, chat in real time, and watch your companion grow through everyday life.
 
 Key Features:
 
-Snap to Feed: Don't just tap a button—take a photo! Your pet recognizes real-world objects. A photo of a coffee might give it a caffeine boost, while a flower makes it happy!
-Shared Rooms: Create a room and invite your friends. Co-parent your pet, decorate your shared space, and see who takes the best care of your little companion.
-Social Log: Keep a shared memory of your best moments. Every feeding photo becomes a part of your shared history.
+Shared Pet Parenting: Raise one pet as a team in a shared room. Everyone can feed, care, and help it grow.
+Photo-to-Feed Gameplay: Turn ordinary photos into meaningful interactions with your pet.
+Real-Time Social Play: Chat, react, and celebrate progress together.
+Growth and Customization: Level up your pet, decorate your room, and build your own style over time.
 
-Join the fun and start raising your PetTomo today!
+Important Note:
+Photo label recognition is temporarily unavailable in the current version. Photo feeding still works normally.
+
+Start your shared pet story with PetTomo today.
 
 Keywords
 pet, game, social, raise, photo, camera, ai, cat, dog, cute, tamagotchi, widget, shared, couple, friends, multiplayer, care, virtual, feeding
 
 Support URL
-https://your-domain.com/support
+https://pet-app-702be.web.app/support.html
 
 App Review Notes (Template)
 - Purchases require sign-in because subscriptions and items are account-bound to shared rooms and cross-device sync.
