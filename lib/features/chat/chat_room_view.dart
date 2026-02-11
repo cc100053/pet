@@ -15,6 +15,8 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../services/chat/chat_message_repository.dart';
 import '../../services/performance/performance_service.dart';
+import '../../services/review/review_prompt_service.dart';
+import '../../services/auth/session_utils.dart';
 import '../feed/feed_capture_view.dart';
 import 'blocked_users_sheet.dart';
 import 'widgets/chat_message_tile.dart';
@@ -132,13 +134,21 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     _chatMessageListKey.currentState?.addOptimisticMessage(optimisticMessage);
 
     try {
-      await Supabase.instance.client.from('messages').insert({
-        'room_id': widget.roomId,
-        'sender_id': userId,
-        'type': 'text',
-        'body': text,
-        'client_created_at': DateTime.now().toUtc().toIso8601String(),
-      });
+      final insertedMessage = await Supabase.instance.client
+          .from('messages')
+          .insert({
+            'room_id': widget.roomId,
+            'sender_id': userId,
+            'type': 'text',
+            'body': text,
+            'client_created_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .select('id')
+          .single();
+      final insertedMessageId = insertedMessage['id'] as String?;
+      if (insertedMessageId != null) {
+        unawaited(_notifyTextMessage(insertedMessageId));
+      }
       _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
       _chatMessageListKey.currentState?.refreshLatest();
       AnalyticsService.instance.logEvent(
@@ -176,6 +186,29 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           _sending = false;
         });
       }
+    }
+  }
+
+  Future<void> _notifyTextMessage(String messageId) async {
+    try {
+      final accessToken = await ensureValidAccessToken();
+      if (accessToken == null) {
+        return;
+      }
+      final response = await Supabase.instance.client.functions.invoke(
+        'notify_friend',
+        headers: {'Authorization': 'Bearer $accessToken'},
+        body: {
+          'type': 'chat_message',
+          'room_id': widget.roomId,
+          'message_id': messageId,
+        },
+      );
+      if (response.status < 200 || response.status >= 300) {
+        return;
+      }
+    } catch (_) {
+      // Notification delivery issues should not block chat send success.
     }
   }
 
@@ -254,6 +287,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   void _handleFeedUploadCompleted(FeedUploadResult result) {
     _chatMessageListKey.currentState?.removeOptimisticMessage(result.tempId);
     _chatMessageListKey.currentState?.refreshLatest();
+    unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {

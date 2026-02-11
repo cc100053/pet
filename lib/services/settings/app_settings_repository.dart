@@ -8,6 +8,10 @@ class AppSettingsRepository {
   static const String _boxName = 'app_settings';
   static const String _preferredLocaleKey = 'preferred_locale_tag';
   static const String _debugProPlanEnabledKey = 'debug_pro_plan_enabled';
+  static const String _reviewFeedSuccessCountKey = 'review_feed_success_count';
+  static const String _reviewNextMilestoneIndexKey =
+      'review_next_milestone_index';
+  static const String _reviewLastPromptAtIsoKey = 'review_last_prompt_at_iso';
 
   Box<dynamic>? _box;
 
@@ -31,5 +35,37 @@ class AppSettingsRepository {
 
   Future<void> setDebugProPlanEnabled(bool enabled) async {
     await _box?.put(_debugProPlanEnabledKey, enabled);
+  }
+
+  int get reviewFeedSuccessCount =>
+      (_box?.get(_reviewFeedSuccessCountKey) as int?) ?? 0;
+
+  Future<void> setReviewFeedSuccessCount(int count) async {
+    final safeCount = count < 0 ? 0 : count;
+    await _box?.put(_reviewFeedSuccessCountKey, safeCount);
+  }
+
+  int get reviewNextMilestoneIndex =>
+      (_box?.get(_reviewNextMilestoneIndexKey) as int?) ?? 0;
+
+  Future<void> setReviewNextMilestoneIndex(int index) async {
+    final safeIndex = index < 0 ? 0 : index;
+    await _box?.put(_reviewNextMilestoneIndexKey, safeIndex);
+  }
+
+  DateTime? get reviewLastPromptAt {
+    final iso = _box?.get(_reviewLastPromptAtIsoKey) as String?;
+    if (iso == null || iso.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(iso)?.toUtc();
+  }
+
+  Future<void> setReviewLastPromptAt(DateTime? value) async {
+    if (value == null) {
+      await _box?.delete(_reviewLastPromptAtIsoKey);
+      return;
+    }
+    await _box?.put(_reviewLastPromptAtIsoKey, value.toUtc().toIso8601String());
   }
 }

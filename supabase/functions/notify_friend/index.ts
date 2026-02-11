@@ -9,10 +9,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Environment variables
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-  "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const NOTIFY_WEBHOOK_SECRET = Deno.env.get("NOTIFY_WEBHOOK_SECRET") ?? "";
 const GOOGLE_SERVICE_ACCOUNT = Deno.env.get("GOOGLE_SERVICE_ACCOUNT") ?? "";
 const FCM_PROJECT_ID = Deno.env.get("FCM_PROJECT_ID") ?? "";
@@ -21,37 +20,71 @@ const FCM_PRIVATE_KEY = (Deno.env.get("FCM_PRIVATE_KEY") ?? "").replace(
   /\\n/g,
   "\n",
 );
+const DEFAULT_PET_AVATAR_URL =
+  "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/ghost_stay.gif";
 
-// Localization map for push notification strings
-type L10nStrings = { title: string; defaultBody: string };
-
-const l10n: Record<string, L10nStrings> = {
-  en: { title: "PetTomo", defaultBody: "Someone shared a photo!" },
-  ja: { title: "ペットモ", defaultBody: "誰かが写真をシェアしました！" },
-  "zh-TW": { title: "PetTomo", defaultBody: "有人分享了一張照片！" },
+type L10nStrings = {
+  defaultFeedBody: string;
+  defaultTextBody: string;
+  defaultPetName: string;
+  defaultSenderName: string;
 };
 
-function getL10n(locale: string | null | undefined): L10nStrings {
-  if (!locale) return l10n["zh-TW"];
-  if (l10n[locale]) return l10n[locale];
-  // Language-only fallback: "zh" → "zh-TW", "en-US" → "en"
-  const lang = locale.split("-")[0];
-  if (lang === "zh") return l10n["zh-TW"];
-  if (l10n[lang]) return l10n[lang];
-  return l10n["zh-TW"];
+const l10n: Record<string, L10nStrings> = {
+  en: {
+    defaultFeedBody: "Someone shared a photo!",
+    defaultTextBody: "New message",
+    defaultPetName: "Pet",
+    defaultSenderName: "Someone",
+  },
+  ja: {
+    defaultFeedBody: "誰かが写真をシェアしました！",
+    defaultTextBody: "新しいメッセージ",
+    defaultPetName: "ペット",
+    defaultSenderName: "だれか",
+  },
+  "zh-TW": {
+    defaultFeedBody: "有人分享了一張照片！",
+    defaultTextBody: "新訊息",
+    defaultPetName: "寵物",
+    defaultSenderName: "某人",
+  },
+};
+
+function normalizeLocale(locale: string | null | undefined): string {
+  if (!locale) return "zh-TW";
+  const trimmed = locale.trim();
+  if (!trimmed) return "zh-TW";
+  if (/^ja([_-].+)?$/i.test(trimmed)) return "ja";
+  if (/^en([_-].+)?$/i.test(trimmed)) return "en";
+  if (/^zh([_-].+)?$/i.test(trimmed)) return "zh-TW";
+  const lang = trimmed.split(/[-_]/)[0]?.toLowerCase();
+  if (lang === "ja") return "ja";
+  if (lang === "en") return "en";
+  if (lang === "zh") return "zh-TW";
+  return "en";
 }
 
-// Type definitions
+function localizedAppName(locale: string | null | undefined): string {
+  return normalizeLocale(locale) === "ja" ? "ペットモ" : "PetTomo";
+}
+
+function getL10n(locale: string | null | undefined): L10nStrings {
+  const normalized = normalizeLocale(locale);
+  return l10n[normalized] ?? l10n.en;
+}
+
 type NotifyPayload = {
-  type: "feed_event";
+  type: "feed_event" | "chat_message";
   room_id: string;
-  sender_id: string;
-  recipient_ids: string[];
+  sender_id?: string;
+  recipient_ids?: string[];
   message_id: string;
-  image_url: string;
-  caption: string | null;
-  canonical_tags: string[];
-  created_at: string | null;
+  image_url?: string | null;
+  caption?: string | null;
+  body?: string | null;
+  canonical_tags?: string[];
+  created_at?: string | null;
 };
 
 type ServiceAccount = {
@@ -99,7 +132,7 @@ function jsonResponse(status: number, body: Record<string, unknown>) {
 
 async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
   const iat = getNumericDate(0);
-  const exp = getNumericDate(3600); // 1 hour
+  const exp = getNumericDate(3600);
 
   const key = await importPrivateKey(serviceAccount.private_key);
   const jwt = await create(
@@ -135,20 +168,18 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
   return data.access_token;
 }
 
+function nonEmptyOrNull(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // 1. Verify Shared Secret for Webhook Security
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (NOTIFY_WEBHOOK_SECRET) {
-    if (authHeader !== `Bearer ${NOTIFY_WEBHOOK_SECRET}`) {
-      return jsonResponse(401, { error: "invalid_webhook_secret" });
-    }
-  }
-
-  // 2. Validate Payload
   let payload: NotifyPayload;
   try {
     payload = await req.json();
@@ -156,24 +187,100 @@ serve(async (req) => {
     return jsonResponse(400, { error: "invalid_json" });
   }
 
+  const webhookAuthHeader = `Bearer ${NOTIFY_WEBHOOK_SECRET}`;
+  const isSignedWebhook = !!NOTIFY_WEBHOOK_SECRET &&
+    authHeader === webhookAuthHeader;
+  const isUnsignedWebhook = !NOTIFY_WEBHOOK_SECRET &&
+    !!payload.sender_id &&
+    Array.isArray(payload.recipient_ids);
+  const isWebhookRequest = isSignedWebhook || isUnsignedWebhook;
+
   if (
-    !payload.recipient_ids || !Array.isArray(payload.recipient_ids) ||
-    payload.recipient_ids.length === 0
+    !!NOTIFY_WEBHOOK_SECRET &&
+    !!payload.sender_id &&
+    authHeader !== webhookAuthHeader
   ) {
+    return jsonResponse(401, { error: "invalid_webhook_secret" });
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
+    return jsonResponse(500, { error: "server_config_error" });
+  }
+  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  let senderId = payload.sender_id ?? null;
+  let recipientIds = Array.isArray(payload.recipient_ids)
+    ? payload.recipient_ids.filter((id) => typeof id === "string")
+    : [];
+
+  if (isWebhookRequest) {
+    if (!senderId) {
+      return jsonResponse(400, { error: "missing_sender_id" });
+    }
+  } else {
+    const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: authData, error: authError } = await supabaseAuth.auth
+      .getUser();
+    if (authError || !authData.user) {
+      return jsonResponse(401, { error: "unauthorized" });
+    }
+    senderId = authData.user.id;
+
+    const { data: messageRow, error: messageError } = await supabaseAdmin
+      .from("messages")
+      .select("id, room_id, sender_id, type, body, caption, image_url")
+      .eq("id", payload.message_id)
+      .eq("room_id", payload.room_id)
+      .eq("sender_id", senderId)
+      .maybeSingle();
+    if (messageError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: messageError.message,
+      });
+    }
+    if (!messageRow) {
+      return jsonResponse(403, { error: "message_not_owned" });
+    }
+
+    if (messageRow.type === "text") {
+      payload.type = "chat_message";
+      payload.body = messageRow.body;
+      payload.caption = null;
+      payload.image_url = null;
+    } else if (messageRow.type === "image_feed") {
+      payload.type = "feed_event";
+      payload.caption = messageRow.caption;
+      payload.image_url = messageRow.image_url;
+      payload.body = null;
+    } else {
+      return jsonResponse(200, { message: "message_type_not_notifiable" });
+    }
+
+    const { data: memberRows, error: membersError } = await supabaseAdmin
+      .from("room_members")
+      .select("user_id")
+      .eq("room_id", payload.room_id)
+      .eq("is_active", true);
+    if (membersError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: membersError.message,
+      });
+    }
+
+    recipientIds = (memberRows ?? [])
+      .map((row) => row.user_id as string | null)
+      .filter((id): id is string => !!id && id !== senderId);
+  }
+
+  if (!senderId || recipientIds.length === 0) {
     return jsonResponse(200, { message: "no_recipients" });
   }
 
-  // 3. Init Supabase Admin Client
-  // We need service_role logic to read device_tokens table securely if RLS is strict
-  // (Assuming device_tokens might not be public)
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return jsonResponse(500, { error: "server_config_error" });
-  }
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-  // 4. Filter recipients against block list (both directions)
-  const senderId = payload.sender_id;
-  let recipientIds = payload.recipient_ids.filter((id) =>
+  recipientIds = recipientIds.filter((id) =>
     typeof id === "string" && id.length > 0 && id !== senderId
   );
 
@@ -181,7 +288,7 @@ serve(async (req) => {
     return jsonResponse(200, { message: "no_recipients" });
   }
 
-  const { data: blockedBySender, error: blockedBySenderError } = await supabase
+  const { data: blockedBySender, error: blockedBySenderError } = await supabaseAdmin
     .from("blocks")
     .select("blocked_user_id")
     .eq("blocker_id", senderId)
@@ -194,7 +301,7 @@ serve(async (req) => {
     });
   }
 
-  const { data: blockedSender, error: blockedSenderError } = await supabase
+  const { data: blockedSender, error: blockedSenderError } = await supabaseAdmin
     .from("blocks")
     .select("blocker_id")
     .in("blocker_id", recipientIds)
@@ -224,10 +331,9 @@ serve(async (req) => {
     return jsonResponse(200, { message: "recipients_blocked" });
   }
 
-  // 5. Fetch Device Tokens first (don't depend on profile row existence)
-  const { data: tokenRows, error: tokensError } = await supabase
+  const { data: tokenRows, error: tokensError } = await supabaseAdmin
     .from("device_tokens")
-    .select("token, user_id")
+    .select("token, user_id, device_locale")
     .in("user_id", recipientIds);
 
   if (tokensError) {
@@ -241,8 +347,7 @@ serve(async (req) => {
     return jsonResponse(200, { message: "no_device_tokens_found" });
   }
 
-  // 5b. Fetch recipient locales separately; fallback handles missing rows/locales.
-  const { data: profileRows, error: profilesError } = await supabase
+  const { data: profileRows, error: profilesError } = await supabaseAdmin
     .from("profiles")
     .select("user_id, locale")
     .in("user_id", recipientIds);
@@ -254,6 +359,32 @@ serve(async (req) => {
     });
   }
 
+  const { data: petRow, error: petError } = await supabaseAdmin
+    .from("pets")
+    .select("name, avatar_url")
+    .eq("room_id", payload.room_id)
+    .maybeSingle();
+
+  if (petError) {
+    return jsonResponse(500, {
+      error: "db_error",
+      details: petError.message,
+    });
+  }
+
+  const { data: senderProfile, error: senderProfileError } = await supabaseAdmin
+    .from("profiles")
+    .select("nickname")
+    .eq("user_id", senderId)
+    .maybeSingle();
+
+  if (senderProfileError) {
+    return jsonResponse(500, {
+      error: "db_error",
+      details: senderProfileError.message,
+    });
+  }
+
   const localeByUserId = new Map<string, string | null>();
   for (const row of profileRows ?? []) {
     const userId = row.user_id as string | null;
@@ -261,7 +392,6 @@ serve(async (req) => {
     localeByUserId.set(userId, (row.locale as string | null) ?? null);
   }
 
-  // Build token-to-locale list (deduplicated by token)
   const seen = new Set<string>();
   const tokenLocales: { token: string; locale: string | null }[] = [];
   for (const row of tokenRows) {
@@ -269,9 +399,11 @@ serve(async (req) => {
     if (seen.has(tk)) continue;
     seen.add(tk);
     const userId = row.user_id as string | null;
+    const deviceLocale = nonEmptyOrNull(row.device_locale as string | null);
+    const profileLocale = userId ? localeByUserId.get(userId) ?? null : null;
     tokenLocales.push({
       token: tk,
-      locale: userId ? (localeByUserId.get(userId) ?? null) : null,
+      locale: deviceLocale ?? profileLocale,
     });
   }
 
@@ -309,32 +441,73 @@ serve(async (req) => {
     });
   }
 
-  // 6. Send localized notifications per recipient
+  const petName = nonEmptyOrNull(petRow?.name as string | null);
+  const petAvatarUrl = nonEmptyOrNull(petRow?.avatar_url as string | null) ??
+    DEFAULT_PET_AVATAR_URL;
+  const senderNameRaw = nonEmptyOrNull(senderProfile?.nickname as string | null);
+
   const projectId = serviceAccount.project_id;
   const fcmEndpoint =
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
 
   const results = await Promise.all(tokenLocales.map(async ({ token, locale }) => {
     const strings = getL10n(locale);
-    const message = {
+    const appName = localizedAppName(locale);
+    const resolvedPetName = petName ?? strings.defaultPetName;
+    const resolvedSenderName = senderNameRaw ?? strings.defaultSenderName;
+    const titleFull = `${appName} ${resolvedPetName} · ${resolvedSenderName}`;
+
+    const textBody = nonEmptyOrNull(payload.body) ?? strings.defaultTextBody;
+    const feedCaption = nonEmptyOrNull(payload.caption);
+    const feedBody = feedCaption
+      ? `🖼️ ${feedCaption}`
+      : `🖼️ ${strings.defaultFeedBody}`;
+
+    const messageType = payload.type === "chat_message" ? "text" : "image_feed";
+    const pushBody = messageType === "text" ? textBody : feedBody;
+
+    const dataPayload: Record<string, string> = {
+      room_id: payload.room_id,
+      message_id: payload.message_id,
+      message_type: messageType,
+      pet_name: resolvedPetName,
+      sender_name: resolvedSenderName,
+      pet_avatar_url: petAvatarUrl,
+      image_url: nonEmptyOrNull(payload.image_url) ?? "",
+      caption: feedCaption ?? "",
+      text_body: textBody,
+      title_app_name: appName,
+      title_full: titleFull,
+      type: payload.type,
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+    };
+
+    const message: Record<string, unknown> = {
       message: {
-        token: token,
-        notification: {
-          title: strings.title,
-          body: payload.caption || strings.defaultBody,
+        token,
+        data: dataPayload,
+        android: {
+          priority: "high",
         },
-        data: {
-          room_id: payload.room_id,
-          message_id: payload.message_id,
-          type: "feed_event",
-          click_action: "FLUTTER_NOTIFICATION_CLICK",
-        },
-        // Apple specific config
         apns: {
+          headers: {
+            "apns-priority": "10",
+            "apns-push-type": "alert",
+          },
           payload: {
             aps: {
+              alert: {
+                title: titleFull,
+                subtitle: resolvedSenderName,
+                body: pushBody,
+              },
               sound: "default",
+              "mutable-content": 1,
+              "thread-id": `room_${payload.room_id}`,
             },
+          },
+          fcm_options: {
+            image: nonEmptyOrNull(payload.image_url) ?? undefined,
           },
         },
       },

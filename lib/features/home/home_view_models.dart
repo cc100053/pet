@@ -13,12 +13,14 @@ class _RoomLatestFeed {
     required this.latestCaption,
     required this.latestSenderId,
     required this.imageUrls,
+    required this.imageCaptions,
   });
 
   final String latestImageUrl;
   final String? latestCaption;
   final String? latestSenderId;
   final List<String> imageUrls;
+  final List<String?> imageCaptions;
 }
 
 class _RoomPetSummary {

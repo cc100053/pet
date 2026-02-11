@@ -43,6 +43,7 @@
 ## Notifications & Analytics
 - Push notifications: Firebase Cloud Messaging (FCM)
 - Analytics: Firebase Analytics
+- Ratings prompt: Apple In-App Review (`in_app_review`)
 - IAP/Subscriptions: RevenueCat (`purchases_flutter`)
 
 ## Tooling

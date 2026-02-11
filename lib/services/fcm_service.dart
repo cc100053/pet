@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,6 +43,11 @@ class FCMService {
 
       // 4. Foreground Message Handler
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        // Android foreground rendering is handled by the native
+        // FirebaseMessagingService implementation.
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          return;
+        }
         _showForegroundNotification(message);
       });
     }
@@ -72,9 +78,11 @@ class FCMService {
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
+    final data = message.data;
     final notification = message.notification;
-    final title = notification?.title ?? 'PetTomo';
-    final body = notification?.body ?? '';
+    final title =
+        _resolveTitleFromData(data) ?? notification?.title ?? 'PetTomo';
+    final body = _resolveBodyFromData(data) ?? notification?.body ?? '';
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -150,10 +158,71 @@ class FCMService {
         'user_id': user.id,
         'token': token,
         'platform': _platformLabel(),
+        'device_locale': _systemLocaleTag(),
         'last_seen_at': now,
         'updated_at': now,
       }, onConflict: 'user_id');
     } catch (_) {}
+  }
+
+  String? _resolveBodyFromData(Map<String, dynamic> data) {
+    final messageType = (data['message_type'] as String?)?.trim();
+    if (messageType == 'image_feed') {
+      final caption = (data['caption'] as String?)?.trim();
+      if (caption != null && caption.isNotEmpty) {
+        return '🖼️ $caption';
+      }
+      final fallback = (data['text_body'] as String?)?.trim();
+      if (fallback != null && fallback.isNotEmpty) {
+        return '🖼️ $fallback';
+      }
+      return '🖼️';
+    }
+    if (messageType == 'text') {
+      final raw = (data['text_body'] as String?)?.trim();
+      if (raw != null && raw.isNotEmpty) {
+        return raw;
+      }
+    }
+    return null;
+  }
+
+  String? _resolveTitleFromData(Map<String, dynamic> data) {
+    final titleFull = (data['title_full'] as String?)?.trim();
+    if (titleFull != null && titleFull.isNotEmpty) {
+      return titleFull;
+    }
+    final appName = (data['title_app_name'] as String?)?.trim();
+    final petName = (data['pet_name'] as String?)?.trim();
+    final senderName = (data['sender_name'] as String?)?.trim();
+    if (appName != null &&
+        appName.isNotEmpty &&
+        petName != null &&
+        petName.isNotEmpty &&
+        senderName != null &&
+        senderName.isNotEmpty) {
+      return '$appName $petName · $senderName';
+    }
+    if (appName != null &&
+        appName.isNotEmpty &&
+        petName != null &&
+        petName.isNotEmpty) {
+      return '$appName $petName';
+    }
+    return null;
+  }
+
+  String _systemLocaleTag() {
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final languageCode = locale.languageCode.trim();
+    final countryCode = locale.countryCode?.trim();
+    if (languageCode.isEmpty) {
+      return 'en-US';
+    }
+    if (countryCode == null || countryCode.isEmpty) {
+      return languageCode;
+    }
+    return '$languageCode-$countryCode';
   }
 
   String _platformLabel() {

@@ -10,14 +10,14 @@ class PetPhotoGallery extends StatefulWidget {
   const PetPhotoGallery({
     super.key,
     required this.imageUrls,
-    required this.caption,
+    required this.captions,
     required this.senderAvatar,
     required this.senderFallbackText,
     required this.onPlaceholderTap,
   });
 
   final List<String> imageUrls;
-  final String caption;
+  final List<String?> captions;
   final String? senderAvatar;
   final String? senderFallbackText;
   final VoidCallback onPlaceholderTap;
@@ -80,7 +80,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
     final l10n = AppLocalizations.of(context)!;
     final urls = _urls;
     return AspectRatio(
-      aspectRatio: 6 / 5.6,
+      aspectRatio: 6 / 5.7,
       child: PageView.builder(
         controller: _pageController,
         padEnds: true,
@@ -89,6 +89,9 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
           final distance = ((_page - index).abs()).clamp(0.0, 1.0);
           final dim = 1 - (distance * 0.30);
           final hasPhoto = index < urls.length;
+          final caption = index < widget.captions.length
+              ? (widget.captions[index] ?? '').trim()
+              : '';
           return AnimatedContainer(
             duration: const Duration(milliseconds: 140),
             curve: Curves.easeOutCubic,
@@ -98,12 +101,18 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
               child: hasPhoto
                   ? _GalleryPhotoCard(
                       imageUrl: urls[index],
-                      caption: widget.caption,
+                      caption: caption,
                       senderAvatar: widget.senderAvatar,
                       senderFallbackText: widget.senderFallbackText,
                       onTap: () => FullScreenPhotoViewer.open(
                         context,
                         imageUrls: urls,
+                        captions: List<String?>.generate(
+                          urls.length,
+                          (i) => i < widget.captions.length
+                              ? widget.captions[i]
+                              : null,
+                        ),
                         initialIndex: index,
                       ),
                     )
@@ -144,7 +153,7 @@ class _GalleryPhotoCard extends StatelessWidget {
       senderFallbackText: senderFallbackText,
       showShadow: false,
       fixedMediaZone: true,
-      mediaZoneFraction: 0.95,
+      mediaZoneFraction: 0.91,
       photoAspectRatio: 0.95,
       avatarOverlapOffset: -8,
       captionTopInset: 18,

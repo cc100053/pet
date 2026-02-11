@@ -16,6 +16,7 @@
 - `supabase/migrations/20260101006000_pet_state_machine.sql`: Pet state machine updates and backfill.
 - `supabase/migrations/20260101007000_add_device_tokens.sql`: Device token storage for FCM.
 - `supabase/migrations/20260101008000_device_tokens_single_device.sql`: Enforce single-device token per user.
+- `supabase/migrations/20260211100000_notification_payload_upgrade.sql`: Add `pets.avatar_url`, `device_tokens.device_locale`, and pet-avatar backfill for push payload shaping.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
@@ -37,7 +38,9 @@ Implemented:
   - `lib/features/store/`: Store UI with coin purchases.
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
+- `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
 - `lib/services/`: Environment loader and shared service setup.
+- `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + foreground notification fallback for iOS.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
@@ -58,6 +61,9 @@ Planned:
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
 - Edge Functions: Feed validation + upload, avatar upload, and account deletion.
 - Webhooks: Trigger friend notifications on feed events.
+- Notifications:
+  - Android: custom native `FirebaseMessagingService` (`NotificationCompat.MessagingStyle`) using room thread grouping and composed pet-avatar + app-badge large icon.
+  - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) rewrites title/body, sets thread id, and attaches composed pet-avatar/app-badge plus feed preview.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Ownership: Triggered owner transfer when the active owner leaves.
@@ -66,6 +72,7 @@ Planned:
 ### Edge Functions (Repo)
 - `supabase/functions/notify_friend/feed_validate/index.ts`: Feed validation + upload + reward logic.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
+- Push payload contract (FCM `data`): `room_id`, `message_id`, `message_type`, `pet_name`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `title_app_name`, `title_full`, and legacy `type`.
 - `supabase/functions/avatar_upload/index.ts`: Upload avatar image to R2 and update `profiles.avatar_url`.
 - `supabase/functions/delete_account/index.ts`: Delete authenticated user (uses `SUPABASE_SERVICE_ROLE_KEY`).
 

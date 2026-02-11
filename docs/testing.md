@@ -30,3 +30,27 @@ Remove these UI controls once Phase 1 testing is complete.
   - `RECIPIENT_ID` (user id with a row in `device_tokens`)
   - `ROOM_ID`, `SENDER_ID`, `MESSAGE_ID`
 - Run: `NOTIFY_WEBHOOK_URL=... NOTIFY_WEBHOOK_SECRET=... RECIPIENT_ID=... ROOM_ID=... SENDER_ID=... MESSAGE_ID=... scripts/test_notify_friend.sh`
+
+### Push notification acceptance checks (custom payload/UI)
+- Verify payload fields in `notify_friend` send path include:
+  - `message_type`, `pet_name`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `title_app_name`, `title_full`.
+- Locale title rule:
+  - Device locale `ja-*` => title begins with `ペットモ`.
+  - Any non-`ja-*` locale => title begins with `PetTomo`.
+- Body rule:
+  - `message_type=image_feed` => body starts with `🖼️` and includes caption when present.
+  - `message_type=text` => body equals raw text message.
+- Android visual rule:
+  - Notification uses `MessagingStyle` and groups by room (`room_id`).
+  - Large icon shows pet avatar with app icon badge at bottom-right.
+- iOS visual rule:
+  - Notification Service Extension rewrites title/body and sets thread id (`room_<room_id>`).
+  - Avatar attachment is composed with app badge overlay.
+  - Feed notifications attach feed image preview when `image_url` is provided.
+
+### iOS extension setup note
+- The Xcode project includes `PetTomoNotificationServiceExtension`.
+- If APNs rich media does not appear in non-foreground states, confirm:
+  - payload contains `aps.mutable-content = 1`
+  - extension target is signed and embedded in Runner app
+  - extension bundle id matches provisioning profile.

@@ -1,6 +1,17 @@
 # Progress
 
 ## Done
+- Implemented end-to-end custom notification payload and native rendering upgrades: added `pets.avatar_url` + `device_tokens.device_locale` schema support, expanded `notify_friend` FCM data contract (`message_type`, `pet_name`, `pet_avatar_url`, title/body fields), localized title rule (`ペットモ` only for JA; otherwise `PetTomo`), and message-body rule (`🖼️ caption` for feed, raw text for text messages).
+- Implemented Android native push rendering via `PetTomoFirebaseMessagingService` with `NotificationCompat.MessagingStyle`, per-room grouping, dynamic title/body parsing, deep-link extras, avatar download/composition, and bottom-right app-icon badge overlay on the large icon.
+- Added iOS `PetTomoNotificationServiceExtension` to rewrite notification title/body in all delivery states, set room thread grouping, and attach composed pet-avatar-with-app-badge plus feed image preview when available.
+- Updated Flutter token sync to persist `device_locale` (system locale) in `device_tokens` and aligned Android foreground behavior to native message service rendering.
+- Hardened text-message notification invoke auth: Chat now obtains a valid Supabase access token and sends explicit `Authorization: Bearer <token>` headers when invoking `notify_friend`, matching other edge-function call paths.
+- Extended push notifications to text chat sends: `ChatRoomView` now invokes `notify_friend` after successful text message insert, and `notify_friend` now supports JWT-authenticated client calls that derive sender/recipients from DB for messaging-app style text notifications.
+- Regenerated all iOS `AppIcon.appiconset` sizes from `assets/app/PetTomo_appicon.png` so notification icons resolve to the current PetTomo icon instead of stale Flutter-era assets.
+- Fixed pet-room gallery caption binding so each carousel card uses the caption tied to that specific photo URL, instead of repeating the latest caption for all cards.
+- Added Apple In-App Review prompting after successful feed uploads with local milestone gating (`10/25/50/100/150`), a minimum 10-day cooldown between prompts, and a finite prompt limit by consuming milestones.
+- Switched iOS orientation policy to portrait-only by enabling `UIRequiresFullScreen` and removing iPad multitasking orientation declarations from `Info.plist` (prevents iPad split-view requirement for landscape/upside-down support).
+- Re-added iPad multitasking orientation metadata in iOS `Info.plist` by defining `UISupportedInterfaceOrientations~ipad` with portrait, upside-down portrait, and both landscape orientations to satisfy App Store bundle validation.
 - Made calendar day-detail photos tappable to open the shared full-screen photo viewer at the tapped index, showing original aspect ratio images with swipe navigation across the day’s photos.
 - Updated calendar day-detail sheet photos (opened by tapping a date) to render with `BoxFit.contain` and muted background fill so each image displays in full without cropping or distortion.
 - Removed the 75% frame scale because it introduced inner padding; restored no-padding frame fill and portrait-aware `fitWidth` fallback on framed `cover` images to reduce side crop without letterboxing.

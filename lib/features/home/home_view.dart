@@ -18,6 +18,7 @@ import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 import '../../services/home/home_bootstrap_cache_repository.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../services/review/review_prompt_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
@@ -178,12 +179,14 @@ class _HomeViewState extends ConsumerState<HomeView>
   // Latest feed (polaroid)
   String? _latestFeedImageUrl;
   List<String> _latestFeedImageUrls = <String>[];
+  List<String?> _latestFeedCaptions = <String?>[];
   String? _latestFeedSenderId;
   String? _latestFeedCaption;
   String? _latestFeedOptimisticTempId;
   String? _latestFeedOptimisticRoomId;
   String? _latestFeedOptimisticPrevImageUrl;
   List<String>? _latestFeedOptimisticPrevImageUrls;
+  List<String?>? _latestFeedOptimisticPrevCaptions;
   String? _latestFeedOptimisticPrevSenderId;
   String? _latestFeedOptimisticPrevCaption;
   final Map<String, String> _optimisticFeedImageByTempId = {};
@@ -994,6 +997,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             if (latest.imageUrls.isNotEmpty) {
               room['latest_photo'] = latest.latestImageUrl;
               room['latest_photos'] = latest.imageUrls;
+              room['latest_photo_captions'] = latest.imageCaptions;
               room['latest_caption'] = latest.latestCaption;
               room['latest_sender_id'] = latest.latestSenderId;
               final senderId = latest.latestSenderId;
@@ -1204,11 +1208,15 @@ class _HomeViewState extends ConsumerState<HomeView>
     final caption = record['caption'] as String?;
     setState(() {
       if (roomId == _roomId) {
-        _latestFeedImageUrl = imageUrl;
-        _latestFeedImageUrls = _prependLatestFeedImage(
+        final latestFeed = _prependLatestFeedItem(
           imageUrl: imageUrl,
-          existing: _latestFeedImageUrls,
+          caption: caption,
+          existingUrls: _latestFeedImageUrls,
+          existingCaptions: _latestFeedCaptions,
         );
+        _latestFeedImageUrl = imageUrl;
+        _latestFeedImageUrls = latestFeed.imageUrls;
+        _latestFeedCaptions = latestFeed.captions;
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
@@ -1216,26 +1224,33 @@ class _HomeViewState extends ConsumerState<HomeView>
         if (room['id'] != roomId) {
           return room;
         }
-        final next = <String>[imageUrl];
-        final existing = room['latest_photos'];
-        if (existing is List) {
-          for (final entry in existing) {
-            final url = entry as String?;
-            if (url == null || url.isEmpty || url == imageUrl) {
-              continue;
-            }
-            next.add(url);
-            if (next.length >= 3) {
-              break;
-            }
-          }
-        } else {
-          final previous = room['latest_photo'] as String?;
-          if (previous != null && previous.isNotEmpty && previous != imageUrl) {
-            next.add(previous);
-          }
-        }
-        return {...room, 'latest_photo': imageUrl, 'latest_photos': next};
+        final existingUrls =
+            ((room['latest_photos'] as List?)
+                        ?.whereType<String>()
+                        .where((url) => url.isNotEmpty)
+                        .toList() ??
+                    const <String>[])
+                .toList(growable: false);
+        final existingCaptions =
+            ((room['latest_photo_captions'] as List?)
+                        ?.map((entry) => entry as String?)
+                        .toList() ??
+                    const <String?>[])
+                .toList(growable: false);
+        final next = _prependLatestFeedItem(
+          imageUrl: imageUrl,
+          caption: caption,
+          existingUrls: existingUrls,
+          existingCaptions: existingCaptions,
+        );
+        return {
+          ...room,
+          'latest_photo': imageUrl,
+          'latest_photos': next.imageUrls,
+          'latest_photo_captions': next.captions,
+          'latest_caption': caption,
+          'latest_sender_id': senderId,
+        };
       }).toList();
     });
 
@@ -1293,6 +1308,27 @@ class _HomeViewState extends ConsumerState<HomeView>
                       .toList() ??
                   const <String>[])
               .toList(growable: false);
+      final snapshotCaptions =
+          ((roomSnapshot?['latest_photo_captions'] as List?)
+                      ?.map((entry) => entry as String?)
+                      .take(3)
+                      .toList() ??
+                  const <String?>[])
+              .toList(growable: false);
+      if (snapshotCaptions.isEmpty) {
+        _latestFeedCaptions = _latestFeedImageUrls.isEmpty
+            ? <String?>[]
+            : <String?>[
+                roomSnapshot?['latest_caption'] as String?,
+                ...List<String?>.filled(_latestFeedImageUrls.length - 1, null),
+              ];
+      } else {
+        _latestFeedCaptions = List<String?>.generate(
+          _latestFeedImageUrls.length,
+          (index) =>
+              index < snapshotCaptions.length ? snapshotCaptions[index] : null,
+        );
+      }
       _latestFeedSenderId = roomSnapshot?['latest_sender_id'] as String?;
       _latestFeedCaption = roomSnapshot?['latest_caption'] as String?;
     });
@@ -2047,6 +2083,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           latestCaption: row['caption'] as String?,
           latestSenderId: row['sender_id'] as String?,
           imageUrls: [imageUrl],
+          imageCaptions: [row['caption'] as String?],
         );
         continue;
       }
@@ -2055,6 +2092,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         continue;
       }
       existing.imageUrls.add(imageUrl);
+      existing.imageCaptions.add(row['caption'] as String?);
     }
     return feeds;
   }
@@ -2094,18 +2132,27 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       final latest = rows
-          .map((row) => row['image_url'] as String?)
-          .whereType<String>()
-          .where((url) => url.isNotEmpty)
+          .map(
+            (row) => (row['image_url'] as String?, row['caption'] as String?),
+          )
+          .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
           .take(3)
           .toList(growable: false);
       if (latest.isEmpty) {
         return;
       }
+      final latestUrls = latest
+          .map((entry) => entry.$1!)
+          .toList(growable: false);
+      final latestCaptions = latest
+          .map((entry) => entry.$2)
+          .toList(growable: false);
       if (!mounted) {
         return;
       }
-      final firstRow = rows.first;
+      final firstRow = rows.firstWhere(
+        (row) => (row['image_url'] as String?)?.isNotEmpty ?? false,
+      );
       final senderId = firstRow['sender_id'] as String?;
       final caption = firstRow['caption'] as String?;
       setState(() {
@@ -2114,8 +2161,9 @@ class _HomeViewState extends ConsumerState<HomeView>
               (room) => room['id'] == roomId
                   ? {
                       ...room,
-                      'latest_photo': latest.first,
-                      'latest_photos': latest,
+                      'latest_photo': latestUrls.first,
+                      'latest_photos': latestUrls,
+                      'latest_photo_captions': latestCaptions,
                       'latest_caption': caption,
                       'latest_sender_id': senderId,
                     }
@@ -2533,13 +2581,20 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedOptimisticPrevImageUrls = List<String>.from(
         _latestFeedImageUrls,
       );
+      _latestFeedOptimisticPrevCaptions = List<String?>.from(
+        _latestFeedCaptions,
+      );
       _latestFeedOptimisticPrevSenderId = _latestFeedSenderId;
       _latestFeedOptimisticPrevCaption = _latestFeedCaption;
-      _latestFeedImageUrl = entry.localImagePath;
-      _latestFeedImageUrls = _prependLatestFeedImage(
+      final latestFeed = _prependLatestFeedItem(
         imageUrl: entry.localImagePath,
-        existing: _latestFeedImageUrls,
+        caption: entry.caption,
+        existingUrls: _latestFeedImageUrls,
+        existingCaptions: _latestFeedCaptions,
       );
+      _latestFeedImageUrl = entry.localImagePath;
+      _latestFeedImageUrls = latestFeed.imageUrls;
+      _latestFeedCaptions = latestFeed.captions;
       _latestFeedSenderId = entry.senderId;
       _latestFeedCaption = entry.caption;
     });
@@ -2563,6 +2618,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedOptimisticRoomId = null;
       _latestFeedOptimisticPrevImageUrl = null;
       _latestFeedOptimisticPrevImageUrls = null;
+      _latestFeedOptimisticPrevCaptions = null;
       _latestFeedOptimisticPrevSenderId = null;
       _latestFeedOptimisticPrevCaption = null;
     }
@@ -2584,6 +2640,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         }
       }());
     }
+    unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
@@ -2603,6 +2660,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           _latestFeedImageUrls = _latestFeedOptimisticPrevImageUrls == null
               ? <String>[]
               : List<String>.from(_latestFeedOptimisticPrevImageUrls!);
+          _latestFeedCaptions = _latestFeedOptimisticPrevCaptions == null
+              ? <String?>[]
+              : List<String?>.from(_latestFeedOptimisticPrevCaptions!);
           _latestFeedSenderId = _latestFeedOptimisticPrevSenderId;
           _latestFeedCaption = _latestFeedOptimisticPrevCaption;
         }
@@ -2610,6 +2670,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         _latestFeedOptimisticRoomId = null;
         _latestFeedOptimisticPrevImageUrl = null;
         _latestFeedOptimisticPrevImageUrls = null;
+        _latestFeedOptimisticPrevCaptions = null;
         _latestFeedOptimisticPrevSenderId = null;
         _latestFeedOptimisticPrevCaption = null;
       });
@@ -3061,42 +3122,53 @@ class _HomeViewState extends ConsumerState<HomeView>
           .order('created_at', ascending: false)
           .limit(3);
 
-      final imageUrls = rows
-          .map((row) => row['image_url'] as String?)
-          .whereType<String>()
-          .where((url) => url.isNotEmpty)
+      final entries = rows
+          .map(
+            (row) => (row['image_url'] as String?, row['caption'] as String?),
+          )
+          .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
           .take(3)
           .toList(growable: false);
-      if (imageUrls.isEmpty) {
+      if (entries.isEmpty) {
         if (mounted) {
           setState(() {
             _latestFeedImageUrl = null;
             _latestFeedImageUrls = <String>[];
+            _latestFeedCaptions = <String?>[];
             _latestFeedSenderId = null;
             _latestFeedCaption = null;
           });
         } else {
           _latestFeedImageUrl = null;
           _latestFeedImageUrls = <String>[];
+          _latestFeedCaptions = <String?>[];
           _latestFeedSenderId = null;
           _latestFeedCaption = null;
         }
         return;
       }
-      final firstRow = rows.first;
+      final imageUrls = entries
+          .map((entry) => entry.$1!)
+          .toList(growable: false);
+      final captions = entries.map((entry) => entry.$2).toList(growable: false);
+      final firstRow = rows.firstWhere(
+        (row) => (row['image_url'] as String?)?.isNotEmpty ?? false,
+      );
       final imageUrl = imageUrls.first;
       final senderId = firstRow['sender_id'] as String?;
-      final caption = firstRow['caption'] as String?;
+      final caption = captions.first;
       if (mounted) {
         setState(() {
           _latestFeedImageUrl = imageUrl;
           _latestFeedImageUrls = imageUrls;
+          _latestFeedCaptions = captions;
           _latestFeedSenderId = senderId;
           _latestFeedCaption = caption;
         });
       } else {
         _latestFeedImageUrl = imageUrl;
         _latestFeedImageUrls = imageUrls;
+        _latestFeedCaptions = captions;
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
@@ -3108,24 +3180,31 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  List<String> _prependLatestFeedImage({
+  ({List<String> imageUrls, List<String?> captions}) _prependLatestFeedItem({
     required String imageUrl,
-    required List<String> existing,
+    required String? caption,
+    required List<String> existingUrls,
+    required List<String?> existingCaptions,
   }) {
     if (imageUrl.isEmpty) {
-      return existing;
+      return (imageUrls: existingUrls, captions: existingCaptions);
     }
-    final next = <String>[imageUrl];
-    for (final url in existing) {
+    final nextUrls = <String>[imageUrl];
+    final nextCaptions = <String?>[caption];
+    for (var i = 0; i < existingUrls.length; i++) {
+      final url = existingUrls[i];
       if (url.isEmpty || url == imageUrl) {
         continue;
       }
-      next.add(url);
-      if (next.length >= 3) {
+      nextUrls.add(url);
+      nextCaptions.add(
+        i < existingCaptions.length ? existingCaptions[i] : null,
+      );
+      if (nextUrls.length >= 3) {
         break;
       }
     }
-    return next;
+    return (imageUrls: nextUrls, captions: nextCaptions);
   }
 
   Future<_ProfileSummary?> _ensureProfileSummary(
@@ -5246,7 +5325,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   const Gap(12),
                   PetPhotoGallery(
                     imageUrls: _latestFeedImageUrls,
-                    caption: (_latestFeedCaption ?? '').trim(),
+                    captions: _latestFeedCaptions,
                     senderAvatar: _latestFeedSenderId == null
                         ? null
                         : _profileByUserId[_latestFeedSenderId!]?.avatarUrl,
