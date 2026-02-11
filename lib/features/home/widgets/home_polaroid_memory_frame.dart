@@ -22,6 +22,11 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
     this.captionMaxLines = 2,
     this.avatarOverlapOffset = 10,
     this.captionTopInset = 36,
+    this.captionReservedHeight = 80,
+    this.noCaptionReservedHeight = 60,
+    this.showAvatar = true,
+    this.showShadow = true,
+    this.emptyPhotoPlaceholder,
   });
 
   final String imageUrl;
@@ -36,6 +41,11 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
   final int captionMaxLines;
   final double avatarOverlapOffset;
   final double captionTopInset;
+  final double captionReservedHeight;
+  final double noCaptionReservedHeight;
+  final bool showAvatar;
+  final bool showShadow;
+  final Widget? emptyPhotoPlaceholder;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +76,9 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
         } else {
           var legacyPhotoSize = photoWidth;
           if (hasFiniteHeight) {
-            final reservedBelowPhoto = showCaption ? 80 : 60;
+            final reservedBelowPhoto = showCaption
+                ? captionReservedHeight
+                : noCaptionReservedHeight;
             final available =
                 constraints.maxHeight - (innerPadding * 2) - reservedBelowPhoto;
             if (available.isFinite && available > 0) {
@@ -98,13 +110,15 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: Colors.black87, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.10),
-                    blurRadius: 18,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
+                boxShadow: showShadow
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.10),
+                          blurRadius: 18,
+                          offset: const Offset(0, 12),
+                        ),
+                      ]
+                    : null,
               ),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -123,10 +137,11 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: imageUrl.isEmpty
-                              ? const _Placeholder()
+                              ? (emptyPhotoPlaceholder ?? const _Placeholder())
                               : CachedNetworkImageView(
                                   imageUrl: imageUrl,
                                   fit: BoxFit.cover,
+                                  portraitFriendlyCrop: true,
                                 ),
                         ),
                       ),
@@ -162,76 +177,82 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                         SizedBox(height: safeBottomHeight),
                     ],
                   ),
-                  Positioned(
-                    top: photoHeight - (avatarSize / 2) + avatarOverlapOffset,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: avatarSize,
-                            height: avatarSize,
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.black87,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.10),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: UserAvatar(
-                                avatar: senderAvatar,
-                                fallbackText: senderFallbackText,
-                                size: avatarSize - 10,
-                              ),
-                            ),
-                          ),
-                          if (showUserLabel) ...[
-                            const Gap(6),
-                            ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: photoWidth),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
+                  if (showAvatar || showUserLabel)
+                    Positioned(
+                      top: photoHeight - (avatarSize / 2) + avatarOverlapOffset,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (showAvatar)
+                              Container(
+                                width: avatarSize,
+                                height: avatarSize,
+                                padding: const EdgeInsets.all(3),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                  borderRadius: BorderRadius.circular(999),
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
                                   border: Border.all(
                                     color: Colors.black87,
                                     width: 2,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.10,
+                                      ),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
                                 ),
-                                child: Text(
-                                  userLabel,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.1,
+                                child: Center(
+                                  child: UserAvatar(
+                                    avatar: senderAvatar,
+                                    fallbackText: senderFallbackText,
+                                    size: avatarSize - 10,
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ),
+                            if (showUserLabel) ...[
+                              const Gap(6),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: photoWidth,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: Colors.black87,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    userLabel,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      height: 1.1,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

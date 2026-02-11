@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/cached_network_image_view.dart';
+import '../../shared/ui/full_screen_photo_viewer.dart';
 import '../../shared/ui/user_avatar.dart';
 
 class MemoryCalendarView extends StatefulWidget {
@@ -769,6 +770,7 @@ class _MonthDayCell extends StatelessWidget {
                     child: CachedNetworkImageView(
                       imageUrl: feed.imageUrl,
                       fit: BoxFit.cover,
+                      portraitFriendlyCrop: true,
                       errorWidget: Container(
                         color: _CalendarColors.surfaceMuted,
                         alignment: Alignment.center,
@@ -937,6 +939,7 @@ class _TodayCard extends StatelessWidget {
                         : CachedNetworkImageView(
                             imageUrl: feed!.imageUrl,
                             fit: BoxFit.cover,
+                            portraitFriendlyCrop: true,
                             errorWidget: Container(
                               color: _CalendarColors.surfaceMuted,
                               alignment: Alignment.center,
@@ -1133,6 +1136,7 @@ class _RecentMemoryCard extends StatelessWidget {
                         : CachedNetworkImageView(
                             imageUrl: feed!.imageUrl,
                             fit: BoxFit.cover,
+                            portraitFriendlyCrop: true,
                             errorWidget: Container(
                               color: _CalendarColors.surfaceMuted,
                               alignment: Alignment.center,
@@ -1269,6 +1273,8 @@ class _MemoryDaySheet extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final dateLabel = DateFormat.yMMMd(locale).format(date);
+    final imageUrls = feeds.map((feed) => feed.imageUrl).toList();
+    final captions = feeds.map((feed) => feed.caption).toList();
 
     return SafeArea(
       child: SizedBox(
@@ -1317,36 +1323,49 @@ class _MemoryDaySheet extends StatelessWidget {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Stack(
-                                children: [
-                                  CachedNetworkImageView(
-                                    imageUrl: feed.imageUrl,
-                                    height: 200,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorWidget: Container(
-                                      height: 200,
-                                      color: theme.colorScheme.surface,
-                                      alignment: Alignment.center,
-                                      child: const Icon(Icons.broken_image),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    right: 10,
-                                    bottom: 10,
-                                    child: _PhotoSenderBadge(
-                                      avatarUrl: senderProfiles[feed.senderId]
-                                          ?.avatarUrl,
-                                      fallbackText: _senderDisplayName(
-                                        senderId: feed.senderId,
-                                        senderProfiles: senderProfiles,
+                            GestureDetector(
+                              onTap: () {
+                                FullScreenPhotoViewer.open(
+                                  context,
+                                  imageUrls: imageUrls,
+                                  captions: captions,
+                                  initialIndex: index,
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Stack(
+                                  children: [
+                                    ColoredBox(
+                                      color: _CalendarColors.surfaceMuted,
+                                      child: CachedNetworkImageView(
+                                        imageUrl: feed.imageUrl,
+                                        height: 200,
+                                        width: double.infinity,
+                                        fit: BoxFit.contain,
+                                        errorWidget: Container(
+                                          height: 200,
+                                          color: theme.colorScheme.surface,
+                                          alignment: Alignment.center,
+                                          child: const Icon(Icons.broken_image),
+                                        ),
                                       ),
-                                      size: 30,
                                     ),
-                                  ),
-                                ],
+                                    Positioned(
+                                      right: 10,
+                                      bottom: 10,
+                                      child: _PhotoSenderBadge(
+                                        avatarUrl: senderProfiles[feed.senderId]
+                                            ?.avatarUrl,
+                                        fallbackText: _senderDisplayName(
+                                          senderId: feed.senderId,
+                                          senderProfiles: senderProfiles,
+                                        ),
+                                        size: 30,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8),

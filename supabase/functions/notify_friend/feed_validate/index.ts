@@ -55,6 +55,8 @@ const EXTENSION_BY_CONTENT_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
 };
 
 function jsonResponse(status: number, body: Record<string, unknown>) {

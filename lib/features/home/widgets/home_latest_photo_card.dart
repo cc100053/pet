@@ -247,12 +247,16 @@ class _PhotoBubble extends StatelessWidget {
             child: ClipOval(
               child: imageUrl.isEmpty
                   ? _BubblePlaceholder(label: fallbackLabel)
-                  : CachedNetworkImageView(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      width: size,
-                      height: size,
-                      placeholder: const _PhotoLoading(),
+                  : DecoratedBox(
+                      decoration: const BoxDecoration(color: Color(0xFFF8F4EF)),
+                      child: CachedNetworkImageView(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        portraitFriendlyCrop: true,
+                        width: size,
+                        height: size,
+                        placeholder: const _PhotoLoading(),
+                      ),
                     ),
             ),
           ),
@@ -261,8 +265,6 @@ class _PhotoBubble extends StatelessWidget {
     );
   }
 }
-
-
 
 class _PhotoLoading extends StatelessWidget {
   const _PhotoLoading();

@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -34,9 +31,6 @@ class FeedCaptureView extends StatefulWidget {
 }
 
 class _FeedCaptureViewState extends State<FeedCaptureView> {
-  static const int _uploadMaxDimension = 2048;
-  static const int _webpQuality = 60;
-
   final _captionController = TextEditingController();
   final _picker = ImagePicker();
 
@@ -164,85 +158,100 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         return 'image/png';
       case 'webp':
         return 'image/webp';
+      case 'heic':
+      case 'heif':
+        return 'image/heic';
       default:
         return 'image/jpeg';
     }
+  }
+
+  String _detectImageContentType(Uint8List bytes, String path) {
+    if (_isPng(bytes)) {
+      return 'image/png';
+    }
+    if (_isJpeg(bytes)) {
+      return 'image/jpeg';
+    }
+    if (_isWebp(bytes)) {
+      return 'image/webp';
+    }
+    if (_isHeicOrHeif(bytes)) {
+      return 'image/heic';
+    }
+    return _contentTypeForPath(path);
+  }
+
+  bool _isJpeg(Uint8List bytes) {
+    return bytes.length >= 3 &&
+        bytes[0] == 0xFF &&
+        bytes[1] == 0xD8 &&
+        bytes[2] == 0xFF;
+  }
+
+  bool _isPng(Uint8List bytes) {
+    return bytes.length >= 8 &&
+        bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47 &&
+        bytes[4] == 0x0D &&
+        bytes[5] == 0x0A &&
+        bytes[6] == 0x1A &&
+        bytes[7] == 0x0A;
+  }
+
+  bool _isWebp(Uint8List bytes) {
+    if (bytes.length < 12) {
+      return false;
+    }
+    final riff =
+        bytes[0] == 0x52 &&
+        bytes[1] == 0x49 &&
+        bytes[2] == 0x46 &&
+        bytes[3] == 0x46;
+    final webp =
+        bytes[8] == 0x57 &&
+        bytes[9] == 0x45 &&
+        bytes[10] == 0x42 &&
+        bytes[11] == 0x50;
+    return riff && webp;
+  }
+
+  bool _isHeicOrHeif(Uint8List bytes) {
+    if (bytes.length < 12) {
+      return false;
+    }
+    final hasFtyp =
+        bytes[4] == 0x66 &&
+        bytes[5] == 0x74 &&
+        bytes[6] == 0x79 &&
+        bytes[7] == 0x70;
+    if (!hasFtyp) {
+      return false;
+    }
+    final brand = String.fromCharCodes(bytes.sublist(8, 12));
+    const heifBrands = <String>{
+      'heic',
+      'heix',
+      'hevc',
+      'hevx',
+      'heim',
+      'heis',
+      'mif1',
+      'msf1',
+    };
+    return heifBrands.contains(brand);
   }
 
   Future<_CompressedImage> _compressForUpload(
     XFile image,
     Uint8List originalBytes,
   ) async {
-    if (kIsWeb) {
-      return _CompressedImage(
-        bytes: originalBytes,
-        contentType: _contentTypeForPath(image.path),
-      );
-    }
-
-    try {
-      final dimensions = await _readImageDimensions(originalBytes);
-      if (dimensions == null) {
-        return _CompressedImage(
-          bytes: originalBytes,
-          contentType: _contentTypeForPath(image.path),
-        );
-      }
-
-      final width = dimensions.width;
-      final height = dimensions.height;
-
-      final longestSide = width > height ? width : height;
-      final scale = longestSide > _uploadMaxDimension
-          ? _uploadMaxDimension / longestSide
-          : 1.0;
-      final targetWidth = (width * scale).round();
-      final targetHeight = (height * scale).round();
-
-      final compressed = await FlutterImageCompress.compressWithFile(
-        image.path,
-        format: CompressFormat.webp,
-        quality: _webpQuality,
-        minWidth: targetWidth.clamp(1, width),
-        minHeight: targetHeight.clamp(1, height),
-        keepExif: false,
-      );
-      if (compressed != null && compressed.isNotEmpty) {
-        return _CompressedImage(
-          bytes: Uint8List.fromList(compressed),
-          contentType: 'image/webp',
-        );
-      }
-    } catch (_) {
-      // Fallback to original bytes + content type when compression fails.
-    }
-
     return _CompressedImage(
       bytes: originalBytes,
-      contentType: _contentTypeForPath(image.path),
+      contentType: _detectImageContentType(originalBytes, image.path),
     );
-  }
-
-  Future<_ImageDimensions?> _readImageDimensions(Uint8List bytes) async {
-    try {
-      final codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
-      final image = frame.image;
-      final dimensions = _ImageDimensions(image.width, image.height);
-      image.dispose();
-      return dimensions;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  int? _cacheDimension(BuildContext context, double value) {
-    if (!value.isFinite || value <= 0) {
-      return null;
-    }
-    final dpr = MediaQuery.of(context).devicePixelRatio;
-    final target = (value * dpr).round();
-    return target > 0 ? target : null;
   }
 
   Future<void> _sendFeedInBackground({
@@ -438,19 +447,14 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
                                       ? const _EmptyPreviewState()
                                       : LayoutBuilder(
                                           builder: (context, constraints) {
-                                            final cacheWidth = _cacheDimension(
-                                              context,
-                                              constraints.maxWidth,
-                                            );
-                                            final cacheHeight = _cacheDimension(
-                                              context,
-                                              300,
-                                            );
-                                            return Image.memory(
-                                              _previewBytes!,
-                                              fit: BoxFit.cover,
-                                              cacheWidth: cacheWidth,
-                                              cacheHeight: cacheHeight,
+                                            return DecoratedBox(
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFF8F4EF),
+                                              ),
+                                              child: Image.memory(
+                                                _previewBytes!,
+                                                fit: BoxFit.contain,
+                                              ),
                                             );
                                           },
                                         ),
@@ -687,13 +691,6 @@ class _CompressedImage {
 
   final Uint8List bytes;
   final String contentType;
-}
-
-class _ImageDimensions {
-  const _ImageDimensions(this.width, this.height);
-
-  final int width;
-  final int height;
 }
 
 class FeedOptimisticMessage {

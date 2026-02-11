@@ -304,13 +304,25 @@ class _TextMessageBubble extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: [bubble, tail],
+        children: [
+          bubble,
+          Transform.translate(
+            offset: const Offset(-3, 0),
+            child: tail,
+          ),
+        ],
       );
     } else {
       return Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
-        children: [tail, bubble],
+        children: [
+          Transform.translate(
+            offset: const Offset(3, 0),
+            child: tail,
+          ),
+          bubble,
+        ],
       );
     }
   }
@@ -563,18 +575,26 @@ class _FeedMessageCard extends StatelessWidget {
   }
 
   Widget _buildImageContent() {
+    const letterboxColor = Color(0xFFF8F4EF);
     if (message.localImagePath != null) {
       final file = File(message.localImagePath!);
       if (file.existsSync()) {
-        return Image.file(file, fit: BoxFit.cover);
+        return DecoratedBox(
+          decoration: const BoxDecoration(color: letterboxColor),
+          child: Image.file(file, fit: BoxFit.cover),
+        );
       }
     }
     if (message.imageUrl != null) {
-      return CachedNetworkImageView(
-        imageUrl: message.imageUrl!,
-        fit: BoxFit.cover,
-        placeholder: Container(color: Colors.grey[200]),
-        errorWidget: const Icon(Icons.broken_image),
+      return DecoratedBox(
+        decoration: const BoxDecoration(color: letterboxColor),
+        child: CachedNetworkImageView(
+          imageUrl: message.imageUrl!,
+          fit: BoxFit.cover,
+          portraitFriendlyCrop: true,
+          placeholder: Container(color: Colors.grey[200]),
+          errorWidget: const Icon(Icons.broken_image),
+        ),
       );
     }
     return Container(color: Colors.grey[300]);

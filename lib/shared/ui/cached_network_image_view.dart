@@ -8,6 +8,7 @@ class CachedNetworkImageView extends StatelessWidget {
     super.key,
     required this.imageUrl,
     this.fit = BoxFit.cover,
+    this.portraitFriendlyCrop = false,
     this.width,
     this.height,
     this.placeholder,
@@ -16,6 +17,7 @@ class CachedNetworkImageView extends StatelessWidget {
 
   final String imageUrl;
   final BoxFit fit;
+  final bool portraitFriendlyCrop;
   final double? width;
   final double? height;
   final Widget? placeholder;
@@ -47,43 +49,112 @@ class CachedNetworkImageView extends StatelessWidget {
       ),
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final resolvedWidth = _resolveDimension(width, constraints.maxWidth);
-        final resolvedHeight = _resolveDimension(height, constraints.maxHeight);
-        final cacheWidth = _cacheDimension(context, resolvedWidth);
-        final cacheHeight = _cacheDimension(context, resolvedHeight);
-
-        return CachedNetworkImage(
-          imageUrl: imageUrl,
-          width: width,
-          height: height,
-          fit: fit,
-          alignment: Alignment.center,
-          memCacheWidth: cacheWidth,
-          memCacheHeight: cacheHeight,
-          fadeInDuration: const Duration(milliseconds: 120),
-          placeholderFadeInDuration: const Duration(milliseconds: 120),
-          placeholder: (context, url) => placeholder ?? fallbackPlaceholder,
-          errorWidget: (context, url, error) => errorWidget ?? fallbackError,
-        );
-      },
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: Alignment.center,
+      fadeInDuration: const Duration(milliseconds: 120),
+      placeholderFadeInDuration: const Duration(milliseconds: 120),
+      imageBuilder: (context, imageProvider) => _PortraitAwareImage(
+        imageProvider: imageProvider,
+        fit: fit,
+        portraitFriendlyCrop: portraitFriendlyCrop,
+        width: width,
+        height: height,
+      ),
+      placeholder: (context, url) => placeholder ?? fallbackPlaceholder,
+      errorWidget: (context, url, error) => errorWidget ?? fallbackError,
     );
   }
+}
 
-  double _resolveDimension(double? preferred, double fallback) {
-    if (preferred != null && preferred.isFinite && preferred > 0) {
-      return preferred;
-    }
-    return fallback;
+class _PortraitAwareImage extends StatefulWidget {
+  const _PortraitAwareImage({
+    required this.imageProvider,
+    required this.fit,
+    required this.portraitFriendlyCrop,
+    required this.width,
+    required this.height,
+  });
+
+  final ImageProvider imageProvider;
+  final BoxFit fit;
+  final bool portraitFriendlyCrop;
+  final double? width;
+  final double? height;
+
+  @override
+  State<_PortraitAwareImage> createState() => _PortraitAwareImageState();
+}
+
+class _PortraitAwareImageState extends State<_PortraitAwareImage> {
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+  double? _aspectRatio;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolveImage();
   }
 
-  int? _cacheDimension(BuildContext context, double value) {
-    if (!value.isFinite || value <= 0) {
-      return null;
+  @override
+  void didUpdateWidget(covariant _PortraitAwareImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageProvider != widget.imageProvider) {
+      _resolveImage();
     }
-    final dpr = MediaQuery.of(context).devicePixelRatio;
-    final target = (value * dpr).round();
-    return target > 0 ? target : null;
+  }
+
+  @override
+  void dispose() {
+    _removeListener();
+    super.dispose();
+  }
+
+  void _removeListener() {
+    if (_stream != null && _listener != null) {
+      _stream!.removeListener(_listener!);
+    }
+  }
+
+  void _resolveImage() {
+    _removeListener();
+    final stream = widget.imageProvider.resolve(
+      createLocalImageConfiguration(context),
+    );
+    final listener = ImageStreamListener((imageInfo, _) {
+      final width = imageInfo.image.width.toDouble();
+      final height = imageInfo.image.height.toDouble();
+      if (height <= 0 || !mounted) {
+        return;
+      }
+      setState(() {
+        _aspectRatio = width / height;
+      });
+    });
+    _stream = stream;
+    _listener = listener;
+    stream.addListener(listener);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var effectiveFit = widget.fit;
+    if (widget.portraitFriendlyCrop &&
+        widget.fit == BoxFit.cover &&
+        (_aspectRatio ?? 1.0) < 1.0) {
+      // Keeps frame fully filled with no inner padding, while reducing side crop.
+      effectiveFit = BoxFit.fitWidth;
+    }
+    return Image(
+      image: widget.imageProvider,
+      fit: effectiveFit,
+      width: widget.width,
+      height: widget.height,
+      alignment: Alignment.center,
+    );
   }
 }

@@ -1,6 +1,31 @@
 # Progress
 
 ## Done
+- Made calendar day-detail photos tappable to open the shared full-screen photo viewer at the tapped index, showing original aspect ratio images with swipe navigation across the day’s photos.
+- Updated calendar day-detail sheet photos (opened by tapping a date) to render with `BoxFit.contain` and muted background fill so each image displays in full without cropping or distortion.
+- Removed the 75% frame scale because it introduced inner padding; restored no-padding frame fill and portrait-aware `fitWidth` fallback on framed `cover` images to reduce side crop without letterboxing.
+- Removed drop shadows from pet-room photo gallery cards while keeping the frame style, by adding a `showShadow` toggle on `HomePolaroidMemoryFrame` and turning it off in `PetPhotoGallery`.
+- Reduced portrait-frame crop further by switching portrait-aware framed rendering from `fitWidth` to `contain`, minimizing automatic crop while preserving non-portrait `cover` behavior.
+- Reworked frame crop tuning to avoid 4-side padding: removed global zoom-out scaling and added portrait-aware display fit (`cover` by default, `fitWidth` for portrait images on framed surfaces) so left/right content is preserved with less side-cropping.
+- Added automatic display-only frame cropping (no user picker, no source edit): framed photo surfaces now render with `BoxFit.cover` so photos fill frames by cropping instead of letterboxing.
+- Root cause fix for frame-driven distortion: removed forced dual-dimension decode (`memCacheWidth` + `memCacheHeight`) from shared `CachedNetworkImageView`, which could pre-scale images to frame dimensions and visually squash them before `BoxFit` rendering.
+- Fixed pet-gallery frame composition after aspect-ratio changes: photo area now takes most frame height (`fixedMediaZone`), sender avatar overlap is moved upward to avoid caption collision, placeholder cards hide avatar badges, and caption rows are tightened to remove excess bottom whitespace.
+- Reduced pet-gallery polaroid caption area height (smaller reserved bottom space and tighter caption inset) to reclaim vertical room for photos after frame aspect-ratio adjustments.
+- Identified likely root cause of post-upload distortion as MIME misclassification (HEIC/HEIF bytes being labeled as JPEG via extension fallback); added byte-signature content-type detection on feed upload and mapped HEIC/HEIF extensions in `feed_validate` so stored images preserve correct format metadata.
+- Eliminated post-upload photo deformation by disabling feed image compression/re-encoding during upload; feed sends now use original selected bytes/content-type so DB/chat/calendar images match the preview.
+- Equalized pet gallery spacing by removing per-card scale transform in the `PageView`; cards now keep consistent width so the 1↔2 and 2↔3 gaps match.
+- Investigated feed-time crash regression and hardened feed compression: disabled EXIF preservation during WebP compression again (`keepExif: false`) to avoid native codec instability on some iOS image inputs, while keeping aspect-ratio drift fallback and adding codec disposal in image-dimension probing to reduce memory pressure.
+- Fixed remaining camera preview distortion by removing forced preview decode dimensions (`cacheWidth/cacheHeight`) and rendering selected images with plain `BoxFit.contain`.
+- Increased pet gallery side-peek visibility for middle-page browsing by reducing card width (`viewportFraction: 0.8`) and horizontal item margins, so the previous (left) card is clearly visible on the second photo.
+- Removed remaining photo distortion in camera preview and chat image tiles by switching both local and network image rendering from `BoxFit.cover` to `BoxFit.contain` with a neutral letterbox background.
+- Fixed pet gallery centering so the second card shows both left and right neighboring cards by using centered PageView peeking (`padEnds: true`).
+- Hardened feed upload compression against post-upload deformation: keep EXIF metadata and fall back to original bytes if compressed output aspect ratio drifts from the original image, preventing squash/stretch after server refresh.
+- Wired pet gallery placeholder slot taps to open the feed camera directly via existing Home feed flow (so empty memory frames act as feed CTAs with current lock/departure checks preserved).
+- Restored the pet room carousel to the original polaroid frame style (caption + sender context), widened the gallery container to use near-full horizontal space, and tuned peeking so page 2 shows smaller neighbor frames on both left and right.
+- Fixed Pro unlock gating after sandbox subscription purchase: Home room-locking now uses effective Pro access (`debug toggle OR RevenueCat active entitlement`), refreshes entitlement state during bootstrap/resume, and reapplies lock status after returning from Store.
+- Switched framed photo rendering to `BoxFit.contain` across Pet Home/Room Selection/Calendar surfaces (including polaroid cards, calendar cards/sheets, and home photo bubbles/photo-food) so images preserve original aspect ratio with letterboxing instead of appearing compressed.
+- Updated `PetPhotoGallery` to always render 3 carousel slots (`itemCount = max(3, photos.length)`), filling missing right-side slots with modern placeholder frames (rounded card, faded pet silhouette, subtle + CTA) while preserving the peeking `viewportFraction: 0.8` layout.
+- Replaced the pet room single "Last Photo" display with a swipeable `PetPhotoGallery` (`PageView.builder`, `viewportFraction: 0.8`) that shows the 3 most recent feed photos (index 0 newest -> index 2 oldest), with side-card scale/dim focus effects and dynamic live updates from realtime/optimistic feed events.
 - Added a 20-character limit for profile nickname edits: the nickname dialog now enforces `LengthLimitingTextInputFormatter(20)`, and save logic also guards against names longer than 20 characters.
 - Updated Home drawer header UX: user name now renders larger beneath the avatar, and tapping the avatar opens the Profile page directly.
 - Refined Home left drawer layout per UX feedback: narrowed drawer width, left-aligned the user header avatar/name row, and pinned the Sign Out action to a bottom safe-area slot separate from the scrollable menu items.

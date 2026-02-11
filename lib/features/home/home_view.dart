@@ -17,6 +17,7 @@ import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 import '../../services/home/home_bootstrap_cache_repository.dart';
+import '../../services/iap/revenuecat_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
@@ -24,7 +25,6 @@ import '../../shared/errors/user_facing_error.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/juice_wrappers.dart';
-import '../../shared/ui/full_screen_photo_viewer.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../chat/chat_message.dart';
@@ -44,7 +44,7 @@ import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_game_status_bar.dart';
-import 'widgets/home_polaroid_memory_frame.dart';
+import 'widgets/pet_photo_gallery.dart';
 import 'widgets/photo_food.dart';
 
 part 'home_view_models.dart';
@@ -108,6 +108,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _coins = 1234;
   int _diamonds = 0;
   bool _debugProPlan = false;
+  bool _revenueCatProPlan = false;
+  final RevenueCatService _revenueCatService = RevenueCatService();
   String? _myAvatarUrl;
   String? _myNickname;
   int? _coinReward; // Triggers coin animation when set
@@ -175,11 +177,13 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   // Latest feed (polaroid)
   String? _latestFeedImageUrl;
+  List<String> _latestFeedImageUrls = <String>[];
   String? _latestFeedSenderId;
   String? _latestFeedCaption;
   String? _latestFeedOptimisticTempId;
   String? _latestFeedOptimisticRoomId;
   String? _latestFeedOptimisticPrevImageUrl;
+  List<String>? _latestFeedOptimisticPrevImageUrls;
   String? _latestFeedOptimisticPrevSenderId;
   String? _latestFeedOptimisticPrevCaption;
   final Map<String, String> _optimisticFeedImageByTempId = {};
@@ -274,6 +278,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (state != AppLifecycleState.resumed) {
       return;
     }
+    unawaited(_refreshProPlanStatus());
     if (!_showRoomSelection) {
       return;
     }
@@ -307,6 +312,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _bootstrapHome() async {
     await _restoreHomeBootstrapCache();
     await _ensureProfile();
+    await _refreshProPlanStatus();
     await _loadCoins();
     await _fetchRooms();
     if (mounted && _showRoomSelection) {
@@ -887,6 +893,46 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  bool get _hasProPlanAccess => _debugProPlan || _revenueCatProPlan;
+
+  Future<void> _refreshProPlanStatus() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      if (!mounted) {
+        _revenueCatProPlan = false;
+        return;
+      }
+      setState(() {
+        _revenueCatProPlan = false;
+        _myRooms = _applyLegacyRoomLocking(_myRooms);
+      });
+      return;
+    }
+
+    var hasProEntitlement = false;
+    try {
+      final configured = await _revenueCatService.configure(appUserId: userId);
+      if (configured) {
+        final info = await _revenueCatService.getCustomerInfo();
+        hasProEntitlement = info?.entitlements.active.isNotEmpty ?? false;
+      }
+    } catch (error) {
+      debugPrint('[iap] failed to refresh pro status: $error');
+    }
+
+    if (!mounted) {
+      _revenueCatProPlan = hasProEntitlement;
+      return;
+    }
+    if (_revenueCatProPlan == hasProEntitlement) {
+      return;
+    }
+    setState(() {
+      _revenueCatProPlan = hasProEntitlement;
+      _myRooms = _applyLegacyRoomLocking(_myRooms);
+    });
+  }
+
   Future<void> _fetchRooms() async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -1042,13 +1088,13 @@ class _HomeViewState extends ConsumerState<HomeView>
 
     for (var i = 0; i < sorted.length; i++) {
       sorted[i]['legacy_order_index'] = i;
-      sorted[i]['is_locked'] = !_debugProPlan && i >= _freePlanRoomLimit;
+      sorted[i]['is_locked'] = !_hasProPlanAccess && i >= _freePlanRoomLimit;
     }
     return sorted;
   }
 
   bool _isRoomLocked(String? roomId) {
-    if (roomId == null || _debugProPlan) {
+    if (roomId == null || _hasProPlanAccess) {
       return false;
     }
     for (final room in _myRooms) {
@@ -1159,6 +1205,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       if (roomId == _roomId) {
         _latestFeedImageUrl = imageUrl;
+        _latestFeedImageUrls = _prependLatestFeedImage(
+          imageUrl: imageUrl,
+          existing: _latestFeedImageUrls,
+        );
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
@@ -1234,6 +1284,17 @@ class _HomeViewState extends ConsumerState<HomeView>
       _photoFoodDropping = false;
       _photoFoodBiteStage = 0;
       _petEating = false;
+      _latestFeedImageUrl = roomSnapshot?['latest_photo'] as String?;
+      _latestFeedImageUrls =
+          ((roomSnapshot?['latest_photos'] as List?)
+                      ?.whereType<String>()
+                      .where((url) => url.isNotEmpty)
+                      .take(3)
+                      .toList() ??
+                  const <String>[])
+              .toList(growable: false);
+      _latestFeedSenderId = roomSnapshot?['latest_sender_id'] as String?;
+      _latestFeedCaption = roomSnapshot?['latest_caption'] as String?;
     });
     _overfedBubbleTimer?.cancel();
     _furnitureWiggleController.stop();
@@ -1296,7 +1357,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _createRoom() async {
     final l10n = AppLocalizations.of(context)!;
     final reachedFreePlanLimit =
-        !_debugProPlan && _myRooms.length >= _freePlanRoomLimit;
+        !_hasProPlanAccess && _myRooms.length >= _freePlanRoomLimit;
     if (reachedFreePlanLimit) {
       ScaffoldMessenger.of(
         context,
@@ -2469,9 +2530,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedOptimisticTempId = entry.tempId;
       _latestFeedOptimisticRoomId = entry.roomId;
       _latestFeedOptimisticPrevImageUrl = _latestFeedImageUrl;
+      _latestFeedOptimisticPrevImageUrls = List<String>.from(
+        _latestFeedImageUrls,
+      );
       _latestFeedOptimisticPrevSenderId = _latestFeedSenderId;
       _latestFeedOptimisticPrevCaption = _latestFeedCaption;
       _latestFeedImageUrl = entry.localImagePath;
+      _latestFeedImageUrls = _prependLatestFeedImage(
+        imageUrl: entry.localImagePath,
+        existing: _latestFeedImageUrls,
+      );
       _latestFeedSenderId = entry.senderId;
       _latestFeedCaption = entry.caption;
     });
@@ -2494,6 +2562,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedOptimisticTempId = null;
       _latestFeedOptimisticRoomId = null;
       _latestFeedOptimisticPrevImageUrl = null;
+      _latestFeedOptimisticPrevImageUrls = null;
       _latestFeedOptimisticPrevSenderId = null;
       _latestFeedOptimisticPrevCaption = null;
     }
@@ -2531,12 +2600,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         if (shouldRestore) {
           _latestFeedImageUrl = _latestFeedOptimisticPrevImageUrl;
+          _latestFeedImageUrls = _latestFeedOptimisticPrevImageUrls == null
+              ? <String>[]
+              : List<String>.from(_latestFeedOptimisticPrevImageUrls!);
           _latestFeedSenderId = _latestFeedOptimisticPrevSenderId;
           _latestFeedCaption = _latestFeedOptimisticPrevCaption;
         }
         _latestFeedOptimisticTempId = null;
         _latestFeedOptimisticRoomId = null;
         _latestFeedOptimisticPrevImageUrl = null;
+        _latestFeedOptimisticPrevImageUrls = null;
         _latestFeedOptimisticPrevSenderId = null;
         _latestFeedOptimisticPrevCaption = null;
       });
@@ -2861,6 +2934,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!mounted) {
       return;
     }
+    await _refreshProPlanStatus();
     await _loadCoins();
     await _loadFurnitureInventory();
   }
@@ -2978,54 +3052,51 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _refreshLatestFeed(String roomId) async {
     try {
-      final row = await Supabase.instance.client
+      final rows = await Supabase.instance.client
           .from('messages')
           .select('sender_id,image_url,caption,created_at')
           .eq('room_id', roomId)
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
           .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
-      if (row == null) {
+          .limit(3);
+
+      final imageUrls = rows
+          .map((row) => row['image_url'] as String?)
+          .whereType<String>()
+          .where((url) => url.isNotEmpty)
+          .take(3)
+          .toList(growable: false);
+      if (imageUrls.isEmpty) {
         if (mounted) {
           setState(() {
             _latestFeedImageUrl = null;
+            _latestFeedImageUrls = <String>[];
             _latestFeedSenderId = null;
             _latestFeedCaption = null;
           });
         } else {
           _latestFeedImageUrl = null;
+          _latestFeedImageUrls = <String>[];
           _latestFeedSenderId = null;
           _latestFeedCaption = null;
         }
         return;
       }
-      final imageUrl = row['image_url'] as String?;
-      if (imageUrl == null || imageUrl.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _latestFeedImageUrl = null;
-            _latestFeedSenderId = null;
-            _latestFeedCaption = null;
-          });
-        } else {
-          _latestFeedImageUrl = null;
-          _latestFeedSenderId = null;
-          _latestFeedCaption = null;
-        }
-        return;
-      }
-      final senderId = row['sender_id'] as String?;
-      final caption = row['caption'] as String?;
+      final firstRow = rows.first;
+      final imageUrl = imageUrls.first;
+      final senderId = firstRow['sender_id'] as String?;
+      final caption = firstRow['caption'] as String?;
       if (mounted) {
         setState(() {
           _latestFeedImageUrl = imageUrl;
+          _latestFeedImageUrls = imageUrls;
           _latestFeedSenderId = senderId;
           _latestFeedCaption = caption;
         });
       } else {
         _latestFeedImageUrl = imageUrl;
+        _latestFeedImageUrls = imageUrls;
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
@@ -3035,6 +3106,26 @@ class _HomeViewState extends ConsumerState<HomeView>
     } catch (_) {
       // Best-effort.
     }
+  }
+
+  List<String> _prependLatestFeedImage({
+    required String imageUrl,
+    required List<String> existing,
+  }) {
+    if (imageUrl.isEmpty) {
+      return existing;
+    }
+    final next = <String>[imageUrl];
+    for (final url in existing) {
+      if (url.isEmpty || url == imageUrl) {
+        continue;
+      }
+      next.add(url);
+      if (next.length >= 3) {
+        break;
+      }
+    }
+    return next;
   }
 
   Future<_ProfileSummary?> _ensureProfileSummary(
@@ -5153,41 +5244,16 @@ class _HomeViewState extends ConsumerState<HomeView>
                     },
                   ),
                   const Gap(12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Center(
-                      child: FractionallySizedBox(
-                        widthFactor: 0.8,
-                        child: HomePolaroidMemoryFrame(
-                          imageUrl: _latestFeedImageUrl ?? '',
-                          caption: (_latestFeedCaption ?? '').trim(),
-                          userLabel: '',
-                          senderAvatar: _latestFeedSenderId == null
-                              ? null
-                              : _profileByUserId[_latestFeedSenderId!]
-                                    ?.avatarUrl,
-                          senderFallbackText: _latestFeedSenderId == null
-                              ? null
-                              : _profileByUserId[_latestFeedSenderId!]
-                                    ?.nickname,
-                          onTap: () {
-                            final imageUrl = _latestFeedImageUrl ?? '';
-                            if (imageUrl.isEmpty) {
-                              return;
-                            }
-                            FullScreenPhotoViewer.open(
-                              context,
-                              imageUrls: [imageUrl],
-                              captions: [
-                                (_latestFeedCaption ?? '').trim().isEmpty
-                                    ? null
-                                    : _latestFeedCaption!.trim(),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    ),
+                  PetPhotoGallery(
+                    imageUrls: _latestFeedImageUrls,
+                    caption: (_latestFeedCaption ?? '').trim(),
+                    senderAvatar: _latestFeedSenderId == null
+                        ? null
+                        : _profileByUserId[_latestFeedSenderId!]?.avatarUrl,
+                    senderFallbackText: _latestFeedSenderId == null
+                        ? null
+                        : _profileByUserId[_latestFeedSenderId!]?.nickname,
+                    onPlaceholderTap: _openFeedCamera,
                   ),
                   const Gap(10),
                   Expanded(
@@ -5421,7 +5487,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             contentPadding: const EdgeInsets.only(left: 16, right: 8),
             title: Text(l10n.drawerDebugTogglePlan),
             subtitle: Text(
-              _debugProPlan ? l10n.drawerProPlan : l10n.drawerFreePlan,
+              _hasProPlanAccess ? l10n.drawerProPlan : l10n.drawerFreePlan,
             ),
             value: _debugProPlan,
             onChanged: (value) => unawaited(_setDebugProPlan(value)),
