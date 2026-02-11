@@ -27,6 +27,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   static const int _avatarMaxDimension = 512;
   static const int _avatarWebpQuality = 70;
+  static const int _nicknameMaxLength = 20;
 
   final _picker = ImagePicker();
   final _nicknameController = TextEditingController();
@@ -100,7 +101,7 @@ class _ProfileViewState extends State<ProfileView> {
     }
 
     final nickname = _nicknameController.text.trim();
-    if (nickname.isEmpty) {
+    if (nickname.isEmpty || nickname.characters.length > _nicknameMaxLength) {
       return;
     }
 
@@ -149,6 +150,9 @@ class _ProfileViewState extends State<ProfileView> {
             controller: _nicknameController,
             autofocus: true,
             textInputAction: TextInputAction.done,
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(_nicknameMaxLength),
+            ],
             decoration: InputDecoration(labelText: l10n.profileNicknameLabel),
             onSubmitted: (_) => Navigator.of(context).pop(true),
           ),

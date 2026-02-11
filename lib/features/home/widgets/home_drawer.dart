@@ -32,6 +32,7 @@ class HomeDrawer extends ConsumerWidget {
     final localeState = ref.watch(appLocaleProvider);
 
     return Drawer(
+      width: 268,
       backgroundColor: const Color(0xFFFFF8ED),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -52,85 +53,105 @@ class HomeDrawer extends ConsumerWidget {
             ),
             width: double.infinity,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.28),
-                    shape: BoxShape.circle,
-                  ),
-                  child: UserAvatar(
-                    avatar: userAvatarUrl,
-                    fallbackText: userId?.substring(0, 1),
-                    size: 64,
+                InkWell(
+                  onTap: onProfileTap,
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.28),
+                      shape: BoxShape.circle,
+                    ),
+                    child: UserAvatar(
+                      avatar: userAvatarUrl,
+                      fallbackText: userId?.substring(0, 1),
+                      size: 56,
+                    ),
                   ),
                 ),
                 if (userName != null && userName!.trim().isNotEmpty) ...[
-                  const Gap(10),
-                  Text(
-                    userName!.trim(),
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF3A2818),
+                  const Gap(12),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Text(
+                      userName!.trim(),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF3A2818),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ],
             ),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-              children: [
-                _DrawerItem(
-                  icon: Icons.account_circle_outlined,
-                  title: l10n.drawerProfile,
-                  onTap: onProfileTap,
-                  isPrimary: true,
-                ),
-                _DrawerItem(
-                  icon: Icons.language_outlined,
-                  title: l10n.languageTitle,
-                  subtitle: _languageOptionLabel(localeState.option, l10n),
-                  onTap: () {
-                    Navigator.pop(context);
-                    showModalBottomSheet<void>(
-                      context: context,
-                      showDragHandle: true,
-                      backgroundColor: Colors.white,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(24),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _DrawerItem(
+                          icon: Icons.account_circle_outlined,
+                          title: l10n.drawerProfile,
+                          onTap: onProfileTap,
+                          isPrimary: true,
                         ),
-                      ),
-                      builder: (_) => const LanguageSelectorSheet(),
-                    );
-                  },
-                ),
-                if (debugActions != null)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: AppTheme.textSecondary.withValues(alpha: 0.12),
-                      ),
+                        _DrawerItem(
+                          icon: Icons.language_outlined,
+                          title: l10n.languageTitle,
+                          subtitle: _languageOptionLabel(localeState.option, l10n),
+                          onTap: () {
+                            Navigator.pop(context);
+                            showModalBottomSheet<void>(
+                              context: context,
+                              showDragHandle: true,
+                              backgroundColor: Colors.white,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(24),
+                                ),
+                              ),
+                              builder: (_) => const LanguageSelectorSheet(),
+                            );
+                          },
+                        ),
+                        if (debugActions != null)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: AppTheme.textSecondary.withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: debugActions!,
+                          ),
+                      ],
                     ),
-                    child: debugActions!,
                   ),
-                _DrawerItem(
-                  icon: Icons.logout_rounded,
-                  title: l10n.commonSignOut,
-                  onTap: onSignOut,
-                  textColor: AppTheme.errorColor,
-                  iconColor: AppTheme.errorColor,
-                ),
-              ],
+                  SafeArea(
+                    top: false,
+                    minimum: const EdgeInsets.only(bottom: 10),
+                    child: _DrawerItem(
+                      icon: Icons.logout_rounded,
+                      title: l10n.commonSignOut,
+                      onTap: onSignOut,
+                      textColor: AppTheme.errorColor,
+                      iconColor: AppTheme.errorColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

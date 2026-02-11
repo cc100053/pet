@@ -209,9 +209,24 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: _CalendarColors.background,
-      body: SafeArea(child: _buildCalendarBody(context)),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: _CalendarHeader(
+                label: _monthLabel(context, _focusedMonth),
+                subtitle: l10n.calendarTitle,
+                onMenuTap: () => _handleHeaderTap(context),
+              ),
+            ),
+            Expanded(child: _buildCalendarBody(context)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -266,11 +281,6 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CalendarHeader(
-                label: _monthLabel(context, _focusedMonth),
-                subtitle: l10n.calendarTitle,
-                onMenuTap: () => _handleHeaderTap(context),
-              ),
               const SizedBox(height: 16),
               _WeekdayStrip(
                 labels: weekdayLabels,

@@ -1,6 +1,12 @@
 # Progress
 
 ## Done
+- Added a 20-character limit for profile nickname edits: the nickname dialog now enforces `LengthLimitingTextInputFormatter(20)`, and save logic also guards against names longer than 20 characters.
+- Updated Home drawer header UX: user name now renders larger beneath the avatar, and tapping the avatar opens the Profile page directly.
+- Refined Home left drawer layout per UX feedback: narrowed drawer width, left-aligned the user header avatar/name row, and pinned the Sign Out action to a bottom safe-area slot separate from the scrollable menu items.
+- Refined offline messaging/readability in Chat by moving load/network error text to a floating bottom in-content banner; fixed offline departure regression by preventing departed pets from reappearing on room switch/network failure via departed-state heuristics and safer pet rendering guards.
+- Refined offline UX polish: Home offline prompt now only appears when Home route is current (prevents overlap on Chat) and uses a short floating snackbar; Memory Calendar now keeps a visible back header even during loading/error states.
+- Implemented offline-resilient Home bootstrap: startup now restores cached home snapshot (rooms/profile balances), applies network timeouts to bootstrap fetches, and enforces read-from-cache/write-online behavior for pet interactions.
 - Added in-app Debug Tools actions to manually trigger soft/hard update prompts, and documented update-config keys/usage in `README.md`.
 - Implemented dual-threshold app update gating at startup (`minimum_required_version` for hard update, `latest_available_version` for soft update) with platform-aware remote config parsing, a non-dismissible hard-update prompt, and an optional soft-update prompt (`Update` / `Later`).
 - Updated Store candy purchase buttons to use the candy SVG icon (instead of the coin/monetization icon) for candy-priced items, while keeping diamond-priced buttons unchanged.

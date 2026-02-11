@@ -1042,12 +1042,15 @@ class ChatMessageListState extends State<ChatMessageList> {
 
   @override
   Widget build(BuildContext context) {
+    final defaultPadding = const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 12,
+    );
+    final resolvedPadding = (widget.contentPadding ?? defaultPadding).resolve(
+      Directionality.of(context),
+    );
     if (_loadingInitial && _messages.isEmpty) {
-      return _ChatLoadingList(
-        padding:
-            widget.contentPadding ??
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      );
+      return _ChatLoadingList(padding: resolvedPadding);
     }
 
     final theme = Theme.of(context);
@@ -1074,151 +1077,149 @@ class ChatMessageListState extends State<ChatMessageList> {
         localImagePaths[index] = localPath;
       }
     }
-    final errorBanner = _error == null
-        ? const <Widget>[]
-        : <Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                _error!,
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-            ),
-          ];
-
-    return Column(
+    return Stack(
       children: [
-        ...errorBanner,
-        Expanded(
-          child: Stack(
-            children: [
-              _messages.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      reverse: true,
-                      padding:
-                          widget.contentPadding ??
-                          const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                      children: [
-                        const SizedBox(height: 120),
-                        Center(
-                          child: Text(
-                            l10n.chatEmptyState,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: widget.useLightForeground
-                                  ? Colors.white.withValues(alpha: 0.9)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : ListView.separated(
-                      controller: _scrollController,
-                      reverse: true,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding:
-                          widget.contentPadding ??
-                          const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                      itemBuilder: (context, index) {
-                        if (index == _messages.length) {
-                          if (_loadingMore) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Center(child: CircularProgressIndicator()),
-                            );
-                          }
-                          if (!_hasMore) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Center(
-                                child: Text(l10n.chatNoOlderMessages),
-                              ),
-                            );
-                          }
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Center(
-                              child: OutlinedButton(
-                                onPressed: _loadingMore ? null : _loadMore,
-                                child: Text(l10n.chatLoadOlderMessages),
-                              ),
-                            ),
-                          );
-                        }
-
-                        final message = _messages[index];
-                        final isMe =
-                            message.senderId != null &&
-                            message.senderId == widget.currentUserId;
-                        final isOptimistic = _optimisticIds.contains(
-                          message.id,
-                        );
-                        final imageIndex = imageIndexByMessageId[message.id];
-                        final senderName = isMe
-                            ? null
-                            : _profileNicknames[message.senderId];
-                        return ChatMessageTile(
-                          key: ValueKey(message.id),
-                          message: message,
-                          isMe: isMe,
-                          isOptimistic: isOptimistic,
-                          useLightForeground: widget.useLightForeground,
-                          senderName: senderName,
-                          onLongPress: _shouldShowActions(message, isMe)
-                              ? () => _showMessageActions(message)
-                              : null,
-                          onImageTap: imageIndex == null
-                              ? null
-                              : () => FullScreenPhotoViewer.open(
-                                  context,
-                                  imageUrls: imageUrls,
-                                  initialIndex: imageIndex,
-                                  localImagePaths: localImagePaths,
-                                  showIndicator: false,
-                                  captions: imageCaptions,
-                                ),
-                        );
-                      },
-                      separatorBuilder: (context, index) {
-                        if (index == _messages.length - 1) {
-                          // Separator between oldest message and loader/footer
-                          return _DateSeparator(
-                            date: _messages[index].createdAt,
-                          );
-                        }
-                        if (index < _messages.length - 1) {
-                          final newer = _messages[index];
-                          final older = _messages[index + 1];
-                          if (!_isSameDay(newer.createdAt, older.createdAt)) {
-                            return _DateSeparator(date: newer.createdAt);
-                          }
-                        }
-                        return const SizedBox(height: 2);
-                      },
-                      itemCount: _messages.length + 1,
+        _messages.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                reverse: true,
+                padding: resolvedPadding,
+                children: [
+                  const SizedBox(height: 120),
+                  Center(
+                    child: Text(
+                      l10n.chatEmptyState,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: widget.useLightForeground
+                            ? Colors.white.withValues(alpha: 0.9)
+                            : null,
+                      ),
                     ),
-              if (_showScrollToBottom)
-                Positioned(
-                  right: 16,
-                  bottom: 120,
-                  child: FloatingActionButton.small(
-                    onPressed: _scrollToBottom,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    foregroundColor: theme.colorScheme.onSurfaceVariant,
-                    child: const Icon(Icons.arrow_downward),
+                  ),
+                ],
+              )
+            : ListView.separated(
+                controller: _scrollController,
+                reverse: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: resolvedPadding,
+                itemBuilder: (context, index) {
+                  if (index == _messages.length) {
+                    if (_loadingMore) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (!_hasMore) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Center(child: Text(l10n.chatNoOlderMessages)),
+                      );
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Center(
+                        child: OutlinedButton(
+                          onPressed: _loadingMore ? null : _loadMore,
+                          child: Text(l10n.chatLoadOlderMessages),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final message = _messages[index];
+                  final isMe =
+                      message.senderId != null &&
+                      message.senderId == widget.currentUserId;
+                  final isOptimistic = _optimisticIds.contains(message.id);
+                  final imageIndex = imageIndexByMessageId[message.id];
+                  final senderName = isMe
+                      ? null
+                      : _profileNicknames[message.senderId];
+                  return ChatMessageTile(
+                    key: ValueKey(message.id),
+                    message: message,
+                    isMe: isMe,
+                    isOptimistic: isOptimistic,
+                    useLightForeground: widget.useLightForeground,
+                    senderName: senderName,
+                    onLongPress: _shouldShowActions(message, isMe)
+                        ? () => _showMessageActions(message)
+                        : null,
+                    onImageTap: imageIndex == null
+                        ? null
+                        : () => FullScreenPhotoViewer.open(
+                            context,
+                            imageUrls: imageUrls,
+                            initialIndex: imageIndex,
+                            localImagePaths: localImagePaths,
+                            showIndicator: false,
+                            captions: imageCaptions,
+                          ),
+                  );
+                },
+                separatorBuilder: (context, index) {
+                  if (index == _messages.length - 1) {
+                    return _DateSeparator(date: _messages[index].createdAt);
+                  }
+                  if (index < _messages.length - 1) {
+                    final newer = _messages[index];
+                    final older = _messages[index + 1];
+                    if (!_isSameDay(newer.createdAt, older.createdAt)) {
+                      return _DateSeparator(date: newer.createdAt);
+                    }
+                  }
+                  return const SizedBox(height: 2);
+                },
+                itemCount: _messages.length + 1,
+              ),
+        if (_showScrollToBottom)
+          Positioned(
+            right: 16,
+            bottom: 120,
+            child: FloatingActionButton.small(
+              onPressed: _scrollToBottom,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              foregroundColor: theme.colorScheme.onSurfaceVariant,
+              child: const Icon(Icons.arrow_downward),
+            ),
+          ),
+        if (_error != null)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: resolvedPadding.bottom + 8,
+            child: IgnorePointer(
+              ignoring: true,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer.withValues(
+                    alpha: 0.96,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.error.withValues(alpha: 0.25),
                   ),
                 ),
-            ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
       ],
     );
   }

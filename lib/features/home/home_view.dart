@@ -16,6 +16,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
+import '../../services/home/home_bootstrap_cache_repository.dart';
 import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
@@ -138,9 +139,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Set<String> _cachedPetAssets = {};
   static const int _petNameMaxLength = 20;
   static const int _freePlanRoomLimit = 2;
+  static const Duration _networkTimeout = Duration(seconds: 4);
+  static const Duration _onlineProbeThrottle = Duration(seconds: 10);
   bool _inviteCodeLoading = false;
   bool _showNewRoomInvitePrompt = false;
   String? _newRoomInviteRoomId;
+  DateTime? _lastWriteOnlineCheckAt;
+  bool _lastWriteOnlineCheckResult = true;
 
   // Furniture State
   bool _furnitureMode = false;
@@ -197,14 +202,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
-        unawaited(() async {
-          await _ensureProfile();
-          await _loadCoins();
-          await _fetchRooms();
-          if (mounted && _showRoomSelection) {
-            await _refreshRoomSelectionHealthBars();
-          }
-        }());
+        unawaited(_bootstrapHome());
         _profileEnsured = true;
       }
     });
@@ -306,6 +304,148 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   // --- Logic Methods ---
+  Future<void> _bootstrapHome() async {
+    await _restoreHomeBootstrapCache();
+    await _ensureProfile();
+    await _loadCoins();
+    await _fetchRooms();
+    if (mounted && _showRoomSelection) {
+      await _refreshRoomSelectionHealthBars();
+    }
+  }
+
+  Future<void> _restoreHomeBootstrapCache() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _loadingRoom = false;
+      });
+      return;
+    }
+    try {
+      final snapshot = await HomeBootstrapCacheRepository.instance.loadForUser(
+        userId,
+      );
+      if (snapshot == null || !mounted) {
+        return;
+      }
+      final cachedRoomsRaw = snapshot['rooms'];
+      final cachedRooms = <Map<String, dynamic>>[];
+      if (cachedRoomsRaw is List) {
+        for (final item in cachedRoomsRaw) {
+          if (item is Map) {
+            cachedRooms.add(Map<String, dynamic>.from(item));
+          }
+        }
+      }
+      final sortedRooms = _applyLegacyRoomLocking(cachedRooms);
+      final cachedRoomId = snapshot['room_id'] as String?;
+      final cachedSelectionId = snapshot['room_selection_id'] as String?;
+      setState(() {
+        _coins = (snapshot['coins'] as num?)?.toInt() ?? _coins;
+        _diamonds = (snapshot['diamonds'] as num?)?.toInt() ?? _diamonds;
+        _myAvatarUrl = snapshot['my_avatar_url'] as String?;
+        _myNickname = snapshot['my_nickname'] as String?;
+        _myRooms = sortedRooms;
+        _showRoomSelection = true;
+        _roomId = sortedRooms.any((room) => room['id'] == cachedRoomId)
+            ? cachedRoomId
+            : null;
+        _roomSelectionId =
+            sortedRooms.any((room) => room['id'] == cachedSelectionId)
+            ? cachedSelectionId
+            : (sortedRooms.isNotEmpty
+                  ? sortedRooms.first['id'] as String?
+                  : null);
+        _loadingRoom = false;
+      });
+    } catch (_) {
+      // Best effort. If cache read fails we continue with network bootstrap.
+    }
+  }
+
+  Future<void> _cacheHomeBootstrapSnapshot() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    await HomeBootstrapCacheRepository.instance.saveForUser(
+      userId: userId,
+      snapshot: {
+        'coins': _coins,
+        'diamonds': _diamonds,
+        'my_avatar_url': _myAvatarUrl,
+        'my_nickname': _myNickname,
+        'rooms': _myRooms,
+        'room_id': _roomId,
+        'room_selection_id': _roomSelectionId,
+      },
+    );
+  }
+
+  Future<T> _withNetworkTimeout<T>(Future<T> future) async {
+    return future.timeout(_networkTimeout);
+  }
+
+  void _showOfflineSnackBar() {
+    if (!mounted) {
+      return;
+    }
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) {
+      return;
+    }
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) {
+      return;
+    }
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        content: Text(AppLocalizations.of(context)!.errorNetwork),
+      ),
+    );
+  }
+
+  Future<bool> _ensureOnlineForWrite() async {
+    final now = DateTime.now();
+    final lastCheck = _lastWriteOnlineCheckAt;
+    if (lastCheck != null && now.difference(lastCheck) < _onlineProbeThrottle) {
+      if (!_lastWriteOnlineCheckResult) {
+        _showOfflineSnackBar();
+      }
+      return _lastWriteOnlineCheckResult;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      _lastWriteOnlineCheckAt = now;
+      _lastWriteOnlineCheckResult = false;
+      return false;
+    }
+    try {
+      await _withNetworkTimeout(
+        Supabase.instance.client
+            .from('profiles')
+            .select('user_id')
+            .eq('user_id', userId)
+            .maybeSingle(),
+      );
+      _lastWriteOnlineCheckAt = now;
+      _lastWriteOnlineCheckResult = true;
+      return true;
+    } catch (_) {
+      _lastWriteOnlineCheckAt = now;
+      _lastWriteOnlineCheckResult = false;
+      _showOfflineSnackBar();
+      return false;
+    }
+  }
+
   Future<void> _ensureProfile() async {
     final defaultNickname = AppLocalizations.of(
       context,
@@ -316,17 +456,21 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
 
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      final profile = await _withNetworkTimeout(
+        Supabase.instance.client
+            .from('profiles')
+            .select('user_id')
+            .eq('user_id', user.id)
+            .maybeSingle(),
+      );
 
       if (profile == null) {
-        await Supabase.instance.client.from('profiles').insert({
-          'user_id': user.id,
-          'nickname': defaultNickname,
-        });
+        await _withNetworkTimeout(
+          Supabase.instance.client.from('profiles').insert({
+            'user_id': user.id,
+            'nickname': defaultNickname,
+          }),
+        );
       }
     } catch (_) {
       // Best-effort. Profile creation can be retried on next app open.
@@ -349,11 +493,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (user == null) {
         return;
       }
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('coins,diamonds,avatar_url,nickname')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      final profile = await _withNetworkTimeout(
+        Supabase.instance.client
+            .from('profiles')
+            .select('coins,diamonds,avatar_url,nickname')
+            .eq('user_id', user.id)
+            .maybeSingle(),
+      );
       final newValue = (profile?['coins'] as int?) ?? _coins;
       final newDiamonds = (profile?['diamonds'] as int?) ?? _diamonds;
       final newAvatarUrl = profile?['avatar_url'] as String?;
@@ -403,6 +549,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           });
         });
       }
+      await _cacheHomeBootstrapSnapshot();
     } catch (_) {
       // Best-effort.
     } finally {
@@ -485,6 +632,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _debugAdjustPetHunger(int delta) async {
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
     final roomId = _roomId;
     if (roomId == null) {
       return;
@@ -524,6 +674,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _debugAddPetExp(int delta) async {
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
     final roomId = _roomId;
     if (roomId == null) {
       return;
@@ -567,6 +720,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _debugSpawnPetPoop() async {
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
     final roomId = _roomId;
     if (roomId == null) {
       return;
@@ -739,12 +895,14 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
 
-      final responses = await Supabase.instance.client
-          .from('room_members')
-          .select('room_id, role, joined_at, rooms(invite_code, created_at)')
-          .eq('user_id', userId)
-          .eq('is_active', true)
-          .order('joined_at', ascending: true);
+      final responses = await _withNetworkTimeout(
+        Supabase.instance.client
+            .from('room_members')
+            .select('room_id, role, joined_at, rooms(invite_code, created_at)')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .order('joined_at', ascending: true),
+      );
 
       final List<Map<String, dynamic>> rooms = [];
       for (final r in responses) {
@@ -766,9 +924,13 @@ class _HomeViewState extends ConsumerState<HomeView>
           .toList(growable: false);
       final senderIds = <String>{};
       if (roomIds.isNotEmpty) {
-        final petSummaries = await _fetchRoomPetSummaries(roomIds);
-        final feeds = await _fetchRoomLatestFeeds(roomIds);
-        final memberCounts = await _fetchRoomMemberCounts(roomIds);
+        final petSummaries = await _withNetworkTimeout(
+          _fetchRoomPetSummaries(roomIds),
+        );
+        final feeds = await _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds));
+        final memberCounts = await _withNetworkTimeout(
+          _fetchRoomMemberCounts(roomIds),
+        );
         for (final room in rooms) {
           final roomId = room['id'] as String?;
           if (roomId != null) {
@@ -821,6 +983,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           _switchRoom(sortedRooms.first['id'] as String);
         }
       }
+      await _cacheHomeBootstrapSnapshot();
     } catch (_) {
     } finally {
       if (mounted) setState(() => _loadingRoom = false);
@@ -897,6 +1060,23 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   bool get _isCurrentRoomLocked => _isRoomLocked(_roomId);
+
+  bool _isRoomLikelyDeparted(String roomId) {
+    if (_departedPetsByRoom.containsKey(roomId)) {
+      return true;
+    }
+    for (final room in _myRooms) {
+      if (room['id'] != roomId) {
+        continue;
+      }
+      final health = room['pet_health'] as num?;
+      if (health != null && health <= 0) {
+        return true;
+      }
+      break;
+    }
+    return false;
+  }
 
   Future<void> _showRoomLockedDialog() async {
     final l10n = AppLocalizations.of(context)!;
@@ -1032,6 +1212,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
     final roomPetType = roomSnapshot?['pet_type'] as String?;
     final nextPetType = petType ?? roomPetType ?? PetCatalog.defaultPetId;
+    final likelyDeparted = _isRoomLikelyDeparted(roomId);
     setState(() {
       _roomId = roomId;
       _petState = null;
@@ -1039,7 +1220,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _petStateReady = false;
       _lastOverfedAt = null;
       _showOverfedBubble = false;
-      _petDeparted = false;
+      _petDeparted = likelyDeparted;
       _petDeparturePrompted = false;
       _lastDeparturePetId = null;
       _petName = null;
@@ -1953,7 +2134,12 @@ class _HomeViewState extends ConsumerState<HomeView>
         )!.petSyncFailed(userFacingError(context, error)),
       );
       if (mounted && !_petStateReady) {
-        setState(() => _petStateReady = true);
+        setState(() {
+          _petStateReady = true;
+          if (_isRoomLikelyDeparted(roomId)) {
+            _petDeparted = true;
+          }
+        });
       }
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -2053,6 +2239,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       return;
     }
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
 
     setState(() {
       _petBusy = true;
@@ -2115,6 +2304,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           ],
         ),
       );
+      return;
+    }
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
+    if (!mounted) {
       return;
     }
 
@@ -4537,6 +4732,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       return;
     }
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
 
     setState(() {
       _petBusy = true;
@@ -4574,11 +4772,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildDraggablePet(Size fieldSize) {
-    if (!_petStateReady) {
-      return _buildPetLoadingPlaceholder();
-    }
     if (_petDeparted) {
       return _buildDepartedPetPlaceholder();
+    }
+    if (!_petStateReady || _petState == null) {
+      return _buildPetLoadingPlaceholder();
     }
     return IgnorePointer(
       ignoring: _furnitureMode,

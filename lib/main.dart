@@ -12,6 +12,7 @@ import 'app/app.dart';
 import 'firebase_options.dart';
 import 'services/chat/chat_message_repository.dart';
 import 'services/env.dart';
+import 'services/home/home_bootstrap_cache_repository.dart';
 import 'services/performance/performance_service.dart';
 import 'services/settings/app_settings_repository.dart';
 
@@ -45,6 +46,7 @@ Future<void> main() async {
       await Hive.initFlutter();
       await AppSettingsRepository.instance.init();
       await ChatMessageRepository.instance.init();
+      await HomeBootstrapCacheRepository.instance.init();
       PerformanceService.instance.markAppStart(appStartTime);
 
       runApp(const ProviderScope(child: PicPetApp()));
