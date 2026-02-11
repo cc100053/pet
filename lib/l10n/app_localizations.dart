@@ -575,6 +575,18 @@ abstract class AppLocalizations {
   /// **'Make Pet Poop'**
   String get drawerDebugSpawnPoop;
 
+  /// No description provided for @drawerDebugTestSoftUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Soft Update Prompt'**
+  String get drawerDebugTestSoftUpdate;
+
+  /// No description provided for @drawerDebugTestHardUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Hard Update Prompt'**
+  String get drawerDebugTestHardUpdate;
+
   /// No description provided for @drawerInviteCode.
   ///
   /// In en, this message translates to:
@@ -760,6 +772,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update required'**
   String get forceUpdateTitle;
+
+  /// No description provided for @softUpdateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get softUpdateAction;
+
+  /// No description provided for @softUpdateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get softUpdateLater;
+
+  /// No description provided for @softUpdateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version is available for a smoother co-petting experience.'**
+  String get softUpdateMessage;
+
+  /// No description provided for @softUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get softUpdateTitle;
 
   /// No description provided for @languageChineseTraditional.
   ///
@@ -964,6 +1000,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload photo'**
   String get profileAvatarUpload;
+
+  /// No description provided for @profileAvatarAdjustCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust current photo'**
+  String get profileAvatarAdjustCurrent;
+
+  /// No description provided for @profileAvatarAdjustUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No uploaded photo to adjust.'**
+  String get profileAvatarAdjustUnavailable;
+
+  /// No description provided for @profileAvatarAdjustUnsupportedPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusting current photo is not supported on this platform.'**
+  String get profileAvatarAdjustUnsupportedPlatform;
 
   /// No description provided for @profileAvatarRemove.
   ///

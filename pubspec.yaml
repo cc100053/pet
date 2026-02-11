@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ^3.11.0-235.0.dev
@@ -42,6 +42,7 @@ dependencies:
   # COMMENT OUT for SIMULATOR testing (uses mock labels instead)
   # google_mlkit_image_labeling: ^0.12.0
   image_picker: ^1.1.2
+  image_cropper: ^9.1.0
   firebase_core: ^4.4.0
   firebase_analytics: ^12.1.1
   firebase_crashlytics: ^5.0.7
@@ -78,6 +79,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+dependency_overrides:
+  # path_provider_foundation 2.6.0 uses objective_c FFI and can fail to bundle
+  # objective_c.framework on some iOS simulator setups.
+  path_provider_foundation: 2.5.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

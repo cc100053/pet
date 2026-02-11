@@ -163,6 +163,8 @@
   "drawerDebugHungerDown": "ペット空腹度 -10",
   "drawerDebugAddExp": "経験値 +10",
   "drawerDebugSpawnPoop": "うんちさせる",
+  "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
+  "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
   "drawerInviteCode": "コード: {code}",
   "@drawerInviteCode": {
     "placeholders": {
@@ -229,6 +231,10 @@
   "forceUpdateLinkError": "ストアリンクを開けません。",
   "forceUpdateMessage": "続行するには新しいバージョンが必要です。今すぐ更新してください。",
   "forceUpdateTitle": "更新が必要です",
+  "softUpdateAction": "更新する",
+  "softUpdateLater": "あとで",
+  "softUpdateMessage": "より快適に共同育成を続けるために、新しいバージョンへ更新してください。",
+  "softUpdateTitle": "アップデートがあります",
   "languageChineseTraditional": "繁体字中国語",
   "languageEnglish": "英語",
   "languageJapanese": "日本語",
@@ -290,6 +296,9 @@
   "profileAvatarTitle": "アバターを選択",
   "profileAvatarEdit": "アバターを編集",
   "profileAvatarUpload": "写真をアップロード",
+  "profileAvatarAdjustCurrent": "現在の写真を調整",
+  "profileAvatarAdjustUnavailable": "調整できるアップロード済み写真がありません。",
+  "profileAvatarAdjustUnsupportedPlatform": "このプラットフォームでは現在の写真調整に対応していません。",
   "profileAvatarRemove": "削除",
   "profileCoinsLabel": "キャンディ: {amount}",
   "@profileCoinsLabel": {

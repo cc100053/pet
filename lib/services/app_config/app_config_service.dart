@@ -3,19 +3,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ForceUpdateConfig {
   ForceUpdateConfig({
-    required this.minVersion,
+    required this.minimumRequiredVersion,
+    required this.latestAvailableVersion,
     required this.storeUrl,
-    this.message,
-    this.rawMinVersion,
+    this.hardUpdateMessage,
+    this.softUpdateMessage,
   });
 
-  /// Parsed min version used for comparison.
-  final String minVersion;
+  final String minimumRequiredVersion;
+  final String latestAvailableVersion;
   final String storeUrl;
-  final String? message;
-
-  /// Original config value (transformed into [minVersion]).
-  final String? rawMinVersion;
+  final String? hardUpdateMessage;
+  final String? softUpdateMessage;
 }
 
 class AppConfigService {
@@ -29,13 +28,22 @@ class AppConfigService {
       return null;
     }
 
-    final rawMinVersion = await _fetchConfigValue('min_version');
-    if (rawMinVersion == null) {
+    final rawMinVersion = await _fetchFirstConfigValue([
+      'minimum_required_version',
+      'min_version',
+    ]);
+    final minimumRequiredVersion = _valueForPlatform(rawMinVersion);
+    if (minimumRequiredVersion == null || minimumRequiredVersion.isEmpty) {
       return null;
     }
 
-    final minVersion = _valueForPlatform(rawMinVersion);
-    if (minVersion == null || minVersion.isEmpty) {
+    final rawLatestVersion = await _fetchFirstConfigValue([
+      'latest_available_version',
+      'latest_version',
+    ]);
+    final latestAvailableVersion =
+        _valueForPlatform(rawLatestVersion) ?? minimumRequiredVersion;
+    if (latestAvailableVersion.isEmpty) {
       return null;
     }
 
@@ -45,17 +53,31 @@ class AppConfigService {
       return null;
     }
 
-    final rawMessage = await _fetchConfigValue('force_update_message');
-    final message = _valueForPlatform(rawMessage);
-
-    final rawMinVersionString = rawMinVersion is String ? rawMinVersion : null;
+    final rawHardMessage = await _fetchFirstConfigValue([
+      'hard_update_message',
+      'force_update_message',
+    ]);
+    final hardUpdateMessage = _valueForPlatform(rawHardMessage);
+    final rawSoftMessage = await _fetchConfigValue('soft_update_message');
+    final softUpdateMessage = _valueForPlatform(rawSoftMessage);
 
     return ForceUpdateConfig(
-      minVersion: minVersion,
+      minimumRequiredVersion: minimumRequiredVersion,
+      latestAvailableVersion: latestAvailableVersion,
       storeUrl: storeUrl,
-      message: message,
-      rawMinVersion: rawMinVersionString,
+      hardUpdateMessage: hardUpdateMessage,
+      softUpdateMessage: softUpdateMessage,
     );
+  }
+
+  Future<dynamic> _fetchFirstConfigValue(List<String> keys) async {
+    for (final key in keys) {
+      final value = await _fetchConfigValue(key);
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
   }
 
   Future<dynamic> _fetchConfigValue(String key) async {

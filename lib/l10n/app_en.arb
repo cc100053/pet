@@ -163,6 +163,8 @@
   "drawerDebugHungerDown": "-10 Pet Hunger",
   "drawerDebugAddExp": "+10 EXP",
   "drawerDebugSpawnPoop": "Make Pet Poop",
+  "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
+  "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
   "drawerInviteCode": "Code: {code}",
   "@drawerInviteCode": {
     "placeholders": {
@@ -229,6 +231,10 @@
   "forceUpdateLinkError": "Unable to open store link.",
   "forceUpdateMessage": "A newer version is required to continue. Please update now.",
   "forceUpdateTitle": "Update required",
+  "softUpdateAction": "Update",
+  "softUpdateLater": "Later",
+  "softUpdateMessage": "A new version is available for a smoother co-petting experience.",
+  "softUpdateTitle": "Update available",
   "languageChineseTraditional": "Traditional Chinese",
   "languageEnglish": "English",
   "languageJapanese": "Japanese",
@@ -290,6 +296,9 @@
   "profileAvatarTitle": "Choose an avatar",
   "profileAvatarEdit": "Edit avatar",
   "profileAvatarUpload": "Upload photo",
+  "profileAvatarAdjustCurrent": "Adjust current photo",
+  "profileAvatarAdjustUnavailable": "No uploaded photo to adjust.",
+  "profileAvatarAdjustUnsupportedPlatform": "Adjusting current photo is not supported on this platform.",
   "profileAvatarRemove": "Remove",
   "profileCoinsLabel": "Candy: {amount}",
   "@profileCoinsLabel": {

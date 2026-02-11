@@ -288,6 +288,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugSpawnPoop => 'Make Pet Poop';
 
   @override
+  String get drawerDebugTestSoftUpdate => 'Test Soft Update Prompt';
+
+  @override
+  String get drawerDebugTestHardUpdate => 'Test Hard Update Prompt';
+
+  @override
   String drawerInviteCode(Object code) {
     return 'Code: $code';
   }
@@ -395,6 +401,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forceUpdateTitle => 'Update required';
+
+  @override
+  String get softUpdateAction => 'Update';
+
+  @override
+  String get softUpdateLater => 'Later';
+
+  @override
+  String get softUpdateMessage =>
+      'A new version is available for a smoother co-petting experience.';
+
+  @override
+  String get softUpdateTitle => 'Update available';
 
   @override
   String get languageChineseTraditional => 'Traditional Chinese';
@@ -507,6 +526,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileAvatarUpload => 'Upload photo';
+
+  @override
+  String get profileAvatarAdjustCurrent => 'Adjust current photo';
+
+  @override
+  String get profileAvatarAdjustUnavailable => 'No uploaded photo to adjust.';
+
+  @override
+  String get profileAvatarAdjustUnsupportedPlatform =>
+      'Adjusting current photo is not supported on this platform.';
 
   @override
   String get profileAvatarRemove => 'Remove';

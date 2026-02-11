@@ -279,6 +279,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugSpawnPoop => '讓寵物便便';
 
   @override
+  String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';
+
+  @override
+  String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
+
+  @override
   String drawerInviteCode(Object code) {
     return '代碼：$code';
   }
@@ -384,6 +390,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get forceUpdateTitle => '需要更新';
+
+  @override
+  String get softUpdateAction => '更新';
+
+  @override
+  String get softUpdateLater => '稍後';
+
+  @override
+  String get softUpdateMessage => '有新版本可用，更新後可獲得更順暢的共同養寵體驗。';
+
+  @override
+  String get softUpdateTitle => '可更新新版本';
 
   @override
   String get languageChineseTraditional => '繁體中文';
@@ -496,6 +514,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileAvatarUpload => '上傳照片';
+
+  @override
+  String get profileAvatarAdjustCurrent => '調整目前照片';
+
+  @override
+  String get profileAvatarAdjustUnavailable => '沒有可調整的已上傳照片。';
+
+  @override
+  String get profileAvatarAdjustUnsupportedPlatform => '此平台暫不支援調整目前照片。';
 
   @override
   String get profileAvatarRemove => '移除';
@@ -1377,6 +1404,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerDebugSpawnPoop => '讓寵物便便';
 
   @override
+  String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';
+
+  @override
+  String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
+
+  @override
   String drawerInviteCode(Object code) {
     return '代碼：$code';
   }
@@ -1482,6 +1515,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get forceUpdateTitle => '需要更新';
+
+  @override
+  String get softUpdateAction => '更新';
+
+  @override
+  String get softUpdateLater => '稍後';
+
+  @override
+  String get softUpdateMessage => '有新版本可用，更新後可獲得更順暢的共同養寵體驗。';
+
+  @override
+  String get softUpdateTitle => '可更新新版本';
 
   @override
   String get languageChineseTraditional => '繁體中文';
@@ -1594,6 +1639,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileAvatarUpload => '上傳照片';
+
+  @override
+  String get profileAvatarAdjustCurrent => '調整目前照片';
+
+  @override
+  String get profileAvatarAdjustUnavailable => '沒有可調整的已上傳照片。';
+
+  @override
+  String get profileAvatarAdjustUnsupportedPlatform => '此平台暫不支援調整目前照片。';
 
   @override
   String get profileAvatarRemove => '移除';

@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
 import '../ui/app_dialog.dart';
+import 'force_update_debug_tool.dart';
+import 'update_policy.dart';
 
 class ForceUpdateGate extends StatefulWidget {
   const ForceUpdateGate({super.key, required this.child});
@@ -22,29 +23,28 @@ class ForceUpdateGate extends StatefulWidget {
 class _ForceUpdateGateState extends State<ForceUpdateGate>
     with WidgetsBindingObserver {
   final AppConfigService _configService = AppConfigService();
-  StreamSubscription<AuthState>? _authSubscription;
+  StreamSubscription<ForceUpdateDebugPromptType>? _debugPromptSubscription;
 
   bool _checking = true;
-  bool _updateRequired = false;
+  bool _hardUpdateRequired = false;
   bool _dialogShowing = false;
+  String? _skippedSoftUpdateVersion;
   ForceUpdateConfig? _config;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
-      _,
-    ) {
-      _checkForUpdate();
-    });
+    _debugPromptSubscription = ForceUpdateDebugTool.instance.prompts.listen(
+      _onDebugPromptRequested,
+    );
     _checkForUpdate();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _authSubscription?.cancel();
+    _debugPromptSubscription?.cancel();
     super.dispose();
   }
 
@@ -56,21 +56,11 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   }
 
   Future<void> _checkForUpdate() async {
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
-      if (mounted) {
-        setState(() {
-          _checking = false;
-          _updateRequired = false;
-          _config = null;
-        });
-      }
-      return;
+    if (mounted) {
+      setState(() {
+        _checking = true;
+      });
     }
-
-    setState(() {
-      _checking = true;
-    });
 
     try {
       final config = await _configService.fetchForceUpdateConfig();
@@ -80,7 +70,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       if (config == null) {
         setState(() {
           _checking = false;
-          _updateRequired = false;
+          _hardUpdateRequired = false;
           _config = null;
         });
         return;
@@ -88,23 +78,42 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      final requiresUpdate = _isVersionLower(currentVersion, config.minVersion);
+      final requirement = AppUpdatePolicy.evaluate(
+        currentVersion: currentVersion,
+        minimumRequiredVersion: config.minimumRequiredVersion,
+        latestAvailableVersion: config.latestAvailableVersion,
+      );
+      final requiresHardUpdate = requirement == AppUpdateRequirement.hard;
 
       setState(() {
         _checking = false;
-        _updateRequired = requiresUpdate;
+        _hardUpdateRequired = requiresHardUpdate;
         _config = config;
       });
 
-      if (requiresUpdate) {
+      if (requiresHardUpdate) {
         AnalyticsService.instance.logEvent(
           'force_update_required',
           parameters: {
-            'min_version': config.minVersion,
+            'min_version': config.minimumRequiredVersion,
+            'latest_version': config.latestAvailableVersion,
             'current_version': currentVersion,
           },
         );
-        _showForceUpdateDialog(config);
+        _showHardUpdateDialog(config);
+        return;
+      }
+
+      if (requirement == AppUpdateRequirement.soft &&
+          _skippedSoftUpdateVersion != config.latestAvailableVersion) {
+        AnalyticsService.instance.logEvent(
+          'soft_update_available',
+          parameters: {
+            'latest_version': config.latestAvailableVersion,
+            'current_version': currentVersion,
+          },
+        );
+        _showSoftUpdateDialog(config);
       }
     } catch (_) {
       if (!mounted) {
@@ -112,35 +121,68 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       }
       setState(() {
         _checking = false;
+        _hardUpdateRequired = false;
       });
     }
   }
 
-  bool _isVersionLower(String current, String minimum) {
-    final currentParts = _parseVersion(current);
-    final minParts = _parseVersion(minimum);
-    final maxLength = currentParts.length > minParts.length
-        ? currentParts.length
-        : minParts.length;
-    for (var i = 0; i < maxLength; i++) {
-      final currentValue = i < currentParts.length ? currentParts[i] : 0;
-      final minValue = i < minParts.length ? minParts[i] : 0;
-      if (currentValue < minValue) {
-        return true;
-      }
-      if (currentValue > minValue) {
-        return false;
-      }
+  Future<void> _onDebugPromptRequested(ForceUpdateDebugPromptType type) async {
+    if (!mounted) {
+      return;
     }
-    return false;
+    final debugConfig = ForceUpdateConfig(
+      minimumRequiredVersion: _config?.minimumRequiredVersion ?? '999.0.0',
+      latestAvailableVersion: _config?.latestAvailableVersion ?? '999.0.1',
+      storeUrl: _config?.storeUrl ?? 'https://example.com/update',
+    );
+    if (type == ForceUpdateDebugPromptType.hard) {
+      AnalyticsService.instance.logEvent('debug_hard_update_prompt_shown');
+      await _showHardUpdateDialog(debugConfig);
+      return;
+    }
+    AnalyticsService.instance.logEvent('debug_soft_update_prompt_shown');
+    await _showSoftUpdateDialog(debugConfig);
   }
 
-  List<int> _parseVersion(String version) {
-    final sanitized = version.split('+').first;
-    return sanitized.split('.').map((part) => int.tryParse(part) ?? 0).toList();
+  Future<void> _showHardUpdateDialog(ForceUpdateConfig config) async {
+    if (_dialogShowing) {
+      return;
+    }
+    _dialogShowing = true;
+    await showAppDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: AppDialog(
+          tone: AppDialogTone.info,
+          title: AppLocalizations.of(context)!.forceUpdateTitle,
+          message:
+              config.hardUpdateMessage ??
+              AppLocalizations.of(context)!.forceUpdateMessage,
+          actions: [
+            AppDialogAction.primary(
+              label: AppLocalizations.of(context)!.forceUpdateAction,
+              onPressed: () {
+                AnalyticsService.instance.logEvent(
+                  'force_update_tap_update',
+                  parameters: {
+                    'min_version': config.minimumRequiredVersion,
+                    'latest_version': config.latestAvailableVersion,
+                  },
+                );
+                Navigator.of(context).pop();
+                _launchStore(config.storeUrl);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    _dialogShowing = false;
   }
 
-  Future<void> _showForceUpdateDialog(ForceUpdateConfig config) async {
+  Future<void> _showSoftUpdateDialog(ForceUpdateConfig config) async {
     if (_dialogShowing) {
       return;
     }
@@ -150,14 +192,31 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       barrierDismissible: false,
       builder: (context) => AppDialog(
         tone: AppDialogTone.info,
-        title: AppLocalizations.of(context)!.forceUpdateTitle,
+        title: AppLocalizations.of(context)!.softUpdateTitle,
         message:
-            config.message ?? AppLocalizations.of(context)!.forceUpdateMessage,
+            config.softUpdateMessage ??
+            AppLocalizations.of(context)!.softUpdateMessage,
         actions: [
-          AppDialogAction.primary(
-            label: AppLocalizations.of(context)!.forceUpdateAction,
+          AppDialogAction.secondary(
+            label: AppLocalizations.of(context)!.softUpdateLater,
             onPressed: () {
+              _skippedSoftUpdateVersion = config.latestAvailableVersion;
               Navigator.of(context).pop();
+              AnalyticsService.instance.logEvent(
+                'soft_update_tap_later',
+                parameters: {'latest_version': config.latestAvailableVersion},
+              );
+            },
+          ),
+          AppDialogAction.primary(
+            label: AppLocalizations.of(context)!.softUpdateAction,
+            onPressed: () {
+              _skippedSoftUpdateVersion = config.latestAvailableVersion;
+              Navigator.of(context).pop();
+              AnalyticsService.instance.logEvent(
+                'soft_update_tap_update',
+                parameters: {'latest_version': config.latestAvailableVersion},
+              );
               _launchStore(config.storeUrl);
             },
           ),
@@ -184,7 +243,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
   @override
   Widget build(BuildContext context) {
-    if (_checking || !_updateRequired || _config == null) {
+    if (_checking || !_hardUpdateRequired || _config == null) {
       return widget.child;
     }
 
@@ -223,7 +282,7 @@ class ForceUpdateScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                config.message ?? l10n.forceUpdateMessage,
+                config.hardUpdateMessage ?? l10n.forceUpdateMessage,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),

@@ -52,6 +52,7 @@ class _StoreViewState extends State<StoreView> {
   bool _iapLoading = false;
   String? _iapError;
   final Map<String, Package> _packagesByProductId = {};
+  final Map<String, StoreProduct> _storeProductsByProductId = {};
   Set<String> _activeEntitlements = {};
   final ScrollController _storeScrollController = ScrollController();
   final GlobalKey _furnitureSectionKey = GlobalKey();
@@ -210,6 +211,7 @@ class _StoreViewState extends State<StoreView> {
         setState(() {
           _iapConfigured = false;
           _packagesByProductId.clear();
+          _storeProductsByProductId.clear();
           _activeEntitlements = {};
         });
         return;
@@ -218,6 +220,34 @@ class _StoreViewState extends State<StoreView> {
       final offerings = await _revenueCatService.getOfferings();
       final customerInfo = await _revenueCatService.getCustomerInfo();
       final packagesByProductId = _extractPackagesByProductId(offerings);
+      final iapItems = _iapItems;
+      final subscriptionProductIds = iapItems
+          .where((item) => item.iapType == 'subscription')
+          .map((item) => item.iapProductId)
+          .whereType<String>()
+          .toSet()
+          .toList(growable: false);
+      final nonSubscriptionProductIds = iapItems
+          .where((item) => item.iapType != 'subscription')
+          .map((item) => item.iapProductId)
+          .whereType<String>()
+          .toSet()
+          .toList(growable: false);
+      final subscriptionProducts = await _revenueCatService.getProducts(
+        subscriptionProductIds,
+        productCategory: ProductCategory.subscription,
+      );
+      final nonSubscriptionProducts = await _revenueCatService.getProducts(
+        nonSubscriptionProductIds,
+        productCategory: ProductCategory.nonSubscription,
+      );
+      final storeProductsByProductId = <String, StoreProduct>{};
+      for (final product in subscriptionProducts) {
+        storeProductsByProductId[product.identifier] = product;
+      }
+      for (final product in nonSubscriptionProducts) {
+        storeProductsByProductId[product.identifier] = product;
+      }
       final activeEntitlements = <String>{};
       if (customerInfo != null) {
         activeEntitlements.addAll(
@@ -234,6 +264,9 @@ class _StoreViewState extends State<StoreView> {
         _packagesByProductId
           ..clear()
           ..addAll(packagesByProductId);
+        _storeProductsByProductId
+          ..clear()
+          ..addAll(storeProductsByProductId);
         _activeEntitlements = activeEntitlements;
       });
     } catch (error) {
@@ -246,6 +279,7 @@ class _StoreViewState extends State<StoreView> {
           context,
         )!.storeIapUnavailable(userFacingError(context, error));
         _packagesByProductId.clear();
+        _storeProductsByProductId.clear();
         _activeEntitlements = {};
       });
     } finally {
@@ -263,20 +297,46 @@ class _StoreViewState extends State<StoreView> {
       return packagesByProductId;
     }
 
+    for (final offering in offerings.all.values) {
+      for (final package in offering.availablePackages) {
+        packagesByProductId[package.storeProduct.identifier] = package;
+      }
+    }
+
     final current = offerings.current;
     if (current != null) {
       for (final package in current.availablePackages) {
         packagesByProductId[package.storeProduct.identifier] = package;
       }
-    } else {
-      for (final offering in offerings.all.values) {
-        for (final package in offering.availablePackages) {
-          packagesByProductId[package.storeProduct.identifier] = package;
-        }
-      }
     }
 
     return packagesByProductId;
+  }
+
+  Package? _findPackageByProductId(String productId) {
+    final direct = _packagesByProductId[productId];
+    if (direct != null) {
+      return direct;
+    }
+    for (final entry in _packagesByProductId.entries) {
+      if (entry.key.toLowerCase() == productId.toLowerCase()) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  StoreProduct? _findStoreProductByProductId(String productId) {
+    final direct = _storeProductsByProductId[productId];
+    if (direct != null) {
+      return direct;
+    }
+    for (final entry in _storeProductsByProductId.entries) {
+      if (entry.key.toLowerCase() == productId.toLowerCase()) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 
   bool get _hasDepartedPets => _departedPets.isNotEmpty;
@@ -826,8 +886,9 @@ class _StoreViewState extends State<StoreView> {
       return;
     }
 
-    final package = _packagesByProductId[productId];
-    if (package == null) {
+    final package = _findPackageByProductId(productId);
+    final storeProduct = _findStoreProductByProductId(productId);
+    if (package == null && storeProduct == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.storeProductUnavailable),
@@ -841,7 +902,9 @@ class _StoreViewState extends State<StoreView> {
     });
 
     try {
-      final result = await _revenueCatService.purchasePackage(package);
+      final result = package != null
+          ? await _revenueCatService.purchasePackage(package)
+          : await _revenueCatService.purchaseStoreProduct(storeProduct!);
       if (result != null) {
         if (item.iapType == 'subscription') {
           setState(() {
@@ -1226,18 +1289,6 @@ class _StoreViewState extends State<StoreView> {
               ),
             ),
           for (final item in _subscriptionItems) _buildIapCard(item, l10n),
-          if (_privacyPolicyUri != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 2, 20, 12),
-              child: StoreLegalLinksRow(
-                privacyPolicyUri: _privacyPolicyUri!,
-                termsOfUseUri: _termsOfUseUri,
-                privacyPolicyLabel: l10n.storePrivacyPolicy,
-                termsOfUseLabel: l10n.storeTermsOfUse,
-                separatorLabel: l10n.storeLegalSeparator,
-                onLaunchFailed: _handleLegalLinkOpenFailed,
-              ),
-            ),
         ],
         if (_iapDiamondPackItems.isNotEmpty) ...[
           _SectionHeader(title: l10n.storeSectionDiamondPacks),
@@ -1262,6 +1313,18 @@ class _StoreViewState extends State<StoreView> {
           ),
           for (final item in _themeItems) _buildStoreItemCard(item, l10n),
         ],
+        if (_subscriptionItems.isNotEmpty && _privacyPolicyUri != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
+            child: StoreLegalLinksRow(
+              privacyPolicyUri: _privacyPolicyUri!,
+              termsOfUseUri: _termsOfUseUri,
+              privacyPolicyLabel: l10n.storePrivacyPolicy,
+              termsOfUseLabel: l10n.storeTermsOfUse,
+              separatorLabel: l10n.storeLegalSeparator,
+              onLaunchFailed: _handleLegalLinkOpenFailed,
+            ),
+          ),
       ],
     );
   }
@@ -1314,8 +1377,13 @@ class _StoreViewState extends State<StoreView> {
 
   Widget _buildIapCard(StoreItem item, AppLocalizations l10n) {
     final productId = item.iapProductId;
-    final package = productId == null ? null : _packagesByProductId[productId];
-    final priceString = item.localizedIapPrice(package, l10n);
+    final package = productId == null
+        ? null
+        : _findPackageByProductId(productId);
+    final storeProduct = productId == null
+        ? null
+        : _findStoreProductByProductId(productId);
+    final priceString = item.localizedIapPrice(package, storeProduct, l10n);
     final isSubscription = item.iapType == 'subscription';
     final isDiamondPack = item.isDiamondIap;
     final entitlementId = item.rcEntitlementId;
@@ -1323,7 +1391,10 @@ class _StoreViewState extends State<StoreView> {
         isSubscription &&
         entitlementId != null &&
         _activeEntitlements.contains(entitlementId);
-    final canBuy = _iapConfigured && !_purchasing && package != null;
+    final canBuy =
+        _iapConfigured &&
+        !_purchasing &&
+        (package != null || storeProduct != null);
     final packColor = isDiamondPack ? _diamondColor : Colors.amber;
     final activeStatusText = isSubscription && isSubscribed
         ? l10n.storeSubscriptionActive
@@ -1331,6 +1402,125 @@ class _StoreViewState extends State<StoreView> {
     final actionLabel = isSubscription
         ? (isSubscribed ? l10n.commonOwned : l10n.storeSubscribe)
         : l10n.commonBuy;
+    final description = item.localizedDescription(l10n);
+
+    if (isSubscription) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppTheme.secondaryColor.withValues(alpha: 0.3),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.stars_rounded,
+                    color: AppTheme.secondaryColor,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          l10n.storeTabPremium,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        item.localizedName(l10n),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      if (description != null)
+                        Text(
+                          description,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      if (activeStatusText != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          activeStatusText,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.secondaryColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.storeSubscriptionRenewalNote,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildIapActionButton(
+              item: item,
+              isSubscribed: isSubscribed,
+              canBuy: canBuy,
+              isSubscription: isSubscription,
+              priceString: priceString,
+              actionLabel: actionLabel,
+              stretch: true,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -1417,9 +1607,9 @@ class _StoreViewState extends State<StoreView> {
                     color: AppTheme.textPrimary,
                   ),
                 ),
-                if (item.localizedDescription(l10n) != null)
+                if (description != null)
                   Text(
-                    item.localizedDescription(l10n)!,
+                    description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -1457,50 +1647,65 @@ class _StoreViewState extends State<StoreView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              GestureDetector(
-                onTap: isSubscribed || !canBuy
-                    ? null
-                    : () => _purchaseIapItem(item),
-                child: Opacity(
-                  opacity: isSubscribed || !canBuy ? 0.6 : 1.0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: isSubscribed
-                          ? null
-                          : (isSubscription
-                                ? AppTheme.accentGradient
-                                : AppTheme.primaryGradient),
-                      color: isSubscribed ? Colors.grey[200] : null,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: isSubscribed
-                          ? []
-                          : [
-                              BoxShadow(
-                                color:
-                                    (isSubscription
-                                            ? AppTheme.secondaryColor
-                                            : AppTheme.primaryColor)
-                                        .withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                    ),
-                    child: _buildIapButtonLabel(
-                      priceString: priceString,
-                      actionLabel: actionLabel,
-                      isSubscribed: isSubscribed,
-                    ),
-                  ),
-                ),
+              _buildIapActionButton(
+                item: item,
+                isSubscribed: isSubscribed,
+                canBuy: canBuy,
+                isSubscription: isSubscription,
+                priceString: priceString,
+                actionLabel: actionLabel,
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIapActionButton({
+    required StoreItem item,
+    required bool isSubscribed,
+    required bool canBuy,
+    required bool isSubscription,
+    required String priceString,
+    required String actionLabel,
+    bool stretch = false,
+  }) {
+    return GestureDetector(
+      onTap: isSubscribed || !canBuy ? null : () => _purchaseIapItem(item),
+      child: Opacity(
+        opacity: isSubscribed || !canBuy ? 0.6 : 1.0,
+        child: Container(
+          width: stretch ? double.infinity : null,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isSubscribed
+                ? null
+                : (isSubscription
+                      ? AppTheme.accentGradient
+                      : AppTheme.primaryGradient),
+            color: isSubscribed ? Colors.grey[200] : null,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: isSubscribed
+                ? []
+                : [
+                    BoxShadow(
+                      color:
+                          (isSubscription
+                                  ? AppTheme.secondaryColor
+                                  : AppTheme.primaryColor)
+                              .withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+          ),
+          child: _buildIapButtonLabel(
+            priceString: priceString,
+            actionLabel: actionLabel,
+            isSubscribed: isSubscribed,
+          ),
+        ),
       ),
     );
   }
@@ -1667,7 +1872,15 @@ class _StoreViewState extends State<StoreView> {
               if (item.priceCoins != null)
                 _CurrencyBuyButton(
                   amount: item.priceCoins!,
-                  icon: Icons.monetization_on_rounded,
+                  icon: SvgPicture.asset(
+                    'assets/icon/icon-park--candy.svg',
+                    width: 16,
+                    height: 16,
+                    colorFilter: ColorFilter.mode(
+                      canBuyCoins ? Colors.white : Colors.black54,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                   color: Colors.amber,
                   enabled: canBuyCoins,
                   onPressed: () {
@@ -1686,7 +1899,7 @@ class _StoreViewState extends State<StoreView> {
               if (item.priceDiamonds != null)
                 _CurrencyBuyButton(
                   amount: item.priceDiamonds!,
-                  icon: Icons.diamond_rounded,
+                  icon: const Icon(Icons.diamond_rounded, size: 16),
                   color: _diamondColor,
                   enabled: canBuyDiamonds,
                   onPressed: () {
@@ -1804,7 +2017,15 @@ class _StoreViewState extends State<StoreView> {
               if (item.priceCoins != null)
                 _CurrencyBuyButton(
                   amount: item.priceCoins!,
-                  icon: Icons.monetization_on_rounded,
+                  icon: SvgPicture.asset(
+                    'assets/icon/icon-park--candy.svg',
+                    width: 16,
+                    height: 16,
+                    colorFilter: ColorFilter.mode(
+                      canBuyCoins ? Colors.white : Colors.black54,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                   color: Colors.amber,
                   enabled: canBuyCoins,
                   onPressed: () => _purchaseItem(item),
@@ -1814,7 +2035,7 @@ class _StoreViewState extends State<StoreView> {
               if (item.priceDiamonds != null)
                 _CurrencyBuyButton(
                   amount: item.priceDiamonds!,
-                  icon: Icons.diamond_rounded,
+                  icon: const Icon(Icons.diamond_rounded, size: 16),
                   color: _diamondColor,
                   enabled: canBuyDiamonds,
                   onPressed: () => _purchaseDiamondItem(item),
@@ -1905,6 +2126,7 @@ class StoreItem {
     required this.coinAmount,
     required this.diamondAmount,
     required this.iapCurrency,
+    required this.catalogCurrencyCode,
     required this.category,
     required this.emoji,
     this.backgroundKey,
@@ -1924,6 +2146,7 @@ class StoreItem {
   final int? coinAmount;
   final int? diamondAmount;
   final String? iapCurrency;
+  final String? catalogCurrencyCode;
   final String? category;
   final String? emoji;
   final String? backgroundKey;
@@ -1963,16 +2186,46 @@ class StoreItem {
     }
   }
 
-  String localizedIapPrice(Package? package, AppLocalizations l10n) {
+  String localizedIapPrice(
+    Package? package,
+    StoreProduct? storeProduct,
+    AppLocalizations l10n,
+  ) {
     final appStorePrice = package?.storeProduct.priceString;
+    final appStoreCurrency = package?.storeProduct.currencyCode;
     if (appStorePrice != null && appStorePrice.isNotEmpty) {
+      if (_shouldUseCatalogJpyFallback(appStoreCurrency)) {
+        return l10n.currencyJpy(priceJpy!);
+      }
       return appStorePrice;
     }
-    if (priceJpy != null) {
+    final directStorePrice = storeProduct?.priceString;
+    final directStoreCurrency = storeProduct?.currencyCode;
+    if (directStorePrice != null && directStorePrice.isNotEmpty) {
+      if (_shouldUseCatalogJpyFallback(directStoreCurrency)) {
+        return l10n.currencyJpy(priceJpy!);
+      }
+      return directStorePrice;
+    }
+    if (priceJpy != null && _isCatalogJpy) {
       return l10n.currencyJpy(priceJpy!);
     }
     return l10n.storePriceUnavailable;
   }
+
+  bool _shouldUseCatalogJpyFallback(String? storeCurrencyCode) {
+    if (!_isCatalogJpy || priceJpy == null) {
+      return false;
+    }
+    final code = storeCurrencyCode?.trim().toUpperCase();
+    if (code == null || code.isEmpty) {
+      return false;
+    }
+    return code != 'JPY';
+  }
+
+  bool get _isCatalogJpy =>
+      (catalogCurrencyCode ?? '').trim().toUpperCase() == 'JPY';
 
   String localizedName(AppLocalizations l10n) {
     switch (sku) {
@@ -2050,6 +2303,7 @@ class StoreItem {
     final coinAmountRaw = metadata['coin_amount'];
     final diamondAmountRaw = metadata['diamond_amount'];
     final iapCurrency = metadata['iap_currency'] as String?;
+    final catalogCurrencyCode = metadata['currency'] as String?;
     final category = metadata['category'] as String?;
     final emoji = metadata['emoji'] as String?;
     final backgroundKey = metadata['background_key'] as String?;
@@ -2096,6 +2350,7 @@ class StoreItem {
       coinAmount: coinAmount,
       diamondAmount: diamondAmount,
       iapCurrency: iapCurrency,
+      catalogCurrencyCode: catalogCurrencyCode,
       category: category,
       emoji: emoji,
       backgroundKey: backgroundKey,
@@ -2129,7 +2384,7 @@ class _CurrencyBuyButton extends StatelessWidget {
   });
 
   final int amount;
-  final IconData icon;
+  final Widget icon;
   final Color color;
   final bool enabled;
   final VoidCallback onPressed;
@@ -2140,7 +2395,7 @@ class _CurrencyBuyButton extends StatelessWidget {
       height: 34,
       child: FilledButton.icon(
         onPressed: enabled ? onPressed : null,
-        icon: Icon(icon, size: 16),
+        icon: icon,
         label: Text(
           '$amount',
           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),

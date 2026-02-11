@@ -163,6 +163,8 @@
   "drawerDebugHungerDown": "寵物飢餓度 -10",
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓寵物便便",
+  "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
+  "drawerDebugTestHardUpdate": "測試強制更新彈窗",
   "drawerInviteCode": "代碼：{code}",
   "@drawerInviteCode": {
     "placeholders": {
@@ -229,6 +231,10 @@
   "forceUpdateLinkError": "無法開啟商店連結。",
   "forceUpdateMessage": "需要更新到新版本才能繼續使用，請立即更新。",
   "forceUpdateTitle": "需要更新",
+  "softUpdateAction": "更新",
+  "softUpdateLater": "稍後",
+  "softUpdateMessage": "有新版本可用，更新後可獲得更順暢的共同養寵體驗。",
+  "softUpdateTitle": "可更新新版本",
   "languageChineseTraditional": "繁體中文",
   "languageEnglish": "英文",
   "languageJapanese": "日文",
@@ -290,6 +296,9 @@
   "profileAvatarTitle": "選擇頭像",
   "profileAvatarEdit": "編輯頭像",
   "profileAvatarUpload": "上傳照片",
+  "profileAvatarAdjustCurrent": "調整目前照片",
+  "profileAvatarAdjustUnavailable": "沒有可調整的已上傳照片。",
+  "profileAvatarAdjustUnsupportedPlatform": "此平台暫不支援調整目前照片。",
   "profileAvatarRemove": "移除",
   "profileCoinsLabel": "糖果：{amount}",
   "@profileCoinsLabel": {

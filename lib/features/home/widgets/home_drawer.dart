@@ -11,6 +11,7 @@ import '../../../shared/localization/language_selector_sheet.dart';
 
 class HomeDrawer extends ConsumerWidget {
   final String? userAvatarUrl;
+  final String? userName;
   final VoidCallback onProfileTap;
   final VoidCallback onSignOut;
   final Widget? debugActions;
@@ -18,6 +19,7 @@ class HomeDrawer extends ConsumerWidget {
   const HomeDrawer({
     super.key,
     this.userAvatarUrl,
+    this.userName,
     required this.onProfileTap,
     required this.onSignOut,
     this.debugActions,
@@ -50,52 +52,33 @@ class HomeDrawer extends ConsumerWidget {
             ),
             width: double.infinity,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.28),
-                        shape: BoxShape.circle,
-                      ),
-                      child: UserAvatar(
-                        avatar: userAvatarUrl,
-                        fallbackText: userId?.substring(0, 1),
-                        size: 56,
-                      ),
-                    ),
-                    const Gap(12),
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      child: Image.asset('assets/app/PetTomo_appicon.png'),
-                    ),
-                  ],
-                ),
-                const Gap(14),
-                Text(
-                  'PetTomo',
-                  style: const TextStyle(
-                    fontSize: 23,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF3A2818),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.28),
+                    shape: BoxShape.circle,
+                  ),
+                  child: UserAvatar(
+                    avatar: userAvatarUrl,
+                    fallbackText: userId?.substring(0, 1),
+                    size: 64,
                   ),
                 ),
-                Text(
-                  l10n.profileTitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF6C4D2F),
+                if (userName != null && userName!.trim().isNotEmpty) ...[
+                  const Gap(10),
+                  Text(
+                    userName!.trim(),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF3A2818),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                ],
               ],
             ),
           ),

@@ -279,6 +279,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugSpawnPoop => 'うんちさせる';
 
   @override
+  String get drawerDebugTestSoftUpdate => 'ソフト更新ポップアップを確認';
+
+  @override
+  String get drawerDebugTestHardUpdate => '必須更新ポップアップを確認';
+
+  @override
   String drawerInviteCode(Object code) {
     return 'コード: $code';
   }
@@ -384,6 +390,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get forceUpdateTitle => '更新が必要です';
+
+  @override
+  String get softUpdateAction => '更新する';
+
+  @override
+  String get softUpdateLater => 'あとで';
+
+  @override
+  String get softUpdateMessage => 'より快適に共同育成を続けるために、新しいバージョンへ更新してください。';
+
+  @override
+  String get softUpdateTitle => 'アップデートがあります';
 
   @override
   String get languageChineseTraditional => '繁体字中国語';
@@ -496,6 +514,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get profileAvatarUpload => '写真をアップロード';
+
+  @override
+  String get profileAvatarAdjustCurrent => '現在の写真を調整';
+
+  @override
+  String get profileAvatarAdjustUnavailable => '調整できるアップロード済み写真がありません。';
+
+  @override
+  String get profileAvatarAdjustUnsupportedPlatform =>
+      'このプラットフォームでは現在の写真調整に対応していません。';
 
   @override
   String get profileAvatarRemove => '削除';

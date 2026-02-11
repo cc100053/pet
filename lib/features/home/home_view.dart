@@ -20,6 +20,7 @@ import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/full_screen_photo_viewer.dart';
@@ -107,6 +108,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _diamonds = 0;
   bool _debugProPlan = false;
   String? _myAvatarUrl;
+  String? _myNickname;
   int? _coinReward; // Triggers coin animation when set
   int _coinRewardEventId = 0;
   bool _coinsLoadInFlight = false;
@@ -349,12 +351,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       final profile = await Supabase.instance.client
           .from('profiles')
-          .select('coins,diamonds,avatar_url')
+          .select('coins,diamonds,avatar_url,nickname')
           .eq('user_id', user.id)
           .maybeSingle();
       final newValue = (profile?['coins'] as int?) ?? _coins;
       final newDiamonds = (profile?['diamonds'] as int?) ?? _diamonds;
       final newAvatarUrl = profile?['avatar_url'] as String?;
+      final newNickname = profile?['nickname'] as String?;
       final oldValue = _coins;
       if (!mounted) {
         _coins = newValue;
@@ -367,6 +370,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         _coins = newValue;
         _diamonds = newDiamonds;
         _myAvatarUrl = newAvatarUrl;
+        _myNickname = newNickname;
 
         // Clear any stale reward when this load is expected to represent a
         // reward event (including cooldown/no-op cases).
@@ -5181,6 +5185,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final l10n = AppLocalizations.of(context)!;
     return HomeDrawer(
       userAvatarUrl: _myAvatarUrl,
+      userName: _myNickname,
       onProfileTap: () {
         Navigator.pop(context);
         unawaited(_openProfile());
@@ -5238,6 +5243,20 @@ class _HomeViewState extends ConsumerState<HomeView>
           ListTile(
             title: Text(l10n.drawerDebugSpawnPoop),
             onTap: (_petBusy || _roomId == null) ? null : _debugSpawnPetPoop,
+          ),
+          ListTile(
+            title: Text(l10n.drawerDebugTestSoftUpdate),
+            onTap: () {
+              Navigator.pop(context);
+              ForceUpdateDebugTool.instance.showSoftPrompt();
+            },
+          ),
+          ListTile(
+            title: Text(l10n.drawerDebugTestHardUpdate),
+            onTap: () {
+              Navigator.pop(context);
+              ForceUpdateDebugTool.instance.showHardPrompt();
+            },
           ),
           if (_petError != null)
             ListTile(

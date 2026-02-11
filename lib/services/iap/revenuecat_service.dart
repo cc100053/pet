@@ -62,11 +62,36 @@ class RevenueCatService {
     return Purchases.getCustomerInfo();
   }
 
+  Future<List<StoreProduct>> getProducts(
+    List<String> productIdentifiers, {
+    required ProductCategory productCategory,
+  }) async {
+    if (!isAvailable || productIdentifiers.isEmpty) {
+      return const <StoreProduct>[];
+    }
+    return Purchases.getProducts(
+      productIdentifiers,
+      productCategory: productCategory,
+    );
+  }
+
   Future<PurchaseResult?> purchasePackage(Package package) async {
     if (!isAvailable) {
       return null;
     }
     final result = await Purchases.purchase(PurchaseParams.package(package));
+    return result;
+  }
+
+  Future<PurchaseResult?> purchaseStoreProduct(
+    StoreProduct storeProduct,
+  ) async {
+    if (!isAvailable) {
+      return null;
+    }
+    final result = await Purchases.purchase(
+      PurchaseParams.storeProduct(storeProduct),
+    );
     return result;
   }
 
