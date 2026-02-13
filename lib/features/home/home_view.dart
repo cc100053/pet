@@ -2706,6 +2706,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     final backgroundDecoration = _currentBackgroundDefinition().decoration;
     final isDarkBackground = _currentBackgroundDefinition().isDark;
     final isRoomLocked = _isRoomLocked(roomId);
+    var pendingFeedEvent = false;
+    String? pendingFeedImageSource;
 
     Navigator.of(context)
         .push(
@@ -2720,12 +2722,22 @@ class _HomeViewState extends ConsumerState<HomeView>
               petAssetPath: petAssetPath,
               isPetDeparted: _petDeparted,
               isRoomLocked: isRoomLocked,
+              onFeedUploaded: (result, imageSource) {
+                pendingFeedEvent = true;
+                pendingFeedImageSource = result.imageUrl ?? imageSource;
+              },
             ),
           ),
         )
         .then((_) {
           if (!mounted) {
             return;
+          }
+          if (pendingFeedEvent) {
+            unawaited(_loadCoins());
+            unawaited(_refreshLatestFeed(roomId));
+            unawaited(_refreshLatestRoomPhoto(roomId));
+            unawaited(_playFeedSequence(pendingFeedImageSource));
           }
           unawaited(_refreshPetState());
         });

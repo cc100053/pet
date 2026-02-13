@@ -352,6 +352,8 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       final reward = FeedUploadResult(
         tempId: tempId,
         coinsAwarded: parseInt(data['coins_awarded']),
+        messageId: parseString(data['message_id']),
+        imageUrl: parseString(data['image_url']),
         rewardStatus: parseString(data['reward_status']),
         cooldownActive: parseBool(cooldown['is_active']),
         lastFedAt: parseString(cooldown['last_fed_at']),
@@ -717,6 +719,8 @@ class FeedUploadResult {
   const FeedUploadResult({
     required this.tempId,
     required this.coinsAwarded,
+    this.messageId,
+    this.imageUrl,
     this.rewardStatus,
     this.cooldownActive = false,
     this.lastFedAt,
@@ -725,6 +729,8 @@ class FeedUploadResult {
 
   final String tempId;
   final int coinsAwarded;
+  final String? messageId;
+  final String? imageUrl;
   final String? rewardStatus;
   final bool cooldownActive;
   final String? lastFedAt;

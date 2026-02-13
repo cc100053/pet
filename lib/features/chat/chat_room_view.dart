@@ -33,6 +33,7 @@ class ChatRoomView extends StatefulWidget {
     this.isDarkBackground = false,
     this.isPetDeparted = false,
     this.isRoomLocked = false,
+    this.onFeedUploaded,
   });
 
   final String roomId;
@@ -43,6 +44,8 @@ class ChatRoomView extends StatefulWidget {
   final bool isDarkBackground;
   final bool isPetDeparted;
   final bool isRoomLocked;
+  final void Function(FeedUploadResult result, String? imageSource)?
+  onFeedUploaded;
 
   @override
   State<ChatRoomView> createState() => _ChatRoomViewState();
@@ -53,6 +56,7 @@ final _chatMessageListKey = GlobalKey<ChatMessageListState>();
 
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
+  final Map<String, String> _optimisticFeedImageByTempId = {};
   bool _sending = false;
   int? _memberCount;
   static const double _topBarHeight = 64;
@@ -267,6 +271,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
     final optimisticMessage = ChatMessage(
       id: entry.tempId,
       roomId: entry.roomId,
@@ -285,12 +290,15 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
+    final optimisticImage = _optimisticFeedImageByTempId.remove(result.tempId);
     _chatMessageListKey.currentState?.removeOptimisticMessage(result.tempId);
     _chatMessageListKey.currentState?.refreshLatest();
+    widget.onFeedUploaded?.call(result, optimisticImage ?? result.imageUrl);
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
+    _optimisticFeedImageByTempId.remove(tempId);
     _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
     if (!mounted) {
       return;

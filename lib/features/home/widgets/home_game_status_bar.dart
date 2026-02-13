@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 
 import '../../../services/audio/app_sfx.dart';
 import '../../../shared/theme/app_theme.dart';
+import 'home_responsive.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
 
@@ -60,8 +61,9 @@ class HomeGameStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +83,7 @@ class HomeGameStatusBar extends StatelessWidget {
               inventoryLabel: inventoryLabel,
             ),
           ),
-          const Gap(8),
+          Gap(8 * scale),
           _RightCluster(
             healthValue: healthValue,
             healthDebugValue: healthDebugValue,
@@ -128,7 +130,11 @@ class _LeftCluster extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final scale = homeUiScale(MediaQuery.sizeOf(context).width);
         final maxNameWidth = max(120.0, constraints.maxWidth * 0.72);
+        final levelFontSize = 11.0 * scale;
+        final nameFontSize = 14.0 * scale;
+        final chipGap = 6.0 * scale;
 
         return Row(
           mainAxisSize: MainAxisSize.max,
@@ -147,9 +153,9 @@ class _LeftCluster extends StatelessWidget {
                 ),
                 const Gap(0),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8 * scale,
+                    vertical: 4 * scale,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.92),
@@ -167,15 +173,14 @@ class _LeftCluster extends StatelessWidget {
                     level == null ? 'Lv --' : 'Lv $level',
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 11,
                       color: AppTheme.secondaryColor,
                       height: 1,
-                    ),
+                    ).copyWith(fontSize: levelFontSize),
                   ),
                 ),
               ],
             ),
-            const Gap(10),
+            Gap(10 * scale),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,9 +190,9 @@ class _LeftCluster extends StatelessWidget {
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: maxNameWidth),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10 * scale,
+                          vertical: 8 * scale,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.92),
@@ -207,19 +212,19 @@ class _LeftCluster extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
-                            fontSize: 14,
                             color: Colors.black,
                             height: 1,
-                          ),
+                          ).copyWith(fontSize: nameFontSize),
                         ),
                       ),
                     ),
                   ),
                   if ((inviteLabel != null && onInviteTap != null) ||
                       (inventoryLabel != null && onInventoryTap != null)) ...[
-                    const Gap(6),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Gap(chipGap),
+                    Wrap(
+                      spacing: 8 * scale,
+                      runSpacing: 6 * scale,
                       children: [
                         if (inviteLabel != null && onInviteTap != null)
                           _ActionChip(
@@ -228,11 +233,6 @@ class _LeftCluster extends StatelessWidget {
                             loading: inviteLoading,
                             icon: Icons.mail_outline_rounded,
                           ),
-                        if (inviteLabel != null &&
-                            onInviteTap != null &&
-                            inventoryLabel != null &&
-                            onInventoryTap != null)
-                          const Gap(8),
                         if (inventoryLabel != null && onInventoryTap != null)
                           _ActionChip(
                             label: inventoryLabel!,
@@ -270,6 +270,7 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     return Tooltip(
       message: label,
       child: Material(
@@ -278,10 +279,6 @@ class _ActionChip extends StatelessWidget {
           onTap: loading ? null : onTap,
           borderRadius: BorderRadius.circular(999),
           child: Ink(
-            padding: EdgeInsets.symmetric(
-              horizontal: iconOnly ? 9 : 10,
-              vertical: 6,
-            ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(999),
@@ -294,31 +291,47 @@ class _ActionChip extends StatelessWidget {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (loading)
-                  const SizedBox(
-                    height: 12,
-                    width: 12,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  Icon(icon, size: 14),
-                if (!iconOnly) ...[
-                  const Gap(6),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                    ),
+            child: SizedBox(
+              width: iconOnly ? (30 * scale) : null,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: (iconOnly ? 9 : 10) * scale,
+                  vertical: 6 * scale,
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (loading)
+                        const SizedBox(
+                          height: 12,
+                          width: 12,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        Icon(icon, size: 14 * scale),
+                      if (!iconOnly) ...[
+                        Gap(6 * scale),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 90 * scale),
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                            ).copyWith(fontSize: 10.5 * scale),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-              ],
+                ),
+              ),
             ),
           ),
         ),
@@ -336,11 +349,12 @@ class _ExpRingAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final clamped = progress.clamp(0.0, 1.0);
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
 
     // Outer size includes the progress ring
-    const double outerSize = 58;
-    const double ringStrokeWidth = 4;
-    const double innerSize = outerSize - ringStrokeWidth * 2;
+    final double outerSize = 58 * scale;
+    final double ringStrokeWidth = 4 * scale;
+    final double innerSize = outerSize - ringStrokeWidth * 2;
 
     return SizedBox(
       width: outerSize,
@@ -350,7 +364,7 @@ class _ExpRingAvatar extends StatelessWidget {
         children: [
           // Custom progress ring - starts from 12 o'clock, goes clockwise
           CustomPaint(
-            size: const Size(outerSize, outerSize),
+            size: Size(outerSize, outerSize),
             painter: _CircularProgressPainter(
               progress: clamped,
               strokeWidth: ringStrokeWidth,
@@ -461,10 +475,12 @@ class _RightCluster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double rowLeftInset = 10;
-    const double rowTopInset = 14;
-    const double rowGap = 10;
-    const double statusWidth = 176;
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    final rowLeftInset = 10 * scale;
+    final rowTopInset = 14 * scale;
+    final rowGap = 10 * scale;
+    final statusWidth = 176 * scale;
+    final heartSize = 34 * scale;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -473,10 +489,7 @@ class _RightCluster extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                left: rowLeftInset,
-                top: rowTopInset,
-              ),
+              padding: EdgeInsets.only(left: rowLeftInset, top: rowTopInset),
               child: SizedBox(
                 width: statusWidth,
                 child: _HealthBar(
@@ -485,9 +498,9 @@ class _RightCluster extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: rowGap),
+            SizedBox(height: rowGap),
             Padding(
-              padding: const EdgeInsets.only(left: rowLeftInset),
+              padding: EdgeInsets.only(left: rowLeftInset),
               child: SizedBox(
                 width: statusWidth,
                 child: _CombinedCurrencyPill(
@@ -502,13 +515,13 @@ class _RightCluster extends StatelessWidget {
             ),
           ],
         ),
-        const Positioned(
-          top: 4,
-          left: -2,
+        Positioned(
+          top: 4 * scale,
+          left: -2 * scale,
           child: Icon(
             Icons.favorite_rounded,
-            color: Color(0xFFEE6D85),
-            size: 34,
+            color: const Color(0xFFEE6D85),
+            size: heartSize,
           ),
         ),
       ],

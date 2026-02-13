@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/shared/ui/cached_network_image_view.dart';
 import '../pet/pet_catalog.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/user_avatar.dart';
-import 'widgets/home_polaroid_memory_frame.dart';
+import 'widgets/home_responsive.dart';
 
 class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
@@ -46,136 +47,236 @@ class RoomSelectionView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Stack(
-      children: [
-        Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
-        Positioned(
-          top: -60,
-          right: -40,
-          child: Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 120,
-          left: -50,
-          child: Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.4),
-            ),
-          ),
-        ),
-        SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Row(
-                  children: [
-                    _buildMeButton(),
-                    const Gap(12),
-                    Expanded(
-                      child: Text(
-                        l10n.roomSelectionTitle,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: joiningRoom ? null : onJoinRoom,
-                      icon: const Icon(Icons.key_rounded, size: 18),
-                      label: Text(
-                        joiningRoom
-                            ? l10n.roomSelectionJoining
-                            : l10n.roomSelectionEnterInvite,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final responsive = HomeResponsiveSpec.fromWidth(constraints.maxWidth);
+        final horizontalPadding = responsive.pick(
+          compact: 14,
+          regular: 20,
+          expanded: 24,
+        );
+        final headerTopPadding = responsive.pick(
+          compact: 10,
+          regular: 16,
+          expanded: 18,
+        );
+        final meButtonSize = responsive.pick(
+          compact: 38,
+          regular: 42,
+          expanded: 44,
+        );
+        final gridSpacing = responsive.pick(
+          compact: 12,
+          regular: 16,
+          expanded: 18,
+        );
+        final gridBottomInset = responsive.pick(
+          compact: 98,
+          regular: 112,
+          expanded: 118,
+        );
+        final ctaBottomInset = responsive.pick(
+          compact: 8,
+          regular: 10,
+          expanded: 12,
+        );
+        final crossAxisCount = responsive.isCompact ? 1 : 2;
+        final childAspectRatio = responsive.pick(
+          compact: 1.24,
+          regular: 0.76,
+          expanded: 0.82,
+        );
+        final bgTopOrbSize = responsive.pick(
+          compact: 132,
+          regular: 180,
+          expanded: 200,
+        );
+        final bgBottomOrbSize = responsive.pick(
+          compact: 150,
+          regular: 200,
+          expanded: 220,
+        );
+
+        return Stack(
+          children: [
+            Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
+            Positioned(
+              top: -bgTopOrbSize * 0.34,
+              right: -bgTopOrbSize * 0.22,
+              child: Container(
+                width: bgTopOrbSize,
+                height: bgTopOrbSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.5),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                child: Text(
-                  l10n.roomSelectionSubtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
-                  ),
+            ),
+            Positioned(
+              bottom: 120,
+              left: -bgBottomOrbSize * 0.25,
+              child: Container(
+                width: bgBottomOrbSize,
+                height: bgBottomOrbSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.4),
                 ),
               ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 112),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              childAspectRatio: 0.76,
+            ),
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      headerTopPadding,
+                      horizontalPadding,
+                      8,
+                    ),
+                    child: Row(
+                      children: [
+                        _buildMeButton(buttonSize: meButtonSize),
+                        Gap(
+                          responsive.pick(
+                            compact: 8,
+                            regular: 12,
+                            expanded: 14,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            l10n.roomSelectionTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                (responsive.isCompact
+                                        ? theme.textTheme.titleLarge
+                                        : theme.textTheme.headlineSmall)
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                          ),
+                        ),
+                        if (responsive.isCompact)
+                          IconButton(
+                            onPressed: joiningRoom ? null : onJoinRoom,
+                            icon: const Icon(Icons.key_rounded, size: 20),
+                            color: AppTheme.textSecondary,
+                            tooltip: l10n.roomSelectionEnterInvite,
+                            visualDensity: VisualDensity.compact,
+                          )
+                        else
+                          TextButton.icon(
+                            onPressed: joiningRoom ? null : onJoinRoom,
+                            icon: const Icon(Icons.key_rounded, size: 18),
+                            label: Text(
+                              joiningRoom
+                                  ? l10n.roomSelectionJoining
+                                  : l10n.roomSelectionEnterInvite,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                        itemCount: totalSlots,
-                        itemBuilder: (context, index) {
-                          if (index < rooms.length) {
-                            final room = rooms[index];
-                            return _buildRoomCard(context, room, l10n)
-                                .animate()
-                                .fadeIn(delay: (80 * index).ms)
-                                .slideY(begin: 0.1, end: 0);
-                          }
-                          return _buildEmptySlot(context, l10n)
-                              .animate()
-                              .fadeIn(delay: (80 * index).ms)
-                              .slideY(begin: 0.1, end: 0);
-                        },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      4,
+                      horizontalPadding,
+                      12,
+                    ),
+                    child: Text(
+                      l10n.roomSelectionSubtitle,
+                      maxLines: responsive.isCompact ? 3 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                        fontSize: responsive.pick(
+                          compact: 13,
+                          regular: 14,
+                          expanded: 15,
+                        ),
                       ),
                     ),
-                    Positioned(
-                      left: 20,
-                      right: 20,
-                      bottom: 10,
-                      child: SafeArea(
-                        top: false,
-                        child: _buildPrimaryCta(context, l10n),
-                      ),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: GridView.builder(
+                            padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              8,
+                              horizontalPadding,
+                              gridBottomInset,
+                            ),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  mainAxisSpacing: gridSpacing,
+                                  crossAxisSpacing: gridSpacing,
+                                  childAspectRatio: childAspectRatio,
+                                ),
+                            itemCount: totalSlots,
+                            itemBuilder: (context, index) {
+                              if (index < rooms.length) {
+                                final room = rooms[index];
+                                return _buildRoomCard(
+                                      context,
+                                      room,
+                                      l10n,
+                                      responsive,
+                                    )
+                                    .animate()
+                                    .fadeIn(delay: (80 * index).ms)
+                                    .slideY(begin: 0.1, end: 0);
+                              }
+                              return _buildEmptySlot(context, l10n, responsive)
+                                  .animate()
+                                  .fadeIn(delay: (80 * index).ms)
+                                  .slideY(begin: 0.1, end: 0);
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          left: horizontalPadding,
+                          right: horizontalPadding,
+                          bottom: ctaBottomInset,
+                          child: SafeArea(
+                            top: false,
+                            child: _buildPrimaryCta(context, l10n, responsive),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildMeButton() {
+  Widget _buildMeButton({required double buttonSize}) {
     return Builder(
       builder: (context) {
         return GestureDetector(
           onTap: () => Scaffold.of(context).openDrawer(),
           child: Container(
-            width: 42,
-            height: 42,
+            width: buttonSize,
+            height: buttonSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
@@ -190,7 +291,7 @@ class RoomSelectionView extends StatelessWidget {
             child: UserAvatar(
               avatar: userAvatarUrl,
               fallbackText: null,
-              size: 42,
+              size: buttonSize,
             ),
           ),
         );
@@ -202,6 +303,7 @@ class RoomSelectionView extends StatelessWidget {
     BuildContext context,
     Map<String, dynamic> room,
     AppLocalizations l10n,
+    HomeResponsiveSpec responsive,
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
@@ -252,28 +354,28 @@ class RoomSelectionView extends StatelessWidget {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                padding: EdgeInsets.fromLTRB(
+                  responsive.pick(compact: 10, regular: 12, expanded: 14),
+                  responsive.pick(compact: 10, regular: 12, expanded: 14),
+                  responsive.pick(compact: 10, regular: 12, expanded: 14),
+                  responsive.pick(compact: 10, regular: 12, expanded: 14),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: IgnorePointer(
-                        child: HomePolaroidMemoryFrame(
+                        child: _RoomSelectionMemoryFrame(
                           imageUrl: latestPhoto ?? '',
                           caption: latestCaption,
-                          userLabel: '',
                           senderAvatar: senderAvatar,
                           senderFallbackText: senderName,
-                          fixedMediaZone: true,
-                          mediaZoneFraction: 0.64,
-                          photoAspectRatio: 1.45,
-                          captionMaxLines: 2,
-                          avatarOverlapOffset: -2,
-                          captionTopInset: 24,
+                          responsive: responsive,
+                          showAvatar: !responsive.isCompact,
                         ),
                       ),
                     ),
-                    const Gap(8),
+                    Gap(responsive.pick(compact: 6, regular: 8, expanded: 10)),
                     Row(
                       children: [
                         Expanded(
@@ -285,16 +387,42 @@ class RoomSelectionView extends StatelessWidget {
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.textPrimary,
+                                  fontSize: responsive.pick(
+                                    compact: 12,
+                                    regular: 13,
+                                    expanded: 14,
+                                  ),
                                 ),
                           ),
                         ),
-                        const Gap(6),
+                        Gap(
+                          responsive.pick(compact: 4, regular: 6, expanded: 8),
+                        ),
                         _RoomPetIconWithFloatingLevel(
                           assetPath: petDefinition.stayAsset,
                           level: petLevel,
+                          size: responsive.pick(
+                            compact: 24,
+                            regular: 28,
+                            expanded: 30,
+                          ),
+                          badgeFontSize: responsive.pick(
+                            compact: 9,
+                            regular: 10,
+                            expanded: 10,
+                          ),
                         ),
-                        const Gap(6),
-                        _RoomHealthRing(value: healthValue),
+                        Gap(
+                          responsive.pick(compact: 4, regular: 6, expanded: 8),
+                        ),
+                        _RoomHealthRing(
+                          value: healthValue,
+                          size: responsive.pick(
+                            compact: 24,
+                            regular: 28,
+                            expanded: 30,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -316,9 +444,17 @@ class RoomSelectionView extends StatelessWidget {
                   top: 10,
                   right: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: responsive.pick(
+                        compact: 6,
+                        regular: 8,
+                        expanded: 8,
+                      ),
+                      vertical: responsive.pick(
+                        compact: 3,
+                        regular: 4,
+                        expanded: 4,
+                      ),
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black87,
@@ -326,9 +462,13 @@ class RoomSelectionView extends StatelessWidget {
                     ),
                     child: Text(
                       l10n.roomLockedBadge,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: responsive.pick(
+                          compact: 9,
+                          regular: 10,
+                          expanded: 10,
+                        ),
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.4,
                       ),
@@ -394,7 +534,11 @@ class RoomSelectionView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptySlot(BuildContext context, AppLocalizations l10n) {
+  Widget _buildEmptySlot(
+    BuildContext context,
+    AppLocalizations l10n,
+    HomeResponsiveSpec responsive,
+  ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -417,24 +561,29 @@ class RoomSelectionView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 90,
-                height: 90,
+                width: responsive.pick(compact: 72, regular: 90, expanded: 98),
+                height: responsive.pick(compact: 72, regular: 90, expanded: 98),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.black12, width: 1.2),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add_rounded,
-                  size: 26,
+                  size: responsive.pick(compact: 22, regular: 26, expanded: 28),
                   color: AppTheme.textSecondary,
                 ),
               ),
-              const Gap(10),
+              Gap(responsive.pick(compact: 8, regular: 10, expanded: 12)),
               Text(
                 l10n.roomSelectionEmptySlot,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textSecondary,
+                  fontSize: responsive.pick(
+                    compact: 13,
+                    regular: 14,
+                    expanded: 15,
+                  ),
                 ),
               ),
             ],
@@ -444,7 +593,11 @@ class RoomSelectionView extends StatelessWidget {
     );
   }
 
-  Widget _buildPrimaryCta(BuildContext context, AppLocalizations l10n) {
+  Widget _buildPrimaryCta(
+    BuildContext context,
+    AppLocalizations l10n,
+    HomeResponsiveSpec responsive,
+  ) {
     final radius = BorderRadius.circular(999);
     return Opacity(
       opacity: creatingRoom ? 0.6 : 1,
@@ -476,9 +629,17 @@ class RoomSelectionView extends StatelessWidget {
                 splashColor: AppTheme.primaryColor.withValues(alpha: 0.14),
                 highlightColor: AppTheme.primaryColor.withValues(alpha: 0.08),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 18,
+                  padding: EdgeInsets.symmetric(
+                    vertical: responsive.pick(
+                      compact: 12,
+                      regular: 14,
+                      expanded: 15,
+                    ),
+                    horizontal: responsive.pick(
+                      compact: 14,
+                      regular: 18,
+                      expanded: 20,
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -486,9 +647,13 @@ class RoomSelectionView extends StatelessWidget {
                       Icon(
                         Icons.add_circle_outline_rounded,
                         color: AppTheme.primaryColor,
-                        size: 20,
+                        size: responsive.pick(
+                          compact: 18,
+                          regular: 20,
+                          expanded: 21,
+                        ),
                       ),
-                      const Gap(8),
+                      Gap(responsive.pick(compact: 6, regular: 8, expanded: 9)),
                       Text(
                         creatingRoom
                             ? l10n.roomSelectionCreating
@@ -497,6 +662,11 @@ class RoomSelectionView extends StatelessWidget {
                             ?.copyWith(
                               color: AppTheme.textPrimary,
                               fontWeight: FontWeight.w800,
+                              fontSize: responsive.pick(
+                                compact: 15,
+                                regular: 16,
+                                expanded: 17,
+                              ),
                             ),
                       ),
                     ],
@@ -511,27 +681,251 @@ class RoomSelectionView extends StatelessWidget {
   }
 }
 
+class _RoomSelectionMemoryFrame extends StatelessWidget {
+  const _RoomSelectionMemoryFrame({
+    required this.imageUrl,
+    required this.caption,
+    required this.senderAvatar,
+    required this.senderFallbackText,
+    required this.responsive,
+    required this.showAvatar,
+  });
+
+  final String imageUrl;
+  final String caption;
+  final String? senderAvatar;
+  final String? senderFallbackText;
+  final HomeResponsiveSpec responsive;
+  final bool showAvatar;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    final hasCaption = caption.trim().isNotEmpty;
+    final tokens = _RoomSelectionFrameTokens.from(
+      scale: scale,
+      responsive: responsive,
+      showAvatar: showAvatar,
+    );
+
+    return Container(
+      padding: EdgeInsets.all(tokens.innerPadding),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black87, width: 3),
+      ),
+      child: CustomMultiChildLayout(
+        delegate: _RoomSelectionFrameLayoutDelegate(tokens: tokens),
+        children: [
+          LayoutId(
+            id: _RoomSelectionFrameSlot.photo,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F4EF),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.black87, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: imageUrl.isEmpty
+                    ? const _RoomFramePlaceholder()
+                    : CachedNetworkImageView(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        portraitFriendlyCrop: true,
+                      ),
+              ),
+            ),
+          ),
+          LayoutId(
+            id: _RoomSelectionFrameSlot.caption,
+            child: hasCaption
+                ? Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      8 * scale,
+                      tokens.captionTopInset,
+                      8 * scale,
+                      2 * scale,
+                    ),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        caption.trim(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          if (showAvatar)
+            LayoutId(
+              id: _RoomSelectionFrameSlot.avatar,
+              child: Center(
+                child: Container(
+                  width: tokens.avatarSize,
+                  height: tokens.avatarSize,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black87, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.10),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: UserAvatar(
+                    avatar: senderAvatar,
+                    fallbackText: senderFallbackText,
+                    size: tokens.avatarSize - 10,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _RoomSelectionFrameSlot { photo, caption, avatar }
+
+class _RoomSelectionFrameTokens {
+  const _RoomSelectionFrameTokens({
+    required this.innerPadding,
+    required this.avatarSize,
+    required this.photoRatio,
+    required this.avatarOverlapRatio,
+    required this.captionTopInset,
+  });
+
+  final double innerPadding;
+  final double avatarSize;
+  final double photoRatio;
+  final double avatarOverlapRatio;
+  final double captionTopInset;
+
+  factory _RoomSelectionFrameTokens.from({
+    required double scale,
+    required HomeResponsiveSpec responsive,
+    required bool showAvatar,
+  }) {
+    return _RoomSelectionFrameTokens(
+      innerPadding: 12 * scale,
+      avatarSize: showAvatar
+          ? responsive.pick(compact: 34, regular: 40, expanded: 36) * scale
+          : 0,
+      photoRatio: responsive.pick(compact: 0.76, regular: 0.76, expanded: 0.76),
+      avatarOverlapRatio: responsive.pick(
+        compact: 0.58,
+        regular: 0.60,
+        expanded: 0.62,
+      ),
+      captionTopInset:
+          responsive.pick(compact: 8, regular: 10, expanded: 12) * scale,
+    );
+  }
+}
+
+class _RoomSelectionFrameLayoutDelegate extends MultiChildLayoutDelegate {
+  _RoomSelectionFrameLayoutDelegate({required this.tokens});
+
+  final _RoomSelectionFrameTokens tokens;
+
+  @override
+  void performLayout(Size size) {
+    final photoHeight = (size.height * tokens.photoRatio).clamp(
+      0.0,
+      size.height,
+    );
+    final captionHeight = math.max(0.0, size.height - photoHeight);
+
+    if (hasChild(_RoomSelectionFrameSlot.photo)) {
+      layoutChild(
+        _RoomSelectionFrameSlot.photo,
+        BoxConstraints.tight(Size(size.width, photoHeight)),
+      );
+      positionChild(_RoomSelectionFrameSlot.photo, Offset.zero);
+    }
+
+    if (hasChild(_RoomSelectionFrameSlot.caption)) {
+      layoutChild(
+        _RoomSelectionFrameSlot.caption,
+        BoxConstraints.tight(Size(size.width, captionHeight)),
+      );
+      positionChild(_RoomSelectionFrameSlot.caption, Offset(0, photoHeight));
+    }
+
+    if (hasChild(_RoomSelectionFrameSlot.avatar)) {
+      final avatarSize = tokens.avatarSize;
+      layoutChild(
+        _RoomSelectionFrameSlot.avatar,
+        BoxConstraints.tight(Size(avatarSize, avatarSize)),
+      );
+      final dx = (size.width - avatarSize) / 2;
+      final dy = photoHeight - (avatarSize * tokens.avatarOverlapRatio);
+      positionChild(_RoomSelectionFrameSlot.avatar, Offset(dx, dy));
+    }
+  }
+
+  @override
+  bool shouldRelayout(covariant _RoomSelectionFrameLayoutDelegate oldDelegate) {
+    return oldDelegate.tokens != tokens;
+  }
+}
+
+class _RoomFramePlaceholder extends StatelessWidget {
+  const _RoomFramePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.photo,
+        size: 34,
+        color: Colors.black.withValues(alpha: 0.25),
+      ),
+    );
+  }
+}
+
 class _RoomPetIconWithFloatingLevel extends StatelessWidget {
   const _RoomPetIconWithFloatingLevel({
     required this.assetPath,
     required this.level,
+    this.size = 28,
+    this.badgeFontSize = 10,
   });
 
   final String assetPath;
   final int? level;
+  final double size;
+  final double badgeFontSize;
 
   @override
   Widget build(BuildContext context) {
+    final imageSize = size * 0.79;
     return SizedBox(
-      width: 28,
-      height: 28,
+      width: size,
+      height: size,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: 22,
-            height: 22,
+            width: imageSize,
+            height: imageSize,
             child: Image.asset(
               assetPath,
               fit: BoxFit.contain,
@@ -539,7 +933,10 @@ class _RoomPetIconWithFloatingLevel extends StatelessWidget {
               gaplessPlayback: true,
             ),
           ),
-          Positioned(top: 26, child: _RoomLevelBadge(level: level)),
+          Positioned(
+            top: size - 2,
+            child: _RoomLevelBadge(level: level, fontSize: badgeFontSize),
+          ),
         ],
       ),
     );
@@ -547,28 +944,30 @@ class _RoomPetIconWithFloatingLevel extends StatelessWidget {
 }
 
 class _RoomHealthRing extends StatelessWidget {
-  const _RoomHealthRing({required this.value});
+  const _RoomHealthRing({required this.value, this.size = 28});
 
   final double value;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     final clamped = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
     final healthNumber = (clamped * 100).round();
+    final numberFontSize = size <= 24 ? 8.0 : 9.0;
     return SizedBox(
-      width: 28,
-      height: 28,
+      width: size,
+      height: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CustomPaint(
-            size: const Size.square(28),
-            painter: _RoomHealthRingPainter(progress: clamped),
+            size: Size.square(size),
+            painter: _RoomHealthRingPainter(progress: clamped, size: size),
           ),
           Text(
             '$healthNumber',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontSize: 9,
+              fontSize: numberFontSize,
               fontWeight: FontWeight.w800,
               color: AppTheme.textPrimary,
               height: 1.0,
@@ -581,9 +980,10 @@ class _RoomHealthRing extends StatelessWidget {
 }
 
 class _RoomLevelBadge extends StatelessWidget {
-  const _RoomLevelBadge({required this.level});
+  const _RoomLevelBadge({required this.level, required this.fontSize});
 
   final int? level;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -591,23 +991,23 @@ class _RoomLevelBadge extends StatelessWidget {
       level == null ? 'Lv --' : 'Lv $level',
       style: const TextStyle(
         fontWeight: FontWeight.w900,
-        fontSize: 10,
         color: AppTheme.secondaryColor,
         height: 1,
-      ),
+      ).copyWith(fontSize: fontSize),
     );
   }
 }
 
 class _RoomHealthRingPainter extends CustomPainter {
-  _RoomHealthRingPainter({required this.progress});
+  _RoomHealthRingPainter({required this.progress, required this.size});
 
   final double progress;
+  final double size;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final strokeWidth = 3.0;
+    final strokeWidth = this.size <= 24 ? 2.4 : 3.0;
     final radius = (size.shortestSide - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 

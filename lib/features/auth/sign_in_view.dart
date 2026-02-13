@@ -52,6 +52,7 @@ class _SignInViewState extends State<SignInView> {
         provider,
         redirectTo: redirectUrl,
         authScreenLaunchMode: LaunchMode.externalApplication,
+        queryParams: {'prompt': 'select_account'},
       );
     } catch (error) {
       if (!context.mounted) {

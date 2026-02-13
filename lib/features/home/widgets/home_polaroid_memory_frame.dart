@@ -6,6 +6,7 @@ import 'package:pet/shared/ui/cached_network_image_view.dart';
 
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/ui/user_avatar.dart';
+import 'home_responsive.dart';
 
 class HomePolaroidMemoryFrame extends StatelessWidget {
   const HomePolaroidMemoryFrame({
@@ -54,8 +55,15 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final innerPadding = 14.0;
-        final avatarSize = 46.0;
+        final screenWidth = MediaQuery.sizeOf(context).width;
+        final scale = homeUiScale(screenWidth);
+        final innerPadding = 14.0 * scale;
+        final avatarSize = 46.0 * scale;
+        final captionFontSize = 14.0 * scale;
+        final labelFontSize = 11.0 * scale;
+        final resolvedCaptionTopInset = captionTopInset * scale;
+        final resolvedCaptionLines = captionMaxLines;
+        final minPhotoHeight = 72.0 * scale;
         final photoWidth = width - (innerPadding * 2);
         final hasFiniteHeight = constraints.maxHeight.isFinite;
         double photoHeight;
@@ -64,12 +72,14 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
           final contentHeight = constraints.maxHeight - (innerPadding * 2);
           final safeContentHeight = math.max(0.0, contentHeight).toDouble();
           final zoneHeight = (safeContentHeight * mediaZoneFraction).clamp(
-            96.0,
+            96.0 * scale,
             safeContentHeight,
           );
           final photoFromRatio = photoWidth / photoAspectRatio;
           photoHeight = math.min(photoFromRatio, zoneHeight).toDouble();
-          photoHeight = photoHeight.clamp(72.0, photoFromRatio).toDouble();
+          final maxPhotoHeight = math.max(0.0, photoFromRatio);
+          final safeMin = math.min(minPhotoHeight, maxPhotoHeight);
+          photoHeight = photoHeight.clamp(safeMin, maxPhotoHeight).toDouble();
           bottomHeight = math
               .max(0.0, safeContentHeight - photoHeight)
               .toDouble();
@@ -97,7 +107,22 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                     .toDouble()
               : (showCaption ? 80.0 : 60.0);
         }
-        final double safeBottomHeight = math.max(0, bottomHeight - 8);
+        final bottomInset = 8.0 * scale;
+        final double safeBottomHeight = math.max(0, bottomHeight - bottomInset);
+        final showIdentityBand = showAvatar || showUserLabel;
+        final identityLabelSectionHeight = showUserLabel
+            ? ((showAvatar ? 6.0 * scale : 0.0) + (22.0 * scale))
+            : 0.0;
+        final identityBandPreferredHeight =
+            (showAvatar ? avatarSize : 0.0) + identityLabelSectionHeight;
+        final identityBandHeight = showIdentityBand
+            ? math.min(safeBottomHeight, math.max(0.0, identityBandPreferredHeight))
+            : 0.0;
+        final captionBandHeight = math.max(0.0, safeBottomHeight - identityBandHeight);
+        final captionTopSpacing = math.min(
+          resolvedCaptionTopInset,
+          captionBandHeight * 0.35,
+        );
 
         return Material(
           color: Colors.transparent,
@@ -120,139 +145,135 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                       ]
                     : null,
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        height: photoHeight,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F4EF),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.black87, width: 2),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: imageUrl.isEmpty
-                              ? (emptyPhotoPlaceholder ?? const _Placeholder())
-                              : CachedNetworkImageView(
-                                  imageUrl: imageUrl,
-                                  fit: BoxFit.cover,
-                                  portraitFriendlyCrop: true,
-                                ),
-                        ),
-                      ),
-                      if (showCaption)
-                        SizedBox(
-                          height: safeBottomHeight,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: math
-                                    .min(captionTopInset, safeBottomHeight)
-                                    .toDouble(),
-                              ),
-                              if (safeBottomHeight > 8)
-                                Flexible(
-                                  child: Text(
-                                    caption,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                    maxLines: captionMaxLines,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      else
-                        SizedBox(height: safeBottomHeight),
-                    ],
+                  Container(
+                    height: photoHeight,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F4EF),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.black87, width: 2),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: imageUrl.isEmpty
+                          ? (emptyPhotoPlaceholder ?? const _Placeholder())
+                          : CachedNetworkImageView(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              portraitFriendlyCrop: true,
+                            ),
+                    ),
                   ),
-                  if (showAvatar || showUserLabel)
-                    Positioned(
-                      top: photoHeight - (avatarSize / 2) + avatarOverlapOffset,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (showAvatar)
-                              Container(
-                                width: avatarSize,
-                                height: avatarSize,
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.black87,
-                                    width: 2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.10,
-                                      ),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: UserAvatar(
-                                    avatar: senderAvatar,
-                                    fallbackText: senderFallbackText,
-                                    size: avatarSize - 10,
-                                  ),
-                                ),
-                              ),
-                            if (showUserLabel) ...[
-                              const Gap(6),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: photoWidth,
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
+                  if (showIdentityBand)
+                    SizedBox(
+                      height: identityBandHeight,
+                      child: ClipRect(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (showAvatar)
+                                Container(
+                                  width: avatarSize,
+                                  height: avatarSize,
+                                  padding: const EdgeInsets.all(3),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.95),
-                                    borderRadius: BorderRadius.circular(999),
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
                                     border: Border.all(
                                       color: Colors.black87,
                                       width: 2,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.10),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
                                   ),
-                                  child: Text(
-                                    userLabel,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      height: 1.1,
+                                  child: Center(
+                                    child: UserAvatar(
+                                      avatar: senderAvatar,
+                                      fallbackText: senderFallbackText,
+                                      size: avatarSize - 10,
                                     ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              ),
+                              if (showUserLabel) ...[
+                                Gap(6 * scale),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxWidth: photoWidth),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10 * scale,
+                                      vertical: 4 * scale,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.95),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: Colors.black87,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      userLabel,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: labelFontSize,
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.1,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
+                  if (showCaption)
+                    SizedBox(
+                      height: captionBandHeight,
+                      child: ClipRect(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            8,
+                            captionTopSpacing,
+                            8,
+                            4,
+                          ),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: captionBandHeight < 6
+                                ? const SizedBox.shrink()
+                                : Text(
+                                    caption,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: captionFontSize,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                    maxLines: math.max(1, resolvedCaptionLines),
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: true,
+                                  ),
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (safeBottomHeight > identityBandHeight)
+                    SizedBox(height: safeBottomHeight - identityBandHeight),
                 ],
               ),
             ),
