@@ -142,241 +142,180 @@ class _SignInViewState extends State<SignInView> {
     final bool isIosAppleButton = !kIsWeb && Platform.isIOS;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF5DD), Color(0xFFFFEDD0), Color(0xFFFFF9EE)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -52,
-              right: -24,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEDFA0).withValues(alpha: 0.35),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Positioned(
-              left: -36,
-              top: 140,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF6C886).withValues(alpha: 0.25),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.88),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: const Color(0xFFF3D8AF),
-                          width: 1.5,
+      body: ColoredBox(
+        color: const Color(0xFF80CEF6),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 390),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFB2E1FB),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 26, 20, 26),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/app/LoginPage.png',
+                          width: 260,
+                          fit: BoxFit.contain,
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1F8A5D2B),
-                            blurRadius: 26,
-                            offset: Offset(0, 14),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Center(
-                            child: Container(
-                              width: 112,
-                              height: 112,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFF4DF),
-                                borderRadius: BorderRadius.circular(28),
-                                border: Border.all(
-                                  color: const Color(0xFFF2D2A8),
-                                  width: 2,
-                                ),
-                              ),
-                              padding: const EdgeInsets.all(14),
-                              child: Image.asset(
-                                'assets/app/PetTomo_appicon.png',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          Text(
-                            'PetTomo',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.signInSubtitle,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF6B5A46),
-                              height: 1.35,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          if (isIosAppleButton)
-                            Align(
-                              alignment: Alignment.center,
-                              child: ConstrainedBox(
+                        const SizedBox(height: 0),
+                        Transform.translate(
+                          offset: const Offset(0, -18),
+                          child: Column(
+                            children: [
+                              ConstrainedBox(
                                 constraints: const BoxConstraints(
-                                  maxWidth: 230,
+                                  maxWidth: 250,
                                 ),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 44,
-                                  child: IgnorePointer(
-                                    ignoring: _signingIn,
-                                    child: Opacity(
-                                      opacity: _signingIn ? 0.6 : 1,
-                                      child: SignInWithAppleButton(
-                                        onPressed: () =>
-                                            _signInWithApple(context),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            Align(
-                              alignment: Alignment.center,
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 230,
-                                ),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 44,
-                                  child: FilledButton.icon(
-                                    onPressed: _signingIn
-                                        ? null
-                                        : () => _signInWithApple(context),
-                                    icon: const Icon(
-                                      Icons.phone_iphone_rounded,
-                                    ),
-                                    label: Text(l10n.signInWithApple),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: 12),
-                          Semantics(
-                            button: true,
-                            enabled: !_signingIn,
-                            label: l10n.signInWithGoogle,
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 230,
-                                ),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 44,
-                                  child: OutlinedButton(
-                                    onPressed: _signingIn
-                                        ? null
-                                        : () => _signInWithOAuth(
-                                            context,
-                                            OAuthProvider.google,
-                                          ),
-                                    style: OutlinedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                      ),
-                                      side: const BorderSide(
-                                        color: Color(0xFF747775),
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SvgPicture.string(
-                                          _googleLogoSvg,
-                                          width: 22,
-                                          height: 22,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Flexible(
-                                          child: Text(
-                                            'Sign in with Google',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: Color(0xFF1F1F1F),
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w400,
+                                child: isIosAppleButton
+                                    ? SizedBox(
+                                        height: 46,
+                                        child: IgnorePointer(
+                                          ignoring: _signingIn,
+                                          child: Opacity(
+                                            opacity: _signingIn ? 0.6 : 1,
+                                            child: SignInWithAppleButton(
+                                              onPressed: () =>
+                                                  _signInWithApple(context),
                                             ),
                                           ),
                                         ),
-                                      ],
+                                      )
+                                    : SizedBox(
+                                        height: 46,
+                                        child: FilledButton.icon(
+                                          onPressed: _signingIn
+                                              ? null
+                                              : () => _signInWithApple(context),
+                                          icon: const Icon(
+                                            Icons.phone_iphone_rounded,
+                                          ),
+                                          label: Text(l10n.signInWithApple),
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor: const Color(
+                                              0xFF18435E,
+                                            ),
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: 12),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 250,
+                                ),
+                                child: Semantics(
+                                  button: true,
+                                  enabled: !_signingIn,
+                                  label: l10n.signInWithGoogle,
+                                  child: SizedBox(
+                                    height: 46,
+                                    child: OutlinedButton(
+                                      onPressed: _signingIn
+                                          ? null
+                                          : () => _signInWithOAuth(
+                                              context,
+                                              OAuthProvider.google,
+                                            ),
+                                      style: OutlinedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        side: const BorderSide(
+                                          color: Color(0xFF6A7781),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SvgPicture.string(
+                                            _googleLogoSvg,
+                                            width: 20,
+                                            height: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Flexible(
+                                            child: Text(
+                                              l10n.signInWithGoogle,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Color(0xFF1F1F1F),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                          if (_signingIn) ...[
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
+                        ),
+                        if (_signingIn) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
                                   _activeProvider == null
                                       ? l10n.signInOpening
                                       : l10n.signInOpeningProvider(
                                           _activeProvider!,
                                         ),
-                                  style: theme.textTheme.bodySmall,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFF18435E),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

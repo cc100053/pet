@@ -24,7 +24,6 @@ import '../../services/settings/app_settings_repository.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
-import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -5258,7 +5257,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
         child: const Scaffold(
-          body: ColoredBox(color: AppTheme.backgroundColor),
+          body: ColoredBox(
+            color: Color(0xFF80CEF6),
+            child: Center(
+              child: Image(
+                image: AssetImage('assets/app/LaunchLogo.png'),
+                width: 220,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
         ),
       );
     }

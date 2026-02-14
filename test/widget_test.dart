@@ -15,8 +15,18 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('PetTomo'), findsOneWidget);
-    expect(find.bySemanticsLabel('Continue with Google'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/app/LoginPage.png',
+        description: 'LoginPage image asset',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Continue with Google'), findsOneWidget);
     expect(find.text('Continue with Apple'), findsOneWidget);
   });
 }

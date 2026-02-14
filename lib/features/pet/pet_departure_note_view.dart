@@ -65,6 +65,18 @@ class PetDepartureNoteView extends StatelessWidget {
             ],
           );
 
+    final noteTextWidget = Text(
+      noteText,
+      key: ValueKey(noteText),
+      textAlign: TextAlign.center,
+      textWidthBasis: TextWidthBasis.parent,
+      style: petNoteStyle,
+      strutStyle: StrutStyle.fromTextStyle(
+        petNoteStyle,
+        forceStrutHeight: true,
+      ),
+    );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppStatusBarStyles.dark,
       child: Scaffold(
@@ -83,213 +95,184 @@ class PetDepartureNoteView extends StatelessWidget {
                   builder: (context, constraints) {
                     final width = constraints.maxWidth * 0.74;
                     final cardHeight = constraints.maxHeight * 0.65;
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.9, end: 1.0),
-                      duration: const Duration(milliseconds: 240),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, scale, child) =>
-                          Transform.scale(scale: scale, child: child),
-                      child: Hero(
-                        tag: heroTag,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {},
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Container(
-                              width: width,
-                              height: cardHeight,
-                              padding: const EdgeInsets.fromLTRB(
-                                24,
-                                20,
-                                24,
-                                24,
+                    return Hero(
+                      tag: heroTag,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {},
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            width: width,
+                            height: cardHeight,
+                            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF7E6),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: const Color(0xFFE8D8B5),
                               ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFF7E6),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: const Color(0xFFE8D8B5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 12),
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 12),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child: IconButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).maybePop(),
+                                    icon: const Icon(Icons.close_rounded),
+                                    tooltip: l10n.commonClose,
                                   ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Align(
-                                    alignment: Alignment.topRight,
-                                    child: IconButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).maybePop(),
-                                      icon: const Icon(Icons.close_rounded),
-                                      tooltip: l10n.commonClose,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: LayoutBuilder(
-                                      builder: (context, contentConstraints) {
-                                        final rawBottomHeight =
-                                            contentConstraints.maxHeight * 0.42;
-                                        final bottomHeight = rawBottomHeight
-                                            .clamp(140.0, 220.0)
-                                            .toDouble()
-                                            .clamp(
-                                              0.0,
-                                              contentConstraints.maxHeight,
-                                            );
-                                        return Stack(
-                                          children: [
-                                            Positioned.fill(
-                                              child: Padding(
-                                                padding: EdgeInsets.only(
-                                                  bottom: bottomHeight + 8,
+                                ),
+                                Expanded(
+                                  child: LayoutBuilder(
+                                    builder: (context, contentConstraints) {
+                                      final rawBottomHeight =
+                                          contentConstraints.maxHeight * 0.42;
+                                      final bottomHeight = rawBottomHeight
+                                          .clamp(140.0, 220.0)
+                                          .toDouble()
+                                          .clamp(
+                                            0.0,
+                                            contentConstraints.maxHeight,
+                                          );
+                                      return Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: Padding(
+                                              padding: EdgeInsets.only(
+                                                bottom: bottomHeight + 8,
+                                              ),
+                                              child: Center(
+                                                child: SingleChildScrollView(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                      ),
+                                                  child: SizedBox(
+                                                    width: double.infinity,
+                                                    child: noteTextWidget,
+                                                  ),
                                                 ),
-                                                child: Center(
-                                                  child: SingleChildScrollView(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            child: SizedBox(
+                                              height: bottomHeight,
+                                              child: Align(
+                                                alignment:
+                                                    Alignment.bottomCenter,
+                                                child: SingleChildScrollView(
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Divider(
+                                                        height: 20,
+                                                        color: Color(
+                                                          0xFFE8D8B5,
                                                         ),
-                                                    child: SizedBox(
-                                                      width: double.infinity,
-                                                      child: Text(
-                                                        noteText,
+                                                      ),
+                                                      Text(
+                                                        l10n.petDepartureGuideTitle,
                                                         textAlign:
                                                             TextAlign.center,
-                                                        textWidthBasis:
-                                                            TextWidthBasis
-                                                                .parent,
-                                                        style: petNoteStyle,
-                                                        strutStyle:
-                                                            StrutStyle.fromTextStyle(
-                                                              petNoteStyle,
-                                                              forceStrutHeight:
-                                                                  true,
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleSmall
+                                                            ?.copyWith(
+                                                              color:
+                                                                  const Color(
+                                                                    0xFF4A3B2A,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
                                                             ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              left: 0,
-                                              right: 0,
-                                              bottom: 0,
-                                              child: SizedBox(
-                                                height: bottomHeight,
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.bottomCenter,
-                                                  child: SingleChildScrollView(
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        const Divider(
-                                                          height: 20,
-                                                          color: Color(
-                                                            0xFFE8D8B5,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          l10n.petDepartureGuideTitle,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: Theme.of(context)
-                                                              .textTheme
-                                                              .titleSmall
-                                                              ?.copyWith(
-                                                                color:
-                                                                    const Color(
-                                                                      0xFF4A3B2A,
-                                                                    ),
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 8,
-                                                        ),
-                                                        Text(
-                                                          l10n.petDepartureGuideMessage,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: Theme.of(context)
-                                                              .textTheme
-                                                              .bodySmall
-                                                              ?.copyWith(
-                                                                color:
-                                                                    const Color(
-                                                                      0xFF4A3B2A,
-                                                                    ),
-                                                                height: 1.4,
-                                                              ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 20,
-                                                        ),
-                                                        Tooltip(
-                                                          message: l10n
-                                                              .petDepartureGuideGoStore,
-                                                          child: SizedBox(
-                                                            width: 64,
-                                                            height: 44,
-                                                            child: ElevatedButton(
-                                                              onPressed:
-                                                                  onReturnPressed,
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor:
-                                                                    const Color(
-                                                                      0xFF4A3B2A,
-                                                                    ),
-                                                                foregroundColor:
-                                                                    Colors
-                                                                        .white,
-                                                                padding:
-                                                                    EdgeInsets
-                                                                        .zero,
-                                                                shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                        12,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                              child: SvgPicture.asset(
-                                                                'assets/icon/icon-park-outline--shopping-bag.svg',
-                                                                width: 20,
-                                                                height: 20,
-                                                                colorFilter:
-                                                                    const ColorFilter.mode(
-                                                                      Colors
-                                                                          .white,
-                                                                      BlendMode
-                                                                          .srcIn,
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        l10n.petDepartureGuideMessage,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                              color:
+                                                                  const Color(
+                                                                    0xFF4A3B2A,
+                                                                  ),
+                                                              height: 1.4,
+                                                            ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                      Tooltip(
+                                                        message: l10n
+                                                            .petDepartureGuideGoStore,
+                                                        child: SizedBox(
+                                                          width: 64,
+                                                          height: 44,
+                                                          child: ElevatedButton(
+                                                            onPressed:
+                                                                onReturnPressed,
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  const Color(
+                                                                    0xFF4A3B2A,
+                                                                  ),
+                                                              foregroundColor:
+                                                                  Colors.white,
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .zero,
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
                                                                     ),
                                                               ),
                                                             ),
+                                                            child: SvgPicture.asset(
+                                                              'assets/icon/icon-park-outline--shopping-bag.svg',
+                                                              width: 20,
+                                                              height: 20,
+                                                              colorFilter:
+                                                                  const ColorFilter.mode(
+                                                                    Colors
+                                                                        .white,
+                                                                    BlendMode
+                                                                        .srcIn,
+                                                                  ),
+                                                            ),
                                                           ),
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ],
-                                        );
-                                      },
-                                    ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
