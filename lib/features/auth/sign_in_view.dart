@@ -10,6 +10,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../shared/ui/app_ui_scale.dart';
 
 const String _googleLogoSvg = '''
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -140,6 +141,7 @@ class _SignInViewState extends State<SignInView> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final bool isIosAppleButton = !kIsWeb && Platform.isIOS;
+    final scale = appUiScale(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
       body: ColoredBox(
@@ -173,7 +175,7 @@ class _SignInViewState extends State<SignInView> {
                         ),
                         const SizedBox(height: 0),
                         Transform.translate(
-                          offset: const Offset(0, -18),
+                          offset: Offset(0, -18 * scale),
                           child: Column(
                             children: [
                               ConstrainedBox(

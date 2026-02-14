@@ -21,7 +21,7 @@ void main() {
     expect(find.byIcon(Icons.pets_rounded), findsOneWidget);
   });
 
-  testWidgets('UserAvatar falls back to initial letter', (
+  testWidgets('UserAvatar falls back to app icon image when avatar is empty', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -34,6 +34,15 @@ void main() {
       ),
     );
 
-    expect(find.text('B'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                UserAvatar.defaultAvatarAssetPath,
+      ),
+      findsOneWidget,
+    );
   });
 }

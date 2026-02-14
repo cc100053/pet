@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
@@ -81,11 +80,6 @@ class RoomSelectionView extends StatelessWidget {
           expanded: 12,
         );
         final crossAxisCount = responsive.isCompact ? 1 : 2;
-        final childAspectRatio = responsive.pick(
-          compact: 1.24,
-          regular: 0.76,
-          expanded: 0.82,
-        );
         final bgTopOrbSize = responsive.pick(
           compact: 132,
           regular: 180,
@@ -213,38 +207,53 @@ class RoomSelectionView extends StatelessWidget {
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          child: GridView.builder(
-                            padding: EdgeInsets.fromLTRB(
-                              horizontalPadding,
-                              8,
-                              horizontalPadding,
-                              gridBottomInset,
-                            ),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  mainAxisSpacing: gridSpacing,
-                                  crossAxisSpacing: gridSpacing,
-                                  childAspectRatio: childAspectRatio,
+                          child: LayoutBuilder(
+                            builder: (context, gridConstraints) {
+                              final availableWidth =
+                                  gridConstraints.maxWidth -
+                                  (horizontalPadding * 2);
+                              final totalGap =
+                                  gridSpacing * (crossAxisCount - 1);
+                              final itemWidth =
+                                  (availableWidth - totalGap) / crossAxisCount;
+                              final cardMinHeight = _roomCardMinHeight(
+                                itemWidth,
+                                responsive,
+                              );
+                              final childAspectRatio =
+                                  itemWidth / cardMinHeight;
+
+                              return GridView.builder(
+                                padding: EdgeInsets.fromLTRB(
+                                  horizontalPadding,
+                                  8,
+                                  horizontalPadding,
+                                  gridBottomInset,
                                 ),
-                            itemCount: totalSlots,
-                            itemBuilder: (context, index) {
-                              if (index < rooms.length) {
-                                final room = rooms[index];
-                                return _buildRoomCard(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      mainAxisSpacing: gridSpacing,
+                                      crossAxisSpacing: gridSpacing,
+                                      childAspectRatio: childAspectRatio,
+                                    ),
+                                itemCount: totalSlots,
+                                itemBuilder: (context, index) {
+                                  if (index < rooms.length) {
+                                    return _buildRoomCard(
                                       context,
-                                      room,
+                                      rooms[index],
                                       l10n,
                                       responsive,
-                                    )
-                                    .animate()
-                                    .fadeIn(delay: (80 * index).ms)
-                                    .slideY(begin: 0.1, end: 0);
-                              }
-                              return _buildEmptySlot(context, l10n, responsive)
-                                  .animate()
-                                  .fadeIn(delay: (80 * index).ms)
-                                  .slideY(begin: 0.1, end: 0);
+                                    );
+                                  }
+                                  return _buildEmptySlot(
+                                    context,
+                                    l10n,
+                                    responsive,
+                                  );
+                                },
+                              );
                             },
                           ),
                         ),
@@ -325,6 +334,7 @@ class RoomSelectionView extends StatelessWidget {
         : petName;
     final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
     final petLevel = (room['pet_level'] as num?)?.toInt();
+    final memoryFrameAspectRatio = _memoryFrameAspectRatio(responsive);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -363,7 +373,8 @@ class RoomSelectionView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
+                    AspectRatio(
+                      aspectRatio: memoryFrameAspectRatio,
                       child: IgnorePointer(
                         child: _RoomSelectionMemoryFrame(
                           imageUrl: latestPhoto ?? '',
@@ -593,6 +604,19 @@ class RoomSelectionView extends StatelessWidget {
     );
   }
 
+  double _memoryFrameAspectRatio(HomeResponsiveSpec responsive) {
+    return responsive.pick(compact: 1.25, regular: 0.88, expanded: 0.92);
+  }
+
+  double _roomCardMinHeight(double cardWidth, HomeResponsiveSpec responsive) {
+    final frameHeight = cardWidth / _memoryFrameAspectRatio(responsive);
+    final verticalPadding =
+        responsive.pick(compact: 10, regular: 12, expanded: 14) * 2;
+    final footerGap = responsive.pick(compact: 6, regular: 8, expanded: 10);
+    final footerHeight = responsive.pick(compact: 2, regular: 2, expanded: 2);
+    return frameHeight + verticalPadding + footerGap + footerHeight;
+  }
+
   Widget _buildPrimaryCta(
     BuildContext context,
     AppLocalizations l10n,
@@ -702,6 +726,8 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     final hasCaption = caption.trim().isNotEmpty;
+    final captionTopPadding =
+        responsive.pick(compact: 16, regular: 16, expanded: 16) * scale;
     final tokens = _RoomSelectionFrameTokens.from(
       scale: scale,
       responsive: responsive,
@@ -713,7 +739,7 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.black87, width: 3),
+        border: Border.all(color: Colors.black87, width: 2),
       ),
       child: CustomMultiChildLayout(
         delegate: _RoomSelectionFrameLayoutDelegate(tokens: tokens),
@@ -724,7 +750,7 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFF8F4EF),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.black87, width: 2),
+                border: Border.all(color: Colors.black87, width: 1.5),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -742,12 +768,7 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
             id: _RoomSelectionFrameSlot.caption,
             child: hasCaption
                 ? Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      8 * scale,
-                      tokens.captionTopInset,
-                      8 * scale,
-                      2 * scale,
-                    ),
+                    padding: EdgeInsets.only(top: captionTopPadding),
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: Text(
@@ -776,7 +797,7 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black87, width: 2),
+                    border: Border.all(color: Colors.black87, width: 1.5),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.10),
@@ -807,14 +828,12 @@ class _RoomSelectionFrameTokens {
     required this.avatarSize,
     required this.photoRatio,
     required this.avatarOverlapRatio,
-    required this.captionTopInset,
   });
 
   final double innerPadding;
   final double avatarSize;
   final double photoRatio;
   final double avatarOverlapRatio;
-  final double captionTopInset;
 
   factory _RoomSelectionFrameTokens.from({
     required double scale,
@@ -832,8 +851,6 @@ class _RoomSelectionFrameTokens {
         regular: 0.60,
         expanded: 0.62,
       ),
-      captionTopInset:
-          responsive.pick(compact: 18, regular: 18, expanded: 12) * scale,
     );
   }
 }

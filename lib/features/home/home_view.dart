@@ -26,6 +26,7 @@ import '../../shared/errors/user_facing_error.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
@@ -4567,6 +4568,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     return LayoutBuilder(
       builder: (context, constraints) {
         final fieldSize = constraints.biggest;
+        final uiScale = homeUiScale(MediaQuery.sizeOf(context).width);
+        final promptInset = 12 * uiScale;
+        final furnitureHintLeft = 16 * uiScale;
+        final furnitureHintBottom = 12 * uiScale;
         return GestureDetector(
           key: _petFieldKey,
           behavior: HitTestBehavior.opaque,
@@ -4617,14 +4622,14 @@ class _HomeViewState extends ConsumerState<HomeView>
               if (_petEating) _buildEatingHearts(fieldSize),
               if (_shouldShowNewRoomInvitePrompt)
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: promptInset,
+                  right: promptInset,
                   child: _buildNewRoomInvitePrompt(),
                 ),
               if (_furnitureMode)
                 Positioned(
-                  left: 16,
-                  bottom: 12,
+                  left: furnitureHintLeft,
+                  bottom: furnitureHintBottom,
                   child: _buildFurnitureEditHint(),
                 ),
               if (_isCurrentRoomLocked)
@@ -4641,9 +4646,9 @@ class _HomeViewState extends ConsumerState<HomeView>
                 ),
               if (_isCurrentRoomLocked)
                 Positioned(
-                  left: 12,
-                  right: 12,
-                  bottom: 12,
+                  left: promptInset,
+                  right: promptInset,
+                  bottom: promptInset,
                   child: _buildLockedRoomHomePrompt(),
                 ),
             ],
@@ -5092,7 +5097,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   Offset _overfedBubbleOffset(double petVisualScale) {
     final insetX = (_petAvatarSize.width * (1 - petVisualScale)) / 2;
     final insetY = (_petAvatarSize.height * (1 - petVisualScale)) / 2;
-    return Offset(-6 + insetX, -54 + insetY);
+    final baseX = -_petAvatarSize.width * 0.06;
+    final baseY = -_petAvatarSize.height * 0.54;
+    return Offset(baseX + insetX, baseY + insetY);
   }
 
   Widget _buildPetLoadingPlaceholder() {
@@ -5298,6 +5305,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   Widget build(BuildContext context) {
     final overlayStyle = _currentOverlayStyle();
+    final screenSize = MediaQuery.sizeOf(context);
+    final responsiveLayout = ResponsiveLayout.fromSize(screenSize);
     if (_loadingRoom) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
@@ -5360,14 +5369,14 @@ class _HomeViewState extends ConsumerState<HomeView>
 
             // Background Blobs (Floating)
             Positioned(
-              bottom: 150,
-              left: -20,
+              bottom: responsiveLayout.y(150),
+              left: responsiveLayout.x(-20),
               child: JuicyFloat(
-                yOffset: 20,
+                yOffset: responsiveLayout.s(20),
                 delay: 500.ms,
                 child: Container(
-                  width: 150,
-                  height: 150,
+                  width: responsiveLayout.s(150),
+                  height: responsiveLayout.s(150),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
@@ -5376,14 +5385,14 @@ class _HomeViewState extends ConsumerState<HomeView>
               ),
             ),
             Positioned(
-              bottom: 300,
-              right: -30,
+              bottom: responsiveLayout.y(300),
+              right: responsiveLayout.x(-30),
               child: JuicyFloat(
-                yOffset: 30,
+                yOffset: responsiveLayout.s(30),
                 delay: 1000.ms,
                 child: Container(
-                  width: 120,
-                  height: 120,
+                  width: responsiveLayout.s(120),
+                  height: responsiveLayout.s(120),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.4),
                     shape: BoxShape.circle,
@@ -5594,43 +5603,81 @@ class _HomeViewState extends ConsumerState<HomeView>
       );
     }
 
-    return Container(
-      color: Colors.transparent,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(top: 90, left: 80, child: _buildEye()),
-          Positioned(top: 90, right: 80, child: _buildEye()),
-          Positioned(
-            bottom: 90,
-            child: Container(
-              width: 40,
-              height: 20,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final faceLayout = ResponsiveLayout.fromSize(
+          constraints.biggest,
+          designSize: _petAvatarSize,
+        );
+        final eyeTop = faceLayout.y(20);
+        final eyeInset = faceLayout.x(16);
+        final eyeWidth = faceLayout.s(24);
+        final eyeHeight = faceLayout.s(30);
+        final highlightInset = faceLayout.s(4);
+        final highlightSize = faceLayout.s(8);
+        final mouthBottom = faceLayout.y(18);
+        final mouthWidth = faceLayout.s(36);
+        final mouthHeight = faceLayout.s(14);
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: eyeTop,
+              left: eyeInset,
+              child: _buildEye(
+                width: eyeWidth,
+                height: eyeHeight,
+                highlightInset: highlightInset,
+                highlightSize: highlightSize,
               ),
             ),
-          ),
-        ],
-      ),
+            Positioned(
+              top: eyeTop,
+              right: eyeInset,
+              child: _buildEye(
+                width: eyeWidth,
+                height: eyeHeight,
+                highlightInset: highlightInset,
+                highlightSize: highlightSize,
+              ),
+            ),
+            Positioned(
+              bottom: mouthBottom,
+              child: Container(
+                width: mouthWidth,
+                height: mouthHeight,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(mouthHeight),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildEye() {
+  Widget _buildEye({
+    required double width,
+    required double height,
+    required double highlightInset,
+    required double highlightSize,
+  }) {
     return Container(
-          width: 30,
-          height: 40,
+          width: width,
+          height: height,
           decoration: BoxDecoration(
             color: Colors.black87,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(height / 2),
           ),
           child: Align(
             alignment: Alignment.topRight,
             child: Container(
-              margin: const EdgeInsets.all(5),
-              width: 10,
-              height: 10,
+              margin: EdgeInsets.all(highlightInset),
+              width: highlightSize,
+              height: highlightSize,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,

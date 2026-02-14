@@ -1,6 +1,14 @@
 # Progress
 
 ## Done
+- Smoothed Room Selection scrolling by replacing non-virtualized `SingleChildScrollView + Wrap` with a virtualized `GridView.builder` (responsive, width-derived `childAspectRatio`) while keeping empty and filled tiles visually aligned.
+- Aligned Room Selection card heights across states: empty slots and room cards now share a width-derived `minHeight` (`_roomCardMinHeight`) in the wrap layout, so empty or no-caption cards keep the same tile footprint as cards with photo+caption.
+- Added explicit top padding back to Room Selection memory-frame captions (without restoring full caption-band padding tokens), so caption text can be nudged downward via a single responsive value.
+- Removed Room Selection memory-frame caption-band padding so caption text uses the full caption lane height (no extra top/bottom inset), reducing apparent bottom clipping.
+- Replaced Room Selection’s fixed-height grid rows with a non-fixed, width-driven wrap layout: cards now flow in 1/2 columns via `Wrap + SizedBox(width)` and size to their content, while memory frames use local aspect-ratio sizing instead of `Expanded` against a fixed `GridView` row height.
+- Tuned Room Selection memory-frame caption readability on short regular-height screens (e.g., iPhone SE) by reducing frame stroke thickness (outer/photo/avatar borders) and increasing caption bottom inset so caption text feels less covered/compressed near the frame bottom.
+- Updated shared `UserAvatar` fallback behavior so users without `profiles.avatar_url` now show `assets/app/PetTomo_appicon.png` as the default profile image across Home/Chat/Profile surfaces (with a letter-avatar safety fallback only if the asset load fails).
+- Refactored hard-coded offset positioning toward responsive scaling: added shared `ResponsiveLayout` (`lib/shared/ui/responsive_layout.dart`) and migrated major fixed-position hotspots in `home_view`, `feed_capture_view`, `pet_selection_page`, and `sign_in_view` to proportional `x/y/s` scaling so decorative/overlay elements and icon stacks adapt more consistently across screen sizes/aspect ratios.
 - Changed overfed bubble trigger semantics to feed-event-only: Home now arms overfed bubble display only when a local feed action is initiated (home feed optimistic send or chat feed send-start), and room-entry state hydration no longer replays stale `last_overfed_at` bubbles.
 - Added a Debug Tools action to manually trigger the overfed “I’m full!” bubble for 3 seconds on Pet Home, with localized labels across EN/JA/zh/zh-TW.
 - Fixed overfed (“I’m full”) bubble drift on scaled pet rendering: bubble anchor in `home_view` now compensates for pet visual scale in compact/regular/expanded layouts, so the caption tracks the pet consistently instead of floating too far above/left on smaller screens.

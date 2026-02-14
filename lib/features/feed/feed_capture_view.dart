@@ -10,6 +10,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 
 class FeedCaptureView extends StatefulWidget {
@@ -396,203 +397,236 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         ),
         body: Stack(
           children: [
-            Positioned(
-              top: -70,
-              left: -50,
-              child: _Blob(
-                size: 180,
-                color: const Color(0xFFFFD68D).withValues(alpha: 0.45),
-              ),
-            ),
-            Positioned(
-              right: -42,
-              top: 120,
-              child: _Blob(
-                size: 130,
-                color: const Color(0xFFAED6B3).withValues(alpha: 0.35),
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 360),
-                              child: Container(
-                                height: 300,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(color: Colors.black12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.05,
-                                      ),
-                                      blurRadius: 16,
-                                      offset: const Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: _previewBytes == null
-                                      ? const _EmptyPreviewState()
-                                      : LayoutBuilder(
-                                          builder: (context, constraints) {
-                                            return DecoratedBox(
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFFF8F4EF),
-                                              ),
-                                              child: Image.memory(
-                                                _previewBytes!,
-                                                fit: BoxFit.contain,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _PickSourceCard(
-                                  label: l10n.commonGallery,
-                                  icon: Icons.photo_library_rounded,
-                                  color: const Color(0xFFFFBE8A),
-                                  onTap: _sending
-                                      ? null
-                                      : () => _pickImage(ImageSource.gallery),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _PickSourceCard(
-                                  label: l10n.commonCamera,
-                                  icon: Icons.photo_camera_rounded,
-                                  color: const Color(0xFF8ED0A9),
-                                  onTap: _sending
-                                      ? null
-                                      : () => _pickImage(ImageSource.camera),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _captionController,
-                            decoration: InputDecoration(
-                              hintText: l10n.feedCaptionLabel,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white.withValues(alpha: 0.9),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                            ),
-                            maxLines: 2,
-                            maxLength: 40,
-                            buildCounter:
-                                (
-                                  BuildContext context, {
-                                  required int currentLength,
-                                  required bool isFocused,
-                                  required int? maxLength,
-                                }) {
-                                  return null;
-                                },
-                          ),
-                          FilledButton(
-                            onPressed: _sending || _selectedImage == null
-                                ? null
-                                : _sendFeed,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size.fromHeight(56),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  _sending
-                                      ? Icons.sync_rounded
-                                      : Icons.send_rounded,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _sending
-                                      ? l10n.commonSending
-                                      : l10n.feedSendButton,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (_error != null) ...[
-                            const SizedBox(height: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.error.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _error!,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+            LayoutBuilder(
+              builder: (context, viewport) {
+                final responsive = ResponsiveLayout.fromSize(viewport.biggest);
+                return Stack(
+                  children: [
+                    Positioned(
+                      top: responsive.y(-70),
+                      left: responsive.x(-50),
+                      child: _Blob(
+                        size: responsive.s(180),
+                        color: const Color(0xFFFFD68D).withValues(alpha: 0.45),
                       ),
                     ),
-                  );
-                },
-              ),
+                    Positioned(
+                      right: responsive.x(-42),
+                      top: responsive.y(120),
+                      child: _Blob(
+                        size: responsive.s(130),
+                        color: const Color(0xFFAED6B3).withValues(alpha: 0.35),
+                      ),
+                    ),
+                    SafeArea(
+                      top: false,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 360,
+                                      ),
+                                      child: Container(
+                                        height: 300,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.black12,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                          child: _previewBytes == null
+                                              ? const _EmptyPreviewState()
+                                              : LayoutBuilder(
+                                                  builder:
+                                                      (context, constraints) {
+                                                        return DecoratedBox(
+                                                          decoration:
+                                                              const BoxDecoration(
+                                                                color: Color(
+                                                                  0xFFF8F4EF,
+                                                                ),
+                                                              ),
+                                                          child: Image.memory(
+                                                            _previewBytes!,
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        );
+                                                      },
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _PickSourceCard(
+                                          label: l10n.commonGallery,
+                                          icon: Icons.photo_library_rounded,
+                                          color: const Color(0xFFFFBE8A),
+                                          onTap: _sending
+                                              ? null
+                                              : () => _pickImage(
+                                                  ImageSource.gallery,
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _PickSourceCard(
+                                          label: l10n.commonCamera,
+                                          icon: Icons.photo_camera_rounded,
+                                          color: const Color(0xFF8ED0A9),
+                                          onTap: _sending
+                                              ? null
+                                              : () => _pickImage(
+                                                  ImageSource.camera,
+                                                ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller: _captionController,
+                                    decoration: InputDecoration(
+                                      hintText: l10n.feedCaptionLabel,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: const BorderSide(
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 12,
+                                          ),
+                                    ),
+                                    maxLines: 2,
+                                    maxLength: 40,
+                                    buildCounter:
+                                        (
+                                          BuildContext context, {
+                                          required int currentLength,
+                                          required bool isFocused,
+                                          required int? maxLength,
+                                        }) {
+                                          return null;
+                                        },
+                                  ),
+                                  FilledButton(
+                                    onPressed:
+                                        _sending || _selectedImage == null
+                                        ? null
+                                        : _sendFeed,
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      minimumSize: const Size.fromHeight(56),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          _sending
+                                              ? Icons.sync_rounded
+                                              : Icons.send_rounded,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _sending
+                                              ? l10n.commonSending
+                                              : l10n.feedSendButton,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (_error != null) ...[
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error
+                                            .withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        _error!,
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),

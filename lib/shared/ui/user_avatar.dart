@@ -12,6 +12,7 @@ class UserAvatar extends StatelessWidget {
 
   static const int presetCount = 6;
   static const String presetPrefix = 'preset:';
+  static const String defaultAvatarAssetPath = 'assets/app/PetTomo_appicon.png';
 
   final String? avatar;
   final String? fallbackText;
@@ -20,7 +21,6 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final value = (avatar ?? '').trim();
-    final radius = size / 2;
 
     if (value.startsWith(presetPrefix)) {
       final presetId = int.tryParse(value.substring(presetPrefix.length));
@@ -40,7 +40,37 @@ class UserAvatar extends StatelessWidget {
       );
     }
 
-    final letter = _initialLetter(fallbackText);
+    return ClipOval(
+      child: Image.asset(
+        defaultAvatarAssetPath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, error, stackTrace) =>
+            _FallbackLetterAvatar(size: size, fallbackText: fallbackText),
+      ),
+    );
+  }
+
+  static String _initialLetter(String? value) {
+    final trimmed = (value ?? '').trim();
+    if (trimmed.isEmpty) {
+      return '?';
+    }
+    return trimmed.substring(0, 1).toUpperCase();
+  }
+}
+
+class _FallbackLetterAvatar extends StatelessWidget {
+  const _FallbackLetterAvatar({required this.size, required this.fallbackText});
+
+  final double size;
+  final String? fallbackText;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = size / 2;
+    final letter = UserAvatar._initialLetter(fallbackText);
     return CircleAvatar(
       radius: radius,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -53,14 +83,6 @@ class UserAvatar extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _initialLetter(String? value) {
-    final trimmed = (value ?? '').trim();
-    if (trimmed.isEmpty) {
-      return '?';
-    }
-    return trimmed.substring(0, 1).toUpperCase();
   }
 }
 
