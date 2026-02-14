@@ -25,22 +25,25 @@ class PetDepartureNoteView extends StatelessWidget {
     final useJapaneseFont = languageCode == 'ja';
     final useChineseFont = languageCode == 'zh';
     final useEnglishFont = languageCode == 'en';
+    final baseNoteStyle =
+        Theme.of(context).textTheme.headlineSmall ??
+        const TextStyle(fontSize: 24);
     final petNoteStyle = useJapaneseFont
-        ? Theme.of(context).textTheme.headlineSmall?.copyWith(
+        ? baseNoteStyle.copyWith(
             fontFamily: 'Heiseijyoji',
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
             height: 1.35,
           )
         : useChineseFont
-        ? Theme.of(context).textTheme.headlineSmall?.copyWith(
+        ? baseNoteStyle.copyWith(
             fontFamily: 'ChildJPZh',
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
             height: 1.35,
           )
         : useEnglishFont
-        ? Theme.of(context).textTheme.headlineSmall?.copyWith(
+        ? baseNoteStyle.copyWith(
             fontFamily: 'LittleKidsHandwriting',
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
@@ -152,11 +155,23 @@ class PetDepartureNoteView extends StatelessWidget {
                                                         const EdgeInsets.symmetric(
                                                           horizontal: 8,
                                                         ),
-                                                    child: Text(
-                                                      noteText,
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: petNoteStyle,
+                                                    child: SizedBox(
+                                                      width: double.infinity,
+                                                      child: Text(
+                                                        noteText,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        textWidthBasis:
+                                                            TextWidthBasis
+                                                                .parent,
+                                                        style: petNoteStyle,
+                                                        strutStyle:
+                                                            StrutStyle.fromTextStyle(
+                                                              petNoteStyle,
+                                                              forceStrutHeight:
+                                                                  true,
+                                                            ),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),

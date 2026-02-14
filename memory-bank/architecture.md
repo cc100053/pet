@@ -16,6 +16,7 @@
 - `supabase/migrations/20260101006000_pet_state_machine.sql`: Pet state machine updates and backfill.
 - `supabase/migrations/20260101007000_add_device_tokens.sql`: Device token storage for FCM.
 - `supabase/migrations/20260101008000_device_tokens_single_device.sql`: Enforce single-device token per user.
+- `supabase/migrations/20260213143000_allow_multi_device_tokens.sql`: Remove per-user token uniqueness to allow concurrent push tokens across multiple devices.
 - `supabase/migrations/20260211100000_notification_payload_upgrade.sql`: Add `pets.avatar_url`, `device_tokens.device_locale`, and pet-avatar backfill for push payload shaping.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
@@ -63,7 +64,7 @@ Planned:
 - Webhooks: Trigger friend notifications on feed events.
 - Notifications:
   - Android: custom native `FirebaseMessagingService` (`NotificationCompat.MessagingStyle`) using room thread grouping and composed pet-avatar + app-badge large icon.
-  - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) rewrites title/body, sets thread id, and attaches composed pet-avatar/app-badge plus feed preview.
+  - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) rewrites title/body, sets thread id, enriches pushes as communication notifications via `INSendMessageIntent` (pet avatar as sender image), and attaches composed pet-avatar/app-badge plus feed preview.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Ownership: Triggered owner transfer when the active owner leaves.
@@ -72,7 +73,7 @@ Planned:
 ### Edge Functions (Repo)
 - `supabase/functions/notify_friend/feed_validate/index.ts`: Feed validation + upload + reward logic.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
-- Push payload contract (FCM `data`): `room_id`, `message_id`, `message_type`, `pet_name`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `title_app_name`, `title_full`, and legacy `type`.
+- Push payload contract (FCM `data`): `room_id`, `message_id`, `message_kind` (with legacy client fallback from `message_type`), `pet_name`, `sender_name`, `pet_type`, `pet_avatar_asset`, `pet_avatar_fallback_url`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `body_full`, `title_app_name`, `title_full`, and legacy `type`.
 - `supabase/functions/avatar_upload/index.ts`: Upload avatar image to R2 and update `profiles.avatar_url`.
 - `supabase/functions/delete_account/index.ts`: Delete authenticated user (uses `SUPABASE_SERVICE_ROLE_KEY`).
 

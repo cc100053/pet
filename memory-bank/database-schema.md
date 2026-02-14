@@ -14,7 +14,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 
 - `device_tokens`
   - `id` (uuid, pk)
-  - `user_id` (uuid, fk, unique)
+  - `user_id` (uuid, fk; non-unique for multi-device support)
   - `token` (text, unique)
   - `platform` (text)
   - `last_seen_at`, `created_at`, `updated_at`

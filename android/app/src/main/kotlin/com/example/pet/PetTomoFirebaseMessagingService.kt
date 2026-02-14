@@ -40,17 +40,17 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
     private fun showMessagingNotification(data: Map<String, String>) {
         val roomId = data["room_id"]?.takeIf { it.isNotBlank() } ?: "room_default"
         val messageId = data["message_id"]?.takeIf { it.isNotBlank() }
-        val messageType = data["message_type"]?.takeIf { it.isNotBlank() } ?: "text"
+        val messageType = data["message_kind"]?.takeIf { it.isNotBlank() }
+            ?: data["message_type"]?.takeIf { it.isNotBlank() }
+            ?: "text"
         val title = data["title_full"]?.takeIf { it.isNotBlank() } ?: "PetTomo"
         val petName = data["pet_name"]?.takeIf { it.isNotBlank() } ?: "Pet"
         val senderName = data["sender_name"]?.takeIf { it.isNotBlank() } ?: "Someone"
         val contentText = resolveBody(messageType = messageType, data = data)
-        val avatarUrl = data["pet_avatar_url"]?.takeIf { it.isNotBlank() }
-
-        val largeIcon = composeLargeIcon(avatarUrl)
+        val largeIcon = composeLargeIcon(resolvePetAvatarBitmap(data))
         val conversationUser = NotificationCompat.Person.Builder()
             .setName(petName)
-            .setIcon(largeIcon?.let { androidx.core.graphics.drawable.IconCompat.createWithBitmap(it) })
+            .setIcon(androidx.core.graphics.drawable.IconCompat.createWithBitmap(largeIcon))
             .build()
         val senderPerson = NotificationCompat.Person.Builder()
             .setName(senderName)
@@ -94,6 +94,10 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun resolveBody(messageType: String, data: Map<String, String>): String {
+        val bodyFull = data["body_full"]?.trim().orEmpty()
+        if (bodyFull.isNotEmpty()) {
+            return bodyFull
+        }
         return if (messageType == "image_feed") {
             val caption = data["caption"]?.trim().orEmpty()
             if (caption.isNotEmpty()) {
@@ -122,9 +126,26 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
         manager.createNotificationChannel(channel)
     }
 
-    private fun composeLargeIcon(avatarUrl: String?): Bitmap? {
-        val avatar = avatarUrl?.let { downloadBitmap(it) }
-        val base = avatar?.let { cropCircle(it) } ?: drawableToBitmap(R.mipmap.ic_launcher)
+    private fun resolvePetAvatarBitmap(data: Map<String, String>): Bitmap? {
+        val petType = normalizePetType(data["pet_type"])
+        val primaryUrl = data["pet_avatar_url"]?.takeIf { it.isNotBlank() }
+        val fallbackUrl = data["pet_avatar_fallback_url"]?.takeIf { it.isNotBlank() }
+        val explicitAsset = data["pet_avatar_asset"]?.takeIf { it.isNotBlank() }
+        val fallbackAsset = petAvatarAssetByType[petType]
+
+        return primaryUrl?.let(::downloadBitmap)
+            ?: explicitAsset?.let(::loadBitmapFromFlutterAsset)
+            ?: fallbackAsset?.let(::loadBitmapFromFlutterAsset)
+            ?: fallbackUrl?.let(::downloadBitmap)
+    }
+
+    private fun normalizePetType(raw: String?): String {
+        val normalized = raw?.trim()?.lowercase().orEmpty()
+        return if (normalized in petAvatarAssetByType.keys) normalized else defaultPetType
+    }
+
+    private fun composeLargeIcon(avatarBitmap: Bitmap?): Bitmap {
+        val base = avatarBitmap?.let { cropCircle(it) } ?: drawableToBitmap(R.mipmap.ic_launcher)
         val badge = drawableToBitmap(R.drawable.ic_notification)
         return overlayBadge(base, badge)
     }
@@ -137,6 +158,22 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
                 instanceFollowRedirects = true
             }
             connection.inputStream.use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun loadBitmapFromFlutterAsset(assetPath: String): Bitmap? {
+        val normalizedPath = assetPath.removePrefix("/")
+        val flutterAssetPath = if (normalizedPath.startsWith("flutter_assets/")) {
+            normalizedPath
+        } else {
+            "flutter_assets/$normalizedPath"
+        }
+        return try {
+            assets.open(flutterAssetPath).use { input ->
                 BitmapFactory.decodeStream(input)
             }
         } catch (_: Exception) {
@@ -181,5 +218,11 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {
         private const val channelId = "feed_notifications"
+        private const val defaultPetType = "ghost"
+        private val petAvatarAssetByType = mapOf(
+            "cat" to "assets/pet/cat/cat_stay.gif",
+            "fish" to "assets/pet/fish/fish_stay.gif",
+            "ghost" to "assets/pet/ghost/ghost_stay.gif",
+        )
     }
 }

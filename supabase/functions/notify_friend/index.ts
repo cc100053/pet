@@ -20,34 +20,47 @@ const FCM_PRIVATE_KEY = (Deno.env.get("FCM_PRIVATE_KEY") ?? "").replace(
   /\\n/g,
   "\n",
 );
-const DEFAULT_PET_AVATAR_URL =
-  "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/ghost_stay.gif";
+type PetType = "cat" | "fish" | "ghost";
+
+const PET_AVATAR_URL_BY_TYPE: Record<PetType, string> = {
+  cat: "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/cat_stay.gif",
+  fish: "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/fish_stay.gif",
+  ghost:
+    "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/ghost_stay.gif",
+};
+const PET_AVATAR_ASSET_BY_TYPE: Record<PetType, string> = {
+  cat: "assets/pet/cat/cat_stay.gif",
+  fish: "assets/pet/fish/fish_stay.gif",
+  ghost: "assets/pet/ghost/ghost_stay.gif",
+};
+const DEFAULT_PET_TYPE: PetType = "ghost";
+const DEFAULT_PET_AVATAR_URL = PET_AVATAR_URL_BY_TYPE[DEFAULT_PET_TYPE];
 
 type L10nStrings = {
-  defaultFeedBody: string;
   defaultTextBody: string;
   defaultPetName: string;
   defaultSenderName: string;
+  feedBodyTemplate: string;
 };
 
 const l10n: Record<string, L10nStrings> = {
   en: {
-    defaultFeedBody: "Someone shared a photo!",
     defaultTextBody: "New message",
     defaultPetName: "Pet",
     defaultSenderName: "Someone",
+    feedBodyTemplate: "{sender} fed {pet}",
   },
   ja: {
-    defaultFeedBody: "誰かが写真をシェアしました！",
     defaultTextBody: "新しいメッセージ",
     defaultPetName: "ペット",
     defaultSenderName: "だれか",
+    feedBodyTemplate: "{sender}さんが{pet}にごはんをあげました",
   },
   "zh-TW": {
-    defaultFeedBody: "有人分享了一張照片！",
     defaultTextBody: "新訊息",
     defaultPetName: "寵物",
     defaultSenderName: "某人",
+    feedBodyTemplate: "{sender} 餵了 {pet}",
   },
 };
 
@@ -174,6 +187,41 @@ function nonEmptyOrNull(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function collapseName(value: string, max: number = 7): string {
+  if (value.length <= max) {
+    return value;
+  }
+  return `${value.substring(0, max)}...`;
+}
+
+function fillTemplate(
+  template: string,
+  values: Record<string, string>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (_full, key: string) =>
+    values[key] ?? _full
+  );
+}
+
+function normalizePetType(value: string | null | undefined): PetType {
+  const normalized = value?.trim().toLowerCase();
+  if (normalized === "cat" || normalized === "fish" || normalized === "ghost") {
+    return normalized;
+  }
+  return DEFAULT_PET_TYPE;
+}
+
+function extractPetType(colorDna: unknown): PetType {
+  if (!colorDna || typeof colorDna !== "object") {
+    return DEFAULT_PET_TYPE;
+  }
+  const petTypeValue = (colorDna as Record<string, unknown>).pet_type;
+  if (typeof petTypeValue !== "string") {
+    return DEFAULT_PET_TYPE;
+  }
+  return normalizePetType(petTypeValue);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -216,6 +264,43 @@ serve(async (req) => {
   if (isWebhookRequest) {
     if (!senderId) {
       return jsonResponse(400, { error: "missing_sender_id" });
+    }
+
+    const needsMessageLookup = !nonEmptyOrNull(payload.body) &&
+      !nonEmptyOrNull(payload.caption) &&
+      !nonEmptyOrNull(payload.image_url);
+
+    if (needsMessageLookup) {
+      let messageQuery = supabaseAdmin
+        .from("messages")
+        .select("id, room_id, sender_id, type, body, caption, image_url")
+        .eq("id", payload.message_id)
+        .eq("room_id", payload.room_id);
+      if (senderId) {
+        messageQuery = messageQuery.eq("sender_id", senderId);
+      }
+
+      const { data: messageRow, error: messageError } = await messageQuery
+        .maybeSingle();
+      if (messageError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: messageError.message,
+        });
+      }
+      if (messageRow) {
+        if (messageRow.type === "text") {
+          payload.type = "chat_message";
+          payload.body = messageRow.body;
+          payload.caption = null;
+          payload.image_url = null;
+        } else if (messageRow.type === "image_feed") {
+          payload.type = "feed_event";
+          payload.caption = messageRow.caption;
+          payload.image_url = messageRow.image_url;
+          payload.body = null;
+        }
+      }
     }
   } else {
     const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -361,7 +446,7 @@ serve(async (req) => {
 
   const { data: petRow, error: petError } = await supabaseAdmin
     .from("pets")
-    .select("name, avatar_url")
+    .select("name, avatar_url, color_dna")
     .eq("room_id", payload.room_id)
     .maybeSingle();
 
@@ -442,7 +527,12 @@ serve(async (req) => {
   }
 
   const petName = nonEmptyOrNull(petRow?.name as string | null);
+  const petType = extractPetType((petRow?.color_dna as unknown) ?? null);
   const petAvatarUrl = nonEmptyOrNull(petRow?.avatar_url as string | null) ??
+    PET_AVATAR_URL_BY_TYPE[petType] ??
+    DEFAULT_PET_AVATAR_URL;
+  const petAvatarAsset = PET_AVATAR_ASSET_BY_TYPE[petType];
+  const petAvatarFallbackUrl = PET_AVATAR_URL_BY_TYPE[petType] ??
     DEFAULT_PET_AVATAR_URL;
   const senderNameRaw = nonEmptyOrNull(senderProfile?.nickname as string | null);
 
@@ -455,13 +545,17 @@ serve(async (req) => {
     const appName = localizedAppName(locale);
     const resolvedPetName = petName ?? strings.defaultPetName;
     const resolvedSenderName = senderNameRaw ?? strings.defaultSenderName;
-    const titleFull = `${appName} ${resolvedPetName} · ${resolvedSenderName}`;
+    const collapsedPetName = collapseName(resolvedPetName, 7);
+    const collapsedSenderName = collapseName(resolvedSenderName, 7);
+    const titleFull = collapsedPetName;
 
-    const textBody = nonEmptyOrNull(payload.body) ?? strings.defaultTextBody;
+    const textBodyRaw = nonEmptyOrNull(payload.body) ?? strings.defaultTextBody;
+    const textBody = `${collapsedSenderName}: ${textBodyRaw}`;
     const feedCaption = nonEmptyOrNull(payload.caption);
-    const feedBody = feedCaption
-      ? `🖼️ ${feedCaption}`
-      : `🖼️ ${strings.defaultFeedBody}`;
+    const feedBody = fillTemplate(strings.feedBodyTemplate, {
+      sender: collapsedSenderName,
+      pet: collapsedPetName,
+    });
 
     const messageType = payload.type === "chat_message" ? "text" : "image_feed";
     const pushBody = messageType === "text" ? textBody : feedBody;
@@ -469,13 +563,18 @@ serve(async (req) => {
     const dataPayload: Record<string, string> = {
       room_id: payload.room_id,
       message_id: payload.message_id,
-      message_type: messageType,
-      pet_name: resolvedPetName,
-      sender_name: resolvedSenderName,
+      // FCM reserves "message_type" as an internal key.
+      message_kind: messageType,
+      pet_name: collapsedPetName,
+      sender_name: collapsedSenderName,
+      pet_type: petType,
+      pet_avatar_asset: petAvatarAsset,
+      pet_avatar_fallback_url: petAvatarFallbackUrl,
       pet_avatar_url: petAvatarUrl,
       image_url: nonEmptyOrNull(payload.image_url) ?? "",
       caption: feedCaption ?? "",
-      text_body: textBody,
+      text_body: textBodyRaw,
+      body_full: pushBody,
       title_app_name: appName,
       title_full: titleFull,
       type: payload.type,
@@ -485,6 +584,10 @@ serve(async (req) => {
     const message: Record<string, unknown> = {
       message: {
         token,
+        notification: {
+          title: titleFull,
+          body: pushBody,
+        },
         data: dataPayload,
         android: {
           priority: "high",
@@ -498,7 +601,6 @@ serve(async (req) => {
             aps: {
               alert: {
                 title: titleFull,
-                subtitle: resolvedSenderName,
                 body: pushBody,
               },
               sound: "default",
@@ -528,6 +630,7 @@ serve(async (req) => {
         return {
           token,
           ok: false,
+          status: res.status,
           error: `HTTP ${res.status}: ${txt}`,
         };
       }
@@ -541,6 +644,40 @@ serve(async (req) => {
 
   const failures = results.filter((r) => !r.ok);
   const successes = results.length - failures.length;
+  const staleTokens = failures
+    .filter((f) => {
+      const errorText = (f.error ?? "").toLowerCase();
+      return errorText.includes("unregistered") ||
+        errorText.includes("registration-token-not-registered");
+    })
+    .map((f) => f.token)
+    .filter((token, index, arr) => arr.indexOf(token) === index);
+
+  if (staleTokens.length > 0) {
+    await supabaseAdmin
+      .from("device_tokens")
+      .delete()
+      .in("token", staleTokens);
+  }
+
+  console.log(JSON.stringify({
+    event: "notify_friend_result",
+    type: payload.type,
+    room_id: payload.room_id,
+    message_id: payload.message_id,
+    recipients: recipientIds.length,
+    tokens: tokenLocales.length,
+    sent_count: successes,
+    failure_count: failures.length,
+    stale_tokens_removed: staleTokens.length,
+  }));
+
+  if (failures.length > 0) {
+    console.warn(JSON.stringify({
+      event: "notify_friend_failures",
+      failures: failures.slice(0, 5),
+    }));
+  }
 
   return jsonResponse(200, {
     success: failures.length === 0,

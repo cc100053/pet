@@ -33,13 +33,14 @@ Remove these UI controls once Phase 1 testing is complete.
 
 ### Push notification acceptance checks (custom payload/UI)
 - Verify payload fields in `notify_friend` send path include:
-  - `message_type`, `pet_name`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `title_app_name`, `title_full`.
+  - `message_kind` (`message_type` legacy fallback), `pet_name`, `sender_name`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `body_full`, `title_app_name`, `title_full`.
 - Locale title rule:
-  - Device locale `ja-*` => title begins with `ペットモ`.
-  - Any non-`ja-*` locale => title begins with `PetTomo`.
+  - `title_full` equals pet name only.
+  - If pet name is longer than 7 characters, it is collapsed to `7 chars + ...`.
 - Body rule:
-  - `message_type=image_feed` => body starts with `🖼️` and includes caption when present.
-  - `message_type=text` => body equals raw text message.
+  - `message_kind=text` => body is `<sender>: <text_body>`.
+  - `message_kind=image_feed` => body uses localized `<sender> fed <petName>` phrasing.
+  - If sender name is longer than 7 characters, sender display is collapsed to `7 chars + ...`.
 - Android visual rule:
   - Notification uses `MessagingStyle` and groups by room (`room_id`).
   - Large icon shows pet avatar with app icon badge at bottom-right.

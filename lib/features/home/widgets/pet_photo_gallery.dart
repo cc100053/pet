@@ -86,8 +86,8 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
       builder: (context, constraints) {
         final responsive = HomeResponsiveSpec.fromWidth(constraints.maxWidth);
         final aspectRatio = responsive.pick(
-          compact: 0.96,
-          regular: 1.0,
+          compact: 1.2,
+          regular: 1.2,
           expanded: 1.08,
         );
         final cardMargin = responsive.pick(compact: 4, regular: 6, expanded: 8);

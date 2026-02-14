@@ -161,12 +161,28 @@ class FCMService {
         'device_locale': _systemLocaleTag(),
         'last_seen_at': now,
         'updated_at': now,
-      }, onConflict: 'user_id');
+      }, onConflict: 'token');
     } catch (_) {}
   }
 
+  String _resolveMessageType(Map<String, dynamic> data) {
+    final messageKind = (data['message_kind'] as String?)?.trim();
+    if (messageKind != null && messageKind.isNotEmpty) {
+      return messageKind;
+    }
+    final legacyType = (data['message_type'] as String?)?.trim();
+    if (legacyType != null && legacyType.isNotEmpty) {
+      return legacyType;
+    }
+    return 'text';
+  }
+
   String? _resolveBodyFromData(Map<String, dynamic> data) {
-    final messageType = (data['message_type'] as String?)?.trim();
+    final bodyFull = (data['body_full'] as String?)?.trim();
+    if (bodyFull != null && bodyFull.isNotEmpty) {
+      return bodyFull;
+    }
+    final messageType = _resolveMessageType(data);
     if (messageType == 'image_feed') {
       final caption = (data['caption'] as String?)?.trim();
       if (caption != null && caption.isNotEmpty) {

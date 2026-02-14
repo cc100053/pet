@@ -45,6 +45,7 @@ import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_game_status_bar.dart';
+import 'widgets/home_responsive.dart';
 import 'widgets/pet_photo_gallery.dart';
 import 'widgets/photo_food.dart';
 
@@ -62,13 +63,16 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   static const _petAvatarSize = Size(100, 100);
+  static const double _petCompactVisualScale = 0.74;
+  static const double _petRegularVisualScale = 0.74;
+  static const double _petExpandedVisualScale = 0.88;
   static const _photoFoodSize = Size(82, 82);
   static const int _optimisticFeedRewardCoins = 10;
   static const Duration _localFeedCooldownFallback = Duration(minutes: 10);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
   static const Duration _foodDropDuration = Duration(milliseconds: 760);
-  static const Duration _foodBiteStepDuration = Duration(milliseconds: 280);
+  static const Duration _petEatingStayDuration = Duration(seconds: 3);
   static const Duration _idleThreshold = Duration(seconds: 8);
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
@@ -140,6 +144,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   Timer? _roomSelectionRefreshTimer;
   bool _petAssetsPrecached = false;
   final Set<String> _cachedPetAssets = {};
+  bool _departureFontsWarmed = false;
+  Future<void>? _departureFontsWarmup;
   static const int _petNameMaxLength = 20;
   static const int _freePlanRoomLimit = 2;
   static const Duration _networkTimeout = Duration(seconds: 4);
@@ -221,7 +227,11 @@ class _HomeViewState extends ConsumerState<HomeView>
             if (!_isDraggingPet) {
               setState(() {
                 _petIsMoving = false;
-                _selectNextPetStationaryState();
+                if (_petEating) {
+                  _petStationaryState = _PetStationaryState.staying;
+                } else {
+                  _selectNextPetStationaryState();
+                }
               });
             }
           } else {
@@ -253,6 +263,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     for (final pet in PetCatalog.pets) {
       _precachePetAssets(pet);
     }
+    unawaited(_warmDepartureNoteFonts());
   }
 
   @override
@@ -294,6 +305,30 @@ class _HomeViewState extends ConsumerState<HomeView>
         precacheImage(AssetImage(asset), context);
       }
     }
+  }
+
+  Future<void> _warmDepartureNoteFonts() {
+    if (_departureFontsWarmed) {
+      return Future<void>.value();
+    }
+    _departureFontsWarmup ??= _loadDepartureNoteFonts();
+    return _departureFontsWarmup!;
+  }
+
+  Future<void> _loadDepartureNoteFonts() async {
+    const fontAssets = <(String, String)>[
+      ('Heiseijyoji', 'assets/font/HeiseijyojiFont.otf'),
+      ('ChildJPZh', 'assets/font/child_JP_zh.otf'),
+      (
+        'LittleKidsHandwriting',
+        'assets/font/LittleKidsHandwriting-Regular.otf',
+      ),
+    ];
+    for (final (family, assetPath) in fontAssets) {
+      final loader = FontLoader(family)..addFont(rootBundle.load(assetPath));
+      await loader.load();
+    }
+    _departureFontsWarmed = true;
   }
 
   void _updatePetType(String? petType) {
@@ -2972,6 +3007,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _showPetDepartureFlow(DepartedPetInfo info) async {
+    await _warmDepartureNoteFonts();
+    if (!mounted) {
+      return;
+    }
     final l10n = AppLocalizations.of(context)!;
     await Navigator.of(context).push(
       PageRouteBuilder(
@@ -3394,7 +3433,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _maybeTriggerWander() {
-    if (!mounted || _isDraggingPet || _petDeparted) {
+    if (!mounted || _isDraggingPet || _petDeparted || _petEating) {
       return;
     }
     final now = DateTime.now();
@@ -3547,7 +3586,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetFieldTap(Offset localPosition, Size fieldSize) {
-    if (_petDeparted) {
+    if (_petDeparted || _petEating) {
       return;
     }
     final desiredTopLeft =
@@ -3639,17 +3678,22 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    setState(() => _petEating = true);
+    setState(() {
+      _petEating = true;
+      _petIsMoving = false;
+      _petStationaryState = _PetStationaryState.staying;
+    });
     unawaited(AppSfx.playEating());
+    final biteStepDuration = Duration(
+      milliseconds: (_petEatingStayDuration.inMilliseconds / 3).round(),
+    );
     for (var stage = 1; stage <= 3; stage++) {
-      await Future<void>.delayed(_foodBiteStepDuration);
+      await Future<void>.delayed(biteStepDuration);
       if (!mounted || token != _feedingAnimationToken) {
         return;
       }
       setState(() => _photoFoodBiteStage = stage);
     }
-
-    await Future<void>.delayed(180.ms);
     if (!mounted || token != _feedingAnimationToken) {
       return;
     }
@@ -3673,7 +3717,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragStart(DragStartDetails details, Size fieldSize) {
-    if (_petDeparted) {
+    if (_petDeparted || _petEating) {
       return;
     }
     final localPosition = _globalToPetField(details.globalPosition);
@@ -4960,6 +5004,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!_petStateReady || _petState == null) {
       return _buildPetLoadingPlaceholder();
     }
+    final petVisualScale = _petVisualScale(MediaQuery.sizeOf(context).width);
     return IgnorePointer(
       ignoring: _furnitureMode,
       child: GestureDetector(
@@ -4985,12 +5030,24 @@ class _HomeViewState extends ConsumerState<HomeView>
                   1.0,
                   1.0,
                 ),
-                child: Transform.scale(scale: 0.88, child: _buildPetAvatar()),
+                child: Transform.scale(
+                  scale: petVisualScale,
+                  child: _buildPetAvatar(),
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  double _petVisualScale(double screenWidth) {
+    final responsive = HomeResponsiveSpec.fromWidth(screenWidth);
+    return responsive.pick(
+      compact: _petCompactVisualScale,
+      regular: _petRegularVisualScale,
+      expanded: _petExpandedVisualScale,
     );
   }
 
@@ -5422,7 +5479,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     final petDefinition = PetCatalog.byId(_petType);
 
     final String asset;
-    if (_petIsMoving) {
+    if (_petEating) {
+      asset = petDefinition.stayAsset;
+    } else if (_petIsMoving) {
       asset = petDefinition.walkAsset;
     } else {
       asset = switch (_petStationaryState) {

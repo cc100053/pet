@@ -295,6 +295,13 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     _chatMessageListKey.currentState?.refreshLatest();
     widget.onFeedUploaded?.call(result, optimisticImage ?? result.imageUrl);
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
+    if (!mounted) {
+      return;
+    }
+    final route = ModalRoute.of(context);
+    if (route?.isCurrent ?? true) {
+      unawaited(Navigator.of(context).maybePop());
+    }
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
