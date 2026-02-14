@@ -1,6 +1,10 @@
 # Progress
 
 ## Done
+- Changed overfed bubble trigger semantics to feed-event-only: Home now arms overfed bubble display only when a local feed action is initiated (home feed optimistic send or chat feed send-start), and room-entry state hydration no longer replays stale `last_overfed_at` bubbles.
+- Added a Debug Tools action to manually trigger the overfed “I’m full!” bubble for 3 seconds on Pet Home, with localized labels across EN/JA/zh/zh-TW.
+- Fixed overfed (“I’m full”) bubble drift on scaled pet rendering: bubble anchor in `home_view` now compensates for pet visual scale in compact/regular/expanded layouts, so the caption tracks the pet consistently instead of floating too far above/left on smaller screens.
+- Changed chat feed navigation to mirror Pet Home feed-camera behavior: once send is tapped, chat now exits immediately back to Pet Home (without waiting upload completion) by wiring a send-start callback from `FeedCaptureView` through `ChatRoomView` to `HomeView`.
 - Updated native platform launch screens (pre-Flutter) to the new branding: Android `launch_background.xml` (`drawable` + `drawable-v21`) now uses `#80CEF6` with centered `launch_logo`, and iOS `LaunchScreen.storyboard` background is `#80CEF6` with `LaunchImage` set to `scaleAspectFit`; `LaunchImage.imageset` PNGs were regenerated from `assets/app/LaunchLogo.png`.
 - Refined the login page to match the provided reference composition more closely: centered white inner card inside a `#B2E1FB` rounded frame on `#80CEF6`, `LoginPage.png` logo block positioned at the top of the card, and sign-in buttons stacked beneath with centered narrow width while preserving existing button styles/behavior.
 - Replaced startup and sign-in visuals to match the new art direction: Home bootstrap loading screen now uses `assets/app/LaunchLogo.png` on a solid `#80CEF6` background, and `SignInView` now uses a `#80CEF6` page background with a centered rounded `#B2E1FB` frame containing `assets/app/LoginPage.png` and both OAuth sign-in buttons inside the frame.
@@ -410,3 +414,4 @@
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account` and `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion (Apple guideline recommends revoking user tokens).
 - Made in-room pet visual size breakpoint-aware: compact and regular now render smaller pet scale while expanded keeps the prior size, reducing perceived pet oversized issues on small/medium phones without changing expanded layout.
+- Tuned global UI scale for regular-width phones from `0.8` to `0.92` (`appUiScale`), keeping compact and expanded breakpoints unchanged.

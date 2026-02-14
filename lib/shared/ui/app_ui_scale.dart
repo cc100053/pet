@@ -6,7 +6,7 @@ double appUiScale(double screenWidth) {
     return 0.76;
   }
   if (screenWidth <= 430) {
-    return 0.8;
+    return 0.92;
   }
   return 1.0;
 }

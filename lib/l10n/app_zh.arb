@@ -163,6 +163,7 @@
   "drawerDebugHungerDown": "寵物飢餓度 -10",
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓寵物便便",
+  "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
   "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
   "drawerDebugTestHardUpdate": "測試強制更新彈窗",
   "drawerInviteCode": "代碼：{code}",

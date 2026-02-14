@@ -33,6 +33,7 @@ class ChatRoomView extends StatefulWidget {
     this.isDarkBackground = false,
     this.isPetDeparted = false,
     this.isRoomLocked = false,
+    this.onFeedSendStarted,
     this.onFeedUploaded,
   });
 
@@ -44,6 +45,7 @@ class ChatRoomView extends StatefulWidget {
   final bool isDarkBackground;
   final bool isPetDeparted;
   final bool isRoomLocked;
+  final ValueChanged<FeedOptimisticMessage>? onFeedSendStarted;
   final void Function(FeedUploadResult result, String? imageSource)?
   onFeedUploaded;
 
@@ -57,6 +59,7 @@ final _chatMessageListKey = GlobalKey<ChatMessageListState>();
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
   final Map<String, String> _optimisticFeedImageByTempId = {};
+  bool _shouldExitAfterFeedSend = false;
   bool _sending = false;
   int? _memberCount;
   static const double _topBarHeight = 64;
@@ -259,6 +262,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         builder: (_) => FeedCaptureView(
           roomId: widget.roomId,
           onOptimisticMessage: _handleOptimisticFeed,
+          onSendStarted: _handleFeedSendStarted,
           onUploadCompleted: _handleFeedUploadCompleted,
           onUploadFailed: _handleFeedUploadFailed,
         ),
@@ -268,6 +272,15 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       return;
     }
     _chatMessageListKey.currentState?.refreshLatest();
+    if (_shouldExitAfterFeedSend) {
+      _shouldExitAfterFeedSend = false;
+      unawaited(Navigator.of(context).maybePop());
+    }
+  }
+
+  void _handleFeedSendStarted(FeedOptimisticMessage entry) {
+    _shouldExitAfterFeedSend = true;
+    widget.onFeedSendStarted?.call(entry);
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
@@ -295,13 +308,6 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     _chatMessageListKey.currentState?.refreshLatest();
     widget.onFeedUploaded?.call(result, optimisticImage ?? result.imageUrl);
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
-    if (!mounted) {
-      return;
-    }
-    final route = ModalRoute.of(context);
-    if (route?.isCurrent ?? true) {
-      unawaited(Navigator.of(context).maybePop());
-    }
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {

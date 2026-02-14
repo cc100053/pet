@@ -77,6 +77,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
   static const Duration _petTickInterval = Duration(minutes: 5);
   static const Duration _roomSelectionRefreshInterval = Duration(seconds: 45);
+  static const Duration _overfedFeedEventWindow = Duration(seconds: 45);
   static const _furnitureItemSize = Size(42, 42);
   static const _poopEmojiSize = Size(28, 28);
 
@@ -104,6 +105,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, String> _petIdByRoom = {};
   String? _petError;
   DateTime? _lastOverfedAt;
+  DateTime? _overfedFeedEventArmedAt;
   bool _showOverfedBubble = false;
   Timer? _overfedBubbleTimer;
   String? _petName;
@@ -816,6 +818,20 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  void _debugShowOverfedBubble() {
+    _overfedBubbleTimer?.cancel();
+    setState(() {
+      _lastOverfedAt = DateTime.now().toUtc();
+      _showOverfedBubble = true;
+    });
+    _overfedBubbleTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _showOverfedBubble = false);
+    });
+  }
+
   Future<Map<String, dynamic>?> _fetchPetState(String petId) async {
     return Supabase.instance.client
         .from('pet_state')
@@ -1318,6 +1334,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _petId = null;
       _petStateReady = false;
       _lastOverfedAt = null;
+      _overfedFeedEventArmedAt = null;
       _showOverfedBubble = false;
       _petDeparted = likelyDeparted;
       _petDeparturePrompted = false;
@@ -2582,6 +2599,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    _armOverfedBubbleForFeedEvent();
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
     _optimisticFeedRoomByTempId[entry.tempId] = entry.roomId;
     final optimisticMessage = ChatMessage(
@@ -2756,6 +2774,11 @@ class _HomeViewState extends ConsumerState<HomeView>
               petAssetPath: petAssetPath,
               isPetDeparted: _petDeparted,
               isRoomLocked: isRoomLocked,
+              onFeedSendStarted: (entry) {
+                _armOverfedBubbleForFeedEvent();
+                pendingFeedEvent = true;
+                pendingFeedImageSource = entry.localImagePath;
+              },
               onFeedUploaded: (result, imageSource) {
                 pendingFeedEvent = true;
                 pendingFeedImageSource = result.imageUrl ?? imageSource;
@@ -3420,7 +3443,14 @@ class _HomeViewState extends ConsumerState<HomeView>
       _lastOverfedAt = lastOverfed;
       return;
     }
+    final armedAt = _overfedFeedEventArmedAt;
+    if (armedAt == null ||
+        DateTime.now().toUtc().difference(armedAt) > _overfedFeedEventWindow) {
+      _lastOverfedAt = lastOverfed;
+      return;
+    }
     _lastOverfedAt = lastOverfed;
+    _overfedFeedEventArmedAt = null;
     _overfedBubbleTimer?.cancel();
     setState(() => _showOverfedBubble = true);
     _overfedBubbleTimer = Timer(const Duration(seconds: 3), () {
@@ -3429,6 +3459,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       setState(() => _showOverfedBubble = false);
     });
+  }
+
+  void _armOverfedBubbleForFeedEvent() {
+    _overfedFeedEventArmedAt = DateTime.now().toUtc();
   }
 
   void _maybeTriggerWander() {
@@ -5004,6 +5038,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       return _buildPetLoadingPlaceholder();
     }
     final petVisualScale = _petVisualScale(MediaQuery.sizeOf(context).width);
+    final overfedBubbleOffset = _overfedBubbleOffset(petVisualScale);
     return IgnorePointer(
       ignoring: _furnitureMode,
       child: GestureDetector(
@@ -5014,7 +5049,11 @@ class _HomeViewState extends ConsumerState<HomeView>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned(left: -6, top: -54, child: _buildOverfedBubble()),
+            Positioned(
+              left: overfedBubbleOffset.dx,
+              top: overfedBubbleOffset.dy,
+              child: _buildOverfedBubble(),
+            ),
             JuicyScaleButton(
               onTap: _petBusy
                   ? null
@@ -5048,6 +5087,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       regular: _petRegularVisualScale,
       expanded: _petExpandedVisualScale,
     );
+  }
+
+  Offset _overfedBubbleOffset(double petVisualScale) {
+    final insetX = (_petAvatarSize.width * (1 - petVisualScale)) / 2;
+    final insetY = (_petAvatarSize.height * (1 - petVisualScale)) / 2;
+    return Offset(-6 + insetX, -54 + insetY);
   }
 
   Widget _buildPetLoadingPlaceholder() {
@@ -5665,6 +5710,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           ListTile(
             title: Text(l10n.drawerDebugSpawnPoop),
             onTap: (_petBusy || _roomId == null) ? null : _debugSpawnPetPoop,
+          ),
+          ListTile(
+            title: Text(l10n.drawerDebugShowFullBubble),
+            onTap: (_petState == null || !_petStateReady || _petDeparted)
+                ? null
+                : _debugShowOverfedBubble,
           ),
           ListTile(
             title: Text(l10n.drawerDebugTestSoftUpdate),

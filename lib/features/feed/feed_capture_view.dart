@@ -17,12 +17,14 @@ class FeedCaptureView extends StatefulWidget {
     super.key,
     required this.roomId,
     this.onOptimisticMessage,
+    this.onSendStarted,
     this.onUploadCompleted,
     this.onUploadFailed,
   });
 
   final String roomId;
   final ValueChanged<FeedOptimisticMessage>? onOptimisticMessage;
+  final ValueChanged<FeedOptimisticMessage>? onSendStarted;
   final ValueChanged<FeedUploadResult>? onUploadCompleted;
   final void Function(String tempId, Object error)? onUploadFailed;
 
@@ -105,17 +107,17 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
 
       final caption = _captionController.text.trim();
 
-      widget.onOptimisticMessage?.call(
-        FeedOptimisticMessage(
-          tempId: tempId,
-          roomId: widget.roomId,
-          senderId: userId,
-          localImagePath: image.path,
-          caption: caption.isEmpty ? null : caption,
-          clientCreatedAt: clientCreatedAt,
-          labels: labelsPayload,
-        ),
+      final optimistic = FeedOptimisticMessage(
+        tempId: tempId,
+        roomId: widget.roomId,
+        senderId: userId,
+        localImagePath: image.path,
+        caption: caption.isEmpty ? null : caption,
+        clientCreatedAt: clientCreatedAt,
+        labels: labelsPayload,
       );
+      widget.onOptimisticMessage?.call(optimistic);
+      widget.onSendStarted?.call(optimistic);
 
       unawaited(
         _sendFeedInBackground(

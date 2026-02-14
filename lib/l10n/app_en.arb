@@ -163,6 +163,7 @@
   "drawerDebugHungerDown": "-10 Pet Hunger",
   "drawerDebugAddExp": "+10 EXP",
   "drawerDebugSpawnPoop": "Make Pet Poop",
+  "drawerDebugShowFullBubble": "Show \"I'm Full\" Bubble",
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
   "drawerInviteCode": "Code: {code}",

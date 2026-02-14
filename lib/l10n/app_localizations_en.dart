@@ -288,6 +288,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugSpawnPoop => 'Make Pet Poop';
 
   @override
+  String get drawerDebugShowFullBubble => 'Show \"I\'m Full\" Bubble';
+
+  @override
   String get drawerDebugTestSoftUpdate => 'Test Soft Update Prompt';
 
   @override

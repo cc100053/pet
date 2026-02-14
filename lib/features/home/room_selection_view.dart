@@ -833,7 +833,7 @@ class _RoomSelectionFrameTokens {
         expanded: 0.62,
       ),
       captionTopInset:
-          responsive.pick(compact: 8, regular: 10, expanded: 12) * scale,
+          responsive.pick(compact: 18, regular: 18, expanded: 12) * scale,
     );
   }
 }

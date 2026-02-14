@@ -279,6 +279,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugSpawnPoop => 'うんちさせる';
 
   @override
+  String get drawerDebugShowFullBubble => '「おなかいっぱい！」を表示';
+
+  @override
   String get drawerDebugTestSoftUpdate => 'ソフト更新ポップアップを確認';
 
   @override

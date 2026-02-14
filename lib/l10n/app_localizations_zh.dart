@@ -279,6 +279,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugSpawnPoop => '讓寵物便便';
 
   @override
+  String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
+
+  @override
   String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';
 
   @override
@@ -1402,6 +1405,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugSpawnPoop => '讓寵物便便';
+
+  @override
+  String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
 
   @override
   String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';

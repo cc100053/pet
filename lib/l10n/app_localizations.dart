@@ -575,6 +575,12 @@ abstract class AppLocalizations {
   /// **'Make Pet Poop'**
   String get drawerDebugSpawnPoop;
 
+  /// No description provided for @drawerDebugShowFullBubble.
+  ///
+  /// In en, this message translates to:
+  /// **'Show \"I\'m Full\" Bubble'**
+  String get drawerDebugShowFullBubble;
+
   /// No description provided for @drawerDebugTestSoftUpdate.
   ///
   /// In en, this message translates to:

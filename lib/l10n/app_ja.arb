@@ -163,6 +163,7 @@
   "drawerDebugHungerDown": "ペット空腹度 -10",
   "drawerDebugAddExp": "経験値 +10",
   "drawerDebugSpawnPoop": "うんちさせる",
+  "drawerDebugShowFullBubble": "「おなかいっぱい！」を表示",
   "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
   "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
   "drawerInviteCode": "コード: {code}",
