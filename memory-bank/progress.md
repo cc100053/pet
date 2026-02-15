@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Added iOS privacy-compliance hardening for App Store review: introduced `PrivacyInfo.xcprivacy` manifests for both `Runner` and `PetTomoNotificationServiceExtension`, added `NSUserTrackingUsageDescription` + disabled default Firebase analytics collection in `Info.plist`, and now gate analytics collection on iOS behind ATT authorization in `AnalyticsService.configureCollection()` before app startup continues.
 - Reduced post-tap gallery jump risk by disabling `portraitFriendlyCrop` in Home `PetPhotoGallery` cards, preventing post-image-dimension fit switching (`cover` -> `fitWidth`) after async image resolve.
 - Updated Pet Home currency pill layout to a strict 3-part split (`diamond:candy:add = 4:4:2`), giving the add button a smaller dedicated segment and preventing overlap with candy/diamond values.
 - Stabilized Home `PetPhotoGallery` post-viewer layout by deriving both breakpoint/aspect ratio and frame tokens (`captionTopInset`, avatar overlap sizing) from the same `LayoutBuilder` width; this removes one-off caption spacing shifts after opening/closing fullscreen image preview.

@@ -39,8 +39,12 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>PetTomo needs camera access to capture pet feed photos.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>PetTomo uses tracking permission to improve analytics and app experience.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PetTomo needs photo access to choose feed images.</string>
 	<key>NSLocalNetworkUsageDescription</key>

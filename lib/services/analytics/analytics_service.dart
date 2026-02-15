@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
 
 class AnalyticsService {
   AnalyticsService._();
@@ -6,6 +10,22 @@ class AnalyticsService {
   static final AnalyticsService instance = AnalyticsService._();
 
   final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+
+  Future<void> configureCollection() async {
+    try {
+      if (kIsWeb || !Platform.isIOS) {
+        await _analytics.setAnalyticsCollectionEnabled(true);
+        return;
+      }
+
+      var status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      if (status == TrackingStatus.notDetermined) {
+        status = await AppTrackingTransparency.requestTrackingAuthorization();
+      }
+      final allowTracking = status == TrackingStatus.authorized;
+      await _analytics.setAnalyticsCollectionEnabled(allowTracking);
+    } catch (_) {}
+  }
 
   Future<void> setUserId(String? userId) async {
     try {
