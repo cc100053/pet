@@ -80,3 +80,5 @@ To update the HTML pages (privacy policy, support), run:
 ```bash
 firebase deploy --only hosting
 ```
+
+flutter run -d 00008130-000C51913AA0001C --release

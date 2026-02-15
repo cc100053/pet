@@ -197,6 +197,16 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `value` (jsonb)
   - `updated_at`
 
+- `notification_delivery_logs`
+  - `id` (uuid, pk)
+  - `created_at` (timestamptz)
+  - `room_id`, `message_id`, `sender_id`, `recipient_user_id` (text)
+  - `token_prefix`, `token_suffix` (text; masked token diagnostics)
+  - `platform`, `locale` (text)
+  - `payload_type`, `message_kind` (text)
+  - `success` (bool), `http_status` (int), `error_text` (text)
+  - `provider_response` (jsonb)
+
 ## RLS Policy Drafts
 Enable RLS on all tables. Use `auth.uid()` and room scoping.
 

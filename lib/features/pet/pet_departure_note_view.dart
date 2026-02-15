@@ -28,29 +28,35 @@ class PetDepartureNoteView extends StatelessWidget {
     final baseNoteStyle =
         Theme.of(context).textTheme.headlineSmall ??
         const TextStyle(fontSize: 24);
+    final enlargedNoteFontSize = ((baseNoteStyle.fontSize ?? 24) * 1.18)
+        .clamp(26.0, 32.0)
+        .toDouble();
+    final scaledBaseNoteStyle = baseNoteStyle.copyWith(
+      fontSize: enlargedNoteFontSize,
+    );
     final petNoteStyle = useJapaneseFont
-        ? baseNoteStyle.copyWith(
+        ? scaledBaseNoteStyle.copyWith(
             fontFamily: 'Heiseijyoji',
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
             height: 1.35,
           )
         : useChineseFont
-        ? baseNoteStyle.copyWith(
+        ? scaledBaseNoteStyle.copyWith(
             fontFamily: 'ChildJPZh',
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
             height: 1.35,
           )
         : useEnglishFont
-        ? baseNoteStyle.copyWith(
+        ? scaledBaseNoteStyle.copyWith(
             fontFamily: 'LittleKidsHandwriting',
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
             height: 1.35,
           )
         : GoogleFonts.kleeOne(
-            textStyle: Theme.of(context).textTheme.headlineSmall,
+            textStyle: scaledBaseNoteStyle,
             color: const Color(0xFF4A3B2A),
             fontWeight: FontWeight.w600,
             height: 1.35,

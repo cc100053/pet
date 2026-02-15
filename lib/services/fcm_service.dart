@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +16,11 @@ class FCMService {
   final _messaging = FirebaseMessaging.instance;
   final _supabase = Supabase.instance.client;
   final _localNotifications = FlutterLocalNotificationsPlugin();
+  StreamSubscription<String>? _tokenRefreshSubscription;
+  StreamSubscription<AuthState>? _authStateSubscription;
+  bool _initialized = false;
+  bool _syncInFlight = false;
+  Timer? _retryTimer;
   static const _channel = AndroidNotificationChannel(
     'feed_notifications',
     'Feed Notifications',
@@ -22,35 +29,62 @@ class FCMService {
   );
 
   Future<void> initialize() async {
+    if (_initialized) {
+      await _attemptTokenSync();
+      return;
+    }
+
     // 1. Request Permission (Critical for iOS)
-    NotificationSettings settings = await _messaging.requestPermission(
+    final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      await _messaging.setAutoInitEnabled(true);
-      await _initLocalNotifications();
-
-      // 2. Fetch the FCM Token (retry until APNS is ready on iOS)
-      await _attemptTokenSync();
-
-      // 3. Listen for token refreshes
-      _messaging.onTokenRefresh.listen((newToken) {
-        _saveTokenToSupabase(newToken);
-      });
-
-      // 4. Foreground Message Handler
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        // Android foreground rendering is handled by the native
-        // FirebaseMessagingService implementation.
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          return;
-        }
-        _showForegroundNotification(message);
-      });
+    final status = settings.authorizationStatus;
+    if (status == AuthorizationStatus.denied) {
+      debugPrint('FCM initialize skipped: notification permission denied');
+      return;
     }
+
+    await _messaging.setAutoInitEnabled(true);
+    await _initLocalNotifications();
+
+    // 2. Fetch the FCM Token (retry until APNS is ready on iOS)
+    await _attemptTokenSync();
+
+    // 3. Listen for token refreshes
+    _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((newToken) {
+      _saveTokenToSupabase(newToken);
+    });
+
+    // 3b. Re-sync token after auth transitions (fresh installs may
+    // initialize FCM before a valid user session is available).
+    _authStateSubscription?.cancel();
+    _authStateSubscription = _supabase.auth.onAuthStateChange.listen((data) {
+      if (data.session != null) {
+        unawaited(_attemptTokenSync());
+      }
+    });
+
+    // 4. Foreground Message Handler
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Android foreground rendering is handled by the native
+      // FirebaseMessagingService implementation.
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        return;
+      }
+      // Keep a local fallback for iOS foreground to guarantee a visible
+      // alert when system foreground presentation is suppressed by device
+      // notification settings/focus modes. Background notifications still
+      // use the remote communication-notification path.
+      _showForegroundNotification(message);
+    });
+    _initialized = true;
+  }
+
+  Future<void> refreshTokenSync() async {
+    await _attemptTokenSync();
   }
 
   Future<void> _initLocalNotifications() async {
@@ -109,21 +143,41 @@ class FCMService {
   }
 
   Future<void> _attemptTokenSync() async {
-    const delays = [0, 1, 2, 3, 5, 8];
-    for (final seconds in delays) {
-      if (seconds > 0) {
-        await Future.delayed(Duration(seconds: seconds));
-      }
-      final apnsReady = await _isApnsReady();
-      if (!apnsReady) {
-        continue;
-      }
-      final token = await _getFcmTokenSafely();
-      if (token != null) {
-        await _saveTokenToSupabase(token);
-        return;
-      }
+    if (_syncInFlight) {
+      return;
     }
+    _syncInFlight = true;
+    const delays = [0, 1, 2, 3, 5, 8];
+    try {
+      for (final seconds in delays) {
+        if (seconds > 0) {
+          await Future.delayed(Duration(seconds: seconds));
+        }
+        final apnsReady = await _isApnsReady();
+        if (!apnsReady) {
+          continue;
+        }
+        final token = await _getFcmTokenSafely();
+        if (token != null) {
+          await _saveTokenToSupabase(token);
+          _retryTimer?.cancel();
+          _retryTimer = null;
+          return;
+        }
+      }
+      _scheduleRetry();
+    } finally {
+      _syncInFlight = false;
+    }
+  }
+
+  void _scheduleRetry() {
+    if (_retryTimer?.isActive ?? false) {
+      return;
+    }
+    _retryTimer = Timer(const Duration(seconds: 20), () {
+      unawaited(_attemptTokenSync());
+    });
   }
 
   Future<bool> _isApnsReady() async {
@@ -150,7 +204,9 @@ class FCMService {
 
   Future<void> _saveTokenToSupabase(String token) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      return;
+    }
 
     try {
       final now = DateTime.now().toUtc().toIso8601String();
@@ -162,7 +218,11 @@ class FCMService {
         'last_seen_at': now,
         'updated_at': now,
       }, onConflict: 'token');
-    } catch (_) {}
+    } catch (error, stack) {
+      debugPrint('FCM token sync failed: $error');
+      debugPrintStack(stackTrace: stack);
+      _scheduleRetry();
+    }
   }
 
   String _resolveMessageType(Map<String, dynamic> data) {

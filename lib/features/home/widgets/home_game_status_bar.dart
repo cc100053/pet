@@ -232,6 +232,7 @@ class _LeftCluster extends StatelessWidget {
                             onTap: onInviteTap!,
                             loading: inviteLoading,
                             icon: Icons.mail_outline_rounded,
+                            minWidth: 60,
                           ),
                         if (inventoryLabel != null && onInventoryTap != null)
                           _ActionChip(
@@ -239,6 +240,7 @@ class _LeftCluster extends StatelessWidget {
                             onTap: onInventoryTap!,
                             icon: Icons.inventory_2_outlined,
                             iconOnly: true,
+                            minWidth: 36,
                           ),
                       ],
                     ),
@@ -260,6 +262,7 @@ class _ActionChip extends StatelessWidget {
     this.loading = false,
     required this.icon,
     this.iconOnly = false,
+    this.minWidth,
   });
 
   final String label;
@@ -267,6 +270,7 @@ class _ActionChip extends StatelessWidget {
   final bool loading;
   final IconData icon;
   final bool iconOnly;
+  final double? minWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -292,7 +296,7 @@ class _ActionChip extends StatelessWidget {
               ],
             ),
             child: SizedBox(
-              width: iconOnly ? (30 * scale) : null,
+              width: minWidth == null ? null : minWidth! * scale,
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: (iconOnly ? 9 : 10) * scale,
@@ -300,9 +304,10 @@ class _ActionChip extends StatelessWidget {
                 ),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (loading)
                         const SizedBox(
@@ -761,6 +766,10 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
 
   @override
   Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    final addButtonSize = 16 * scale;
+    final iconSize = 16 * scale;
+    final dividerHeight = 12 * scale;
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.centerRight,
@@ -770,152 +779,178 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
           child: InkWell(
             onTap: widget.onStoreTap,
             borderRadius: BorderRadius.circular(999),
-            child: Container(
+            child: SizedBox(
               width: widget.expandToWidth ? double.infinity : null,
-              padding: EdgeInsets.fromLTRB(
-                10,
-                5,
-                widget.expandToWidth ? 10 : 16,
-                5,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: Colors.black87, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 10,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
               child: Row(
                 mainAxisSize: widget.expandToWidth
                     ? MainAxisSize.max
                     : MainAxisSize.min,
                 children: [
-                  // Diamonds Part
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.diamond_rounded,
-                        size: 16,
-                        color: _diamondColor,
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8 * scale,
+                        vertical: 5 * scale,
                       ),
-                      const Gap(4),
-                      Text(
-                        '${widget.diamonds}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                          height: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Gap(8),
-                  Container(
-                    width: 1,
-                    height: 12,
-                    color: Colors.black.withValues(alpha: 0.1),
-                  ),
-                  const Gap(8),
-                  // Coins Part
-                  AnimatedBuilder(
-                    animation: _bounceAnimation,
-                    builder: (context, child) {
-                      return Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Transform.scale(
-                                scale: _bounceAnimation.value,
-                                child: SvgPicture.asset(
-                                  'assets/icon/icon-park--candy.svg',
-                                  width: 16,
-                                  height: 16,
-                                  colorFilter: const ColorFilter.mode(
-                                    AppTheme.secondaryColor,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                              ),
-                              const Gap(4),
-                              Text(
-                                '${widget.coins}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13,
-                                  height: 1,
-                                ),
-                              ),
-                            ],
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.black87, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
                           ),
-                          if (_displayReward != null)
-                            Positioned(
-                              right: -10,
-                              top: -20,
-                              child: SlideTransition(
-                                position: _floatOffset,
-                                child: FadeTransition(
-                                  opacity: _floatOpacity,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.secondaryColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppTheme.secondaryColor
-                                              .withValues(alpha: 0.4),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      '+$_displayReward',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 14,
-                                        color: Colors.white,
-                                        height: 1,
-                                      ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.diamond_rounded,
+                                    size: iconSize,
+                                    color: _diamondColor,
+                                  ),
+                                  Gap(4 * scale),
+                                  Text(
+                                    '${widget.diamonds}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13 * scale,
+                                      height: 1,
                                     ),
                                   ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: dividerHeight,
+                            color: Colors.black.withValues(alpha: 0.1),
+                          ),
+                          Expanded(
+                            flex: 4,
+                            child: Center(
+                              child: AnimatedBuilder(
+                                animation: _bounceAnimation,
+                                builder: (context, child) {
+                                  return Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Transform.scale(
+                                            scale: _bounceAnimation.value,
+                                            child: SvgPicture.asset(
+                                              'assets/icon/icon-park--candy.svg',
+                                              width: iconSize,
+                                              height: iconSize,
+                                              colorFilter:
+                                                  const ColorFilter.mode(
+                                                    AppTheme.secondaryColor,
+                                                    BlendMode.srcIn,
+                                                  ),
+                                            ),
+                                          ),
+                                          Gap(4 * scale),
+                                          Text(
+                                            '${widget.coins}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 13 * scale,
+                                              height: 1,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (_displayReward != null)
+                                        Positioned(
+                                          right: -10 * scale,
+                                          top: -20 * scale,
+                                          child: SlideTransition(
+                                            position: _floatOffset,
+                                            child: FadeTransition(
+                                              opacity: _floatOpacity,
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8 * scale,
+                                                  vertical: 4 * scale,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      AppTheme.secondaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: AppTheme
+                                                          .secondaryColor
+                                                          .withValues(
+                                                            alpha: 0.4,
+                                                          ),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Text(
+                                                  '+$_displayReward',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: 14 * scale,
+                                                    color: Colors.white,
+                                                    height: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: dividerHeight,
+                            color: Colors.black.withValues(alpha: 0.1),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Center(
+                              child: Container(
+                                width: addButtonSize,
+                                height: addButtonSize,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEE6D85),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.black87,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  size: 10 * scale,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
+                          ),
                         ],
-                      );
-                    },
-                  ),
-                  if (widget.expandToWidth) const Spacer(),
-                  const Gap(6),
-                  SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: Center(
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEE6D85),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black87, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          size: 10,
-                          color: Colors.white,
-                        ),
                       ),
                     ),
                   ),

@@ -14,15 +14,15 @@ class PetPhotoGallery extends StatefulWidget {
     super.key,
     required this.imageUrls,
     required this.captions,
-    required this.senderAvatar,
-    required this.senderFallbackText,
+    required this.senderAvatars,
+    required this.senderFallbackTexts,
     required this.onPlaceholderTap,
   });
 
   final List<String> imageUrls;
   final List<String?> captions;
-  final String? senderAvatar;
-  final String? senderFallbackText;
+  final List<String?> senderAvatars;
+  final List<String?> senderFallbackTexts;
   final VoidCallback onPlaceholderTap;
 
   @override
@@ -84,7 +84,16 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
     final urls = _urls;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final responsive = HomeResponsiveSpec.fromWidth(constraints.maxWidth);
+        final layoutWidth =
+            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final responsive = HomeResponsiveSpec.fromWidth(layoutWidth);
+        final scale = homeUiScale(layoutWidth);
+        final tokens = _GalleryFrameTokens.fromScale(
+          scale: scale,
+          responsive: responsive,
+        );
         final aspectRatio = responsive.pick(
           compact: 1.2,
           regular: 1.2,
@@ -104,6 +113,13 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
               final caption = index < widget.captions.length
                   ? (widget.captions[index] ?? '').trim()
                   : '';
+              final senderAvatar = index < widget.senderAvatars.length
+                  ? widget.senderAvatars[index]
+                  : null;
+              final senderFallbackText =
+                  index < widget.senderFallbackTexts.length
+                  ? widget.senderFallbackTexts[index]
+                  : null;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 140),
                 curve: Curves.easeOutCubic,
@@ -117,8 +133,10 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
                       ? _GalleryPhotoCard(
                           imageUrl: urls[index],
                           caption: caption,
-                          senderAvatar: widget.senderAvatar,
-                          senderFallbackText: widget.senderFallbackText,
+                          senderAvatar: senderAvatar,
+                          senderFallbackText: senderFallbackText,
+                          scale: scale,
+                          tokens: tokens,
                           onTap: () => FullScreenPhotoViewer.open(
                             context,
                             imageUrls: urls,
@@ -133,6 +151,8 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
                         )
                       : _PlaceholderFrame(
                           ctaText: l10n.feedPickPhotoHint,
+                          scale: scale,
+                          tokens: tokens,
                           onTap: widget.onPlaceholderTap,
                         ),
                 ),
@@ -151,6 +171,8 @@ class _GalleryPhotoCard extends StatelessWidget {
     required this.caption,
     required this.senderAvatar,
     required this.senderFallbackText,
+    required this.scale,
+    required this.tokens,
     required this.onTap,
   });
 
@@ -158,6 +180,8 @@ class _GalleryPhotoCard extends StatelessWidget {
   final String caption;
   final String? senderAvatar;
   final String? senderFallbackText;
+  final double scale;
+  final _GalleryFrameTokens tokens;
   final VoidCallback onTap;
 
   @override
@@ -167,15 +191,24 @@ class _GalleryPhotoCard extends StatelessWidget {
       caption: caption.trim(),
       senderAvatar: senderAvatar,
       senderFallbackText: senderFallbackText,
+      scale: scale,
+      tokens: tokens,
       onTap: onTap,
     );
   }
 }
 
 class _PlaceholderFrame extends StatelessWidget {
-  const _PlaceholderFrame({required this.ctaText, required this.onTap});
+  const _PlaceholderFrame({
+    required this.ctaText,
+    required this.scale,
+    required this.tokens,
+    required this.onTap,
+  });
 
   final String ctaText;
+  final double scale;
+  final _GalleryFrameTokens tokens;
   final VoidCallback onTap;
 
   @override
@@ -185,6 +218,8 @@ class _PlaceholderFrame extends StatelessWidget {
       caption: ctaText,
       senderAvatar: null,
       senderFallbackText: null,
+      scale: scale,
+      tokens: tokens,
       onTap: onTap,
       emptyPhotoPlaceholder: const _PlaceholderPhotoArea(),
     );
@@ -197,6 +232,8 @@ class _GalleryPolaroidFrame extends StatelessWidget {
     required this.caption,
     required this.senderAvatar,
     required this.senderFallbackText,
+    required this.scale,
+    required this.tokens,
     required this.onTap,
     this.emptyPhotoPlaceholder,
   });
@@ -205,19 +242,14 @@ class _GalleryPolaroidFrame extends StatelessWidget {
   final String caption;
   final String? senderAvatar;
   final String? senderFallbackText;
+  final double scale;
+  final _GalleryFrameTokens tokens;
   final VoidCallback onTap;
   final Widget? emptyPhotoPlaceholder;
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final scale = homeUiScale(screenWidth);
-    final responsive = HomeResponsiveSpec.fromWidth(screenWidth);
     final hasCaption = caption.trim().isNotEmpty;
-    final tokens = _GalleryFrameTokens.fromScale(
-      scale: scale,
-      responsive: responsive,
-    );
 
     return Material(
       color: Colors.transparent,
@@ -250,7 +282,7 @@ class _GalleryPolaroidFrame extends StatelessWidget {
                         : CachedNetworkImageView(
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
-                            portraitFriendlyCrop: true,
+                            portraitFriendlyCrop: false,
                           ),
                   ),
                 ),

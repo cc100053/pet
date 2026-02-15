@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'cached_network_image_view.dart';
+import 'image_aspect_cache.dart';
 import 'status_bar_style.dart';
 
 /// iPhone-style full-screen photo viewer with:
@@ -165,10 +166,18 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   }
 
   void _ensureAspectRatio(int index) {
+    final url = widget.imageUrls[index];
+
+    // Use shared cache first – avoids async setState jump.
+    final cached = ImageAspectCache.instance.get(url);
+    if (cached != null) {
+      _aspectRatios[index] = cached;
+      return;
+    }
+
     if (_aspectRatios.containsKey(index) || _resolvingAspect.contains(index)) {
       return;
     }
-    final url = widget.imageUrls[index];
     final localPath = widget.localImagePaths[index];
     final ImageProvider provider;
     if (localPath != null && File(localPath).existsSync()) {
@@ -183,12 +192,14 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     late final ImageStreamListener listener;
     listener = ImageStreamListener((info, _) {
       final ratio = info.image.width / info.image.height;
+      final safeRatio = ratio.isFinite && ratio > 0 ? ratio : 1.0;
+      ImageAspectCache.instance.set(url, safeRatio);
       if (mounted) {
         setState(() {
-          _aspectRatios[index] = ratio.isFinite && ratio > 0 ? ratio : 1;
+          _aspectRatios[index] = safeRatio;
         });
       } else {
-        _aspectRatios[index] = ratio.isFinite && ratio > 0 ? ratio : 1;
+        _aspectRatios[index] = safeRatio;
       }
       _resolvingAspect.remove(index);
       stream.removeListener(listener);

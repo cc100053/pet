@@ -14,6 +14,7 @@ class _RoomLatestFeed {
     required this.latestSenderId,
     required this.imageUrls,
     required this.imageCaptions,
+    required this.imageSenderIds,
   });
 
   final String latestImageUrl;
@@ -21,6 +22,7 @@ class _RoomLatestFeed {
   final String? latestSenderId;
   final List<String> imageUrls;
   final List<String?> imageCaptions;
+  final List<String?> imageSenderIds;
 }
 
 class _RoomPetSummary {

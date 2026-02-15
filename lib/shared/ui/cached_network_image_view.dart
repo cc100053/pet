@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'image_aspect_cache.dart';
 import 'local_file_image.dart';
 
 class CachedNetworkImageView extends StatelessWidget {
@@ -59,6 +60,7 @@ class CachedNetworkImageView extends StatelessWidget {
       placeholderFadeInDuration: const Duration(milliseconds: 120),
       imageBuilder: (context, imageProvider) => _PortraitAwareImage(
         imageProvider: imageProvider,
+        imageUrl: imageUrl,
         fit: fit,
         portraitFriendlyCrop: portraitFriendlyCrop,
         width: width,
@@ -73,6 +75,7 @@ class CachedNetworkImageView extends StatelessWidget {
 class _PortraitAwareImage extends StatefulWidget {
   const _PortraitAwareImage({
     required this.imageProvider,
+    required this.imageUrl,
     required this.fit,
     required this.portraitFriendlyCrop,
     required this.width,
@@ -80,6 +83,7 @@ class _PortraitAwareImage extends StatefulWidget {
   });
 
   final ImageProvider imageProvider;
+  final String imageUrl;
   final BoxFit fit;
   final bool portraitFriendlyCrop;
   final double? width;
@@ -131,8 +135,10 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
       if (height <= 0 || !mounted) {
         return;
       }
+      final ratio = width / height;
+      ImageAspectCache.instance.set(widget.imageUrl, ratio);
       setState(() {
-        _aspectRatio = width / height;
+        _aspectRatio = ratio;
       });
     });
     _stream = stream;

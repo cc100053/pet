@@ -18,6 +18,7 @@
 - `supabase/migrations/20260101008000_device_tokens_single_device.sql`: Enforce single-device token per user.
 - `supabase/migrations/20260213143000_allow_multi_device_tokens.sql`: Remove per-user token uniqueness to allow concurrent push tokens across multiple devices.
 - `supabase/migrations/20260211100000_notification_payload_upgrade.sql`: Add `pets.avatar_url`, `device_tokens.device_locale`, and pet-avatar backfill for push payload shaping.
+- `supabase/migrations/20260214223500_add_notification_delivery_logs.sql`: Add push delivery log table for per-token send diagnostics.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
@@ -41,7 +42,7 @@ Implemented:
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
 - `lib/services/`: Environment loader and shared service setup.
-- `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + foreground notification fallback for iOS.
+- `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
@@ -64,7 +65,8 @@ Planned:
 - Webhooks: Trigger friend notifications on feed events.
 - Notifications:
   - Android: custom native `FirebaseMessagingService` (`NotificationCompat.MessagingStyle`) using room thread grouping and composed pet-avatar + app-badge large icon.
-  - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) rewrites title/body, sets thread id, enriches pushes as communication notifications via `INSendMessageIntent` (pet avatar as sender image), and attaches composed pet-avatar/app-badge plus feed preview.
+  - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) follows an Apple-default reliable style: fast title/body rewrite + room `thread-id` shaping only (no communication-intent donation and no remote media fetch in the extension), prioritizing consistent delivery/appearance across states.
+  - Delivery diagnostics: `notify_friend` persists per-token send outcomes to `public.notification_delivery_logs` and returns non-2xx when all token sends fail.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Ownership: Triggered owner transfer when the active owner leaves.

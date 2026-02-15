@@ -13,6 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/ui/app_ui_scale.dart';
 import '../../services/chat/chat_message_repository.dart';
 import '../../services/performance/performance_service.dart';
 import '../../services/review/review_prompt_service.dart';
@@ -62,7 +63,6 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   bool _shouldExitAfterFeedSend = false;
   bool _sending = false;
   int? _memberCount;
-  static const double _topBarHeight = 64;
 
   @override
   void initState() {
@@ -362,9 +362,16 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     final l10n = AppLocalizations.of(context)!;
     final useLightForeground = widget.isDarkBackground;
     final media = MediaQuery.of(context);
-    final listTopPadding = media.padding.top + _topBarHeight + 12;
+    final uiScale = appUiScale(media.size.width);
+    final topBarHeight = (64.0 * uiScale).clamp(56.0, 64.0);
+    final composerHeight = (64.0 * uiScale).clamp(54.0, 64.0);
+    final composerButtonSize = (42.0 * uiScale).clamp(36.0, 42.0);
+    final composerIconSize = (26.0 * uiScale).clamp(20.0, 26.0);
+    final composerOuterHorizontalPadding = (8.0 * uiScale).clamp(6.0, 8.0);
+    final composerInnerHorizontalPadding = (10.0 * uiScale).clamp(8.0, 10.0);
+    final composerVerticalPadding = (6.0 * uiScale).clamp(4.0, 6.0);
+    final listTopPadding = media.padding.top + topBarHeight + 12;
     final composerBottomInset = media.padding.bottom;
-    const composerHeight = 64.0;
     final listBottomPadding = composerHeight + composerBottomInset + 16;
 
     final overlayStyle = AppStatusBarStyles.forBackground(
@@ -382,7 +389,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           surfaceTintColor: Colors.transparent,
           shadowColor: Colors.transparent,
           systemOverlayStyle: overlayStyle,
-          toolbarHeight: _topBarHeight,
+          toolbarHeight: topBarHeight,
           automaticallyImplyLeading: false,
           titleSpacing: 0,
           title: _ChatTopBar(
@@ -390,6 +397,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
             memberCount: _memberCount == null
                 ? null
                 : l10n.chatMemberCount(_memberCount!),
+            uiScale: uiScale,
             useLightForeground: useLightForeground,
             onBack: () => Navigator.of(context).maybePop(),
             menuButton: Theme(
@@ -418,7 +426,10 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                     ),
                   ),
                 ],
-                child: _ChatMenuAvatar(petAssetPath: widget.petAssetPath),
+                child: _ChatMenuAvatar(
+                  petAssetPath: widget.petAssetPath,
+                  uiScale: uiScale,
+                ),
               ),
             ),
           ),
@@ -442,15 +453,20 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                 ),
               ),
               Positioned(
-                left: 12,
-                right: 12,
-                bottom: 10,
+                left: 12 * uiScale,
+                right: 12 * uiScale,
+                bottom: 10 * uiScale,
                 child: SafeArea(
                   top: false,
                   child: _GlassPill(
                     backgroundOpacity: useLightForeground ? 0.35 : 0.55,
                     useDarkSurface: useLightForeground,
-                    padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
+                    padding: EdgeInsets.fromLTRB(
+                      composerOuterHorizontalPadding,
+                      composerVerticalPadding,
+                      composerInnerHorizontalPadding,
+                      composerVerticalPadding,
+                    ),
                     child: Row(
                       children: [
                         IconButton(
@@ -459,8 +475,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                               : _openFeedCamera,
                           icon: SvgPicture.asset(
                             'assets/icon/solar--camera-linear.svg',
-                            width: 26,
-                            height: 26,
+                            width: composerIconSize,
+                            height: composerIconSize,
                             colorFilter: ColorFilter.mode(
                               useLightForeground
                                   ? Colors.white.withValues(alpha: 0.9)
@@ -469,6 +485,12 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                             ),
                           ),
                           tooltip: l10n.feedTitle,
+                          iconSize: composerIconSize,
+                          constraints: BoxConstraints.tightFor(
+                            width: composerButtonSize,
+                            height: composerButtonSize,
+                          ),
+                          padding: EdgeInsets.zero,
                         ),
                         Expanded(
                           child: TextField(
@@ -481,8 +503,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10,
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: (10.0 * uiScale).clamp(8.0, 10.0),
                               ),
                               isDense: true,
                               filled: true,
@@ -496,7 +518,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                             minLines: 1,
                             maxLines: 4,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: (15.0 * uiScale).clamp(13.0, 15.0),
                               color: useLightForeground
                                   ? Colors.white
                                   : AppTheme.textPrimary,
@@ -506,7 +528,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                                 : AppTheme.primaryColor,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: (6.0 * uiScale).clamp(4.0, 6.0)),
                         Tooltip(
                           message: l10n.commonSend,
                           child: Material(
@@ -515,8 +537,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                               onTap: _sending ? null : _sendMessage,
                               borderRadius: BorderRadius.circular(999),
                               child: Container(
-                                width: 42,
-                                height: 42,
+                                width: composerButtonSize,
+                                height: composerButtonSize,
                                 decoration: BoxDecoration(
                                   color: AppTheme.primaryColor,
                                   shape: BoxShape.circle,
@@ -533,8 +555,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                                 child: Center(
                                   child: SvgPicture.asset(
                                     'assets/icon/mingcute--send-plane-line.svg',
-                                    width: 26,
-                                    height: 26,
+                                    width: composerIconSize,
+                                    height: composerIconSize,
                                     colorFilter: const ColorFilter.mode(
                                       Colors.white,
                                       BlendMode.srcIn,
@@ -1110,6 +1132,7 @@ class ChatMessageListState extends State<ChatMessageList> {
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final uiScale = appUiScale(MediaQuery.of(context).size.width);
     final imageIndexByMessageId = <String, int>{};
     final imageUrls = <String>[];
     final imageCaptions = <String?>[];
@@ -1232,8 +1255,8 @@ class ChatMessageListState extends State<ChatMessageList> {
               ),
         if (_showScrollToBottom)
           Positioned(
-            right: 16,
-            bottom: 120,
+            right: resolvedPadding.right,
+            bottom: resolvedPadding.bottom + (12 * uiScale).clamp(8.0, 12.0),
             child: FloatingActionButton.small(
               onPressed: _scrollToBottom,
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
@@ -1525,6 +1548,7 @@ class _ChatTopBar extends StatelessWidget {
   const _ChatTopBar({
     required this.petName,
     required this.memberCount,
+    required this.uiScale,
     required this.useLightForeground,
     required this.onBack,
     required this.menuButton,
@@ -1532,6 +1556,7 @@ class _ChatTopBar extends StatelessWidget {
 
   final String petName;
   final String? memberCount;
+  final double uiScale;
   final bool useLightForeground;
   final VoidCallback onBack;
   final Widget menuButton;
@@ -1541,16 +1566,24 @@ class _ChatTopBar extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        padding: EdgeInsets.fromLTRB(
+          12 * uiScale,
+          8 * uiScale,
+          12 * uiScale,
+          8 * uiScale,
+        ),
         child: Row(
           children: [
             _GlassPill(
               useDarkSurface: useLightForeground,
-              padding: const EdgeInsets.all(4),
+              padding: EdgeInsets.all(4 * uiScale),
               child: IconButton(
-                iconSize: 20,
-                constraints: const BoxConstraints(), // Remove 48px limit
-                padding: const EdgeInsets.all(8), // Tighter tap area
+                iconSize: (20 * uiScale).clamp(18.0, 20.0),
+                constraints: BoxConstraints.tightFor(
+                  width: (36.0 * uiScale).clamp(32.0, 36.0),
+                  height: (36.0 * uiScale).clamp(32.0, 36.0),
+                ),
+                padding: EdgeInsets.all((8.0 * uiScale).clamp(6.0, 8.0)),
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -1560,18 +1593,18 @@ class _ChatTopBar extends StatelessWidget {
                 tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10 * uiScale),
             Flexible(
               fit: FlexFit.loose,
               child: Align(
                 alignment: Alignment.center,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
+                  constraints: BoxConstraints(maxWidth: 220 * uiScale),
                   child: _GlassPill(
                     useDarkSurface: useLightForeground,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16 * uiScale,
+                      vertical: 8 * uiScale,
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -1581,7 +1614,7 @@ class _ChatTopBar extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: (15 * uiScale).clamp(13.0, 15.0),
                             fontWeight: FontWeight.w600,
                             color: useLightForeground
                                 ? Colors.white
@@ -1592,7 +1625,7 @@ class _ChatTopBar extends StatelessWidget {
                           Text(
                             memberCount!,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: (11 * uiScale).clamp(10.0, 11.0),
                               color: useLightForeground
                                   ? Colors.white.withValues(alpha: 0.75)
                                   : Colors.black.withValues(alpha: 0.55),
@@ -1605,7 +1638,7 @@ class _ChatTopBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10 * uiScale),
             _GlassPill(
               useDarkSurface: useLightForeground,
               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
@@ -1619,22 +1652,30 @@ class _ChatTopBar extends StatelessWidget {
 }
 
 class _ChatMenuAvatar extends StatelessWidget {
-  const _ChatMenuAvatar({required this.petAssetPath});
+  const _ChatMenuAvatar({required this.petAssetPath, required this.uiScale});
 
   final String? petAssetPath;
+  final double uiScale;
 
   @override
   Widget build(BuildContext context) {
+    final avatarSize = (48.0 * uiScale).clamp(40.0, 48.0);
+    final petIconSize = (24.0 * uiScale).clamp(20.0, 24.0);
+    final petAssetSize = (40.0 * uiScale).clamp(32.0, 40.0);
     return SizedBox(
-      width: 48,
-      height: 48,
+      width: avatarSize,
+      height: avatarSize,
       child: Center(
         child: CircleAvatar(
-          radius: 24,
+          radius: avatarSize / 2,
           backgroundColor: Colors.white.withValues(alpha: 0.9),
           child: petAssetPath == null
-              ? const Icon(Icons.pets, size: 24, color: AppTheme.textPrimary)
-              : Image.asset(petAssetPath!, width: 40, height: 40),
+              ? Icon(Icons.pets, size: petIconSize, color: AppTheme.textPrimary)
+              : Image.asset(
+                  petAssetPath!,
+                  width: petAssetSize,
+                  height: petAssetSize,
+                ),
         ),
       ),
     );

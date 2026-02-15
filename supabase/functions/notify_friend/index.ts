@@ -100,6 +100,24 @@ type NotifyPayload = {
   created_at?: string | null;
 };
 
+type TokenTarget = {
+  token: string;
+  userId: string | null;
+  locale: string | null;
+  platform: string | null;
+};
+
+type SendResult = {
+  token: string;
+  userId: string | null;
+  locale: string | null;
+  platform: string | null;
+  ok: boolean;
+  status?: number;
+  error?: string;
+  response?: unknown;
+};
+
 type ServiceAccount = {
   project_id: string;
   private_key: string;
@@ -220,6 +238,24 @@ function extractPetType(colorDna: unknown): PetType {
     return DEFAULT_PET_TYPE;
   }
   return normalizePetType(petTypeValue);
+}
+
+function tokenPrefix(token: string): string {
+  return token.length <= 12 ? token : token.slice(0, 12);
+}
+
+function tokenSuffix(token: string): string {
+  return token.length <= 12 ? token : token.slice(-12);
+}
+
+function truncateText(value: string, max: number): string {
+  return value.length <= max ? value : `${value.slice(0, max)}...`;
+}
+
+function isStaleTokenFailure(errorText: string | undefined): boolean {
+  const normalized = (errorText ?? "").toLowerCase();
+  return normalized.includes("unregistered") ||
+    normalized.includes("registration-token-not-registered");
 }
 
 serve(async (req) => {
@@ -418,7 +454,7 @@ serve(async (req) => {
 
   const { data: tokenRows, error: tokensError } = await supabaseAdmin
     .from("device_tokens")
-    .select("token, user_id, device_locale")
+    .select("token, user_id, device_locale, platform")
     .in("user_id", recipientIds);
 
   if (tokensError) {
@@ -478,7 +514,7 @@ serve(async (req) => {
   }
 
   const seen = new Set<string>();
-  const tokenLocales: { token: string; locale: string | null }[] = [];
+  const tokenTargets: TokenTarget[] = [];
   for (const row of tokenRows) {
     const tk = row.token as string;
     if (seen.has(tk)) continue;
@@ -486,9 +522,11 @@ serve(async (req) => {
     const userId = row.user_id as string | null;
     const deviceLocale = nonEmptyOrNull(row.device_locale as string | null);
     const profileLocale = userId ? localeByUserId.get(userId) ?? null : null;
-    tokenLocales.push({
+    tokenTargets.push({
       token: tk,
+      userId,
       locale: deviceLocale ?? profileLocale,
+      platform: nonEmptyOrNull(row.platform as string | null),
     });
   }
 
@@ -540,14 +578,20 @@ serve(async (req) => {
   const fcmEndpoint =
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
 
-  const results = await Promise.all(tokenLocales.map(async ({ token, locale }) => {
+  const results = await Promise.all(tokenTargets.map(async ({
+    token,
+    userId,
+    locale,
+    platform,
+  }) => {
     const strings = getL10n(locale);
     const appName = localizedAppName(locale);
     const resolvedPetName = petName ?? strings.defaultPetName;
     const resolvedSenderName = senderNameRaw ?? strings.defaultSenderName;
     const collapsedPetName = collapseName(resolvedPetName, 7);
+    const collapsedPetNameForTitle = collapseName(resolvedPetName, 15);
     const collapsedSenderName = collapseName(resolvedSenderName, 7);
-    const titleFull = collapsedPetName;
+    const titleFull = collapsedPetNameForTitle;
 
     const textBodyRaw = nonEmptyOrNull(payload.body) ?? strings.defaultTextBody;
     const textBody = `${collapsedSenderName}: ${textBodyRaw}`;
@@ -565,7 +609,7 @@ serve(async (req) => {
       message_id: payload.message_id,
       // FCM reserves "message_type" as an internal key.
       message_kind: messageType,
-      pet_name: collapsedPetName,
+      pet_name: collapsedPetNameForTitle,
       sender_name: collapsedSenderName,
       pet_type: petType,
       pet_avatar_asset: petAvatarAsset,
@@ -608,9 +652,6 @@ serve(async (req) => {
               "thread-id": `room_${payload.room_id}`,
             },
           },
-          fcm_options: {
-            image: nonEmptyOrNull(payload.image_url) ?? undefined,
-          },
         },
       },
     };
@@ -629,27 +670,40 @@ serve(async (req) => {
         const txt = await res.text();
         return {
           token,
+          userId,
+          locale,
+          platform,
           ok: false,
           status: res.status,
-          error: `HTTP ${res.status}: ${txt}`,
+          error: `HTTP ${res.status}: ${truncateText(txt, 1000)}`,
         };
       }
 
       const data = await res.json();
-      return { token, ok: true, response: data };
+      return {
+        token,
+        userId,
+        locale,
+        platform,
+        ok: true,
+        response: data,
+      };
     } catch (error) {
-      return { token, ok: false, error: String(error) };
+      return {
+        token,
+        userId,
+        locale,
+        platform,
+        ok: false,
+        error: truncateText(String(error), 1000),
+      };
     }
-  }));
+  })) as SendResult[];
 
   const failures = results.filter((r) => !r.ok);
   const successes = results.length - failures.length;
   const staleTokens = failures
-    .filter((f) => {
-      const errorText = (f.error ?? "").toLowerCase();
-      return errorText.includes("unregistered") ||
-        errorText.includes("registration-token-not-registered");
-    })
+    .filter((f) => isStaleTokenFailure(f.error))
     .map((f) => f.token)
     .filter((token, index, arr) => arr.indexOf(token) === index);
 
@@ -660,13 +714,42 @@ serve(async (req) => {
       .in("token", staleTokens);
   }
 
+  const deliveryLogRows = results.map((result) => ({
+    room_id: payload.room_id,
+    message_id: payload.message_id,
+    sender_id: senderId,
+    recipient_user_id: result.userId,
+    token_prefix: tokenPrefix(result.token),
+    token_suffix: tokenSuffix(result.token),
+    platform: result.platform,
+    locale: result.locale,
+    payload_type: payload.type,
+    message_kind: payload.type === "chat_message" ? "text" : "image_feed",
+    success: result.ok,
+    http_status: result.status ?? null,
+    error_text: result.ok ? null : result.error ?? "unknown_error",
+    provider_response: result.ok ? result.response ?? null : null,
+  }));
+
+  if (deliveryLogRows.length > 0) {
+    const { error: deliveryLogError } = await supabaseAdmin
+      .from("notification_delivery_logs")
+      .insert(deliveryLogRows);
+    if (deliveryLogError) {
+      console.warn(JSON.stringify({
+        event: "notify_friend_delivery_log_failed",
+        details: deliveryLogError.message,
+      }));
+    }
+  }
+
   console.log(JSON.stringify({
     event: "notify_friend_result",
     type: payload.type,
     room_id: payload.room_id,
     message_id: payload.message_id,
     recipients: recipientIds.length,
-    tokens: tokenLocales.length,
+    tokens: tokenTargets.length,
     sent_count: successes,
     failure_count: failures.length,
     stale_tokens_removed: staleTokens.length,
@@ -675,17 +758,24 @@ serve(async (req) => {
   if (failures.length > 0) {
     console.warn(JSON.stringify({
       event: "notify_friend_failures",
-      failures: failures.slice(0, 5),
+      failures: failures.slice(0, 5).map((failure) => ({
+        token_prefix: tokenPrefix(failure.token),
+        status: failure.status ?? null,
+        error: failure.error ?? "unknown_error",
+      })),
     }));
   }
 
-  return jsonResponse(200, {
+  const responseStatus = successes === 0 && results.length > 0 ? 502 : 200;
+
+  return jsonResponse(responseStatus, {
     success: failures.length === 0,
     sent_count: successes,
     failure_count: failures.length,
-    total_tokens: tokenLocales.length,
+    total_tokens: tokenTargets.length,
     failures: failures.map((f) => ({
-      token: f.token,
+      token_prefix: tokenPrefix(f.token),
+      status: f.status ?? null,
       error: f.error,
     })),
   });
