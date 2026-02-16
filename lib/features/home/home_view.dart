@@ -711,6 +711,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           .from('pet_state')
           .update({'hunger': next})
           .eq('pet_id', petId);
+      await _dispatchNewHungerAlerts(petId: petId, roomId: roomId);
       final updatedState = await _fetchPetState(petId);
       _applyPetStateUpdate(roomId, petId, updatedState);
     } catch (error) {
@@ -2045,12 +2046,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           ),
         );
       },
-      transitionBuilder: (
-        _,
-        animation,
-        secondaryAnimation,
-        child,
-      ) {
+      transitionBuilder: (_, animation, secondaryAnimation, child) {
         return FadeTransition(
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
           child: ScaleTransition(
@@ -3900,7 +3896,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _maybeTriggerWander() {
-    if (!mounted || _isDraggingPet || _petDeparted || _petEating) {
+    if (!mounted ||
+        _isDraggingPet ||
+        _petDeparted ||
+        _petEating ||
+        _petIsMoving ||
+        _photoFoodImageSource != null) {
       return;
     }
     final now = DateTime.now();
@@ -4053,7 +4054,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetFieldTap(Offset localPosition, Size fieldSize) {
-    if (_petDeparted || _petEating) {
+    if (_petDeparted || _petEating || _photoFoodImageSource != null) {
       return;
     }
     final desiredTopLeft =
@@ -4146,6 +4147,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
 
     setState(() {
+      _petMoveController.stop();
+      _petMoveAnimation = null;
+      _petNormalizedPosition = foodTarget;
+      _petNormalizedTarget = foodTarget;
       _petEating = true;
       _petIsMoving = false;
       _petStationaryState = _PetStationaryState.staying;
@@ -4184,7 +4189,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragStart(DragStartDetails details, Size fieldSize) {
-    if (_petDeparted || _petEating) {
+    if (_petDeparted || _petEating || _photoFoodImageSource != null) {
       return;
     }
     final localPosition = _globalToPetField(details.globalPosition);
@@ -4207,7 +4212,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragUpdate(DragUpdateDetails details, Size fieldSize) {
-    if (_petDeparted) {
+    if (_petDeparted || _photoFoodImageSource != null) {
       return;
     }
     final localPosition = _globalToPetField(details.globalPosition);
@@ -4225,7 +4230,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragEnd() {
-    if (!_isDraggingPet) {
+    if (!_isDraggingPet || _photoFoodImageSource != null) {
       return;
     }
     setState(() {
@@ -4236,7 +4241,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _handlePetDragCancel() {
-    if (!_isDraggingPet) {
+    if (!_isDraggingPet || _photoFoodImageSource != null) {
       return;
     }
     setState(() {

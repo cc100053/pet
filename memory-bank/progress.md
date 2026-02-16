@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Fixed feed-arrival movement drift: during a feed sequence, wander/tap/drag movement is blocked, and on food arrival the pet position is hard-snapped to the food target before entering the 3-second eating state so no extra post-arrival steps can push it out of food range.
 - Completed Korean localization coverage for in-game UI text: translated the remaining English `app_ko.arb` strings (errors, chat, feed, room flows, store/inventory, pet states, and prompts) so Korean no longer falls back to mixed English in normal gameplay paths; also localized chat system fallbacks (`petNameUnknown`) and added Korean rename/clean-message parsing compatibility.
 - Redesigned the invite-code copied popup to a premium translucent modal distinct from the default dialog style: replaced the standard success dialog with a custom blur-backed glass popup (layered transparency, warm accent badge, elevated gradient CTA, and fade/scale entrance).
 - Unified pet-name typography across Home and Room Selection: introduced shared `petNameTextStyle` (`ChildJPZh`, regular weight) and applied it to the Home status pet-name chip, Room Selection card pet-name label, and Room Options pet-name subtitle to remove mixed-weight/appearance inconsistencies.

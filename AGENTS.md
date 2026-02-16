@@ -128,11 +128,14 @@ flutter run
 
 ### Supabase Postgres Best Practices
 
-> **MCP-First**: Always use Supabase MCP tools for schema/function/policy changes. Never ask user to open dashboard.
+> **MCP-First**: Always use Supabase MCP tools for schema/function/policy changes.
+> **Execute immediately** — do NOT just write or display SQL; apply it directly via MCP tools (`execute_sql` / `apply_migration`).
+> Never ask user to open dashboard or run SQL manually.
 
 #### MCP Workflow
 - Auth: `codex mcp login supabase` (one-time)
-- Use MCP to explore schema, execute SQL, and run migrations
+- **If MCP tools fail or are unauthenticated**, run `codex mcp login supabase` directly in the terminal so the user can complete the interactive login, then retry the MCP operation.
+- Use MCP to explore schema, **execute SQL directly** (not just display it), and run migrations
 - Save migrations to `supabase/migrations/` with timestamp prefix, commit to Git
 
 #### Schema
