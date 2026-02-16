@@ -111,6 +111,18 @@
       "amount": {}
     }
   },
+  "chatPetHungryReminderMessage": "{petName}がお腹を空かせています。ごはんをあげてください！",
+  "@chatPetHungryReminderMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "chatPetHungryUrgentMessage": "{petName}がとてもお腹を空かせています！今すぐごはんを！",
+  "@chatPetHungryUrgentMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
   "chatTitle": "チャット",
   "chatUserAlreadyBlocked": "ブロック済み",
   "chatUserBlocked": "ユーザーをブロックしました。",
@@ -133,6 +145,9 @@
   "commonOwned": "所有済み",
   "commonReload": "再読み込み",
   "commonSave": "保存",
+  "photoViewerDownloadTooltip": "ダウンロード",
+  "photoViewerSavedToGallery": "フォトライブラリに保存しました。",
+  "photoViewerSaveFailed": "フォトライブラリへの保存に失敗しました。",
   "commonSend": "送信",
   "commonSending": "送信中...",
   "commonSignOut": "サインアウト",
@@ -236,9 +251,11 @@
   "softUpdateLater": "あとで",
   "softUpdateMessage": "より快適に共同育成を続けるために、新しいバージョンへ更新してください。",
   "softUpdateTitle": "アップデートがあります",
+  "languageChineseSimplified": "簡体字中国語",
   "languageChineseTraditional": "繁体字中国語",
   "languageEnglish": "英語",
   "languageJapanese": "日本語",
+  "languageKorean": "韓国語",
   "languageSystem": "システム",
   "languageSystemSubtitle": "端末の言語に従う",
   "languageTitle": "言語",
@@ -358,6 +375,9 @@
   "roomInvitePromptGenerating": "生成中...",
   "roomInviteCodeTitle": "招待コード",
   "roomInviteCodeMessage": "このコードを共有してルームに招待してください。",
+  "roomInviteCodeTapHint": "コードをタップするとコピーできます。",
+  "roomInviteCodeCopiedTitle": "コピーしました",
+  "roomInviteCodeCopiedMessage": "今すぐ友だちを招待して、いっしょにペットを育てましょう！",
   "roomInviteCodeRegenerated": "招待コードを再生成しました。",
   "roomInviteCodeRegenerateFailed": "コードの再生成に失敗しました: {error}",
   "@roomInviteCodeRegenerateFailed": {

@@ -105,8 +105,15 @@ class ChatMessageTile extends StatelessWidget {
       return l10n.chatSystemUpdate;
     }
 
+    final hungerAlert = _parseHungerAlert(raw, l10n);
+    if (hungerAlert != null) {
+      return hungerAlert.level == 10
+          ? l10n.chatPetHungryUrgentMessage(hungerAlert.petName)
+          : l10n.chatPetHungryReminderMessage(hungerAlert.petName);
+    }
+
     final lower = raw.toLowerCase();
-    final phrases = <String>['cleaned the poop', '清理了便便', 'うんちを掃除した'];
+    final phrases = <String>['cleaned the poop', '清理了便便', 'うんちを掃除した', '배변을 치웠'];
     final matchedPhrase = phrases.firstWhere(
       (phrase) => lower.contains(phrase),
       orElse: () => '',
@@ -160,6 +167,23 @@ class ChatMessageTile extends StatelessWidget {
     return raw.replaceAll('Coins', l10n.chatCandyLabel);
   }
 
+  _HungerAlertInfo? _parseHungerAlert(String raw, AppLocalizations l10n) {
+    final level = raw.startsWith('hunger_alert_30::')
+        ? 30
+        : (raw.startsWith('hunger_alert_10::') ? 10 : null);
+    if (level == null) {
+      return null;
+    }
+    final separatorIndex = raw.indexOf('::');
+    final petName = separatorIndex >= 0
+        ? raw.substring(separatorIndex + 2).trim()
+        : '';
+    return _HungerAlertInfo(
+      level: level,
+      petName: petName.isEmpty ? l10n.petNameUnknown : petName,
+    );
+  }
+
   String? _parseRenameFromMessage(String raw, AppLocalizations l10n) {
     final lower = raw.toLowerCase();
     const phrase = 'renamed the pet from';
@@ -189,12 +213,22 @@ class ChatMessageTile extends StatelessWidget {
     }
 
     final normalizedOld = oldNameRaw.trim();
+    final oldLower = normalizedOld.toLowerCase();
     final isUnnamed =
-        normalizedOld.isEmpty || normalizedOld.toLowerCase() == 'unnamed';
+        normalizedOld.isEmpty ||
+        oldLower == 'unnamed' ||
+        normalizedOld == '이름 없음';
     final oldName = isUnnamed ? l10n.petNameUnnamed : normalizedOld;
 
     return l10n.chatPetRenamedMessage(userName, oldName, newName);
   }
+}
+
+class _HungerAlertInfo {
+  const _HungerAlertInfo({required this.level, required this.petName});
+
+  final int level;
+  final String petName;
 }
 
 class _TextMessageBubble extends StatelessWidget {
@@ -306,10 +340,7 @@ class _TextMessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           bubble,
-          Transform.translate(
-            offset: const Offset(-3, 0),
-            child: tail,
-          ),
+          Transform.translate(offset: const Offset(-3, 0), child: tail),
         ],
       );
     } else {
@@ -317,10 +348,7 @@ class _TextMessageBubble extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Transform.translate(
-            offset: const Offset(3, 0),
-            child: tail,
-          ),
+          Transform.translate(offset: const Offset(3, 0), child: tail),
           bubble,
         ],
       );

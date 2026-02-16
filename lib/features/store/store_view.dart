@@ -1787,6 +1787,8 @@ class _StoreViewState extends State<StoreView> {
     final canBuyDiamonds = isLetter
         ? baseCanBuyDiamonds && _hasDepartedPets
         : baseCanBuyDiamonds;
+    final itemEmoji =
+        item.emoji ?? (item.isBackground ? '🖼️' : (isLetter ? '💌' : '🎁'));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -1814,10 +1816,7 @@ class _StoreViewState extends State<StoreView> {
               borderRadius: BorderRadius.circular(20),
             ),
             alignment: Alignment.center,
-            child: Text(
-              item.emoji ?? (item.isBackground ? '🖼️' : '🎁'),
-              style: const TextStyle(fontSize: 30),
-            ),
+            child: Text(itemEmoji, style: const TextStyle(fontSize: 30)),
           ),
           const SizedBox(width: 16),
           Expanded(

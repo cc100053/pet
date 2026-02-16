@@ -47,6 +47,8 @@
 	<string>PetTomo uses tracking permission to improve analytics and app experience.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PetTomo needs photo access to choose feed images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PetTomo needs access to save photos to your gallery.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>PetTomo uses local network access for development-time debugger connection.</string>
 	<key>NSBonjourServices</key>

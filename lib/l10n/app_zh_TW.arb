@@ -113,6 +113,18 @@
       "amount": {}
     }
   },
+  "chatPetHungryReminderMessage": "{petName}有點餓了，記得餵食！",
+  "@chatPetHungryReminderMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "chatPetHungryUrgentMessage": "{petName}非常餓！請立即餵食！",
+  "@chatPetHungryUrgentMessage": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
   "chatTitle": "聊天",
   "chatUserAlreadyBlocked": "已封鎖",
   "chatUserBlocked": "已封鎖用戶。",
@@ -126,6 +138,9 @@
   "commonOwned": "已擁有",
   "commonReload": "重新載入",
   "commonSave": "儲存",
+  "photoViewerDownloadTooltip": "下載",
+  "photoViewerSavedToGallery": "已儲存到你的相簿。",
+  "photoViewerSaveFailed": "無法儲存到你的相簿。",
   "commonSend": "送出",
   "commonSending": "送出中...",
   "commonSignOut": "登出",
@@ -229,9 +244,11 @@
   "softUpdateLater": "稍後",
   "softUpdateMessage": "有新版本可用，更新後可獲得更順暢的共同養寵體驗。",
   "softUpdateTitle": "可更新新版本",
+  "languageChineseSimplified": "簡體中文",
   "languageChineseTraditional": "繁體中文",
   "languageEnglish": "英文",
   "languageJapanese": "日文",
+  "languageKorean": "韓文",
   "languageSystem": "系統",
   "languageSystemSubtitle": "跟隨裝置語言",
   "languageTitle": "語言",
@@ -351,6 +368,9 @@
   "roomInvitePromptGenerating": "產生中...",
   "roomInviteCodeTitle": "邀請碼",
   "roomInviteCodeMessage": "分享此邀請碼讓朋友加入房間。",
+  "roomInviteCodeTapHint": "點擊邀請碼即可複製。",
+  "roomInviteCodeCopiedTitle": "已複製",
+  "roomInviteCodeCopiedMessage": "快邀請朋友加入，一起照顧寵物吧！",
   "roomInviteCodeRegenerated": "邀請碼已重新產生。",
   "roomInviteCodeRegenerateFailed": "重新產生邀請碼失敗：{error}",
   "@roomInviteCodeRegenerateFailed": {

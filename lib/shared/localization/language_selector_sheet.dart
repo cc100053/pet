@@ -52,6 +52,14 @@ class LanguageSelectorSheet extends ConsumerWidget {
                 value: AppLanguageOption.japanese,
               ),
               _LanguageOptionTile(
+                title: l10n.languageKorean,
+                value: AppLanguageOption.korean,
+              ),
+              _LanguageOptionTile(
+                title: l10n.languageChineseSimplified,
+                value: AppLanguageOption.chineseSimplified,
+              ),
+              _LanguageOptionTile(
                 title: l10n.languageChineseTraditional,
                 value: AppLanguageOption.chineseTraditional,
               ),

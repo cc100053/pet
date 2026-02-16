@@ -155,6 +155,16 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String chatPetHungryReminderMessage(Object petName) {
+    return '$petNameがお腹を空かせています。ごはんをあげてください！';
+  }
+
+  @override
+  String chatPetHungryUrgentMessage(Object petName) {
+    return '$petNameがとてもお腹を空かせています！今すぐごはんを！';
+  }
+
+  @override
   String get chatTitle => 'チャット';
 
   @override
@@ -200,6 +210,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get commonSave => '保存';
+
+  @override
+  String get photoViewerDownloadTooltip => 'ダウンロード';
+
+  @override
+  String get photoViewerSavedToGallery => 'フォトライブラリに保存しました。';
+
+  @override
+  String get photoViewerSaveFailed => 'フォトライブラリへの保存に失敗しました。';
 
   @override
   String get commonSend => '送信';
@@ -407,6 +426,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get softUpdateTitle => 'アップデートがあります';
 
   @override
+  String get languageChineseSimplified => '簡体字中国語';
+
+  @override
   String get languageChineseTraditional => '繁体字中国語';
 
   @override
@@ -414,6 +436,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get languageJapanese => '日本語';
+
+  @override
+  String get languageKorean => '韓国語';
 
   @override
   String get languageSystem => 'システム';
@@ -638,6 +663,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomInviteCodeMessage => 'このコードを共有してルームに招待してください。';
+
+  @override
+  String get roomInviteCodeTapHint => 'コードをタップするとコピーできます。';
+
+  @override
+  String get roomInviteCodeCopiedTitle => 'コピーしました';
+
+  @override
+  String get roomInviteCodeCopiedMessage => '今すぐ友だちを招待して、いっしょにペットを育てましょう！';
 
   @override
   String get roomInviteCodeRegenerated => '招待コードを再生成しました。';

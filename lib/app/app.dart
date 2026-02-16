@@ -29,7 +29,15 @@ class PicPetApp extends ConsumerWidget {
             return supportedLocales.first;
           }
           if (locale.languageCode == 'zh') {
-            return const Locale('zh', 'TW');
+            final scriptCode = locale.scriptCode?.toLowerCase();
+            final countryCode = locale.countryCode?.toUpperCase();
+            if (scriptCode == 'hant' ||
+                countryCode == 'TW' ||
+                countryCode == 'HK' ||
+                countryCode == 'MO') {
+              return const Locale('zh', 'TW');
+            }
+            return const Locale('zh');
           }
           for (final supported in supportedLocales) {
             if (supported.languageCode == locale.languageCode) {

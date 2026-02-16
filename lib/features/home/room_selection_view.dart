@@ -7,6 +7,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
 import '../pet/pet_catalog.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/pet_name_text_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'widgets/home_responsive.dart';
 
@@ -394,16 +395,14 @@ class RoomSelectionView extends StatelessWidget {
                             displayName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimary,
-                                  fontSize: responsive.pick(
-                                    compact: 12,
-                                    regular: 13,
-                                    expanded: 14,
-                                  ),
-                                ),
+                            style: petNameTextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: responsive.pick(
+                                compact: 12,
+                                regular: 13,
+                                expanded: 14,
+                              ),
+                            ),
                           ),
                         ),
                         Gap(
@@ -524,9 +523,10 @@ class RoomSelectionView extends StatelessWidget {
                 petName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+                style: petNameTextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                ),
               ),
               const Gap(16),
               _RoomActionTile(

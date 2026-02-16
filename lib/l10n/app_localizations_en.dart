@@ -155,6 +155,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chatPetHungryReminderMessage(Object petName) {
+    return '$petName is getting hungry. Time to feed!';
+  }
+
+  @override
+  String chatPetHungryUrgentMessage(Object petName) {
+    return '$petName is very hungry! Please feed now!';
+  }
+
+  @override
   String get chatTitle => 'Chat';
 
   @override
@@ -206,6 +216,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonSave => 'Save';
+
+  @override
+  String get photoViewerDownloadTooltip => 'Download';
+
+  @override
+  String get photoViewerSavedToGallery => 'Saved to your photo gallery.';
+
+  @override
+  String get photoViewerSaveFailed => 'Couldn\'t save photo to your gallery.';
 
   @override
   String get commonSend => 'Send';
@@ -419,6 +438,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get softUpdateTitle => 'Update available';
 
   @override
+  String get languageChineseSimplified => 'Simplified Chinese';
+
+  @override
   String get languageChineseTraditional => 'Traditional Chinese';
 
   @override
@@ -426,6 +448,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageJapanese => 'Japanese';
+
+  @override
+  String get languageKorean => 'Korean';
 
   @override
   String get languageSystem => 'System';
@@ -652,6 +677,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get roomInviteCodeMessage =>
       'Share this code to invite someone to your room.';
+
+  @override
+  String get roomInviteCodeTapHint => 'Tap the code to copy it.';
+
+  @override
+  String get roomInviteCodeCopiedTitle => 'Copied';
+
+  @override
+  String get roomInviteCodeCopiedMessage =>
+      'Invite friends now and raise your pet together!';
 
   @override
   String get roomInviteCodeRegenerated => 'Invite code regenerated.';

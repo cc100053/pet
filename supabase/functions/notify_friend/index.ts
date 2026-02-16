@@ -41,6 +41,8 @@ type L10nStrings = {
   defaultPetName: string;
   defaultSenderName: string;
   feedBodyTemplate: string;
+  hungerReminderTemplate: string;
+  hungerUrgentTemplate: string;
 };
 
 const l10n: Record<string, L10nStrings> = {
@@ -49,18 +51,24 @@ const l10n: Record<string, L10nStrings> = {
     defaultPetName: "Pet",
     defaultSenderName: "Someone",
     feedBodyTemplate: "{sender} fed {pet}",
+    hungerReminderTemplate: "{pet} is getting hungry. Time to feed!",
+    hungerUrgentTemplate: "{pet} is very hungry! Please feed now!",
   },
   ja: {
     defaultTextBody: "新しいメッセージ",
     defaultPetName: "ペット",
     defaultSenderName: "だれか",
     feedBodyTemplate: "{sender}さんが{pet}にごはんをあげました",
+    hungerReminderTemplate: "{pet}がお腹を空かせています。ごはんをあげてください！",
+    hungerUrgentTemplate: "{pet}がとてもお腹を空かせています！今すぐごはんを！",
   },
   "zh-TW": {
     defaultTextBody: "新訊息",
     defaultPetName: "寵物",
     defaultSenderName: "某人",
     feedBodyTemplate: "{sender} 餵了 {pet}",
+    hungerReminderTemplate: "{pet} 有點餓了，記得餵食！",
+    hungerUrgentTemplate: "{pet} 非常餓！請立即餵食！",
   },
 };
 
@@ -88,11 +96,12 @@ function getL10n(locale: string | null | undefined): L10nStrings {
 }
 
 type NotifyPayload = {
-  type: "feed_event" | "chat_message";
+  type: "feed_event" | "chat_message" | "hunger_alert";
   room_id: string;
   sender_id?: string;
   recipient_ids?: string[];
   message_id: string;
+  alert_level?: number;
   image_url?: string | null;
   caption?: string | null;
   body?: string | null;
@@ -258,6 +267,23 @@ function isStaleTokenFailure(errorText: string | undefined): boolean {
     normalized.includes("registration-token-not-registered");
 }
 
+function resolveHungerAlertLevel(
+  payloadLevel: number | undefined,
+  body: string | null | undefined,
+): 30 | 10 | null {
+  if (payloadLevel === 30 || payloadLevel === 10) {
+    return payloadLevel;
+  }
+  const normalized = (body ?? "").trim();
+  if (normalized.startsWith("hunger_alert_30::")) {
+    return 30;
+  }
+  if (normalized.startsWith("hunger_alert_10::")) {
+    return 10;
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -292,13 +318,14 @@ serve(async (req) => {
   }
   const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+  const isHungerAlert = payload.type === "hunger_alert";
   let senderId = payload.sender_id ?? null;
   let recipientIds = Array.isArray(payload.recipient_ids)
     ? payload.recipient_ids.filter((id) => typeof id === "string")
     : [];
 
   if (isWebhookRequest) {
-    if (!senderId) {
+    if (!isHungerAlert && !senderId) {
       return jsonResponse(400, { error: "missing_sender_id" });
     }
 
@@ -312,7 +339,7 @@ serve(async (req) => {
         .select("id, room_id, sender_id, type, body, caption, image_url")
         .eq("id", payload.message_id)
         .eq("room_id", payload.room_id);
-      if (senderId) {
+      if (!isHungerAlert && senderId) {
         messageQuery = messageQuery.eq("sender_id", senderId);
       }
 
@@ -335,8 +362,29 @@ serve(async (req) => {
           payload.caption = messageRow.caption;
           payload.image_url = messageRow.image_url;
           payload.body = null;
+        } else if (messageRow.type === "system" && payload.type === "hunger_alert") {
+          payload.body = messageRow.body;
+          payload.caption = null;
+          payload.image_url = null;
         }
       }
+    }
+
+    if (isHungerAlert) {
+      const { data: memberRows, error: membersError } = await supabaseAdmin
+        .from("room_members")
+        .select("user_id")
+        .eq("room_id", payload.room_id)
+        .eq("is_active", true);
+      if (membersError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membersError.message,
+        });
+      }
+      recipientIds = (memberRows ?? [])
+        .map((row) => row.user_id as string | null)
+        .filter((id): id is string => !!id);
     }
   } else {
     const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -349,107 +397,187 @@ serve(async (req) => {
     }
     senderId = authData.user.id;
 
-    const { data: messageRow, error: messageError } = await supabaseAdmin
-      .from("messages")
-      .select("id, room_id, sender_id, type, body, caption, image_url")
-      .eq("id", payload.message_id)
-      .eq("room_id", payload.room_id)
-      .eq("sender_id", senderId)
-      .maybeSingle();
-    if (messageError) {
-      return jsonResponse(500, {
-        error: "db_error",
-        details: messageError.message,
-      });
-    }
-    if (!messageRow) {
-      return jsonResponse(403, { error: "message_not_owned" });
-    }
+    if (isHungerAlert) {
+      const { data: membershipRow, error: membershipError } = await supabaseAdmin
+        .from("room_members")
+        .select("room_id")
+        .eq("room_id", payload.room_id)
+        .eq("user_id", senderId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (membershipError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membershipError.message,
+        });
+      }
+      if (!membershipRow) {
+        return jsonResponse(403, { error: "not_room_member" });
+      }
 
-    if (messageRow.type === "text") {
-      payload.type = "chat_message";
+      const { data: messageRow, error: messageError } = await supabaseAdmin
+        .from("messages")
+        .select("id, room_id, type, body")
+        .eq("id", payload.message_id)
+        .eq("room_id", payload.room_id)
+        .eq("type", "system")
+        .maybeSingle();
+      if (messageError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: messageError.message,
+        });
+      }
+      if (!messageRow) {
+        return jsonResponse(403, { error: "message_not_found" });
+      }
+
       payload.body = messageRow.body;
       payload.caption = null;
       payload.image_url = null;
-    } else if (messageRow.type === "image_feed") {
-      payload.type = "feed_event";
-      payload.caption = messageRow.caption;
-      payload.image_url = messageRow.image_url;
-      payload.body = null;
-    } else {
-      return jsonResponse(200, { message: "message_type_not_notifiable" });
-    }
 
-    const { data: memberRows, error: membersError } = await supabaseAdmin
-      .from("room_members")
-      .select("user_id")
-      .eq("room_id", payload.room_id)
-      .eq("is_active", true);
-    if (membersError) {
+      const { data: memberRows, error: membersError } = await supabaseAdmin
+        .from("room_members")
+        .select("user_id")
+        .eq("room_id", payload.room_id)
+        .eq("is_active", true);
+      if (membersError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membersError.message,
+        });
+      }
+      recipientIds = (memberRows ?? [])
+        .map((row) => row.user_id as string | null)
+        .filter((id): id is string => !!id);
+    } else {
+      const { data: messageRow, error: messageError } = await supabaseAdmin
+        .from("messages")
+        .select("id, room_id, sender_id, type, body, caption, image_url")
+        .eq("id", payload.message_id)
+        .eq("room_id", payload.room_id)
+        .eq("sender_id", senderId)
+        .maybeSingle();
+      if (messageError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: messageError.message,
+        });
+      }
+      if (!messageRow) {
+        return jsonResponse(403, { error: "message_not_owned" });
+      }
+
+      if (messageRow.type === "text") {
+        payload.type = "chat_message";
+        payload.body = messageRow.body;
+        payload.caption = null;
+        payload.image_url = null;
+      } else if (messageRow.type === "image_feed") {
+        payload.type = "feed_event";
+        payload.caption = messageRow.caption;
+        payload.image_url = messageRow.image_url;
+        payload.body = null;
+      } else {
+        return jsonResponse(200, { message: "message_type_not_notifiable" });
+      }
+
+      const { data: memberRows, error: membersError } = await supabaseAdmin
+        .from("room_members")
+        .select("user_id")
+        .eq("room_id", payload.room_id)
+        .eq("is_active", true);
+      if (membersError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membersError.message,
+        });
+      }
+
+      recipientIds = (memberRows ?? [])
+        .map((row) => row.user_id as string | null)
+        .filter((id): id is string => !!id && id !== senderId);
+    }
+  }
+
+  if (recipientIds.length === 0) {
+    return jsonResponse(200, { message: "no_recipients" });
+  }
+
+  recipientIds = recipientIds.filter((id) => typeof id === "string" && id.length > 0);
+  if (!isHungerAlert) {
+    if (!senderId) {
+      return jsonResponse(200, { message: "no_recipients" });
+    }
+    recipientIds = recipientIds.filter((id) => id !== senderId);
+  }
+
+  if (recipientIds.length === 0) {
+    return jsonResponse(200, { message: "no_recipients" });
+  }
+
+  if (!isHungerAlert && senderId) {
+    const { data: blockedBySender, error: blockedBySenderError } = await supabaseAdmin
+      .from("blocks")
+      .select("blocked_user_id")
+      .eq("blocker_id", senderId)
+      .in("blocked_user_id", recipientIds);
+
+    if (blockedBySenderError) {
       return jsonResponse(500, {
         error: "db_error",
-        details: membersError.message,
+        details: blockedBySenderError.message,
       });
     }
 
-    recipientIds = (memberRows ?? [])
-      .map((row) => row.user_id as string | null)
-      .filter((id): id is string => !!id && id !== senderId);
-  }
+    const { data: blockedSender, error: blockedSenderError } = await supabaseAdmin
+      .from("blocks")
+      .select("blocker_id")
+      .in("blocker_id", recipientIds)
+      .eq("blocked_user_id", senderId);
 
-  if (!senderId || recipientIds.length === 0) {
-    return jsonResponse(200, { message: "no_recipients" });
-  }
-
-  recipientIds = recipientIds.filter((id) =>
-    typeof id === "string" && id.length > 0 && id !== senderId
-  );
-
-  if (recipientIds.length === 0) {
-    return jsonResponse(200, { message: "no_recipients" });
-  }
-
-  const { data: blockedBySender, error: blockedBySenderError } = await supabaseAdmin
-    .from("blocks")
-    .select("blocked_user_id")
-    .eq("blocker_id", senderId)
-    .in("blocked_user_id", recipientIds);
-
-  if (blockedBySenderError) {
-    return jsonResponse(500, {
-      error: "db_error",
-      details: blockedBySenderError.message,
-    });
-  }
-
-  const { data: blockedSender, error: blockedSenderError } = await supabaseAdmin
-    .from("blocks")
-    .select("blocker_id")
-    .in("blocker_id", recipientIds)
-    .eq("blocked_user_id", senderId);
-
-  if (blockedSenderError) {
-    return jsonResponse(500, {
-      error: "db_error",
-      details: blockedSenderError.message,
-    });
-  }
-
-  const blocked = new Set<string>();
-  for (const row of blockedBySender ?? []) {
-    if (row.blocked_user_id) {
-      blocked.add(row.blocked_user_id);
+    if (blockedSenderError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: blockedSenderError.message,
+      });
     }
-  }
-  for (const row of blockedSender ?? []) {
-    if (row.blocker_id) {
-      blocked.add(row.blocker_id);
+
+    const blocked = new Set<string>();
+    for (const row of blockedBySender ?? []) {
+      if (row.blocked_user_id) {
+        blocked.add(row.blocked_user_id);
+      }
+    }
+    for (const row of blockedSender ?? []) {
+      if (row.blocker_id) {
+        blocked.add(row.blocker_id);
+      }
+    }
+
+    recipientIds = recipientIds.filter((id) => !blocked.has(id));
+    if (recipientIds.length === 0) {
+      return jsonResponse(200, { message: "recipients_blocked" });
     }
   }
 
-  recipientIds = recipientIds.filter((id) => !blocked.has(id));
-  if (recipientIds.length === 0) {
-    return jsonResponse(200, { message: "recipients_blocked" });
+  if (isHungerAlert) {
+    const { data: existingDelivery, error: existingDeliveryError } = await supabaseAdmin
+      .from("notification_delivery_logs")
+      .select("id")
+      .eq("message_id", payload.message_id)
+      .eq("payload_type", "hunger_alert")
+      .eq("success", true)
+      .limit(1);
+    if (existingDeliveryError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: existingDeliveryError.message,
+      });
+    }
+    if ((existingDelivery ?? []).length > 0) {
+      return jsonResponse(200, { message: "already_sent" });
+    }
   }
 
   const { data: tokenRows, error: tokensError } = await supabaseAdmin
@@ -493,17 +621,21 @@ serve(async (req) => {
     });
   }
 
-  const { data: senderProfile, error: senderProfileError } = await supabaseAdmin
-    .from("profiles")
-    .select("nickname")
-    .eq("user_id", senderId)
-    .maybeSingle();
+  let senderProfile: { nickname: string | null } | null = null;
+  if (senderId) {
+    const { data: fetchedSenderProfile, error: senderProfileError } = await supabaseAdmin
+      .from("profiles")
+      .select("nickname")
+      .eq("user_id", senderId)
+      .maybeSingle();
 
-  if (senderProfileError) {
-    return jsonResponse(500, {
-      error: "db_error",
-      details: senderProfileError.message,
-    });
+    if (senderProfileError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: senderProfileError.message,
+      });
+    }
+    senderProfile = fetchedSenderProfile as { nickname: string | null } | null;
   }
 
   const localeByUserId = new Map<string, string | null>();
@@ -573,6 +705,12 @@ serve(async (req) => {
   const petAvatarFallbackUrl = PET_AVATAR_URL_BY_TYPE[petType] ??
     DEFAULT_PET_AVATAR_URL;
   const senderNameRaw = nonEmptyOrNull(senderProfile?.nickname as string | null);
+  const hungerAlertLevel = isHungerAlert
+    ? resolveHungerAlertLevel(payload.alert_level, nonEmptyOrNull(payload.body))
+    : null;
+  if (isHungerAlert && hungerAlertLevel == null) {
+    return jsonResponse(400, { error: "invalid_hunger_alert_level" });
+  }
 
   const projectId = serviceAccount.project_id;
   const fcmEndpoint =
@@ -600,9 +738,25 @@ serve(async (req) => {
       sender: collapsedSenderName,
       pet: collapsedPetName,
     });
+    const hungerBody = hungerAlertLevel === 10
+      ? fillTemplate(strings.hungerUrgentTemplate, {
+        pet: collapsedPetNameForTitle,
+      })
+      : fillTemplate(strings.hungerReminderTemplate, {
+        pet: collapsedPetNameForTitle,
+      });
 
-    const messageType = payload.type === "chat_message" ? "text" : "image_feed";
-    const pushBody = messageType === "text" ? textBody : feedBody;
+    const messageType = payload.type === "chat_message"
+      ? "text"
+      : (payload.type === "hunger_alert"
+        ? `hunger_alert_${hungerAlertLevel}`
+        : "image_feed");
+    const pushBody = payload.type === "chat_message"
+      ? textBody
+      : (payload.type === "hunger_alert" ? hungerBody : feedBody);
+    const pushSenderName = payload.type === "hunger_alert"
+      ? ""
+      : collapsedSenderName;
 
     const dataPayload: Record<string, string> = {
       room_id: payload.room_id,
@@ -610,7 +764,7 @@ serve(async (req) => {
       // FCM reserves "message_type" as an internal key.
       message_kind: messageType,
       pet_name: collapsedPetNameForTitle,
-      sender_name: collapsedSenderName,
+      sender_name: pushSenderName,
       pet_type: petType,
       pet_avatar_asset: petAvatarAsset,
       pet_avatar_fallback_url: petAvatarFallbackUrl,
@@ -724,7 +878,11 @@ serve(async (req) => {
     platform: result.platform,
     locale: result.locale,
     payload_type: payload.type,
-    message_kind: payload.type === "chat_message" ? "text" : "image_feed",
+    message_kind: payload.type === "chat_message"
+      ? "text"
+      : (payload.type === "hunger_alert"
+        ? `hunger_alert_${hungerAlertLevel ?? 30}`
+        : "image_feed"),
     success: result.ok,
     http_status: result.status ?? null,
     error_text: result.ok ? null : result.error ?? "unknown_error",

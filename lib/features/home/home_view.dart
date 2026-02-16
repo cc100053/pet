@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui' show lerpDouble;
+import 'dart:ui' show ImageFilter, lerpDouble;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -180,6 +180,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   RealtimeChannel? _furnitureChannel;
   String? _furnitureSubscriptionRoomId;
   final Map<String, RealtimeChannel> _messageChannels = {};
+  final Set<String> _notifiedHungerAlertMessageIds = <String>{};
+  final Set<String> _shownHungerAlertMessageIds = <String>{};
 
   // Chat State
   final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
@@ -1252,6 +1254,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     final type = record['type'] as String?;
+    if (type == 'system') {
+      _handleSystemMessageInsert(record);
+      _chatListKey.currentState?.refreshLatest();
+      return;
+    }
     if (type != 'image_feed') {
       return;
     }
@@ -1334,6 +1341,52 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (senderId != null && senderId.isNotEmpty) {
       unawaited(_ensureProfileSummary(senderId));
     }
+
+    _chatListKey.currentState?.refreshLatest();
+  }
+
+  void _handleSystemMessageInsert(Map<String, dynamic> record) {
+    final messageId = record['id'] as String?;
+    final parsed = _parseHungerAlertSystemBody(record['body'] as String?);
+    if (messageId == null || parsed == null) {
+      return;
+    }
+    if (_shownHungerAlertMessageIds.contains(messageId)) {
+      return;
+    }
+    _shownHungerAlertMessageIds.add(messageId);
+    _showHungerAlertSnackBar(level: parsed.level, petName: parsed.petName);
+  }
+
+  ({int level, String petName})? _parseHungerAlertSystemBody(String? rawBody) {
+    final raw = rawBody?.trim();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    final level = raw.startsWith('hunger_alert_30::')
+        ? 30
+        : (raw.startsWith('hunger_alert_10::') ? 10 : null);
+    if (level == null) {
+      return null;
+    }
+    final separatorIndex = raw.indexOf('::');
+    final petName = separatorIndex >= 0
+        ? raw.substring(separatorIndex + 2).trim()
+        : '';
+    return (level: level, petName: petName.isEmpty ? 'Pet' : petName);
+  }
+
+  void _showHungerAlertSnackBar({required int level, required String petName}) {
+    if (!mounted) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final message = level <= 10
+        ? l10n.chatPetHungryUrgentMessage(petName)
+        : l10n.chatPetHungryReminderMessage(petName);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
+    );
   }
 
   void _switchRoom(String roomId, {String? petType}) {
@@ -1781,29 +1834,66 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _showInviteCodeDialog(String code) async {
     final l10n = AppLocalizations.of(context)!;
+    var showingCopiedPrompt = false;
     await showAppDialog<void>(
       context: context,
       builder: (context) => AppDialog(
         tone: AppDialogTone.info,
         title: l10n.roomInviteCodeTitle,
         message: l10n.roomInviteCodeMessage,
-        body: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black87, width: 1.5),
-          ),
-          child: Center(
-            child: Text(
-              code,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2,
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () async {
+                  if (showingCopiedPrompt) {
+                    return;
+                  }
+                  await Clipboard.setData(ClipboardData(text: code));
+                  if (!mounted) {
+                    return;
+                  }
+                  showingCopiedPrompt = true;
+                  await _showInviteCopiedPremiumPopup(l10n);
+                  showingCopiedPrompt = false;
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black87, width: 1.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      code,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.roomInviteCodeTapHint,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.black.withValues(alpha: 0.65),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
         actions: [
           AppDialogAction.primary(
@@ -1812,6 +1902,165 @@ class _HomeViewState extends ConsumerState<HomeView>
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showInviteCopiedPremiumPopup(AppLocalizations l10n) async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: l10n.commonClose,
+      barrierColor: Colors.black.withValues(alpha: 0.18),
+      transitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (dialogContext, _, _) {
+        final theme = Theme.of(dialogContext);
+        return SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 26),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.64),
+                          const Color(0xFFEFF7FF).withValues(alpha: 0.52),
+                          const Color(0xFFFFF2D8).withValues(alpha: 0.42),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        width: 1.3,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 34,
+                          offset: const Offset(0, 14),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFFFD58B), Color(0xFFFFB76A)],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFFFB86A,
+                                ).withValues(alpha: 0.35),
+                                blurRadius: 16,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 28,
+                            color: Color(0xFF7A3E00),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          l10n.roomInviteCodeCopiedTitle,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.2,
+                            color: const Color(0xFF142033),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.roomInviteCodeCopiedMessage,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: const Color(0xFF2D3C52),
+                            fontWeight: FontWeight.w600,
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF2DBB91), Color(0xFF1E9F7A)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF1E9F7A,
+                                  ).withValues(alpha: 0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: TextButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                l10n.commonClose,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (
+        _,
+        animation,
+        secondaryAnimation,
+        child,
+      ) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.92, end: 1).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+            ),
+            child: child,
+          ),
+        );
+      },
     );
   }
 
@@ -2306,13 +2555,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_loadPetInfo(petId, roomId: roomId));
 
       if (tick) {
-        await Supabase.instance.client.rpc(
-          'tick_pet_state',
-          params: {
-            'p_pet_id': petId,
-            'p_now': DateTime.now().toUtc().toIso8601String(),
-          },
-        );
+        await _tickPetStateAndDispatchAlerts(petId: petId, roomId: roomId);
       }
 
       final state = await Supabase.instance.client
@@ -3153,6 +3396,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         'tick_pet_state',
         params: {'p_pet_id': pet.petId, 'p_now': nowIso},
       );
+      await _dispatchNewHungerAlerts(petId: pet.petId, roomId: pet.roomId);
     } catch (error) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
@@ -3217,11 +3461,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       try {
         final pets = await Supabase.instance.client
             .from('pets')
-            .select('id')
+            .select('id, room_id')
             .inFilter('room_id', roomIds);
         final nowIso = DateTime.now().toUtc().toIso8601String();
         for (final row in pets) {
           final petId = row['id'] as String?;
+          final petRoomId = row['room_id'] as String?;
           if (petId == null || petId.isEmpty) {
             continue;
           }
@@ -3230,6 +3475,9 @@ class _HomeViewState extends ConsumerState<HomeView>
               'tick_pet_state',
               params: {'p_pet_id': petId, 'p_now': nowIso},
             );
+            if (petRoomId != null && petRoomId.isNotEmpty) {
+              await _dispatchNewHungerAlerts(petId: petId, roomId: petRoomId);
+            }
           } catch (_) {
             // Best-effort per room: continue refreshing others.
           }
@@ -3495,15 +3743,109 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (petId == null) {
         return;
       }
-      await Supabase.instance.client.rpc(
-        'tick_pet_state',
-        params: {
-          'p_pet_id': petId,
-          'p_now': DateTime.now().toUtc().toIso8601String(),
-        },
-      );
+      await _tickPetStateAndDispatchAlerts(petId: petId, roomId: roomId);
     } catch (_) {
       // Best-effort. This periodic tick should not disrupt the UI.
+    }
+  }
+
+  Future<void> _tickPetStateAndDispatchAlerts({
+    required String petId,
+    required String roomId,
+  }) async {
+    await Supabase.instance.client.rpc(
+      'tick_pet_state',
+      params: {
+        'p_pet_id': petId,
+        'p_now': DateTime.now().toUtc().toIso8601String(),
+      },
+    );
+    await _dispatchNewHungerAlerts(petId: petId, roomId: roomId);
+  }
+
+  Future<void> _dispatchNewHungerAlerts({
+    required String petId,
+    required String roomId,
+  }) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    try {
+      final state = await Supabase.instance.client
+          .from('pet_state')
+          .select(
+            'hunger_alert_30_message_id,'
+            'hunger_alert_30_triggered_by,'
+            'hunger_alert_10_message_id,'
+            'hunger_alert_10_triggered_by',
+          )
+          .eq('pet_id', petId)
+          .maybeSingle();
+      if (state == null) {
+        return;
+      }
+      final alertCandidates =
+          <({String? messageId, String? triggeredBy, int level})>[
+            (
+              messageId: state['hunger_alert_30_message_id'] as String?,
+              triggeredBy: state['hunger_alert_30_triggered_by'] as String?,
+              level: 30,
+            ),
+            (
+              messageId: state['hunger_alert_10_message_id'] as String?,
+              triggeredBy: state['hunger_alert_10_triggered_by'] as String?,
+              level: 10,
+            ),
+          ];
+      for (final alert in alertCandidates) {
+        final messageId = alert.messageId;
+        if (messageId == null || messageId.isEmpty) {
+          continue;
+        }
+        if (alert.triggeredBy != userId) {
+          continue;
+        }
+        if (_notifiedHungerAlertMessageIds.contains(messageId)) {
+          continue;
+        }
+        final sent = await _sendHungerAlertPush(
+          roomId: roomId,
+          messageId: messageId,
+          level: alert.level,
+        );
+        if (sent) {
+          _notifiedHungerAlertMessageIds.add(messageId);
+        }
+      }
+    } catch (_) {
+      // Best-effort. Notification dispatch should not block pet updates.
+    }
+  }
+
+  Future<bool> _sendHungerAlertPush({
+    required String roomId,
+    required String messageId,
+    required int level,
+  }) async {
+    try {
+      final accessToken = await ensureValidAccessToken();
+      if (accessToken == null) {
+        return false;
+      }
+      final response = await Supabase.instance.client.functions.invoke(
+        'notify_friend',
+        headers: {'Authorization': 'Bearer $accessToken'},
+        body: {
+          'type': 'hunger_alert',
+          'room_id': roomId,
+          'message_id': messageId,
+          'alert_level': level,
+        },
+      );
+      return response.status >= 200 && response.status < 300;
+    } catch (_) {
+      return false;
     }
   }
 

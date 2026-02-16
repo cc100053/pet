@@ -3,7 +3,14 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../../services/settings/app_settings_repository.dart';
 
-enum AppLanguageOption { system, english, japanese, chineseTraditional }
+enum AppLanguageOption {
+  system,
+  english,
+  japanese,
+  korean,
+  chineseSimplified,
+  chineseTraditional,
+}
 
 class AppLocaleState {
   const AppLocaleState({required this.option, required this.locale});
@@ -40,9 +47,14 @@ class AppLocaleController extends StateNotifier<AppLocaleState> {
         return AppLanguageOption.english;
       case 'ja':
         return AppLanguageOption.japanese;
+      case 'ko':
+        return AppLanguageOption.korean;
+      case 'zh-CN':
+      case 'zh-Hans':
+      case 'zh':
+        return AppLanguageOption.chineseSimplified;
       case 'zh-TW':
       case 'zh-Hant':
-      case 'zh':
         return AppLanguageOption.chineseTraditional;
       default:
         return AppLanguageOption.system;
@@ -55,9 +67,14 @@ class AppLocaleController extends StateNotifier<AppLocaleState> {
         return const Locale('en');
       case 'ja':
         return const Locale('ja');
+      case 'ko':
+        return const Locale('ko');
+      case 'zh-CN':
+      case 'zh-Hans':
+      case 'zh':
+        return const Locale('zh');
       case 'zh-TW':
       case 'zh-Hant':
-      case 'zh':
         return const Locale('zh', 'TW');
       default:
         return null;
@@ -72,6 +89,10 @@ class AppLocaleController extends StateNotifier<AppLocaleState> {
         return 'en';
       case AppLanguageOption.japanese:
         return 'ja';
+      case AppLanguageOption.korean:
+        return 'ko';
+      case AppLanguageOption.chineseSimplified:
+        return 'zh-Hans';
       case AppLanguageOption.chineseTraditional:
         return 'zh-TW';
     }

@@ -19,7 +19,7 @@ class AppSettingsRepository {
     _box ??= await Hive.openBox<dynamic>(_boxName);
   }
 
-  /// Stored as a BCP-47 language tag (e.g. "en", "ja", "zh-TW").
+  /// Stored as a BCP-47 language tag (e.g. "en", "ja", "ko", "zh-Hans", "zh-TW").
   String? get preferredLocaleTag => _box?.get(_preferredLocaleKey) as String?;
 
   Future<void> setPreferredLocaleTag(String? tag) async {

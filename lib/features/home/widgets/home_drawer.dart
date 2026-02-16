@@ -165,10 +165,14 @@ class HomeDrawer extends ConsumerWidget {
         return l10n.languageSystem;
       case AppLanguageOption.english:
         return l10n.languageEnglish;
+      case AppLanguageOption.chineseSimplified:
+        return l10n.languageChineseSimplified;
       case AppLanguageOption.chineseTraditional:
         return l10n.languageChineseTraditional;
       case AppLanguageOption.japanese:
         return l10n.languageJapanese;
+      case AppLanguageOption.korean:
+        return l10n.languageKorean;
     }
   }
 }

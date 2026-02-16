@@ -22,6 +22,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 - `rooms`
   - `id` (uuid, pk)
   - `name` (text)
+  - `timezone` (text; room-scoped timezone for shared pet night-mode logic)
   - `invite_code` (text, unique)
   - `invite_expires_at` (timestamptz)
   - `created_by` (uuid, current owner; updated on transfer)
@@ -45,18 +46,21 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 
 - `pet_state`
   - `pet_id` (uuid, pk, fk)
-  - `hunger` (int), `mood` (text), `hygiene` (int)
+  - `hunger` (int), `mood` (text: `mid`/`high`/`sad`), `hygiene` (int)
   - `poop_at` (timestamptz)
   - `poop_count` (int, 0-3), `poop_positions` (jsonb, array of {x, y})
   - `last_poop_spawn_at` (timestamptz; reset on clean to now; next spawn after 8 hours)
   - `mood_boost` (int), `mood_boost_expires_at` (timestamptz)
-  - `feed_burst_count` (int; feeds within 10-minute window)
+  - `feed_burst_count` (int; successful feed count in the current 10-minute window, capped to 1 by rule)
   - `feed_burst_started_at` (timestamptz; start of burst window)
   - `last_overfed_at` (timestamptz; last time overfed message triggered)
   - `feed_count_since_poop` (int)
   - `last_decay_at` (timestamptz)
   - `last_feed_at`, `last_touch_at`, `last_clean_at` (timestamptz)
   - `last_feed_boost_at`, `last_touch_boost_at`, `last_clean_boost_at` (timestamptz)
+  - `hunger_alert_30_sent_at`, `hunger_alert_10_sent_at` (timestamptz; one-time reminder markers)
+  - `hunger_alert_30_message_id`, `hunger_alert_10_message_id` (uuid, fk -> `messages.id`)
+  - `hunger_alert_30_triggered_by`, `hunger_alert_10_triggered_by` (uuid, fk -> `auth.users`)
 
 - `messages`
   - `id` (uuid, pk)
@@ -319,13 +323,13 @@ for select using (auth.role() = 'authenticated');
 - `join_room_by_code(code text)` -> validates invite, inserts into `room_members`.
 - `leave_room(room_id uuid)` -> sets membership inactive and triggers owner transfer if needed.
 - `regenerate_invite_code(room_id uuid)` -> owner-only refresh for invite code + expiry.
-- `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters.
+- `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters; feed currently grants +20 hunger and only one successful feed is allowed per 10-minute burst (later feeds trigger overfed state).
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger; when `action_type='feed'` and the reward is granted, grants pet EXP (+10), levels up with carry (`50 * current_level`), and caps at level 999.
 - `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.
 - `purchase_item_with_diamonds(item_id uuid, quantity int)` -> spends diamonds; if `metadata.coin_amount` is set, exchanges diamonds for coins.
 - `grant_iap_coins(product_id text, amount int, transaction_id text)` -> idempotent coin grant for IAP consumables.
 - `grant_iap_diamonds(product_id text, amount int, transaction_id text)` -> idempotent diamond grant for IAP consumables.
-- `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates.
+- `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates using `rooms.timezone` (room-scoped); hunger-threshold system alerts are emitted at `<=30` and `<=10` once per recovery cycle.
 
 ## Ownership Transfer
 - Trigger `ensure_room_owner` promotes the oldest active member if no active owner exists.

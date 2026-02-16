@@ -19,6 +19,8 @@
 - `supabase/migrations/20260213143000_allow_multi_device_tokens.sql`: Remove per-user token uniqueness to allow concurrent push tokens across multiple devices.
 - `supabase/migrations/20260211100000_notification_payload_upgrade.sql`: Add `pets.avatar_url`, `device_tokens.device_locale`, and pet-avatar backfill for push payload shaping.
 - `supabase/migrations/20260214223500_add_notification_delivery_logs.sql`: Add push delivery log table for per-token send diagnostics.
+- `supabase/migrations/20260216233000_rebalance_mood_decay_and_feed_gain.sql`: Remove `low` mood tier, retune hunger decay (`mid=3`, `sad=4`), and change feed gain to `+20` once per 10-minute burst.
+- `supabase/migrations/20260217000000_add_pet_hunger_alerts.sql`: Add one-time hunger alert state (`30/10`), emit hunger system messages on threshold crossings, and reset alert flags when hunger recovers above thresholds.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
@@ -69,6 +71,7 @@ Planned:
   - Delivery diagnostics: `notify_friend` persists per-token send outcomes to `public.notification_delivery_logs` and returns non-2xx when all token sends fail.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
+- Pet night-mode protection is evaluated against a room-scoped timezone (`rooms.timezone`), keeping behavior consistent for members in different districts/timezones.
 - Ownership: Triggered owner transfer when the active owner leaves.
 - Note: Edge Functions with `verify_jwt` require HS256 JWT signing in Supabase Auth settings (ES256/asymmetric will be rejected).
 

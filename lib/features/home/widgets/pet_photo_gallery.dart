@@ -78,6 +78,34 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
     setState(() => _page = value);
   }
 
+  Future<void> _openViewerAt({
+    required int index,
+    required List<String> urls,
+  }) async {
+    final resultIndex = await FullScreenPhotoViewer.open(
+      context,
+      imageUrls: urls,
+      captions: List<String?>.generate(
+        urls.length,
+        (i) => i < widget.captions.length ? widget.captions[i] : null,
+      ),
+      initialIndex: index,
+    );
+    if (!mounted || resultIndex == null || !_pageController.hasClients) {
+      return;
+    }
+    final target = resultIndex.clamp(0, _slotCount - 1);
+    await _pageController.animateToPage(
+      target,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() => _page = target.toDouble());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -137,17 +165,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
                           senderFallbackText: senderFallbackText,
                           scale: scale,
                           tokens: tokens,
-                          onTap: () => FullScreenPhotoViewer.open(
-                            context,
-                            imageUrls: urls,
-                            captions: List<String?>.generate(
-                              urls.length,
-                              (i) => i < widget.captions.length
-                                  ? widget.captions[i]
-                                  : null,
-                            ),
-                            initialIndex: index,
-                          ),
+                          onTap: () => _openViewerAt(index: index, urls: urls),
                         )
                       : _PlaceholderFrame(
                           ctaText: l10n.feedPickPhotoHint,

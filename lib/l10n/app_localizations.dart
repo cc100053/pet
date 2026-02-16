@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_ja.dart';
+import 'app_localizations_ko.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -97,6 +98,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('ja'),
+    Locale('ko'),
     Locale('zh'),
     Locale('zh', 'TW'),
   ];
@@ -335,6 +337,18 @@ abstract class AppLocalizations {
   /// **'{name} cleaned the poop: +{amount} Candys.'**
   String chatCleanPoopMessage(Object name, Object amount);
 
+  /// No description provided for @chatPetHungryReminderMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName} is getting hungry. Time to feed!'**
+  String chatPetHungryReminderMessage(Object petName);
+
+  /// No description provided for @chatPetHungryUrgentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName} is very hungry! Please feed now!'**
+  String chatPetHungryUrgentMessage(Object petName);
+
   /// No description provided for @chatTitle.
   ///
   /// In en, this message translates to:
@@ -424,6 +438,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get commonSave;
+
+  /// No description provided for @photoViewerDownloadTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get photoViewerDownloadTooltip;
+
+  /// No description provided for @photoViewerSavedToGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your photo gallery.'**
+  String get photoViewerSavedToGallery;
+
+  /// No description provided for @photoViewerSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save photo to your gallery.'**
+  String get photoViewerSaveFailed;
 
   /// No description provided for @commonSend.
   ///
@@ -803,6 +835,12 @@ abstract class AppLocalizations {
   /// **'Update available'**
   String get softUpdateTitle;
 
+  /// No description provided for @languageChineseSimplified.
+  ///
+  /// In en, this message translates to:
+  /// **'Simplified Chinese'**
+  String get languageChineseSimplified;
+
   /// No description provided for @languageChineseTraditional.
   ///
   /// In en, this message translates to:
@@ -820,6 +858,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Japanese'**
   String get languageJapanese;
+
+  /// No description provided for @languageKorean.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean'**
+  String get languageKorean;
 
   /// No description provided for @languageSystem.
   ///
@@ -1222,6 +1266,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share this code to invite someone to your room.'**
   String get roomInviteCodeMessage;
+
+  /// No description provided for @roomInviteCodeTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the code to copy it.'**
+  String get roomInviteCodeTapHint;
+
+  /// No description provided for @roomInviteCodeCopiedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get roomInviteCodeCopiedTitle;
+
+  /// No description provided for @roomInviteCodeCopiedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite friends now and raise your pet together!'**
+  String get roomInviteCodeCopiedMessage;
 
   /// No description provided for @roomInviteCodeRegenerated.
   ///
@@ -2117,7 +2179,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ja', 'zh'].contains(locale.languageCode);
+      <String>['en', 'ja', 'ko', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2142,6 +2204,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'ja':
       return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
     case 'zh':
       return AppLocalizationsZh();
   }

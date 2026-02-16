@@ -1,0 +1,1176 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Korean (`ko`).
+class AppLocalizationsKo extends AppLocalizations {
+  AppLocalizationsKo([String locale = 'ko']) : super(locale);
+
+  @override
+  String get appleSignInRejected =>
+      'Apple 로그인에 실패했습니다. Supabase Apple 제공자 클라이언트 ID를 확인해 주세요.';
+
+  @override
+  String get authReauthRequired => '다시 로그인해 주세요.';
+
+  @override
+  String blockedUserIdTruncated(Object id) {
+    return 'ID(일부): $id';
+  }
+
+  @override
+  String get blockedUsersEmpty => '차단한 사용자가 아직 없습니다.';
+
+  @override
+  String blockedUsersLoadFailed(Object error) {
+    return '차단 사용자 불러오기 실패: $error';
+  }
+
+  @override
+  String get blockedUsersTitle => '차단 사용자';
+
+  @override
+  String get blockedUserUnblocked => '사용자 차단을 해제했습니다.';
+
+  @override
+  String blockedUserUnblockFailed(Object error) {
+    return '차단 해제 실패: $error';
+  }
+
+  @override
+  String get calendarAddMemory => '추억 추가';
+
+  @override
+  String get calendarEarlier => '이전';
+
+  @override
+  String get calendarLatestPhoto => '최신 사진';
+
+  @override
+  String calendarLoadFailed(Object error) {
+    return '추억 불러오기 실패: $error';
+  }
+
+  @override
+  String get calendarNoEarlierMemories => '이전 추억이 아직 없습니다.';
+
+  @override
+  String get calendarNoMemoriesForDay => '이 날짜의 추억이 없습니다.';
+
+  @override
+  String get calendarNoPhotoYet => '아직 사진이 없습니다';
+
+  @override
+  String get calendarTitle => '캘린더';
+
+  @override
+  String get calendarToday => '오늘';
+
+  @override
+  String chatBlockFailed(Object error) {
+    return '차단 실패: $error';
+  }
+
+  @override
+  String get chatBlockUser => '사용자 차단';
+
+  @override
+  String chatCoinsAwarded(Object count) {
+    return '+$count 캔디';
+  }
+
+  @override
+  String get chatEmptyState => '아직 메시지가 없습니다. 아래에서 채팅을 시작해 보세요.';
+
+  @override
+  String chatLoadBlockedUsersFailed(Object error) {
+    return '차단 사용자 불러오기 실패: $error';
+  }
+
+  @override
+  String chatLoadCacheFailed(Object error) {
+    return '캐시된 메시지 불러오기 실패: $error';
+  }
+
+  @override
+  String chatLoadMessagesFailed(Object error) {
+    return '메시지 불러오기 실패: $error';
+  }
+
+  @override
+  String chatLoadMoreFailed(Object error) {
+    return '더 불러오기 실패: $error';
+  }
+
+  @override
+  String get chatLoadOlderMessages => '이전 메시지 불러오기';
+
+  @override
+  String get chatMessageHint => '메시지';
+
+  @override
+  String get chatNoOlderMessages => '이전 메시지가 없습니다.';
+
+  @override
+  String get chatPartnerLabel => '파트너';
+
+  @override
+  String chatRefreshFailed(Object error) {
+    return '새로고침 실패: $error';
+  }
+
+  @override
+  String chatReportFailed(Object error) {
+    return '신고 실패: $error';
+  }
+
+  @override
+  String get chatReportHint => '신고 사유를 간단히 적어주세요';
+
+  @override
+  String get chatReportMessageTitle => '메시지 신고';
+
+  @override
+  String get chatReportNoReason => '사유 없음';
+
+  @override
+  String get chatReportSent => '신고가 접수되었습니다.';
+
+  @override
+  String chatSendFailed(Object error) {
+    return '전송 실패: $error';
+  }
+
+  @override
+  String get chatSystemUpdate => '시스템 업데이트';
+
+  @override
+  String get chatCandyLabel => '캔디';
+
+  @override
+  String chatCleanPoopMessage(Object name, Object amount) {
+    return '$name님이 배변을 치웠어요: +$amount 캔디.';
+  }
+
+  @override
+  String chatPetHungryReminderMessage(Object petName) {
+    return '$petName가 배고파하고 있어요. 먹이를 주세요!';
+  }
+
+  @override
+  String chatPetHungryUrgentMessage(Object petName) {
+    return '$petName가 매우 배고파요! 지금 바로 먹이를 주세요!';
+  }
+
+  @override
+  String get chatTitle => '채팅';
+
+  @override
+  String get chatUserAlreadyBlocked => '사용자가 차단되었습니다';
+
+  @override
+  String get chatUserBlocked => '사용자를 차단했습니다.';
+
+  @override
+  String chatMemberCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count명',
+      one: '$count명',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get calendarYesterday => '어제';
+
+  @override
+  String get commonBuy => '구매';
+
+  @override
+  String get commonCamera => '카메라';
+
+  @override
+  String get commonCancel => '취소';
+
+  @override
+  String get commonClose => '닫기';
+
+  @override
+  String get commonGallery => '갤러리';
+
+  @override
+  String get commonJoin => '참여';
+
+  @override
+  String get commonLeave => '나가기';
+
+  @override
+  String get commonOwned => '보유 중';
+
+  @override
+  String get commonReload => '다시 불러오기';
+
+  @override
+  String get commonSave => '저장';
+
+  @override
+  String get photoViewerDownloadTooltip => '다운로드';
+
+  @override
+  String get photoViewerSavedToGallery => '사진이 갤러리에 저장되었어요.';
+
+  @override
+  String get photoViewerSaveFailed => '사진을 갤러리에 저장하지 못했어요.';
+
+  @override
+  String get commonSend => '보내기';
+
+  @override
+  String get commonSending => '보내는 중...';
+
+  @override
+  String get commonSignOut => '로그아웃';
+
+  @override
+  String get commonSubmit => '확인';
+
+  @override
+  String get commonTryAgain => '다시 시도';
+
+  @override
+  String get commonUnblock => '차단 해제';
+
+  @override
+  String get commonUploading => '업로드 중';
+
+  @override
+  String get commonUser => '사용자';
+
+  @override
+  String get errorInvalidInviteCode => '초대 코드가 유효하지 않거나 만료되었습니다.';
+
+  @override
+  String get errorNetwork => '네트워크 오류입니다. 연결을 확인한 뒤 다시 시도해 주세요.';
+
+  @override
+  String get errorNotFound => '요청한 데이터를 찾을 수 없습니다.';
+
+  @override
+  String get errorPermissionDenied => '이 작업을 수행할 권한이 없습니다.';
+
+  @override
+  String get errorPetNameInvalid => '사용할 수 없는 펫 이름입니다. 다른 이름을 사용해 주세요.';
+
+  @override
+  String get errorUnexpected => '문제가 발생했습니다. 다시 시도해 주세요.';
+
+  @override
+  String currencyJpy(Object amount) {
+    return 'JPY $amount';
+  }
+
+  @override
+  String get drawerCreateRoom => '새 방 만들기';
+
+  @override
+  String get drawerDebugTools => '디버그 도구';
+
+  @override
+  String get drawerFreePlan => '무료 플랜';
+
+  @override
+  String get drawerProPlan => '프로 플랜';
+
+  @override
+  String get drawerDebugAddCandy => '+100 캔디';
+
+  @override
+  String get drawerDebugAddDiamonds => '+100 다이아몬드';
+
+  @override
+  String get drawerDebugTogglePlan => '플랜 전환';
+
+  @override
+  String get drawerDebugHungerDown => '펫 배고픔 -10';
+
+  @override
+  String get drawerDebugAddExp => 'EXP +10';
+
+  @override
+  String get drawerDebugSpawnPoop => '펫 배변 생성';
+
+  @override
+  String get drawerDebugShowFullBubble => '\"배불러요\" 말풍선 표시';
+
+  @override
+  String get drawerDebugTestSoftUpdate => '소프트 업데이트 안내 테스트';
+
+  @override
+  String get drawerDebugTestHardUpdate => '강제 업데이트 안내 테스트';
+
+  @override
+  String drawerInviteCode(Object code) {
+    return '코드: $code';
+  }
+
+  @override
+  String get drawerJoinWithCode => '초대 코드로 참가';
+
+  @override
+  String get drawerMyRooms => '내 방';
+
+  @override
+  String get drawerNoRooms => '아직 방이 없습니다.';
+
+  @override
+  String get drawerPetError => '펫 오류';
+
+  @override
+  String get drawerRegenerateInviteCode => '초대 코드 재생성';
+
+  @override
+  String get drawerSimulateFeed => '먹이 주기 시뮬레이션';
+
+  @override
+  String get drawerTestNotification => '로컬 알림 테스트';
+
+  @override
+  String get feedCameraSubtitle => '먹이 사진을 찍어 보내세요.';
+
+  @override
+  String get feedCameraTitle => '먹이 카메라';
+
+  @override
+  String get feedPickPhotoHint => '사진 선택';
+
+  @override
+  String feedCanonicalTags(Object tags) {
+    return '표준 태그: $tags';
+  }
+
+  @override
+  String get feedCaptionLabel => '캡션(선택)';
+
+  @override
+  String get feedDetectedLabels => '감지된 라벨';
+
+  @override
+  String feedLabelingFailed(Object error) {
+    return '라벨링 실패: $error';
+  }
+
+  @override
+  String get feedLabelingNotSupported => '웹에서는 ML Kit 이미지 라벨링을 지원하지 않습니다.';
+
+  @override
+  String feedLabelMappingsFailed(Object error) {
+    return '라벨 매핑 불러오기 실패: $error';
+  }
+
+  @override
+  String get feedLabelMappingsLoading => '라벨 매핑 불러오는 중...';
+
+  @override
+  String get feedLabelMappingsReady => '라벨 매핑 준비 완료.';
+
+  @override
+  String get feedLabelMappingsUnavailable => '라벨 매핑을 사용할 수 없습니다.';
+
+  @override
+  String get feedNoLabels => '아직 감지된 라벨이 없습니다.';
+
+  @override
+  String feedResponse(Object response) {
+    return '응답: $response';
+  }
+
+  @override
+  String get feedSelectImageFirst => '먼저 이미지를 선택해 주세요.';
+
+  @override
+  String get feedSendButton => '먹이 보내기';
+
+  @override
+  String feedSendFailed(Object error) {
+    return '전송 실패: $error';
+  }
+
+  @override
+  String get feedTitle => '먹이';
+
+  @override
+  String feedUploadFailed(Object error) {
+    return '먹이 업로드 실패: $error';
+  }
+
+  @override
+  String get forceUpdateAction => '지금 업데이트';
+
+  @override
+  String get forceUpdateLinkError => '스토어 링크를 열 수 없습니다.';
+
+  @override
+  String get forceUpdateMessage => '계속하려면 새 버전이 필요합니다. 지금 업데이트해 주세요.';
+
+  @override
+  String get forceUpdateTitle => '업데이트 필요';
+
+  @override
+  String get softUpdateAction => '업데이트';
+
+  @override
+  String get softUpdateLater => '나중에';
+
+  @override
+  String get softUpdateMessage => '더 부드러운 공동 돌봄 경험을 위해 새 버전이 제공됩니다.';
+
+  @override
+  String get softUpdateTitle => '업데이트 가능';
+
+  @override
+  String get languageChineseSimplified => '중국어(간체)';
+
+  @override
+  String get languageChineseTraditional => '중국어(번체)';
+
+  @override
+  String get languageEnglish => '영어';
+
+  @override
+  String get languageJapanese => '일본어';
+
+  @override
+  String get languageKorean => '한국어';
+
+  @override
+  String get languageSystem => '시스템';
+
+  @override
+  String get languageSystemSubtitle => '기기 언어 따르기';
+
+  @override
+  String get languageTitle => '언어';
+
+  @override
+  String get launchAppName => 'PetTomo';
+
+  @override
+  String get launchTagline => '순간을 공유하고, 함께 성장해요.';
+
+  @override
+  String get moodHigh => '좋음';
+
+  @override
+  String get moodLow => '낮음';
+
+  @override
+  String get moodMid => '보통';
+
+  @override
+  String get moodNeutral => '중립';
+
+  @override
+  String get moodSad => '슬픔';
+
+  @override
+  String petActionFailed(Object error) {
+    return '동작 실패: $error';
+  }
+
+  @override
+  String get petHomeTitle => '펫 홈';
+
+  @override
+  String get petNameEditTitle => '펫 이름 수정';
+
+  @override
+  String get petNameLabel => '펫 이름';
+
+  @override
+  String get petNameHint => '펫 이름 입력';
+
+  @override
+  String get petNameEmptyError => '이름을 입력해 주세요.';
+
+  @override
+  String petNameUpdateFailed(Object error) {
+    return '펫 이름을 변경할 수 없습니다: $error';
+  }
+
+  @override
+  String chatPetRenamedMessage(Object user, Object oldName, Object petName) {
+    return '$user님이 펫 이름을 $oldName에서 $petName(으)로 변경했어요.';
+  }
+
+  @override
+  String get petNameUnnamed => '이름 없음';
+
+  @override
+  String get petNotFound => '펫을 찾을 수 없습니다.';
+
+  @override
+  String petSyncFailed(Object error) {
+    return '펫 동기화 오류: $error';
+  }
+
+  @override
+  String get photoLabel => '사진';
+
+  @override
+  String get profileDefaultNickname => '펫 보호자';
+
+  @override
+  String get profileEmpty => '프로필 정보가 없습니다.';
+
+  @override
+  String profileLoadFailed(Object error) {
+    return '프로필 불러오기 실패: $error';
+  }
+
+  @override
+  String get profileNicknameLabel => '닉네임';
+
+  @override
+  String get profileTitle => '프로필';
+
+  @override
+  String get profileUpdated => '프로필이 업데이트되었습니다';
+
+  @override
+  String get profileAvatarTitle => '아바타 선택';
+
+  @override
+  String get profileAvatarEdit => '아바타 수정';
+
+  @override
+  String get profileAvatarUpload => '사진 업로드';
+
+  @override
+  String get profileAvatarAdjustCurrent => '현재 사진 조정';
+
+  @override
+  String get profileAvatarAdjustUnavailable => '조정할 업로드 사진이 없습니다.';
+
+  @override
+  String get profileAvatarAdjustUnsupportedPlatform =>
+      '이 플랫폼에서는 현재 사진 조정을 지원하지 않습니다.';
+
+  @override
+  String get profileAvatarRemove => '삭제';
+
+  @override
+  String profileCoinsLabel(Object amount) {
+    return '캔디: $amount';
+  }
+
+  @override
+  String get profileDeleteAccountSectionTitle => '계정 삭제';
+
+  @override
+  String get profileDeleteAccountSectionBody =>
+      '계정을 영구 삭제합니다. 공유 방과 펫은 다른 멤버에게 남습니다.';
+
+  @override
+  String get profileDeleteAccountAction => '계정 삭제';
+
+  @override
+  String get profileDeleteAccountTitle => '계정을 삭제할까요?';
+
+  @override
+  String get profileDeleteAccountConfirmBody =>
+      '계정과 개인 데이터가 영구 삭제됩니다. 공유 방/펫은 유지되며 소유권은 다른 멤버에게 이전됩니다. 이 작업은 되돌릴 수 없습니다.';
+
+  @override
+  String get profileDeleteAccountConfirmAction => '삭제';
+
+  @override
+  String profileDeleteFailed(Object error) {
+    return '계정 삭제 실패: $error';
+  }
+
+  @override
+  String profileUserId(Object id) {
+    return '사용자 ID: $id';
+  }
+
+  @override
+  String get drawerProfile => '프로필';
+
+  @override
+  String get roomCreatedSuccess => '방이 생성되었습니다! 드로어를 확인해 주세요.';
+
+  @override
+  String roomCreateFailed(Object error) {
+    return '방 생성 실패: $error';
+  }
+
+  @override
+  String get roomCreateTitle => '방 만들기';
+
+  @override
+  String get roomCreateAction => '생성';
+
+  @override
+  String get roomNameLabel => '방 이름';
+
+  @override
+  String get roomNameHint => '방 이름';
+
+  @override
+  String get roomNameEmptyError => '방 이름을 입력해 주세요.';
+
+  @override
+  String roomNameUpdateFailed(Object error) {
+    return '방 이름을 변경할 수 없습니다: $error';
+  }
+
+  @override
+  String get roomOptionsTitle => '방 옵션';
+
+  @override
+  String get roomOptionRename => '방 이름 변경';
+
+  @override
+  String get roomOptionLeave => '방 나가기';
+
+  @override
+  String get roomRenameTitle => '방 이름 바꾸기';
+
+  @override
+  String get roomRenameMessage => '이 방의 새 이름을 입력해 주세요.';
+
+  @override
+  String get roomDefaultName => '새 방';
+
+  @override
+  String get roomInviteCta => '초대';
+
+  @override
+  String get roomInventoryCta => '인벤토리';
+
+  @override
+  String get roomInvitePromptTitle => '누군가를 초대하세요';
+
+  @override
+  String get roomInvitePromptBody => '현재 이 방에는 나만 있어요. 코드를 만들어 누군가를 초대해 보세요.';
+
+  @override
+  String get roomInvitePromptAction => '코드 생성';
+
+  @override
+  String get roomInvitePromptGenerating => '생성 중...';
+
+  @override
+  String get roomInviteCodeTitle => '초대 코드';
+
+  @override
+  String get roomInviteCodeMessage => '이 코드를 공유해 방에 초대하세요.';
+
+  @override
+  String get roomInviteCodeTapHint => '코드를 탭하면 복사돼요.';
+
+  @override
+  String get roomInviteCodeCopiedTitle => '복사 완료';
+
+  @override
+  String get roomInviteCodeCopiedMessage => '지금 친구를 초대해서 함께 반려동물을 돌봐요!';
+
+  @override
+  String get roomInviteCodeRegenerated => '초대 코드가 재생성되었습니다.';
+
+  @override
+  String roomInviteCodeRegenerateFailed(Object error) {
+    return '초대 코드 재생성 실패: $error';
+  }
+
+  @override
+  String roomJoinFailed(Object error) {
+    return '방 참가 실패: $error';
+  }
+
+  @override
+  String get roomJoinHelper => '초대 코드는 대소문자를 구분하지 않습니다.';
+
+  @override
+  String get roomJoinHint => '6자리 코드 입력';
+
+  @override
+  String get roomJoinSuccess => '방 참가에 성공했습니다.';
+
+  @override
+  String get roomJoinTitle => '방 참가';
+
+  @override
+  String roomLeaveFailed(Object error) {
+    return '방 나가기 실패: $error';
+  }
+
+  @override
+  String roomLeaveMessage(Object name) {
+    return '$name에서 나가며, 해당 채팅과 펫에 대한 접근 권한을 잃게 됩니다.';
+  }
+
+  @override
+  String get roomLeaveSuccess => '방에서 나갔습니다.';
+
+  @override
+  String get roomLeaveTitle => '방을 나갈까요?';
+
+  @override
+  String get roomLimitReached => '무료 플랜 한도(최대 2개 방)에 도달했습니다. 더 만들려면 업그레이드하세요!';
+
+  @override
+  String roomNewInviteCode(Object code) {
+    return '새 초대 코드: $code';
+  }
+
+  @override
+  String get roomSelectionCreatePet => '새 방 만들기';
+
+  @override
+  String get roomSelectionCreating => '생성 중...';
+
+  @override
+  String get roomSelectionEmptySlot => '빈 슬롯';
+
+  @override
+  String get roomSelectionEnterInvite => '초대 코드 입력';
+
+  @override
+  String get roomSelectionJoining => '참가 중...';
+
+  @override
+  String get roomSelectionRoomFallback => '방';
+
+  @override
+  String get roomSelectionSubtitle => '펫 홈을 선택하고 다시 이어서 플레이하세요.';
+
+  @override
+  String get roomSelectionTitle => '방 선택';
+
+  @override
+  String get signInFailed => '로그인에 실패했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get signInNote => '참고: Supabase에서 OAuth 제공자를 설정해야 합니다.';
+
+  @override
+  String get signInOpening => '로그인 화면 여는 중...';
+
+  @override
+  String signInOpeningProvider(Object provider) {
+    return '$provider 로그인 여는 중...';
+  }
+
+  @override
+  String get signInSubtitle => '함께 펫을 키우려면 로그인하세요.';
+
+  @override
+  String get signInWithApple => 'Apple로 계속';
+
+  @override
+  String get signInWithGoogle => 'Google로 계속';
+
+  @override
+  String storeCoinPrice(Object amount) {
+    return '캔디: $amount';
+  }
+
+  @override
+  String storeCoinsLabel(Object amount) {
+    return '캔디: $amount';
+  }
+
+  @override
+  String storeCoinsReward(Object amount) {
+    return '캔디 +$amount';
+  }
+
+  @override
+  String storeDiamondsLabel(Object amount) {
+    return '다이아몬드: $amount';
+  }
+
+  @override
+  String storeDiamondsReward(Object amount) {
+    return '다이아몬드 +$amount';
+  }
+
+  @override
+  String get storeEmpty => '지금은 스토어가 비어 있습니다.';
+
+  @override
+  String get storeIapNotConfigured => 'IAP가 설정되지 않았습니다.';
+
+  @override
+  String storeIapUnavailable(Object error) {
+    return 'IAP를 사용할 수 없음: $error';
+  }
+
+  @override
+  String storeLoadFailed(Object error) {
+    return '스토어 불러오기 실패: $error';
+  }
+
+  @override
+  String get storeNotEnoughCoins => '캔디가 부족합니다.';
+
+  @override
+  String get storeNotEnoughDiamonds => '다이아몬드가 부족합니다.';
+
+  @override
+  String storeOwnedCount(Object amount) {
+    return '보유: $amount';
+  }
+
+  @override
+  String get storePriceUnavailable => '가격 정보 없음';
+
+  @override
+  String get storeProductNotFound => 'RevenueCat에서 상품을 찾을 수 없습니다.';
+
+  @override
+  String get storeProductUnavailable => '상품을 사용할 수 없습니다.';
+
+  @override
+  String storePurchaseFailed(Object error) {
+    return '구매 실패: $error';
+  }
+
+  @override
+  String storePurchaseSuccess(Object name) {
+    return '$name 구매 완료.';
+  }
+
+  @override
+  String storeRestoreFailed(Object error) {
+    return '복원 실패: $error';
+  }
+
+  @override
+  String get storeRestoreTooltip => '구매 복원';
+
+  @override
+  String get storeSectionCoinPacks => '캔디 팩';
+
+  @override
+  String get storeSectionCoinStore => '캔디 상점';
+
+  @override
+  String get storeSectionDiamondPacks => '다이아몬드 팩';
+
+  @override
+  String get storeSectionDiamondStore => '다이아몬드 상점';
+
+  @override
+  String get storeSectionSubscription => '구독';
+
+  @override
+  String get storeTabPremium => '프리미엄';
+
+  @override
+  String get storeTabFurniture => '가구';
+
+  @override
+  String get storeTabThemes => '테마';
+
+  @override
+  String get storeThemePreviewAction => '미리보기';
+
+  @override
+  String storeThemePreviewTitle(Object name) {
+    return '$name 미리보기';
+  }
+
+  @override
+  String get storeItemNameProMonthly => '프로 월간 멤버십';
+
+  @override
+  String get storeItemDescProMonthly => '광고 없음, 무제한 방, 자동 갱신이 포함된 월간 프로 구독입니다.';
+
+  @override
+  String get storeItemNameDiamondPack300 => '다이아몬드 300 팩';
+
+  @override
+  String get storeItemDescDiamondPack300 => '다이아몬드 300개를 즉시 획득합니다(1회 구매).';
+
+  @override
+  String get storeItemNameReturnLetter => '귀환 편지';
+
+  @override
+  String get storeItemDescReturnLetter => '떠난 펫을 다시 불러옵니다.';
+
+  @override
+  String get storeItemNameBackgroundDefault => '기본 배경';
+
+  @override
+  String get storeItemDescBackgroundDefault => '원래의 아늑한 방 배경입니다.';
+
+  @override
+  String get storeItemNameBackgroundMoonlight => '달빛 배경';
+
+  @override
+  String get storeItemDescBackgroundMoonlight => '고요한 달빛 방 배경입니다.';
+
+  @override
+  String get storeItemNameFurnitureSofa => '소파';
+
+  @override
+  String get storeItemDescFurnitureSofa => '편안한 소파.';
+
+  @override
+  String get storeItemNameFurniturePlant => '식물';
+
+  @override
+  String get storeItemDescFurniturePlant => '싱그러운 초록 코너.';
+
+  @override
+  String get storeItemNameFurnitureFrame => '액자';
+
+  @override
+  String get storeItemDescFurnitureFrame => '사진 액자.';
+
+  @override
+  String get storeItemNameFurnitureTeddy => '테디베어';
+
+  @override
+  String get storeItemDescFurnitureTeddy => '폭신한 곰인형.';
+
+  @override
+  String get storeItemNameFurnitureBricks => '벽돌';
+
+  @override
+  String get storeItemDescFurnitureBricks => '블록 포인트 장식.';
+
+  @override
+  String get storeItemNameFurnitureTv => 'TV';
+
+  @override
+  String get storeItemDescFurnitureTv => '작은 TV.';
+
+  @override
+  String get storeItemNameFurnitureBath => '욕조';
+
+  @override
+  String get storeItemDescFurnitureBath => '미니 욕조.';
+
+  @override
+  String get storeItemNameFurnitureRibbon => '리본';
+
+  @override
+  String get storeItemDescFurnitureRibbon => '장식 리본.';
+
+  @override
+  String get storeSignInPrompt => '스토어를 이용하려면 로그인해 주세요.';
+
+  @override
+  String get storeSubscribe => '구독하기';
+
+  @override
+  String get storeSubscriptionActive => '사용 중';
+
+  @override
+  String get storeSubscriptionRenewalNote => '매달 자동 갱신됩니다. 언제든 취소할 수 있습니다.';
+
+  @override
+  String get storePrivacyPolicy => '개인정보 처리방침';
+
+  @override
+  String get storeTermsOfUse => '이용약관';
+
+  @override
+  String get storeLegalSeparator => '|';
+
+  @override
+  String get storeLegalOpenFailed => '법적 링크를 열 수 없습니다.';
+
+  @override
+  String get storeTitle => '스토어';
+
+  @override
+  String get storeTypeConsumable => '소모품';
+
+  @override
+  String get storeTypeCosmetic => '꾸미기';
+
+  @override
+  String get storeTypeSubscription => '구독';
+
+  @override
+  String get furnitureInventoryTitle => '방 인벤토리';
+
+  @override
+  String get furnitureInventorySubtitle => '이 방의 가구와 배경을 관리하세요.';
+
+  @override
+  String get furnitureInventoryEmpty => '아직 가구가 없습니다. 스토어에서 구매해 보세요.';
+
+  @override
+  String get furnitureInventoryHint =>
+      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 빈 공간을 탭하면 종료됩니다.';
+
+  @override
+  String get roomInventoryTitle => '방 인벤토리';
+
+  @override
+  String get inventoryTabFurniture => '가구';
+
+  @override
+  String get backgroundGalleryTab => '배경 갤러리';
+
+  @override
+  String get backgroundInventoryEmpty => '아직 배경이 없습니다. 스토어에서 획득해 보세요.';
+
+  @override
+  String get backgroundInventoryHint => '배경을 탭하면 방의 모든 사용자에게 적용됩니다.';
+
+  @override
+  String get backgroundApply => '적용';
+
+  @override
+  String get backgroundAppliedLabel => '적용됨';
+
+  @override
+  String backgroundApplyFailed(Object error) {
+    return '배경 적용 실패: $error';
+  }
+
+  @override
+  String get storeSectionBackgrounds => '배경';
+
+  @override
+  String get storeSectionItems => '아이템';
+
+  @override
+  String get storeBackgroundRoomRequired => '배경을 구매하기 전에 방을 선택해 주세요.';
+
+  @override
+  String storeBuyWithCandies(Object price) {
+    return '$price 캔디로 구매';
+  }
+
+  @override
+  String storeBuyWithDiamonds(Object price) {
+    return '$price 다이아몬드로 구매';
+  }
+
+  @override
+  String get furnitureEditMode => '가구 모드';
+
+  @override
+  String get petSelectionTitle => '펫을 선택하세요';
+
+  @override
+  String get petSelectionSubtitle => '이 방을 시작할 친구를 고르세요.';
+
+  @override
+  String get petSelectionHint => '계속하려면 펫을 탭하세요.';
+
+  @override
+  String petSelectionSelected(Object name) {
+    return '선택됨: $name';
+  }
+
+  @override
+  String get petSelectionConfirm => '방 시작';
+
+  @override
+  String get petSelectionStarterBadge => '기본';
+
+  @override
+  String petSelectionFailed(Object error) {
+    return '펫 선택 실패: $error';
+  }
+
+  @override
+  String get petTypeGhostName => '유령';
+
+  @override
+  String get petTypeGhostTagline => '간식을 좋아하는 수줍은 둥둥이.';
+
+  @override
+  String get petTypeCatName => '고양이';
+
+  @override
+  String get petTypeCatTagline => '따뜻한 골골송의 호기심 많은 점프왕.';
+
+  @override
+  String get petTypeFishName => '물고기';
+
+  @override
+  String get petTypeFishTagline => '유영을 좋아하는 톡톡 튀는 수영 친구.';
+
+  @override
+  String get roomLeaveConfirm => '방 나가기';
+
+  @override
+  String get roomLockedBadge => '잠김';
+
+  @override
+  String get roomLockedTitle => '무료 플랜에서 잠긴 방';
+
+  @override
+  String get roomLockedMessage =>
+      '무료 플랜에서는 처음 2개의 방만 활성 상태로 유지됩니다. 이 방에서 펫을 키우고 성장시키려면 Pro로 업그레이드하세요.';
+
+  @override
+  String get petDepartureNoteMessage => '왜 나를 이렇게 대했어...';
+
+  @override
+  String get petDepartureGuideTitle => '펫이 보낸 편지';
+
+  @override
+  String get petDepartureGuideMessage => '스토어에서 편지를 구매해 펫을 다시 초대하세요.';
+
+  @override
+  String get petDepartureGuideGoStore => '스토어로 이동';
+
+  @override
+  String get petDepartureLetterUnavailableTitle => '편지를 사용할 수 없음';
+
+  @override
+  String get petDepartureLetterUnavailableMessage => '아직 떠난 펫이 없습니다.';
+
+  @override
+  String get petDepartureLetterSelectTitle => '펫 선택';
+
+  @override
+  String get petDepartureLetterSelectMessage => '어떤 펫을 편지로 다시 부를까요?';
+
+  @override
+  String petDepartureLetterConfirmTitle(Object petName) {
+    return '$petName를 다시 부를까요?';
+  }
+
+  @override
+  String petDepartureLetterConfirmMessage(Object petName) {
+    return '편지를 구매해 $petName를 집으로 다시 초대하세요.';
+  }
+
+  @override
+  String get petDepartureLetterConfirmAction => '편지 구매';
+
+  @override
+  String get petDepartureFeedDisabledTitle => '먹일 펫이 없습니다';
+
+  @override
+  String get petDepartureFeedDisabledMessage => '펫이 떠나서 지금은 먹이를 줄 수 없어요.';
+
+  @override
+  String get petOverfedBubble => '배불러요!';
+
+  @override
+  String get petNameUnknown => '당신의 펫';
+
+  @override
+  String get roomNameUnknown => '알 수 없는 방';
+
+  @override
+  String petReturnFailed(Object error) {
+    return '펫 복귀 실패: $error';
+  }
+}

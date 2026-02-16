@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:pet/l10n/app_localizations.dart';
 
 import 'cached_network_image_view.dart';
 import 'image_aspect_cache.dart';
@@ -31,7 +34,7 @@ class FullScreenPhotoViewer extends StatefulWidget {
   final Map<int, String> localImagePaths;
 
   /// Opens the photo viewer using a fade transition.
-  static void open(
+  static Future<int?> open(
     BuildContext context, {
     required List<String> imageUrls,
     int initialIndex = 0,
@@ -39,20 +42,20 @@ class FullScreenPhotoViewer extends StatefulWidget {
     bool showIndicator = true,
     List<String?> captions = const [],
   }) {
-    if (imageUrls.isEmpty) return;
-    Navigator.of(context).push(
-      PageRouteBuilder<void>(
+    if (imageUrls.isEmpty) return Future<int?>.value(null);
+    return Navigator.of(context).push<int>(
+      PageRouteBuilder<int>(
         opaque: false,
         barrierColor: Colors.black.withValues(alpha: 0.92),
         barrierDismissible: false,
         pageBuilder: (context, animation, secondaryAnimation) =>
             FullScreenPhotoViewer(
-          imageUrls: imageUrls,
-          initialIndex: initialIndex,
-          localImagePaths: localImagePaths,
-          showIndicator: showIndicator,
-          captions: captions,
-        ),
+              imageUrls: imageUrls,
+              initialIndex: initialIndex,
+              localImagePaths: localImagePaths,
+              showIndicator: showIndicator,
+              captions: captions,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -81,28 +84,37 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   TapDownDetails? _doubleTapDetails;
   final Map<int, double> _aspectRatios = {};
   final Set<int> _resolvingAspect = {};
+  bool _savingToGallery = false;
+  bool _showDownloadedIcon = false;
+  Timer? _downloadedIconTimer;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, widget.imageUrls.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
-    _zoomAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    )..addListener(() {
-        if (_zoomAnimation != null) {
-          _transformController.value = _zoomAnimation!.value;
-        }
-      });
+    _zoomAnimController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 200),
+        )..addListener(() {
+          if (_zoomAnimation != null) {
+            _transformController.value = _zoomAnimation!.value;
+          }
+        });
   }
 
   @override
   void dispose() {
+    _downloadedIconTimer?.cancel();
     _pageController.dispose();
     _zoomAnimController.dispose();
     _transformController.dispose();
     super.dispose();
+  }
+
+  void _closeWithCurrentIndex() {
+    Navigator.of(context).pop(_currentIndex);
   }
 
   void _handleDoubleTapDown(TapDownDetails details) {
@@ -127,12 +139,13 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
         ..multiply(Matrix4.diagonal3Values(targetScale, targetScale, 1));
     }
 
-    _zoomAnimation = Matrix4Tween(
-      begin: _transformController.value,
-      end: end,
-    ).animate(
-      CurvedAnimation(parent: _zoomAnimController, curve: Curves.easeOutCubic),
-    );
+    _zoomAnimation = Matrix4Tween(begin: _transformController.value, end: end)
+        .animate(
+          CurvedAnimation(
+            parent: _zoomAnimController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _zoomAnimController.forward(from: 0);
   }
 
@@ -148,7 +161,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
 
   void _onVerticalDragEnd(DragEndDetails details) {
     if (_dragOffset.abs() > 100) {
-      Navigator.of(context).pop();
+      _closeWithCurrentIndex();
     } else {
       setState(() {
         _dragOffset = 0;
@@ -163,6 +176,132 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     setState(() {
       _currentIndex = index;
     });
+  }
+
+  Future<void> _saveCurrentImageToGallery() async {
+    if (_savingToGallery) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _savingToGallery = true);
+
+    try {
+      final bytes = await _resolveCurrentImageBytes();
+      if (bytes == null || bytes.isEmpty) {
+        throw StateError('image_bytes_unavailable');
+      }
+
+      final name = 'pettomo_${DateTime.now().millisecondsSinceEpoch}';
+      final result = await ImageGallerySaverPlus.saveImage(
+        bytes,
+        quality: 100,
+        name: name,
+      );
+      final saved = _isGallerySaveSuccess(result);
+      if (!mounted) {
+        return;
+      }
+      if (saved) {
+        _downloadedIconTimer?.cancel();
+        setState(() => _showDownloadedIcon = true);
+        _downloadedIconTimer = Timer(const Duration(seconds: 1), () {
+          if (!mounted) {
+            return;
+          }
+          setState(() => _showDownloadedIcon = false);
+        });
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            saved ? l10n.photoViewerSavedToGallery : l10n.photoViewerSaveFailed,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.photoViewerSaveFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _savingToGallery = false);
+      }
+    }
+  }
+
+  Future<Uint8List?> _resolveCurrentImageBytes() async {
+    final localPath = widget.localImagePaths[_currentIndex];
+    if (localPath != null && File(localPath).existsSync()) {
+      return File(localPath).readAsBytes();
+    }
+
+    final url = widget.imageUrls[_currentIndex];
+    if (url.isEmpty) {
+      return null;
+    }
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      return null;
+    }
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(uri);
+      final response = await request.close();
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return null;
+      }
+      final chunks = <int>[];
+      await for (final chunk in response) {
+        chunks.addAll(chunk);
+      }
+      if (chunks.isEmpty) {
+        return null;
+      }
+      return Uint8List.fromList(chunks);
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  bool _isGallerySaveSuccess(dynamic result) {
+    if (result is bool) {
+      return result;
+    }
+    if (result is Map) {
+      final dynamic isSuccess = result['isSuccess'];
+      if (isSuccess is bool) {
+        return isSuccess;
+      }
+      final dynamic filePath = result['filePath'];
+      if (filePath is String && filePath.isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Widget _buildTopCircleIconButton({
+    required VoidCallback? onPressed,
+    required IconData icon,
+    required String tooltip,
+    Widget? iconChild,
+  }) {
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.4),
+          shape: BoxShape.circle,
+        ),
+        child: iconChild ?? Icon(icon, color: Colors.white, size: 22),
+      ),
+    );
   }
 
   void _ensureAspectRatio(int index) {
@@ -190,23 +329,26 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     _resolvingAspect.add(index);
     final stream = provider.resolve(const ImageConfiguration());
     late final ImageStreamListener listener;
-    listener = ImageStreamListener((info, _) {
-      final ratio = info.image.width / info.image.height;
-      final safeRatio = ratio.isFinite && ratio > 0 ? ratio : 1.0;
-      ImageAspectCache.instance.set(url, safeRatio);
-      if (mounted) {
-        setState(() {
+    listener = ImageStreamListener(
+      (info, _) {
+        final ratio = info.image.width / info.image.height;
+        final safeRatio = ratio.isFinite && ratio > 0 ? ratio : 1.0;
+        ImageAspectCache.instance.set(url, safeRatio);
+        if (mounted) {
+          setState(() {
+            _aspectRatios[index] = safeRatio;
+          });
+        } else {
           _aspectRatios[index] = safeRatio;
-        });
-      } else {
-        _aspectRatios[index] = safeRatio;
-      }
-      _resolvingAspect.remove(index);
-      stream.removeListener(listener);
-    }, onError: (error, stackTrace) {
-      _resolvingAspect.remove(index);
-      stream.removeListener(listener);
-    });
+        }
+        _resolvingAspect.remove(index);
+        stream.removeListener(listener);
+      },
+      onError: (error, stackTrace) {
+        _resolvingAspect.remove(index);
+        stream.removeListener(listener);
+      },
+    );
     stream.addListener(listener);
   }
 
@@ -227,15 +369,9 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
 
     Widget imageWidget;
     if (localPath != null && File(localPath).existsSync()) {
-      imageWidget = Image.file(
-        File(localPath),
-        fit: BoxFit.contain,
-      );
+      imageWidget = Image.file(File(localPath), fit: BoxFit.contain);
     } else if (url.isNotEmpty) {
-      imageWidget = CachedNetworkImageView(
-        imageUrl: url,
-        fit: BoxFit.contain,
-      );
+      imageWidget = CachedNetworkImageView(imageUrl: url, fit: BoxFit.contain);
     } else {
       imageWidget = const Center(
         child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
@@ -293,90 +429,124 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   @override
   Widget build(BuildContext context) {
     final imageCount = widget.imageUrls.length;
+    final l10n = AppLocalizations.of(context)!;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppStatusBarStyles.dark,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: GestureDetector(
-          onVerticalDragUpdate: _onVerticalDragUpdate,
-          onVerticalDragEnd: _onVerticalDragEnd,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 100),
-            opacity: _dragOpacity,
-            child: Transform.translate(
-              offset: Offset(0, _dragOffset),
-              child: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Stack(
-                      children: [
-                        // Image viewer
-                        imageCount == 1
-                            ? _buildImagePage(0, constraints)
-                            : PageView.builder(
-                                controller: _pageController,
-                                itemCount: imageCount,
-                                onPageChanged: _onPageChanged,
-                                physics: _transformController.value
-                                            .getMaxScaleOnAxis() >
-                                        1.05
-                                    ? const NeverScrollableScrollPhysics()
-                                    : const BouncingScrollPhysics(),
-                                itemBuilder: (_, index) =>
-                                    _buildImagePage(index, constraints),
-                              ),
+      child: PopScope<int>(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            _closeWithCurrentIndex();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: GestureDetector(
+            onVerticalDragUpdate: _onVerticalDragUpdate,
+            onVerticalDragEnd: _onVerticalDragEnd,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 100),
+              opacity: _dragOpacity,
+              child: Transform.translate(
+                offset: Offset(0, _dragOffset),
+                child: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Stack(
+                        children: [
+                          // Image viewer
+                          imageCount == 1
+                              ? _buildImagePage(0, constraints)
+                              : PageView.builder(
+                                  controller: _pageController,
+                                  itemCount: imageCount,
+                                  onPageChanged: _onPageChanged,
+                                  physics:
+                                      _transformController.value
+                                              .getMaxScaleOnAxis() >
+                                          1.05
+                                      ? const NeverScrollableScrollPhysics()
+                                      : const BouncingScrollPhysics(),
+                                  itemBuilder: (_, index) =>
+                                      _buildImagePage(index, constraints),
+                                ),
 
-                        // Close button
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Page indicator (only if multiple images)
-                        if (widget.showIndicator && imageCount > 1)
+                          // Download button
                           Positioned(
-                            bottom: 24,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(imageCount, (i) {
-                                final isActive = i == _currentIndex;
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 3),
-                                  width: isActive ? 10 : 6,
-                                  height: isActive ? 10 : 6,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isActive
-                                        ? Colors.white
-                                        : Colors.white.withValues(alpha: 0.4),
-                                  ),
-                                );
-                              }),
+                            top: 8,
+                            left: 8,
+                            child: _buildTopCircleIconButton(
+                              onPressed:
+                                  (_savingToGallery || _showDownloadedIcon)
+                                  ? null
+                                  : _saveCurrentImageToGallery,
+                              icon: Icons.download_rounded,
+                              tooltip: l10n.photoViewerDownloadTooltip,
+                              iconChild: _savingToGallery
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : _showDownloadedIcon
+                                  ? const Icon(
+                                      Icons.check_rounded,
+                                      color: Colors.white,
+                                      size: 22,
+                                    )
+                                  : null,
                             ),
                           ),
-                      ],
-                    );
-                  },
+
+                          // Close button
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: _buildTopCircleIconButton(
+                              onPressed: _closeWithCurrentIndex,
+                              icon: Icons.close,
+                              tooltip: l10n.commonClose,
+                            ),
+                          ),
+
+                          // Page indicator (only if multiple images)
+                          if (widget.showIndicator && imageCount > 1)
+                            Positioned(
+                              bottom: 24,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(imageCount, (i) {
+                                  final isActive = i == _currentIndex;
+                                  return AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 3,
+                                    ),
+                                    width: isActive ? 10 : 6,
+                                    height: isActive ? 10 : 6,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isActive
+                                          ? Colors.white
+                                          : Colors.white.withValues(alpha: 0.4),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
