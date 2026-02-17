@@ -333,6 +333,18 @@ class RoomSelectionView extends StatelessWidget {
     final displayName = petName == null || petName.isEmpty
         ? petDefinition.name(l10n)
         : petName;
+    final unreadCount = () {
+      final raw = room['unread_count'];
+      if (raw is int) {
+        return raw;
+      }
+      if (raw is num) {
+        return raw.toInt();
+      }
+      return room['has_unread'] == true ? 1 : 0;
+    }();
+    final hasUnread = unreadCount > 0;
+    final unreadText = '${unreadCount.clamp(1, 99)}';
     final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
     final petLevel = (room['pet_level'] as num?)?.toInt();
     final memoryFrameAspectRatio = _memoryFrameAspectRatio(responsive);
@@ -445,6 +457,81 @@ class RoomSelectionView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                  ),
+                ),
+              if (hasUnread)
+                Positioned(
+                  top: 10,
+                  right: isLocked ? 44 : 10,
+                  child: IgnorePointer(
+                    child: SizedBox(
+                      width: responsive.pick(
+                        compact: 22,
+                        regular: 24,
+                        expanded: 24,
+                      ),
+                      height: responsive.pick(
+                        compact: 22,
+                        regular: 24,
+                        expanded: 24,
+                      ),
+                      child: Container(
+                        key: roomId == null
+                            ? null
+                            : Key('room_unread_indicator_$roomId'),
+                        alignment: Alignment.center,
+                        constraints: BoxConstraints(
+                          minWidth: responsive.pick(
+                            compact: 18,
+                            regular: 20,
+                            expanded: 20,
+                          ),
+                          minHeight: responsive.pick(
+                            compact: 18,
+                            regular: 20,
+                            expanded: 20,
+                          ),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: responsive.pick(
+                            compact: 5,
+                            regular: 6,
+                            expanded: 6,
+                          ),
+                          vertical: responsive.pick(
+                            compact: 2,
+                            regular: 2,
+                            expanded: 2,
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE53935),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          unreadText,
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: responsive.pick(
+                              compact: 8,
+                              regular: 9,
+                              expanded: 9,
+                            ),
+                            height: 1,
+                          ),
+                        ),
                       ),
                     ),
                   ),

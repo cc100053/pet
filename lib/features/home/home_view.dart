@@ -13,6 +13,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../services/app_badge_service.dart';
 import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
@@ -144,6 +145,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
   Timer? _petTickTimer;
   Timer? _roomSelectionRefreshTimer;
+  Timer? _unreadReconcileTimer;
   bool _petAssetsPrecached = false;
   final Set<String> _cachedPetAssets = {};
   bool _departureFontsWarmed = false;
@@ -180,6 +182,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   RealtimeChannel? _furnitureChannel;
   String? _furnitureSubscriptionRoomId;
   final Map<String, RealtimeChannel> _messageChannels = {};
+  String? _chatOpenRoomId;
   final Set<String> _notifiedHungerAlertMessageIds = <String>{};
   final Set<String> _shownHungerAlertMessageIds = <String>{};
 
@@ -287,6 +290,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _wanderTimer?.cancel();
     _petTickTimer?.cancel();
     _roomSelectionRefreshTimer?.cancel();
+    _unreadReconcileTimer?.cancel();
     _feedingAnimationToken++;
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
@@ -300,6 +304,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     unawaited(_refreshProPlanStatus());
     unawaited(ref.read(fcmServiceProvider).refreshTokenSync());
+    unawaited(_reconcileUnreadStateFromServer());
+    _scheduleUnreadReconcile();
     if (!_showRoomSelection) {
       return;
     }
@@ -1000,6 +1006,20 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() => _loadingRoom = false);
         return;
       }
+      final previousUnreadByRoom = <String, int>{
+        for (final room in _myRooms)
+          if (room['id'] is String)
+            room['id'] as String: (() {
+              final unread = room['unread_count'];
+              if (unread is int) {
+                return unread;
+              }
+              if (unread is num) {
+                return unread.toInt();
+              }
+              return room['has_unread'] == true ? 1 : 0;
+            })(),
+      };
 
       final responses = await _withNetworkTimeout(
         Supabase.instance.client
@@ -1014,12 +1034,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       for (final r in responses) {
         final roomData = r['rooms'] as Map<String, dynamic>?;
         if (roomData != null) {
+          final roomId = r['room_id'] as String?;
           rooms.add({
-            'id': r['room_id'],
+            'id': roomId,
             'invite_code': roomData['invite_code'],
             'role': r['role'],
             'joined_at': r['joined_at'],
             'room_created_at': roomData['created_at'],
+            'unread_count': roomId != null
+                ? (previousUnreadByRoom[roomId] ?? 0)
+                : 0,
           });
         }
       }
@@ -1028,6 +1052,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           .map((room) => room['id'])
           .whereType<String>()
           .toList(growable: false);
+      final unreadCountsByRoom = <String, int>{};
       final senderIds = <String>{};
       if (roomIds.isNotEmpty) {
         final petSummaries = await _withNetworkTimeout(
@@ -1037,10 +1062,15 @@ class _HomeViewState extends ConsumerState<HomeView>
         final memberCounts = await _withNetworkTimeout(
           _fetchRoomMemberCounts(roomIds),
         );
+        final unreadCounts = await _withNetworkTimeout(
+          _fetchRoomUnreadCounts(roomIds, userId),
+        );
+        unreadCountsByRoom.addAll(unreadCounts);
         for (final room in rooms) {
           final roomId = room['id'] as String?;
           if (roomId != null) {
             room['member_count'] = memberCounts[roomId] ?? 0;
+            room['unread_count'] = unreadCountsByRoom[roomId] ?? 0;
           }
           final summary = roomId == null ? null : petSummaries[roomId];
           if (summary != null) {
@@ -1080,6 +1110,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           _roomSelectionId ??= _roomId ?? sortedRooms.first['id'] as String?;
         }
       });
+      _syncAppIconBadge(rooms: sortedRooms);
       for (final senderId in senderIds) {
         unawaited(_ensureProfileSummary(senderId));
       }
@@ -1250,25 +1281,202 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  int _roomUnreadCount(String? roomId) {
+    if (roomId == null) {
+      return 0;
+    }
+    final room = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+      (entry) => entry?['id'] == roomId,
+      orElse: () => null,
+    );
+    final unread = room?['unread_count'];
+    if (unread is int) {
+      return unread;
+    }
+    if (unread is num) {
+      return unread.toInt();
+    }
+    return room?['has_unread'] == true ? 1 : 0;
+  }
+
+  bool _roomHasUnread(String? roomId) {
+    return _roomUnreadCount(roomId) > 0;
+  }
+
+  int _totalUnreadCount([List<Map<String, dynamic>>? rooms]) {
+    final source = rooms ?? _myRooms;
+    var total = 0;
+    for (final room in source) {
+      final unread = room['unread_count'];
+      if (unread is int) {
+        total += unread;
+        continue;
+      }
+      if (unread is num) {
+        total += unread.toInt();
+        continue;
+      }
+      if (room['has_unread'] == true) {
+        total += 1;
+      }
+    }
+    return total;
+  }
+
+  void _syncAppIconBadge({List<Map<String, dynamic>>? rooms}) {
+    final target = _totalUnreadCount(rooms);
+    unawaited(_syncAppIconBadgeWithRetry(target));
+  }
+
+  Future<void> _syncAppIconBadgeWithRetry(int count, {int attempt = 0}) async {
+    final ok = await AppBadgeService.instance.setBadgeCount(count);
+    if (ok || !mounted || attempt >= 3) {
+      return;
+    }
+    await Future<void>.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+    if (!mounted) {
+      return;
+    }
+    await _syncAppIconBadgeWithRetry(count, attempt: attempt + 1);
+  }
+
+  void _scheduleUnreadReconcile({Duration delay = const Duration(seconds: 2)}) {
+    _unreadReconcileTimer?.cancel();
+    _unreadReconcileTimer = Timer(delay, () {
+      if (!mounted) {
+        return;
+      }
+      unawaited(_reconcileUnreadStateFromServer());
+    });
+  }
+
+  Future<void> _reconcileUnreadStateFromServer() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    final roomIds = _myRooms
+        .map((room) => room['id'])
+        .whereType<String>()
+        .toList(growable: false);
+    if (roomIds.isEmpty) {
+      _syncAppIconBadge(rooms: const <Map<String, dynamic>>[]);
+      return;
+    }
+    try {
+      final unreadByRoom = await _fetchRoomUnreadCounts(roomIds, userId);
+      if (!mounted) {
+        return;
+      }
+      final nextRooms = _myRooms
+          .map((room) {
+            final roomId = room['id'] as String?;
+            if (roomId == null) {
+              return room;
+            }
+            final unread = unreadByRoom[roomId] ?? 0;
+            return {...room, 'unread_count': unread, 'has_unread': unread > 0};
+          })
+          .toList(growable: false);
+      setState(() {
+        _myRooms = nextRooms;
+      });
+      _syncAppIconBadge(rooms: nextRooms);
+    } catch (error) {
+      debugPrint('[chat] reconcile unread failed: $error');
+    }
+  }
+
+  void _markRoomAsRead(String roomId) {
+    if (!mounted) {
+      return;
+    }
+    final nextRooms = _myRooms
+        .map(
+          (room) => room['id'] == roomId
+              ? {...room, 'unread_count': 0, 'has_unread': false}
+              : room,
+        )
+        .toList(growable: false);
+    setState(() {
+      _myRooms = nextRooms;
+    });
+    _syncAppIconBadge(rooms: nextRooms);
+    _markRoomAsReadOnServer(roomId);
+  }
+
+  void _markRoomAsReadOnServer(String roomId) {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    unawaited(() async {
+      try {
+        await Supabase.instance.client.rpc(
+          'mark_room_read',
+          params: {'p_room_id': roomId},
+        );
+        await _reconcileUnreadStateFromServer();
+        _scheduleUnreadReconcile();
+      } catch (error) {
+        debugPrint('[chat] mark_room_read failed: $error');
+      }
+    }());
+  }
+
+  void _incrementRoomUnreadCount(String roomId) {
+    if (!mounted) {
+      return;
+    }
+    final nextRooms = _myRooms
+        .map(
+          (room) => room['id'] == roomId
+              ? {
+                  ...room,
+                  'unread_count':
+                      ((room['unread_count'] as num?)?.toInt() ?? 0) + 1,
+                  'has_unread': true,
+                }
+              : room,
+        )
+        .toList(growable: false);
+    setState(() {
+      _myRooms = nextRooms;
+    });
+    _syncAppIconBadge(rooms: nextRooms);
+  }
+
   void _handleMessageInsert(Map<String, dynamic> record) {
     if (!mounted || record.isEmpty) {
       return;
     }
+    final roomId = record['room_id'] as String?;
+    if (roomId == null || roomId.isEmpty) {
+      return;
+    }
+    final senderId = record['sender_id'] as String?;
+    final myUserId = Supabase.instance.client.auth.currentUser?.id;
+    final fromSelf = senderId != null && senderId == myUserId;
+    final shouldMarkUnread = !fromSelf && _chatOpenRoomId != roomId;
     final type = record['type'] as String?;
     if (type == 'system') {
+      if (shouldMarkUnread) {
+        _incrementRoomUnreadCount(roomId);
+      }
       _handleSystemMessageInsert(record);
       _chatListKey.currentState?.refreshLatest();
       return;
     }
     if (type != 'image_feed') {
+      if (shouldMarkUnread) {
+        _incrementRoomUnreadCount(roomId);
+      }
       return;
     }
-    final roomId = record['room_id'] as String?;
     final imageUrl = record['image_url'] as String?;
-    if (roomId == null || imageUrl == null || imageUrl.isEmpty) {
+    if (imageUrl == null || imageUrl.isEmpty) {
       return;
     }
-    final senderId = record['sender_id'] as String?;
     final caption = record['caption'] as String?;
     setState(() {
       if (roomId == _roomId) {
@@ -1326,9 +1534,16 @@ class _HomeViewState extends ConsumerState<HomeView>
           'latest_photo_sender_ids': next.senderIds,
           'latest_caption': caption,
           'latest_sender_id': senderId,
+          'unread_count': shouldMarkUnread
+              ? ((room['unread_count'] as num?)?.toInt() ?? 0) + 1
+              : ((room['unread_count'] as num?)?.toInt() ?? 0),
+          'has_unread': shouldMarkUnread ? true : (room['has_unread'] == true),
         };
       }).toList();
     });
+    if (shouldMarkUnread) {
+      _syncAppIconBadge();
+    }
 
     if (roomId == _roomId) {
       unawaited(() async {
@@ -2456,6 +2671,38 @@ class _HomeViewState extends ConsumerState<HomeView>
     return counts;
   }
 
+  Future<Map<String, int>> _fetchRoomUnreadCounts(
+    List<String> roomIds,
+    String userId,
+  ) async {
+    if (roomIds.isEmpty) {
+      return {};
+    }
+    final response = await Supabase.instance.client.rpc(
+      'get_unread_message_counts_for_user',
+      params: {'p_user_id': userId},
+    );
+    final rows = response is List ? response : const [];
+    final counts = <String, int>{};
+    final roomIdSet = roomIds.toSet();
+    for (final row in rows) {
+      if (row is! Map) {
+        continue;
+      }
+      final map = row.cast<String, dynamic>();
+      final roomId = map['room_id'] as String?;
+      if (roomId == null || !roomIdSet.contains(roomId)) {
+        continue;
+      }
+      final unreadRaw = map['unread_count'];
+      final unread = unreadRaw is int
+          ? unreadRaw
+          : (unreadRaw is num ? unreadRaw.toInt() : 0);
+      counts[roomId] = unread < 0 ? 0 : unread;
+    }
+    return counts;
+  }
+
   Future<void> _refreshLatestRoomPhoto(String roomId) async {
     try {
       final rows = await Supabase.instance.client
@@ -3063,6 +3310,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     final isRoomLocked = _isRoomLocked(roomId);
     var pendingFeedEvent = false;
     String? pendingFeedImageSource;
+    _markRoomAsRead(roomId);
+    _chatOpenRoomId = roomId;
 
     Navigator.of(context)
         .push(
@@ -3090,9 +3339,14 @@ class _HomeViewState extends ConsumerState<HomeView>
           ),
         )
         .then((_) {
+          if (_chatOpenRoomId == roomId) {
+            _chatOpenRoomId = null;
+          }
           if (!mounted) {
             return;
           }
+          _markRoomAsRead(roomId);
+          _scheduleUnreadReconcile();
           if (pendingFeedEvent) {
             unawaited(_loadCoins());
             unawaited(_refreshLatestFeed(roomId));
@@ -4303,6 +4557,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (_furnitureLoading) {
       return;
     }
+    final roomId = _roomId;
+    if (roomId == null) {
+      setState(() {
+        _furnitureCatalog.clear();
+        _furnitureInventory.clear();
+      });
+      return;
+    }
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       setState(() {
@@ -4322,8 +4584,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           .select('id,sku,type,name,price_coins,price_usd,metadata,is_active')
           .eq('is_active', true);
       final inventoryResponse = await Supabase.instance.client
-          .from('inventories')
+          .from('room_item_inventories')
           .select('item_id,quantity')
+          .eq('room_id', roomId)
           .eq('user_id', userId);
 
       final items = (itemsResponse as List<dynamic>)
@@ -5937,6 +6200,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                       onStore: _openStoreFromNav,
                       onChat: _openChatRoom,
                       cameraEnabled: !_petDeparted && !_isCurrentRoomLocked,
+                      chatHasUnread: _roomHasUnread(_roomId),
                     ),
                   ),
                 ],

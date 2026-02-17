@@ -13,6 +13,7 @@ class HomeBottomNavBar extends StatelessWidget {
     required this.onStore,
     required this.onChat,
     this.cameraEnabled = true,
+    this.chatHasUnread = false,
   });
 
   final VoidCallback onHome;
@@ -21,6 +22,7 @@ class HomeBottomNavBar extends StatelessWidget {
   final VoidCallback onStore;
   final VoidCallback onChat;
   final bool cameraEnabled;
+  final bool chatHasUnread;
 
   static const double _height = 68;
   static const double _cameraSize = 60;
@@ -74,6 +76,7 @@ class HomeBottomNavBar extends StatelessWidget {
             iconAsset: 'assets/icon/fluent--chat-12-regular.svg',
             onTap: onChat,
             scale: scale,
+            showIndicator: chatHasUnread,
           ),
         ],
       ),
@@ -86,11 +89,13 @@ class _NavIconButton extends StatelessWidget {
     required this.iconAsset,
     required this.onTap,
     required this.scale,
+    this.showIndicator = false,
   });
 
   final String iconAsset;
   final VoidCallback onTap;
   final double scale;
+  final bool showIndicator;
 
   @override
   Widget build(BuildContext context) {
@@ -105,16 +110,36 @@ class _NavIconButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           splashColor: Colors.black.withValues(alpha: 0.12),
           highlightColor: Colors.black.withValues(alpha: 0.08),
-          child: Center(
-            child: SvgPicture.asset(
-              iconAsset,
-              width: 32 * scale,
-              height: 32 * scale,
-              colorFilter: const ColorFilter.mode(
-                Colors.black87,
-                BlendMode.srcIn,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Center(
+                child: SvgPicture.asset(
+                  iconAsset,
+                  width: 32 * scale,
+                  height: 32 * scale,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.black87,
+                    BlendMode.srcIn,
+                  ),
+                ),
               ),
-            ),
+              if (showIndicator)
+                Positioned(
+                  top: 10 * scale,
+                  right: 9 * scale,
+                  child: Container(
+                    key: const Key('home_chat_unread_indicator'),
+                    width: 10 * scale,
+                    height: 10 * scale,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE53935),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.2),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

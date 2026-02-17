@@ -140,6 +140,14 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `quantity` (int)
   - `updated_at`
 
+- `room_item_inventories`
+  - `room_id` (uuid, fk)
+  - `user_id` (uuid, fk)
+  - `item_id` (uuid, fk)
+  - `quantity` (int)
+  - `updated_at`
+  - primary key (`room_id`, `user_id`, `item_id`)
+
 - `room_furniture`
   - `id` (uuid, pk)
   - `room_id` (uuid, fk)
@@ -327,8 +335,12 @@ for select using (auth.role() = 'authenticated');
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger; when `action_type='feed'` and the reward is granted, grants pet EXP (+10), levels up with carry (`50 * current_level`), and caps at level 999.
 - `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.
 - `purchase_item_with_diamonds(item_id uuid, quantity int)` -> spends diamonds; if `metadata.coin_amount` is set, exchanges diamonds for coins.
+- `purchase_room_furniture_with_coins(room_id uuid, item_id uuid)` -> spends coins and adds one furniture unit to room-scoped inventory.
+- `purchase_room_furniture_with_diamonds(room_id uuid, item_id uuid)` -> spends diamonds and adds one furniture unit to room-scoped inventory.
 - `grant_iap_coins(product_id text, amount int, transaction_id text)` -> idempotent coin grant for IAP consumables.
 - `grant_iap_diamonds(product_id text, amount int, transaction_id text)` -> idempotent diamond grant for IAP consumables.
+- `get_unread_message_total_for_user(p_user_id uuid)` -> returns total unread chat messages across all active rooms (used for iOS app-icon badge).
+- `get_unread_message_counts_for_user(p_user_id uuid)` -> returns unread counts grouped by room (used to restore in-app room/chat badges after relaunch).
 - `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates using `rooms.timezone` (room-scoped); hunger-threshold system alerts are emitted at `<=30` and `<=10` once per recovery cycle.
 
 ## Ownership Transfer

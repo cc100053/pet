@@ -722,6 +722,21 @@ serve(async (req) => {
     locale,
     platform,
   }) => {
+    let unreadTotal = 0;
+    if (userId) {
+      const { data: unreadData, error: unreadError } = await supabaseAdmin
+        .rpc("get_unread_message_total_for_user", { p_user_id: userId });
+      if (unreadError) {
+        console.warn(JSON.stringify({
+          event: "notify_friend_unread_count_failed",
+          user_id: userId,
+          details: unreadError.message,
+        }));
+      } else if (typeof unreadData === "number" && Number.isFinite(unreadData)) {
+        unreadTotal = Math.max(0, Math.trunc(unreadData));
+      }
+    }
+
     const strings = getL10n(locale);
     const appName = localizedAppName(locale);
     const resolvedPetName = petName ?? strings.defaultPetName;
@@ -775,6 +790,7 @@ serve(async (req) => {
       body_full: pushBody,
       title_app_name: appName,
       title_full: titleFull,
+      unread_total: String(unreadTotal),
       type: payload.type,
       click_action: "FLUTTER_NOTIFICATION_CLICK",
     };
@@ -802,6 +818,7 @@ serve(async (req) => {
                 body: pushBody,
               },
               sound: "default",
+              badge: unreadTotal,
               "mutable-content": 1,
               "thread-id": `room_${payload.room_id}`,
             },

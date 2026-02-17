@@ -131,6 +131,15 @@ class _StoreViewState extends State<StoreView> {
           .eq('user_id', user.id);
 
       final roomId = widget.roomId;
+      List<dynamic> roomFurnitureInventoryRows = const [];
+      if (roomId != null) {
+        roomFurnitureInventoryRows = await Supabase.instance.client
+            .from('room_item_inventories')
+            .select('item_id,quantity')
+            .eq('room_id', roomId)
+            .eq('user_id', user.id);
+      }
+
       List<dynamic> roomBackgroundRows = const [];
       if (roomId != null) {
         roomBackgroundRows = await Supabase.instance.client
@@ -150,6 +159,25 @@ class _StoreViewState extends State<StoreView> {
         if (itemId != null && quantity != null) {
           inventory[itemId] = quantity;
         }
+      }
+
+      final roomFurnitureInventory = <String, int>{};
+      for (final row in roomFurnitureInventoryRows) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+        final itemId = row['item_id'] as String?;
+        final quantity = row['quantity'] as int?;
+        if (itemId != null && quantity != null) {
+          roomFurnitureInventory[itemId] = quantity;
+        }
+      }
+
+      for (final item in items) {
+        if (!item.isFurniture) {
+          continue;
+        }
+        inventory[item.id] = roomFurnitureInventory[item.id] ?? 0;
       }
 
       final ownedBackgrounds = <String>{};
@@ -627,6 +655,42 @@ class _StoreViewState extends State<StoreView> {
         if (!success) {
           return false;
         }
+      } else if (item.isFurniture) {
+        final roomId = widget.roomId;
+        if (roomId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+              ),
+            ),
+          );
+          return false;
+        }
+        final response = await Supabase.instance.client.rpc(
+          'purchase_room_furniture_with_coins',
+          params: {'p_room_id': roomId, 'p_item_id': item.id},
+        );
+
+        Map<String, dynamic>? row;
+        if (response is List && response.isNotEmpty) {
+          row = response.first as Map<String, dynamic>;
+        } else if (response is Map) {
+          row = response.cast<String, dynamic>();
+        }
+
+        if (row != null) {
+          final remaining = row['remaining_coins'] as int?;
+          final newQuantity = row['new_quantity'] as int?;
+          setState(() {
+            if (remaining != null) {
+              _coins = remaining;
+            }
+            if (newQuantity != null) {
+              _inventory[item.id] = newQuantity;
+            }
+          });
+        }
       } else {
         final response = await Supabase.instance.client.rpc(
           'purchase_item_with_coins',
@@ -720,6 +784,42 @@ class _StoreViewState extends State<StoreView> {
         final success = await _purchaseBackgroundWithDiamonds(item);
         if (!success) {
           return false;
+        }
+      } else if (item.isFurniture) {
+        final roomId = widget.roomId;
+        if (roomId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+              ),
+            ),
+          );
+          return false;
+        }
+        final response = await Supabase.instance.client.rpc(
+          'purchase_room_furniture_with_diamonds',
+          params: {'p_room_id': roomId, 'p_item_id': item.id},
+        );
+
+        Map<String, dynamic>? row;
+        if (response is List && response.isNotEmpty) {
+          row = response.first as Map<String, dynamic>;
+        } else if (response is Map) {
+          row = response.cast<String, dynamic>();
+        }
+
+        if (row != null) {
+          final remaining = row['remaining_diamonds'] as int?;
+          final newQuantity = row['new_quantity'] as int?;
+          setState(() {
+            if (remaining != null) {
+              _diamonds = remaining;
+            }
+            if (newQuantity != null) {
+              _inventory[item.id] = newQuantity;
+            }
+          });
         }
       } else {
         final response = await Supabase.instance.client.rpc(
