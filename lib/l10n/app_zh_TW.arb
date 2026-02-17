@@ -663,5 +663,37 @@
     "placeholders": {
       "error": {}
     }
+  },
+  "storeAdRewardTitle": "觀看廣告領糖果",
+  "storeAdRewardDescription": "觀看短廣告並領取 +{amount} 糖果。",
+  "@storeAdRewardDescription": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeAdRewardAction": "觀看",
+  "storeAdRewardLoading": "載入中...",
+  "storeAdRewardUnavailable": "廣告不可用",
+  "storeAdRewardDismissed": "尚未領獎前已關閉廣告。",
+  "storeAdRewardCooldown": "廣告獎勵目前冷卻中。",
+  "storeAdRewardRoomRequired": "請先選擇房間再領取廣告獎勵。",
+  "storeAdRewardFailed": "領取廣告獎勵失敗：{error}",
+  "@storeAdRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedAdDoubleRewardTitle": "要把餵食獎勵加倍嗎？",
+  "feedAdDoubleRewardMessage": "現在觀看廣告，可再領取最多 +{amount} 糖果。",
+  "@feedAdDoubleRewardMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "feedAdDoubleRewardFailed": "加倍獎勵領取失敗：{error}",
+  "@feedAdDoubleRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
   }
 }

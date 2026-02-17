@@ -42,7 +42,8 @@ Implemented:
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
   - `lib/features/gallery/`: Memory calendar view for feed images.
-  - `lib/features/store/`: Store UI with coin purchases.
+- `lib/features/store/`: Store UI with coin purchases.
+- `lib/features/ads/`: iOS AdMob rewarded + banner ad UI components and service wiring.
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
@@ -56,7 +57,6 @@ Implemented:
 Planned:
 - `lib/features/rooms/`: Room creation, invite codes, multi-room limits.
 - `lib/features/pet/`: Pet state machine (hunger, mood, hygiene, sleep), night mode protection, growth, and expanded leveling UX.
-- `lib/features/ads/`: Optional rewarded ads (double coins) and ad gating.
 - `lib/features/gallery/`: Calendar view for image memories.
 - `lib/features/store/`: Cosmetics, subscription, consumables.
 - `lib/shared/`: UI components, theme, utilities.

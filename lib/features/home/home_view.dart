@@ -19,6 +19,8 @@ import '../../services/auth/session_utils.dart';
 import '../../services/fcm_service.dart';
 import '../../services/home/home_bootstrap_cache_repository.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../services/ads/admob_ids.dart';
+import '../../services/ads/rewarded_ads_service.dart';
 import '../../services/review/review_prompt_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
@@ -31,6 +33,8 @@ import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
+import '../ads/rewarded_ad_button.dart';
+import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../pet/pet_catalog.dart';
@@ -69,7 +73,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const double _petExpandedVisualScale = 0.88;
   static const _photoFoodSize = Size(82, 82);
   static const int _optimisticFeedRewardCoins = 10;
-  static const Duration _localFeedCooldownFallback = Duration(minutes: 10);
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
   static const Duration _foodDropDuration = Duration(milliseconds: 760);
@@ -206,8 +209,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _latestFeedOptimisticPrevCaption;
   final Map<String, String> _optimisticFeedImageByTempId = {};
   final Map<String, String> _optimisticFeedRoomByTempId = {};
-  final Map<String, int> _optimisticFeedCoinsByTempId = {};
-  final Map<String, _LocalFeedCooldown> _localFeedCooldownByRoom = {};
   String? _photoFoodImageSource;
   Offset? _photoFoodNormalizedPosition;
   bool _photoFoodDropping = false;
@@ -215,6 +216,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _petEating = false;
   int _feedingAnimationToken = 0;
   final Map<String, _ProfileSummary> _profileByUserId = {};
+  bool _showingFeedDoubleRewardPrompt = false;
 
   @override
   void initState() {
@@ -259,6 +261,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     // Init FCM
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(fcmServiceProvider).initialize();
+      if (AdMobIds.isSupported) {
+        unawaited(_initializeRewardedAds());
+      }
     });
   }
 
@@ -342,6 +347,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       await loader.load();
     }
     _departureFontsWarmed = true;
+  }
+
+  Future<void> _initializeRewardedAds() async {
+    final service = ref.read(rewardedAdsServiceProvider);
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    await service.initialize(userId: userId);
+    await service.preload(RewardedAdPlacement.doubleCoins);
   }
 
   void _updatePetType(String? petType) {
@@ -3028,115 +3040,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     _chatListKey.currentState?.refreshLatest();
   }
 
-  bool _isLocalFeedCooldownActive(String roomId) {
-    final local = _localFeedCooldownByRoom[roomId];
-    if (local == null) {
-      return false;
-    }
-    return DateTime.now().toUtc().isBefore(local.nextEligibleAt);
-  }
-
-  void _setLocalFeedCooldown({
-    required String roomId,
-    required DateTime nextEligibleAt,
-  }) {
-    _localFeedCooldownByRoom[roomId] = _LocalFeedCooldown(
-      nextEligibleAt: nextEligibleAt.toUtc(),
-    );
-  }
-
-  void _updateLocalFeedCooldownFromResult({
-    required String roomId,
-    required FeedUploadResult result,
-  }) {
-    DateTime? parseUtc(String? raw) {
-      if (raw == null || raw.isEmpty) {
-        return null;
-      }
-      return DateTime.tryParse(raw)?.toUtc();
-    }
-
-    final nextEligibleAt = parseUtc(result.nextEligibleAt);
-    if (nextEligibleAt != null) {
-      _setLocalFeedCooldown(roomId: roomId, nextEligibleAt: nextEligibleAt);
-      return;
-    }
-
-    if (result.cooldownActive) {
-      final fromLastFed = parseUtc(
-        result.lastFedAt,
-      )?.add(_localFeedCooldownFallback);
-      _setLocalFeedCooldown(
-        roomId: roomId,
-        nextEligibleAt:
-            fromLastFed ??
-            DateTime.now().toUtc().add(const Duration(minutes: 2)),
-      );
-      return;
-    }
-
-    if (result.coinsAwarded > 0) {
-      _setLocalFeedCooldown(
-        roomId: roomId,
-        nextEligibleAt: DateTime.now().toUtc().add(_localFeedCooldownFallback),
-      );
-      return;
-    }
-
-    _localFeedCooldownByRoom.remove(roomId);
-  }
-
-  void _applyOptimisticFeedReward({
-    required String tempId,
-    required String roomId,
-    required String imageSource,
-  }) {
-    final isActiveRoom = _roomId == roomId;
-    final cooldownActive = _isLocalFeedCooldownActive(roomId);
-    final optimisticCoins = cooldownActive ? 0 : _optimisticFeedRewardCoins;
-
-    _optimisticFeedCoinsByTempId[tempId] = optimisticCoins;
-    if (optimisticCoins > 0) {
-      _setLocalFeedCooldown(
-        roomId: roomId,
-        nextEligibleAt: DateTime.now().toUtc().add(_localFeedCooldownFallback),
-      );
-    }
-
-    if (!mounted || !isActiveRoom) {
-      return;
-    }
-
-    if (optimisticCoins > 0) {
-      setState(() {
-        _coins += optimisticCoins;
-        _coinReward = optimisticCoins;
-        _coinRewardEventId++;
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || _coinReward == null) {
-          return;
-        }
-        setState(() => _coinReward = null);
-      });
-      unawaited(_playFeedSequence(imageSource));
-    }
-  }
-
-  void _rollbackOptimisticFeedReward(String tempId) {
-    final optimisticCoins = _optimisticFeedCoinsByTempId.remove(tempId) ?? 0;
-    if (optimisticCoins <= 0) {
-      return;
-    }
-    if (!mounted) {
-      _coins = max(0, _coins - optimisticCoins);
-      return;
-    }
-    setState(() {
-      _coins = max(0, _coins - optimisticCoins);
-    });
-  }
-
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
     _armOverfedBubbleForFeedEvent();
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
@@ -3196,17 +3099,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedCaption = entry.caption;
     });
     unawaited(_ensureProfileSummary(entry.senderId));
-    _applyOptimisticFeedReward(
-      tempId: entry.tempId,
-      roomId: entry.roomId,
-      imageSource: entry.localImagePath,
-    );
+    unawaited(_playFeedSequence(entry.localImagePath));
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
     _optimisticFeedImageByTempId.remove(result.tempId);
     final optimisticRoomId = _optimisticFeedRoomByTempId.remove(result.tempId);
-    _optimisticFeedCoinsByTempId.remove(result.tempId);
     _chatListKey.currentState?.removeOptimisticMessage(result.tempId);
     _chatListKey.currentState?.refreshLatest();
 
@@ -3221,11 +3119,17 @@ class _HomeViewState extends ConsumerState<HomeView>
       _latestFeedOptimisticPrevCaption = null;
     }
     final roomId = _roomId;
-    final resultRoomId = optimisticRoomId ?? roomId;
-    if (resultRoomId != null) {
-      _updateLocalFeedCooldownFromResult(roomId: resultRoomId, result: result);
+    if (optimisticRoomId != null) {
+      unawaited(_maybePromptFeedDoubleReward(result, optimisticRoomId));
+    } else if (roomId != null) {
+      unawaited(_maybePromptFeedDoubleReward(result, roomId));
     }
-    unawaited(_loadCoins());
+    final expectedReward = result.coinsAwarded > 0
+        ? result.coinsAwarded
+        : (_shouldOfferFeedDoubleReward(result)
+              ? _optimisticFeedRewardCoins
+              : 0);
+    unawaited(_loadCoins(expectedReward: expectedReward));
     if (roomId != null) {
       _refreshLatestRoomPhoto(roomId);
       unawaited(_refreshLatestFeed(roomId));
@@ -3241,13 +3145,157 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
   }
 
+  Future<void> _maybePromptFeedDoubleReward(
+    FeedUploadResult result,
+    String roomId,
+  ) async {
+    if (!mounted) {
+      return;
+    }
+    if (!AdMobIds.isSupported || _hasProPlanAccess) {
+      return;
+    }
+    if (!_shouldOfferFeedDoubleReward(result) ||
+        _showingFeedDoubleRewardPrompt) {
+      return;
+    }
+    _showingFeedDoubleRewardPrompt = true;
+    try {
+      final service = ref.read(rewardedAdsServiceProvider);
+      await service.preload(RewardedAdPlacement.doubleCoins);
+      if (!mounted) {
+        return;
+      }
+      final l10n = AppLocalizations.of(context)!;
+      final expectedExtra = result.coinsAwarded > 0
+          ? result.coinsAwarded
+          : _optimisticFeedRewardCoins;
+      final adResult = await showAppDialog<RewardedAdResult>(
+        context: context,
+        builder: (context) => AppDialog(
+          tone: AppDialogTone.info,
+          title: l10n.feedAdDoubleRewardTitle,
+          message: l10n.feedAdDoubleRewardMessage(expectedExtra),
+          body: Row(
+            children: [
+              Expanded(
+                child: RewardedAdButton(
+                  request: const RewardedAdRequest(
+                    placement: RewardedAdPlacement.doubleCoins,
+                  ),
+                  readyLabel: l10n.storeAdRewardAction,
+                  loadingLabel: l10n.storeAdRewardLoading,
+                  unavailableLabel: l10n.storeAdRewardUnavailable,
+                  onResult: (value) => Navigator.of(context).pop(value),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.commonCancel),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (!mounted || adResult == null) {
+        return;
+      }
+      switch (adResult.status) {
+        case RewardedAdResultStatus.rewarded:
+          try {
+            final rewardResult = await Supabase.instance.client.rpc(
+              'claim_action_reward',
+              params: {'p_action_type': 'ad_reward', 'p_room_id': roomId},
+            );
+            final extraReward = _extractRewardAmount(rewardResult);
+            if (!mounted) {
+              return;
+            }
+            if (extraReward > 0) {
+              _applyCoinRewardFeedback(extraReward);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.storeAdRewardCooldown)),
+              );
+            }
+          } catch (error) {
+            if (!mounted) {
+              return;
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.feedAdDoubleRewardFailed(
+                    userFacingError(context, error),
+                  ),
+                ),
+              ),
+            );
+          }
+          return;
+        case RewardedAdResultStatus.dismissed:
+          return;
+        case RewardedAdResultStatus.failed:
+        case RewardedAdResultStatus.unavailable:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.feedAdDoubleRewardFailed(
+                  adResult.errorMessage ?? l10n.storeAdRewardUnavailable,
+                ),
+              ),
+            ),
+          );
+          return;
+      }
+    } finally {
+      _showingFeedDoubleRewardPrompt = false;
+    }
+  }
+
+  bool _shouldOfferFeedDoubleReward(FeedUploadResult result) {
+    if (result.coinsAwarded > 0) {
+      return true;
+    }
+    return result.rewardStatus?.toLowerCase() == 'granted';
+  }
+
+  void _applyCoinRewardFeedback(int amount) {
+    if (amount <= 0 || !mounted) {
+      return;
+    }
+    int? rewardEventIdToClear;
+    setState(() {
+      _coins += amount;
+      _coinReward = amount;
+      _coinRewardEventId++;
+      rewardEventIdToClear = _coinRewardEventId;
+    });
+    if (rewardEventIdToClear == null) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      if (_coinRewardEventId != rewardEventIdToClear) {
+        return;
+      }
+      if (_coinReward == null) {
+        return;
+      }
+      setState(() {
+        _coinReward = null;
+      });
+    });
+  }
+
   void _handleFeedUploadFailed(String tempId, Object error) {
     _optimisticFeedImageByTempId.remove(tempId);
-    final optimisticRoomId = _optimisticFeedRoomByTempId.remove(tempId);
-    if (optimisticRoomId != null) {
-      _localFeedCooldownByRoom.remove(optimisticRoomId);
-    }
-    _rollbackOptimisticFeedReward(tempId);
+    _optimisticFeedRoomByTempId.remove(tempId);
     _chatListKey.currentState?.removeOptimisticMessage(tempId);
     if (_latestFeedOptimisticTempId == tempId) {
       final shouldRestore =
@@ -3334,6 +3382,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               onFeedUploaded: (result, imageSource) {
                 pendingFeedEvent = true;
                 pendingFeedImageSource = result.imageUrl ?? imageSource;
+                unawaited(_maybePromptFeedDoubleReward(result, roomId));
               },
             ),
           ),
@@ -3617,6 +3666,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       MaterialPageRoute(
         builder: (_) => StoreView(
           roomId: _roomId,
+          isProUser: _hasProPlanAccess,
           departedPets: _departedPetsList(),
           onReturnPet: _returnDepartedPet,
         ),
@@ -6049,6 +6099,9 @@ class _HomeViewState extends ConsumerState<HomeView>
             ),
             selectedRoomId: _roomSelectionId ?? _roomId,
             userAvatarUrl: _myAvatarUrl,
+            topBanner: AdMobIds.isSupported && !_hasProPlanAccess
+                ? const AdMobBannerSlot()
+                : null,
           ),
         ),
       );

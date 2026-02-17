@@ -70,12 +70,6 @@ class _RoomCreationDetails {
   final String petName;
 }
 
-class _LocalFeedCooldown {
-  const _LocalFeedCooldown({required this.nextEligibleAt});
-
-  final DateTime nextEligibleAt;
-}
-
 class _RoomCreationDialog extends StatefulWidget {
   const _RoomCreationDialog({required this.maxPetNameLength});
 

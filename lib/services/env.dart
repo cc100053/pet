@@ -6,6 +6,11 @@ class Env {
   static String? get revenueCatApiKeyIos => _optional('REVENUECAT_API_KEY_IOS');
   static String? get revenueCatApiKeyAndroid =>
       _optional('REVENUECAT_API_KEY_ANDROID');
+  static String? get adMobIosBannerAdUnitId =>
+      _optional('ADMOB_IOS_BANNER_AD_UNIT_ID');
+  static String? get adMobIosRewardedAdUnitId =>
+      _optional('ADMOB_IOS_REWARDED_AD_UNIT_ID');
+  static int get adRewardCoins => _optionalInt('AD_REWARD_COINS') ?? 10;
   static String get privacyPolicyUrl => _require('PRIVACY_POLICY_URL');
   static const String appleStandardEulaUrl =
       'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
@@ -24,5 +29,13 @@ class Env {
       return null;
     }
     return value;
+  }
+
+  static int? _optionalInt(String key) {
+    final raw = _optional(key);
+    if (raw == null) {
+      return null;
+    }
+    return int.tryParse(raw);
   }
 }

@@ -1164,6 +1164,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String petReturnFailed(Object error) {
     return '宠物回來失敗：$error';
   }
+
+  @override
+  String get storeAdRewardTitle => '观看广告领糖果';
+
+  @override
+  String storeAdRewardDescription(Object amount) {
+    return '观看短广告并领取 +$amount 糖果。';
+  }
+
+  @override
+  String get storeAdRewardAction => '观看';
+
+  @override
+  String get storeAdRewardLoading => '加载中...';
+
+  @override
+  String get storeAdRewardUnavailable => '广告不可用';
+
+  @override
+  String get storeAdRewardDismissed => '奖励发放前已关闭广告。';
+
+  @override
+  String get storeAdRewardCooldown => '广告奖励目前冷却中。';
+
+  @override
+  String get storeAdRewardRoomRequired => '请先选择房间再领取广告奖励。';
+
+  @override
+  String storeAdRewardFailed(Object error) {
+    return '领取广告奖励失敗：$error';
+  }
+
+  @override
+  String get feedAdDoubleRewardTitle => '要把喂食奖励翻倍吗？';
+
+  @override
+  String feedAdDoubleRewardMessage(Object amount) {
+    return '现在观看广告，可再领取最多 +$amount 糖果。';
+  }
+
+  @override
+  String feedAdDoubleRewardFailed(Object error) {
+    return '翻倍奖励领取失敗：$error';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2325,5 +2369,49 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String petReturnFailed(Object error) {
     return '寵物回來失敗：$error';
+  }
+
+  @override
+  String get storeAdRewardTitle => '觀看廣告領糖果';
+
+  @override
+  String storeAdRewardDescription(Object amount) {
+    return '觀看短廣告並領取 +$amount 糖果。';
+  }
+
+  @override
+  String get storeAdRewardAction => '觀看';
+
+  @override
+  String get storeAdRewardLoading => '載入中...';
+
+  @override
+  String get storeAdRewardUnavailable => '廣告不可用';
+
+  @override
+  String get storeAdRewardDismissed => '尚未領獎前已關閉廣告。';
+
+  @override
+  String get storeAdRewardCooldown => '廣告獎勵目前冷卻中。';
+
+  @override
+  String get storeAdRewardRoomRequired => '請先選擇房間再領取廣告獎勵。';
+
+  @override
+  String storeAdRewardFailed(Object error) {
+    return '領取廣告獎勵失敗：$error';
+  }
+
+  @override
+  String get feedAdDoubleRewardTitle => '要把餵食獎勵加倍嗎？';
+
+  @override
+  String feedAdDoubleRewardMessage(Object amount) {
+    return '現在觀看廣告，可再領取最多 +$amount 糖果。';
+  }
+
+  @override
+  String feedAdDoubleRewardFailed(Object error) {
+    return '加倍獎勵領取失敗：$error';
   }
 }

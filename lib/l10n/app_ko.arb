@@ -657,5 +657,37 @@
     "placeholders": {
       "error": {}
     }
+  },
+  "storeAdRewardTitle": "광고 보고 캔디 받기",
+  "storeAdRewardDescription": "짧은 광고를 보고 캔디 +{amount}를 받으세요.",
+  "@storeAdRewardDescription": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeAdRewardAction": "보기",
+  "storeAdRewardLoading": "불러오는 중...",
+  "storeAdRewardUnavailable": "광고를 사용할 수 없음",
+  "storeAdRewardDismissed": "보상 전에 광고가 닫혔습니다.",
+  "storeAdRewardCooldown": "광고 보상은 지금 쿨다운 중입니다.",
+  "storeAdRewardRoomRequired": "광고 보상을 받으려면 먼저 방을 선택해 주세요.",
+  "storeAdRewardFailed": "광고 보상 지급 실패: {error}",
+  "@storeAdRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedAdDoubleRewardTitle": "먹이 보상을 2배로 받을까요?",
+  "feedAdDoubleRewardMessage": "지금 광고를 보면 캔디를 최대 +{amount} 추가로 받을 수 있어요.",
+  "@feedAdDoubleRewardMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "feedAdDoubleRewardFailed": "2배 보상 지급 실패: {error}",
+  "@feedAdDoubleRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
   }
 }

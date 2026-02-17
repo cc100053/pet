@@ -25,6 +25,7 @@ class RoomSelectionView extends StatelessWidget {
     this.userNameById = const {},
     this.selectedRoomId,
     this.userAvatarUrl,
+    this.topBanner,
   });
 
   final List<Map<String, dynamic>> rooms;
@@ -38,6 +39,7 @@ class RoomSelectionView extends StatelessWidget {
   final Map<String, String?> userNameById;
   final String? selectedRoomId;
   final String? userAvatarUrl;
+  final Widget? topBanner;
 
   static const _filmBase = Color(0xFFFFF9F2);
 
@@ -204,6 +206,16 @@ class RoomSelectionView extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (topBanner != null)
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        0,
+                        horizontalPadding,
+                        8,
+                      ),
+                      child: topBanner!,
+                    ),
                   Expanded(
                     child: Stack(
                       children: [

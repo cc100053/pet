@@ -6,8 +6,10 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../ads/admob_banner_slot.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/env.dart';
+import '../../services/ads/admob_ids.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
@@ -26,11 +28,13 @@ class StoreView extends StatefulWidget {
   const StoreView({
     super.key,
     this.roomId,
+    this.isProUser = false,
     this.departedPets = const [],
     this.onReturnPet,
   });
 
   final String? roomId;
+  final bool isProUser;
   final List<DepartedPetInfo> departedPets;
   final Future<bool> Function(DepartedPetInfo pet)? onReturnPet;
 
@@ -60,6 +64,9 @@ class _StoreViewState extends State<StoreView> {
   late List<DepartedPetInfo> _departedPets;
   Uri? _privacyPolicyUri;
   late final Uri _termsOfUseUri;
+
+  bool get _hasProAdFreeAccess =>
+      widget.isProUser || _activeEntitlements.isNotEmpty;
 
   @override
   void initState() {
@@ -1298,6 +1305,9 @@ class _StoreViewState extends State<StoreView> {
           onRefresh: _loadStore,
           child: _buildBody(context, l10n),
         ),
+        bottomNavigationBar: AdMobIds.isSupported && !_hasProAdFreeAccess
+            ? const AdMobBannerSlot()
+            : null,
       ),
     );
   }

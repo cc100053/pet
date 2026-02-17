@@ -2166,6 +2166,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to return pet: {error}'**
   String petReturnFailed(Object error);
+
+  /// No description provided for @storeAdRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch ad for candies'**
+  String get storeAdRewardTitle;
+
+  /// No description provided for @storeAdRewardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch a short ad and claim +{amount} candies.'**
+  String storeAdRewardDescription(Object amount);
+
+  /// No description provided for @storeAdRewardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get storeAdRewardAction;
+
+  /// No description provided for @storeAdRewardLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get storeAdRewardLoading;
+
+  /// No description provided for @storeAdRewardUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad unavailable'**
+  String get storeAdRewardUnavailable;
+
+  /// No description provided for @storeAdRewardDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad closed before reward.'**
+  String get storeAdRewardDismissed;
+
+  /// No description provided for @storeAdRewardCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad reward is on cooldown right now.'**
+  String get storeAdRewardCooldown;
+
+  /// No description provided for @storeAdRewardRoomRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a room first to claim ad rewards.'**
+  String get storeAdRewardRoomRequired;
+
+  /// No description provided for @storeAdRewardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to claim ad reward: {error}'**
+  String storeAdRewardFailed(Object error);
+
+  /// No description provided for @feedAdDoubleRewardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Double your feed reward?'**
+  String get feedAdDoubleRewardTitle;
+
+  /// No description provided for @feedAdDoubleRewardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch an ad now to claim up to +{amount} extra candies.'**
+  String feedAdDoubleRewardMessage(Object amount);
+
+  /// No description provided for @feedAdDoubleRewardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Double reward failed: {error}'**
+  String feedAdDoubleRewardFailed(Object error);
 }
 
 class _AppLocalizationsDelegate

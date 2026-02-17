@@ -41,6 +41,8 @@
 	<true/>
 	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
 	<false/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-5585639540156039~1962619513</string>
 	<key>NSCameraUsageDescription</key>
 	<string>PetTomo needs camera access to capture pet feed photos.</string>
 	<key>NSUserTrackingUsageDescription</key>

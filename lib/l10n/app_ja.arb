@@ -670,5 +670,37 @@
     "placeholders": {
       "error": {}
     }
+  },
+  "storeAdRewardTitle": "広告を見てキャンディ獲得",
+  "storeAdRewardDescription": "短い広告を見てキャンディ +{amount} を受け取る。",
+  "@storeAdRewardDescription": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeAdRewardAction": "見る",
+  "storeAdRewardLoading": "読み込み中...",
+  "storeAdRewardUnavailable": "広告を利用できません",
+  "storeAdRewardDismissed": "報酬前に広告を閉じました。",
+  "storeAdRewardCooldown": "広告報酬は現在クールダウン中です。",
+  "storeAdRewardRoomRequired": "広告報酬を受け取るには先にルームを選択してください。",
+  "storeAdRewardFailed": "広告報酬の受け取りに失敗しました: {error}",
+  "@storeAdRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedAdDoubleRewardTitle": "フィード報酬を2倍にしますか？",
+  "feedAdDoubleRewardMessage": "今すぐ広告を見て、追加で最大 +{amount} キャンディを獲得。",
+  "@feedAdDoubleRewardMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "feedAdDoubleRewardFailed": "2倍報酬の受け取りに失敗しました: {error}",
+  "@feedAdDoubleRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
   }
 }

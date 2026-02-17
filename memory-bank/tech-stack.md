@@ -45,6 +45,7 @@
 - Analytics: Firebase Analytics
 - Ratings prompt: Apple In-App Review (`in_app_review`)
 - IAP/Subscriptions: RevenueCat (`purchases_flutter`)
+- Ads: Google AdMob (`google_mobile_ads`) for iOS banner + rewarded placements
 
 ## Tooling
 - CI: GitHub Actions (flutter analyze/test)

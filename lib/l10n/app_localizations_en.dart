@@ -1196,4 +1196,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String petReturnFailed(Object error) {
     return 'Failed to return pet: $error';
   }
+
+  @override
+  String get storeAdRewardTitle => 'Watch ad for candies';
+
+  @override
+  String storeAdRewardDescription(Object amount) {
+    return 'Watch a short ad and claim +$amount candies.';
+  }
+
+  @override
+  String get storeAdRewardAction => 'Watch';
+
+  @override
+  String get storeAdRewardLoading => 'Loading...';
+
+  @override
+  String get storeAdRewardUnavailable => 'Ad unavailable';
+
+  @override
+  String get storeAdRewardDismissed => 'Ad closed before reward.';
+
+  @override
+  String get storeAdRewardCooldown => 'Ad reward is on cooldown right now.';
+
+  @override
+  String get storeAdRewardRoomRequired =>
+      'Select a room first to claim ad rewards.';
+
+  @override
+  String storeAdRewardFailed(Object error) {
+    return 'Failed to claim ad reward: $error';
+  }
+
+  @override
+  String get feedAdDoubleRewardTitle => 'Double your feed reward?';
+
+  @override
+  String feedAdDoubleRewardMessage(Object amount) {
+    return 'Watch an ad now to claim up to +$amount extra candies.';
+  }
+
+  @override
+  String feedAdDoubleRewardFailed(Object error) {
+    return 'Double reward failed: $error';
+  }
 }

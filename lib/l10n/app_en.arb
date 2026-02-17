@@ -670,5 +670,37 @@
     "placeholders": {
       "error": {}
     }
+  },
+  "storeAdRewardTitle": "Watch ad for candies",
+  "storeAdRewardDescription": "Watch a short ad and claim +{amount} candies.",
+  "@storeAdRewardDescription": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "storeAdRewardAction": "Watch",
+  "storeAdRewardLoading": "Loading...",
+  "storeAdRewardUnavailable": "Ad unavailable",
+  "storeAdRewardDismissed": "Ad closed before reward.",
+  "storeAdRewardCooldown": "Ad reward is on cooldown right now.",
+  "storeAdRewardRoomRequired": "Select a room first to claim ad rewards.",
+  "storeAdRewardFailed": "Failed to claim ad reward: {error}",
+  "@storeAdRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "feedAdDoubleRewardTitle": "Double your feed reward?",
+  "feedAdDoubleRewardMessage": "Watch an ad now to claim up to +{amount} extra candies.",
+  "@feedAdDoubleRewardMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "feedAdDoubleRewardFailed": "Double reward failed: {error}",
+  "@feedAdDoubleRewardFailed": {
+    "placeholders": {
+      "error": {}
+    }
   }
 }

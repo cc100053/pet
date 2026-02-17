@@ -1173,4 +1173,48 @@ class AppLocalizationsKo extends AppLocalizations {
   String petReturnFailed(Object error) {
     return '펫 복귀 실패: $error';
   }
+
+  @override
+  String get storeAdRewardTitle => '광고 보고 캔디 받기';
+
+  @override
+  String storeAdRewardDescription(Object amount) {
+    return '짧은 광고를 보고 캔디 +$amount를 받으세요.';
+  }
+
+  @override
+  String get storeAdRewardAction => '보기';
+
+  @override
+  String get storeAdRewardLoading => '불러오는 중...';
+
+  @override
+  String get storeAdRewardUnavailable => '광고를 사용할 수 없음';
+
+  @override
+  String get storeAdRewardDismissed => '보상 전에 광고가 닫혔습니다.';
+
+  @override
+  String get storeAdRewardCooldown => '광고 보상은 지금 쿨다운 중입니다.';
+
+  @override
+  String get storeAdRewardRoomRequired => '광고 보상을 받으려면 먼저 방을 선택해 주세요.';
+
+  @override
+  String storeAdRewardFailed(Object error) {
+    return '광고 보상 지급 실패: $error';
+  }
+
+  @override
+  String get feedAdDoubleRewardTitle => '먹이 보상을 2배로 받을까요?';
+
+  @override
+  String feedAdDoubleRewardMessage(Object amount) {
+    return '지금 광고를 보면 캔디를 최대 +$amount 추가로 받을 수 있어요.';
+  }
+
+  @override
+  String feedAdDoubleRewardFailed(Object error) {
+    return '2배 보상 지급 실패: $error';
+  }
 }

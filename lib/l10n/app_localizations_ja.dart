@@ -1168,4 +1168,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String petReturnFailed(Object error) {
     return 'ペットの復帰に失敗しました: $error';
   }
+
+  @override
+  String get storeAdRewardTitle => '広告を見てキャンディ獲得';
+
+  @override
+  String storeAdRewardDescription(Object amount) {
+    return '短い広告を見てキャンディ +$amount を受け取る。';
+  }
+
+  @override
+  String get storeAdRewardAction => '見る';
+
+  @override
+  String get storeAdRewardLoading => '読み込み中...';
+
+  @override
+  String get storeAdRewardUnavailable => '広告を利用できません';
+
+  @override
+  String get storeAdRewardDismissed => '報酬前に広告を閉じました。';
+
+  @override
+  String get storeAdRewardCooldown => '広告報酬は現在クールダウン中です。';
+
+  @override
+  String get storeAdRewardRoomRequired => '広告報酬を受け取るには先にルームを選択してください。';
+
+  @override
+  String storeAdRewardFailed(Object error) {
+    return '広告報酬の受け取りに失敗しました: $error';
+  }
+
+  @override
+  String get feedAdDoubleRewardTitle => 'フィード報酬を2倍にしますか？';
+
+  @override
+  String feedAdDoubleRewardMessage(Object amount) {
+    return '今すぐ広告を見て、追加で最大 +$amount キャンディを獲得。';
+  }
+
+  @override
+  String feedAdDoubleRewardFailed(Object error) {
+    return '2倍報酬の受け取りに失敗しました: $error';
+  }
 }

@@ -1,5 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+import 'admob_ids.dart';
+import '../env.dart';
 
 enum RewardedAdPlacement { doubleCoins }
 
@@ -25,7 +31,6 @@ class RewardedAdContext {
   const RewardedAdContext({this.roomId, this.baseCoins, this.eventId});
 
   final String? roomId;
-  // baseCoins is the pre-reward amount so later multipliers stay deterministic.
   final int? baseCoins;
   final String? eventId;
 }
@@ -87,12 +92,200 @@ abstract class RewardedAdsService {
   Future<void> dispose();
 }
 
+class RewardedAdsAdMobService implements RewardedAdsService {
+  RewardedAdsAdMobService()
+    : _state = ValueNotifier(
+        RewardedAdState(
+          availability: AdMobIds.isSupported
+              ? RewardedAdAvailability.loading
+              : RewardedAdAvailability.unavailable,
+          message: AdMobIds.isSupported
+              ? 'Loading rewarded ad...'
+              : 'Rewarded ads are only enabled on iOS.',
+        ),
+      );
+
+  final ValueNotifier<RewardedAdState> _state;
+  RewardedAd? _rewardedAd;
+  bool _initializing = false;
+  bool _initialized = false;
+  bool _loading = false;
+  bool _showing = false;
+
+  @override
+  ValueListenable<RewardedAdState> get state => _state;
+
+  @override
+  Future<void> initialize({String? userId}) async {
+    if (!AdMobIds.isSupported || _initialized || _initializing) {
+      return;
+    }
+    _initializing = true;
+    _setState(
+      RewardedAdAvailability.loading,
+      message: 'Loading rewarded ad...',
+    );
+    try {
+      await MobileAds.instance.initialize();
+      _initialized = true;
+      await preload(RewardedAdPlacement.doubleCoins);
+    } catch (error) {
+      _setState(
+        RewardedAdAvailability.unavailable,
+        message: 'Rewarded ad failed to initialize: $error',
+      );
+    } finally {
+      _initializing = false;
+    }
+  }
+
+  @override
+  Future<void> preload(RewardedAdPlacement placement) async {
+    if (!AdMobIds.isSupported) {
+      _setState(
+        RewardedAdAvailability.unavailable,
+        message: 'Rewarded ads are only enabled on iOS.',
+      );
+      return;
+    }
+    if (_rewardedAd != null) {
+      _setState(RewardedAdAvailability.ready);
+      return;
+    }
+    if (_loading) {
+      return;
+    }
+    _loading = true;
+    _setState(
+      RewardedAdAvailability.loading,
+      message: 'Loading rewarded ad...',
+    );
+
+    await RewardedAd.load(
+      adUnitId: AdMobIds.rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          _loading = false;
+          _rewardedAd?.dispose();
+          _rewardedAd = ad;
+          _setState(RewardedAdAvailability.ready);
+        },
+        onAdFailedToLoad: (error) {
+          _loading = false;
+          _rewardedAd = null;
+          _setState(
+            RewardedAdAvailability.unavailable,
+            message: 'Rewarded ad unavailable: ${error.message}',
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<RewardedAdResult> show(RewardedAdRequest request) async {
+    if (!AdMobIds.isSupported) {
+      return const RewardedAdResult.unavailable(
+        'Rewarded ads are only enabled on iOS.',
+      );
+    }
+    if (_showing) {
+      return const RewardedAdResult.unavailable(
+        'A rewarded ad is already open.',
+      );
+    }
+
+    if (_rewardedAd == null) {
+      await preload(request.placement);
+    }
+    final ad = _rewardedAd;
+    if (ad == null) {
+      return RewardedAdResult.unavailable(
+        _state.value.message ?? 'Rewarded ad is not ready.',
+      );
+    }
+
+    _showing = true;
+    final completer = Completer<RewardedAdResult>();
+    bool completed = false;
+    bool rewarded = false;
+
+    void completeOnce(RewardedAdResult value) {
+      if (completed) {
+        return;
+      }
+      completed = true;
+      completer.complete(value);
+    }
+
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _rewardedAd = null;
+        _showing = false;
+        if (!rewarded) {
+          completeOnce(const RewardedAdResult.dismissed());
+        }
+        unawaited(preload(request.placement));
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        _rewardedAd = null;
+        _showing = false;
+        completeOnce(RewardedAdResult.failed(error.message));
+        unawaited(preload(request.placement));
+      },
+    );
+
+    try {
+      await ad.show(
+        onUserEarnedReward: (_, reward) {
+          rewarded = true;
+          final rewardedAmount = reward.amount.floor();
+          final rewardCoins = rewardedAmount > 0
+              ? rewardedAmount
+              : Env.adRewardCoins;
+          completeOnce(
+            RewardedAdResult.rewarded(
+              RewardedAdReward(
+                rewardCoins: rewardCoins,
+                multiplierApplied: null,
+                source: 'admob',
+              ),
+            ),
+          );
+        },
+      );
+      return await completer.future;
+    } catch (error) {
+      _showing = false;
+      _rewardedAd = null;
+      unawaited(preload(request.placement));
+      return RewardedAdResult.failed('Failed to show rewarded ad: $error');
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    _rewardedAd?.dispose();
+    _state.dispose();
+  }
+
+  void _setState(RewardedAdAvailability availability, {String? message}) {
+    _state.value = RewardedAdState(
+      availability: availability,
+      message: message,
+    );
+  }
+}
+
 class RewardedAdsStubService implements RewardedAdsService {
   RewardedAdsStubService()
     : _state = ValueNotifier(
         RewardedAdState(
           availability: RewardedAdAvailability.unavailable,
-          message: 'Rewarded ads not configured.',
+          message: 'Rewarded ads are not available yet.',
         ),
       );
 
@@ -102,14 +295,10 @@ class RewardedAdsStubService implements RewardedAdsService {
   ValueListenable<RewardedAdState> get state => _state;
 
   @override
-  Future<void> initialize({String? userId}) async {
-    // Intentionally a no-op for the stub implementation.
-  }
+  Future<void> initialize({String? userId}) async {}
 
   @override
-  Future<void> preload(RewardedAdPlacement placement) async {
-    // Intentionally a no-op for the stub implementation.
-  }
+  Future<void> preload(RewardedAdPlacement placement) async {}
 
   @override
   Future<RewardedAdResult> show(RewardedAdRequest request) async {
@@ -125,7 +314,9 @@ class RewardedAdsStubService implements RewardedAdsService {
 }
 
 final rewardedAdsServiceProvider = Provider<RewardedAdsService>((ref) {
-  final service = RewardedAdsStubService();
+  final service = AdMobIds.isSupported
+      ? RewardedAdsAdMobService()
+      : RewardedAdsStubService();
   ref.onDispose(service.dispose);
   return service;
 });

@@ -172,9 +172,9 @@ type FeedCooldownState = {
   isCoolingDown: boolean;
 };
 
-function isoPlusOneHour(iso: string) {
+function isoPlusTenMinutes(iso: string) {
   const date = new Date(iso);
-  date.setUTCHours(date.getUTCHours() + 1);
+  date.setUTCMinutes(date.getUTCMinutes() + 10);
   return date.toISOString();
 }
 
@@ -210,7 +210,7 @@ async function getFeedCooldownState({
     };
   }
 
-  const nextEligibleAt = isoPlusOneHour(lastFedAt);
+  const nextEligibleAt = isoPlusTenMinutes(lastFedAt);
   return {
     lastFedAt,
     nextEligibleAt,
@@ -453,32 +453,30 @@ serve(async (req) => {
   }
 
   let baseReward = 0;
-  let rewardStatus = "no_eligible_labels";
+  let rewardStatus = "cooldown";
   let cooldownState: FeedCooldownState = {
     lastFedAt: null,
     nextEligibleAt: null,
     isCoolingDown: false,
   };
-  if (eligibleLabels.length > 0) {
-    const { data: reward, error: rewardError } = await supabase.rpc(
-      "claim_action_reward",
-      { p_action_type: "feed", p_room_id: roomId },
-    );
-    if (rewardError) {
-      return jsonResponse(500, { error: "reward_failed" });
-    }
-    baseReward = typeof reward === "number" ? reward : 0;
-    try {
-      cooldownState = await getFeedCooldownState({
-        supabase,
-        userId: authData.user.id,
-        roomId,
-      });
-    } catch (_) {
-      return jsonResponse(500, { error: "cooldown_lookup_failed" });
-    }
-    rewardStatus = baseReward > 0 ? "granted" : "cooldown";
+  const { data: reward, error: rewardError } = await supabase.rpc(
+    "claim_action_reward",
+    { p_action_type: "feed", p_room_id: roomId },
+  );
+  if (rewardError) {
+    return jsonResponse(500, { error: "reward_failed" });
   }
+  baseReward = typeof reward === "number" ? reward : 0;
+  try {
+    cooldownState = await getFeedCooldownState({
+      supabase,
+      userId: authData.user.id,
+      roomId,
+    });
+  } catch (_) {
+    return jsonResponse(500, { error: "cooldown_lookup_failed" });
+  }
+  rewardStatus = baseReward > 0 ? "granted" : "cooldown";
 
   const labelVariants = buildLabelVariants(
     eligibleLabels.map((label) => label.text),
