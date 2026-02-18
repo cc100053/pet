@@ -25,6 +25,7 @@
 - `supabase/migrations/20260217143000_add_unread_counts_per_room_rpc.sql`: Add `get_unread_message_counts_for_user` RPC so clients can restore per-room unread badges from server state after app relaunch.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
 - `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
+- `supabase/migrations/20260218170000_sync_room_timezone_on_owner_transfer.sql`: Sync `rooms.timezone` to the promoted owner's profile timezone when room ownership transfers.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
@@ -62,6 +63,7 @@ Implemented:
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
 - `lib/services/profile/profile_cache_service.dart`: Shared profile summary cache/service used by Home, Chat, and Memory Calendar sender resolution.
+- `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.

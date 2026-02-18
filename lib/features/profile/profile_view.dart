@@ -11,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/auth/session_utils.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../services/profile/device_timezone_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -68,6 +69,7 @@ class _ProfileViewState extends State<ProfileView> {
     if (user == null) {
       return null;
     }
+    final localTimezone = await DeviceTimezoneService.instance.getTimezone();
 
     final profile = await Supabase.instance.client
         .from('profiles')
@@ -76,13 +78,26 @@ class _ProfileViewState extends State<ProfileView> {
         .maybeSingle();
 
     if (profile != null) {
+      if (localTimezone != null) {
+        final profileTimezone = (profile['timezone'] as String?)?.trim();
+        if (profileTimezone == null || profileTimezone != localTimezone) {
+          await Supabase.instance.client
+              .from('profiles')
+              .update({'timezone': localTimezone})
+              .eq('user_id', user.id);
+        }
+      }
       return profile;
     }
 
-    await Supabase.instance.client.from('profiles').insert({
+    final insertPayload = <String, dynamic>{
       'user_id': user.id,
       'nickname': defaultNickname,
-    });
+    };
+    if (localTimezone != null) {
+      insertPayload['timezone'] = localTimezone;
+    }
+    await Supabase.instance.client.from('profiles').insert(insertPayload);
 
     return Supabase.instance.client
         .from('profiles')

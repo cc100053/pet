@@ -13,11 +13,7 @@ import UserNotifications
   ) -> Bool {
     UNUserNotificationCenter.current().delegate = self
     application.registerForRemoteNotifications()
-    let didFinish = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    if let controller = window?.rootViewController as? FlutterViewController {
-      setupAppBadgeChannel(binaryMessenger: controller.binaryMessenger)
-    }
-    return didFinish
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

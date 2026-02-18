@@ -22,6 +22,7 @@ import '../../services/iap/revenuecat_service.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/ads/rewarded_ads_service.dart';
 import '../../services/profile/profile_cache_service.dart';
+import '../../services/profile/device_timezone_service.dart';
 import '../../services/review/review_prompt_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
@@ -551,6 +552,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       context,
     )!.profileDefaultNickname;
     try {
+      final localTimezone = await DeviceTimezoneService.instance.getTimezone();
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
         return;
@@ -559,18 +561,32 @@ class _HomeViewState extends ConsumerState<HomeView>
       final profile = await _withNetworkTimeout(
         Supabase.instance.client
             .from('profiles')
-            .select('user_id')
+            .select('user_id,timezone')
             .eq('user_id', user.id)
             .maybeSingle(),
       );
 
       if (profile == null) {
+        final insertPayload = <String, dynamic>{
+          'user_id': user.id,
+          'nickname': defaultNickname,
+        };
+        if (localTimezone != null) {
+          insertPayload['timezone'] = localTimezone;
+        }
         await _withNetworkTimeout(
-          Supabase.instance.client.from('profiles').insert({
-            'user_id': user.id,
-            'nickname': defaultNickname,
-          }),
+          Supabase.instance.client.from('profiles').insert(insertPayload),
         );
+      } else if (localTimezone != null) {
+        final profileTimezone = (profile['timezone'] as String?)?.trim();
+        if (profileTimezone == null || profileTimezone != localTimezone) {
+          await _withNetworkTimeout(
+            Supabase.instance.client
+                .from('profiles')
+                .update({'timezone': localTimezone})
+                .eq('user_id', user.id),
+          );
+        }
       }
     } catch (_) {
       // Best-effort. Profile creation can be retried on next app open.

@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Implemented host-timezone-based night protection plumbing without UI changes: app now syncs each signed-in user's `profiles.timezone` from device IANA timezone in the background (Home/Profile bootstrap), and migration `20260218170000_sync_room_timezone_on_owner_transfer.sql` now updates `rooms.timezone` to the promoted owner's timezone whenever ownership transfers.
+- Removed deprecated iOS launch-time `window?.rootViewController` channel registration from `AppDelegate.didFinishLaunchingWithOptions`; app-badge channel setup now relies on `didInitializeImplicitFlutterEngine`, eliminating Flutter's `flutter-launch-rootvc` warning path.
 - Replaced the Home debug-tools visibility gate with Supabase claim-based admin access: drawer debug section now renders only when session claims/app metadata indicate admin, all debug actions re-check admin access before execution, and debug Pro-plan override now applies only for admins.
 - Removed iPad support from iOS project build settings by switching all `TARGETED_DEVICE_FAMILY` values from `1,2` to `1` (iPhone-only), so new App Store Connect builds no longer require 13-inch iPad screenshots.
 - Fixed iOS archive asset-catalog failure risk by stripping alpha channels from all `ios/Runner/Assets.xcassets/AppIcon.appiconset/*.png` icons (including 1024 marketing icon), matching App Store icon requirements.

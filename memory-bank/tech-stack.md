@@ -9,6 +9,7 @@
 - Local storage/cache: Hive
 - Client SDK: `supabase_flutter`
 - Env config: `flutter_dotenv`
+- Device timezone lookup: `flutter_timezone`
 
 ## Backend & Realtime
 - Backend: Supabase (Auth, Postgres, Realtime)

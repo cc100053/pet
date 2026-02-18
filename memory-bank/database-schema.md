@@ -344,7 +344,7 @@ for select using (auth.role() = 'authenticated');
 - `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates using `rooms.timezone` (room-scoped); hunger-threshold system alerts are emitted at `<=30` and `<=10` once per recovery cycle.
 
 ## Ownership Transfer
-- Trigger `ensure_room_owner` promotes the oldest active member if no active owner exists.
+- Trigger `ensure_room_owner` promotes the oldest active member if no active owner exists, updates `rooms.created_by`, and syncs `rooms.timezone` to the promoted owner's valid profile timezone (falls back to `UTC` when missing/invalid).
 
 ## Edge Functions
 - `feed_validate`: accept image + labels, map labels, validate quest, upload to R2, write message + rewards.
