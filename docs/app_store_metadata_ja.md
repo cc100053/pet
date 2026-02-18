@@ -4,7 +4,7 @@
 
 - **Name (30)**: ペットモ: 恋人・友達と共有ペット
 - **Subtitle (30)**: 写真で育てる、二人の絆
-- **Privacy Policy URL**: https://pet-app-702be.web.app/privacy_policy.html
+- **Privacy Policy URL**: https://pet-app-702be.web.app/privacy_policy_ja.html
 
 ## App Store Version Information
 

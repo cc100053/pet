@@ -9,7 +9,7 @@
 ## App Store Version Information
 
 ### Promotional Text (Max 170 chars)
-> Share a virtual pet with your partner or bestie! Feed it with your daily photos, decorate your shared room, and turn moments into memories. Perfect for long-distance bonds.
+> Share a virtual pet with your partner or bestie! Feed it with your daily photos, decorate your shared room, and turn moments into memories. Great for LDR!
 
 ### Description
 PetTomo is the shared pet game where your photos become food, love, and memories.

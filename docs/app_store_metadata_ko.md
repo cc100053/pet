@@ -5,7 +5,7 @@
 - Version Locale: `ko`
 
 ## App Information
-- **Name (30)**: 펫토모: 커플과 친구를 위한 공유 펫
+- **Name (30)**: PetTomo: 커플과 친구를 위한 공유 펫
 - **Subtitle (30)**: 사진으로 키우는 우리만의 펫
 - **Privacy Policy URL**: https://pet-app-702be.web.app/privacy_policy_ko.html
 

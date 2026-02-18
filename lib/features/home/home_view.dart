@@ -85,6 +85,8 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  // Easy switch: set to true to show Debug Tools in the drawer.
+  static const bool _showDebugTools = false;
   static const _petAvatarSize = Size(100, 100);
   static const double _petCompactVisualScale = 0.74;
   static const double _petRegularVisualScale = 0.74;
@@ -4014,89 +4016,96 @@ class _HomeViewState extends ConsumerState<HomeView>
         unawaited(_openProfile());
       },
       onSignOut: _signOut,
-      debugActions: ExpansionTile(
-        leading: const Icon(Icons.bug_report_outlined),
-        title: Text(l10n.drawerDebugTools),
-        children: [
-          ListTile(
-            title: Text(l10n.drawerSimulateFeed),
-            subtitle: _feedResult == null ? null : Text(_feedResult!),
-            onTap: _testingFeed ? null : _runFeedTest,
-            trailing: _testingFeed
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : null,
-          ),
-          ListTile(
-            title: Text(l10n.drawerTestNotification),
-            onTap: () => ref.read(fcmServiceProvider).showTestNotification(),
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugAddCandy),
-            onTap: () => _debugUpdateProfileBalances(coinDelta: 100),
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugAddDiamonds),
-            onTap: () => _debugUpdateProfileBalances(diamondDelta: 100),
-          ),
-          SwitchListTile(
-            contentPadding: const EdgeInsets.only(left: 16, right: 8),
-            title: Text(l10n.drawerDebugTogglePlan),
-            subtitle: Text(
-              _hasProPlanAccess ? l10n.drawerProPlan : l10n.drawerFreePlan,
-            ),
-            value: _debugProPlan,
-            onChanged: (value) => unawaited(_setDebugProPlan(value)),
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugHungerDown),
-            onTap: (_petBusy || _roomId == null)
-                ? null
-                : () => _debugAdjustPetHunger(-10),
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugAddExp),
-            onTap: (_petBusy || _roomId == null)
-                ? null
-                : () => _debugAddPetExp(10),
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugSpawnPoop),
-            onTap: (_petBusy || _roomId == null) ? null : _debugSpawnPetPoop,
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugShowFullBubble),
-            onTap:
-                (_effectivePetState == null ||
-                    !_effectivePetStateReady ||
-                    _effectivePetDeparted)
-                ? null
-                : _debugShowOverfedBubble,
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugTestSoftUpdate),
-            onTap: () {
-              Navigator.pop(context);
-              ForceUpdateDebugTool.instance.showSoftPrompt();
-            },
-          ),
-          ListTile(
-            title: Text(l10n.drawerDebugTestHardUpdate),
-            onTap: () {
-              Navigator.pop(context);
-              ForceUpdateDebugTool.instance.showHardPrompt();
-            },
-          ),
-          if (_petError != null)
-            ListTile(
-              title: Text(l10n.drawerPetError),
-              subtitle: Text(_petError!),
-            ),
-        ],
-      ),
+      debugActions: _showDebugTools
+          ? ExpansionTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: Text(l10n.drawerDebugTools),
+              children: [
+                ListTile(
+                  title: Text(l10n.drawerSimulateFeed),
+                  subtitle: _feedResult == null ? null : Text(_feedResult!),
+                  onTap: _testingFeed ? null : _runFeedTest,
+                  trailing: _testingFeed
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : null,
+                ),
+                ListTile(
+                  title: Text(l10n.drawerTestNotification),
+                  onTap: () =>
+                      ref.read(fcmServiceProvider).showTestNotification(),
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugAddCandy),
+                  onTap: () => _debugUpdateProfileBalances(coinDelta: 100),
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugAddDiamonds),
+                  onTap: () => _debugUpdateProfileBalances(diamondDelta: 100),
+                ),
+                SwitchListTile(
+                  contentPadding: const EdgeInsets.only(left: 16, right: 8),
+                  title: Text(l10n.drawerDebugTogglePlan),
+                  subtitle: Text(
+                    _hasProPlanAccess
+                        ? l10n.drawerProPlan
+                        : l10n.drawerFreePlan,
+                  ),
+                  value: _debugProPlan,
+                  onChanged: (value) => unawaited(_setDebugProPlan(value)),
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugHungerDown),
+                  onTap: (_petBusy || _roomId == null)
+                      ? null
+                      : () => _debugAdjustPetHunger(-10),
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugAddExp),
+                  onTap: (_petBusy || _roomId == null)
+                      ? null
+                      : () => _debugAddPetExp(10),
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugSpawnPoop),
+                  onTap: (_petBusy || _roomId == null)
+                      ? null
+                      : _debugSpawnPetPoop,
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugShowFullBubble),
+                  onTap:
+                      (_effectivePetState == null ||
+                          !_effectivePetStateReady ||
+                          _effectivePetDeparted)
+                      ? null
+                      : _debugShowOverfedBubble,
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugTestSoftUpdate),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ForceUpdateDebugTool.instance.showSoftPrompt();
+                  },
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugTestHardUpdate),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ForceUpdateDebugTool.instance.showHardPrompt();
+                  },
+                ),
+                if (_petError != null)
+                  ListTile(
+                    title: Text(l10n.drawerPetError),
+                    subtitle: Text(_petError!),
+                  ),
+              ],
+            )
+          : null,
     );
   }
 }

@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Added an easy Debug Tools visibility switch in Home (`_showDebugTools` in `home_view.dart`), so the drawer debug section can be hidden/shown by flipping one boolean.
 - Updated room-entry loading prompt layout and copy: moved animated 3-dot indicator to the right side of the text and removed hardcoded trailing ellipsis from `roomEnteringLoading` across EN/JA/KO/zh/zh-TW localizations.
 - Removed Home launch-time loading screen gate by default (`_loadingRoom=false`), so the branded loading page no longer appears after app launch and remains reserved for explicit room-entry loading only.
 - Prevented room-entry loading UI from masking room selection refresh: entry loading overlay now renders only in active in-room context (`!_showRoomSelection && selectedRoomId != null`).
