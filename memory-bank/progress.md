@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Completed refactor PR 2 invite-flow extraction: moved invite-code generation/dialog/premium-copy popup, locked-room dialog, and new-room invite prompt widget logic out of `home_view.dart` into `lib/features/home/flows/home_invite_flow.dart` while preserving existing call sites and behavior.
+- Completed refactor PR 1 unread-manager extraction: moved Home unread/badge/message-subscription logic from `home_view.dart` into `lib/features/home/controllers/home_unread_manager.dart` via a Dart `part` extension to preserve behavior while reducing `home_view.dart` responsibility scope.
 - Set ad reward cooldown to zero in backend RPC: added migration `20260218102000_set_ad_reward_no_cooldown.sql` and applied it via Supabase MCP, so `claim_action_reward('ad_reward', room_id)` now grants immediately without 1-hour cooldown.
 - Replaced the post-feed double-reward modal with a minimal non-modal top toast prompt (Option 1): compact card under the status bar with Watch/Later actions and auto-dismiss, so pet feeding animation remains visible and unobstructed.
 - Fixed room-selection badge overlap on locked rooms by replacing hardcoded unread offset with a shared top-right adaptive badge row (`unread -> lock`) so unread counts stay visible and aligned across device sizes.
