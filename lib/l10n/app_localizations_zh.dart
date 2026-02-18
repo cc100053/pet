@@ -698,7 +698,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomJoinTitle => '加入房间';
 
   @override
-  String get roomEnteringLoading => '正在进入房间...';
+  String get roomEnteringLoading => '正在进入房间';
 
   @override
   String roomLeaveFailed(Object error) {
@@ -1907,7 +1907,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomJoinTitle => '加入房間';
 
   @override
-  String get roomEnteringLoading => '正在進入房間...';
+  String get roomEnteringLoading => '正在進入房間';
 
   @override
   String roomLeaveFailed(Object error) {

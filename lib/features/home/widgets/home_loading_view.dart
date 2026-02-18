@@ -115,6 +115,16 @@ class _HomeLoadingViewState extends State<HomeLoadingView>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            Text(
+                              widget.message ?? '',
+                              style: const TextStyle(
+                                color: Color(0xFF57412E),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
                             AnimatedBuilder(
                               animation: _controller,
                               builder: (context, _) {
@@ -137,16 +147,6 @@ class _HomeLoadingViewState extends State<HomeLoadingView>
                                   }),
                                 );
                               },
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              widget.message ?? '',
-                              style: const TextStyle(
-                                color: Color(0xFF57412E),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                letterSpacing: 0.1,
-                              ),
                             ),
                           ],
                         ),

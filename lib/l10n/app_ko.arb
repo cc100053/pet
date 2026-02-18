@@ -395,7 +395,7 @@
   "roomJoinHint": "6자리 코드 입력",
   "roomJoinSuccess": "방 참가에 성공했습니다.",
   "roomJoinTitle": "방 참가",
-  "roomEnteringLoading": "방에 들어가는 중...",
+  "roomEnteringLoading": "방에 들어가는 중",
   "roomLeaveFailed": "방 나가기 실패: {error}",
   "@roomLeaveFailed": {
     "placeholders": {

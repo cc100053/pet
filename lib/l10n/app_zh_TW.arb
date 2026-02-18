@@ -388,7 +388,7 @@
   "roomJoinHint": "輸入 6 位邀請碼",
   "roomJoinSuccess": "加入房間成功。",
   "roomJoinTitle": "加入房間",
-  "roomEnteringLoading": "正在進入房間...",
+  "roomEnteringLoading": "正在進入房間",
   "roomLeaveFailed": "離開房間失敗：{error}",
   "@roomLeaveFailed": {
     "placeholders": {

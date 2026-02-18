@@ -1,6 +1,10 @@
 # Progress
 
 ## Done
+- Updated room-entry loading prompt layout and copy: moved animated 3-dot indicator to the right side of the text and removed hardcoded trailing ellipsis from `roomEnteringLoading` across EN/JA/KO/zh/zh-TW localizations.
+- Removed Home launch-time loading screen gate by default (`_loadingRoom=false`), so the branded loading page no longer appears after app launch and remains reserved for explicit room-entry loading only.
+- Prevented room-entry loading UI from masking room selection refresh: entry loading overlay now renders only in active in-room context (`!_showRoomSelection && selectedRoomId != null`).
+- Scoped room-entry loading screen to explicit room-entry flows only; internal/automatic room sync switches now refresh room state without showing the entry loading overlay.
 - Updated room page fade-in base color to app theme off-white (`#FDF4E7`) so entry transitions no longer flash/appear black behind content.
 - Introduced a clean, performant room-screen fade transition: after room loading completes, the full room UI now fades in smoothly (without circle/logo reveal effects) to keep transitions fluid and stable.
 - Removed post-loading room-entry reveal animation; after loading completes, room content now appears immediately without circle/logo transition overlays.

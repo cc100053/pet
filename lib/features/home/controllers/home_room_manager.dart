@@ -191,9 +191,13 @@ extension _HomeRoomManager on _HomeViewState {
 
   bool get _isCurrentRoomLocked => _isRoomLocked(_roomId);
 
-  void _switchRoom(String roomId, {String? petType}) {
+  void _switchRoom(
+    String roomId, {
+    String? petType,
+    bool showEntryLoading = false,
+  }) {
     _feedingAnimationToken++;
-    final roomEntryToken = ++_roomEntryLoadingToken;
+    final roomEntryToken = showEntryLoading ? ++_roomEntryLoadingToken : -1;
     final roomEntryStartedAt = DateTime.now();
     final previousRoom = _roomId;
     final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
@@ -218,7 +222,7 @@ extension _HomeRoomManager on _HomeViewState {
       _petLevel = null;
       _petExp = null;
       _petType = nextPetType;
-      _roomEntryLoading = true;
+      _roomEntryLoading = showEntryLoading;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
       _photoFoodImageSource = null;
@@ -296,12 +300,16 @@ extension _HomeRoomManager on _HomeViewState {
     _backgroundInventoryChannel?.unsubscribe();
     _backgroundInventoryChannel = null;
     _backgroundSubscriptionRoomId = null;
-    unawaited(
-      _loadRoomEntryCore(
-        roomEntryToken: roomEntryToken,
-        roomEntryStartedAt: roomEntryStartedAt,
-      ),
-    );
+    if (showEntryLoading) {
+      unawaited(
+        _loadRoomEntryCore(
+          roomEntryToken: roomEntryToken,
+          roomEntryStartedAt: roomEntryStartedAt,
+        ),
+      );
+    } else {
+      unawaited(_refreshPetState(tick: true));
+    }
     unawaited(_refreshLatestFeed(roomId));
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
@@ -341,14 +349,14 @@ extension _HomeRoomManager on _HomeViewState {
 
   void _enterRoomFromSelection(String roomId, {String? petType}) {
     if (!_showRoomSelection) {
-      _switchRoom(roomId, petType: petType);
+      _switchRoom(roomId, petType: petType, showEntryLoading: true);
       return;
     }
     _setStateForRoomManager(() {
       _showRoomSelection = false;
       _roomSelectionId = roomId;
     });
-    _switchRoom(roomId, petType: petType);
+    _switchRoom(roomId, petType: petType, showEntryLoading: true);
   }
 
   Future<void> _createRoom() async {

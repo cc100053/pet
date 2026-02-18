@@ -699,7 +699,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomJoinTitle => 'ルームに参加';
 
   @override
-  String get roomEnteringLoading => 'ルームに入室中...';
+  String get roomEnteringLoading => 'ルームに入室中';
 
   @override
   String roomLeaveFailed(Object error) {

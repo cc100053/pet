@@ -714,7 +714,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomJoinTitle => 'Join Room';
 
   @override
-  String get roomEnteringLoading => 'Entering room...';
+  String get roomEnteringLoading => 'Entering room';
 
   @override
   String roomLeaveFailed(Object error) {

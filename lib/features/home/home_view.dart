@@ -110,7 +110,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _joiningRoom = false;
   bool _leavingRoom = false;
   bool _testingFeed = false;
-  bool _loadingRoom = true;
+  bool _loadingRoom = false;
   bool _showRoomSelection = true;
   String? _roomSelectionId;
   String? _roomId;
@@ -3656,7 +3656,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         child: const HomeLoadingView(),
       );
     }
-    if (_roomEntryLoading) {
+    if (_roomEntryLoading && !_showRoomSelection && selectedRoomId != null) {
       final l10n = AppLocalizations.of(context)!;
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,

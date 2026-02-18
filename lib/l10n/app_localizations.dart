@@ -1330,7 +1330,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomEnteringLoading.
   ///
   /// In en, this message translates to:
-  /// **'Entering room...'**
+  /// **'Entering room'**
   String get roomEnteringLoading;
 
   /// No description provided for @roomLeaveFailed.
