@@ -1,6 +1,10 @@
 # Progress
 
 ## Done
+- Set ad reward cooldown to zero in backend RPC: added migration `20260218102000_set_ad_reward_no_cooldown.sql` and applied it via Supabase MCP, so `claim_action_reward('ad_reward', room_id)` now grants immediately without 1-hour cooldown.
+- Replaced the post-feed double-reward modal with a minimal non-modal top toast prompt (Option 1): compact card under the status bar with Watch/Later actions and auto-dismiss, so pet feeding animation remains visible and unobstructed.
+- Fixed room-selection badge overlap on locked rooms by replacing hardcoded unread offset with a shared top-right adaptive badge row (`unread -> lock`) so unread counts stay visible and aligned across device sizes.
+- Fixed post-feed double-reward ad interaction reliability: prompt now uses explicit Watch/Cancel actions (Watch always tappable), and rewarded-ad show flow now waits briefly for AdMob load completion before declaring unavailable to reduce tap-with-no-open failures.
 - Redesigned the post-feed double-reward prompt CTA layout to a balanced Watch/Cancel row, and changed successful ad-reward feedback to the standard Home candy gain animation flow (`+X` at the candy HUD with candy SFX) instead of a bottom snackbar.
 - Changed feed candy cooldown from 1 hour to 10 minutes: added migration `20260218012000_feed_reward_cooldown_10_minutes.sql`, applied it via Supabase MCP (`claim_action_reward` now enforces 10-minute cooldown for `feed` only), and updated `feed_validate` cooldown metadata (`next_eligible_at`) to use +10 minutes.
 - Fixed feed reward grant regression in `feed_validate`: feed candy reward now always calls `claim_action_reward` (cooldown-gated) even when no ML labels are produced, so feeds once again grant candies while still allowing label-based quest bonus matching when tags exist.

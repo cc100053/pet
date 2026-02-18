@@ -198,6 +198,7 @@ class RewardedAdsAdMobService implements RewardedAdsService {
 
     if (_rewardedAd == null) {
       await preload(request.placement);
+      await _waitForLoadedAd();
     }
     final ad = _rewardedAd;
     if (ad == null) {
@@ -263,6 +264,18 @@ class RewardedAdsAdMobService implements RewardedAdsService {
       _rewardedAd = null;
       unawaited(preload(request.placement));
       return RewardedAdResult.failed('Failed to show rewarded ad: $error');
+    }
+  }
+
+  Future<void> _waitForLoadedAd({
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (_rewardedAd != null || !_loading) {
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 120));
     }
   }
 

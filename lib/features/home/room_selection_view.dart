@@ -474,118 +474,103 @@ class RoomSelectionView extends StatelessWidget {
                   ),
                 ),
               if (hasUnread)
-                Positioned(
+                PositionedDirectional(
                   top: 10,
-                  right: isLocked ? 44 : 10,
+                  end: 10,
                   child: IgnorePointer(
-                    child: SizedBox(
-                      width: responsive.pick(
-                        compact: 22,
-                        regular: 24,
-                        expanded: 24,
-                      ),
-                      height: responsive.pick(
-                        compact: 22,
-                        regular: 24,
-                        expanded: 24,
-                      ),
-                      child: Container(
-                        key: roomId == null
-                            ? null
-                            : Key('room_unread_indicator_$roomId'),
-                        alignment: Alignment.center,
-                        constraints: BoxConstraints(
-                          minWidth: responsive.pick(
-                            compact: 18,
-                            regular: 20,
-                            expanded: 20,
-                          ),
-                          minHeight: responsive.pick(
-                            compact: 18,
-                            regular: 20,
-                            expanded: 20,
-                          ),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: responsive.pick(
-                            compact: 5,
-                            regular: 6,
-                            expanded: 6,
-                          ),
-                          vertical: responsive.pick(
-                            compact: 2,
-                            regular: 2,
-                            expanded: 2,
-                          ),
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE53935),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          unreadText,
-                          maxLines: 1,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: responsive.pick(
-                              compact: 8,
-                              regular: 9,
-                              expanded: 9,
-                            ),
-                            height: 1,
-                          ),
-                        ),
-                      ),
+                    child: _buildUnreadCountBadge(
+                      responsive: responsive,
+                      unreadText: unreadText,
+                      key: roomId == null
+                          ? null
+                          : Key('room_unread_indicator_$roomId'),
                     ),
                   ),
                 ),
               if (isLocked)
-                Positioned(
+                PositionedDirectional(
                   top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: responsive.pick(
-                        compact: 6,
-                        regular: 8,
-                        expanded: 8,
-                      ),
-                      vertical: responsive.pick(
-                        compact: 3,
-                        regular: 4,
-                        expanded: 4,
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      l10n.roomLockedBadge,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: responsive.pick(
-                          compact: 9,
-                          regular: 10,
-                          expanded: 10,
-                        ),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4,
-                      ),
+                  start: 10,
+                  child: IgnorePointer(
+                    child: _buildLockedBadgeChip(
+                      responsive: responsive,
+                      text: l10n.roomLockedBadge,
                     ),
                   ),
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnreadCountBadge({
+    required HomeResponsiveSpec responsive,
+    required String unreadText,
+    Key? key,
+  }) {
+    final size = responsive.pick(compact: 22, regular: 24, expanded: 24);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Container(
+        key: key,
+        alignment: Alignment.center,
+        constraints: BoxConstraints(
+          minWidth: responsive.pick(compact: 18, regular: 20, expanded: 20),
+          minHeight: responsive.pick(compact: 18, regular: 20, expanded: 20),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: responsive.pick(compact: 5, regular: 6, expanded: 6),
+          vertical: responsive.pick(compact: 2, regular: 2, expanded: 2),
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE53935),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(
+          unreadText,
+          maxLines: 1,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: responsive.pick(compact: 8, regular: 9, expanded: 9),
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLockedBadgeChip({
+    required HomeResponsiveSpec responsive,
+    required String text,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: responsive.pick(compact: 6, regular: 8, expanded: 8),
+        vertical: responsive.pick(compact: 3, regular: 4, expanded: 4),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: responsive.pick(compact: 9, regular: 10, expanded: 10),
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
         ),
       ),
     );

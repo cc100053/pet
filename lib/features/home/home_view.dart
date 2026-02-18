@@ -27,13 +27,13 @@ import '../../services/settings/app_settings_repository.dart';
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
+import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_room_view.dart';
-import '../ads/rewarded_ad_button.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
@@ -57,6 +57,8 @@ import 'widgets/photo_food.dart';
 part 'home_view_models.dart';
 
 enum _PetStationaryState { staying, sleeping }
+
+enum _FeedDoubleRewardPromptAction { watch, cancel }
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -3170,37 +3172,18 @@ class _HomeViewState extends ConsumerState<HomeView>
       final expectedExtra = result.coinsAwarded > 0
           ? result.coinsAwarded
           : _optimisticFeedRewardCoins;
-      final adResult = await showAppDialog<RewardedAdResult>(
-        context: context,
-        builder: (context) => AppDialog(
-          tone: AppDialogTone.info,
-          title: l10n.feedAdDoubleRewardTitle,
-          message: l10n.feedAdDoubleRewardMessage(expectedExtra),
-          body: Row(
-            children: [
-              Expanded(
-                child: RewardedAdButton(
-                  request: const RewardedAdRequest(
-                    placement: RewardedAdPlacement.doubleCoins,
-                  ),
-                  readyLabel: l10n.storeAdRewardAction,
-                  loadingLabel: l10n.storeAdRewardLoading,
-                  unavailableLabel: l10n.storeAdRewardUnavailable,
-                  onResult: (value) => Navigator.of(context).pop(value),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.commonCancel),
-                ),
-              ),
-            ],
-          ),
-        ),
+      final promptAction = await _showFeedDoubleRewardToast(
+        l10n: l10n,
+        expectedExtra: expectedExtra,
       );
-      if (!mounted || adResult == null) {
+      if (!mounted || promptAction != _FeedDoubleRewardPromptAction.watch) {
+        return;
+      }
+
+      final adResult = await service.show(
+        const RewardedAdRequest(placement: RewardedAdPlacement.doubleCoins),
+      );
+      if (!mounted) {
         return;
       }
       switch (adResult.status) {
@@ -3261,6 +3244,46 @@ class _HomeViewState extends ConsumerState<HomeView>
       return true;
     }
     return result.rewardStatus?.toLowerCase() == 'granted';
+  }
+
+  Future<_FeedDoubleRewardPromptAction> _showFeedDoubleRewardToast({
+    required AppLocalizations l10n,
+    required int expectedExtra,
+  }) async {
+    final overlay = Overlay.of(context, rootOverlay: true);
+
+    final completer = Completer<_FeedDoubleRewardPromptAction>();
+    late final OverlayEntry entry;
+    Timer? timer;
+
+    void complete(_FeedDoubleRewardPromptAction action) {
+      if (completer.isCompleted) {
+        return;
+      }
+      completer.complete(action);
+      timer?.cancel();
+      timer = null;
+      entry.remove();
+    }
+
+    entry = OverlayEntry(
+      builder: (context) => _FeedDoubleRewardToast(
+        title: l10n.feedAdDoubleRewardTitle,
+        message: l10n.feedAdDoubleRewardMessage(expectedExtra),
+        watchLabel: l10n.storeAdRewardAction,
+        cancelLabel: l10n.commonCancel,
+        onWatch: () => complete(_FeedDoubleRewardPromptAction.watch),
+        onCancel: () => complete(_FeedDoubleRewardPromptAction.cancel),
+      ),
+    );
+
+    overlay.insert(entry);
+    timer = Timer(
+      const Duration(seconds: 6),
+      () => complete(_FeedDoubleRewardPromptAction.cancel),
+    );
+
+    return completer.future;
   }
 
   void _applyCoinRewardFeedback(int amount) {
@@ -6567,4 +6590,102 @@ class _PetExpUpdate {
   final int exp;
 
   const _PetExpUpdate({required this.level, required this.exp});
+}
+
+class _FeedDoubleRewardToast extends StatelessWidget {
+  const _FeedDoubleRewardToast({
+    required this.title,
+    required this.message,
+    required this.watchLabel,
+    required this.cancelLabel,
+    required this.onWatch,
+    required this.onCancel,
+  });
+
+  final String title;
+  final String message;
+  final String watchLabel;
+  final String cancelLabel;
+  final VoidCallback onWatch;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    return Positioned(
+      top: topInset + 8,
+      left: 16,
+      right: 16,
+      child: Material(
+        color: Colors.transparent,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 34),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: Text(cancelLabel),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: onWatch,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 34),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: Text(watchLabel),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
