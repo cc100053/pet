@@ -330,6 +330,13 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     required AppLocalizations l10n,
     required int expectedExtra,
   }) async {
+    if (!mounted) {
+      return _FeedDoubleRewardPromptAction.cancel;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (!mounted) {
+      return _FeedDoubleRewardPromptAction.cancel;
+    }
     final overlay = Overlay.of(context, rootOverlay: true);
 
     final completer = Completer<_FeedDoubleRewardPromptAction>();
@@ -347,13 +354,12 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     }
 
     entry = OverlayEntry(
-      builder: (context) => _FeedDoubleRewardToast(
+      builder: (context) => _FeedDoubleRewardPill(
         title: l10n.feedAdDoubleRewardTitle,
         message: l10n.feedAdDoubleRewardMessage(expectedExtra),
         watchLabel: l10n.storeAdRewardAction,
-        cancelLabel: l10n.commonCancel,
         onWatch: () => complete(_FeedDoubleRewardPromptAction.watch),
-        onCancel: () => complete(_FeedDoubleRewardPromptAction.cancel),
+        onClose: () => complete(_FeedDoubleRewardPromptAction.cancel),
       ),
     );
 

@@ -48,7 +48,11 @@ import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
+import 'widgets/home_furniture_inventory_overlay.dart';
 import 'widgets/home_room_inventory_panel.dart';
+import 'widgets/home_main_content.dart';
+import 'widgets/home_room_background.dart';
+import 'widgets/home_loading_view.dart';
 import 'widgets/home_game_status_bar.dart';
 import 'widgets/home_responsive.dart';
 import 'widgets/pet_photo_gallery.dart';
@@ -3553,23 +3557,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   Widget build(BuildContext context) {
     final overlayStyle = _currentOverlayStyle();
-    final screenSize = MediaQuery.sizeOf(context);
-    final responsiveLayout = ResponsiveLayout.fromSize(screenSize);
     if (_loadingRoom) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
-        child: const Scaffold(
-          body: ColoredBox(
-            color: Color(0xFF80CEF6),
-            child: Center(
-              child: Image(
-                image: AssetImage('assets/app/LaunchLogo.png'),
-                width: 220,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
+        child: const HomeLoadingView(),
       );
     }
 
@@ -3611,193 +3602,123 @@ class _HomeViewState extends ConsumerState<HomeView>
         resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
-            // Layer 1: Background
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: _currentBackgroundDefinition().decoration,
-              ),
+            HomeRoomBackground(
+              decoration: _currentBackgroundDefinition().decoration,
             ),
-
-            // Background Blobs (Floating)
-            Positioned(
-              bottom: responsiveLayout.y(150),
-              left: responsiveLayout.x(-20),
-              child: JuicyFloat(
-                yOffset: responsiveLayout.s(20),
-                delay: 500.ms,
-                child: Container(
-                  width: responsiveLayout.s(150),
-                  height: responsiveLayout.s(150),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    shape: BoxShape.circle,
-                  ),
+            HomeMainContent(
+              bottomInset: bottomInset,
+              statusBar: Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  final level = _petLevel;
+                  final exp = _petExp ?? 0;
+                  final petDefinition = PetCatalog.byId(_petType);
+                  final expProgressValue = level == null
+                      ? 0.0
+                      : expProgress(level: level, exp: exp);
+                  final roomPetName =
+                      _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+                            (room) => room?['id'] == _roomId,
+                            orElse: () => null,
+                          )?['pet_name']
+                          as String?;
+                  final resolvedPetName = (_petName?.trim().isNotEmpty ?? false)
+                      ? _petName!.trim()
+                      : ((roomPetName?.trim().isNotEmpty ?? false)
+                            ? roomPetName!.trim()
+                            : l10n.petNameUnnamed);
+                  final healthDebugValue = (_petState?['hunger'] as num?)
+                      ?.round();
+                  return HomeGameStatusBar(
+                    petAvatar: Image.asset(
+                      petDefinition.stayAsset,
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                    ),
+                    expProgress: expProgressValue,
+                    level: level,
+                    petName: resolvedPetName,
+                    healthValue: _healthValue(),
+                    healthDebugValue: healthDebugValue,
+                    coins: _coins,
+                    diamonds: _diamonds,
+                    coinReward: _coinReward,
+                    coinRewardEventId: _coinRewardEventId,
+                    onPetTap: () => Scaffold.of(context).openDrawer(),
+                    onPetNameTap: _openPetNameEditor,
+                    onStoreTap: _openStoreFromNav,
+                    onInviteTap: _generateInviteCode,
+                    inviteLabel: l10n.roomInviteCta,
+                    inviteLoading: _inviteCodeLoading,
+                    onInventoryTap: _openFurnitureInventory,
+                    inventoryLabel: l10n.roomInventoryCta,
+                  );
+                },
+              ),
+              photoGallery: PetPhotoGallery(
+                imageUrls: _latestFeedImageUrls,
+                captions: _latestFeedCaptions,
+                senderAvatars: List<String?>.generate(
+                  _latestFeedImageUrls.length,
+                  (index) {
+                    final senderId = index < _latestFeedSenderIds.length
+                        ? _latestFeedSenderIds[index]
+                        : null;
+                    if (senderId == null || senderId.isEmpty) {
+                      return null;
+                    }
+                    return _profileByUserId[senderId]?.avatarUrl;
+                  },
                 ),
-              ),
-            ),
-            Positioned(
-              bottom: responsiveLayout.y(300),
-              right: responsiveLayout.x(-30),
-              child: JuicyFloat(
-                yOffset: responsiveLayout.s(30),
-                delay: 1000.ms,
-                child: Container(
-                  width: responsiveLayout.s(120),
-                  height: responsiveLayout.s(120),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    shape: BoxShape.circle,
-                  ),
+                senderFallbackTexts: List<String?>.generate(
+                  _latestFeedImageUrls.length,
+                  (index) {
+                    final senderId = index < _latestFeedSenderIds.length
+                        ? _latestFeedSenderIds[index]
+                        : null;
+                    if (senderId == null || senderId.isEmpty) {
+                      return null;
+                    }
+                    return _profileByUserId[senderId]?.nickname;
+                  },
                 ),
+                onPlaceholderTap: _openFeedCamera,
+              ),
+              petHomeCard: _buildPetHomeCard(),
+              bottomNavBar: HomeBottomNavBar(
+                onHome: _onHomeNavPressed,
+                onCalendar: _openCalendar,
+                onCamera: _openFeedCamera,
+                onStore: _openStoreFromNav,
+                onChat: _openChatRoom,
+                cameraEnabled: !_petDeparted && !_isCurrentRoomLocked,
+                chatHasUnread: _roomHasUnread(_roomId),
               ),
             ),
-            SafeArea(
-              bottom: false,
-              child: Column(
-                children: [
-                  Builder(
-                    builder: (context) {
-                      final l10n = AppLocalizations.of(context)!;
-                      final level = _petLevel;
-                      final exp = _petExp ?? 0;
-                      final petDefinition = PetCatalog.byId(_petType);
-                      final expProgressValue = level == null
-                          ? 0.0
-                          : expProgress(level: level, exp: exp);
-                      final roomPetName =
-                          _myRooms.cast<Map<String, dynamic>?>().firstWhere(
-                                (room) => room?['id'] == _roomId,
-                                orElse: () => null,
-                              )?['pet_name']
-                              as String?;
-                      final resolvedPetName =
-                          (_petName?.trim().isNotEmpty ?? false)
-                          ? _petName!.trim()
-                          : ((roomPetName?.trim().isNotEmpty ?? false)
-                                ? roomPetName!.trim()
-                                : l10n.petNameUnnamed);
-                      final healthDebugValue = (_petState?['hunger'] as num?)
-                          ?.round();
-                      return HomeGameStatusBar(
-                        petAvatar: Image.asset(
-                          petDefinition.stayAsset,
-                          fit: BoxFit.cover,
-                          gaplessPlayback: true,
-                        ),
-                        expProgress: expProgressValue,
-                        level: level,
-                        petName: resolvedPetName,
-                        healthValue: _healthValue(),
-                        healthDebugValue: healthDebugValue,
-                        coins: _coins,
-                        diamonds: _diamonds,
-                        coinReward: _coinReward,
-                        coinRewardEventId: _coinRewardEventId,
-                        onPetTap: () => Scaffold.of(context).openDrawer(),
-                        onPetNameTap: _openPetNameEditor,
-                        onStoreTap: _openStoreFromNav,
-                        onInviteTap: _generateInviteCode,
-                        inviteLabel: l10n.roomInviteCta,
-                        inviteLoading: _inviteCodeLoading,
-                        onInventoryTap: _openFurnitureInventory,
-                        inventoryLabel: l10n.roomInventoryCta,
-                      );
-                    },
-                  ),
-                  const Gap(12),
-                  PetPhotoGallery(
-                    imageUrls: _latestFeedImageUrls,
-                    captions: _latestFeedCaptions,
-                    senderAvatars: List<String?>.generate(
-                      _latestFeedImageUrls.length,
-                      (index) {
-                        final senderId = index < _latestFeedSenderIds.length
-                            ? _latestFeedSenderIds[index]
-                            : null;
-                        if (senderId == null || senderId.isEmpty) {
-                          return null;
-                        }
-                        return _profileByUserId[senderId]?.avatarUrl;
-                      },
-                    ),
-                    senderFallbackTexts: List<String?>.generate(
-                      _latestFeedImageUrls.length,
-                      (index) {
-                        final senderId = index < _latestFeedSenderIds.length
-                            ? _latestFeedSenderIds[index]
-                            : null;
-                        if (senderId == null || senderId.isEmpty) {
-                          return null;
-                        }
-                        return _profileByUserId[senderId]?.nickname;
-                      },
-                    ),
-                    onPlaceholderTap: _openFeedCamera,
-                  ),
-                  const Gap(10),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildPetHomeCard(),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(0, 8, 0, bottomInset + 8),
-                    child: HomeBottomNavBar(
-                      onHome: _onHomeNavPressed,
-                      onCalendar: _openCalendar,
-                      onCamera: _openFeedCamera,
-                      onStore: _openStoreFromNav,
-                      onChat: _openChatRoom,
-                      cameraEnabled: !_petDeparted && !_isCurrentRoomLocked,
-                      chatHasUnread: _roomHasUnread(_roomId),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              top: 0,
-              left: 12,
-              right: 12,
-              child: SafeArea(
-                child: IgnorePointer(
-                  ignoring: !_furnitureMode,
-                  child: AnimatedSlide(
-                    offset: _furnitureMode
-                        ? Offset.zero
-                        : const Offset(0, -1.1),
-                    duration: 220.ms,
-                    curve: Curves.easeOutCubic,
-                    child: AnimatedOpacity(
-                      opacity: _furnitureMode ? 1 : 0,
-                      duration: 160.ms,
-                      child: HomeRoomInventoryPanel(
-                        furnitureCatalog: _furnitureCatalog,
-                        furnitureInventory: _furnitureInventory,
-                        selectedFurnitureItemId: _selectedFurnitureItemId,
-                        availableFurnitureCount: _availableFurnitureCount,
-                        furnitureLoading: _furnitureLoading,
-                        furnitureErrorText: _furnitureError,
-                        backgroundItems: _roomId == null
-                            ? const []
-                            : _ownedBackgroundsForRoom(_roomId!),
-                        activeBackgroundId: _roomId == null
-                            ? null
-                            : _activeBackgroundByRoom[_roomId!],
-                        backgroundLoading: _backgroundLoading,
-                        backgroundErrorText: _backgroundError,
-                        applyingBackgroundId: _backgroundApplyingItemId,
-                        onClose: _closeFurnitureInventory,
-                        onFurnitureTap: (itemId) {
-                          setState(() => _selectedFurnitureItemId = itemId);
-                          _autoPlaceFurnitureFromInventory(itemId);
-                        },
-                        onBackgroundApply: _applyRoomBackground,
-                      ),
-                    ),
-                  ),
-                ),
+            HomeFurnitureInventoryOverlay(
+              visible: _furnitureMode,
+              panel: HomeRoomInventoryPanel(
+                furnitureCatalog: _furnitureCatalog,
+                furnitureInventory: _furnitureInventory,
+                selectedFurnitureItemId: _selectedFurnitureItemId,
+                availableFurnitureCount: _availableFurnitureCount,
+                furnitureLoading: _furnitureLoading,
+                furnitureErrorText: _furnitureError,
+                backgroundItems: _roomId == null
+                    ? const []
+                    : _ownedBackgroundsForRoom(_roomId!),
+                activeBackgroundId: _roomId == null
+                    ? null
+                    : _activeBackgroundByRoom[_roomId!],
+                backgroundLoading: _backgroundLoading,
+                backgroundErrorText: _backgroundError,
+                applyingBackgroundId: _backgroundApplyingItemId,
+                onClose: _closeFurnitureInventory,
+                onFurnitureTap: (itemId) {
+                  setState(() => _selectedFurnitureItemId = itemId);
+                  _autoPlaceFurnitureFromInventory(itemId);
+                },
+                onBackgroundApply: _applyRoomBackground,
               ),
             ),
           ],
@@ -4066,96 +3987,116 @@ class _PetExpUpdate {
   const _PetExpUpdate({required this.level, required this.exp});
 }
 
-class _FeedDoubleRewardToast extends StatelessWidget {
-  const _FeedDoubleRewardToast({
+class _FeedDoubleRewardPill extends StatelessWidget {
+  const _FeedDoubleRewardPill({
     required this.title,
     required this.message,
     required this.watchLabel,
-    required this.cancelLabel,
     required this.onWatch,
-    required this.onCancel,
+    required this.onClose,
   });
 
   final String title;
   final String message;
   final String watchLabel;
-  final String cancelLabel;
   final VoidCallback onWatch;
-  final VoidCallback onCancel;
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.of(context).padding.top;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = mediaQuery.padding.bottom;
+    const bottomNavHeight = 74.0;
     return Positioned(
-      top: topInset + 8,
       left: 16,
       right: 16,
+      bottom: bottomInset + bottomNavHeight,
       child: Material(
         color: Colors.transparent,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.96),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.97),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFFFD27A), width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.14),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFF3CC),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        message,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'x2',
+                        style: TextStyle(fontWeight: FontWeight.w900),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            message,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: onWatch,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 34),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        backgroundColor: const Color(0xFFF9B44D),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(watchLabel),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      onPressed: onClose,
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                      color: Colors.black54,
+                      splashRadius: 18,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: onCancel,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 34),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  child: Text(cancelLabel),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: onWatch,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, 34),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  child: Text(watchLabel),
-                ),
-              ],
+              ),
             ),
           ),
         ),
