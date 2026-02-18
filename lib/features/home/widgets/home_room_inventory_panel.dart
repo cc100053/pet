@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../room_backgrounds.dart';
-import '../../store/store_view.dart';
+import '../../store/models/store_item.dart';
 
 class HomeRoomInventoryPanel extends StatefulWidget {
   const HomeRoomInventoryPanel({
@@ -182,10 +182,7 @@ class _FurnitureTab extends StatelessWidget {
     }
     if (items.isEmpty) {
       return Center(
-        child: Text(
-          l10n.furnitureInventoryEmpty,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(l10n.furnitureInventoryEmpty, textAlign: TextAlign.center),
       );
     }
 
@@ -242,10 +239,7 @@ class _BackgroundTab extends StatelessWidget {
     }
     if (items.isEmpty) {
       return Center(
-        child: Text(
-          l10n.backgroundInventoryEmpty,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(l10n.backgroundInventoryEmpty, textAlign: TextAlign.center),
       );
     }
 

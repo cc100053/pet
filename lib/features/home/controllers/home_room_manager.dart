@@ -26,7 +26,7 @@ extension _HomeRoomManager on _HomeViewState {
       final responses = await _withNetworkTimeout(
         Supabase.instance.client
             .from('room_members')
-            .select('room_id, role, joined_at, rooms(invite_code, created_at)')
+            .select('room_id, role, rooms(invite_code, created_at)')
             .eq('user_id', userId)
             .eq('is_active', true)
             .order('joined_at', ascending: true),
@@ -41,7 +41,6 @@ extension _HomeRoomManager on _HomeViewState {
             'id': roomId,
             'invite_code': roomData['invite_code'],
             'role': r['role'],
-            'joined_at': r['joined_at'],
             'room_created_at': roomData['created_at'],
             'unread_count': roomId != null
                 ? (previousUnreadByRoom[roomId] ?? 0)
@@ -156,13 +155,10 @@ extension _HomeRoomManager on _HomeViewState {
   }
 
   DateTime _legacyRoomSortTimestamp(Map<String, dynamic> room) {
-    final joinedAt = DateTime.tryParse(room['joined_at'] as String? ?? '');
     final createdAt = DateTime.tryParse(
       room['room_created_at'] as String? ?? '',
     );
-    return joinedAt ??
-        createdAt ??
-        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    return createdAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   }
 
   List<Map<String, dynamic>> _applyLegacyRoomLocking(

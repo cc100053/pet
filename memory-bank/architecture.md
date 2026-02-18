@@ -24,6 +24,7 @@
 - `supabase/migrations/20260217113000_add_unread_tracking_and_badge_rpc.sql`: Add `room_members.last_read_at`, create `mark_room_read` RPC, and add unread-total RPC used for APNs app-icon badge counts.
 - `supabase/migrations/20260217143000_add_unread_counts_per_room_rpc.sql`: Add `get_unread_message_counts_for_user` RPC so clients can restore per-room unread badges from server state after app relaunch.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
+- `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
@@ -39,14 +40,21 @@ Implemented:
 - `lib/features/home/`: Signed-in home shell.
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
+    - `lib/features/chat/chat_message_list.dart`: Extracted stateful chat message list (pagination/realtime/cache/moderation UI state).
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
   - `lib/features/gallery/`: Memory calendar view for feed images.
 - `lib/features/store/`: Store UI with coin purchases.
+  - `lib/features/store/models/store_item.dart`: Store domain model with localized naming/pricing helpers.
+  - `lib/features/store/services/store_iap_service.dart`: Extracted Store IAP loading/purchase/restore logic.
+  - `lib/features/store/services/store_purchase_handler.dart`: Extracted Store candy/diamond purchase handlers.
+  - `lib/features/store/widgets/store_departed_pet_selector.dart`: Extracted departed-pet selection/confirmation dialogs for return-letter purchase.
+  - `lib/features/store/widgets/store_item_cards.dart`: Extracted Store card builders for IAP/items/themes.
 - `lib/features/ads/`: iOS AdMob rewarded + banner ad UI components and service wiring.
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
+- `lib/services/profile/profile_cache_service.dart`: Shared profile summary cache/service used by Home, Chat, and Memory Calendar sender resolution.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.

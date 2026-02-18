@@ -21,6 +21,7 @@ import '../../services/home/home_bootstrap_cache_repository.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/ads/rewarded_ads_service.dart';
+import '../../services/profile/profile_cache_service.dart';
 import '../../services/review/review_prompt_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
@@ -33,6 +34,7 @@ import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../chat/chat_message.dart';
+import '../chat/chat_message_list.dart';
 import '../chat/chat_room_view.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
@@ -43,6 +45,7 @@ import '../pet/pet_departure.dart';
 import '../pet/pet_departure_note_view.dart';
 import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
+import '../store/models/store_item.dart';
 import '../store/store_view.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
@@ -226,7 +229,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _photoFoodBiteStage = 0;
   bool _petEating = false;
   int _feedingAnimationToken = 0;
-  final Map<String, _ProfileSummary> _profileByUserId = {};
+  final Map<String, ProfileSummary> _profileByUserId = {};
   bool _showingFeedDoubleRewardPrompt = false;
 
   @override
@@ -1945,7 +1948,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     await _openStoreWithDepartures();
   }
 
-  Future<_ProfileSummary?> _ensureProfileSummary(
+  Future<ProfileSummary?> _ensureProfileSummary(
     String userId, {
     bool forceRefresh = false,
   }) async {
@@ -1954,18 +1957,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       return cached;
     }
     try {
-      final row = await Supabase.instance.client
-          .from('profiles')
-          .select('user_id,nickname,avatar_url')
-          .eq('user_id', userId)
-          .maybeSingle();
-      if (row == null) {
+      final summary = await ProfileCacheService.instance.getProfile(
+        userId,
+        forceRefresh: forceRefresh,
+      );
+      if (summary == null) {
         return null;
       }
-      final summary = _ProfileSummary(
-        nickname: row['nickname'] as String?,
-        avatarUrl: row['avatar_url'] as String?,
-      );
       if (!mounted) {
         _profileByUserId[userId] = summary;
         return summary;

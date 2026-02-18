@@ -1,12 +1,5 @@
 part of 'home_view.dart';
 
-class _ProfileSummary {
-  const _ProfileSummary({required this.nickname, required this.avatarUrl});
-
-  final String? nickname;
-  final String? avatarUrl;
-}
-
 class _RoomLatestFeed {
   _RoomLatestFeed({
     required this.latestImageUrl,

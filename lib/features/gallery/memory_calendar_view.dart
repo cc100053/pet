@@ -3,6 +3,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
+import '../../services/profile/profile_cache_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/full_screen_photo_viewer.dart';
@@ -28,7 +29,7 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
   String? _error;
   final Map<DateTime, List<MemoryFeed>> _feedsByDay = {};
   final Set<String> _blockedUserIds = {};
-  final Map<String, _SenderProfile> _senderProfiles = {};
+  final Map<String, ProfileSummary> _senderProfiles = {};
   MemoryFeed? _latestFeed;
 
   @override
@@ -160,22 +161,8 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
       return;
     }
 
-    final response = await Supabase.instance.client
-        .from('profiles')
-        .select('user_id,nickname,avatar_url')
-        .inFilter('user_id', senderIds.toList());
-
-    final rows = response as List<dynamic>;
-    for (final row in rows) {
-      final userId = row['user_id'] as String?;
-      if (userId == null || userId.isEmpty) {
-        continue;
-      }
-      _senderProfiles[userId] = _SenderProfile(
-        nickname: row['nickname'] as String?,
-        avatarUrl: row['avatar_url'] as String?,
-      );
-    }
+    final profiles = await ProfileCacheService.instance.getProfiles(senderIds);
+    _senderProfiles.addAll(profiles);
   }
 
   Map<DateTime, List<MemoryFeed>> _groupByDay(List<MemoryFeed> feeds) {
@@ -632,7 +619,7 @@ class _MonthCalendarCard extends StatelessWidget {
 
   final DateTime focusedMonth;
   final Map<DateTime, List<MemoryFeed>> feedsByDay;
-  final Map<String, _SenderProfile> senderProfiles;
+  final Map<String, ProfileSummary> senderProfiles;
   final List<String> weekdayLabels;
   final void Function(DateTime date, List<MemoryFeed> feeds) onDayTap;
 
@@ -737,7 +724,7 @@ class _MonthDayCell extends StatelessWidget {
 
   final DateTime date;
   final List<MemoryFeed> feeds;
-  final _SenderProfile? senderProfile;
+  final ProfileSummary? senderProfile;
   final String? senderFallbackText;
   final bool isToday;
   final VoidCallback? onTap;
@@ -888,7 +875,7 @@ class _TodayCard extends StatelessWidget {
   });
 
   final MemoryFeed? feed;
-  final _SenderProfile? senderProfile;
+  final ProfileSummary? senderProfile;
   final String? senderFallbackText;
   final String dateLabel;
   final String emptyLabel;
@@ -1026,7 +1013,7 @@ class _RecentRow extends StatelessWidget {
   });
 
   final List<MemoryFeed> feeds;
-  final Map<String, _SenderProfile> senderProfiles;
+  final Map<String, ProfileSummary> senderProfiles;
   final void Function(MemoryFeed feed) onTap;
   final String emptyLabel;
   final String placeholderLabel;
@@ -1098,7 +1085,7 @@ class _RecentMemoryCard extends StatelessWidget {
       isPlaceholder = true;
 
   final MemoryFeed? feed;
-  final _SenderProfile? senderProfile;
+  final ProfileSummary? senderProfile;
   final String? senderFallbackText;
   final VoidCallback? onTap;
   final bool isPlaceholder;
@@ -1215,7 +1202,7 @@ class _RecentMemoryCard extends StatelessWidget {
 
 String _senderDisplayName({
   required String? senderId,
-  required Map<String, _SenderProfile> senderProfiles,
+  required Map<String, ProfileSummary> senderProfiles,
 }) {
   if (senderId == null || senderId.isEmpty) {
     return '?';
@@ -1266,7 +1253,7 @@ class _MemoryDaySheet extends StatelessWidget {
 
   final DateTime date;
   final List<MemoryFeed> feeds;
-  final Map<String, _SenderProfile> senderProfiles;
+  final Map<String, ProfileSummary> senderProfiles;
 
   @override
   Widget build(BuildContext context) {
@@ -1466,13 +1453,6 @@ class _PhotoSenderBadge extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SenderProfile {
-  const _SenderProfile({required this.nickname, required this.avatarUrl});
-
-  final String? nickname;
-  final String? avatarUrl;
 }
 
 class MemoryFeed {

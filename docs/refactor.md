@@ -240,10 +240,10 @@ This plan intentionally avoids a big-bang rewrite. It ships in vertical slices w
 | PR 3 | Home pet movement controller extraction | ✅ Completed |
 | PR 4 | Home feed orchestrator extraction | ✅ Completed |
 | PR 5 | Home room manager extraction | ✅ Completed |
-| PR 6 | Home build-tree decomposition | ⬜ Pending |
-| PR 7 | Shared profile cache service | ⬜ Pending |
-| PR 8 | Chat extraction (`ChatMessageList`) | ⬜ Pending |
-| PR 9 | Store extraction | ⬜ Pending |
+| PR 6 | Home build-tree decomposition | ✅ Completed |
+| PR 7 | Shared profile cache service | ✅ Completed |
+| PR 8 | Chat extraction (`ChatMessageList`) | ✅ Completed |
+| PR 9 | Store extraction | ✅ Completed |
 | PR 10 | Calendar modularization | ⬜ Pending |
 | PR 11+ | Incremental Home Riverpod migration | ⬜ Pending |
 
