@@ -71,3 +71,9 @@ To sell apps or In-App Purchases (IAP) in these regions, you must have the "Paid
 You have already updated your Privacy Policy to include English, Korean, Japanese, and Traditional Chinese.
 
 -   **Action**: No further action needed. Your `privacy_policy_ko.html` covers the requirements for South Korea (PIPA).
+
+## 4. App Store Privacy (Data Safety)
+
+For detailed guidance on filling out the **App Privacy** section in App Store Connect (including Data Types, Usage, and Tracking declarations for AdMob/Firebase), please refer to the dedicated guide:
+
+👉 [App Store Privacy Guide](app_privacy_guide.md)

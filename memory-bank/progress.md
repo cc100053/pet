@@ -1,6 +1,9 @@
 # Progress
 
 ## Done
+- Replaced the Home debug-tools visibility gate with Supabase claim-based admin access: drawer debug section now renders only when session claims/app metadata indicate admin, all debug actions re-check admin access before execution, and debug Pro-plan override now applies only for admins.
+- Removed iPad support from iOS project build settings by switching all `TARGETED_DEVICE_FAMILY` values from `1,2` to `1` (iPhone-only), so new App Store Connect builds no longer require 13-inch iPad screenshots.
+- Fixed iOS archive asset-catalog failure risk by stripping alpha channels from all `ios/Runner/Assets.xcassets/AppIcon.appiconset/*.png` icons (including 1024 marketing icon), matching App Store icon requirements.
 - Added an easy Debug Tools visibility switch in Home (`_showDebugTools` in `home_view.dart`), so the drawer debug section can be hidden/shown by flipping one boolean.
 - Updated room-entry loading prompt layout and copy: moved animated 3-dot indicator to the right side of the text and removed hardcoded trailing ellipsis from `roomEnteringLoading` across EN/JA/KO/zh/zh-TW localizations.
 - Removed Home launch-time loading screen gate by default (`_loadingRoom=false`), so the branded loading page no longer appears after app launch and remains reserved for explicit room-entry loading only.

@@ -85,8 +85,6 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  // Easy switch: set to true to show Debug Tools in the drawer.
-  static const bool _showDebugTools = false;
   static const _petAvatarSize = Size(100, 100);
   static const double _petCompactVisualScale = 0.74;
   static const double _petRegularVisualScale = 0.74;
@@ -138,6 +136,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int? _petExp;
   int _coins = 1234;
   int _diamonds = 0;
+  bool _isDebugAdmin = false;
   bool _debugProPlan = false;
   bool _revenueCatProPlan = false;
   final RevenueCatService _revenueCatService = RevenueCatService();
@@ -250,6 +249,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
+    unawaited(_refreshDebugAdminAccess());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
@@ -334,6 +334,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (state != AppLifecycleState.resumed) {
       return;
     }
+    unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
     unawaited(ref.read(fcmServiceProvider).refreshTokenSync());
     unawaited(_reconcileUnreadStateFromServer());
@@ -668,6 +669,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     int coinDelta = 0,
     int diamondDelta = 0,
   }) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       return;
@@ -733,6 +737,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _debugAdjustPetHunger(int delta) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
     if (!await _ensureOnlineForWrite()) {
       return;
     }
@@ -776,6 +783,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _debugAddPetExp(int delta) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
     if (!await _ensureOnlineForWrite()) {
       return;
     }
@@ -822,6 +832,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _debugSpawnPetPoop() async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
     if (!await _ensureOnlineForWrite()) {
       return;
     }
@@ -876,6 +889,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _debugShowOverfedBubble() {
+    if (!_isDebugAdmin) {
+      return;
+    }
     _overfedBubbleTimer?.cancel();
     setState(() {
       _lastOverfedAt = DateTime.now().toUtc();
@@ -990,6 +1006,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _setDebugProPlan(bool value) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
     if (_debugProPlan == value) {
       return;
     }
@@ -1005,7 +1024,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  bool get _hasProPlanAccess => _debugProPlan || _revenueCatProPlan;
+  bool get _hasProPlanAccess =>
+      (_isDebugAdmin && _debugProPlan) || _revenueCatProPlan;
 
   Future<void> _refreshProPlanStatus() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -1209,6 +1229,90 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
+  Future<bool> _ensureDebugAdminAccess() async {
+    if (_isDebugAdmin) {
+      return true;
+    }
+    await _refreshDebugAdminAccess();
+    return _isDebugAdmin;
+  }
+
+  Future<void> _refreshDebugAdminAccess() async {
+    final auth = Supabase.instance.client.auth;
+    final user = auth.currentUser;
+    if (user == null) {
+      if (!mounted) {
+        _isDebugAdmin = false;
+      } else if (_isDebugAdmin) {
+        setState(() => _isDebugAdmin = false);
+      }
+      return;
+    }
+
+    final debugSession = await ensureValidAccessTokenWithDebug();
+    final isAdmin =
+        _isAdminClaim(user.appMetadata) || _isAdminClaim(debugSession.claims);
+    if (!mounted) {
+      _isDebugAdmin = isAdmin;
+      return;
+    }
+    if (_isDebugAdmin == isAdmin) {
+      return;
+    }
+    setState(() {
+      _isDebugAdmin = isAdmin;
+      _myRooms = _applyLegacyRoomLocking(_myRooms);
+    });
+    _syncRoomProviders();
+  }
+
+  bool _isAdminClaim(Map<String, dynamic>? data) {
+    if (data == null || data.isEmpty) {
+      return false;
+    }
+    final direct =
+        _asBool(data['is_admin']) ??
+        _asBool(data['admin']) ??
+        _asBool(data['isAdmin']);
+    if (direct == true) {
+      return true;
+    }
+
+    final role = data['role'] ?? data['app_role'] ?? data['user_role'];
+    if (role is String && role.toLowerCase() == 'admin') {
+      return true;
+    }
+
+    final roles = data['roles'];
+    if (roles is List) {
+      for (final roleEntry in roles) {
+        if (roleEntry is String && roleEntry.toLowerCase() == 'admin') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool? _asBool(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+        return true;
+      }
+      if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+        return false;
+      }
+    }
+    return null;
+  }
+
   Future<void> _signOut() async {
     AnalyticsService.instance.logEvent('sign_out_tap');
     await Supabase.instance.client.auth.signOut();
@@ -1229,6 +1333,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _runFeedTest() async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
     final roomId = _roomId;
     if (roomId == null) return;
 
@@ -4016,7 +4123,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         unawaited(_openProfile());
       },
       onSignOut: _signOut,
-      debugActions: _showDebugTools
+      debugActions: _isDebugAdmin
           ? ExpansionTile(
               leading: const Icon(Icons.bug_report_outlined),
               title: Text(l10n.drawerDebugTools),
