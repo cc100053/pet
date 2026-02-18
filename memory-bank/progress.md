@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Completed refactor PR 10 calendar modularization: extracted `MemoryFeed` to `lib/features/gallery/models/memory_feed.dart`, moved calendar data-fetch logic into `lib/features/gallery/services/memory_calendar_data_service.dart`, and split core calendar UI widgets into `lib/features/gallery/widgets/` (`calendar_header.dart`, `calendar_weekday_strip.dart`, `calendar_month_navigator.dart`, `calendar_month_card.dart`, `calendar_day_cell.dart`, `calendar_day_bubble.dart`) using part-based decomposition while preserving view behavior.
 - Completed refactor PR 9 store extraction: moved `StoreItem` to `lib/features/store/models/store_item.dart`, extracted Store IAP/purchase flows into `lib/features/store/services/store_iap_service.dart` and `lib/features/store/services/store_purchase_handler.dart`, extracted departed-pet selector dialogs to `lib/features/store/widgets/store_departed_pet_selector.dart`, and moved store item/IAP/theme card builders to `lib/features/store/widgets/store_item_cards.dart` via part-based decomposition while preserving Store behavior.
 - Applied DB RPC hardening for invite rejoin ordering: migration `20260218113000_harden_join_room_membership_ordering.sql` updates `join_room_by_code` so membership reactivation no longer rewrites `room_members.joined_at`.
 - Patched Free-plan room lock ordering exploit: lock priority now uses immutable `rooms.created_at` only (not membership `joined_at`), so re-entering via invite code can no longer move a target room into an unlocked slot.

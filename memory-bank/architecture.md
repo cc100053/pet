@@ -44,6 +44,9 @@ Implemented:
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
   - `lib/features/gallery/`: Memory calendar view for feed images.
+    - `lib/features/gallery/models/memory_feed.dart`: Memory feed model extracted from calendar view.
+    - `lib/features/gallery/services/memory_calendar_data_service.dart`: Calendar data service for blocked users/month feeds/latest feeds/profile hydration.
+    - `lib/features/gallery/widgets/`: Calendar subwidgets (`calendar_header.dart`, `calendar_weekday_strip.dart`, `calendar_month_navigator.dart`, `calendar_month_card.dart`, `calendar_day_cell.dart`, `calendar_day_bubble.dart`).
 - `lib/features/store/`: Store UI with coin purchases.
   - `lib/features/store/models/store_item.dart`: Store domain model with localized naming/pricing helpers.
   - `lib/features/store/services/store_iap_service.dart`: Extracted Store IAP loading/purchase/restore logic.

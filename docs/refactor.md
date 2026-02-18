@@ -244,7 +244,7 @@ This plan intentionally avoids a big-bang rewrite. It ships in vertical slices w
 | PR 7 | Shared profile cache service | ✅ Completed |
 | PR 8 | Chat extraction (`ChatMessageList`) | ✅ Completed |
 | PR 9 | Store extraction | ✅ Completed |
-| PR 10 | Calendar modularization | ⬜ Pending |
+| PR 10 | Calendar modularization | ✅ Completed |
 | PR 11+ | Incremental Home Riverpod migration | ⬜ Pending |
 
 ### Refactor Invariants (Must Not Change)
