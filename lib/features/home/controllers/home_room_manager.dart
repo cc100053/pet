@@ -11,16 +11,7 @@ extension _HomeRoomManager on _HomeViewState {
       final previousUnreadByRoom = <String, int>{
         for (final room in _myRooms)
           if (room['id'] is String)
-            room['id'] as String: (() {
-              final unread = room['unread_count'];
-              if (unread is int) {
-                return unread;
-              }
-              if (unread is num) {
-                return unread.toInt();
-              }
-              return room['has_unread'] == true ? 1 : 0;
-            })(),
+            room['id'] as String: resolveRoomUnreadCount(room),
       };
 
       final responses = await _withNetworkTimeout(
@@ -111,6 +102,7 @@ extension _HomeRoomManager on _HomeViewState {
           _roomSelectionId ??= _roomId ?? sortedRooms.first['id'] as String?;
         }
       });
+      _syncUnreadCountsProvider(sortedRooms);
       _syncAppIconBadge(rooms: sortedRooms);
       for (final senderId in senderIds) {
         unawaited(_ensureProfileSummary(senderId));
@@ -201,6 +193,8 @@ extension _HomeRoomManager on _HomeViewState {
 
   void _switchRoom(String roomId, {String? petType}) {
     _feedingAnimationToken++;
+    final roomEntryToken = ++_roomEntryLoadingToken;
+    final roomEntryStartedAt = DateTime.now();
     final previousRoom = _roomId;
     final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
       (room) => room?['id'] == roomId,
@@ -224,6 +218,7 @@ extension _HomeRoomManager on _HomeViewState {
       _petLevel = null;
       _petExp = null;
       _petType = nextPetType;
+      _roomEntryLoading = true;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
       _photoFoodImageSource = null;
@@ -301,7 +296,12 @@ extension _HomeRoomManager on _HomeViewState {
     _backgroundInventoryChannel?.unsubscribe();
     _backgroundInventoryChannel = null;
     _backgroundSubscriptionRoomId = null;
-    unawaited(_refreshPetState(tick: true));
+    unawaited(
+      _loadRoomEntryCore(
+        roomEntryToken: roomEntryToken,
+        roomEntryStartedAt: roomEntryStartedAt,
+      ),
+    );
     unawaited(_refreshLatestFeed(roomId));
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
@@ -311,6 +311,31 @@ extension _HomeRoomManager on _HomeViewState {
     _subscribeToBackgrounds(roomId);
     if (previousRoom != roomId) {
       AnalyticsService.instance.logEvent('room_switch');
+    }
+  }
+
+  Future<void> _loadRoomEntryCore({
+    required int roomEntryToken,
+    required DateTime roomEntryStartedAt,
+  }) async {
+    var canCompleteEntry = true;
+    try {
+      await _refreshPetState(tick: true);
+    } finally {
+      final elapsed = DateTime.now().difference(roomEntryStartedAt);
+      final minimum = _HomeViewState._roomEntryLoadingMinDuration;
+      if (elapsed < minimum) {
+        await Future<void>.delayed(minimum - elapsed);
+      }
+      if (!mounted || _roomEntryLoadingToken != roomEntryToken) {
+        canCompleteEntry = false;
+      }
+      if (canCompleteEntry) {
+        _setStateForRoomManager(() {
+          _roomEntryLoading = false;
+          _roomEntryFadeVersion++;
+        });
+      }
     }
   }
 

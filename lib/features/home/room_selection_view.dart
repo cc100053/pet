@@ -15,6 +15,7 @@ class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
     super.key,
     required this.rooms,
+    this.unreadCountByRoom = const {},
     required this.onCreateRoom,
     required this.onJoinRoom,
     required this.onSelectRoom,
@@ -29,6 +30,7 @@ class RoomSelectionView extends StatelessWidget {
   });
 
   final List<Map<String, dynamic>> rooms;
+  final Map<String, int> unreadCountByRoom;
   final VoidCallback onCreateRoom;
   final VoidCallback onJoinRoom;
   final ValueChanged<String> onSelectRoom;
@@ -346,6 +348,12 @@ class RoomSelectionView extends StatelessWidget {
         ? petDefinition.name(l10n)
         : petName;
     final unreadCount = () {
+      if (roomId != null) {
+        final providerCount = unreadCountByRoom[roomId];
+        if (providerCount != null) {
+          return providerCount;
+        }
+      }
       final raw = room['unread_count'];
       if (raw is int) {
         return raw;

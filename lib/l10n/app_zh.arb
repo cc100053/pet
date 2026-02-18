@@ -395,6 +395,7 @@
   "roomJoinHint": "输入 6 位邀请碼",
   "roomJoinSuccess": "加入房间成功。",
   "roomJoinTitle": "加入房间",
+  "roomEnteringLoading": "正在进入房间...",
   "roomLeaveFailed": "离开房间失敗：{error}",
   "@roomLeaveFailed": {
     "placeholders": {

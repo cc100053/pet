@@ -1327,6 +1327,12 @@ abstract class AppLocalizations {
   /// **'Join Room'**
   String get roomJoinTitle;
 
+  /// No description provided for @roomEnteringLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Entering room...'**
+  String get roomEnteringLoading;
+
   /// No description provided for @roomLeaveFailed.
   ///
   /// In en, this message translates to:

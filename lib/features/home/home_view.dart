@@ -47,6 +47,10 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../store/models/store_item.dart';
 import '../store/store_view.dart';
+import 'providers/home_currency_provider.dart';
+import 'providers/home_pet_state_provider.dart';
+import 'providers/home_unread_counts_provider.dart';
+import 'providers/home_rooms_provider.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
 import 'widgets/home_bottom_nav_bar.dart';
@@ -170,8 +174,15 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const int _petNameMaxLength = 20;
   static const int _freePlanRoomLimit = 2;
   static const Duration _networkTimeout = Duration(seconds: 4);
+  static const Duration _roomEntryLoadingMinDuration = Duration(
+    milliseconds: 550,
+  );
+  static const Duration _roomEntryFadeDuration = Duration(milliseconds: 420);
   static const Duration _onlineProbeThrottle = Duration(seconds: 10);
   bool _inviteCodeLoading = false;
+  bool _roomEntryLoading = false;
+  int _roomEntryLoadingToken = 0;
+  int _roomEntryFadeVersion = 0;
   bool _showNewRoomInvitePrompt = false;
   String? _newRoomInviteRoomId;
   DateTime? _lastWriteOnlineCheckAt;
@@ -445,6 +456,9 @@ class _HomeViewState extends ConsumerState<HomeView>
                   : null);
         _loadingRoom = false;
       });
+      _syncCurrencyProvider();
+      _syncRoomProviders();
+      _syncUnreadCountsProvider(_myRooms);
     } catch (_) {
       // Best effort. If cache read fails we continue with network bootstrap.
     }
@@ -615,6 +629,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           rewardEventIdToClear = _coinRewardEventId;
         }
       });
+      _syncCurrencyProvider();
 
       if (rewardEventIdToClear != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -630,6 +645,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           setState(() {
             _coinReward = null;
           });
+          _syncCurrencyProvider();
         });
       }
       await _cacheHomeBootstrapSnapshot();
@@ -914,6 +930,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           )
           .toList();
     });
+    _syncPetStateProvider();
     _handleOverfedState();
     _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
   }
@@ -978,6 +995,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _debugProPlan = value;
       _myRooms = _applyLegacyRoomLocking(_myRooms);
     });
+    _syncRoomProviders();
     try {
       await AppSettingsRepository.instance.setDebugProPlanEnabled(value);
     } catch (error) {
@@ -998,6 +1016,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         _revenueCatProPlan = false;
         _myRooms = _applyLegacyRoomLocking(_myRooms);
       });
+      _syncRoomProviders();
       return;
     }
 
@@ -1023,6 +1042,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _revenueCatProPlan = hasProEntitlement;
       _myRooms = _applyLegacyRoomLocking(_myRooms);
     });
+    _syncRoomProviders();
   }
 
   bool _isRoomLikelyDeparted(String roomId) {
@@ -1046,10 +1066,20 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       _myRooms = nextRooms;
     });
+    _syncRoomProviders();
+    _syncUnreadCountsProvider(nextRooms);
   }
 
   void _setStateForUnreadMutation(VoidCallback mutation) {
     setState(mutation);
+    _syncRoomProviders();
+    _syncUnreadCountsProvider(_myRooms);
+  }
+
+  void _syncUnreadCountsProvider(List<Map<String, dynamic>> rooms) {
+    ref
+        .read(homeUnreadCountsProvider.notifier)
+        .replaceAll(unreadCountsByRoomFromRooms(rooms));
   }
 
   void _setStateForPetMovement(VoidCallback mutation) {
@@ -1062,10 +1092,58 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   void _setStateForFeedOrchestrator(VoidCallback mutation) {
     setState(mutation);
+    _syncCurrencyProvider();
+    _syncRoomProviders();
+    _syncPetStateProvider();
   }
 
   void _setStateForRoomManager(VoidCallback mutation) {
     setState(mutation);
+    _syncRoomProviders();
+    _syncPetStateProvider();
+  }
+
+  void _syncRoomProviders() {
+    ref.read(homeRoomsProvider.notifier).replaceAll(_myRooms);
+    ref.read(homeCurrentRoomIdProvider.notifier).set(_roomId);
+    ref.read(homeRoomSelectionIdProvider.notifier).set(_roomSelectionId);
+  }
+
+  void _syncPetStateProvider() {
+    ref
+        .read(homePetStateProvider.notifier)
+        .setSnapshot(
+          petId: _petId,
+          state: _petState,
+          isReady: _petStateReady,
+          isDeparted: _petDeparted,
+        );
+  }
+
+  void _syncCurrencyProvider() {
+    ref
+        .read(homeCurrencyProvider.notifier)
+        .setSnapshot(
+          coins: _coins,
+          diamonds: _diamonds,
+          coinReward: _coinReward,
+          coinRewardEventId: _coinRewardEventId,
+        );
+  }
+
+  Map<String, dynamic>? get _effectivePetState {
+    final snapshot = ref.read(homePetStateProvider);
+    return snapshot.state ?? _petState;
+  }
+
+  bool get _effectivePetStateReady {
+    final snapshot = ref.read(homePetStateProvider);
+    return snapshot.isReady || _petStateReady;
+  }
+
+  bool get _effectivePetDeparted {
+    final snapshot = ref.read(homePetStateProvider);
+    return snapshot.isDeparted || _petDeparted;
   }
 
   void _setInviteCodeLoading(bool value) {
@@ -1347,6 +1425,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             )
             .toList();
       });
+      _syncPetStateProvider();
       if (state != null) {
         _cachePetState(roomId, petId, state);
       }
@@ -1365,6 +1444,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             _petDeparted = true;
           }
         });
+        _syncPetStateProvider();
       }
     } finally {
       if (mounted) setState(() => _petBusy = false);
@@ -1412,6 +1492,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               .toList();
         }
       });
+      _syncPetStateProvider();
       _handleOverfedState();
       final roomId = _roomId;
       if (roomId != null) {
@@ -1680,7 +1761,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   double _healthValue() {
-    return _healthValueFromHunger(_petState?['hunger'] as num?);
+    return _healthValueFromHunger(_effectivePetState?['hunger'] as num?);
   }
 
   String _departureHeroTag(String petId) => 'pet_departure_note_$petId';
@@ -1748,6 +1829,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _departedPetsByRoom.remove(roomId);
       if (roomId == _roomId && _petDeparted && mounted) {
         setState(() => _petDeparted = false);
+        _syncPetStateProvider();
       }
       if (roomId == _roomId) {
         _petDeparturePrompted = false;
@@ -1770,6 +1852,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
     if (!_petDeparted && mounted) {
       setState(() => _petDeparted = true);
+      _syncPetStateProvider();
     }
 
     final shouldPrompt = !_petDeparturePrompted || _lastDeparturePetId != petId;
@@ -1875,6 +1958,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         _lastDeparturePetId = null;
       }
     });
+    _syncPetStateProvider();
 
     if (pet.roomId == _roomId) {
       await _refreshPetState();
@@ -3070,7 +3154,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   List<_PoopSpot> _poopSpots() {
-    final raw = _petState?['poop_positions'];
+    final petState = _effectivePetState;
+    final raw = petState?['poop_positions'];
     final spots = <_PoopSpot>[];
     if (raw is List) {
       for (var i = 0; i < raw.length; i++) {
@@ -3091,7 +3176,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
     }
     if (spots.isEmpty) {
-      final poopAt = _parseOptionalDate(_petState?['poop_at'])?.toUtc();
+      final poopAt = _parseOptionalDate(petState?['poop_at'])?.toUtc();
       if (poopAt != null && !poopAt.isAfter(DateTime.now().toUtc())) {
         spots.add(const _PoopSpot(index: 0, normalized: Offset(0.62, 0.72)));
       }
@@ -3100,10 +3185,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildPoopEmoji(int index) {
+    final isPetDeparted = _effectivePetDeparted;
     return IgnorePointer(
-      ignoring: _petBusy || _petDeparted,
+      ignoring: _petBusy || isPetDeparted,
       child: GestureDetector(
-        onTap: (_petBusy || _petDeparted)
+        onTap: (_petBusy || isPetDeparted)
             ? null
             : () => unawaited(_cleanPoopAt(index)),
         child: const Text('💩', style: TextStyle(fontSize: 24)),
@@ -3239,7 +3325,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       await _showRoomLockedDialog();
       return;
     }
-    if (_petDeparted) {
+    if (_effectivePetDeparted) {
       final info = _currentDepartedPetInfo();
       if (info != null) {
         await _showPetDepartureFlow(info);
@@ -3286,10 +3372,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Widget _buildDraggablePet(Size fieldSize) {
-    if (_petDeparted) {
+    final petState = _effectivePetState;
+    if (_effectivePetDeparted) {
       return _buildDepartedPetPlaceholder();
     }
-    if (!_petStateReady || _petState == null) {
+    if (!_effectivePetStateReady || petState == null) {
       return _buildPetLoadingPlaceholder();
     }
     final petVisualScale = _petVisualScale(MediaQuery.sizeOf(context).width);
@@ -3555,22 +3642,41 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   Widget build(BuildContext context) {
     final overlayStyle = _currentOverlayStyle();
+    final currency = ref.watch(homeCurrencyProvider);
+    final petSnapshot = ref.watch(homePetStateProvider);
+    final unreadCountByRoom = ref.watch(homeUnreadCountsProvider);
+    final selectedRoomId = ref.watch(homeCurrentRoomIdProvider) ?? _roomId;
+    final roomSelectionId =
+        ref.watch(homeRoomSelectionIdProvider) ??
+        _roomSelectionId ??
+        selectedRoomId;
     if (_loadingRoom) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
         child: const HomeLoadingView(),
       );
     }
+    if (_roomEntryLoading) {
+      final l10n = AppLocalizations.of(context)!;
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlayStyle,
+        child: HomeLoadingView(
+          message: l10n.roomEnteringLoading,
+          showProgress: true,
+        ),
+      );
+    }
 
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    if (_showRoomSelection || _roomId == null) {
+    if (_showRoomSelection || selectedRoomId == null) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
         child: Scaffold(
           drawer: _buildSideDrawer(),
           body: RoomSelectionView(
             rooms: _myRooms,
+            unreadCountByRoom: unreadCountByRoom,
             creatingRoom: _creatingRoom,
             joiningRoom: _joiningRoom,
             onCreateRoom: _createRoom,
@@ -3583,7 +3689,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             userNameById: _profileByUserId.map(
               (key, value) => MapEntry(key, value.nickname),
             ),
-            selectedRoomId: _roomSelectionId ?? _roomId,
+            selectedRoomId: roomSelectionId,
             userAvatarUrl: _myAvatarUrl,
             topBanner: AdMobIds.isSupported && !_hasProPlanAccess
                 ? const AdMobBannerSlot()
@@ -3592,133 +3698,146 @@ class _HomeViewState extends ConsumerState<HomeView>
         ),
       );
     }
+    final activeRoomId = selectedRoomId;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
-      child: Scaffold(
-        drawer: _buildSideDrawer(), // Room List Drawer
-        resizeToAvoidBottomInset: false,
-        body: Stack(
+      child: TweenAnimationBuilder<double>(
+        key: ValueKey('room-fade-$activeRoomId-$_roomEntryFadeVersion'),
+        duration: _roomEntryFadeDuration,
+        curve: Curves.easeInOut,
+        tween: Tween<double>(begin: 0.0, end: 1.0),
+        child: Scaffold(
+          drawer: _buildSideDrawer(), // Room List Drawer
+          resizeToAvoidBottomInset: false,
+          body: Stack(
+            children: [
+              HomeRoomBackground(
+                decoration: _currentBackgroundDefinition().decoration,
+              ),
+              HomeMainContent(
+                bottomInset: bottomInset,
+                statusBar: Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context)!;
+                    final level = _petLevel;
+                    final exp = _petExp ?? 0;
+                    final petDefinition = PetCatalog.byId(_petType);
+                    final expProgressValue = level == null
+                        ? 0.0
+                        : expProgress(level: level, exp: exp);
+                    final roomPetName =
+                        _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+                              (room) => room?['id'] == selectedRoomId,
+                              orElse: () => null,
+                            )?['pet_name']
+                            as String?;
+                    final resolvedPetName =
+                        (_petName?.trim().isNotEmpty ?? false)
+                        ? _petName!.trim()
+                        : ((roomPetName?.trim().isNotEmpty ?? false)
+                              ? roomPetName!.trim()
+                              : l10n.petNameUnnamed);
+                    final healthDebugValue =
+                        ((petSnapshot.state ?? _petState)?['hunger'] as num?)
+                            ?.round();
+                    return HomeGameStatusBar(
+                      petAvatar: Image.asset(
+                        petDefinition.stayAsset,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                      ),
+                      expProgress: expProgressValue,
+                      level: level,
+                      petName: resolvedPetName,
+                      healthValue: _healthValue(),
+                      healthDebugValue: healthDebugValue,
+                      coins: currency.coins,
+                      diamonds: currency.diamonds,
+                      coinReward: currency.coinReward,
+                      coinRewardEventId: currency.coinRewardEventId,
+                      onPetTap: () => Scaffold.of(context).openDrawer(),
+                      onPetNameTap: _openPetNameEditor,
+                      onStoreTap: _openStoreFromNav,
+                      onInviteTap: _generateInviteCode,
+                      inviteLabel: l10n.roomInviteCta,
+                      inviteLoading: _inviteCodeLoading,
+                      onInventoryTap: _openFurnitureInventory,
+                      inventoryLabel: l10n.roomInventoryCta,
+                    );
+                  },
+                ),
+                photoGallery: PetPhotoGallery(
+                  imageUrls: _latestFeedImageUrls,
+                  captions: _latestFeedCaptions,
+                  senderAvatars: List<String?>.generate(
+                    _latestFeedImageUrls.length,
+                    (index) {
+                      final senderId = index < _latestFeedSenderIds.length
+                          ? _latestFeedSenderIds[index]
+                          : null;
+                      if (senderId == null || senderId.isEmpty) {
+                        return null;
+                      }
+                      return _profileByUserId[senderId]?.avatarUrl;
+                    },
+                  ),
+                  senderFallbackTexts: List<String?>.generate(
+                    _latestFeedImageUrls.length,
+                    (index) {
+                      final senderId = index < _latestFeedSenderIds.length
+                          ? _latestFeedSenderIds[index]
+                          : null;
+                      if (senderId == null || senderId.isEmpty) {
+                        return null;
+                      }
+                      return _profileByUserId[senderId]?.nickname;
+                    },
+                  ),
+                  onPlaceholderTap: _openFeedCamera,
+                ),
+                petHomeCard: _buildPetHomeCard(),
+                bottomNavBar: HomeBottomNavBar(
+                  onHome: _onHomeNavPressed,
+                  onCalendar: _openCalendar,
+                  onCamera: _openFeedCamera,
+                  onStore: _openStoreFromNav,
+                  onChat: _openChatRoom,
+                  cameraEnabled:
+                      !(petSnapshot.isDeparted || _petDeparted) &&
+                      !_isCurrentRoomLocked,
+                  chatHasUnread: (unreadCountByRoom[activeRoomId] ?? 0) > 0,
+                ),
+              ),
+              HomeFurnitureInventoryOverlay(
+                visible: _furnitureMode,
+                panel: HomeRoomInventoryPanel(
+                  furnitureCatalog: _furnitureCatalog,
+                  furnitureInventory: _furnitureInventory,
+                  selectedFurnitureItemId: _selectedFurnitureItemId,
+                  availableFurnitureCount: _availableFurnitureCount,
+                  furnitureLoading: _furnitureLoading,
+                  furnitureErrorText: _furnitureError,
+                  backgroundItems: _ownedBackgroundsForRoom(activeRoomId),
+                  activeBackgroundId: _activeBackgroundByRoom[activeRoomId],
+                  backgroundLoading: _backgroundLoading,
+                  backgroundErrorText: _backgroundError,
+                  applyingBackgroundId: _backgroundApplyingItemId,
+                  onClose: _closeFurnitureInventory,
+                  onFurnitureTap: (itemId) {
+                    setState(() => _selectedFurnitureItemId = itemId);
+                    _autoPlaceFurnitureFromInventory(itemId);
+                  },
+                  onBackgroundApply: _applyRoomBackground,
+                ),
+              ),
+            ],
+          ),
+        ),
+        builder: (context, value, child) => Stack(
           children: [
-            HomeRoomBackground(
-              decoration: _currentBackgroundDefinition().decoration,
-            ),
-            HomeMainContent(
-              bottomInset: bottomInset,
-              statusBar: Builder(
-                builder: (context) {
-                  final l10n = AppLocalizations.of(context)!;
-                  final level = _petLevel;
-                  final exp = _petExp ?? 0;
-                  final petDefinition = PetCatalog.byId(_petType);
-                  final expProgressValue = level == null
-                      ? 0.0
-                      : expProgress(level: level, exp: exp);
-                  final roomPetName =
-                      _myRooms.cast<Map<String, dynamic>?>().firstWhere(
-                            (room) => room?['id'] == _roomId,
-                            orElse: () => null,
-                          )?['pet_name']
-                          as String?;
-                  final resolvedPetName = (_petName?.trim().isNotEmpty ?? false)
-                      ? _petName!.trim()
-                      : ((roomPetName?.trim().isNotEmpty ?? false)
-                            ? roomPetName!.trim()
-                            : l10n.petNameUnnamed);
-                  final healthDebugValue = (_petState?['hunger'] as num?)
-                      ?.round();
-                  return HomeGameStatusBar(
-                    petAvatar: Image.asset(
-                      petDefinition.stayAsset,
-                      fit: BoxFit.cover,
-                      gaplessPlayback: true,
-                    ),
-                    expProgress: expProgressValue,
-                    level: level,
-                    petName: resolvedPetName,
-                    healthValue: _healthValue(),
-                    healthDebugValue: healthDebugValue,
-                    coins: _coins,
-                    diamonds: _diamonds,
-                    coinReward: _coinReward,
-                    coinRewardEventId: _coinRewardEventId,
-                    onPetTap: () => Scaffold.of(context).openDrawer(),
-                    onPetNameTap: _openPetNameEditor,
-                    onStoreTap: _openStoreFromNav,
-                    onInviteTap: _generateInviteCode,
-                    inviteLabel: l10n.roomInviteCta,
-                    inviteLoading: _inviteCodeLoading,
-                    onInventoryTap: _openFurnitureInventory,
-                    inventoryLabel: l10n.roomInventoryCta,
-                  );
-                },
-              ),
-              photoGallery: PetPhotoGallery(
-                imageUrls: _latestFeedImageUrls,
-                captions: _latestFeedCaptions,
-                senderAvatars: List<String?>.generate(
-                  _latestFeedImageUrls.length,
-                  (index) {
-                    final senderId = index < _latestFeedSenderIds.length
-                        ? _latestFeedSenderIds[index]
-                        : null;
-                    if (senderId == null || senderId.isEmpty) {
-                      return null;
-                    }
-                    return _profileByUserId[senderId]?.avatarUrl;
-                  },
-                ),
-                senderFallbackTexts: List<String?>.generate(
-                  _latestFeedImageUrls.length,
-                  (index) {
-                    final senderId = index < _latestFeedSenderIds.length
-                        ? _latestFeedSenderIds[index]
-                        : null;
-                    if (senderId == null || senderId.isEmpty) {
-                      return null;
-                    }
-                    return _profileByUserId[senderId]?.nickname;
-                  },
-                ),
-                onPlaceholderTap: _openFeedCamera,
-              ),
-              petHomeCard: _buildPetHomeCard(),
-              bottomNavBar: HomeBottomNavBar(
-                onHome: _onHomeNavPressed,
-                onCalendar: _openCalendar,
-                onCamera: _openFeedCamera,
-                onStore: _openStoreFromNav,
-                onChat: _openChatRoom,
-                cameraEnabled: !_petDeparted && !_isCurrentRoomLocked,
-                chatHasUnread: _roomHasUnread(_roomId),
-              ),
-            ),
-            HomeFurnitureInventoryOverlay(
-              visible: _furnitureMode,
-              panel: HomeRoomInventoryPanel(
-                furnitureCatalog: _furnitureCatalog,
-                furnitureInventory: _furnitureInventory,
-                selectedFurnitureItemId: _selectedFurnitureItemId,
-                availableFurnitureCount: _availableFurnitureCount,
-                furnitureLoading: _furnitureLoading,
-                furnitureErrorText: _furnitureError,
-                backgroundItems: _roomId == null
-                    ? const []
-                    : _ownedBackgroundsForRoom(_roomId!),
-                activeBackgroundId: _roomId == null
-                    ? null
-                    : _activeBackgroundByRoom[_roomId!],
-                backgroundLoading: _backgroundLoading,
-                backgroundErrorText: _backgroundError,
-                applyingBackgroundId: _backgroundApplyingItemId,
-                onClose: _closeFurnitureInventory,
-                onFurnitureTap: (itemId) {
-                  setState(() => _selectedFurnitureItemId = itemId);
-                  _autoPlaceFurnitureFromInventory(itemId);
-                },
-                onBackgroundApply: _applyRoomBackground,
-              ),
-            ),
+            const Positioned.fill(child: ColoredBox(color: Color(0xFFFDF4E7))),
+            Opacity(opacity: value, child: child),
           ],
         ),
       ),
@@ -3765,8 +3884,9 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Color _petMoodColor() {
     Color petColor = Colors.orangeAccent;
-    if (_petState != null) {
-      final mood = _petState!['mood'] as String? ?? 'low';
+    final petState = _effectivePetState;
+    if (petState != null) {
+      final mood = petState['mood'] as String? ?? 'low';
       switch (mood) {
         case 'high':
           petColor = Colors.pinkAccent;
@@ -3949,7 +4069,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           ),
           ListTile(
             title: Text(l10n.drawerDebugShowFullBubble),
-            onTap: (_petState == null || !_petStateReady || _petDeparted)
+            onTap:
+                (_effectivePetState == null ||
+                    !_effectivePetStateReady ||
+                    _effectivePetDeparted)
                 ? null
                 : _debugShowOverfedBubble,
           ),

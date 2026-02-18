@@ -395,6 +395,7 @@
   "roomJoinHint": "6桁のコードを入力",
   "roomJoinSuccess": "ルームに参加しました。",
   "roomJoinTitle": "ルームに参加",
+  "roomEnteringLoading": "ルームに入室中...",
   "roomLeaveFailed": "退出に失敗しました: {error}",
   "@roomLeaveFailed": {
     "placeholders": {

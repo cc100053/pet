@@ -38,6 +38,10 @@ Implemented:
 - `lib/app/`: App bootstrap and theme.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
+  - `lib/features/home/providers/home_unread_counts_provider.dart`: Riverpod unread-count state for Home/Room Selection badges and app-icon badge sync.
+  - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
+  - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).
+  - `lib/features/home/providers/home_currency_provider.dart`: Riverpod currency snapshot for Home (coins, diamonds, coin reward amount/event id).
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_message_list.dart`: Extracted stateful chat message list (pagination/realtime/cache/moderation UI state).

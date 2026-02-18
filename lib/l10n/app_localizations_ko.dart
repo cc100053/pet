@@ -705,6 +705,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomJoinTitle => '방 참가';
 
   @override
+  String get roomEnteringLoading => '방에 들어가는 중...';
+
+  @override
   String roomLeaveFailed(Object error) {
     return '방 나가기 실패: $error';
   }

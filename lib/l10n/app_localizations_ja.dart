@@ -699,6 +699,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomJoinTitle => 'ルームに参加';
 
   @override
+  String get roomEnteringLoading => 'ルームに入室中...';
+
+  @override
   String roomLeaveFailed(Object error) {
     return '退出に失敗しました：$error';
   }

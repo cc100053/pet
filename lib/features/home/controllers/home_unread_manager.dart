@@ -32,44 +32,13 @@ extension _HomeUnreadManager on _HomeViewState {
     }
   }
 
-  int _roomUnreadCount(String? roomId) {
-    if (roomId == null) {
-      return 0;
-    }
-    final room = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
-      (entry) => entry?['id'] == roomId,
-      orElse: () => null,
-    );
-    final unread = room?['unread_count'];
-    if (unread is int) {
-      return unread;
-    }
-    if (unread is num) {
-      return unread.toInt();
-    }
-    return room?['has_unread'] == true ? 1 : 0;
-  }
-
-  bool _roomHasUnread(String? roomId) {
-    return _roomUnreadCount(roomId) > 0;
-  }
-
   int _totalUnreadCount([List<Map<String, dynamic>>? rooms]) {
-    final source = rooms ?? _myRooms;
+    if (rooms == null) {
+      return ref.read(homeTotalUnreadCountProvider);
+    }
     var total = 0;
-    for (final room in source) {
-      final unread = room['unread_count'];
-      if (unread is int) {
-        total += unread;
-        continue;
-      }
-      if (unread is num) {
-        total += unread.toInt();
-        continue;
-      }
-      if (room['has_unread'] == true) {
-        total += 1;
-      }
+    for (final room in rooms) {
+      total += resolveRoomUnreadCount(room);
     }
     return total;
   }

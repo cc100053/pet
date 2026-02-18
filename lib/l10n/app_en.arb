@@ -395,6 +395,7 @@
   "roomJoinHint": "Enter 6-digit code",
   "roomJoinSuccess": "Joined room successfully.",
   "roomJoinTitle": "Join Room",
+  "roomEnteringLoading": "Entering room...",
   "roomLeaveFailed": "Failed to leave room: {error}",
   "@roomLeaveFailed": {
     "placeholders": {
