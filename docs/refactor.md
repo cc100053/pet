@@ -237,9 +237,9 @@ This plan intentionally avoids a big-bang rewrite. It ships in vertical slices w
 | PR 0 | Baseline safety net + invariants | ✅ Completed |
 | PR 1 | Home unread manager extraction | ✅ Completed |
 | PR 2 | Home invite flow extraction | ✅ Completed |
-| PR 3 | Home pet movement controller extraction | ⬜ Pending |
-| PR 4 | Home feed orchestrator extraction | ⬜ Pending |
-| PR 5 | Home room manager extraction | ⬜ Pending |
+| PR 3 | Home pet movement controller extraction | ✅ Completed |
+| PR 4 | Home feed orchestrator extraction | ✅ Completed |
+| PR 5 | Home room manager extraction | ✅ Completed |
 | PR 6 | Home build-tree decomposition | ⬜ Pending |
 | PR 7 | Shared profile cache service | ⬜ Pending |
 | PR 8 | Chat extraction (`ChatMessageList`) | ⬜ Pending |

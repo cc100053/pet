@@ -450,9 +450,9 @@ Stack {
 
 ---
 
-## Appendix: 原始設計 (v2.0) vs 實際代碼 (v2.1) 差異摘要
+## Appendix: 原始設計 vs 實際代碼 (v2.1) 差異摘要
 
-| Area | v2.0 原始設計文檔 | v2.1 實際代碼 | 備註 |
+| Area | 原始設計文檔 | v2.1 實際代碼 | 備註 |
 |---|---|---|---|
 | AI Labeling | Local ML Kit (前端識別) + 後端驗證 | 前端 ML Kit **未啟用** (returns `[]`)，全由後端 `feed_validate` Edge Function 處理 | 架構改變 |
 | 內容審查 | ML Kit Safe Search 前端攔截 (confidence > 0.7) | 前端攔截 **未實裝**，依賴後端 | 與 AI Labeling 連動 |

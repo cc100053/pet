@@ -36,6 +36,7 @@ class ChatRoomView extends StatefulWidget {
     this.isRoomLocked = false,
     this.onFeedSendStarted,
     this.onFeedUploaded,
+    this.onFeedUploadFailed,
   });
 
   final String roomId;
@@ -49,6 +50,7 @@ class ChatRoomView extends StatefulWidget {
   final ValueChanged<FeedOptimisticMessage>? onFeedSendStarted;
   final void Function(FeedUploadResult result, String? imageSource)?
   onFeedUploaded;
+  final void Function(String tempId, Object error)? onFeedUploadFailed;
 
   @override
   State<ChatRoomView> createState() => _ChatRoomViewState();
@@ -313,6 +315,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   void _handleFeedUploadFailed(String tempId, Object error) {
     _optimisticFeedImageByTempId.remove(tempId);
     _chatMessageListKey.currentState?.removeOptimisticMessage(tempId);
+    widget.onFeedUploadFailed?.call(tempId, error);
     if (!mounted) {
       return;
     }
