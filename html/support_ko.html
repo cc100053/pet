@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Support - PetTomo</title>
+    <title>앱 지원 - PetTomo</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
             color: #333;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            word-break: keep-all;
         }
 
         h1 {
@@ -79,18 +80,7 @@
             if (params.has('lang')) {
                 return;
             }
-            const lang = (navigator.language || '').toLowerCase();
-            const path = window.location.pathname;
-            if (!path.endsWith('/support.html') && !path.endsWith('support.html')) {
-                return;
-            }
-            if (lang.startsWith('ja')) {
-                window.location.replace('support_ja.html');
-                return;
-            }
-            if (lang.startsWith('zh-tw') || lang.startsWith('zh-hk') || lang.startsWith('zh-hant')) {
-                window.location.replace('support_zh_TW.html');
-            }
+            // Auto-redirect logic kept simple here
         })();
     </script>
 </head>
@@ -100,20 +90,20 @@
         <img src="PetTomo_appicon.png" alt="PetTomo Logo" width="100" style="border-radius: 20px;">
     </div>
     <div class="lang-switcher" aria-label="Language switcher">
-        <a class="active" href="support.html?lang=en">English</a>
+        <a href="support.html?lang=en">English</a>
         <a href="support_ja.html?lang=ja">日本語</a>
         <a href="support_zh_TW.html?lang=zh-TW">繁體中文</a>
-        <a href="support_ko.html?lang=ko">한국어</a>
+        <a class="active" href="support_ko.html?lang=ko">한국어</a>
     </div>
-    <h1>App Support</h1>
-    <p>Need help with PetTomo? We're here to assist you!</p>
+    <h1>앱 지원 (App Support)</h1>
+    <p>PetTomo 이용에 도움이 필요하신가요?</p>
 
     <div class="contact-box" style="text-align: center;">
-        <h2>Contact Us</h2>
-        <p>If you have any issues, bug reports, or feedback, please fill out our support form:</p>
+        <h2>문의하기</h2>
+        <p>앱 사용 중 문제, 버그 제보, 또는 피드백이 있으시다면 아래 지원 양식을 작성해 주세요:</p>
         <a href="https://docs.google.com/forms/d/e/1FAIpQLSdQ4T-Ab_fW7r_0Fu8xdytYZJg5x8MZtP4AE3dBuvQeqi5HDg/viewform?usp=publish-editor"
             target="_blank">
-            <button style="font-size: 1.2em; padding: 15px 30px; margin-top: 10px;">Open Support Form</button>
+            <button style="font-size: 1.2em; padding: 15px 30px; margin-top: 10px;">지원 양식 열기</button>
         </a>
     </div>
 

@@ -1,46 +1,48 @@
-App Store Connect Metadata (English)
+# App Store Connect Metadata (English)
 
-App Information
+## App Information
 
-Name: PetTomo: Shared Pet Care
-Subtitle: Feed with Photos Together
-Privacy Policy URL: https://pet-app-702be.web.app/privacy_policy.html
+- **Name (30)**: PetTomo: Shared Pet & Diary
+- **Subtitle (30)**: Raise, Feed & Bond Together
+- **Privacy Policy URL**: https://pet-app-702be.web.app/privacy_policy.html
 
-App Store Version Information
+## App Store Version Information
 
-Promotional Text (Max 170 chars)
-> Raise one adorable pet together with friends or your partner. Feed with photos, decorate your room, and turn daily moments into shared memories.
+### Promotional Text (Max 170 chars)
+> Share a virtual pet with your partner or bestie! Feed it with your daily photos, decorate your shared room, and turn moments into memories. Perfect for long-distance bonds.
 
-Description
-PetTomo is a social virtual pet game where your daily photos become care, play, and shared memories.
+### Description
+PetTomo is the shared pet game where your photos become food, love, and memories.
 
-Create a room with friends, your partner, or family and raise one pet together. Feed your pet with camera or gallery photos, chat in real time, and watch your companion grow through everyday life.
+Designed for couples and best friends, PetTomo lets you co-parent an adorable digital companion in a shared room. Whether you’re side-by-side or miles apart, your pet keeps you connected.
 
-Key Features:
+**Shared Pet Parenting**
+Invite your partner or friend to a room and raise **one** pet together. Every feed, every clean, and every pat is synced instantly.
 
-Shared Pet Parenting: Raise one pet as a team in a shared room. Everyone can feed, care, and help it grow.
-Photo-to-Feed Gameplay: Turn ordinary photos into meaningful interactions with your pet.
-Real-Time Social Play: Chat, react, and celebrate progress together.
-Growth and Customization: Level up your pet, decorate your room, and build your own style over time.
+**Photo-to-Feed Gameplay**
+Snap a pic of your lunch, your view, or your smile to feed your pet! Your daily moments turn into Energy (XP) for your pet, creating a unique photo diary of your relationship.
 
-Important Note:
-Photo label recognition is temporarily unavailable in the current version. Photo feeding still works normally.
+**Cozy Shared Space**
+Chat in real-time, react to each other’s feeding photos, and decorate your room with furniture that reflects your style.
 
-Start your shared pet story with PetTomo today.
+**Grow Together**
+Watch your pet level up as your bond deepens. Keep feeding it to see it grow and thrive in your shared room!
 
-Keywords
-pet, game, social, raise, photo, camera, ai, cat, dog, cute, tamagotchi, widget, shared, couple, friends, multiplayer, care, virtual, feeding
+**Perfect for:**
+- Couples wanting a low-stress way to stay connected.
+- Long-distance relationships (LDR) looking for a shared daily ritual.
+- Besties who want a cute digital mascot for their friendship.
 
-Support URL
+**Note:**
+This version enables photo feeding, shared rooms, and real-time chat. Label recognition AI is currently in beta and may be disabled; manual photo feeding works perfectly!
+
+### Keywords (100 chars)
+pet,couple,love,care,raise,shared,virtual,tamagotchi,long distance,relationship,cute,cat,photo
+
+### Support URL
 https://pet-app-702be.web.app/support.html
 
-App Review Notes (Template)
-- Purchases require sign-in because subscriptions and items are account-bound to shared rooms and cross-device sync.
-- In-app account deletion is available at: Profile > Delete Account.
-
-Submission Operations Checklist
-- [ ] Privacy Policy URL is set in App Store Connect.
-- [ ] App Description includes Terms of Use (EULA) link: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-- [ ] Paid Apps Agreement is active in App Store Connect > Business.
-- [ ] Sandbox purchase flow tested on iPhone and iPad for each IAP product ID.
-- [ ] Restore Purchases tested successfully in sandbox.
+### App Review Notes
+- **Test Accounts**: Please use the provided test credentials or create a new account.
+- **IAP**: Subscriptions are room-based. Please test "Petmonthly" for Pro access.
+- **Account Deletion**: Fully functional in Profile > Settings.
