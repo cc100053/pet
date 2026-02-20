@@ -12,6 +12,8 @@ class Env {
       _optional('ADMOB_IOS_REWARDED_AD_UNIT_ID');
   static int get adRewardCoins => _optionalInt('AD_REWARD_COINS') ?? 10;
   static String get privacyPolicyUrl => _require('PRIVACY_POLICY_URL');
+  static String get termsOfUseUrl =>
+      _optional('TERMS_OF_USE_URL') ?? appleStandardEulaUrl;
   static const String appleStandardEulaUrl =
       'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 

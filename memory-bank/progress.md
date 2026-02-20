@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- App Review compliance hardening pass: sign-in now requires explicit acceptance of Terms/Privacy with zero-tolerance UGC wording before OAuth starts; Store subscription cards now display explicit subscription details (title/length/price) alongside legal links; app-level debug banner is disabled (`debugShowCheckedModeBanner: false`) to prevent debug overlays in future App Store screenshots; and localized Terms of Use pages were added under `html/terms_of_use*.html` for metadata/App links.
 - Implemented host-timezone-based night protection plumbing without UI changes: app now syncs each signed-in user's `profiles.timezone` from device IANA timezone in the background (Home/Profile bootstrap), and migration `20260218170000_sync_room_timezone_on_owner_transfer.sql` now updates `rooms.timezone` to the promoted owner's timezone whenever ownership transfers.
 - Removed deprecated iOS launch-time `window?.rootViewController` channel registration from `AppDelegate.didFinishLaunchingWithOptions`; app-badge channel setup now relies on `didInitializeImplicitFlutterEngine`, eliminating Flutter's `flutter-launch-rootvc` warning path.
 - Replaced the Home debug-tools visibility gate with Supabase claim-based admin access: drawer debug section now renders only when session claims/app metadata indicate admin, all debug actions re-check admin access before execution, and debug Pro-plan override now applies only for admins.

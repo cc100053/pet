@@ -972,7 +972,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeSubscriptionActive => '有効';
 
   @override
+  String get storeSubscriptionDurationMonthly => '1か月';
+
+  @override
   String get storeSubscriptionRenewalNote => '毎月自動更新。いつでも解約できます。';
+
+  @override
+  String get storeSubscriptionDetailsTitle => 'サブスクリプション詳細';
+
+  @override
+  String storeSubscriptionDetailsBody(
+    Object title,
+    Object duration,
+    Object price,
+  ) {
+    return '名称: $title\n期間: $duration\n価格: $price';
+  }
 
   @override
   String get storePrivacyPolicy => 'プライバシーポリシー';
@@ -985,6 +1000,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeLegalOpenFailed => '法的リンクを開けませんでした。';
+
+  @override
+  String get signInSafetyAgreementLabel =>
+      '利用規約とプライバシーポリシーに同意し、不適切なコンテンツや迷惑行為に対して一切の許容がないことを確認します。';
+
+  @override
+  String get signInSafetyAgreementRequired =>
+      'サインインする前に利用規約とプライバシーポリシーに同意してください。';
 
   @override
   String get storeTitle => 'ストア';

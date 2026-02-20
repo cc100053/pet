@@ -40,6 +40,10 @@
 **참고:**
 현재 버전에서는 사진 라벨 인식 AI가 베타 상태입니다. 인식이 되지 않더라도 수동으로 밥을 주며 즐길 수 있습니다!
 
+**법적 정보:**
+이용약관(EULA): https://pet-app-702be.web.app/terms_of_use_ko.html
+개인정보 처리방침: https://pet-app-702be.web.app/privacy_policy_ko.html
+
 ### Keywords (100 chars)
 펫,키우기,커플,연애,힐링,방치형,다마고치,고양이,강아지,사진,공유,기념일,일기,친구,가상,육성,소셜,먼거리,사랑
 

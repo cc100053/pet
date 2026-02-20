@@ -29,6 +29,11 @@ extension _StoreItemCards on _StoreViewState {
         ? (isSubscribed ? l10n.commonOwned : l10n.storeSubscribe)
         : l10n.commonBuy;
     final description = item.localizedDescription(l10n);
+    final subscriptionDetails = l10n.storeSubscriptionDetailsBody(
+      item.localizedName(l10n),
+      l10n.storeSubscriptionDurationMonthly,
+      priceString,
+    );
 
     if (isSubscription) {
       return Container(
@@ -126,6 +131,23 @@ extension _StoreItemCards on _StoreViewState {
                           fontSize: 11,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.storeSubscriptionDetailsTitle,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        subscriptionDetails,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
+                          height: 1.35,
                         ),
                       ),
                     ],

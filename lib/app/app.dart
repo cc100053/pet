@@ -20,6 +20,7 @@ class PicPetApp extends ConsumerWidget {
       value: AppStatusBarStyles.light,
       child: MaterialApp(
         title: 'PicPet',
+        debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,

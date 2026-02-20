@@ -991,8 +991,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeSubscriptionActive => 'Active';
 
   @override
+  String get storeSubscriptionDurationMonthly => '1 month';
+
+  @override
   String get storeSubscriptionRenewalNote =>
       'Auto-renews monthly. Cancel anytime.';
+
+  @override
+  String get storeSubscriptionDetailsTitle => 'Subscription details';
+
+  @override
+  String storeSubscriptionDetailsBody(
+    Object title,
+    Object duration,
+    Object price,
+  ) {
+    return 'Title: $title\nLength: $duration\nPrice: $price';
+  }
 
   @override
   String get storePrivacyPolicy => 'Privacy Policy';
@@ -1005,6 +1020,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeLegalOpenFailed => 'Could not open the legal link.';
+
+  @override
+  String get signInSafetyAgreementLabel =>
+      'I agree to the Terms of Use and Privacy Policy, including zero tolerance for objectionable content or abusive users.';
+
+  @override
+  String get signInSafetyAgreementRequired =>
+      'Please accept the Terms of Use and Privacy Policy before signing in.';
 
   @override
   String get storeTitle => 'Store';

@@ -550,11 +550,23 @@
   "storeSignInPrompt": "스토어를 이용하려면 로그인해 주세요.",
   "storeSubscribe": "구독하기",
   "storeSubscriptionActive": "사용 중",
+  "storeSubscriptionDurationMonthly": "1개월",
   "storeSubscriptionRenewalNote": "매달 자동 갱신됩니다. 언제든 취소할 수 있습니다.",
+  "storeSubscriptionDetailsTitle": "구독 정보",
+  "storeSubscriptionDetailsBody": "상품명: {title}\n기간: {duration}\n가격: {price}",
+  "@storeSubscriptionDetailsBody": {
+    "placeholders": {
+      "title": {},
+      "duration": {},
+      "price": {}
+    }
+  },
   "storePrivacyPolicy": "개인정보 처리방침",
   "storeTermsOfUse": "이용약관",
   "storeLegalSeparator": "|",
   "storeLegalOpenFailed": "법적 링크를 열 수 없습니다.",
+  "signInSafetyAgreementLabel": "이용약관 및 개인정보 처리방침에 동의하며, 불쾌하거나 학대적인 콘텐츠/사용자에 대해 무관용 정책이 적용됨을 확인합니다.",
+  "signInSafetyAgreementRequired": "로그인 전에 이용약관과 개인정보 처리방침에 동의해 주세요.",
   "storeTitle": "스토어",
   "storeTypeConsumable": "소모품",
   "storeTypeCosmetic": "꾸미기",

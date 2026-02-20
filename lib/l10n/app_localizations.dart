@@ -1807,11 +1807,33 @@ abstract class AppLocalizations {
   /// **'Active'**
   String get storeSubscriptionActive;
 
+  /// No description provided for @storeSubscriptionDurationMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month'**
+  String get storeSubscriptionDurationMonthly;
+
   /// No description provided for @storeSubscriptionRenewalNote.
   ///
   /// In en, this message translates to:
   /// **'Auto-renews monthly. Cancel anytime.'**
   String get storeSubscriptionRenewalNote;
+
+  /// No description provided for @storeSubscriptionDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription details'**
+  String get storeSubscriptionDetailsTitle;
+
+  /// No description provided for @storeSubscriptionDetailsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Title: {title}\nLength: {duration}\nPrice: {price}'**
+  String storeSubscriptionDetailsBody(
+    Object title,
+    Object duration,
+    Object price,
+  );
 
   /// No description provided for @storePrivacyPolicy.
   ///
@@ -1836,6 +1858,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open the legal link.'**
   String get storeLegalOpenFailed;
+
+  /// No description provided for @signInSafetyAgreementLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Terms of Use and Privacy Policy, including zero tolerance for objectionable content or abusive users.'**
+  String get signInSafetyAgreementLabel;
+
+  /// No description provided for @signInSafetyAgreementRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please accept the Terms of Use and Privacy Policy before signing in.'**
+  String get signInSafetyAgreementRequired;
 
   /// No description provided for @storeTitle.
   ///

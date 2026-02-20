@@ -553,11 +553,23 @@
   "storeSignInPrompt": "Please sign in to access the store.",
   "storeSubscribe": "Subscribe",
   "storeSubscriptionActive": "Active",
+  "storeSubscriptionDurationMonthly": "1 month",
   "storeSubscriptionRenewalNote": "Auto-renews monthly. Cancel anytime.",
+  "storeSubscriptionDetailsTitle": "Subscription details",
+  "storeSubscriptionDetailsBody": "Title: {title}\nLength: {duration}\nPrice: {price}",
+  "@storeSubscriptionDetailsBody": {
+    "placeholders": {
+      "title": {},
+      "duration": {},
+      "price": {}
+    }
+  },
   "storePrivacyPolicy": "Privacy Policy",
   "storeTermsOfUse": "Terms of Use",
   "storeLegalSeparator": "|",
   "storeLegalOpenFailed": "Could not open the legal link.",
+  "signInSafetyAgreementLabel": "I agree to the Terms of Use and Privacy Policy, including zero tolerance for objectionable content or abusive users.",
+  "signInSafetyAgreementRequired": "Please accept the Terms of Use and Privacy Policy before signing in.",
   "storeTitle": "Store",
   "storeTypeConsumable": "Consumable",
   "storeTypeCosmetic": "Cosmetic",

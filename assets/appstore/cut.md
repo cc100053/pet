@@ -6,6 +6,10 @@
 ## Output
 - `s_1.png` through `s_5.png` — 5 equal slices, left to right.
 
+## Capture Requirement (Important)
+- Capture screenshots from a **release/profile build** only.
+- Do **not** capture from a Flutter debug run (`flutter run` default) to avoid debug overlays/banners in App Store assets.
+
 ## Target Dimensions
 - **1284 × 2778 px** (iPhone 6.7" — required by App Store Connect)
 

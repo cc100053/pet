@@ -103,7 +103,11 @@ class _StoreViewState extends State<StoreView> {
     } catch (_) {
       _privacyPolicyUri = null;
     }
-    _termsOfUseUri = Uri.parse(Env.appleStandardEulaUrl);
+    try {
+      _termsOfUseUri = Uri.parse(Env.termsOfUseUrl);
+    } catch (_) {
+      _termsOfUseUri = Uri.parse(Env.appleStandardEulaUrl);
+    }
   }
 
   void _handleLegalLinkOpenFailed() {

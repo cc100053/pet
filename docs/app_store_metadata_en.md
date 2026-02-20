@@ -36,6 +36,10 @@ Watch your pet level up as your bond deepens. Keep feeding it to see it grow and
 **Note:**
 This version enables photo feeding, shared rooms, and real-time chat. Label recognition AI is currently in beta and may be disabled; manual photo feeding works perfectly!
 
+**Legal:**
+Terms of Use (EULA): https://pet-app-702be.web.app/terms_of_use.html
+Privacy Policy: https://pet-app-702be.web.app/privacy_policy.html
+
 ### Keywords (100 chars)
 pet,couple,love,care,raise,shared,virtual,tamagotchi,long distance,relationship,cute,cat,photo
 

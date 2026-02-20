@@ -8,8 +8,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../services/env.dart';
+import '../../services/settings/app_settings_repository.dart';
 import '../../shared/ui/app_ui_scale.dart';
 
 const String _googleLogoSvg = '''
@@ -31,11 +34,58 @@ class SignInView extends StatefulWidget {
 class _SignInViewState extends State<SignInView> {
   bool _signingIn = false;
   String? _activeProvider;
+  bool _ugcTermsAccepted = false;
+  Uri? _privacyPolicyUri;
+  late final Uri _termsOfUseUri;
+
+  @override
+  void initState() {
+    super.initState();
+    _ugcTermsAccepted = AppSettingsRepository.instance.ugcTermsAccepted;
+    _initializeLegalUris();
+  }
+
+  void _initializeLegalUris() {
+    try {
+      _privacyPolicyUri = Uri.tryParse(Env.privacyPolicyUrl);
+    } catch (_) {
+      _privacyPolicyUri = null;
+    }
+    try {
+      _termsOfUseUri = Uri.parse(Env.termsOfUseUrl);
+    } catch (_) {
+      _termsOfUseUri = Uri.parse(Env.appleStandardEulaUrl);
+    }
+  }
+
+  Future<void> _openExternalUri(Uri uri) async {
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.storeLegalOpenFailed)));
+    }
+  }
+
+  bool _requireTermsAccepted(BuildContext context) {
+    if (_ugcTermsAccepted) {
+      return true;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.signInSafetyAgreementRequired)));
+    return false;
+  }
 
   Future<void> _signInWithOAuth(
     BuildContext context,
     OAuthProvider provider,
   ) async {
+    if (!_requireTermsAccepted(context)) {
+      return;
+    }
     const redirectUrl = 'com.cc100053.pet://login-callback';
     try {
       if (_signingIn) {
@@ -71,6 +121,9 @@ class _SignInViewState extends State<SignInView> {
   }
 
   Future<void> _signInWithApple(BuildContext context) async {
+    if (!_requireTermsAccepted(context)) {
+      return;
+    }
     if (kIsWeb || !Platform.isIOS) {
       await _signInWithOAuth(context, OAuthProvider.apple);
       return;
@@ -182,13 +235,77 @@ class _SignInViewState extends State<SignInView> {
                                 constraints: const BoxConstraints(
                                   maxWidth: 250,
                                 ),
+                                child: CheckboxListTile(
+                                  value: _ugcTermsAccepted,
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  onChanged: _signingIn
+                                      ? null
+                                      : (value) async {
+                                          final accepted = value ?? false;
+                                          setState(() {
+                                            _ugcTermsAccepted = accepted;
+                                          });
+                                          await AppSettingsRepository.instance
+                                              .setUgcTermsAccepted(accepted);
+                                        },
+                                  title: Text(
+                                    l10n.signInSafetyAgreementLabel,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: const Color(0xFF18435E),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 250,
+                                ),
+                                child: Wrap(
+                                  alignment: WrapAlignment.center,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  children: [
+                                    if (_privacyPolicyUri != null)
+                                      TextButton(
+                                        onPressed: () => _openExternalUri(
+                                          _privacyPolicyUri!,
+                                        ),
+                                        child: Text(l10n.storePrivacyPolicy),
+                                      ),
+                                    Text(
+                                      l10n.storeLegalSeparator,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(color: Colors.black45),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          _openExternalUri(_termsOfUseUri),
+                                      child: Text(l10n.storeTermsOfUse),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 250,
+                                ),
                                 child: isIosAppleButton
                                     ? SizedBox(
                                         height: 46,
                                         child: IgnorePointer(
-                                          ignoring: _signingIn,
+                                          ignoring:
+                                              _signingIn || !_ugcTermsAccepted,
                                           child: Opacity(
-                                            opacity: _signingIn ? 0.6 : 1,
+                                            opacity:
+                                                (_signingIn ||
+                                                    !_ugcTermsAccepted)
+                                                ? 0.6
+                                                : 1,
                                             child: SignInWithAppleButton(
                                               onPressed: () =>
                                                   _signInWithApple(context),
@@ -199,7 +316,8 @@ class _SignInViewState extends State<SignInView> {
                                     : SizedBox(
                                         height: 46,
                                         child: FilledButton.icon(
-                                          onPressed: _signingIn
+                                          onPressed:
+                                              (_signingIn || !_ugcTermsAccepted)
                                               ? null
                                               : () => _signInWithApple(context),
                                           icon: const Icon(
@@ -226,12 +344,13 @@ class _SignInViewState extends State<SignInView> {
                                 ),
                                 child: Semantics(
                                   button: true,
-                                  enabled: !_signingIn,
+                                  enabled: !_signingIn && _ugcTermsAccepted,
                                   label: l10n.signInWithGoogle,
                                   child: SizedBox(
                                     height: 46,
                                     child: OutlinedButton(
-                                      onPressed: _signingIn
+                                      onPressed:
+                                          (_signingIn || !_ugcTermsAccepted)
                                           ? null
                                           : () => _signInWithOAuth(
                                               context,

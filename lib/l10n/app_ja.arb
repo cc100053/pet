@@ -553,11 +553,23 @@
   "storeSignInPrompt": "ストアを利用するにはサインインしてください。",
   "storeSubscribe": "購読する",
   "storeSubscriptionActive": "有効",
+  "storeSubscriptionDurationMonthly": "1か月",
   "storeSubscriptionRenewalNote": "毎月自動更新。いつでも解約できます。",
+  "storeSubscriptionDetailsTitle": "サブスクリプション詳細",
+  "storeSubscriptionDetailsBody": "名称: {title}\n期間: {duration}\n価格: {price}",
+  "@storeSubscriptionDetailsBody": {
+    "placeholders": {
+      "title": {},
+      "duration": {},
+      "price": {}
+    }
+  },
   "storePrivacyPolicy": "プライバシーポリシー",
   "storeTermsOfUse": "利用規約",
   "storeLegalSeparator": "|",
   "storeLegalOpenFailed": "法的リンクを開けませんでした。",
+  "signInSafetyAgreementLabel": "利用規約とプライバシーポリシーに同意し、不適切なコンテンツや迷惑行為に対して一切の許容がないことを確認します。",
+  "signInSafetyAgreementRequired": "サインインする前に利用規約とプライバシーポリシーに同意してください。",
   "storeTitle": "ストア",
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "コスメ",

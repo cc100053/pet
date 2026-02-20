@@ -977,7 +977,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeSubscriptionActive => '사용 중';
 
   @override
+  String get storeSubscriptionDurationMonthly => '1개월';
+
+  @override
   String get storeSubscriptionRenewalNote => '매달 자동 갱신됩니다. 언제든 취소할 수 있습니다.';
+
+  @override
+  String get storeSubscriptionDetailsTitle => '구독 정보';
+
+  @override
+  String storeSubscriptionDetailsBody(
+    Object title,
+    Object duration,
+    Object price,
+  ) {
+    return '상품명: $title\n기간: $duration\n가격: $price';
+  }
 
   @override
   String get storePrivacyPolicy => '개인정보 처리방침';
@@ -990,6 +1005,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get storeLegalOpenFailed => '법적 링크를 열 수 없습니다.';
+
+  @override
+  String get signInSafetyAgreementLabel =>
+      '이용약관 및 개인정보 처리방침에 동의하며, 불쾌하거나 학대적인 콘텐츠/사용자에 대해 무관용 정책이 적용됨을 확인합니다.';
+
+  @override
+  String get signInSafetyAgreementRequired =>
+      '로그인 전에 이용약관과 개인정보 처리방침에 동의해 주세요.';
 
   @override
   String get storeTitle => '스토어';

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Use - PetTomo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    h2 {
+      margin-top: 28px;
+    }
+
+    .lang-switcher {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px 0 20px;
+      flex-wrap: wrap;
+    }
+
+    .lang-switcher a {
+      text-decoration: none;
+      color: #007AFF;
+      border: 1px solid #007AFF;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+
+    .lang-switcher a.active {
+      background: #007AFF;
+      color: #fff;
+    }
+
+    .highlight {
+      background: #fff4da;
+      border: 1px solid #ffd89a;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    footer {
+      margin-top: 50px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('lang')) {
+        return;
+      }
+      const lang = (navigator.language || '').toLowerCase();
+      const path = window.location.pathname;
+      if (!path.endsWith('/terms_of_use.html') && !path.endsWith('terms_of_use.html')) {
+        return;
+      }
+      if (lang.startsWith('ja')) {
+        window.location.replace('terms_of_use_ja.html');
+        return;
+      }
+      if (lang.startsWith('ko')) {
+        window.location.replace('terms_of_use_ko.html');
+        return;
+      }
+      if (lang.startsWith('zh-tw') || lang.startsWith('zh-hk') || lang.startsWith('zh-hant')) {
+        window.location.replace('terms_of_use_zh_TW.html');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <div style="text-align: center; margin-bottom: 20px;">
+    <img src="PetTomo_appicon.png" alt="PetTomo Logo" width="100" style="border-radius: 20px;">
+  </div>
+  <div class="lang-switcher" aria-label="Language switcher">
+    <a class="active" href="terms_of_use.html?lang=en">English</a>
+    <a href="terms_of_use_ja.html?lang=ja">日本語</a>
+    <a href="terms_of_use_zh_TW.html?lang=zh-TW">繁體中文</a>
+    <a href="terms_of_use_ko.html?lang=ko">한국어</a>
+  </div>
+
+  <h1>Terms of Use</h1>
+  <p>Last updated: February 20, 2026</p>
+
+  <p>These Terms govern your use of PetTomo (the "App"). By creating an account or using the App, you agree to these Terms.</p>
+
+  <h2>1. Eligibility and Account</h2>
+  <p>You must comply with applicable laws and keep your account access secure. You are responsible for activity under your account.</p>
+
+  <h2>2. User Content and Community Safety</h2>
+  <div class="highlight">
+    <strong>Zero-tolerance policy:</strong> Objectionable content and abusive behavior are strictly prohibited. This includes harassment, hate speech, sexual exploitation, threats, graphic violence, and illegal content.
+  </div>
+  <ul>
+    <li>You may not post unlawful, harmful, or abusive content.</li>
+    <li>You may not impersonate others or attempt to bypass moderation controls.</li>
+    <li>Users can report and block others; we may remove content and restrict or terminate accounts for violations.</li>
+  </ul>
+
+  <h2>3. Subscriptions and Payments</h2>
+  <p>Some features are offered through auto-renewable subscriptions. Payment is charged to your Apple ID account at confirmation. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. You can manage or cancel subscriptions in your App Store account settings.</p>
+
+  <h2>4. Privacy</h2>
+  <p>Your use of the App is also governed by our <a href="privacy_policy.html">Privacy Policy</a>.</p>
+
+  <h2>5. Termination</h2>
+  <p>We may suspend or terminate access for violations of these Terms or for security and legal reasons.</p>
+
+  <h2>6. Contact</h2>
+  <p>If you have questions, contact: <strong>hangyodev@gmail.com</strong></p>
+
+  <footer>
+    <p>&copy; 2026 PetTomo Team. All rights reserved.</p>
+  </footer>
+</body>
+
+</html>

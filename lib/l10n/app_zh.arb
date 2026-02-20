@@ -553,11 +553,23 @@
   "storeSignInPrompt": "请先登录才能使用商店。",
   "storeSubscribe": "訂閱",
   "storeSubscriptionActive": "已啟用",
+  "storeSubscriptionDurationMonthly": "1 個月",
   "storeSubscriptionRenewalNote": "每月自動續訂，可隨時取消。",
+  "storeSubscriptionDetailsTitle": "訂閱資訊",
+  "storeSubscriptionDetailsBody": "方案名稱：{title}\n訂閱期間：{duration}\n價格：{price}",
+  "@storeSubscriptionDetailsBody": {
+    "placeholders": {
+      "title": {},
+      "duration": {},
+      "price": {}
+    }
+  },
   "storePrivacyPolicy": "隱私政策",
   "storeTermsOfUse": "使用條款",
   "storeLegalSeparator": "|",
   "storeLegalOpenFailed": "无法打开法律連結。",
+  "signInSafetyAgreementLabel": "我同意使用條款與隱私政策，並確認對不當內容或濫用行為採取零容忍。",
+  "signInSafetyAgreementRequired": "登入前请先同意使用條款與隱私政策。",
   "storeTitle": "商店",
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "外觀",

@@ -970,7 +970,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeSubscriptionActive => '已啟用';
 
   @override
+  String get storeSubscriptionDurationMonthly => '1 個月';
+
+  @override
   String get storeSubscriptionRenewalNote => '每月自動續訂，可隨時取消。';
+
+  @override
+  String get storeSubscriptionDetailsTitle => '訂閱資訊';
+
+  @override
+  String storeSubscriptionDetailsBody(
+    Object title,
+    Object duration,
+    Object price,
+  ) {
+    return '方案名稱：$title\n訂閱期間：$duration\n價格：$price';
+  }
 
   @override
   String get storePrivacyPolicy => '隱私政策';
@@ -983,6 +998,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get storeLegalOpenFailed => '无法打开法律連結。';
+
+  @override
+  String get signInSafetyAgreementLabel => '我同意使用條款與隱私政策，並確認對不當內容或濫用行為採取零容忍。';
+
+  @override
+  String get signInSafetyAgreementRequired => '登入前请先同意使用條款與隱私政策。';
 
   @override
   String get storeTitle => '商店';
@@ -2179,7 +2200,22 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeSubscriptionActive => '已啟用';
 
   @override
+  String get storeSubscriptionDurationMonthly => '1 個月';
+
+  @override
   String get storeSubscriptionRenewalNote => '每月自動續訂，可隨時取消。';
+
+  @override
+  String get storeSubscriptionDetailsTitle => '訂閱資訊';
+
+  @override
+  String storeSubscriptionDetailsBody(
+    Object title,
+    Object duration,
+    Object price,
+  ) {
+    return '方案名稱：$title\n訂閱期間：$duration\n價格：$price';
+  }
 
   @override
   String get storePrivacyPolicy => '隱私權政策';
@@ -2192,6 +2228,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeLegalOpenFailed => '無法開啟法律連結。';
+
+  @override
+  String get signInSafetyAgreementLabel => '我同意使用條款與隱私權政策，並確認對不當內容或濫用行為採取零容忍。';
+
+  @override
+  String get signInSafetyAgreementRequired => '登入前請先同意使用條款與隱私權政策。';
 
   @override
   String get storeTitle => '商店';

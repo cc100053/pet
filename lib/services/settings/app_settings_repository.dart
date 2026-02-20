@@ -12,6 +12,7 @@ class AppSettingsRepository {
   static const String _reviewNextMilestoneIndexKey =
       'review_next_milestone_index';
   static const String _reviewLastPromptAtIsoKey = 'review_last_prompt_at_iso';
+  static const String _ugcTermsAcceptedKey = 'ugc_terms_accepted';
 
   Box<dynamic>? _box;
 
@@ -67,5 +68,12 @@ class AppSettingsRepository {
       return;
     }
     await _box?.put(_reviewLastPromptAtIsoKey, value.toUtc().toIso8601String());
+  }
+
+  bool get ugcTermsAccepted =>
+      (_box?.get(_ugcTermsAcceptedKey) as bool?) ?? false;
+
+  Future<void> setUgcTermsAccepted(bool accepted) async {
+    await _box?.put(_ugcTermsAcceptedKey, accepted);
   }
 }
