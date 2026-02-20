@@ -69,11 +69,20 @@ These debug actions trigger the same modern dialogs used by production logic, wi
 ## HTML pages are now live on Firebase Hosting.
 
 - Privacy Policy (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/privacy_policy.html
+- Terms of Use (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/terms_of_use.html
 - Support (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/support.html
+
 - Privacy Policy (Traditional Chinese): https://pet-app-702be.web.app/privacy_policy_zh_TW.html
+- Terms of Use (Traditional Chinese): https://pet-app-702be.web.app/terms_of_use_zh_TW.html
 - Support (Traditional Chinese): https://pet-app-702be.web.app/support_zh_TW.html
+
 - Privacy Policy (Japanese): https://pet-app-702be.web.app/privacy_policy_ja.html
+- Terms of Use (Japanese): https://pet-app-702be.web.app/terms_of_use_ja.html
 - Support (Japanese): https://pet-app-702be.web.app/support_ja.html
+
+- Privacy Policy (Korean): https://pet-app-702be.web.app/privacy_policy_ko.html
+- Terms of Use (Korean): https://pet-app-702be.web.app/terms_of_use_ko.html
+- Support (Korean): https://pet-app-702be.web.app/support_ko.html
 
 ## Deploying Web Pages
 To update the HTML pages (privacy policy, support), run:

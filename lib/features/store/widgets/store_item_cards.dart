@@ -125,29 +125,15 @@ extension _StoreItemCards on _StoreViewState {
                         ),
                       ],
                       const SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
-                        l10n.storeSubscriptionRenewalNote,
+                        l10n.storeSubscriptionDurationMonthly +
+                            ' • ' +
+                            l10n.storeSubscriptionRenewalNote,
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppTheme.textSecondary,
                           fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.storeSubscriptionDetailsTitle,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        subscriptionDetails,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textSecondary,
-                          height: 1.35,
                         ),
                       ),
                     ],

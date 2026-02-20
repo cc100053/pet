@@ -263,8 +263,10 @@ function truncateText(value: string, max: number): string {
 
 function isStaleTokenFailure(errorText: string | undefined): boolean {
   const normalized = (errorText ?? "").toLowerCase();
-  return normalized.includes("unregistered") ||
-    normalized.includes("registration-token-not-registered");
+  return normalized.includes("registration-token-not-registered") ||
+    normalized.includes("\"errorcode\":\"unregistered\"") ||
+    normalized.includes("\"status\":\"unregistered\"") ||
+    normalized.includes("messaging/registration-token-not-registered");
 }
 
 function resolveHungerAlertLevel(

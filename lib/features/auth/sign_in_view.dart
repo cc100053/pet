@@ -226,70 +226,12 @@ class _SignInViewState extends State<SignInView> {
                           width: 260,
                           fit: BoxFit.contain,
                         ),
-                        const SizedBox(height: 0),
+                        const SizedBox(height: 24),
                         Transform.translate(
                           offset: Offset(0, -18 * scale),
                           child: Column(
                             children: [
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 250,
-                                ),
-                                child: CheckboxListTile(
-                                  value: _ugcTermsAccepted,
-                                  dense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  onChanged: _signingIn
-                                      ? null
-                                      : (value) async {
-                                          final accepted = value ?? false;
-                                          setState(() {
-                                            _ugcTermsAccepted = accepted;
-                                          });
-                                          await AppSettingsRepository.instance
-                                              .setUgcTermsAccepted(accepted);
-                                        },
-                                  title: Text(
-                                    l10n.signInSafetyAgreementLabel,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: const Color(0xFF18435E),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 250,
-                                ),
-                                child: Wrap(
-                                  alignment: WrapAlignment.center,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  spacing: 8,
-                                  children: [
-                                    if (_privacyPolicyUri != null)
-                                      TextButton(
-                                        onPressed: () => _openExternalUri(
-                                          _privacyPolicyUri!,
-                                        ),
-                                        child: Text(l10n.storePrivacyPolicy),
-                                      ),
-                                    Text(
-                                      l10n.storeLegalSeparator,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(color: Colors.black45),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          _openExternalUri(_termsOfUseUri),
-                                      child: Text(l10n.storeTermsOfUse),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
+                              // Login Buttons
                               ConstrainedBox(
                                 constraints: const BoxConstraints(
                                   maxWidth: 250,
@@ -395,6 +337,88 @@ class _SignInViewState extends State<SignInView> {
                                       ),
                                     ),
                                   ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              
+                              // Legal Checkbox & Links (Refined Layout)
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 250,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: Transform.scale(
+                                        scale: 0.85,
+                                        child: Checkbox(
+                                          value: _ugcTermsAccepted,
+                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          onChanged: _signingIn
+                                              ? null
+                                              : (value) async {
+                                                  final accepted = value ?? false;
+                                                  setState(() {
+                                                    _ugcTermsAccepted = accepted;
+                                                  });
+                                                  await AppSettingsRepository.instance
+                                                      .setUgcTermsAccepted(accepted);
+                                                },
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            l10n.signInSafetyAgreementLabel,
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              color: const Color(0xFF505A62),
+                                              fontSize: 11,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 4,
+                                            children: [
+                                              if (_privacyPolicyUri != null)
+                                                InkWell(
+                                                  onTap: () => _openExternalUri(_privacyPolicyUri!),
+                                                  child: Text(
+                                                    l10n.storePrivacyPolicy,
+                                                    style: theme.textTheme.bodySmall?.copyWith(
+                                                      color: const Color(0xFF18435E),
+                                                      fontSize: 11,
+                                                      decoration: TextDecoration.underline,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              InkWell(
+                                                onTap: () => _openExternalUri(_termsOfUseUri),
+                                                child: Text(
+                                                  l10n.storeTermsOfUse,
+                                                  style: theme.textTheme.bodySmall?.copyWith(
+                                                    color: const Color(0xFF18435E),
+                                                    fontSize: 11,
+                                                    decoration: TextDecoration.underline,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

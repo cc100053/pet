@@ -286,9 +286,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _startPetTickTimer();
     _startRoomSelectionRefreshTimer();
 
-    // Init FCM
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fcmServiceProvider).initialize();
       if (AdMobIds.isSupported) {
         unawaited(_initializeRewardedAds());
       }
