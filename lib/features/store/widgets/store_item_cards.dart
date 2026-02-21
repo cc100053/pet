@@ -29,11 +29,6 @@ extension _StoreItemCards on _StoreViewState {
         ? (isSubscribed ? l10n.commonOwned : l10n.storeSubscribe)
         : l10n.commonBuy;
     final description = item.localizedDescription(l10n);
-    final subscriptionDetails = l10n.storeSubscriptionDetailsBody(
-      item.localizedName(l10n),
-      l10n.storeSubscriptionDurationMonthly,
-      priceString,
-    );
 
     if (isSubscription) {
       return Container(
@@ -127,9 +122,7 @@ extension _StoreItemCards on _StoreViewState {
                       const SizedBox(height: 2),
                       const SizedBox(height: 2),
                       Text(
-                        l10n.storeSubscriptionDurationMonthly +
-                            ' • ' +
-                            l10n.storeSubscriptionRenewalNote,
+                        '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppTheme.textSecondary,

@@ -697,7 +697,7 @@
     }
   },
   "feedAdDoubleRewardTitle": "要把餵食獎勵加倍嗎？",
-  "feedAdDoubleRewardMessage": "現在觀看廣告，可再領取最多 +{amount} 糖果。",
+  "feedAdDoubleRewardMessage": "看廣告再拿 +{amount} 糖果？",
   "@feedAdDoubleRewardMessage": {
     "placeholders": {
       "amount": {}

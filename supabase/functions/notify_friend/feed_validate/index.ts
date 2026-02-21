@@ -18,8 +18,6 @@ const R2_ACCESS_KEY_ID = Deno.env.get("R2_ACCESS_KEY_ID") ?? "";
 const R2_SECRET_ACCESS_KEY = Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "";
 const R2_BUCKET = Deno.env.get("R2_BUCKET") ?? "";
 const R2_PUBLIC_BASE_URL = Deno.env.get("R2_PUBLIC_BASE_URL") ?? "";
-const NOTIFY_WEBHOOK_URL = Deno.env.get("NOTIFY_WEBHOOK_URL") ?? "";
-const NOTIFY_WEBHOOK_SECRET = Deno.env.get("NOTIFY_WEBHOOK_SECRET") ?? "";
 
 const MIN_CONFIDENCE = 0.6;
 const MAX_LABELS = 20;
@@ -219,80 +217,35 @@ async function getFeedCooldownState({
 }
 
 async function notifyPartner({
-  supabase,
+  authHeader,
   roomId,
-  senderId,
   messageId,
-  imageUrl,
-  caption,
-  canonicalTags,
-  createdAt,
 }: {
-  supabase: SupabaseClient;
+  authHeader: string;
   roomId: string;
-  senderId: string;
   messageId: string;
-  imageUrl: string;
-  caption: string | null;
-  canonicalTags: string[];
-  createdAt: string | null;
 }): Promise<WebhookResult> {
-  if (!NOTIFY_WEBHOOK_URL) {
-    return { skipped: true };
-  }
-
-  const { data: members, error: membersError } = await supabase
-    .from("room_members")
-    .select("user_id")
-    .eq("room_id", roomId)
-    .eq("is_active", true)
-    .neq("user_id", senderId);
-
-  if (membersError) {
-    return { skipped: true, error: "webhook_members_failed" };
-  }
-
-  const recipientIds = (members ?? [])
-    .map((member) => member.user_id)
-    .filter((id) => typeof id === "string" && id.length > 0);
-
-  if (recipientIds.length === 0) {
-    return { skipped: true };
-  }
-
-  const headers: Record<string, string> = {
+  const notifyUrl = `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/notify_friend`;
+  const headers = {
+    Authorization: authHeader,
     "Content-Type": "application/json",
   };
-  if (NOTIFY_WEBHOOK_SECRET) {
-    headers["Authorization"] = `Bearer ${NOTIFY_WEBHOOK_SECRET}`;
-  }
 
   const payload = {
     type: "feed_event",
     room_id: roomId,
-    sender_id: senderId,
-    recipient_ids: recipientIds,
     message_id: messageId,
-    image_url: imageUrl,
-    caption,
-    canonical_tags: canonicalTags,
-    created_at: createdAt,
   };
 
   try {
-    const response = await fetch(NOTIFY_WEBHOOK_URL, {
+    const response = await fetch(notifyUrl, {
       method: "POST",
       headers,
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      let detail = "";
-      try {
-        detail = await response.text();
-      } catch (_error) {
-        detail = "";
-      }
+      const detail = await response.text().catch(() => "");
       return {
         skipped: false,
         status: response.status,
@@ -600,14 +553,9 @@ serve(async (req) => {
   }
 
   const webhookResult = await notifyPartner({
-    supabase,
+    authHeader,
     roomId,
-    senderId: authData.user.id,
     messageId: message.id,
-    imageUrl,
-    caption: payload.caption ?? null,
-    canonicalTags,
-    createdAt: message.created_at ?? null,
   });
 
   return jsonResponse(200, {

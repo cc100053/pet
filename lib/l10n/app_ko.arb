@@ -691,7 +691,7 @@
     }
   },
   "feedAdDoubleRewardTitle": "먹이 보상을 2배로 받을까요?",
-  "feedAdDoubleRewardMessage": "지금 광고를 보면 캔디를 최대 +{amount} 추가로 받을 수 있어요.",
+  "feedAdDoubleRewardMessage": "광고 보고 캔디 +{amount} 더 받을까요?",
   "@feedAdDoubleRewardMessage": {
     "placeholders": {
       "amount": {}

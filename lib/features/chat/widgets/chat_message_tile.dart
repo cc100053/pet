@@ -168,9 +168,11 @@ class ChatMessageTile extends StatelessWidget {
   }
 
   _HungerAlertInfo? _parseHungerAlert(String raw, AppLocalizations l10n) {
-    final level = raw.startsWith('hunger_alert_30::')
-        ? 30
-        : (raw.startsWith('hunger_alert_10::') ? 10 : null);
+    final level = raw.startsWith('hunger_alert_50::')
+        ? 50
+        : (raw.startsWith('hunger_alert_30::')
+              ? 30
+              : (raw.startsWith('hunger_alert_10::') ? 10 : null));
     if (level == null) {
       return null;
     }

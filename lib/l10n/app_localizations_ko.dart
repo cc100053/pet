@@ -1236,7 +1236,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String feedAdDoubleRewardMessage(Object amount) {
-    return '지금 광고를 보면 캔디를 최대 +$amount 추가로 받을 수 있어요.';
+    return '광고 보고 캔디 +$amount 더 받을까요?';
   }
 
   @override

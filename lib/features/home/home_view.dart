@@ -175,6 +175,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void>? _departureFontsWarmup;
   static const int _petNameMaxLength = 20;
   static const int _freePlanRoomLimit = 2;
+  static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
   static const Duration _roomEntryLoadingMinDuration = Duration(
     milliseconds: 550,
@@ -1061,7 +1062,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       final configured = await _revenueCatService.configure(appUserId: userId);
       if (configured) {
         final info = await _revenueCatService.getCustomerInfo();
-        hasProEntitlement = info?.entitlements.active.isNotEmpty ?? false;
+        final activeEntitlements = info?.entitlements.active.keys;
+        hasProEntitlement =
+            activeEntitlements?.any(
+              (id) => id.toLowerCase() == _proEntitlementId.toLowerCase(),
+            ) ??
+            false;
       }
     } catch (error) {
       debugPrint('[iap] failed to refresh pro status: $error');
@@ -1217,9 +1223,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (raw == null || raw.isEmpty) {
       return null;
     }
-    final level = raw.startsWith('hunger_alert_30::')
-        ? 30
-        : (raw.startsWith('hunger_alert_10::') ? 10 : null);
+    final level = raw.startsWith('hunger_alert_50::')
+        ? 50
+        : (raw.startsWith('hunger_alert_30::')
+              ? 30
+              : (raw.startsWith('hunger_alert_10::') ? 10 : null));
     if (level == null) {
       return null;
     }
@@ -2297,6 +2305,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       final state = await Supabase.instance.client
           .from('pet_state')
           .select(
+            'hunger_alert_50_message_id,'
+            'hunger_alert_50_triggered_by,'
             'hunger_alert_30_message_id,'
             'hunger_alert_30_triggered_by,'
             'hunger_alert_10_message_id,'
@@ -2309,6 +2319,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       final alertCandidates =
           <({String? messageId, String? triggeredBy, int level})>[
+            (
+              messageId: state['hunger_alert_50_message_id'] as String?,
+              triggeredBy: state['hunger_alert_50_triggered_by'] as String?,
+              level: 50,
+            ),
             (
               messageId: state['hunger_alert_30_message_id'] as String?,
               triggeredBy: state['hunger_alert_30_triggered_by'] as String?,

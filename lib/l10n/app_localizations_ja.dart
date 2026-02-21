@@ -1231,7 +1231,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String feedAdDoubleRewardMessage(Object amount) {
-    return '今すぐ広告を見て、追加で最大 +$amount キャンディを獲得。';
+    return '広告を見て +$amount キャンディ追加？';
   }
 
   @override

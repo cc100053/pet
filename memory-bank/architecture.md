@@ -21,6 +21,7 @@
 - `supabase/migrations/20260214223500_add_notification_delivery_logs.sql`: Add push delivery log table for per-token send diagnostics.
 - `supabase/migrations/20260216233000_rebalance_mood_decay_and_feed_gain.sql`: Remove `low` mood tier, retune hunger decay (`mid=3`, `sad=4`), and change feed gain to `+20` once per 10-minute burst.
 - `supabase/migrations/20260217000000_add_pet_hunger_alerts.sql`: Add one-time hunger alert state (`30/10`), emit hunger system messages on threshold crossings, and reset alert flags when hunger recovers above thresholds.
+- `supabase/migrations/20260221103000_add_hunger_alert_50.sql`: Extend hunger alert pipeline with `50` threshold state/message metadata and reset logic so alerts fire once per recovery cycle for `50/30/10`.
 - `supabase/migrations/20260217113000_add_unread_tracking_and_badge_rpc.sql`: Add `room_members.last_read_at`, create `mark_room_read` RPC, and add unread-total RPC used for APNs app-icon badge counts.
 - `supabase/migrations/20260217143000_add_unread_counts_per_room_rpc.sql`: Add `get_unread_message_counts_for_user` RPC so clients can restore per-room unread badges from server state after app relaunch.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
@@ -98,6 +99,7 @@ Planned:
 ### Edge Functions (Repo)
 - `supabase/functions/notify_friend/feed_validate/index.ts`: Feed validation + upload + reward logic.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
+  - Feed sends now trigger notifications by directly invoking this function from `feed_validate` with the user auth token (no separate webhook URL dependency).
 - Push payload contract (FCM `data`): `room_id`, `message_id`, `message_kind` (with legacy client fallback from `message_type`), `pet_name`, `sender_name`, `pet_type`, `pet_avatar_asset`, `pet_avatar_fallback_url`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `body_full`, `title_app_name`, `title_full`, and legacy `type`.
 - `supabase/functions/avatar_upload/index.ts`: Upload avatar image to R2 and update `profiles.avatar_url`.
 - `supabase/functions/delete_account/index.ts`: Delete authenticated user (uses `SUPABASE_SERVICE_ROLE_KEY`).

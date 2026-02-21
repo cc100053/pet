@@ -71,6 +71,15 @@ void main() {
     );
   });
 
+  testWidgets('renders hunger alert at level 50', (tester) async {
+    await _pumpSystemTile(
+      tester,
+      message: _systemMessage(body: 'hunger_alert_50::Milo'),
+    );
+
+    expect(find.text('Milo is getting hungry. Time to feed!'), findsOneWidget);
+  });
+
   testWidgets('localizes clean-poop system message and candy label', (
     tester,
   ) async {

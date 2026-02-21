@@ -704,7 +704,7 @@
     }
   },
   "feedAdDoubleRewardTitle": "フィード報酬を2倍にしますか？",
-  "feedAdDoubleRewardMessage": "今すぐ広告を見て、追加で最大 +{amount} キャンディを獲得。",
+  "feedAdDoubleRewardMessage": "広告を見て +{amount} キャンディ追加？",
   "@feedAdDoubleRewardMessage": {
     "placeholders": {
       "amount": {}

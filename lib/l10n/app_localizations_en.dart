@@ -1260,7 +1260,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String feedAdDoubleRewardMessage(Object amount) {
-    return 'Watch an ad now to claim up to +$amount extra candies.';
+    return 'Watch an ad for +$amount extra candies?';
   }
 
   @override

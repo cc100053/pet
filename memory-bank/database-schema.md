@@ -58,9 +58,9 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `last_decay_at` (timestamptz)
   - `last_feed_at`, `last_touch_at`, `last_clean_at` (timestamptz)
   - `last_feed_boost_at`, `last_touch_boost_at`, `last_clean_boost_at` (timestamptz)
-  - `hunger_alert_30_sent_at`, `hunger_alert_10_sent_at` (timestamptz; one-time reminder markers)
-  - `hunger_alert_30_message_id`, `hunger_alert_10_message_id` (uuid, fk -> `messages.id`)
-  - `hunger_alert_30_triggered_by`, `hunger_alert_10_triggered_by` (uuid, fk -> `auth.users`)
+  - `hunger_alert_50_sent_at`, `hunger_alert_30_sent_at`, `hunger_alert_10_sent_at` (timestamptz; one-time reminder markers)
+  - `hunger_alert_50_message_id`, `hunger_alert_30_message_id`, `hunger_alert_10_message_id` (uuid, fk -> `messages.id`)
+  - `hunger_alert_50_triggered_by`, `hunger_alert_30_triggered_by`, `hunger_alert_10_triggered_by` (uuid, fk -> `auth.users`)
 
 - `messages`
   - `id` (uuid, pk)
@@ -341,7 +341,7 @@ for select using (auth.role() = 'authenticated');
 - `grant_iap_diamonds(product_id text, amount int, transaction_id text)` -> idempotent diamond grant for IAP consumables.
 - `get_unread_message_total_for_user(p_user_id uuid)` -> returns total unread chat messages across all active rooms (used for iOS app-icon badge).
 - `get_unread_message_counts_for_user(p_user_id uuid)` -> returns unread counts grouped by room (used to restore in-app room/chat badges after relaunch).
-- `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates using `rooms.timezone` (room-scoped); hunger-threshold system alerts are emitted at `<=30` and `<=10` once per recovery cycle.
+- `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates using `rooms.timezone` (room-scoped); hunger-threshold system alerts are emitted at `<=50`, `<=30`, and `<=10` once per recovery cycle.
 
 ## Ownership Transfer
 - Trigger `ensure_room_owner` promotes the oldest active member if no active owner exists, updates `rooms.created_by`, and syncs `rooms.timezone` to the promoted owner's valid profile timezone (falls back to `UTC` when missing/invalid).

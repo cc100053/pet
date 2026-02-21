@@ -704,7 +704,7 @@
     }
   },
   "feedAdDoubleRewardTitle": "Double your feed reward?",
-  "feedAdDoubleRewardMessage": "Watch an ad now to claim up to +{amount} extra candies.",
+  "feedAdDoubleRewardMessage": "Watch an ad for +{amount} extra candies?",
   "@feedAdDoubleRewardMessage": {
     "placeholders": {
       "amount": {}

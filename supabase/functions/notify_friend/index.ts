@@ -272,11 +272,14 @@ function isStaleTokenFailure(errorText: string | undefined): boolean {
 function resolveHungerAlertLevel(
   payloadLevel: number | undefined,
   body: string | null | undefined,
-): 30 | 10 | null {
-  if (payloadLevel === 30 || payloadLevel === 10) {
+): 50 | 30 | 10 | null {
+  if (payloadLevel === 50 || payloadLevel === 30 || payloadLevel === 10) {
     return payloadLevel;
   }
   const normalized = (body ?? "").trim();
+  if (normalized.startsWith("hunger_alert_50::")) {
+    return 50;
+  }
   if (normalized.startsWith("hunger_alert_30::")) {
     return 30;
   }

@@ -1225,7 +1225,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String feedAdDoubleRewardMessage(Object amount) {
-    return '现在观看广告，可再领取最多 +$amount 糖果。';
+    return '看广告再拿 +$amount 糖果？';
   }
 
   @override
@@ -2455,7 +2455,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String feedAdDoubleRewardMessage(Object amount) {
-    return '現在觀看廣告，可再領取最多 +$amount 糖果。';
+    return '看廣告再拿 +$amount 糖果？';
   }
 
   @override
