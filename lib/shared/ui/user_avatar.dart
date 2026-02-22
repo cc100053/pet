@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'cached_network_image_view.dart';
+import '../utils/avatar_display_position.dart';
 
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
@@ -31,11 +32,14 @@ class UserAvatar extends StatelessWidget {
 
     if (value.isNotEmpty &&
         (value.startsWith('http://') || value.startsWith('https://'))) {
+      final parsed = parseAvatarUrlWithAlignment(value);
       return ClipOval(
         child: CachedNetworkImageView(
-          imageUrl: value,
+          imageUrl: parsed.imageUrl,
           width: size,
           height: size,
+          alignment: parsed.alignment,
+          scale: parsed.scale,
         ),
       );
     }

@@ -1027,6 +1027,30 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get profileTitle;
 
+  /// No description provided for @profileSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileSectionAccount;
+
+  /// No description provided for @profileSectionAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About & Support'**
+  String get profileSectionAbout;
+
+  /// No description provided for @profileFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Feedback'**
+  String get profileFeedback;
+
+  /// No description provided for @profileSectionDangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger Zone'**
+  String get profileSectionDangerZone;
+
   /// No description provided for @profileUpdated.
   ///
   /// In en, this message translates to:

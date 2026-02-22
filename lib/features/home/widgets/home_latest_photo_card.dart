@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
+import 'package:pet/shared/ui/photo_viewer_item.dart';
 
 class HomeLatestPhotoCard extends StatelessWidget {
   const HomeLatestPhotoCard({super.key, required this.imageUrls});
@@ -76,9 +77,12 @@ class _PhotoBubbles extends StatelessWidget {
 
         void open(int index) {
           if (imageUrls[index].isEmpty) return;
+          final viewerItems = imageUrls
+              .map((url) => PhotoViewerItem(imageUrl: url))
+              .toList(growable: false);
           FullScreenPhotoViewer.open(
             context,
-            imageUrls: imageUrls,
+            items: viewerItems,
             initialIndex: index,
           );
         }

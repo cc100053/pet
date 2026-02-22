@@ -538,6 +538,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileTitle => '프로필';
 
   @override
+  String get profileSectionAccount => '계정';
+
+  @override
+  String get profileSectionAbout => '정보 및 지원';
+
+  @override
+  String get profileFeedback => '피드백 보내기';
+
+  @override
+  String get profileSectionDangerZone => '위험 구역';
+
+  @override
   String get profileUpdated => '프로필이 업데이트되었습니다';
 
   @override

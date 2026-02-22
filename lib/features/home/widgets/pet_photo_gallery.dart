@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
+import 'package:pet/shared/ui/photo_viewer_item.dart';
 import 'package:pet/shared/ui/user_avatar.dart';
 
 import '../../../shared/theme/app_theme.dart';
@@ -82,13 +83,19 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
     required int index,
     required List<String> urls,
   }) async {
+    final items = List<PhotoViewerItem>.generate(
+      urls.length,
+      (i) => PhotoViewerItem(
+        imageUrl: urls[i],
+        caption: i < widget.captions.length ? widget.captions[i] : null,
+        senderName: i < widget.senderFallbackTexts.length
+            ? widget.senderFallbackTexts[i]
+            : null,
+      ),
+    );
     final resultIndex = await FullScreenPhotoViewer.open(
       context,
-      imageUrls: urls,
-      captions: List<String?>.generate(
-        urls.length,
-        (i) => i < widget.captions.length ? widget.captions[i] : null,
-      ),
+      items: items,
       initialIndex: index,
     );
     if (!mounted || resultIndex == null || !_pageController.hasClients) {

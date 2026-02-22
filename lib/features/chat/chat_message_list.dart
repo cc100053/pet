@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
+import 'package:pet/shared/ui/photo_viewer_item.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/chat/chat_message_repository.dart';
@@ -426,7 +427,6 @@ class ChatMessageListState extends State<ChatMessageList> {
       final senderId = message.senderId;
       if (senderId != null &&
           senderId.isNotEmpty &&
-          senderId != widget.currentUserId &&
           !_profileNicknames.containsKey(senderId)) {
         userIds.add(senderId);
       }
@@ -562,26 +562,32 @@ class ChatMessageListState extends State<ChatMessageList> {
     final l10n = AppLocalizations.of(context)!;
     final uiScale = appUiScale(MediaQuery.of(context).size.width);
     final imageIndexByMessageId = <String, int>{};
-    final imageUrls = <String>[];
-    final imageCaptions = <String?>[];
-    final localImagePaths = <int, String>{};
+    final imageViewerItems = <PhotoViewerItem>[];
     for (final message in _messages) {
       if (!message.isImageFeed) {
         continue;
       }
-      final localPath = message.localImagePath;
-      final remoteUrl = message.imageUrl ?? '';
+      final localPath = message.localImagePath?.trim();
+      final remoteUrl = (message.imageUrl ?? '').trim();
       if (remoteUrl.isEmpty && (localPath == null || localPath.isEmpty)) {
         continue;
       }
-      final index = imageUrls.length;
+      final index = imageViewerItems.length;
       imageIndexByMessageId[message.id] = index;
-      imageUrls.add(remoteUrl);
       final captionRaw = (message.caption ?? message.body ?? '').trim();
-      imageCaptions.add(captionRaw.isEmpty ? null : captionRaw);
-      if (localPath != null && localPath.isNotEmpty) {
-        localImagePaths[index] = localPath;
-      }
+      final senderId = message.senderId;
+      final senderName = senderId == null ? null : _profileNicknames[senderId];
+      imageViewerItems.add(
+        PhotoViewerItem(
+          imageUrl: remoteUrl,
+          localImagePath: localPath,
+          caption: captionRaw.isEmpty ? null : captionRaw,
+          senderName: senderName == null || senderName.trim().isEmpty
+              ? null
+              : senderName.trim(),
+          sentAt: message.createdAt,
+        ),
+      );
     }
     return Stack(
       children: [
@@ -658,11 +664,9 @@ class ChatMessageListState extends State<ChatMessageList> {
                         ? null
                         : () => FullScreenPhotoViewer.open(
                             context,
-                            imageUrls: imageUrls,
+                            items: imageViewerItems,
                             initialIndex: imageIndex,
-                            localImagePaths: localImagePaths,
                             showIndicator: false,
-                            captions: imageCaptions,
                           ),
                   );
                 },

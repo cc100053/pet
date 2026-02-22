@@ -14,8 +14,24 @@ class Env {
   static String get privacyPolicyUrl => _require('PRIVACY_POLICY_URL');
   static String get termsOfUseUrl =>
       _optional('TERMS_OF_USE_URL') ?? appleStandardEulaUrl;
+  static String get feedbackUrlEn =>
+      _optional('FEEDBACK_URL_EN') ?? defaultFeedbackUrlEn;
+  static String get feedbackUrlJa =>
+      _optional('FEEDBACK_URL_JA') ?? defaultFeedbackUrlJa;
+  static String get feedbackUrlKo =>
+      _optional('FEEDBACK_URL_KO') ?? defaultFeedbackUrlKo;
+  static String get feedbackUrlZhTw =>
+      _optional('FEEDBACK_URL_ZH_TW') ?? defaultFeedbackUrlZhTw;
   static const String appleStandardEulaUrl =
       'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+  static const String defaultFeedbackUrlEn =
+      'https://pet-app-702be.web.app/support.html';
+  static const String defaultFeedbackUrlJa =
+      'https://pet-app-702be.web.app/support.html';
+  static const String defaultFeedbackUrlKo =
+      'https://pet-app-702be.web.app/support_ko.html';
+  static const String defaultFeedbackUrlZhTw =
+      'https://pet-app-702be.web.app/support_zh_TW.html';
 
   static String _require(String key) {
     final value = dotenv.env[key];

@@ -6,6 +6,7 @@ import '../../services/profile/profile_cache_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/full_screen_photo_viewer.dart';
+import '../../shared/ui/photo_viewer_item.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'models/memory_feed.dart';
 import 'services/memory_calendar_data_service.dart';
@@ -806,8 +807,19 @@ class _MemoryDaySheet extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final dateLabel = DateFormat.yMMMd(locale).format(date);
-    final imageUrls = feeds.map((feed) => feed.imageUrl).toList();
-    final captions = feeds.map((feed) => feed.caption).toList();
+    final viewerItems = feeds
+        .map(
+          (feed) => PhotoViewerItem(
+            imageUrl: feed.imageUrl,
+            caption: feed.caption,
+            senderName: _senderDisplayName(
+              senderId: feed.senderId,
+              senderProfiles: senderProfiles,
+            ),
+            sentAt: feed.createdAt,
+          ),
+        )
+        .toList(growable: false);
 
     return SafeArea(
       child: SizedBox(
@@ -860,8 +872,7 @@ class _MemoryDaySheet extends StatelessWidget {
                               onTap: () {
                                 FullScreenPhotoViewer.open(
                                   context,
-                                  imageUrls: imageUrls,
-                                  captions: captions,
+                                  items: viewerItems,
                                   initialIndex: index,
                                 );
                               },

@@ -9,6 +9,8 @@ class CachedNetworkImageView extends StatelessWidget {
     super.key,
     required this.imageUrl,
     this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
+    this.scale = 1,
     this.portraitFriendlyCrop = false,
     this.width,
     this.height,
@@ -18,6 +20,8 @@ class CachedNetworkImageView extends StatelessWidget {
 
   final String imageUrl;
   final BoxFit fit;
+  final Alignment alignment;
+  final double scale;
   final bool portraitFriendlyCrop;
   final double? width;
   final double? height;
@@ -62,6 +66,8 @@ class CachedNetworkImageView extends StatelessWidget {
         imageProvider: imageProvider,
         imageUrl: imageUrl,
         fit: fit,
+        alignment: alignment,
+        scale: scale,
         portraitFriendlyCrop: portraitFriendlyCrop,
         width: width,
         height: height,
@@ -77,6 +83,8 @@ class _PortraitAwareImage extends StatefulWidget {
     required this.imageProvider,
     required this.imageUrl,
     required this.fit,
+    required this.alignment,
+    required this.scale,
     required this.portraitFriendlyCrop,
     required this.width,
     required this.height,
@@ -85,6 +93,8 @@ class _PortraitAwareImage extends StatefulWidget {
   final ImageProvider imageProvider;
   final String imageUrl;
   final BoxFit fit;
+  final Alignment alignment;
+  final double scale;
   final bool portraitFriendlyCrop;
   final double? width;
   final double? height;
@@ -155,12 +165,15 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
       // Keeps frame fully filled with no inner padding, while reducing side crop.
       effectiveFit = BoxFit.fitWidth;
     }
-    return Image(
-      image: widget.imageProvider,
-      fit: effectiveFit,
-      width: widget.width,
-      height: widget.height,
-      alignment: Alignment.center,
+    return Transform.scale(
+      scale: widget.scale.clamp(1.0, 4.0),
+      child: Image(
+        image: widget.imageProvider,
+        fit: effectiveFit,
+        width: widget.width,
+        height: widget.height,
+        alignment: widget.alignment,
+      ),
     );
   }
 }

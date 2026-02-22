@@ -8,6 +8,7 @@ import 'package:pet/l10n/app_localizations.dart';
 
 import 'cached_network_image_view.dart';
 import 'image_aspect_cache.dart';
+import 'photo_viewer_item.dart';
 import 'status_bar_style.dart';
 
 /// iPhone-style full-screen photo viewer with:
@@ -18,31 +19,23 @@ import 'status_bar_style.dart';
 class FullScreenPhotoViewer extends StatefulWidget {
   const FullScreenPhotoViewer({
     super.key,
-    required this.imageUrls,
+    required this.items,
     this.initialIndex = 0,
-    this.localImagePaths = const {},
     this.showIndicator = true,
-    this.captions = const [],
   });
 
-  final List<String> imageUrls;
-  final List<String?> captions;
+  final List<PhotoViewerItem> items;
   final int initialIndex;
   final bool showIndicator;
-
-  /// Map of index -> local file path for optimistic display
-  final Map<int, String> localImagePaths;
 
   /// Opens the photo viewer using a fade transition.
   static Future<int?> open(
     BuildContext context, {
-    required List<String> imageUrls,
+    required List<PhotoViewerItem> items,
     int initialIndex = 0,
-    Map<int, String> localImagePaths = const {},
     bool showIndicator = true,
-    List<String?> captions = const [],
   }) {
-    if (imageUrls.isEmpty) return Future<int?>.value(null);
+    if (items.isEmpty) return Future<int?>.value(null);
     return Navigator.of(context).push<int>(
       PageRouteBuilder<int>(
         opaque: false,
@@ -50,11 +43,9 @@ class FullScreenPhotoViewer extends StatefulWidget {
         barrierDismissible: false,
         pageBuilder: (context, animation, secondaryAnimation) =>
             FullScreenPhotoViewer(
-              imageUrls: imageUrls,
+              items: items,
               initialIndex: initialIndex,
-              localImagePaths: localImagePaths,
               showIndicator: showIndicator,
-              captions: captions,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -91,7 +82,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex.clamp(0, widget.imageUrls.length - 1);
+    _currentIndex = widget.initialIndex.clamp(0, widget.items.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
     _zoomAnimController =
         AnimationController(
@@ -234,12 +225,15 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   }
 
   Future<Uint8List?> _resolveCurrentImageBytes() async {
-    final localPath = widget.localImagePaths[_currentIndex];
-    if (localPath != null && File(localPath).existsSync()) {
+    final item = widget.items[_currentIndex];
+    final localPath = item.localImagePath;
+    if (localPath != null &&
+        localPath.isNotEmpty &&
+        File(localPath).existsSync()) {
       return File(localPath).readAsBytes();
     }
 
-    final url = widget.imageUrls[_currentIndex];
+    final url = item.imageUrl.trim();
     if (url.isEmpty) {
       return null;
     }
@@ -305,10 +299,17 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   }
 
   void _ensureAspectRatio(int index) {
-    final url = widget.imageUrls[index];
+    final item = widget.items[index];
+    final url = item.imageUrl.trim();
+    final localPath = item.localImagePath;
+    final cacheKey = url.isNotEmpty
+        ? url
+        : (localPath == null || localPath.isEmpty ? '' : 'local:$localPath');
 
     // Use shared cache first – avoids async setState jump.
-    final cached = ImageAspectCache.instance.get(url);
+    final cached = cacheKey.isEmpty
+        ? null
+        : ImageAspectCache.instance.get(cacheKey);
     if (cached != null) {
       _aspectRatios[index] = cached;
       return;
@@ -317,9 +318,10 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     if (_aspectRatios.containsKey(index) || _resolvingAspect.contains(index)) {
       return;
     }
-    final localPath = widget.localImagePaths[index];
     final ImageProvider provider;
-    if (localPath != null && File(localPath).existsSync()) {
+    if (localPath != null &&
+        localPath.isNotEmpty &&
+        File(localPath).existsSync()) {
       provider = FileImage(File(localPath));
     } else if (url.isNotEmpty) {
       provider = NetworkImage(url);
@@ -333,7 +335,9 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
       (info, _) {
         final ratio = info.image.width / info.image.height;
         final safeRatio = ratio.isFinite && ratio > 0 ? ratio : 1.0;
-        ImageAspectCache.instance.set(url, safeRatio);
+        if (cacheKey.isNotEmpty) {
+          ImageAspectCache.instance.set(cacheKey, safeRatio);
+        }
         if (mounted) {
           setState(() {
             _aspectRatios[index] = safeRatio;
@@ -353,10 +357,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   }
 
   String? _captionFor(int index) {
-    if (widget.captions.length <= index) {
-      return null;
-    }
-    final caption = widget.captions[index]?.trim();
+    final caption = widget.items[index].caption?.trim();
     if (caption == null || caption.isEmpty) {
       return null;
     }
@@ -364,11 +365,14 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
   }
 
   Widget _buildImage(int index) {
-    final url = widget.imageUrls[index];
-    final localPath = widget.localImagePaths[index];
+    final item = widget.items[index];
+    final url = item.imageUrl.trim();
+    final localPath = item.localImagePath;
 
     Widget imageWidget;
-    if (localPath != null && File(localPath).existsSync()) {
+    if (localPath != null &&
+        localPath.isNotEmpty &&
+        File(localPath).existsSync()) {
       imageWidget = Image.file(File(localPath), fit: BoxFit.contain);
     } else if (url.isNotEmpty) {
       imageWidget = CachedNetworkImageView(imageUrl: url, fit: BoxFit.contain);
@@ -394,13 +398,16 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
 
   Widget _buildImagePage(int index, BoxConstraints constraints) {
     final caption = _captionFor(index);
+    final senderName = _senderNameFor(index);
+    final sentTime = _sentTimeFor(index);
+    final hasMeta = senderName != null || sentTime != null;
     _ensureAspectRatio(index);
     final aspectRatio = _aspectRatios[index] ?? (4 / 5);
     final maxWidth = constraints.maxWidth;
     final maxHeight = constraints.maxHeight.isFinite
         ? constraints.maxHeight
         : MediaQuery.of(context).size.height;
-    final reserved = caption == null ? 0.0 : 56.0;
+    final reserved = (caption == null ? 0.0 : 56.0) + (hasMeta ? 52.0 : 0.0);
     final maxImageHeight = (maxHeight - reserved - 24).clamp(0.0, maxHeight);
     var imageWidth = maxWidth;
     var imageHeight = imageWidth / aspectRatio;
@@ -412,6 +419,13 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (hasMeta) ...[
+            _PhotoMetaCard(
+              senderName: senderName,
+              sentTimeText: sentTime == null ? null : _formatSentTime(sentTime),
+            ),
+            const SizedBox(height: 8),
+          ],
           SizedBox(
             width: imageWidth,
             height: imageHeight,
@@ -426,9 +440,34 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
     );
   }
 
+  String? _senderNameFor(int index) {
+    final sender = widget.items[index].senderName?.trim();
+    if (sender == null || sender.isEmpty) {
+      return null;
+    }
+    return sender;
+  }
+
+  DateTime? _sentTimeFor(int index) {
+    return widget.items[index].sentAt;
+  }
+
+  String _formatSentTime(DateTime date) {
+    final localDate = date.toLocal();
+    final localizations = MaterialLocalizations.of(context);
+    final timeText = localizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(localDate),
+    );
+    if (DateUtils.isSameDay(localDate, DateTime.now())) {
+      return timeText;
+    }
+    final dateText = localizations.formatShortDate(localDate);
+    return '$dateText $timeText';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final imageCount = widget.imageUrls.length;
+    final imageCount = widget.items.length;
     final l10n = AppLocalizations.of(context)!;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -590,6 +629,72 @@ class _CaptionCard extends StatelessWidget {
         ),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _PhotoMetaCard extends StatelessWidget {
+  const _PhotoMetaCard({this.senderName, this.sentTimeText});
+
+  final String? senderName;
+  final String? sentTimeText;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSender = senderName != null && senderName!.isNotEmpty;
+    final hasSentTime = sentTimeText != null && sentTimeText!.isNotEmpty;
+    if (!hasSender && !hasSentTime) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          if (hasSender)
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.person, size: 15, color: Colors.white70),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      senderName!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (hasSender && hasSentTime) const SizedBox(width: 10),
+          if (hasSentTime)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.schedule, size: 15, color: Colors.white70),
+                const SizedBox(width: 6),
+                Text(
+                  sentTimeText!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }

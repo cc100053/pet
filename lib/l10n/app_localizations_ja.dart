@@ -532,6 +532,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileTitle => 'プロフィール';
 
   @override
+  String get profileSectionAccount => 'アカウント';
+
+  @override
+  String get profileSectionAbout => 'サポートと情報';
+
+  @override
+  String get profileFeedback => 'フィードバックを送る';
+
+  @override
+  String get profileSectionDangerZone => '危険エリア';
+
+  @override
   String get profileUpdated => 'プロフィールを更新しました';
 
   @override

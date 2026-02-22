@@ -532,6 +532,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileTitle => '个人资料';
 
   @override
+  String get profileSectionAccount => '账号';
+
+  @override
+  String get profileSectionAbout => '关于与支持';
+
+  @override
+  String get profileFeedback => '发送反馈';
+
+  @override
+  String get profileSectionDangerZone => '危险区域';
+
+  @override
   String get profileUpdated => '已更新个人资料';
 
   @override
@@ -1760,6 +1772,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileTitle => '個人檔案';
+
+  @override
+  String get profileSectionAccount => '帳號';
+
+  @override
+  String get profileSectionAbout => '關於與支援';
+
+  @override
+  String get profileFeedback => '提供意見回饋';
+
+  @override
+  String get profileSectionDangerZone => '危險區域';
 
   @override
   String get profileUpdated => '已更新個人檔案';

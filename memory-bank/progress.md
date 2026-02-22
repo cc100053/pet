@@ -1,6 +1,20 @@
 # Progress
 
 ## Done
+- Upgraded avatar editor UX to a cropper-style fullscreen interface: circular active crop guide with dimmed outside mask, direct drag repositioning, and two-finger pinch zoom; removed slider controls and skipped 90-degree rotate action.
+- Wired the same fullscreen avatar editor into new avatar uploads so users perform an initial framing adjustment immediately after picking an image, before upload completes.
+- Unified fullscreen photo viewer payload model (`PhotoViewerItem`) across Chat, Home latest-photo bubbles, Home pet gallery, and Memory Calendar.
+- Updated fullscreen photo preview metadata placement: sender name and sent time now appear above the enlarged image.
+- Profile data-load network failures now wait 3 seconds before showing a network-unavailable prompt (`errorNetwork`) with a reload action.
+- Replaced the temporary slider-based avatar position editor with a single full-screen drag-based adjustment interface (opened from "Adjust current avatar"), restoring a cropper-like direct-manipulation UX while keeping non-destructive alignment metadata saves.
+- Reworked profile avatar "Adjust current avatar" to non-destructive display framing: adjustment now edits stored alignment metadata on `profiles.avatar_url` instead of re-cropping/re-uploading image bytes, so users can re-adjust position repeatedly.
+- Updated profile avatar upload flow to stop auto-opening the cropper on image selection; uploads now keep the chosen source image as-is, and users can still adjust avatar framing later via the existing "Adjust current avatar" action.
+- Added 12s network timeouts to Profile page Supabase requests (load/save/avatar/delete-account flows) so connectivity issues fail fast instead of leaving indefinite loading/busy states.
+- Updated Profile feedback link to open the locale-specific Support URL directly (removed added `privacy` / `terms` query params from feedback route).
+- Fixed Profile feedback Support URL routing to read the active app locale state (`appLocaleProvider`) so language switches apply immediately (no stale Traditional Chinese fallback).
+- Fixed feedback-link locale routing to prioritize the app’s saved language preference (`preferred_locale_tag`) and only fall back to system locale, preventing stale zh-TW redirects after in-app language switches.
+- Updated Profile feedback link routing by locale (EN/JA/KO/zh-TW fallback logic) and appended privacy/terms guideline URLs as query params on the feedback link target.
+- Added a direct feedback link in the Profile page About section: new localized `profileFeedback` label across EN/JA/KO/zh/zh-TW, wired to `Env.feedbackUrl`, and added `FEEDBACK_URL` env override with default support URL fallback.
 - Added hunger-alert threshold `50` end-to-end: new DB migration (`20260221103000_add_hunger_alert_50.sql`) extends `pet_state`/trigger message generation to `50/30/10`, Home hunger-alert dispatch now includes `50`, chat system-message parsing recognizes `hunger_alert_50::`, and `notify_friend` validates/routes hunger alerts for level `50` using the direct function-based send path.
 - Fixed feed-notification trigger path divergence: `feed_validate` now calls `notify_friend` directly via Supabase Edge Function endpoint with the user's Authorization header, removing the separate `NOTIFY_WEBHOOK_URL` dependency that could break photo-feed pushes while text pushes still worked.
 - Hardened Pro entitlement gating in Home: `_refreshProPlanStatus` now grants Pro access only when RevenueCat reports the specific `Petmonthly` entitlement as active (instead of treating any active entitlement as Pro).
