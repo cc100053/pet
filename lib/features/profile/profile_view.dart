@@ -400,6 +400,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               initialFraming: _AvatarFramingData(
                 alignment: parsed.alignment,
                 scale: parsed.scale,
+                scaleMode: parsed.scaleMode,
               ),
               title: l10n.profileAvatarAdjustCurrent,
               applyLabel: l10n.commonSave,
@@ -487,6 +488,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _AvatarFramingData initialFraming = const _AvatarFramingData(
       alignment: Alignment.center,
       scale: 1,
+      scaleMode: AvatarScaleMode.relativeZoom,
     ),
   }) async {
     if (_busy) {
@@ -658,6 +660,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           initialFraming: const _AvatarFramingData(
             alignment: Alignment.center,
             scale: 1,
+            scaleMode: AvatarScaleMode.relativeZoom,
           ),
           title: l10n.profileAvatarEdit,
           applyLabel: l10n.commonSave,
@@ -1204,55 +1207,237 @@ class _AvatarPositionEditorPage extends StatefulWidget {
 }
 
 class _AvatarPositionEditorPageState extends State<_AvatarPositionEditorPage> {
-  static const double _minScale = 1;
+  static const double _fallbackMinScale = 0.5;
   static const double _maxScale = 4;
 
-  late Alignment _alignment;
+  late Alignment _initialAlignment;
   late double _scale;
-  Alignment? _gestureStartAlignment;
+  late Offset _offset;
+  bool _initializedTransform = false;
+  double _imageAspectRatio = 1.0;
   double? _gestureStartScale;
+  Offset? _gestureStartOffset;
   Offset? _gestureStartFocalPoint;
+  ImageStream? _imageStream;
+  ImageStreamListener? _imageStreamListener;
 
   @override
   void initState() {
     super.initState();
-    _alignment = widget.initialFraming.alignment;
     _scale = widget.initialFraming.scale;
+    _offset = Offset.zero;
+    _initialAlignment = widget.initialFraming.alignment;
   }
 
-  void _handleScaleStart(ScaleStartDetails details) {
-    _gestureStartAlignment = _alignment;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_imageStream == null) {
+      _resolveImageAspectRatio();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_imageStream != null && _imageStreamListener != null) {
+      _imageStream!.removeListener(_imageStreamListener!);
+    }
+    super.dispose();
+  }
+
+  void _resolveImageAspectRatio() {
+    _imageStream = widget.imageProvider.resolve(
+      createLocalImageConfiguration(context),
+    );
+    _imageStreamListener = ImageStreamListener((imageInfo, _) {
+      final width = imageInfo.image.width.toDouble();
+      final height = imageInfo.image.height.toDouble();
+      if (!mounted || height <= 0 || width <= 0) {
+        return;
+      }
+      final nextRatio = width / height;
+      if ((_imageAspectRatio - nextRatio).abs() < 0.0001) {
+        return;
+      }
+      setState(() {
+        _imageAspectRatio = nextRatio;
+      });
+    });
+    _imageStream!.addListener(_imageStreamListener!);
+  }
+
+  Size _baseImageSizeForContain(Size viewport) {
+    final viewportAspect = viewport.width / viewport.height;
+    if (_imageAspectRatio > viewportAspect) {
+      final width = viewport.width;
+      final height = width / _imageAspectRatio;
+      return Size(width, height);
+    }
+    final height = viewport.height;
+    final width = height * _imageAspectRatio;
+    return Size(width, height);
+  }
+
+  double _minScaleForCircle(Size viewport, double circleRadius) {
+    final base = _baseImageSizeForContain(viewport);
+    final neededWidthScale = (circleRadius * 2) / base.width;
+    final neededHeightScale = (circleRadius * 2) / base.height;
+    return [
+      neededWidthScale,
+      neededHeightScale,
+      _fallbackMinScale,
+    ].reduce((a, b) => a > b ? a : b);
+  }
+
+  Offset _maxPanForCircle(Size viewport, double circleRadius, double scale) {
+    final base = _baseImageSizeForContain(viewport);
+    final width = base.width * scale;
+    final height = base.height * scale;
+    final maxX = ((width - (circleRadius * 2)) / 2).clamp(0.0, double.infinity);
+    final maxY = ((height - (circleRadius * 2)) / 2).clamp(
+      0.0,
+      double.infinity,
+    );
+    return Offset(maxX, maxY);
+  }
+
+  Offset _clampOffsetToCoverage(
+    Offset offset, {
+    required Size viewport,
+    required double circleRadius,
+    required double scale,
+  }) {
+    final maxPan = _maxPanForCircle(viewport, circleRadius, scale);
+    return Offset(
+      offset.dx.clamp(-maxPan.dx, maxPan.dx),
+      offset.dy.clamp(-maxPan.dy, maxPan.dy),
+    );
+  }
+
+  Alignment _alignmentFromOffset(
+    Offset offset, {
+    required Size viewport,
+    required double circleRadius,
+    required double scale,
+  }) {
+    final maxPan = _maxPanForCircle(viewport, circleRadius, scale);
+    final ax = maxPan.dx <= 0 ? 0.0 : (offset.dx / maxPan.dx).clamp(-1.0, 1.0);
+    final ay = maxPan.dy <= 0 ? 0.0 : (offset.dy / maxPan.dy).clamp(-1.0, 1.0);
+    return Alignment(ax, ay);
+  }
+
+  Offset _offsetFromAlignment(
+    Alignment alignment, {
+    required Size viewport,
+    required double circleRadius,
+    required double scale,
+  }) {
+    final maxPan = _maxPanForCircle(viewport, circleRadius, scale);
+    return Offset(alignment.x * maxPan.dx, alignment.y * maxPan.dy);
+  }
+
+  _ResolvedEditorState _resolveForViewport(Size viewport, double circleRadius) {
+    final minScale = _minScaleForCircle(viewport, circleRadius);
+    final sourceScale = _initializedTransform
+        ? _scale
+        : widget.initialFraming.scaleMode == AvatarScaleMode.relativeZoom
+        ? widget.initialFraming.scale * minScale
+        : widget.initialFraming.scale;
+    final resolvedScale = sourceScale.clamp(minScale, _maxScale);
+
+    final sourceOffset = _initializedTransform
+        ? _offset
+        : _offsetFromAlignment(
+            _initialAlignment,
+            viewport: viewport,
+            circleRadius: circleRadius,
+            scale: resolvedScale,
+          );
+    final resolvedOffset = _clampOffsetToCoverage(
+      sourceOffset,
+      viewport: viewport,
+      circleRadius: circleRadius,
+      scale: resolvedScale,
+    );
+    return _ResolvedEditorState(
+      scale: resolvedScale,
+      offset: resolvedOffset,
+      minScale: minScale,
+    );
+  }
+
+  void _handleScaleStart(
+    ScaleStartDetails details,
+    Size viewport,
+    double circleRadius,
+  ) {
+    final resolved = _resolveForViewport(viewport, circleRadius);
+    if (!_initializedTransform) {
+      _initializedTransform = true;
+      _scale = resolved.scale;
+      _offset = resolved.offset;
+    }
     _gestureStartScale = _scale;
+    _gestureStartOffset = _offset;
     _gestureStartFocalPoint = details.localFocalPoint;
   }
 
-  void _handleScaleUpdate(ScaleUpdateDetails details, Size viewport) {
-    final startAlignment = _gestureStartAlignment;
+  void _handleScaleUpdate(
+    ScaleUpdateDetails details,
+    Size viewport,
+    double circleRadius,
+  ) {
     final startScale = _gestureStartScale;
-    final startPoint = _gestureStartFocalPoint;
-    final shortestSide = viewport.shortestSide;
-    if (startAlignment == null ||
-        startScale == null ||
-        startPoint == null ||
-        shortestSide <= 0) {
+    final startOffset = _gestureStartOffset;
+    final startFocalPoint = _gestureStartFocalPoint;
+    if (startScale == null || startOffset == null || startFocalPoint == null) {
       return;
     }
-
-    final nextScale = (startScale * details.scale).clamp(_minScale, _maxScale);
-    final delta = details.localFocalPoint - startPoint;
-    final dx = (startAlignment.x + ((delta.dx * 2) / shortestSide)).clamp(
-      -1.0,
-      1.0,
+    final resolved = _resolveForViewport(viewport, circleRadius);
+    final nextScale = (startScale * details.scale).clamp(
+      resolved.minScale,
+      _maxScale,
     );
-    final dy = (startAlignment.y + ((delta.dy * 2) / shortestSide)).clamp(
-      -1.0,
-      1.0,
+    final panDelta = details.localFocalPoint - startFocalPoint;
+    final nextOffset = _clampOffsetToCoverage(
+      startOffset + panDelta,
+      viewport: viewport,
+      circleRadius: circleRadius,
+      scale: nextScale,
     );
-
     setState(() {
+      _initializedTransform = true;
       _scale = nextScale;
-      _alignment = Alignment(dx, dy);
+      _offset = nextOffset;
     });
+  }
+
+  Widget _buildTransformedImage({
+    required Size viewport,
+    required double scale,
+    required Offset offset,
+    Color? tintColor,
+    BlendMode? tintBlendMode,
+  }) {
+    final base = _baseImageSizeForContain(viewport);
+    return Center(
+      child: Transform.translate(
+        offset: offset,
+        child: Transform.scale(
+          scale: scale,
+          child: SizedBox(
+            width: base.width,
+            height: base.height,
+            child: Image(
+              image: widget.imageProvider,
+              fit: BoxFit.fill,
+              color: tintColor,
+              colorBlendMode: tintBlendMode,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -1264,51 +1449,37 @@ class _AvatarPositionEditorPageState extends State<_AvatarPositionEditorPage> {
           builder: (context, constraints) {
             final viewport = Size(constraints.maxWidth, constraints.maxHeight);
             final circleDiameter = viewport.shortestSide * 0.92;
+            final circleRadius = circleDiameter / 2;
             final circleCenter = Offset(
               viewport.width / 2,
               viewport.height / 2,
             );
+            final resolved = _resolveForViewport(viewport, circleRadius);
+            final effectiveScale = resolved.scale;
+            final effectiveOffset = resolved.offset;
 
             return Stack(
               fit: StackFit.expand,
               children: [
-                GestureDetector(
-                  onScaleStart: _handleScaleStart,
-                  onScaleUpdate: (details) =>
-                      _handleScaleUpdate(details, viewport),
-                  child: Image(
-                    image: widget.imageProvider,
-                    fit: BoxFit.cover,
-                    alignment: _alignment,
-                    color: Colors.black.withValues(alpha: 0.50),
-                    colorBlendMode: BlendMode.darken,
-                  ),
+                _buildTransformedImage(
+                  viewport: viewport,
+                  scale: effectiveScale,
+                  offset: effectiveOffset,
                 ),
                 CustomPaint(
                   painter: _AvatarCropMaskPainter(
                     center: circleCenter,
-                    radius: circleDiameter / 2,
+                    radius: circleRadius,
                   ),
                   child: const SizedBox.expand(),
                 ),
                 GestureDetector(
-                  onScaleStart: _handleScaleStart,
+                  onScaleStart: (details) =>
+                      _handleScaleStart(details, viewport, circleRadius),
                   onScaleUpdate: (details) =>
-                      _handleScaleUpdate(details, viewport),
-                  child: ClipPath(
-                    clipper: _AvatarCircleClipper(
-                      center: circleCenter,
-                      radius: circleDiameter / 2,
-                    ),
-                    child: Transform.scale(
-                      scale: _scale.clamp(_minScale, _maxScale),
-                      child: Image(
-                        image: widget.imageProvider,
-                        fit: BoxFit.cover,
-                        alignment: _alignment,
-                      ),
-                    ),
-                  ),
+                      _handleScaleUpdate(details, viewport, circleRadius),
+                  behavior: HitTestBehavior.translucent,
+                  child: const SizedBox.expand(),
                 ),
                 Positioned(
                   left: 12,
@@ -1342,10 +1513,22 @@ class _AvatarPositionEditorPageState extends State<_AvatarPositionEditorPage> {
                       ),
                       TextButton(
                         onPressed: () {
+                          final alignment = _alignmentFromOffset(
+                            effectiveOffset,
+                            viewport: viewport,
+                            circleRadius: circleRadius,
+                            scale: effectiveScale,
+                          );
+                          final relativeScale =
+                              (effectiveScale / resolved.minScale).clamp(
+                                1.0,
+                                _maxScale,
+                              );
                           Navigator.of(context).pop(
                             _AvatarFramingData(
-                              alignment: _alignment,
-                              scale: _scale,
+                              alignment: alignment,
+                              scale: relativeScale,
+                              scaleMode: AvatarScaleMode.relativeZoom,
                             ),
                           );
                         },
@@ -1370,28 +1553,28 @@ class _AvatarPositionEditorPageState extends State<_AvatarPositionEditorPage> {
   }
 }
 
+class _ResolvedEditorState {
+  const _ResolvedEditorState({
+    required this.scale,
+    required this.offset,
+    required this.minScale,
+  });
+
+  final double scale;
+  final Offset offset;
+  final double minScale;
+}
+
 class _AvatarFramingData {
-  const _AvatarFramingData({required this.alignment, required this.scale});
+  const _AvatarFramingData({
+    required this.alignment,
+    required this.scale,
+    this.scaleMode = AvatarScaleMode.relativeZoom,
+  });
 
   final Alignment alignment;
   final double scale;
-}
-
-class _AvatarCircleClipper extends CustomClipper<Path> {
-  const _AvatarCircleClipper({required this.center, required this.radius});
-
-  final Offset center;
-  final double radius;
-
-  @override
-  Path getClip(Size size) {
-    return Path()..addOval(Rect.fromCircle(center: center, radius: radius));
-  }
-
-  @override
-  bool shouldReclip(covariant _AvatarCircleClipper oldClipper) {
-    return oldClipper.center != center || oldClipper.radius != radius;
-  }
+  final AvatarScaleMode scaleMode;
 }
 
 class _AvatarCropMaskPainter extends CustomPainter {

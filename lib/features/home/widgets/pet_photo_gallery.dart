@@ -15,6 +15,7 @@ class PetPhotoGallery extends StatefulWidget {
     super.key,
     required this.imageUrls,
     required this.captions,
+    required this.sentAts,
     required this.senderAvatars,
     required this.senderFallbackTexts,
     required this.onPlaceholderTap,
@@ -22,6 +23,7 @@ class PetPhotoGallery extends StatefulWidget {
 
   final List<String> imageUrls;
   final List<String?> captions;
+  final List<DateTime?> sentAts;
   final List<String?> senderAvatars;
   final List<String?> senderFallbackTexts;
   final VoidCallback onPlaceholderTap;
@@ -91,6 +93,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
         senderName: i < widget.senderFallbackTexts.length
             ? widget.senderFallbackTexts[i]
             : null,
+        sentAt: i < widget.sentAts.length ? widget.sentAts[i] : null,
       ),
     );
     final resultIndex = await FullScreenPhotoViewer.open(

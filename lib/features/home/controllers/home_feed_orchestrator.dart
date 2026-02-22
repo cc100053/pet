@@ -21,6 +21,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
               row['image_url'] as String?,
               row['caption'] as String?,
               row['sender_id'] as String?,
+              _parseOptionalDate(row['created_at']),
             ),
           )
           .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
@@ -37,6 +38,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           .toList(growable: false);
       final latestSenderIds = latest
           .map((entry) => entry.$3)
+          .toList(growable: false);
+      final latestSentAts = latest
+          .map((entry) => entry.$4)
           .toList(growable: false);
       if (!mounted) {
         return;
@@ -56,6 +60,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
                       'latest_photos': latestUrls,
                       'latest_photo_captions': latestCaptions,
                       'latest_photo_sender_ids': latestSenderIds,
+                      'latest_photo_created_ats': latestSentAts
+                          .map((entry) => entry?.toUtc().toIso8601String())
+                          .toList(growable: false),
                       'latest_caption': caption,
                       'latest_sender_id': senderId,
                     }
@@ -164,20 +171,26 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _latestFeedOptimisticPrevSenderIds = List<String?>.from(
         _latestFeedSenderIds,
       );
+      _latestFeedOptimisticPrevSentAts = List<DateTime?>.from(
+        _latestFeedSentAts,
+      );
       _latestFeedOptimisticPrevSenderId = _latestFeedSenderId;
       _latestFeedOptimisticPrevCaption = _latestFeedCaption;
       final latestFeed = _prependLatestFeedItem(
         imageUrl: entry.localImagePath,
         caption: entry.caption,
         senderId: entry.senderId,
+        sentAt: entry.clientCreatedAt,
         existingUrls: _latestFeedImageUrls,
         existingCaptions: _latestFeedCaptions,
         existingSenderIds: _latestFeedSenderIds,
+        existingSentAts: _latestFeedSentAts,
       );
       _latestFeedImageUrl = entry.localImagePath;
       _latestFeedImageUrls = latestFeed.imageUrls;
       _latestFeedCaptions = latestFeed.captions;
       _latestFeedSenderIds = latestFeed.senderIds;
+      _latestFeedSentAts = latestFeed.sentAts;
       _latestFeedSenderId = entry.senderId;
       _latestFeedCaption = entry.caption;
     });
@@ -198,6 +211,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _latestFeedOptimisticPrevImageUrls = null;
       _latestFeedOptimisticPrevCaptions = null;
       _latestFeedOptimisticPrevSenderIds = null;
+      _latestFeedOptimisticPrevSentAts = null;
       _latestFeedOptimisticPrevSenderId = null;
       _latestFeedOptimisticPrevCaption = null;
     }
@@ -421,6 +435,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           _latestFeedSenderIds = _latestFeedOptimisticPrevSenderIds == null
               ? <String?>[]
               : List<String?>.from(_latestFeedOptimisticPrevSenderIds!);
+          _latestFeedSentAts = _latestFeedOptimisticPrevSentAts == null
+              ? <DateTime?>[]
+              : List<DateTime?>.from(_latestFeedOptimisticPrevSentAts!);
           _latestFeedSenderId = _latestFeedOptimisticPrevSenderId;
           _latestFeedCaption = _latestFeedOptimisticPrevCaption;
         }
@@ -430,6 +447,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         _latestFeedOptimisticPrevImageUrls = null;
         _latestFeedOptimisticPrevCaptions = null;
         _latestFeedOptimisticPrevSenderIds = null;
+        _latestFeedOptimisticPrevSentAts = null;
         _latestFeedOptimisticPrevSenderId = null;
         _latestFeedOptimisticPrevCaption = null;
       });
@@ -465,6 +483,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
               row['image_url'] as String?,
               row['caption'] as String?,
               row['sender_id'] as String?,
+              _parseOptionalDate(row['created_at']),
             ),
           )
           .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
@@ -477,6 +496,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
             _latestFeedImageUrls = <String>[];
             _latestFeedCaptions = <String?>[];
             _latestFeedSenderIds = <String?>[];
+            _latestFeedSentAts = <DateTime?>[];
             _latestFeedSenderId = null;
             _latestFeedCaption = null;
           });
@@ -485,6 +505,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           _latestFeedImageUrls = <String>[];
           _latestFeedCaptions = <String?>[];
           _latestFeedSenderIds = <String?>[];
+          _latestFeedSentAts = <DateTime?>[];
           _latestFeedSenderId = null;
           _latestFeedCaption = null;
         }
@@ -497,6 +518,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       final senderIds = entries
           .map((entry) => entry.$3)
           .toList(growable: false);
+      final sentAts = entries.map((entry) => entry.$4).toList(growable: false);
       final firstRow = rows.firstWhere(
         (row) => (row['image_url'] as String?)?.isNotEmpty ?? false,
       );
@@ -509,6 +531,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           _latestFeedImageUrls = imageUrls;
           _latestFeedCaptions = captions;
           _latestFeedSenderIds = senderIds;
+          _latestFeedSentAts = sentAts;
           _latestFeedSenderId = senderId;
           _latestFeedCaption = caption;
         });
@@ -517,6 +540,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         _latestFeedImageUrls = imageUrls;
         _latestFeedCaptions = captions;
         _latestFeedSenderIds = senderIds;
+        _latestFeedSentAts = sentAts;
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
@@ -530,25 +554,34 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     }
   }
 
-  ({List<String> imageUrls, List<String?> captions, List<String?> senderIds})
+  ({
+    List<String> imageUrls,
+    List<String?> captions,
+    List<String?> senderIds,
+    List<DateTime?> sentAts,
+  })
   _prependLatestFeedItem({
     required String imageUrl,
     required String? caption,
     required String? senderId,
+    required DateTime? sentAt,
     required List<String> existingUrls,
     required List<String?> existingCaptions,
     required List<String?> existingSenderIds,
+    required List<DateTime?> existingSentAts,
   }) {
     if (imageUrl.isEmpty) {
       return (
         imageUrls: existingUrls,
         captions: existingCaptions,
         senderIds: existingSenderIds,
+        sentAts: existingSentAts,
       );
     }
     final nextUrls = <String>[imageUrl];
     final nextCaptions = <String?>[caption];
     final nextSenderIds = <String?>[senderId];
+    final nextSentAts = <DateTime?>[sentAt];
     for (var i = 0; i < existingUrls.length; i++) {
       final url = existingUrls[i];
       if (url.isEmpty || url == imageUrl) {
@@ -561,6 +594,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       nextSenderIds.add(
         i < existingSenderIds.length ? existingSenderIds[i] : null,
       );
+      nextSentAts.add(i < existingSentAts.length ? existingSentAts[i] : null);
       if (nextUrls.length >= 3) {
         break;
       }
@@ -569,6 +603,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       imageUrls: nextUrls,
       captions: nextCaptions,
       senderIds: nextSenderIds,
+      sentAts: nextSentAts,
     );
   }
 

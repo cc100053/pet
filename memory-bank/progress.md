@@ -1,10 +1,15 @@
 # Progress
 
 ## Done
+- Fixed avatar framing fidelity and mask rendering defects: migrated persisted framing to viewport-invariant relative zoom metadata (`avatar_view_v2`) while keeping legacy compatibility, updated avatar rendering math to reconstruct pan/zoom from circle-coverage constraints, and removed base-layer dark tint so the center crop circle stays visually clear.
+- Rebuilt the profile avatar editor interaction model as a single transformed-canvas flow (one image + blackout mask with circular cutout), with strict dynamic min-zoom and clamped panning math so users always get direct, bounded control over framing without layer desync artifacts.
+- Refined avatar cropper transform model to modern constrained direct-manipulation behavior: dim/background and focus-circle layers now share one synchronized pan/zoom transform, default framing is non-forced, and dynamic minimum zoom/bounded panning prevents empty space inside the avatar circle.
+- Fixed avatar cropper interaction parity: dimmed outer image now follows the same live pan/zoom transform as the circular active area (no frozen background), and editor baseline now starts unforced (`contain`) with pinch zoom-out enabled so users control initial framing.
 - Upgraded avatar editor UX to a cropper-style fullscreen interface: circular active crop guide with dimmed outside mask, direct drag repositioning, and two-finger pinch zoom; removed slider controls and skipped 90-degree rotate action.
 - Wired the same fullscreen avatar editor into new avatar uploads so users perform an initial framing adjustment immediately after picking an image, before upload completes.
 - Unified fullscreen photo viewer payload model (`PhotoViewerItem`) across Chat, Home latest-photo bubbles, Home pet gallery, and Memory Calendar.
 - Updated fullscreen photo preview metadata placement: sender name and sent time now appear above the enlarged image.
+- Wired Home latest-feed timestamps end-to-end (`latest_photo_created_ats`) through room fetch/realtime/refresh flows so fullscreen sent-time metadata appears when opening photos from Home pet gallery too.
 - Profile data-load network failures now wait 3 seconds before showing a network-unavailable prompt (`errorNetwork`) with a reload action.
 - Replaced the temporary slider-based avatar position editor with a single full-screen drag-based adjustment interface (opened from "Adjust current avatar"), restoring a cropper-like direct-manipulation UX while keeping non-destructive alignment metadata saves.
 - Reworked profile avatar "Adjust current avatar" to non-destructive display framing: adjustment now edits stored alignment metadata on `profiles.avatar_url` instead of re-cropping/re-uploading image bytes, so users can re-adjust position repeatedly.

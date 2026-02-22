@@ -1,6 +1,16 @@
 part of '../home_view.dart';
 
 extension _HomeRoomManager on _HomeViewState {
+  DateTime? _parseLatestFeedCreatedAt(dynamic raw) {
+    if (raw is DateTime) {
+      return raw;
+    }
+    if (raw is String) {
+      return DateTime.tryParse(raw);
+    }
+    return null;
+  }
+
   Future<void> _fetchRooms() async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -78,6 +88,9 @@ extension _HomeRoomManager on _HomeViewState {
               room['latest_photos'] = latest.imageUrls;
               room['latest_photo_captions'] = latest.imageCaptions;
               room['latest_photo_sender_ids'] = latest.imageSenderIds;
+              room['latest_photo_created_ats'] = latest.imageSentAts
+                  .map((entry) => entry?.toUtc().toIso8601String())
+                  .toList(growable: false);
               room['latest_caption'] = latest.latestCaption;
               room['latest_sender_id'] = latest.latestSenderId;
               for (final senderId in latest.imageSenderIds) {
@@ -283,6 +296,28 @@ extension _HomeRoomManager on _HomeViewState {
               : null,
         );
       }
+      final snapshotSentAtValues =
+          ((roomSnapshot?['latest_photo_created_ats'] as List?)
+                      ?.take(3)
+                      .toList() ??
+                  const <dynamic>[])
+              .toList(growable: false);
+      _latestFeedSentAts = List<DateTime?>.generate(
+        _latestFeedImageUrls.length,
+        (index) {
+          if (index >= snapshotSentAtValues.length) {
+            return null;
+          }
+          final raw = snapshotSentAtValues[index];
+          if (raw is DateTime) {
+            return raw;
+          }
+          if (raw is String) {
+            return DateTime.tryParse(raw);
+          }
+          return null;
+        },
+      );
       _latestFeedSenderId = roomSnapshot?['latest_sender_id'] as String?;
       _latestFeedCaption = roomSnapshot?['latest_caption'] as String?;
     });
@@ -796,6 +831,7 @@ extension _HomeRoomManager on _HomeViewState {
           imageUrls: [imageUrl],
           imageCaptions: [row['caption'] as String?],
           imageSenderIds: [row['sender_id'] as String?],
+          imageSentAts: [_parseLatestFeedCreatedAt(row['created_at'])],
         );
         continue;
       }
@@ -806,6 +842,7 @@ extension _HomeRoomManager on _HomeViewState {
       existing.imageUrls.add(imageUrl);
       existing.imageCaptions.add(row['caption'] as String?);
       existing.imageSenderIds.add(row['sender_id'] as String?);
+      existing.imageSentAts.add(_parseLatestFeedCreatedAt(row['created_at']));
     }
     return feeds;
   }

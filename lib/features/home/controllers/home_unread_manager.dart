@@ -192,20 +192,24 @@ extension _HomeUnreadManager on _HomeViewState {
       return;
     }
     final caption = record['caption'] as String?;
+    final sentAt = _parseOptionalDate(record['created_at']);
     _setStateForUnreadMutation(() {
       if (roomId == _roomId) {
         final latestFeed = _prependLatestFeedItem(
           imageUrl: imageUrl,
           caption: caption,
           senderId: senderId,
+          sentAt: sentAt,
           existingUrls: _latestFeedImageUrls,
           existingCaptions: _latestFeedCaptions,
           existingSenderIds: _latestFeedSenderIds,
+          existingSentAts: _latestFeedSentAts,
         );
         _latestFeedImageUrl = imageUrl;
         _latestFeedImageUrls = latestFeed.imageUrls;
         _latestFeedCaptions = latestFeed.captions;
         _latestFeedSenderIds = latestFeed.senderIds;
+        _latestFeedSentAts = latestFeed.sentAts;
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
@@ -232,13 +236,30 @@ extension _HomeUnreadManager on _HomeViewState {
                         .toList() ??
                     const <String?>[])
                 .toList(growable: false);
+        final existingSentAtValues =
+            ((room['latest_photo_created_ats'] as List?)?.toList() ??
+                    const <dynamic>[])
+                .toList(growable: false);
+        final existingSentAts = existingSentAtValues
+            .map<DateTime?>((entry) {
+              if (entry is DateTime) {
+                return entry;
+              }
+              if (entry is String) {
+                return DateTime.tryParse(entry);
+              }
+              return null;
+            })
+            .toList(growable: false);
         final next = _prependLatestFeedItem(
           imageUrl: imageUrl,
           caption: caption,
           senderId: senderId,
+          sentAt: sentAt,
           existingUrls: existingUrls,
           existingCaptions: existingCaptions,
           existingSenderIds: existingSenderIds,
+          existingSentAts: existingSentAts,
         );
         return {
           ...room,
@@ -246,6 +267,9 @@ extension _HomeUnreadManager on _HomeViewState {
           'latest_photos': next.imageUrls,
           'latest_photo_captions': next.captions,
           'latest_photo_sender_ids': next.senderIds,
+          'latest_photo_created_ats': next.sentAts
+              .map((entry) => entry?.toUtc().toIso8601String())
+              .toList(growable: false),
           'latest_caption': caption,
           'latest_sender_id': senderId,
           'unread_count': shouldMarkUnread

@@ -12,6 +12,7 @@ void main() {
     expect(parsed.alignment.x, closeTo(0.4, 0.0001));
     expect(parsed.alignment.y, closeTo(-0.25, 0.0001));
     expect(parsed.scale, 1);
+    expect(parsed.scaleMode, AvatarScaleMode.legacyAbsolute);
   });
 
   test('buildAvatarUrlWithFraming omits fragment when centered', () {
@@ -31,5 +32,14 @@ void main() {
     expect(parsed.alignment.x, closeTo(-0.1, 0.0001));
     expect(parsed.alignment.y, closeTo(0.2, 0.0001));
     expect(parsed.scale, closeTo(2.5, 0.0001));
+    expect(parsed.scaleMode, AvatarScaleMode.legacyAbsolute);
+  });
+
+  test('parseAvatarUrlWithAlignment parses avatar_view_v2 relative zoom', () {
+    final parsed = parseAvatarUrlWithAlignment(
+      'https://example.com/a.webp#avatar_view_v2=0.000,0.000,1.700',
+    );
+    expect(parsed.scale, closeTo(1.7, 0.0001));
+    expect(parsed.scaleMode, AvatarScaleMode.relativeZoom);
   });
 }

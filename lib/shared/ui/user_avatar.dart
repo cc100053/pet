@@ -40,6 +40,7 @@ class UserAvatar extends StatelessWidget {
           height: size,
           alignment: parsed.alignment,
           scale: parsed.scale,
+          avatarScaleMode: parsed.scaleMode,
         ),
       );
     }

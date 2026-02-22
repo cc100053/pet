@@ -225,6 +225,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   List<String> _latestFeedImageUrls = <String>[];
   List<String?> _latestFeedCaptions = <String?>[];
   List<String?> _latestFeedSenderIds = <String?>[];
+  List<DateTime?> _latestFeedSentAts = <DateTime?>[];
   String? _latestFeedSenderId;
   String? _latestFeedCaption;
   String? _latestFeedOptimisticTempId;
@@ -233,6 +234,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   List<String>? _latestFeedOptimisticPrevImageUrls;
   List<String?>? _latestFeedOptimisticPrevCaptions;
   List<String?>? _latestFeedOptimisticPrevSenderIds;
+  List<DateTime?>? _latestFeedOptimisticPrevSentAts;
   String? _latestFeedOptimisticPrevSenderId;
   String? _latestFeedOptimisticPrevCaption;
   final Map<String, String> _optimisticFeedImageByTempId = {};
@@ -3908,6 +3910,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 photoGallery: PetPhotoGallery(
                   imageUrls: _latestFeedImageUrls,
                   captions: _latestFeedCaptions,
+                  sentAts: _latestFeedSentAts,
                   senderAvatars: List<String?>.generate(
                     _latestFeedImageUrls.length,
                     (index) {
