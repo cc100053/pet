@@ -202,6 +202,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
+    _setStateForFeedOrchestrator(() {
+      _feedRewardPendingCount = max(0, _feedRewardPendingCount - 1);
+    });
     _optimisticFeedImageByTempId.remove(result.tempId);
     final optimisticRoomId = _optimisticFeedRoomByTempId.remove(result.tempId);
     _chatListKey.currentState?.removeOptimisticMessage(result.tempId);
@@ -224,16 +227,11 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     } else if (roomId != null) {
       unawaited(_maybePromptFeedDoubleReward(result, roomId));
     }
-    final expectedReward = result.coinsAwarded > 0
-        ? result.coinsAwarded
-        : (_shouldOfferFeedDoubleReward(result)
-              ? _HomeViewState._optimisticFeedRewardCoins
-              : 0);
+    if (result.coinsAwarded > 0) {
+      _applyCoinRewardFeedback(result.coinsAwarded);
+    }
     unawaited(
-      _loadCoinsInternal(
-        expectedReward: expectedReward,
-        consumeFeedRewardPendingCount: 1,
-      ),
+      _loadCoinsInternal(expectedReward: result.coinsAwarded > 0 ? null : 0),
     );
     if (roomId != null) {
       unawaited(_refreshLatestRoomPhoto(roomId));

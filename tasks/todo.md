@@ -1,5 +1,19 @@
 # Findings #3-#5
 
+## Feed Instant Reward (#3) (Done)
+### Plan
+- [x] Apply `coins_awarded` from `feed_validate` immediately on upload success.
+- [x] Keep server response as the only trigger (no send-time optimistic coin mutation).
+- [x] Reconcile profile balances in background after immediate update.
+- [x] Clear pending reward indicator on both success and failure paths.
+- [x] Verify with `flutter analyze` and `flutter test`.
+
+### Review
+- Feed success now applies coin delta instantly via `_applyCoinRewardFeedback(result.coinsAwarded)`.
+- Pending reward count now decrements on response/failure immediately (instead of waiting for profile refetch completion).
+- Background `_loadCoinsInternal` reconciliation is preserved to converge with backend truth.
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped).
+
 ## Feed Reward Pending UX (Done)
 ### Plan
 - [x] Add immediate Home HUD feedback when feed reward is pending.

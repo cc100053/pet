@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Implemented instant post-ack feed reward UX: Home now applies `feed_validate.coins_awarded` immediately on upload-success callback and performs profile-balance reconciliation in background, so candy gain feedback appears without waiting for an extra profile read.
 - Added immediate reward-pending HUD feedback for feed sends: Home status bar now shows a localized pending pill beside candy while waiting for server reward resolution, then clears on success/failure without optimistic coin mutation.
 - Reduced post-feed reward latency by precomputing feed compression at image-pick time and switching to early-exit compression profile selection, so feed uploads begin faster while keeping server-authoritative reward/cooldown behavior unchanged.
 - Implemented true feed upload compression on client: `FeedCaptureView` now runs multi-pass WebP compression (quality/dimension ladder plus emergency fallback) before `feed_validate`, removes premature 10MB rejection so compression can run first, and keeps a 30MB input guard for extreme sources.
