@@ -265,6 +265,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorPermissionDenied => 'You don\'t have permission to do that.';
 
   @override
+  String get errorImageTooLarge =>
+      'Image is too large. Please choose a smaller image.';
+
+  @override
   String get errorPetNameInvalid =>
       'That pet name is not allowed. Please use a different name.';
 

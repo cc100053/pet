@@ -160,6 +160,7 @@
   "errorNetwork": "Network error. Please check your connection and try again.",
   "errorNotFound": "Requested data was not found.",
   "errorPermissionDenied": "You don't have permission to do that.",
+  "errorImageTooLarge": "Image is too large. Please choose a smaller image.",
   "errorPetNameInvalid": "That pet name is not allowed. Please use a different name.",
   "errorUnexpected": "Something went wrong. Please try again.",
   "currencyJpy": "JPY {amount}",

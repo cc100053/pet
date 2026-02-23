@@ -17,11 +17,22 @@ const R2_ACCESS_KEY_ID = Deno.env.get("R2_ACCESS_KEY_ID") ?? "";
 const R2_SECRET_ACCESS_KEY = Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "";
 const R2_BUCKET = Deno.env.get("R2_BUCKET") ?? "";
 const R2_PUBLIC_BASE_URL = Deno.env.get("R2_PUBLIC_BASE_URL") ?? "";
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_CONTENT_TYPES = new Set<string>([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
 
 const EXTENSION_BY_CONTENT_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
 };
 
 type AvatarUploadRequest = {
@@ -64,6 +75,18 @@ function buildDatePath(date: Date) {
   const month = String(date.getUTCMonth() + 1).padStart(2, "0");
   const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}/${month}/${day}`;
+}
+
+function estimateDecodedBytesFromBase64(base64: string): number {
+  const sanitized = base64.replace(/\s/g, "");
+  if (!sanitized) {
+    return 0;
+  }
+  const padding = sanitized.endsWith("==")
+    ? 2
+    : (sanitized.endsWith("=") ? 1 : 0);
+  const estimated = Math.floor((sanitized.length * 3) / 4) - padding;
+  return Math.max(estimated, 0);
 }
 
 async function uploadToR2(
@@ -139,17 +162,46 @@ serve(async (req) => {
     }
 
     const extracted = extractBase64Payload(raw);
-    const resolvedContentType =
-      payload.image_content_type ?? extracted.contentType ?? "image/webp";
+    const resolvedContentType = payload.image_content_type ??
+      extracted.contentType ?? "image/webp";
+    if (!ALLOWED_IMAGE_CONTENT_TYPES.has(resolvedContentType)) {
+      return jsonResponse(400, { error: "invalid_image_content_type" });
+    }
+    const estimatedBytes = estimateDecodedBytesFromBase64(extracted.base64);
+    if (estimatedBytes <= 0) {
+      return jsonResponse(400, { error: "invalid_image_data" });
+    }
+    if (estimatedBytes > MAX_IMAGE_BYTES) {
+      return jsonResponse(413, {
+        error: "image_too_large",
+        limit_bytes: MAX_IMAGE_BYTES,
+      });
+    }
     const extension = EXTENSION_BY_CONTENT_TYPE[resolvedContentType] ?? "bin";
-    const key = `avatars/${authData.user.id}/${buildDatePath(new Date())}/${
-      crypto.randomUUID()
-    }.${extension}`;
+    const key = `avatars/${authData.user.id}/${
+      buildDatePath(new Date())
+    }/${crypto.randomUUID()}.${extension}`;
+
+    let imageBytes: Uint8Array;
+    try {
+      imageBytes = decodeBase64(extracted.base64);
+    } catch (_error) {
+      return jsonResponse(400, { error: "invalid_image_data" });
+    }
+    if (imageBytes.length === 0) {
+      return jsonResponse(400, { error: "invalid_image_data" });
+    }
+    if (imageBytes.length > MAX_IMAGE_BYTES) {
+      return jsonResponse(413, {
+        error: "image_too_large",
+        limit_bytes: MAX_IMAGE_BYTES,
+      });
+    }
 
     let avatarUrl: string;
     try {
       avatarUrl = await uploadToR2(
-        decodeBase64(extracted.base64),
+        imageBytes,
         resolvedContentType,
         key,
       );

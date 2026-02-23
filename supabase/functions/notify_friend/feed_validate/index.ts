@@ -20,16 +20,25 @@ const R2_PUBLIC_BASE_URL = Deno.env.get("R2_PUBLIC_BASE_URL") ?? "";
 
 const MIN_CONFIDENCE = 0.6;
 const MAX_LABELS = 20;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_CONTENT_TYPES = new Set<string>([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
 
 type LabelInput =
   | string
   | {
-      text?: string;
-      label?: string;
-      description?: string;
-      confidence?: number;
-      score?: number;
-    };
+    text?: string;
+    label?: string;
+    description?: string;
+    confidence?: number;
+    score?: number;
+  };
 
 type NormalizedLabel = {
   text: string;
@@ -89,9 +98,7 @@ function normalizeLabels(input: unknown): NormalizedLabel[] {
         continue;
       }
       const confidenceRaw = entry.confidence ?? entry.score;
-      const confidence = typeof confidenceRaw === "number"
-        ? confidenceRaw
-        : 1;
+      const confidence = typeof confidenceRaw === "number" ? confidenceRaw : 1;
       normalized.push({ text, confidence });
     }
   }
@@ -157,6 +164,18 @@ function buildDatePath(now: Date) {
   return `${yyyy}/${mm}/${dd}`;
 }
 
+function estimateDecodedBytesFromBase64(base64: string): number {
+  const sanitized = base64.replace(/\s/g, "");
+  if (!sanitized) {
+    return 0;
+  }
+  const padding = sanitized.endsWith("==")
+    ? 2
+    : (sanitized.endsWith("=") ? 1 : 0);
+  const estimated = Math.floor((sanitized.length * 3) / 4) - padding;
+  return Math.max(estimated, 0);
+}
+
 type WebhookResult = {
   skipped: boolean;
   status?: number;
@@ -172,7 +191,9 @@ async function notifyPartner({
   roomId: string;
   messageId: string;
 }): Promise<WebhookResult> {
-  const notifyUrl = `${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/notify_friend`;
+  const notifyUrl = `${
+    SUPABASE_URL.replace(/\/$/, "")
+  }/functions/v1/notify_friend`;
   const headers = {
     Authorization: authHeader,
     "Content-Type": "application/json",
@@ -307,13 +328,41 @@ serve(async (req) => {
     const resolvedContentType = payload.image_content_type ??
       contentType ??
       "image/webp";
+    if (!ALLOWED_IMAGE_CONTENT_TYPES.has(resolvedContentType)) {
+      return jsonResponse(400, { error: "invalid_image_content_type" });
+    }
+    const estimatedBytes = estimateDecodedBytesFromBase64(base64);
+    if (estimatedBytes <= 0) {
+      return jsonResponse(400, { error: "invalid_image_data" });
+    }
+    if (estimatedBytes > MAX_IMAGE_BYTES) {
+      return jsonResponse(413, {
+        error: "image_too_large",
+        limit_bytes: MAX_IMAGE_BYTES,
+      });
+    }
     const extension = EXTENSION_BY_CONTENT_TYPE[resolvedContentType] ?? "bin";
-    const key = `rooms/${roomId}/${buildDatePath(new Date())}/${
-      crypto.randomUUID()
-    }.${extension}`;
+    const key = `rooms/${roomId}/${
+      buildDatePath(new Date())
+    }/${crypto.randomUUID()}.${extension}`;
+    let imageBytes: Uint8Array;
+    try {
+      imageBytes = decodeBase64(base64);
+    } catch (_error) {
+      return jsonResponse(400, { error: "invalid_image_data" });
+    }
+    if (imageBytes.length === 0) {
+      return jsonResponse(400, { error: "invalid_image_data" });
+    }
+    if (imageBytes.length > MAX_IMAGE_BYTES) {
+      return jsonResponse(413, {
+        error: "image_too_large",
+        limit_bytes: MAX_IMAGE_BYTES,
+      });
+    }
     try {
       imageUrl = await uploadToR2(
-        decodeBase64(base64),
+        imageBytes,
         resolvedContentType,
         key,
       );
@@ -343,7 +392,10 @@ serve(async (req) => {
     return jsonResponse(500, { error: "label_mapping_failed" });
   }
 
-  const bestMappingByLabel = new Map<string, { tag: string; priority: number }>();
+  const bestMappingByLabel = new Map<
+    string,
+    { tag: string; priority: number }
+  >();
   for (const mapping of mappings ?? []) {
     const labelKey = mapping.label_en.toLowerCase();
     const current = bestMappingByLabel.get(labelKey);
@@ -358,7 +410,8 @@ serve(async (req) => {
   const labeledInputs = normalizedLabels.map((label) => ({
     text: label.text,
     confidence: label.confidence,
-    canonical_tag: bestMappingByLabel.get(label.text.toLowerCase())?.tag ?? null,
+    canonical_tag: bestMappingByLabel.get(label.text.toLowerCase())?.tag ??
+      null,
   }));
 
   const canonicalTags = Array.from(
@@ -393,8 +446,9 @@ serve(async (req) => {
     });
   }
 
-  const processFeedRow =
-    Array.isArray(processFeedData) ? processFeedData[0] : processFeedData;
+  const processFeedRow = Array.isArray(processFeedData)
+    ? processFeedData[0]
+    : processFeedData;
   if (!processFeedRow || typeof processFeedRow !== "object") {
     return jsonResponse(500, { error: "process_feed_event_invalid_response" });
   }
@@ -404,7 +458,9 @@ serve(async (req) => {
     ? processFeedRecord.message_id
     : null;
   if (!messageId) {
-    return jsonResponse(500, { error: "process_feed_event_missing_message_id" });
+    return jsonResponse(500, {
+      error: "process_feed_event_missing_message_id",
+    });
   }
 
   const baseReward = typeof processFeedRecord.base_reward === "number"

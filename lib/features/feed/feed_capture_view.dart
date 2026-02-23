@@ -12,6 +12,7 @@ import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
+import '../../shared/upload_limits.dart';
 
 class FeedCaptureView extends StatefulWidget {
   const FeedCaptureView({
@@ -69,6 +70,15 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     }
 
     final previewBytes = await image.readAsBytes();
+    if (previewBytes.length > kMaxUploadImageBytes) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = AppLocalizations.of(context)!.errorImageTooLarge;
+      });
+      return;
+    }
 
     setState(() {
       _previewBytes = previewBytes;
@@ -82,6 +92,12 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     if (image == null || previewBytes == null) {
       setState(() {
         _error = AppLocalizations.of(context)!.feedSelectImageFirst;
+      });
+      return;
+    }
+    if (previewBytes.length > kMaxUploadImageBytes) {
+      setState(() {
+        _error = AppLocalizations.of(context)!.errorImageTooLarge;
       });
       return;
     }
@@ -269,6 +285,12 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       final compressed = await _compressForUpload(image, previewBytes);
       final imageContentType = compressed.contentType;
       final imageBytes = compressed.bytes;
+      if (!kAllowedUploadImageContentTypes.contains(imageContentType)) {
+        throw Exception('invalid_image_content_type');
+      }
+      if (imageBytes.length > kMaxUploadImageBytes) {
+        throw Exception('image_too_large');
+      }
       final dataUri =
           'data:$imageContentType;base64,${base64Encode(imageBytes)}';
 
@@ -286,6 +308,21 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
             'client_created_at': clientCreatedAtIso,
           },
         );
+      }
+
+      String responseErrorSummary(FunctionResponse response) {
+        final data = response.data;
+        if (data is Map) {
+          final error = data['error']?.toString();
+          final detail = data['detail']?.toString();
+          if (error != null && error.isNotEmpty) {
+            if (detail != null && detail.isNotEmpty) {
+              return '$error:$detail';
+            }
+            return error;
+          }
+        }
+        return 'status_${response.status}';
       }
 
       int parseInt(dynamic value) {
@@ -336,7 +373,9 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       }
 
       if (response.status < 200 || response.status >= 300) {
-        throw Exception('feed_validate_failed_${response.status}');
+        throw Exception(
+          'feed_validate_failed:${responseErrorSummary(response)}',
+        );
       }
 
       final data = response.data;

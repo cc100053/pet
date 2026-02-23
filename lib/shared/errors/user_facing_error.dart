@@ -19,6 +19,9 @@ String userFacingError(
   if (error is FunctionException && error.status == 401) {
     return l10n.authReauthRequired;
   }
+  if (error is FunctionException && error.status == 413) {
+    return l10n.errorImageTooLarge;
+  }
   if (summary.contains('invalid_invite')) {
     return l10n.errorInvalidInviteCode;
   }
@@ -34,6 +37,10 @@ String userFacingError(
       summary.contains('not allowed') ||
       summary.contains('42501')) {
     return l10n.errorPermissionDenied;
+  }
+  if (summary.contains('image_too_large') ||
+      summary.contains('payload_too_large')) {
+    return l10n.errorImageTooLarge;
   }
   if (summary.contains('network') ||
       summary.contains('socketexception') ||

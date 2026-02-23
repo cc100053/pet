@@ -263,6 +263,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get errorPermissionDenied => '이 작업을 수행할 권한이 없습니다.';
 
   @override
+  String get errorImageTooLarge => '이미지 용량이 너무 큽니다. 더 작은 이미지를 선택해 주세요.';
+
+  @override
   String get errorPetNameInvalid => '사용할 수 없는 펫 이름입니다. 다른 이름을 사용해 주세요.';
 
   @override

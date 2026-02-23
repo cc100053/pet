@@ -1,3 +1,4 @@
+import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 
 const corsHeaders = {
@@ -50,7 +51,10 @@ serve(async (req) => {
     authData.user.id,
   );
   if (deleteError) {
-    return jsonResponse(400, { error: "delete_failed", detail: deleteError.message });
+    return jsonResponse(400, {
+      error: "delete_failed",
+      detail: deleteError.message,
+    });
   }
 
   return jsonResponse(200, { deleted: true });

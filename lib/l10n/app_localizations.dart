@@ -529,6 +529,12 @@ abstract class AppLocalizations {
   /// **'You don\'t have permission to do that.'**
   String get errorPermissionDenied;
 
+  /// No description provided for @errorImageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Image is too large. Please choose a smaller image.'**
+  String get errorImageTooLarge;
+
   /// No description provided for @errorPetNameInvalid.
   ///
   /// In en, this message translates to:

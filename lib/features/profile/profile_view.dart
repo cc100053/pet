@@ -21,6 +21,7 @@ import '../../shared/localization/app_locale_controller.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/user_avatar.dart';
+import '../../shared/upload_limits.dart';
 import '../../shared/utils/avatar_display_position.dart';
 
 class ProfileView extends ConsumerStatefulWidget {
@@ -502,6 +503,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     setState(() => _busy = true);
     try {
       final compressed = await _compressAvatar(image);
+      if (!kAllowedUploadImageContentTypes.contains(compressed.contentType)) {
+        throw Exception('invalid_image_content_type');
+      }
+      if (compressed.bytes.length > kMaxUploadImageBytes) {
+        throw Exception('image_too_large');
+      }
       final dataUri =
           'data:${compressed.contentType};base64,${base64Encode(compressed.bytes)}';
 
@@ -649,6 +656,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final l10n = AppLocalizations.of(context)!;
     final bytes = await image.readAsBytes();
     if (!mounted) {
+      return;
+    }
+    if (bytes.length > kMaxUploadImageBytes) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.errorImageTooLarge),
+        ),
+      );
       return;
     }
     final navigator = Navigator.of(context);

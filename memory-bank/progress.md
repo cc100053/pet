@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Added end-to-end image upload size controls (`5MB`) for feed + avatar paths: new Flutter shared limits (`lib/shared/upload_limits.dart`) with client preflight guards and localized oversized-image messaging, plus `feed_validate`/`avatar_upload` server-side MIME allow-list + base64/decoded-byte checks returning `413 image_too_large` before upload/DB writes; deployed via MCP (`feed_validate` v14, `avatar_upload` v3).
+- Fixed `delete_account` edge runtime boot issue by importing `serve` from Deno std HTTP in `supabase/functions/delete_account/index.ts`, then deployed via MCP (`delete_account` v2 active).
 - Simplified Return Letter flow to room-default behavior: Store now receives only the current room’s departed pet, removed departed-pet selection dialog from Return Letter purchase, and auto-closes back to Home after a successful return so users land directly on the restored pet’s room.
 - Hardened `notify_friend` against webhook fail-open/spoof paths: removed unsigned webhook mode when `NOTIFY_WEBHOOK_SECRET` is unset, forced webhook requests to canonicalize message payload from `messages` by `room_id/message_id` (with sender ownership checks for non-hunger alerts), and constrained webhook recipients to active room members only.
 - Eliminated feed-reward exploit while keeping immediate UX: added atomic RPC `process_feed_event` (`20260223133000_atomic_feed_action_message_insert.sql`) so feed pet-action + base reward + message insert commit in one DB transaction, and updated `feed_validate` to call this RPC (quest bonus now runs only after successful message creation).

@@ -257,6 +257,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorPermissionDenied => '你沒有权限執行这个操作。';
 
   @override
+  String get errorImageTooLarge => '图片档案太大，请选择较小的图片。';
+
+  @override
   String get errorPetNameInvalid => '这个宠物名称不可用，请換一個名称。';
 
   @override
@@ -1497,6 +1500,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get errorPermissionDenied => '你沒有權限執行這個操作。';
+
+  @override
+  String get errorImageTooLarge => '圖片檔案太大，請選擇較小的圖片。';
 
   @override
   String get errorPetNameInvalid => '這個寵物名稱不可用，請換一個名稱。';
