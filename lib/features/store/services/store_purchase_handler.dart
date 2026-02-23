@@ -3,6 +3,21 @@ part of '../store_view.dart';
 extension _StorePurchaseHandler on _StoreViewState {
   bool get _hasDepartedPets => _departedPets.isNotEmpty;
 
+  DepartedPetInfo? _currentRoomDepartedPet() {
+    final roomId = widget.roomId;
+    if (roomId != null) {
+      for (final pet in _departedPets) {
+        if (pet.roomId == roomId) {
+          return pet;
+        }
+      }
+    }
+    if (_departedPets.length == 1) {
+      return _departedPets.first;
+    }
+    return null;
+  }
+
   Future<void> _handleLetterPurchase(StoreItem item) async {
     final l10n = AppLocalizations.of(context)!;
     if (_purchasing) {
@@ -19,14 +34,10 @@ extension _StorePurchaseHandler on _StoreViewState {
       return;
     }
 
-    DepartedPetInfo? target;
-    if (_departedPets.length == 1) {
-      target = _departedPets.first;
-    } else {
-      target = await _selectDepartedPet(l10n);
-      if (target == null) {
-        return;
-      }
+    final target = _currentRoomDepartedPet();
+    if (target == null) {
+      await _showNoDepartedPetsDialog(l10n);
+      return;
     }
 
     final confirmed = await _confirmLetterPurchase(l10n, target);
@@ -60,6 +71,9 @@ extension _StorePurchaseHandler on _StoreViewState {
     _setStoreState(() {
       _departedPets.removeWhere((pet) => pet.petId == selectedPet.petId);
     });
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(selectedPet.roomId);
+    }
   }
 
   Future<void> _consumePurchasedItem(String itemId) async {

@@ -11,7 +11,8 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+  "";
 const NOTIFY_WEBHOOK_SECRET = Deno.env.get("NOTIFY_WEBHOOK_SECRET") ?? "";
 const GOOGLE_SERVICE_ACCOUNT = Deno.env.get("GOOGLE_SERVICE_ACCOUNT") ?? "";
 const FCM_PROJECT_ID = Deno.env.get("FCM_PROJECT_ID") ?? "";
@@ -23,8 +24,10 @@ const FCM_PRIVATE_KEY = (Deno.env.get("FCM_PRIVATE_KEY") ?? "").replace(
 type PetType = "cat" | "fish" | "ghost";
 
 const PET_AVATAR_URL_BY_TYPE: Record<PetType, string> = {
-  cat: "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/cat_stay.gif",
-  fish: "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/fish_stay.gif",
+  cat:
+    "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/cat_stay.gif",
+  fish:
+    "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/fish_stay.gif",
   ghost:
     "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/ghost_stay.gif",
 };
@@ -59,7 +62,8 @@ const l10n: Record<string, L10nStrings> = {
     defaultPetName: "ペット",
     defaultSenderName: "だれか",
     feedBodyTemplate: "{sender}さんが{pet}にごはんをあげました",
-    hungerReminderTemplate: "{pet}がお腹を空かせています。ごはんをあげてください！",
+    hungerReminderTemplate:
+      "{pet}がお腹を空かせています。ごはんをあげてください！",
     hungerUrgentTemplate: "{pet}がとてもお腹を空かせています！今すぐごはんを！",
   },
   "zh-TW": {
@@ -225,8 +229,9 @@ function fillTemplate(
   template: string,
   values: Record<string, string>,
 ): string {
-  return template.replace(/\{(\w+)\}/g, (_full, key: string) =>
-    values[key] ?? _full
+  return template.replace(
+    /\{(\w+)\}/g,
+    (_full, key: string) => values[key] ?? _full,
   );
 }
 
@@ -264,8 +269,8 @@ function truncateText(value: string, max: number): string {
 function isStaleTokenFailure(errorText: string | undefined): boolean {
   const normalized = (errorText ?? "").toLowerCase();
   return normalized.includes("registration-token-not-registered") ||
-    normalized.includes("\"errorcode\":\"unregistered\"") ||
-    normalized.includes("\"status\":\"unregistered\"") ||
+    normalized.includes('"errorcode":"unregistered"') ||
+    normalized.includes('"status":"unregistered"') ||
     normalized.includes("messaging/registration-token-not-registered");
 }
 
@@ -302,21 +307,8 @@ serve(async (req) => {
     return jsonResponse(400, { error: "invalid_json" });
   }
 
-  const webhookAuthHeader = `Bearer ${NOTIFY_WEBHOOK_SECRET}`;
-  const isSignedWebhook = !!NOTIFY_WEBHOOK_SECRET &&
-    authHeader === webhookAuthHeader;
-  const isUnsignedWebhook = !NOTIFY_WEBHOOK_SECRET &&
-    !!payload.sender_id &&
-    Array.isArray(payload.recipient_ids);
-  const isWebhookRequest = isSignedWebhook || isUnsignedWebhook;
-
-  if (
-    !!NOTIFY_WEBHOOK_SECRET &&
-    !!payload.sender_id &&
-    authHeader !== webhookAuthHeader
-  ) {
-    return jsonResponse(401, { error: "invalid_webhook_secret" });
-  }
+  const isWebhookRequest = !!NOTIFY_WEBHOOK_SECRET &&
+    authHeader === `Bearer ${NOTIFY_WEBHOOK_SECRET}`;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
     return jsonResponse(500, { error: "server_config_error" });
@@ -334,62 +326,74 @@ serve(async (req) => {
       return jsonResponse(400, { error: "missing_sender_id" });
     }
 
-    const needsMessageLookup = !nonEmptyOrNull(payload.body) &&
-      !nonEmptyOrNull(payload.caption) &&
-      !nonEmptyOrNull(payload.image_url);
+    let messageQuery = supabaseAdmin
+      .from("messages")
+      .select("id, room_id, sender_id, type, body, caption, image_url")
+      .eq("id", payload.message_id)
+      .eq("room_id", payload.room_id);
+    if (!isHungerAlert && senderId) {
+      messageQuery = messageQuery.eq("sender_id", senderId);
+    }
 
-    if (needsMessageLookup) {
-      let messageQuery = supabaseAdmin
-        .from("messages")
-        .select("id, room_id, sender_id, type, body, caption, image_url")
-        .eq("id", payload.message_id)
-        .eq("room_id", payload.room_id);
-      if (!isHungerAlert && senderId) {
-        messageQuery = messageQuery.eq("sender_id", senderId);
-      }
-
-      const { data: messageRow, error: messageError } = await messageQuery
-        .maybeSingle();
-      if (messageError) {
-        return jsonResponse(500, {
-          error: "db_error",
-          details: messageError.message,
-        });
-      }
-      if (messageRow) {
-        if (messageRow.type === "text") {
-          payload.type = "chat_message";
-          payload.body = messageRow.body;
-          payload.caption = null;
-          payload.image_url = null;
-        } else if (messageRow.type === "image_feed") {
-          payload.type = "feed_event";
-          payload.caption = messageRow.caption;
-          payload.image_url = messageRow.image_url;
-          payload.body = null;
-        } else if (messageRow.type === "system" && payload.type === "hunger_alert") {
-          payload.body = messageRow.body;
-          payload.caption = null;
-          payload.image_url = null;
-        }
-      }
+    const { data: messageRow, error: messageError } = await messageQuery
+      .maybeSingle();
+    if (messageError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: messageError.message,
+      });
+    }
+    if (!messageRow) {
+      return jsonResponse(403, {
+        error: isHungerAlert ? "message_not_found" : "message_not_owned",
+      });
     }
 
     if (isHungerAlert) {
-      const { data: memberRows, error: membersError } = await supabaseAdmin
-        .from("room_members")
-        .select("user_id")
-        .eq("room_id", payload.room_id)
-        .eq("is_active", true);
-      if (membersError) {
-        return jsonResponse(500, {
-          error: "db_error",
-          details: membersError.message,
-        });
+      if (messageRow.type !== "system") {
+        return jsonResponse(403, { error: "message_not_found" });
       }
-      recipientIds = (memberRows ?? [])
-        .map((row) => row.user_id as string | null)
-        .filter((id): id is string => !!id);
+      payload.body = messageRow.body;
+      payload.caption = null;
+      payload.image_url = null;
+    } else if (messageRow.type === "text") {
+      payload.type = "chat_message";
+      payload.body = messageRow.body;
+      payload.caption = null;
+      payload.image_url = null;
+    } else if (messageRow.type === "image_feed") {
+      payload.type = "feed_event";
+      payload.caption = messageRow.caption;
+      payload.image_url = messageRow.image_url;
+      payload.body = null;
+    } else {
+      return jsonResponse(200, { message: "message_type_not_notifiable" });
+    }
+
+    const { data: memberRows, error: membersError } = await supabaseAdmin
+      .from("room_members")
+      .select("user_id")
+      .eq("room_id", payload.room_id)
+      .eq("is_active", true);
+    if (membersError) {
+      return jsonResponse(500, {
+        error: "db_error",
+        details: membersError.message,
+      });
+    }
+
+    const activeMemberIds = (memberRows ?? [])
+      .map((row) => row.user_id as string | null)
+      .filter((id): id is string => !!id);
+    const activeMemberSet = new Set(activeMemberIds);
+    if (isHungerAlert) {
+      recipientIds = activeMemberIds;
+    } else {
+      const requestedRecipientIds = recipientIds;
+      recipientIds = requestedRecipientIds.length > 0
+        ? requestedRecipientIds.filter((id) => activeMemberSet.has(id))
+        : activeMemberIds;
+      recipientIds = recipientIds.filter((id) => id !== senderId);
     }
   } else {
     const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -403,13 +407,14 @@ serve(async (req) => {
     senderId = authData.user.id;
 
     if (isHungerAlert) {
-      const { data: membershipRow, error: membershipError } = await supabaseAdmin
-        .from("room_members")
-        .select("room_id")
-        .eq("room_id", payload.room_id)
-        .eq("user_id", senderId)
-        .eq("is_active", true)
-        .maybeSingle();
+      const { data: membershipRow, error: membershipError } =
+        await supabaseAdmin
+          .from("room_members")
+          .select("room_id")
+          .eq("room_id", payload.room_id)
+          .eq("user_id", senderId)
+          .eq("is_active", true)
+          .maybeSingle();
       if (membershipError) {
         return jsonResponse(500, {
           error: "db_error",
@@ -509,7 +514,9 @@ serve(async (req) => {
     return jsonResponse(200, { message: "no_recipients" });
   }
 
-  recipientIds = recipientIds.filter((id) => typeof id === "string" && id.length > 0);
+  recipientIds = recipientIds.filter((id) =>
+    typeof id === "string" && id.length > 0
+  );
   if (!isHungerAlert) {
     if (!senderId) {
       return jsonResponse(200, { message: "no_recipients" });
@@ -522,11 +529,12 @@ serve(async (req) => {
   }
 
   if (!isHungerAlert && senderId) {
-    const { data: blockedBySender, error: blockedBySenderError } = await supabaseAdmin
-      .from("blocks")
-      .select("blocked_user_id")
-      .eq("blocker_id", senderId)
-      .in("blocked_user_id", recipientIds);
+    const { data: blockedBySender, error: blockedBySenderError } =
+      await supabaseAdmin
+        .from("blocks")
+        .select("blocked_user_id")
+        .eq("blocker_id", senderId)
+        .in("blocked_user_id", recipientIds);
 
     if (blockedBySenderError) {
       return jsonResponse(500, {
@@ -535,11 +543,12 @@ serve(async (req) => {
       });
     }
 
-    const { data: blockedSender, error: blockedSenderError } = await supabaseAdmin
-      .from("blocks")
-      .select("blocker_id")
-      .in("blocker_id", recipientIds)
-      .eq("blocked_user_id", senderId);
+    const { data: blockedSender, error: blockedSenderError } =
+      await supabaseAdmin
+        .from("blocks")
+        .select("blocker_id")
+        .in("blocker_id", recipientIds)
+        .eq("blocked_user_id", senderId);
 
     if (blockedSenderError) {
       return jsonResponse(500, {
@@ -567,13 +576,14 @@ serve(async (req) => {
   }
 
   if (isHungerAlert) {
-    const { data: existingDelivery, error: existingDeliveryError } = await supabaseAdmin
-      .from("notification_delivery_logs")
-      .select("id")
-      .eq("message_id", payload.message_id)
-      .eq("payload_type", "hunger_alert")
-      .eq("success", true)
-      .limit(1);
+    const { data: existingDelivery, error: existingDeliveryError } =
+      await supabaseAdmin
+        .from("notification_delivery_logs")
+        .select("id")
+        .eq("message_id", payload.message_id)
+        .eq("payload_type", "hunger_alert")
+        .eq("success", true)
+        .limit(1);
     if (existingDeliveryError) {
       return jsonResponse(500, {
         error: "db_error",
@@ -628,11 +638,12 @@ serve(async (req) => {
 
   let senderProfile: { nickname: string | null } | null = null;
   if (senderId) {
-    const { data: fetchedSenderProfile, error: senderProfileError } = await supabaseAdmin
-      .from("profiles")
-      .select("nickname")
-      .eq("user_id", senderId)
-      .maybeSingle();
+    const { data: fetchedSenderProfile, error: senderProfileError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("nickname")
+        .eq("user_id", senderId)
+        .maybeSingle();
 
     if (senderProfileError) {
       return jsonResponse(500, {
@@ -709,7 +720,9 @@ serve(async (req) => {
   const petAvatarAsset = PET_AVATAR_ASSET_BY_TYPE[petType];
   const petAvatarFallbackUrl = PET_AVATAR_URL_BY_TYPE[petType] ??
     DEFAULT_PET_AVATAR_URL;
-  const senderNameRaw = nonEmptyOrNull(senderProfile?.nickname as string | null);
+  const senderNameRaw = nonEmptyOrNull(
+    senderProfile?.nickname as string | null,
+  );
   const hungerAlertLevel = isHungerAlert
     ? resolveHungerAlertLevel(payload.alert_level, nonEmptyOrNull(payload.body))
     : null;
@@ -737,7 +750,9 @@ serve(async (req) => {
           user_id: userId,
           details: unreadError.message,
         }));
-      } else if (typeof unreadData === "number" && Number.isFinite(unreadData)) {
+      } else if (
+        typeof unreadData === "number" && Number.isFinite(unreadData)
+      ) {
         unreadTotal = Math.max(0, Math.trunc(unreadData));
       }
     }

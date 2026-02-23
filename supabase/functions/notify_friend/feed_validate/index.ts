@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { AwsClient } from "https://esm.sh/aws4fetch@1.0.18";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -164,58 +163,6 @@ type WebhookResult = {
   error?: string;
 };
 
-type FeedCooldownState = {
-  lastFedAt: string | null;
-  nextEligibleAt: string | null;
-  isCoolingDown: boolean;
-};
-
-function isoPlusTenMinutes(iso: string) {
-  const date = new Date(iso);
-  date.setUTCMinutes(date.getUTCMinutes() + 10);
-  return date.toISOString();
-}
-
-async function getFeedCooldownState({
-  supabase,
-  userId,
-  roomId,
-}: {
-  supabase: SupabaseClient;
-  userId: string;
-  roomId: string;
-}): Promise<FeedCooldownState> {
-  const { data, error } = await supabase
-    .from("action_cooldowns")
-    .select("last_reward_at")
-    .eq("user_id", userId)
-    .eq("room_id", roomId)
-    .eq("action_type", "feed")
-    .maybeSingle();
-
-  if (error) {
-    throw new Error("cooldown_lookup_failed");
-  }
-
-  const lastFedAt = typeof data?.last_reward_at === "string"
-    ? data.last_reward_at
-    : null;
-  if (!lastFedAt) {
-    return {
-      lastFedAt: null,
-      nextEligibleAt: null,
-      isCoolingDown: false,
-    };
-  }
-
-  const nextEligibleAt = isoPlusTenMinutes(lastFedAt);
-  return {
-    lastFedAt,
-    nextEligibleAt,
-    isCoolingDown: new Date(nextEligibleAt).getTime() > Date.now(),
-  };
-}
-
 async function notifyPartner({
   authHeader,
   roomId,
@@ -347,20 +294,6 @@ serve(async (req) => {
     return jsonResponse(403, { error: "not_member" });
   }
 
-  const { data: pet, error: petError } = await supabase
-    .from("pets")
-    .select("id")
-    .eq("room_id", roomId)
-    .maybeSingle();
-
-  if (petError) {
-    return jsonResponse(500, { error: "pet_lookup_failed" });
-  }
-
-  if (!pet) {
-    return jsonResponse(404, { error: "pet_missing" });
-  }
-
   const normalizedLabels = normalizeLabels(payload.labels);
   const eligibleLabels = normalizedLabels.filter((label) =>
     label.confidence >= MIN_CONFIDENCE
@@ -395,41 +328,6 @@ serve(async (req) => {
   if (!imageUrl) {
     return jsonResponse(400, { error: "missing_image" });
   }
-
-  const { error: petActionError } = await supabase.rpc("apply_pet_action", {
-    p_pet_id: pet.id,
-    p_action_type: "feed",
-  });
-
-  if (petActionError) {
-    return jsonResponse(500, { error: "pet_action_failed" });
-  }
-
-  let baseReward = 0;
-  let rewardStatus = "cooldown";
-  let cooldownState: FeedCooldownState = {
-    lastFedAt: null,
-    nextEligibleAt: null,
-    isCoolingDown: false,
-  };
-  const { data: reward, error: rewardError } = await supabase.rpc(
-    "claim_action_reward",
-    { p_action_type: "feed", p_room_id: roomId },
-  );
-  if (rewardError) {
-    return jsonResponse(500, { error: "reward_failed" });
-  }
-  baseReward = typeof reward === "number" ? reward : 0;
-  try {
-    cooldownState = await getFeedCooldownState({
-      supabase,
-      userId: authData.user.id,
-      roomId,
-    });
-  } catch (_) {
-    return jsonResponse(500, { error: "cooldown_lookup_failed" });
-  }
-  rewardStatus = baseReward > 0 ? "granted" : "cooldown";
 
   const labelVariants = buildLabelVariants(
     eligibleLabels.map((label) => label.text),
@@ -470,6 +368,62 @@ serve(async (req) => {
         .filter((tag): tag is string => Boolean(tag)),
     ),
   );
+
+  const labelsPayload = labeledInputs.map((label) => ({
+    text: label.text,
+    confidence: label.confidence,
+    canonical_tag: label.canonical_tag,
+  }));
+
+  const { data: processFeedData, error: processFeedError } = await supabase.rpc(
+    "process_feed_event",
+    {
+      p_room_id: roomId,
+      p_image_url: imageUrl,
+      p_caption: payload.caption ?? null,
+      p_labels: labelsPayload,
+      p_client_created_at: payload.client_created_at ?? null,
+    },
+  );
+
+  if (processFeedError) {
+    return jsonResponse(500, {
+      error: "process_feed_event_failed",
+      detail: processFeedError.message,
+    });
+  }
+
+  const processFeedRow =
+    Array.isArray(processFeedData) ? processFeedData[0] : processFeedData;
+  if (!processFeedRow || typeof processFeedRow !== "object") {
+    return jsonResponse(500, { error: "process_feed_event_invalid_response" });
+  }
+  const processFeedRecord = processFeedRow as Record<string, unknown>;
+
+  const messageId = typeof processFeedRecord.message_id === "string"
+    ? processFeedRecord.message_id
+    : null;
+  if (!messageId) {
+    return jsonResponse(500, { error: "process_feed_event_missing_message_id" });
+  }
+
+  const baseReward = typeof processFeedRecord.base_reward === "number"
+    ? processFeedRecord.base_reward
+    : (typeof processFeedRecord.base_reward === "string"
+      ? Number.parseInt(processFeedRecord.base_reward, 10) || 0
+      : 0);
+  const rewardStatus = typeof processFeedRecord.reward_status === "string"
+    ? processFeedRecord.reward_status
+    : (baseReward > 0 ? "granted" : "cooldown");
+  const cooldownLastFedAt = typeof processFeedRecord.last_fed_at === "string"
+    ? processFeedRecord.last_fed_at
+    : null;
+  const cooldownNextEligibleAt =
+    typeof processFeedRecord.next_eligible_at === "string"
+      ? processFeedRecord.next_eligible_at
+      : null;
+  const cooldownIsActive = cooldownNextEligibleAt != null &&
+    new Date(cooldownNextEligibleAt).getTime() > Date.now();
 
   const today = new Date().toISOString().slice(0, 10);
   const { data: dailyQuest, error: dailyQuestError } = await supabase
@@ -525,42 +479,30 @@ serve(async (req) => {
   }
 
   const totalReward = baseReward + questBonus;
-  const labelsPayload = labeledInputs.map((label) => ({
-    text: label.text,
-    confidence: label.confidence,
-    canonical_tag: label.canonical_tag,
-  }));
 
-  const { data: message, error: messageError } = await supabase
-    .from("messages")
-    .insert({
-      room_id: roomId,
-      sender_id: authData.user.id,
-      type: "image_feed",
-      body: null,
-      image_url: imageUrl,
-      caption: payload.caption ?? null,
-      labels: labelsPayload,
-      coins_awarded: totalReward,
-      mood_delta: 0,
-      client_created_at: payload.client_created_at ?? null,
-    })
-    .select("id, created_at")
-    .single();
-
-  if (messageError) {
-    return jsonResponse(500, { error: "message_insert_failed" });
+  if (questBonus > 0) {
+    const { error: messageRewardError } = await supabase
+      .from("messages")
+      .update({ coins_awarded: totalReward })
+      .eq("id", messageId)
+      .eq("room_id", roomId)
+      .eq("sender_id", authData.user.id);
+    if (messageRewardError) {
+      questAwardError = questAwardError == null
+        ? "message_reward_sync_failed"
+        : `${questAwardError};message_reward_sync_failed`;
+    }
   }
 
   const webhookResult = await notifyPartner({
     authHeader,
     roomId,
-    messageId: message.id,
+    messageId,
   });
 
   return jsonResponse(200, {
     ok: true,
-    message_id: message.id,
+    message_id: messageId,
     image_url: imageUrl,
     base_reward: baseReward,
     quest_bonus: questBonus,
@@ -580,9 +522,9 @@ serve(async (req) => {
       action_type: "feed",
     },
     cooldown: {
-      is_active: cooldownState.isCoolingDown,
-      last_fed_at: cooldownState.lastFedAt,
-      next_eligible_at: cooldownState.nextEligibleAt,
+      is_active: cooldownIsActive,
+      last_fed_at: cooldownLastFedAt,
+      next_eligible_at: cooldownNextEligibleAt,
     },
   });
 });

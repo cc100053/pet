@@ -16,7 +16,6 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../home/room_backgrounds.dart';
-import '../pet/pet_catalog.dart';
 import '../pet/pet_departure.dart';
 import 'models/store_item.dart';
 import 'widgets/store_legal_links_row.dart';

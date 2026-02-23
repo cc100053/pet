@@ -1907,8 +1907,12 @@ class _HomeViewState extends ConsumerState<HomeView>
     return _departedPetsByRoom[roomId];
   }
 
-  List<DepartedPetInfo> _departedPetsList() {
-    return _departedPetsByRoom.values.toList(growable: false);
+  List<DepartedPetInfo> _departedPetsForCurrentRoom() {
+    final current = _currentDepartedPetInfo();
+    if (current == null) {
+      return const <DepartedPetInfo>[];
+    }
+    return <DepartedPetInfo>[current];
   }
 
   String _resolvePetNameForRoom(String roomId) {
@@ -2030,18 +2034,28 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _openStoreWithDepartures() async {
-    await Navigator.of(context).push(
+    final returnedRoomId = await Navigator.of(context).push<String>(
       MaterialPageRoute(
         builder: (_) => StoreView(
           roomId: _roomId,
           isProUser: _hasProPlanAccess,
-          departedPets: _departedPetsList(),
+          departedPets: _departedPetsForCurrentRoom(),
           onReturnPet: _returnDepartedPet,
         ),
       ),
     );
     if (!mounted) {
       return;
+    }
+    if (returnedRoomId != null && returnedRoomId.isNotEmpty) {
+      if (_showRoomSelection) {
+        setState(() {
+          _showRoomSelection = false;
+        });
+      }
+      if (_roomId != returnedRoomId) {
+        _switchRoom(returnedRoomId, showEntryLoading: true);
+      }
     }
     await _refreshProPlanStatus();
     await _loadCoins();
