@@ -416,6 +416,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get feedRewardPending => 'Reward pending...';
+
+  @override
   String get forceUpdateAction => 'Update now';
 
   @override

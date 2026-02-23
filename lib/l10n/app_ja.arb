@@ -244,6 +244,7 @@
       "error": {}
     }
   },
+  "feedRewardPending": "報酬を計算中...",
   "forceUpdateAction": "今すぐ更新",
   "forceUpdateLinkError": "ストアリンクを開けません。",
   "forceUpdateMessage": "続行するには新しいバージョンが必要です。今すぐ更新してください。",

@@ -519,41 +519,30 @@ class RoomSelectionView extends StatelessWidget {
     Key? key,
   }) {
     final size = responsive.pick(compact: 22, regular: 24, expanded: 24);
-    return SizedBox(
+    return Container(
+      key: key,
       width: size,
       height: size,
-      child: Container(
-        key: key,
-        alignment: Alignment.center,
-        constraints: BoxConstraints(
-          minWidth: responsive.pick(compact: 18, regular: 20, expanded: 20),
-          minHeight: responsive.pick(compact: 18, regular: 20, expanded: 20),
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: responsive.pick(compact: 5, regular: 6, expanded: 6),
-          vertical: responsive.pick(compact: 2, regular: 2, expanded: 2),
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE53935),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Text(
-          unreadText,
-          maxLines: 1,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: responsive.pick(compact: 8, regular: 9, expanded: 9),
-            height: 1,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE53935),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
+        ],
+      ),
+      child: Text(
+        unreadText,
+        maxLines: 1,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+          fontSize: responsive.pick(compact: 10, regular: 11, expanded: 11),
         ),
       ),
     );

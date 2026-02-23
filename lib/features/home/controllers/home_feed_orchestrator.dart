@@ -132,6 +132,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
     _armOverfedBubbleForFeedEvent();
+    _setStateForFeedOrchestrator(() {
+      _feedRewardPendingCount += 1;
+    });
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
     _optimisticFeedRoomByTempId[entry.tempId] = entry.roomId;
     final optimisticMessage = ChatMessage(
@@ -226,7 +229,12 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         : (_shouldOfferFeedDoubleReward(result)
               ? _HomeViewState._optimisticFeedRewardCoins
               : 0);
-    unawaited(_loadCoins(expectedReward: expectedReward));
+    unawaited(
+      _loadCoinsInternal(
+        expectedReward: expectedReward,
+        consumeFeedRewardPendingCount: 1,
+      ),
+    );
     if (roomId != null) {
       unawaited(_refreshLatestRoomPhoto(roomId));
       unawaited(_refreshLatestFeed(roomId));
@@ -417,6 +425,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
+    _setStateForFeedOrchestrator(() {
+      _feedRewardPendingCount = max(0, _feedRewardPendingCount - 1);
+    });
     _optimisticFeedImageByTempId.remove(tempId);
     _optimisticFeedRoomByTempId.remove(tempId);
     _chatListKey.currentState?.removeOptimisticMessage(tempId);

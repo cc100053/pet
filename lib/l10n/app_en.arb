@@ -244,6 +244,7 @@
       "error": {}
     }
   },
+  "feedRewardPending": "Reward pending...",
   "forceUpdateAction": "Update now",
   "forceUpdateLinkError": "Unable to open store link.",
   "forceUpdateMessage": "A newer version is required to continue. Please update now.",

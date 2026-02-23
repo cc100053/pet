@@ -793,6 +793,12 @@ abstract class AppLocalizations {
   /// **'Feed upload failed: {error}'**
   String feedUploadFailed(Object error);
 
+  /// No description provided for @feedRewardPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward pending...'**
+  String get feedRewardPending;
+
   /// No description provided for @forceUpdateAction.
   ///
   /// In en, this message translates to:

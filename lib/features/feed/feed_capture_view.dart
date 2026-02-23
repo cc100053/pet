@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -35,11 +37,29 @@ class FeedCaptureView extends StatefulWidget {
 }
 
 class _FeedCaptureViewState extends State<FeedCaptureView> {
+  static const int _feedInputHardLimitBytes = 30 * 1024 * 1024;
+  static const int _feedCompressionTargetBytes = 5 * 1024 * 1024;
+  static const int _feedCompressionMinBytesToAttempt = 512 * 1024;
+  static const List<_FeedCompressionProfile> _feedCompressionProfiles =
+      <_FeedCompressionProfile>[
+        _FeedCompressionProfile(maxDimension: 2048, quality: 90),
+        _FeedCompressionProfile(maxDimension: 1920, quality: 84),
+        _FeedCompressionProfile(maxDimension: 1600, quality: 78),
+      ];
+  static const List<_FeedCompressionProfile> _feedCompressionEmergencyProfiles =
+      <_FeedCompressionProfile>[
+        _FeedCompressionProfile(maxDimension: 1400, quality: 70),
+        _FeedCompressionProfile(maxDimension: 1280, quality: 66),
+        _FeedCompressionProfile(maxDimension: 1080, quality: 62),
+      ];
+
   final _captionController = TextEditingController();
   final _picker = ImagePicker();
 
   Uint8List? _previewBytes;
   XFile? _selectedImage;
+  Future<_CompressedImage>? _preparedCompressionFuture;
+  String? _preparedCompressionImagePath;
 
   bool _sending = false;
   String? _error;
@@ -70,7 +90,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     }
 
     final previewBytes = await image.readAsBytes();
-    if (previewBytes.length > kMaxUploadImageBytes) {
+    if (previewBytes.length > _feedInputHardLimitBytes) {
       if (!mounted) {
         return;
       }
@@ -84,6 +104,8 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       _previewBytes = previewBytes;
       _selectedImage = image;
     });
+    _preparedCompressionImagePath = image.path;
+    _preparedCompressionFuture = _compressForUpload(image, previewBytes);
   }
 
   Future<void> _sendFeed() async {
@@ -95,7 +117,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       });
       return;
     }
-    if (previewBytes.length > kMaxUploadImageBytes) {
+    if (previewBytes.length > _feedInputHardLimitBytes) {
       setState(() {
         _error = AppLocalizations.of(context)!.errorImageTooLarge;
       });
@@ -267,10 +289,83 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     XFile image,
     Uint8List originalBytes,
   ) async {
+    final detectedContentType = _detectImageContentType(
+      originalBytes,
+      image.path,
+    );
+    if (kIsWeb || originalBytes.length < _feedCompressionMinBytesToAttempt) {
+      return _CompressedImage(
+        bytes: originalBytes,
+        contentType: detectedContentType,
+      );
+    }
+
+    Uint8List? bestCandidate;
+    for (final profile in _feedCompressionProfiles) {
+      final candidate = await _compressWithProfile(originalBytes, profile);
+      if (candidate == null || candidate.length >= originalBytes.length) {
+        continue;
+      }
+      if (bestCandidate == null || candidate.length < bestCandidate.length) {
+        bestCandidate = candidate;
+      }
+      if (candidate.length <= _feedCompressionTargetBytes) {
+        // Early-exit once we hit the target bucket to reduce send latency.
+        return _CompressedImage(bytes: candidate, contentType: 'image/webp');
+      }
+      if (candidate.length <= kMaxUploadImageBytes) {
+        return _CompressedImage(bytes: candidate, contentType: 'image/webp');
+      }
+    }
+
+    // Fallback path for very large photos: allow stronger compression to stay
+    // within upload limits while preserving the normal send/notify pipeline.
+    if (originalBytes.length > kMaxUploadImageBytes) {
+      for (final profile in _feedCompressionEmergencyProfiles) {
+        final candidate = await _compressWithProfile(originalBytes, profile);
+        if (candidate == null || candidate.isEmpty) {
+          continue;
+        }
+        if (candidate.length <= kMaxUploadImageBytes) {
+          return _CompressedImage(bytes: candidate, contentType: 'image/webp');
+        }
+        if (bestCandidate == null || candidate.length < bestCandidate.length) {
+          bestCandidate = candidate;
+        }
+      }
+      if (bestCandidate != null) {
+        return _CompressedImage(
+          bytes: bestCandidate,
+          contentType: 'image/webp',
+        );
+      }
+    }
+
     return _CompressedImage(
       bytes: originalBytes,
-      contentType: _detectImageContentType(originalBytes, image.path),
+      contentType: detectedContentType,
     );
+  }
+
+  Future<Uint8List?> _compressWithProfile(
+    Uint8List bytes,
+    _FeedCompressionProfile profile,
+  ) async {
+    try {
+      final compressed = await FlutterImageCompress.compressWithList(
+        bytes,
+        quality: profile.quality,
+        minWidth: profile.maxDimension,
+        minHeight: profile.maxDimension,
+        format: CompressFormat.webp,
+      );
+      if (compressed.isEmpty) {
+        return null;
+      }
+      return compressed;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _sendFeedInBackground({
@@ -282,7 +377,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
     required String tempId,
   }) async {
     try {
-      final compressed = await _compressForUpload(image, previewBytes);
+      final compressed = await _resolvePreparedCompression(image, previewBytes);
       final imageContentType = compressed.contentType;
       final imageBytes = compressed.bytes;
       if (!kAllowedUploadImageContentTypes.contains(imageContentType)) {
@@ -415,6 +510,21 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       );
       widget.onUploadFailed?.call(tempId, error);
     }
+  }
+
+  Future<_CompressedImage> _resolvePreparedCompression(
+    XFile image,
+    Uint8List previewBytes,
+  ) async {
+    final preparedFuture = _preparedCompressionFuture;
+    final preparedPath = _preparedCompressionImagePath;
+    if (preparedFuture != null && preparedPath == image.path) {
+      final resolved = await preparedFuture;
+      _preparedCompressionFuture = null;
+      _preparedCompressionImagePath = null;
+      return resolved;
+    }
+    return _compressForUpload(image, previewBytes);
   }
 
   @override
@@ -768,6 +878,16 @@ class _CompressedImage {
 
   final Uint8List bytes;
   final String contentType;
+}
+
+class _FeedCompressionProfile {
+  const _FeedCompressionProfile({
+    required this.maxDimension,
+    required this.quality,
+  });
+
+  final int maxDimension;
+  final int quality;
 }
 
 class FeedOptimisticMessage {

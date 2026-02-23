@@ -405,6 +405,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get feedRewardPending => '報酬を計算中...';
+
+  @override
   String get forceUpdateAction => '今すぐ更新';
 
   @override

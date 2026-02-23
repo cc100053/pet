@@ -27,6 +27,8 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.onStoreTap,
     this.coinReward,
     this.coinRewardEventId = 0,
+    this.showRewardPending = false,
+    this.rewardPendingLabel,
     this.onPetNameTap,
     this.onInviteTap,
     this.inviteLabel,
@@ -59,6 +61,8 @@ class HomeGameStatusBar extends StatelessWidget {
   /// Monotonic event id that guarantees re-triggering even when reward amount
   /// repeats (e.g., +10 multiple times).
   final int coinRewardEventId;
+  final bool showRewardPending;
+  final String? rewardPendingLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +96,8 @@ class HomeGameStatusBar extends StatelessWidget {
             diamonds: diamonds,
             coinReward: coinReward,
             coinRewardEventId: coinRewardEventId,
+            showRewardPending: showRewardPending,
+            rewardPendingLabel: rewardPendingLabel,
             onStoreTap: onStoreTap,
           ),
         ],
@@ -468,6 +474,8 @@ class _RightCluster extends StatelessWidget {
     required this.diamonds,
     this.coinReward,
     this.coinRewardEventId = 0,
+    this.showRewardPending = false,
+    this.rewardPendingLabel,
     required this.onStoreTap,
   });
 
@@ -477,6 +485,8 @@ class _RightCluster extends StatelessWidget {
   final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final bool showRewardPending;
+  final String? rewardPendingLabel;
   final VoidCallback onStoreTap;
 
   @override
@@ -514,6 +524,8 @@ class _RightCluster extends StatelessWidget {
                   diamonds: diamonds,
                   coinReward: coinReward,
                   coinRewardEventId: coinRewardEventId,
+                  showRewardPending: showRewardPending,
+                  rewardPendingLabel: rewardPendingLabel,
                   onStoreTap: onStoreTap,
                   expandToWidth: true,
                 ),
@@ -647,6 +659,62 @@ class _HealthBarState extends State<_HealthBar> {
   }
 }
 
+class _RewardPendingPill extends StatelessWidget {
+  const _RewardPendingPill({this.label});
+
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 148 * scale),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: 8 * scale,
+          vertical: 4 * scale,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3CC),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.black87, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 10 * scale,
+              height: 10 * scale,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            ),
+            Gap(6 * scale),
+            Flexible(
+              child: Text(
+                label ?? 'Reward pending',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5 * scale,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _CombinedCurrencyPill extends StatefulWidget {
   const _CombinedCurrencyPill({
     required this.coins,
@@ -654,6 +722,8 @@ class _CombinedCurrencyPill extends StatefulWidget {
     required this.coinRewardEventId,
     required this.onStoreTap,
     this.coinReward,
+    this.showRewardPending = false,
+    this.rewardPendingLabel,
     this.expandToWidth = false,
   });
 
@@ -661,6 +731,8 @@ class _CombinedCurrencyPill extends StatefulWidget {
   final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final bool showRewardPending;
+  final String? rewardPendingLabel;
   final VoidCallback onStoreTap;
   final bool expandToWidth;
 
@@ -775,6 +847,12 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
       clipBehavior: Clip.none,
       alignment: Alignment.centerRight,
       children: [
+        if (widget.showRewardPending)
+          Positioned(
+            right: 0,
+            bottom: -22 * scale,
+            child: _RewardPendingPill(label: widget.rewardPendingLabel),
+          ),
         Material(
           color: Colors.transparent,
           child: InkWell(

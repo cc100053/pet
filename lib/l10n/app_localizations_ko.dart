@@ -411,6 +411,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get feedRewardPending => '보상 계산 중...';
+
+  @override
   String get forceUpdateAction => '지금 업데이트';
 
   @override

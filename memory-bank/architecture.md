@@ -45,6 +45,8 @@ Implemented:
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).
   - `lib/features/home/providers/home_currency_provider.dart`: Riverpod currency snapshot for Home (coins, diamonds, coin reward amount/event id).
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
+  - Feed uploads now precompute client-side WebP compression right after image pick and reuse it on send; profile selection early-exits on target/cap-safe size to keep reward feedback responsive.
+  - Home HUD now shows a localized reward-pending indicator during feed reward resolution (server-authoritative coin update remains unchanged).
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_message_list.dart`: Extracted stateful chat message list (pagination/realtime/cache/moderation UI state).
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
@@ -98,13 +100,13 @@ Planned:
 
 ### Edge Functions (Repo)
 - `supabase/functions/notify_friend/feed_validate/index.ts`: Feed validation + upload + reward logic.
-  - Upload requests now enforce a `5MB` decoded-image cap and strict image MIME allow-list (`jpeg/png/webp/heic/heif`) before any R2 upload, message insert, or notification trigger.
+  - Upload requests now enforce a `10MB` decoded-image cap and strict image MIME allow-list (`jpeg/png/webp/heic/heif`) before any R2 upload, message insert, or notification trigger.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
   - Feed sends now trigger notifications by directly invoking this function from `feed_validate` with the user auth token (no separate webhook URL dependency).
   - Webhook-mode requests are accepted only with a configured `NOTIFY_WEBHOOK_SECRET` and matching bearer token; webhook payload message content is canonicalized from DB and recipients are constrained to active room members.
 - Push payload contract (FCM `data`): `room_id`, `message_id`, `message_kind` (with legacy client fallback from `message_type`), `pet_name`, `sender_name`, `pet_type`, `pet_avatar_asset`, `pet_avatar_fallback_url`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `body_full`, `title_app_name`, `title_full`, and legacy `type`.
 - `supabase/functions/avatar_upload/index.ts`: Upload avatar image to R2 and update `profiles.avatar_url`.
-  - Avatar uploads now enforce the same `5MB` decoded-image cap and MIME allow-list before R2/profile updates.
+  - Avatar uploads now enforce the same `10MB` decoded-image cap and MIME allow-list before R2/profile updates.
 - `supabase/functions/delete_account/index.ts`: Delete authenticated user (uses `SUPABASE_SERVICE_ROLE_KEY`).
 
 ### Profile Data Notes

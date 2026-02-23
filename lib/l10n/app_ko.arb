@@ -244,6 +244,7 @@
       "error": {}
     }
   },
+  "feedRewardPending": "보상 계산 중...",
   "forceUpdateAction": "지금 업데이트",
   "forceUpdateLinkError": "스토어 링크를 열 수 없습니다.",
   "forceUpdateMessage": "계속하려면 새 버전이 필요합니다. 지금 업데이트해 주세요.",

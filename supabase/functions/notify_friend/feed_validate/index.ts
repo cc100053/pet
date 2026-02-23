@@ -20,7 +20,7 @@ const R2_PUBLIC_BASE_URL = Deno.env.get("R2_PUBLIC_BASE_URL") ?? "";
 
 const MIN_CONFIDENCE = 0.6;
 const MAX_LABELS = 20;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const ALLOWED_IMAGE_CONTENT_TYPES = new Set<string>([
   "image/jpeg",

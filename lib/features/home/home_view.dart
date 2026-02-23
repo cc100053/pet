@@ -145,8 +145,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _myNickname;
   int? _coinReward; // Triggers coin animation when set
   int _coinRewardEventId = 0;
+  int _feedRewardPendingCount = 0;
   bool _coinsLoadInFlight = false;
   int? _pendingCoinsExpectedReward;
+  int _pendingFeedRewardPendingConsumes = 0;
   bool _roomSelectionRefreshInFlight = false;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
@@ -594,12 +596,21 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _loadCoins({int? expectedReward}) async {
+  Future<void> _loadCoins({int? expectedReward}) =>
+      _loadCoinsInternal(expectedReward: expectedReward);
+
+  Future<void> _loadCoinsInternal({
+    int? expectedReward,
+    int consumeFeedRewardPendingCount = 0,
+  }) async {
     final normalizedExpected = expectedReward ?? 0;
     if (_coinsLoadInFlight) {
       if (normalizedExpected > 0) {
         _pendingCoinsExpectedReward =
             (_pendingCoinsExpectedReward ?? 0) + normalizedExpected;
+      }
+      if (consumeFeedRewardPendingCount > 0) {
+        _pendingFeedRewardPendingConsumes += consumeFeedRewardPendingCount;
       }
       return;
     }
@@ -674,10 +685,26 @@ class _HomeViewState extends ConsumerState<HomeView>
     } finally {
       _coinsLoadInFlight = false;
 
+      if (consumeFeedRewardPendingCount > 0 && mounted) {
+        setState(() {
+          _feedRewardPendingCount = max(
+            0,
+            _feedRewardPendingCount - consumeFeedRewardPendingCount,
+          );
+        });
+      }
+
       final pending = _pendingCoinsExpectedReward;
       _pendingCoinsExpectedReward = null;
-      if (pending != null && pending > 0) {
-        unawaited(_loadCoins(expectedReward: pending));
+      final pendingFeedConsumes = _pendingFeedRewardPendingConsumes;
+      _pendingFeedRewardPendingConsumes = 0;
+      if ((pending != null && pending > 0) || pendingFeedConsumes > 0) {
+        unawaited(
+          _loadCoinsInternal(
+            expectedReward: pending,
+            consumeFeedRewardPendingCount: pendingFeedConsumes,
+          ),
+        );
       }
     }
   }
@@ -3910,6 +3937,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                       diamonds: currency.diamonds,
                       coinReward: currency.coinReward,
                       coinRewardEventId: currency.coinRewardEventId,
+                      showRewardPending: _feedRewardPendingCount > 0,
+                      rewardPendingLabel: l10n.feedRewardPending,
                       onPetTap: () => Scaffold.of(context).openDrawer(),
                       onPetNameTap: _openPetNameEditor,
                       onStoreTap: _openStoreFromNav,

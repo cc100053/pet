@@ -405,6 +405,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get feedRewardPending => '獎勵計算中...';
+
+  @override
   String get forceUpdateAction => '立即更新';
 
   @override
@@ -1648,6 +1651,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String feedUploadFailed(Object error) {
     return '餵食上傳失敗：$error';
   }
+
+  @override
+  String get feedRewardPending => '獎勵計算中...';
 
   @override
   String get forceUpdateAction => '立即更新';
