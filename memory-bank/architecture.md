@@ -24,6 +24,8 @@
 - `supabase/migrations/20260221103000_add_hunger_alert_50.sql`: Extend hunger alert pipeline with `50` threshold state/message metadata and reset logic so alerts fire once per recovery cycle for `50/30/10`.
 - `supabase/migrations/20260217113000_add_unread_tracking_and_badge_rpc.sql`: Add `room_members.last_read_at`, create `mark_room_read` RPC, and add unread-total RPC used for APNs app-icon badge counts.
 - `supabase/migrations/20260217143000_add_unread_counts_per_room_rpc.sql`: Add `get_unread_message_counts_for_user` RPC so clients can restore per-room unread badges from server state after app relaunch.
+- `supabase/migrations/20260223123000_secure_unread_rpc_user_scope.sql`: Restrict unread RPCs so authenticated callers can query only their own unread state.
+- `supabase/migrations/20260223150000_align_unread_rpc_with_block_visibility.sql`: Align unread RPC sender filtering with block-enforced message visibility so badges do not count hidden messages.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
 - `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
 - `supabase/migrations/20260218170000_sync_room_timezone_on_owner_transfer.sql`: Sync `rooms.timezone` to the promoted owner's profile timezone when room ownership transfers.
@@ -95,6 +97,7 @@ Planned:
   - Delivery diagnostics: `notify_friend` persists per-token send outcomes to `public.notification_delivery_logs` and returns non-2xx when all token sends fail.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
+- Unread badge RPCs (`get_unread_message_total_for_user`, `get_unread_message_counts_for_user`) now apply the same bilateral block filtering as message reads.
 - Pet night-mode protection is evaluated against a room-scoped timezone (`rooms.timezone`), keeping behavior consistent for members in different districts/timezones.
 - Ownership: Triggered owner transfer when the active owner leaves.
 - Note: Edge Functions with `verify_jwt` require HS256 JWT signing in Supabase Auth settings (ES256/asymmetric will be rejected).

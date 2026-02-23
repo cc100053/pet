@@ -102,3 +102,16 @@
 - Notification/message safety: oversized feed payloads now fail before `process_feed_event` and before `notify_friend`, preventing ghost messages/notifications.
 - Verification: `flutter analyze` (clean), `flutter test` (pass; env-gated integration test skipped).
 - Deployed via MCP: `feed_validate` version `14` and `avatar_upload` version `3`, both `ACTIVE`, `verify_jwt=true`.
+
+## Finding #6 (Done)
+### Plan
+- [x] Align unread RPC filtering with message visibility block rules.
+- [x] Add a Supabase migration that updates both unread RPCs (`total` and `per-room`) with block-aware sender exclusion.
+- [x] Run required checks: `flutter analyze` and `flutter test`.
+- [x] Update memory docs and add review notes.
+
+### Review
+- Added migration `20260223150000_align_unread_rpc_with_block_visibility.sql` to redefine unread RPCs with bilateral block filtering, matching `messages_select` visibility behavior.
+- Preserved existing unread RPC auth hardening: authenticated callers can still read only their own unread state; non-authenticated/internal callers retain parameterized access.
+- Applied the migration via Supabase MCP (`align_unread_rpc_with_block_visibility`) so DB runtime behavior is updated immediately.
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped).

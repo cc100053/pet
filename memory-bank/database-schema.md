@@ -339,8 +339,8 @@ for select using (auth.role() = 'authenticated');
 - `purchase_room_furniture_with_diamonds(room_id uuid, item_id uuid)` -> spends diamonds and adds one furniture unit to room-scoped inventory.
 - `grant_iap_coins(product_id text, amount int, transaction_id text)` -> idempotent coin grant for IAP consumables.
 - `grant_iap_diamonds(product_id text, amount int, transaction_id text)` -> idempotent diamond grant for IAP consumables.
-- `get_unread_message_total_for_user(p_user_id uuid)` -> returns total unread chat messages across all active rooms (used for iOS app-icon badge).
-- `get_unread_message_counts_for_user(p_user_id uuid)` -> returns unread counts grouped by room (used to restore in-app room/chat badges after relaunch).
+- `get_unread_message_total_for_user(p_user_id uuid)` -> returns total unread chat messages across all active rooms (used for iOS app-icon badge), excluding self-sent and block-hidden sender messages.
+- `get_unread_message_counts_for_user(p_user_id uuid)` -> returns unread counts grouped by room (used to restore in-app room/chat badges after relaunch), excluding self-sent and block-hidden sender messages.
 - `tick_pet_state(pet_id uuid, now_ts timestamptz)` -> applies decay with night mode, poop penalties, and mood updates using `rooms.timezone` (room-scoped); hunger-threshold system alerts are emitted at `<=50`, `<=30`, and `<=10` once per recovery cycle.
 
 ## Ownership Transfer
