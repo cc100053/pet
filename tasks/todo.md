@@ -1,5 +1,24 @@
 # Findings #3-#5
 
+## ATT Compliance Findings #1-#3 (Done)
+### Plan
+- [x] Add a lifecycle-gated ATT consent service (wait for app `resumed` before requesting).
+- [x] Remove startup-time AdMob initialization from `main.dart`.
+- [x] Gate analytics collection enablement through the shared ATT consent service.
+- [x] Gate rewarded ad initialization/preload behind ATT authorization.
+- [x] Gate banner ad loading behind ATT authorization.
+- [x] Update reviewer reply draft to match actual runtime behavior.
+- [x] Run `flutter analyze` and `flutter test`.
+- [x] Update memory docs + lessons with final behavior notes.
+
+### Review
+- Added `TrackingConsentService` to centralize ATT handling and request only after app lifecycle reaches `resumed`, preventing suppressed ATT dialogs caused by fixed-delay startup timing.
+- Removed startup-time `MobileAds.instance.initialize()` from `main.dart`; ad SDK startup now happens only after ATT authorization.
+- Updated analytics consent flow to call the shared tracking service so Firebase Analytics collection remains disabled until ATT resolution.
+- Added `AdMobStartupService` and wired both rewarded and banner ad paths through it, blocking ad SDK init/ad requests unless ATT is authorized on iOS.
+- Updated App Store reviewer reply draft to reflect actual runtime behavior (active-state-gated ATT + post-consent ad startup).
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; existing env-gated integration test skipped).
+
 ## Feed Instant Reward (#3) (Done)
 ### Plan
 - [x] Apply `coins_awarded` from `feed_validate` immediately on upload success.

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../services/ads/admob_ids.dart';
+import '../../services/ads/admob_startup_service.dart';
 
 class AdMobBannerSlot extends StatefulWidget {
   const AdMobBannerSlot({super.key});
@@ -17,7 +20,7 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
   @override
   void initState() {
     super.initState();
-    _loadBanner();
+    unawaited(_loadBanner());
   }
 
   @override
@@ -44,10 +47,17 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
     );
   }
 
-  void _loadBanner() {
+  Future<void> _loadBanner() async {
     if (!AdMobIds.isSupported) {
       return;
     }
+
+    final initialized = await AdMobStartupService.instance
+        .initializeIfAuthorized();
+    if (!initialized || !mounted) {
+      return;
+    }
+
     final bannerAd = BannerAd(
       adUnitId: AdMobIds.bannerAdUnitId,
       size: AdSize.banner,

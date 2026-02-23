@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'admob_ids.dart';
+import 'admob_startup_service.dart';
 import '../env.dart';
 
 enum RewardedAdPlacement { doubleCoins }
@@ -126,7 +127,15 @@ class RewardedAdsAdMobService implements RewardedAdsService {
       message: 'Loading rewarded ad...',
     );
     try {
-      await MobileAds.instance.initialize();
+      final initialized = await AdMobStartupService.instance
+          .initializeIfAuthorized();
+      if (!initialized) {
+        _setState(
+          RewardedAdAvailability.unavailable,
+          message: 'Rewarded ads require tracking permission on iOS.',
+        );
+        return;
+      }
       _initialized = true;
       await preload(RewardedAdPlacement.doubleCoins);
     } catch (error) {
@@ -145,6 +154,13 @@ class RewardedAdsAdMobService implements RewardedAdsService {
       _setState(
         RewardedAdAvailability.unavailable,
         message: 'Rewarded ads are only enabled on iOS.',
+      );
+      return;
+    }
+    if (!_initialized) {
+      _setState(
+        RewardedAdAvailability.unavailable,
+        message: 'Rewarded ads require tracking permission on iOS.',
       );
       return;
     }
@@ -189,6 +205,14 @@ class RewardedAdsAdMobService implements RewardedAdsService {
       return const RewardedAdResult.unavailable(
         'Rewarded ads are only enabled on iOS.',
       );
+    }
+    if (!_initialized) {
+      await initialize();
+      if (!_initialized) {
+        return const RewardedAdResult.unavailable(
+          'Rewarded ads require tracking permission on iOS.',
+        );
+      }
     }
     if (_showing) {
       return const RewardedAdResult.unavailable(

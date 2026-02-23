@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Fixed App Store ATT review blockers end-to-end: added lifecycle-gated ATT coordinator (`TrackingConsentService`) that waits for iOS `resumed` before `requestTrackingAuthorization`, removed startup-time AdMob initialization from `main.dart`, gated Firebase Analytics collection through ATT resolution, and blocked AdMob rewarded/banner startup+preload paths unless ATT is authorized.
 - Fixed unread badge/message visibility mismatch for blocked users: added migration `20260223150000_align_unread_rpc_with_block_visibility.sql` so unread RPCs now apply the same bilateral block filtering as message reads, preventing badges from counting hidden messages.
 - Implemented instant post-ack feed reward UX: Home now applies `feed_validate.coins_awarded` immediately on upload-success callback and performs profile-balance reconciliation in background, so candy gain feedback appears without waiting for an extra profile read.
 - Added immediate reward-pending HUD feedback for feed sends: Home status bar now shows a localized pending pill beside candy while waiting for server reward resolution, then clears on success/failure without optimistic coin mutation.

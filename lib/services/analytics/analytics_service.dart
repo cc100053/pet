@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+
+import '../privacy/tracking_consent_service.dart';
 
 class AnalyticsService {
   AnalyticsService._();
@@ -18,11 +19,8 @@ class AnalyticsService {
         return;
       }
 
-      var status = await AppTrackingTransparency.trackingAuthorizationStatus;
-      if (status == TrackingStatus.notDetermined) {
-        status = await AppTrackingTransparency.requestTrackingAuthorization();
-      }
-      final allowTracking = status == TrackingStatus.authorized;
+      final allowTracking = await TrackingConsentService.instance
+          .ensureTrackingAuthorization();
       await _analytics.setAnalyticsCollectionEnabled(allowTracking);
     } catch (_) {}
   }

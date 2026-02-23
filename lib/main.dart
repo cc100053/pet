@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,7 +16,6 @@ import 'services/analytics/analytics_service.dart';
 import 'services/home/home_bootstrap_cache_repository.dart';
 import 'services/performance/performance_service.dart';
 import 'services/settings/app_settings_repository.dart';
-import 'services/ads/admob_ids.dart';
 
 Future<void> main() async {
   runZonedGuarded(
@@ -29,7 +27,6 @@ Future<void> main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      await AnalyticsService.instance.configureCollection();
 
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
         !kDebugMode,
@@ -51,14 +48,12 @@ Future<void> main() async {
       await AppSettingsRepository.instance.init();
       await ChatMessageRepository.instance.init();
       await HomeBootstrapCacheRepository.instance.init();
-      if (AdMobIds.isSupported) {
-        await MobileAds.instance.initialize();
-      }
       PerformanceService.instance.markAppStart(appStartTime);
 
       runApp(const ProviderScope(child: PicPetApp()));
       WidgetsBinding.instance.addPostFrameCallback((_) {
         PerformanceService.instance.markFirstFrameRendered();
+        unawaited(AnalyticsService.instance.configureCollection());
       });
     },
     (error, stack) {

@@ -65,6 +65,7 @@ Implemented:
   - `lib/features/store/widgets/store_departed_pet_selector.dart`: Extracted departed-pet selection/confirmation dialogs for return-letter purchase.
   - `lib/features/store/widgets/store_item_cards.dart`: Extracted Store card builders for IAP/items/themes.
 - `lib/features/ads/`: iOS AdMob rewarded + banner ad UI components and service wiring.
+  - `lib/services/ads/admob_startup_service.dart`: ATT-authorized lazy AdMob startup gate shared by rewarded/banner placements.
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
@@ -72,6 +73,7 @@ Implemented:
 - `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
+- `lib/services/privacy/tracking_consent_service.dart`: Central ATT consent coordinator that waits for app lifecycle `resumed` before requesting authorization.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
