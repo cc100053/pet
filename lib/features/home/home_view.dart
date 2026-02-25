@@ -16,6 +16,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/app_badge_service.dart';
 import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
+import '../../services/crash/crash_reporting_service.dart';
 import '../../services/fcm_service.dart';
 import '../../services/home/home_bootstrap_cache_repository.dart';
 import '../../services/iap/revenuecat_service.dart';
@@ -248,11 +249,19 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _feedingAnimationToken = 0;
   final Map<String, ProfileSummary> _profileByUserId = {};
   bool _showingFeedDoubleRewardPrompt = false;
+  String? _lastCrashContextRoomId;
+  String? _lastCrashContextNetworkState;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    unawaited(
+      CrashReportingService.instance.setContext(
+        feature: 'home_view',
+        lastAction: 'home_init_state',
+      ),
+    );
     _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
     unawaited(_refreshDebugAdminAccess());
     _selectNextPetStationaryState();
@@ -540,10 +549,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       );
       _lastWriteOnlineCheckAt = now;
       _lastWriteOnlineCheckResult = true;
+      _syncCrashContextFromHome(networkState: 'online');
       return true;
     } catch (_) {
       _lastWriteOnlineCheckAt = now;
       _lastWriteOnlineCheckResult = false;
+      _syncCrashContextFromHome(networkState: 'offline');
       _showOfflineSnackBar();
       return false;
     }
@@ -1143,12 +1154,36 @@ class _HomeViewState extends ConsumerState<HomeView>
     _syncCurrencyProvider();
     _syncRoomProviders();
     _syncPetStateProvider();
+    _syncCrashContextFromHome();
   }
 
   void _setStateForRoomManager(VoidCallback mutation) {
     setState(mutation);
     _syncRoomProviders();
     _syncPetStateProvider();
+    _syncCrashContextFromHome();
+  }
+
+  void _syncCrashContextFromHome({String? networkState, String? lastAction}) {
+    final roomId = _roomId ?? 'none';
+    final resolvedNetworkState =
+        networkState ?? (_lastWriteOnlineCheckResult ? 'online' : 'offline');
+    final roomChanged = _lastCrashContextRoomId != roomId;
+    final networkChanged =
+        _lastCrashContextNetworkState != resolvedNetworkState;
+    if (!roomChanged && !networkChanged && lastAction == null) {
+      return;
+    }
+    _lastCrashContextRoomId = roomId;
+    _lastCrashContextNetworkState = resolvedNetworkState;
+    unawaited(
+      CrashReportingService.instance.setContext(
+        feature: 'home_view',
+        roomId: roomId,
+        networkState: resolvedNetworkState,
+        lastAction: lastAction,
+      ),
+    );
   }
 
   void _syncRoomProviders() {
@@ -4255,6 +4290,15 @@ class _HomeViewState extends ConsumerState<HomeView>
                   onTap: () {
                     Navigator.pop(context);
                     ForceUpdateDebugTool.instance.showHardPrompt();
+                  },
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugTestCrashReport),
+                  onTap: () {
+                    Navigator.pop(context);
+                    unawaited(
+                      CrashReportingService.instance.triggerTestCrash(),
+                    );
                   },
                 ),
                 if (_petError != null)

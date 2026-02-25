@@ -8,6 +8,8 @@ This file is for agentic coding agents working in this repo.
 - When instructions require a website/dashboard step, mark it as `[USER ACTION REQUIRED]`.
 - If you touch Supabase schema/functions, prefer the Supabase MCP workflow first (see "Supabase" section).
 - UI should refresh automatically after any action that causes a state transition.
+- Backward-compatibility rule: If a parameter change can affect behavior of old app versions, ask for user approval before implementing/releasing it.
+- Backward-compatibility rule: Before proceeding with such a change, propose alternatives that avoid impacting old versions (e.g., version-gated flags, backward-compatible defaults, new optional params, phased rollout), then wait for approval.
 
 # Agent Workflows & Core Principles
 

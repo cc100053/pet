@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../features/auth/auth_gate.dart';
+import '../services/crash/crash_reporting_service.dart';
 import '../shared/localization/app_locale_controller.dart';
 import '../shared/theme/app_theme.dart';
 import '../shared/ui/app_ui_scale.dart';
 import '../shared/ui/status_bar_style.dart';
+import '../shared/force_update/crash_update_guard.dart';
 import '../shared/force_update/force_update_gate.dart';
 
 class PicPetApp extends ConsumerWidget {
@@ -49,6 +51,7 @@ class PicPetApp extends ConsumerWidget {
         },
         navigatorObservers: [
           FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+          CrashRouteObserver.instance,
         ],
         builder: (context, child) {
           final mediaQuery = MediaQuery.of(context);
@@ -71,7 +74,7 @@ class PicPetApp extends ConsumerWidget {
             child: Theme(data: scaledTheme, child: child),
           );
         },
-        home: const ForceUpdateGate(child: AuthGate()),
+        home: const CrashUpdateGuard(child: ForceUpdateGate(child: AuthGate())),
       ),
     );
   }

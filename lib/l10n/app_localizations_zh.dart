@@ -310,6 +310,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
 
   @override
+  String get drawerDebugTestCrashReport => '測試崩潰上報';
+
+  @override
   String drawerInviteCode(Object code) {
     return '代碼：$code';
   }
@@ -1556,6 +1559,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
+
+  @override
+  String get drawerDebugTestCrashReport => '測試崩潰上報';
 
   @override
   String drawerInviteCode(Object code) {

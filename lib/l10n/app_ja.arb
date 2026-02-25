@@ -182,6 +182,7 @@
   "drawerDebugShowFullBubble": "「おなかいっぱい！」を表示",
   "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
   "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
+  "drawerDebugTestCrashReport": "クラッシュ報告をテスト",
   "drawerInviteCode": "コード: {code}",
   "@drawerInviteCode": {
     "placeholders": {

@@ -631,6 +631,12 @@ abstract class AppLocalizations {
   /// **'Test Hard Update Prompt'**
   String get drawerDebugTestHardUpdate;
 
+  /// No description provided for @drawerDebugTestCrashReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Crash Report'**
+  String get drawerDebugTestCrashReport;
+
   /// No description provided for @drawerInviteCode.
   ///
   /// In en, this message translates to:

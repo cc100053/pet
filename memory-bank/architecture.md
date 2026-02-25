@@ -33,6 +33,8 @@
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
 - `supabase/seed.sql`: Seed data for label mappings and quests.
+- `docs/crash_reporting.md`: Crash reporting validation + alerting runbook.
+- `ios/scripts/upload_crashlytics_symbols.sh`: iOS release dSYM upload script for Crashlytics symbolication.
 - `.github/workflows/ci.yml`: Flutter analyze/test workflow.
 
 ## App Modules (Phase 0)
@@ -69,6 +71,7 @@ Implemented:
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
+- `lib/services/crash/crash_reporting_service.dart`: Central Crashlytics wrapper (fatal/non-fatal reporting, custom keys, breadcrumb logging, and navigator route observer).
 - `lib/services/profile/profile_cache_service.dart`: Shared profile summary cache/service used by Home, Chat, and Memory Calendar sender resolution.
 - `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
 - `lib/services/`: Environment loader and shared service setup.

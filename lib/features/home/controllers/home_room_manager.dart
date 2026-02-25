@@ -209,6 +209,7 @@ extension _HomeRoomManager on _HomeViewState {
     String? petType,
     bool showEntryLoading = false,
   }) {
+    _syncCrashContextFromHome(lastAction: 'switch_room');
     _feedingAnimationToken++;
     final roomEntryToken = showEntryLoading ? ++_roomEntryLoadingToken : -1;
     final roomEntryStartedAt = DateTime.now();
@@ -355,6 +356,7 @@ extension _HomeRoomManager on _HomeViewState {
     if (previousRoom != roomId) {
       AnalyticsService.instance.logEvent('room_switch');
     }
+    _syncCrashContextFromHome(lastAction: 'switch_room_ready');
   }
 
   Future<void> _loadRoomEntryCore({
@@ -395,6 +397,7 @@ extension _HomeRoomManager on _HomeViewState {
   }
 
   Future<void> _createRoom() async {
+    _syncCrashContextFromHome(lastAction: 'create_room_start');
     final l10n = AppLocalizations.of(context)!;
     final reachedFreePlanLimit =
         !_hasProPlanAccess &&
@@ -452,10 +455,19 @@ extension _HomeRoomManager on _HomeViewState {
         'room_create',
         parameters: {'result': 'success'},
       );
+      _syncCrashContextFromHome(lastAction: 'create_room_success');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.roomCreatedSuccess)));
     } catch (error) {
+      unawaited(
+        CrashReportingService.instance.reportError(
+          error: error,
+          stackTrace: StackTrace.current,
+          source: 'home_create_room',
+          fatal: false,
+        ),
+      );
       if (!mounted) {
         return;
       }
@@ -572,6 +584,7 @@ extension _HomeRoomManager on _HomeViewState {
   }
 
   Future<void> _joinRoomByCode() async {
+    _syncCrashContextFromHome(lastAction: 'join_room_start');
     if (_joiningRoom) {
       return;
     }
@@ -653,10 +666,19 @@ extension _HomeRoomManager on _HomeViewState {
         'room_join',
         parameters: {'method': 'invite_code', 'result': 'success'},
       );
+      _syncCrashContextFromHome(lastAction: 'join_room_success');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.roomJoinSuccess)));
     } catch (error) {
+      unawaited(
+        CrashReportingService.instance.reportError(
+          error: error,
+          stackTrace: StackTrace.current,
+          source: 'home_join_room',
+          fatal: false,
+        ),
+      );
       if (!mounted) {
         return;
       }
@@ -711,6 +733,7 @@ extension _HomeRoomManager on _HomeViewState {
   }
 
   Future<void> _leaveRoom(String roomId, {bool showSnackBar = true}) async {
+    _syncCrashContextFromHome(lastAction: 'leave_room_start');
     if (_leavingRoom) {
       return;
     }
@@ -739,7 +762,16 @@ extension _HomeRoomManager on _HomeViewState {
           context,
         ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
       }
+      _syncCrashContextFromHome(lastAction: 'leave_room_success');
     } catch (error) {
+      unawaited(
+        CrashReportingService.instance.reportError(
+          error: error,
+          stackTrace: StackTrace.current,
+          source: 'home_leave_room',
+          fatal: false,
+        ),
+      );
       if (!mounted) {
         return;
       }

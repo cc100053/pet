@@ -310,6 +310,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTestHardUpdate => '必須更新ポップアップを確認';
 
   @override
+  String get drawerDebugTestCrashReport => 'クラッシュ報告をテスト';
+
+  @override
   String drawerInviteCode(Object code) {
     return 'コード: $code';
   }

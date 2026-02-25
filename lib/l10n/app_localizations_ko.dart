@@ -316,6 +316,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugTestHardUpdate => '강제 업데이트 안내 테스트';
 
   @override
+  String get drawerDebugTestCrashReport => '크래시 보고 테스트';
+
+  @override
   String drawerInviteCode(Object code) {
     return '코드: $code';
   }

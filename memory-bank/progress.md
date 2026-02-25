@@ -1,6 +1,9 @@
 # Progress
 
 ## Done
+- Implemented end-to-end crash detection/reporting hardening: added centralized `CrashReportingService` (Crashlytics context keys + breadcrumbs + route observer), wired fatal capture across Flutter/PlatformDispatcher/Zone/Isolate paths, added debug "Test Crash Report" trigger in Home Debug Tools, and routed fatal runtime failures to a user-facing update fallback screen (`CrashUpdateGuard`) instead of blank/white UI.
+- Added iOS Crashlytics symbolication automation: new `ios/scripts/upload_crashlytics_symbols.sh` plus Xcode build-phase hook to upload release dSYMs for readable stack traces.
+- Added crash operations runbook (`docs/crash_reporting.md`) with validation steps and `[USER ACTION REQUIRED]` Firebase alert setup checklist.
 - Fixed App Store ATT review blockers end-to-end: added lifecycle-gated ATT coordinator (`TrackingConsentService`) that waits for iOS `resumed` before `requestTrackingAuthorization`, removed startup-time AdMob initialization from `main.dart`, gated Firebase Analytics collection through ATT resolution, and blocked AdMob rewarded/banner startup+preload paths unless ATT is authorized.
 - Fixed unread badge/message visibility mismatch for blocked users: added migration `20260223150000_align_unread_rpc_with_block_visibility.sql` so unread RPCs now apply the same bilateral block filtering as message reads, preventing badges from counting hidden messages.
 - Implemented instant post-ack feed reward UX: Home now applies `feed_validate.coins_awarded` immediately on upload-success callback and performs profile-balance reconciliation in background, so candy gain feedback appears without waiting for an extra profile read.

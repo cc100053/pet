@@ -320,6 +320,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTestHardUpdate => 'Test Hard Update Prompt';
 
   @override
+  String get drawerDebugTestCrashReport => 'Test Crash Report';
+
+  @override
   String drawerInviteCode(Object code) {
     return 'Code: $code';
   }

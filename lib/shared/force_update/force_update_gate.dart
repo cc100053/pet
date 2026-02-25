@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
+import '../../services/crash/crash_reporting_service.dart';
 import '../ui/app_dialog.dart';
 import 'force_update_debug_tool.dart';
 import 'update_policy.dart';
@@ -56,6 +57,12 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   }
 
   Future<void> _checkForUpdate() async {
+    unawaited(
+      CrashReportingService.instance.setContext(
+        feature: 'force_update_gate',
+        lastAction: 'check_for_update',
+      ),
+    );
     if (mounted) {
       setState(() {
         _checking = true;
@@ -115,7 +122,15 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
         );
         _showSoftUpdateDialog(config);
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      unawaited(
+        CrashReportingService.instance.reportError(
+          error: error,
+          stackTrace: stackTrace,
+          source: 'force_update_check',
+          fatal: false,
+        ),
+      );
       if (!mounted) {
         return;
       }
@@ -137,10 +152,22 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     );
     if (type == ForceUpdateDebugPromptType.hard) {
       AnalyticsService.instance.logEvent('debug_hard_update_prompt_shown');
+      unawaited(
+        CrashReportingService.instance.setContext(
+          feature: 'force_update_gate',
+          lastAction: 'show_debug_hard_update_prompt',
+        ),
+      );
       await _showHardUpdateDialog(debugConfig);
       return;
     }
     AnalyticsService.instance.logEvent('debug_soft_update_prompt_shown');
+    unawaited(
+      CrashReportingService.instance.setContext(
+        feature: 'force_update_gate',
+        lastAction: 'show_debug_soft_update_prompt',
+      ),
+    );
     await _showSoftUpdateDialog(debugConfig);
   }
 
@@ -164,6 +191,12 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
             AppDialogAction.primary(
               label: AppLocalizations.of(context)!.forceUpdateAction,
               onPressed: () {
+                unawaited(
+                  CrashReportingService.instance.setContext(
+                    feature: 'force_update_gate',
+                    lastAction: 'tap_hard_update',
+                  ),
+                );
                 AnalyticsService.instance.logEvent(
                   'force_update_tap_update',
                   parameters: {
@@ -202,6 +235,12 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
             onPressed: () {
               _skippedSoftUpdateVersion = config.latestAvailableVersion;
               Navigator.of(context).pop();
+              unawaited(
+                CrashReportingService.instance.setContext(
+                  feature: 'force_update_gate',
+                  lastAction: 'tap_soft_update_later',
+                ),
+              );
               AnalyticsService.instance.logEvent(
                 'soft_update_tap_later',
                 parameters: {'latest_version': config.latestAvailableVersion},
@@ -213,6 +252,12 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
             onPressed: () {
               _skippedSoftUpdateVersion = config.latestAvailableVersion;
               Navigator.of(context).pop();
+              unawaited(
+                CrashReportingService.instance.setContext(
+                  feature: 'force_update_gate',
+                  lastAction: 'tap_soft_update',
+                ),
+              );
               AnalyticsService.instance.logEvent(
                 'soft_update_tap_update',
                 parameters: {'latest_version': config.latestAvailableVersion},
@@ -231,11 +276,25 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     if (uri == null) {
       return;
     }
-    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!launched && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.forceUpdateLinkError),
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.forceUpdateLinkError),
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      unawaited(
+        CrashReportingService.instance.reportError(
+          error: error,
+          stackTrace: stackTrace,
+          source: 'force_update_launch_store',
+          fatal: false,
         ),
       );
     }

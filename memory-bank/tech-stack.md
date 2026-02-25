@@ -44,6 +44,7 @@
 ## Notifications & Analytics
 - Push notifications: Firebase Cloud Messaging (FCM)
 - Analytics: Firebase Analytics
+- Crash reporting: Firebase Crashlytics
 - Ratings prompt: Apple In-App Review (`in_app_review`)
 - IAP/Subscriptions: RevenueCat (`purchases_flutter`)
 - Ads: Google AdMob (`google_mobile_ads`) for iOS banner + rewarded placements

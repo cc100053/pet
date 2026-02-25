@@ -182,6 +182,7 @@
   "drawerDebugShowFullBubble": "Show \"I'm Full\" Bubble",
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
+  "drawerDebugTestCrashReport": "Test Crash Report",
   "drawerInviteCode": "Code: {code}",
   "@drawerInviteCode": {
     "placeholders": {

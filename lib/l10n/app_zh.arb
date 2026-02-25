@@ -182,6 +182,7 @@
   "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
   "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
   "drawerDebugTestHardUpdate": "測試強制更新彈窗",
+  "drawerDebugTestCrashReport": "測試崩潰上報",
   "drawerInviteCode": "代碼：{code}",
   "@drawerInviteCode": {
     "placeholders": {

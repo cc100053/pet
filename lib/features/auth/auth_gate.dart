@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../home/home_view.dart';
 import 'sign_in_view.dart';
 import '../../services/analytics/analytics_service.dart';
+import '../../services/crash/crash_reporting_service.dart';
 import '../../services/fcm_service.dart';
 
 class AuthGate extends ConsumerStatefulWidget {
@@ -28,8 +28,8 @@ class _AuthGateState extends ConsumerState<AuthGate>
     WidgetsBinding.instance.addObserver(this);
     final currentSession = Supabase.instance.client.auth.currentSession;
     AnalyticsService.instance.setUserId(currentSession?.user.id);
-    FirebaseCrashlytics.instance.setUserIdentifier(
-      currentSession?.user.id ?? 'signed_out',
+    unawaited(
+      CrashReportingService.instance.setUserId(currentSession?.user.id),
     );
     if (currentSession != null) {
       unawaited(_fcmService.initialize());
@@ -42,11 +42,11 @@ class _AuthGateState extends ConsumerState<AuthGate>
       if (session == null) {
         AnalyticsService.instance.setUserId(null);
         AnalyticsService.instance.logEvent('sign_out');
-        FirebaseCrashlytics.instance.setUserIdentifier('signed_out');
+        unawaited(CrashReportingService.instance.setUserId(null));
       } else {
         AnalyticsService.instance.setUserId(session.user.id);
         AnalyticsService.instance.logEvent('sign_in');
-        FirebaseCrashlytics.instance.setUserIdentifier(session.user.id);
+        unawaited(CrashReportingService.instance.setUserId(session.user.id));
         unawaited(_fcmService.initialize());
         unawaited(_fcmService.refreshTokenSync());
       }

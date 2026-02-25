@@ -1,5 +1,25 @@
 # Findings #3-#5
 
+## Crash Fallback Update Prompt (Done)
+### Plan
+- [x] Add a global runtime crash signal that can be raised by Flutter/zone/platform error handlers.
+- [x] Wrap the app root with a crash guard that switches to a user-facing update prompt screen when a fatal error is captured.
+- [x] Reuse existing force-update localization/actions so users get a clear "Update now" path instead of a blank/white screen.
+- [x] Add centralized Crashlytics reporting service with route/context keys + breadcrumbs + debug test-crash trigger.
+- [x] Add iOS dSYM upload automation for Crashlytics symbolication.
+- [x] Add runbook notes for alerting/operations and mark dashboard steps as `[USER ACTION REQUIRED]`.
+- [x] Run `flutter analyze` and `flutter test`.
+- [x] Add review notes to this todo entry.
+
+### Review
+- Added `CrashReportingService` + `CrashRouteObserver` to centralize fatal/non-fatal reporting, breadcrumbs, user id, route tracking, and crash context keys (`feature`, `room_id`, `last_action`, `network_state`, version/build metadata).
+- Wired fatal capture paths in `main.dart` for Flutter framework errors, `PlatformDispatcher` errors, zone errors, and isolate uncaught errors; fatal events now also trigger app-level crash fallback signal.
+- Added `CrashUpdateGuard`-based user fallback screen at app root (`CrashUpdateGuard -> ForceUpdateGate -> AuthGate`) so fatal runtime errors show an explicit update prompt instead of a white screen.
+- Added Debug Tools action to intentionally trigger a Crashlytics crash report (`drawerDebugTestCrashReport`) for pipeline verification.
+- Added iOS script `ios/scripts/upload_crashlytics_symbols.sh` and hooked it into Xcode build phases to upload dSYMs on non-Debug builds for symbolicated stack traces.
+- Added runbook `docs/crash_reporting.md` with validation and operations checklist, including `[USER ACTION REQUIRED]` Firebase dashboard alert setup steps.
+- Verification: `flutter analyze` (clean), `flutter test` (pass; env-gated integration test skipped as expected).
+
 ## ATT Compliance Findings #1-#3 (Done)
 ### Plan
 - [x] Add a lifecycle-gated ATT consent service (wait for app `resumed` before requesting).
