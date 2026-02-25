@@ -154,3 +154,56 @@
 - Preserved existing unread RPC auth hardening: authenticated callers can still read only their own unread state; non-authenticated/internal callers retain parameterized access.
 - Applied the migration via Supabase MCP (`align_unread_rpc_with_block_visibility`) so DB runtime behavior is updated immediately.
 - Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped).
+
+## Finding #7 Hunger Push While App Closed (Done)
+### Plan
+- [x] Confirm current hunger-alert notification path and closed-app gap.
+- [x] Add server-side hunger ticker/dispatcher Edge Function that can run without client app activity.
+- [x] Reuse existing `notify_friend` hunger-alert delivery path with dedupe safeguards.
+- [x] Keep client hunger-alert dispatch as fallback compatibility path.
+- [x] Update memory docs for architecture/behavior changes and operational scheduling requirement.
+- [x] Run required checks: `flutter analyze` and `flutter test`.
+- [x] Add review notes to this section.
+
+### Review
+- Root cause confirmed: hunger alert pushes were dispatched from client Home tick flow only, so no server-driven hunger pushes occurred while all apps were closed.
+- Added `supabase/functions/hunger_tick_dispatch/index.ts` to run service-role `tick_pet_state` updates, collect hunger alert message IDs (`50/30/10`), skip already delivered alerts via `notification_delivery_logs`, and invoke `notify_friend` in webhook mode for push delivery.
+- Kept existing Home dispatch path and hardened it for server-generated alerts by allowing dispatch when `hunger_alert_*_triggered_by` is `null`; `notify_friend` dedupe remains the guard against duplicates.
+- Updated memory docs to reflect the new architecture and documented the required scheduling operation.
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; existing env-gated integration test skipped).
+
+## Finding #8 MCP Schedule Apply (Done)
+### Plan
+- [x] Apply hunger dispatcher schedule directly via Supabase MCP (no dashboard/manual SQL).
+- [x] Deploy `hunger_tick_dispatch` and ensure scheduler auth works from DB cron.
+- [x] Enable/install required DB extensions and persist scheduler-related DB objects as migrations.
+- [x] Verify scheduled path with immediate `net.http_post` run and response inspection.
+- [x] Update memory docs with scheduler architecture and auth behavior notes.
+- [x] Run required checks: `flutter analyze` and `flutter test`.
+
+### Review
+- Applied MCP migrations for scheduler support: `enable_pg_cron_pg_net_for_hunger_tick_dispatch`, `add_get_hunger_tick_secret_rpc`, `add_tick_pet_state_as_system_rpc`, and `add_hunger_tick_dispatch_cron_schedule`.
+- Deployed `hunger_tick_dispatch` (active v4) and added vault-backed scheduler secret resolution plus system tick RPC usage (`tick_pet_state_as_system`) to avoid `not_authenticated` failures from background jobs.
+- Updated `notify_friend` auth compatibility for webhook mode under scheduler calls by accepting `X-Notify-Webhook-Secret` and redeployed as active v26 (`verify_jwt=false`) while preserving explicit auth validation in function logic.
+- Confirmed schedule exists in `cron.job` (`hunger_tick_dispatch_every_10m`, `*/10 * * * *`) and validated manual cron-equivalent call through `net.http_post` with `status_code=200`, `ticked_pets>0`, and successful dispatch attempts.
+
+## Finding #9 Hunger Dispatch Scaling (Done)
+### Plan
+- [x] Replace all-pets hunger tick scanning with a due-time scheduler model.
+- [x] Apply DB migration via Supabase MCP for due schedule table, helper functions, triggers, and cron update.
+- [x] Update/deploy `hunger_tick_dispatch` to consume due schedule rows only.
+- [x] Validate cron/job and runtime dispatch path from DB (`net.http_post`).
+- [x] Run required checks: `flutter analyze` and `flutter test`.
+- [x] Update memory docs and migration files.
+
+### Review
+- Applied MCP migration `add_pet_hunger_tick_schedule_and_20m_cron` (`20260225023510`) to add `public.pet_hunger_tick_schedule`, schedule-computation helpers (`compute_pet_hunger_next_check_at`, `refresh_pet_hunger_tick_schedule`), pet/pet_state triggers, and an updated `tick_pet_state_as_system` that refreshes due scheduling after each system tick.
+- Applied follow-up MCP migration `add_pet_hunger_tick_schedule_room_id_index` (`20260225024022`) to add a covering index for `pet_hunger_tick_schedule.room_id` FK checks.
+- Updated scheduler cadence to `hunger_tick_dispatch_every_20m` with cron expression `*/20 * * * *` and removed the prior `every_10m` job.
+- Updated `supabase/functions/hunger_tick_dispatch/index.ts` to query only due rows (`next_check_at <= now`) from `pet_hunger_tick_schedule`, then run the existing tick + alert dispatch pipeline for that subset.
+- Deployed `hunger_tick_dispatch` as active version `5` (`verify_jwt=false`) via Supabase MCP.
+- Runtime verification:
+- `cron.job` shows `hunger_tick_dispatch_every_20m` active on `*/20 * * * *`.
+- Manual DB-triggered call returned `status_code=200` with due-only no-op payload (`scanned_pets=0`) when no rows were currently due.
+- Schedule table snapshot shows sparse workset (`35` rows total, `2` scheduled, `0` due at check time), confirming non-full-scan behavior.
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped as expected).

@@ -1,6 +1,13 @@
 # Progress
 
 ## Done
+- Applied hunger dispatcher scheduling fully via Supabase MCP: enabled `pg_cron`/`pg_net`, added vault secret bootstrap (`hunger_tick_secret`), and installed cron scheduler targeting `functions/v1/hunger_tick_dispatch`.
+- Added scheduler support RPCs in DB: `get_hunger_tick_secret` (vault-backed secret lookup) and `tick_pet_state_as_system` (service-role wrapper that runs `tick_pet_state` using an active room member claim context).
+- Updated `hunger_tick_dispatch` deployment (v4 active) to use vault/env scheduler secret resolution and `tick_pet_state_as_system`, then verified via `net.http_post` response (`status_code=200`, `ticked_pets>0`, dispatch path executed).
+- Updated `notify_friend` deployment (v26 active) to support webhook auth via `X-Notify-Webhook-Secret` and switched to `verify_jwt=false` so scheduler webhook dispatch is accepted while function-level auth checks still gate client/webhook paths.
+- Added server-side hunger push delivery path for closed-app scenarios: new Edge Function `supabase/functions/hunger_tick_dispatch/index.ts` ticks active pets with service-role RPC calls, collects `50/30/10` hunger alert message IDs from `pet_state`, filters already-delivered alerts via `notification_delivery_logs`, and dispatches push through `notify_friend` webhook mode.
+- Hardened client hunger-alert fallback dispatch compatibility: Home now allows dispatch attempts when `hunger_alert_*_triggered_by` is `null` (server-triggered tick), while existing `notify_friend` delivery dedupe prevents duplicate pushes.
+- Added due-time hunger scheduling (`pet_hunger_tick_schedule`) so `hunger_tick_dispatch` processes only due pets (`next_check_at <= now`) instead of scanning all pets, and moved cron to `hunger_tick_dispatch_every_20m` (`*/20 * * * *`).
 - Implemented end-to-end crash detection/reporting hardening: added centralized `CrashReportingService` (Crashlytics context keys + breadcrumbs + route observer), wired fatal capture across Flutter/PlatformDispatcher/Zone/Isolate paths, added debug "Test Crash Report" trigger in Home Debug Tools, and routed fatal runtime failures to a user-facing update fallback screen (`CrashUpdateGuard`) instead of blank/white UI.
 - Added iOS Crashlytics symbolication automation: new `ios/scripts/upload_crashlytics_symbols.sh` plus Xcode build-phase hook to upload release dSYMs for readable stack traces.
 - Added crash operations runbook (`docs/crash_reporting.md`) with validation steps and `[USER ACTION REQUIRED]` Firebase alert setup checklist.

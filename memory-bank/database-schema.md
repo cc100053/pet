@@ -62,6 +62,13 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `hunger_alert_50_message_id`, `hunger_alert_30_message_id`, `hunger_alert_10_message_id` (uuid, fk -> `messages.id`)
   - `hunger_alert_50_triggered_by`, `hunger_alert_30_triggered_by`, `hunger_alert_10_triggered_by` (uuid, fk -> `auth.users`)
 
+- `pet_hunger_tick_schedule`
+  - `pet_id` (uuid, pk, fk -> `pets.id`)
+  - `room_id` (uuid, fk -> `rooms.id`)
+  - `next_check_at` (timestamptz, nullable; due-time cursor for server hunger dispatch)
+  - `created_at`, `updated_at`
+  - indexes: partial btree on `next_check_at` where not null, btree on `room_id`
+
 - `messages`
   - `id` (uuid, pk)
   - `room_id` (uuid, fk)

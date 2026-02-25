@@ -26,12 +26,19 @@
 - `supabase/migrations/20260217143000_add_unread_counts_per_room_rpc.sql`: Add `get_unread_message_counts_for_user` RPC so clients can restore per-room unread badges from server state after app relaunch.
 - `supabase/migrations/20260223123000_secure_unread_rpc_user_scope.sql`: Restrict unread RPCs so authenticated callers can query only their own unread state.
 - `supabase/migrations/20260223150000_align_unread_rpc_with_block_visibility.sql`: Align unread RPC sender filtering with block-enforced message visibility so badges do not count hidden messages.
+- `supabase/migrations/20260225015727_enable_pg_cron_pg_net_for_hunger_tick_dispatch.sql`: Enable `pg_cron` + `pg_net` for server-driven hunger dispatch scheduling.
+- `supabase/migrations/20260225015942_add_get_hunger_tick_secret_rpc.sql`: Add vault-backed RPC to fetch scheduler auth secret.
+- `supabase/migrations/20260225020133_add_tick_pet_state_as_system_rpc.sql`: Add service-role tick wrapper to run `tick_pet_state` without end-user session context.
+- `supabase/migrations/20260225020844_add_hunger_tick_dispatch_cron_schedule.sql`: Create/refresh `hunger_tick_dispatch_every_10m` cron job and seed vault secret if missing.
+- `supabase/migrations/20260225023510_add_pet_hunger_tick_schedule_and_20m_cron.sql`: Add due-time hunger tick schedule table/triggers/functions and switch scheduler to `hunger_tick_dispatch_every_20m` (`*/20`).
+- `supabase/migrations/20260225024022_add_pet_hunger_tick_schedule_room_id_index.sql`: Add `pet_hunger_tick_schedule.room_id` index to cover FK checks and room-scoped queries.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
 - `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
 - `supabase/migrations/20260218170000_sync_room_timezone_on_owner_transfer.sql`: Sync `rooms.timezone` to the promoted owner's profile timezone when room ownership transfers.
 - `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
 - `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
+- `supabase/functions/hunger_tick_dispatch/index.ts`: Server-side pet ticker + hunger-alert push dispatcher for closed-app delivery.
 - `supabase/seed.sql`: Seed data for label mappings and quests.
 - `docs/crash_reporting.md`: Crash reporting validation + alerting runbook.
 - `ios/scripts/upload_crashlytics_symbols.sh`: iOS release dSYM upload script for Crashlytics symbolication.
@@ -94,12 +101,13 @@ Planned:
 - Postgres: Users, rooms, pets, messages, inventories, config.
 - Realtime: Chat and system events.
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
-- Edge Functions: Feed validation + upload, avatar upload, and account deletion.
+- Edge Functions: Feed validation + upload, avatar upload, account deletion, and scheduled hunger-alert dispatch.
 - Webhooks: Trigger friend notifications on feed events.
 - Notifications:
   - Android: custom native `FirebaseMessagingService` (`NotificationCompat.MessagingStyle`) using room thread grouping and composed pet-avatar + app-badge large icon.
   - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) follows an Apple-default reliable style: fast title/body rewrite + room `thread-id` shaping only (no communication-intent donation and no remote media fetch in the extension), prioritizing consistent delivery/appearance across states.
   - Delivery diagnostics: `notify_friend` persists per-token send outcomes to `public.notification_delivery_logs` and returns non-2xx when all token sends fail.
+  - Hunger alert dispatch supports server-driven runs via `hunger_tick_dispatch`, which ticks pets and invokes `notify_friend` webhook delivery without requiring any active client session.
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Unread badge RPCs (`get_unread_message_total_for_user`, `get_unread_message_counts_for_user`) now apply the same bilateral block filtering as message reads.
@@ -112,7 +120,12 @@ Planned:
   - Upload requests now enforce a `10MB` decoded-image cap and strict image MIME allow-list (`jpeg/png/webp/heic/heif`) before any R2 upload, message insert, or notification trigger.
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
   - Feed sends now trigger notifications by directly invoking this function from `feed_validate` with the user auth token (no separate webhook URL dependency).
-  - Webhook-mode requests are accepted only with a configured `NOTIFY_WEBHOOK_SECRET` and matching bearer token; webhook payload message content is canonicalized from DB and recipients are constrained to active room members.
+  - Webhook-mode requests are accepted with a configured `NOTIFY_WEBHOOK_SECRET` via either `Authorization: Bearer <secret>` or `X-Notify-Webhook-Secret` header; webhook payload message content is canonicalized from DB and recipients are constrained to active room members.
+  - Current deployment runs with `verify_jwt=false`; function-level auth checks enforce JWT-backed user mode for client calls and secret-backed webhook mode for scheduler calls.
+- `supabase/functions/hunger_tick_dispatch/index.ts`: Scheduled hunger-alert dispatcher.
+  - Requires `HUNGER_TICK_SECRET` (or vault `hunger_tick_secret` / `NOTIFY_WEBHOOK_SECRET` fallback) for invocation auth and uses service-role RPC ticks + webhook-mode `notify_friend` dispatch.
+  - Pulls only due pets from `public.pet_hunger_tick_schedule` (`next_check_at <= now`) instead of scanning all pets, then uses `tick_pet_state_as_system` to preserve existing pet-state logic.
+  - Due-time schedule state is maintained by DB trigger/RPC path (`refresh_pet_hunger_tick_schedule`) and cron currently runs every 20 minutes.
 - Push payload contract (FCM `data`): `room_id`, `message_id`, `message_kind` (with legacy client fallback from `message_type`), `pet_name`, `sender_name`, `pet_type`, `pet_avatar_asset`, `pet_avatar_fallback_url`, `pet_avatar_url`, `image_url`, `caption`, `text_body`, `body_full`, `title_app_name`, `title_full`, and legacy `type`.
 - `supabase/functions/avatar_upload/index.ts`: Upload avatar image to R2 and update `profiles.avatar_url`.
   - Avatar uploads now enforce the same `10MB` decoded-image cap and MIME allow-list before R2/profile updates.

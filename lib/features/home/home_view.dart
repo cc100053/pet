@@ -2395,7 +2395,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         if (messageId == null || messageId.isEmpty) {
           continue;
         }
-        if (alert.triggeredBy != userId) {
+        if (alert.triggeredBy != null && alert.triggeredBy != userId) {
           continue;
         }
         if (_notifiedHungerAlertMessageIds.contains(messageId)) {

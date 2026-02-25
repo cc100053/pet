@@ -300,6 +300,7 @@ serve(async (req) => {
   }
 
   const authHeader = req.headers.get("Authorization") ?? "";
+  const webhookSecretHeader = req.headers.get("X-Notify-Webhook-Secret") ?? "";
   let payload: NotifyPayload;
   try {
     payload = await req.json();
@@ -307,8 +308,12 @@ serve(async (req) => {
     return jsonResponse(400, { error: "invalid_json" });
   }
 
-  const isWebhookRequest = !!NOTIFY_WEBHOOK_SECRET &&
-    authHeader === `Bearer ${NOTIFY_WEBHOOK_SECRET}`;
+  const hasWebhookSecret = !!NOTIFY_WEBHOOK_SECRET &&
+    (
+      authHeader === `Bearer ${NOTIFY_WEBHOOK_SECRET}` ||
+      webhookSecretHeader === NOTIFY_WEBHOOK_SECRET
+    );
+  const isWebhookRequest = hasWebhookSecret;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
     return jsonResponse(500, { error: "server_config_error" });
