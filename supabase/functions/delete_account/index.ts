@@ -23,6 +23,13 @@ function jsonResponse(status: number, body: Record<string, unknown>) {
   });
 }
 
+function shouldFallbackToSoftDelete(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return normalized.includes("foreign key") ||
+    normalized.includes("violates") ||
+    normalized.includes("constraint");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -47,15 +54,29 @@ serve(async (req) => {
   }
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { error: deleteError } = await admin.auth.admin.deleteUser(
+  let deleteMode: "hard" | "soft" = "hard";
+  let { error: deleteError } = await admin.auth.admin.deleteUser(
     authData.user.id,
   );
+
+  if (deleteError && shouldFallbackToSoftDelete(deleteError.message)) {
+    const softDelete = await admin.auth.admin.deleteUser(authData.user.id, true);
+    deleteError = softDelete.error;
+    if (!deleteError) {
+      deleteMode = "soft";
+    }
+  }
+
   if (deleteError) {
+    console.error("delete_account failed", {
+      userId: authData.user.id,
+      detail: deleteError.message,
+    });
     return jsonResponse(400, {
       error: "delete_failed",
       detail: deleteError.message,
     });
   }
 
-  return jsonResponse(200, { deleted: true });
+  return jsonResponse(200, { deleted: true, mode: deleteMode });
 });

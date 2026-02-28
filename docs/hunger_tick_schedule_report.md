@@ -1,0 +1,149 @@
+# Hunger Tick Schedule Detailed Report
+
+## Document Info
+- Date: 2026-02-25
+- Scope: Server-side hunger tick scheduling and push dispatch for closed-app scenarios
+- Environment: Supabase Postgres + Edge Functions
+
+## Objective
+Ensure hunger notifications are pushed even when no client app is open, while scaling efficiently as pet count grows.
+
+## Why This Was Needed
+Previous hunger alert dispatch behavior depended on client-side Home tick execution. If all users closed the app, hunger state updates and push dispatch could stop.
+
+## Implemented Solution Summary
+We moved to a server-driven, due-time scheduler model:
+
+1. `pg_cron` triggers `hunger_tick_dispatch` every 20 minutes.
+2. `hunger_tick_dispatch` no longer scans all pets.
+3. It reads only due pets from `public.pet_hunger_tick_schedule` where `next_check_at <= now()`.
+4. It runs `tick_pet_state_as_system` for that due set.
+5. Hunger threshold messages (`50/30/10`) are dispatched through `notify_friend` (webhook mode).
+6. Duplicate push sends are prevented through `notification_delivery_logs` checks.
+
+## Execution Location
+Timer execution is fully server-side:
+- Scheduler: Postgres `pg_cron` (`cron.job`)
+- Worker endpoint: Supabase Edge Function `hunger_tick_dispatch`
+- Tick logic: Postgres RPC `tick_pet_state_as_system`
+
+It is not executed by Flutter app lifecycle.
+
+## Current Cron Configuration
+- Job name: `hunger_tick_dispatch_every_20m`
+- Cron: `*/20 * * * *`
+- Effective runs/day: 72
+
+## Data Model Added
+### Table: `public.pet_hunger_tick_schedule`
+- `pet_id` (PK, FK -> `pets.id`)
+- `room_id` (FK -> `rooms.id`)
+- `next_check_at` (`timestamptz`, nullable)
+- `created_at`, `updated_at`
+
+### Indexes
+- `pet_hunger_tick_schedule_next_check_idx` (partial index on `next_check_at is not null`)
+- `pet_hunger_tick_schedule_room_id_idx` (room FK/index coverage)
+
+## DB Functions and Triggers
+### `compute_pet_hunger_next_check_at(p_pet_id, p_now)`
+Computes the next due time based on current hunger/mood/night-mode decay assumptions and next threshold crossing (`50`, `30`, or `10`).
+
+### `refresh_pet_hunger_tick_schedule(p_pet_id, p_now)`
+Upserts schedule state for a pet after relevant state changes.
+
+### `tick_pet_state_as_system(p_pet_id, p_now)`
+Runs `tick_pet_state` using a valid active room member auth context and then refreshes due schedule.
+
+### Triggers
+- On `pet_state` updates: refresh schedule when hunger/decay/mood-related fields change.
+- On `pets` insert or room change: refresh schedule.
+
+## Edge Function Behavior
+### `hunger_tick_dispatch`
+Input behavior:
+- Auth: `Authorization: Bearer <hunger_tick_secret>`
+- Tunables: `due_limit`, `tick_concurrency`, `dispatch_concurrency`
+
+Processing behavior:
+1. Query due rows from `pet_hunger_tick_schedule`
+2. Tick each due pet via `tick_pet_state_as_system`
+3. Read generated hunger alert message IDs from `pet_state`
+4. Remove already-sent candidates using `notification_delivery_logs`
+5. Dispatch remaining alerts via `notify_friend`
+
+## Scaling Characteristics
+### Old model
+- Work per run proportional to all active pets.
+
+### New model
+- Work per run proportional to only due pets.
+- Better for growth (e.g., 100 users x up to 4 pets = 400 pets) because non-due pets are skipped.
+
+## Cost/Load Notes
+- Base scheduler activity is fixed (72 runs/day).
+- Main variable cost is per-run workload:
+  - DB reads/writes for due rows only
+  - RPC calls for due pets only
+  - Push sends only for new alert messages
+- This reduces unnecessary scanning and compute vs all-pet polling.
+
+## Applied Migrations
+- `20260225023510_add_pet_hunger_tick_schedule_and_20m_cron.sql`
+- `20260225024022_add_pet_hunger_tick_schedule_room_id_index.sql`
+
+## Deployment State (at implementation time)
+- `hunger_tick_dispatch` deployed ACTIVE as version `5`
+- Cron job active: `hunger_tick_dispatch_every_20m`
+
+## Verification Performed
+1. Checked cron job exists and is active on `*/20`.
+2. Triggered manual `net.http_post` call to `hunger_tick_dispatch`.
+3. Confirmed `200` response and due-only processing behavior.
+4. Confirmed schedule table has sparse due set (no full scan pattern).
+5. Ran project checks:
+   - `flutter analyze` (clean)
+   - `flutter test` (pass; env-gated integration test skipped as expected)
+
+## Operational Queries
+### Check cron job
+```sql
+select jobname, schedule, active
+from cron.job
+where jobname like 'hunger_tick_dispatch_every_%';
+```
+
+### Check schedule backlog
+```sql
+select
+  count(*) as total_rows,
+  count(*) filter (where next_check_at is not null) as scheduled_rows,
+  count(*) filter (where next_check_at <= now()) as due_now,
+  min(next_check_at) as next_due_at
+from public.pet_hunger_tick_schedule;
+```
+
+### Trigger one manual run
+```sql
+select net.http_post(
+  url := 'https://<project-ref>.supabase.co/functions/v1/hunger_tick_dispatch',
+  headers := jsonb_build_object(
+    'Content-Type', 'application/json',
+    'Authorization', 'Bearer ' || (
+      select decrypted_secret
+      from vault.decrypted_secrets
+      where name = 'hunger_tick_secret'
+      limit 1
+    )
+  ),
+  body := '{"source":"manual_verify"}'::jsonb
+);
+```
+
+## Risks and Considerations
+- If the secret in vault is missing or mismatched, scheduler calls fail with `401`.
+- If schedule computation assumptions diverge from future tick logic changes, `next_check_at` accuracy may drift and should be reviewed when decay rules change.
+- `notify_friend` remains `verify_jwt=false` currently for webhook-mode compatibility; function-level secret/JWT checks are relied on for protection.
+
+## Recommendation for Future Optimization
+If pet count grows substantially beyond current target, consider batching due-pet ticking in SQL (set-based RPC) to reduce per-pet RPC overhead further while preserving notification dedupe guarantees.

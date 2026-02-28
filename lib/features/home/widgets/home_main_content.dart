@@ -21,23 +21,36 @@ class HomeMainContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: Column(
-        children: [
-          statusBar,
-          const Gap(12),
-          photoGallery,
-          const Gap(10),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: petHomeCard,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxContentWidth = constraints.maxWidth >= 700
+              ? 540.0
+              : double.infinity;
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxContentWidth),
+              child: Column(
+                children: [
+                  statusBar,
+                  const Gap(12),
+                  photoGallery,
+                  const Gap(10),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: petHomeCard,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0, 8, 0, bottomInset + 8),
+                    child: bottomNavBar,
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 8, 0, bottomInset + 8),
-            child: bottomNavBar,
-          ),
-        ],
+          );
+        },
       ),
     );
   }

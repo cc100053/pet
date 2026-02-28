@@ -1,3 +1,23 @@
+# App Review Rejection Fixes (Done)
+
+## Plan
+- [x] Keep OAuth sign-in inside the app (`SFSafariViewController`) to satisfy Guideline 4.0.
+- [x] Fix room-page iPad cropping by constraining oversized tablet layout width.
+- [x] Make camera entry always responsive and show clear feedback instead of silent disabled taps.
+- [x] Harden feed image picking error handling so camera/gallery failures surface to users.
+- [x] Run `flutter analyze` and `flutter test`.
+- [x] Add review notes to this section.
+
+## Review
+- Updated OAuth launch mode in `SignInView` to `LaunchMode.inAppWebView`, so Google/Apple OAuth browser flow no longer forces users out to the default external browser.
+- Added iOS callback handling in `SceneDelegate` to dismiss a presented `SFSafariViewController` when the OAuth deeplink (`com.cc100053.pet://login-callback`) is received, preventing post-login infinite loading in the in-app auth sheet.
+- Fixed delete-account false-failure path in `ProfileView`: once `delete_account` returns success, RevenueCat logout and Supabase sign-out are now best-effort cleanup (with local sign-out fallback) so cleanup/network edge cases no longer surface as “Failed to delete account.”
+- Hardened `delete_account` edge function deployment (`v3 ACTIVE`): added constraint-aware fallback from hard delete to soft delete (`deleteUser(id, true)`) and structured error logging/response payload (`{ deleted: true, mode }`).
+- Added a tablet-width cap (`maxWidth: 540` when width >= `700`) for the active room content stack in `HomeMainContent`, preventing oversized gallery-driven cropping on iPad-class widths.
+- Removed silent camera-button disable on Home bottom nav and always route taps through `_openFeedCamera`, which already provides clear locked/departed/offline feedback dialogs/snackbars.
+- Hardened feed image-pick flow with explicit exception handling around `ImagePicker.pickImage` and mapped failures to localized `userFacingError(...)` feedback instead of no-response behavior.
+- Verification: `flutter analyze` (clean), `flutter test` (pass; env-gated integration test skipped as expected).
+
 # Findings #3-#5
 
 ## Crash Fallback Update Prompt (Done)

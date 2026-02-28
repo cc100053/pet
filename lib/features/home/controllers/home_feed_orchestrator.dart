@@ -89,7 +89,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       await _showRoomLockedDialog();
       return;
     }
-    if (_petDeparted) {
+    if (_effectivePetDeparted) {
       final l10n = AppLocalizations.of(context)!;
       await showAppDialog<void>(
         context: context,

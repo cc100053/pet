@@ -102,7 +102,7 @@ class _SignInViewState extends State<SignInView> {
       await Supabase.instance.client.auth.signInWithOAuth(
         provider,
         redirectTo: redirectUrl,
-        authScreenLaunchMode: LaunchMode.externalApplication,
+        authScreenLaunchMode: LaunchMode.inAppWebView,
         queryParams: {'prompt': 'select_account'},
       );
     } catch (error) {
@@ -239,27 +239,23 @@ class _SignInViewState extends State<SignInView> {
                                 child: isIosAppleButton
                                     ? SizedBox(
                                         height: 46,
-                                        child: IgnorePointer(
-                                          ignoring:
-                                              _signingIn || !_ugcTermsAccepted,
-                                          child: Opacity(
-                                            opacity:
-                                                (_signingIn ||
-                                                    !_ugcTermsAccepted)
-                                                ? 0.6
-                                                : 1,
-                                            child: SignInWithAppleButton(
-                                              onPressed: () =>
-                                                  _signInWithApple(context),
-                                            ),
+                                        child: Opacity(
+                                          opacity:
+                                              (_signingIn || !_ugcTermsAccepted)
+                                              ? 0.6
+                                              : 1,
+                                          child: SignInWithAppleButton(
+                                            onPressed: _signingIn
+                                                ? null
+                                                : () =>
+                                                      _signInWithApple(context),
                                           ),
                                         ),
                                       )
                                     : SizedBox(
                                         height: 46,
                                         child: FilledButton.icon(
-                                          onPressed:
-                                              (_signingIn || !_ugcTermsAccepted)
+                                          onPressed: _signingIn
                                               ? null
                                               : () => _signInWithApple(context),
                                           icon: const Icon(
@@ -286,61 +282,66 @@ class _SignInViewState extends State<SignInView> {
                                 ),
                                 child: Semantics(
                                   button: true,
-                                  enabled: !_signingIn && _ugcTermsAccepted,
+                                  enabled: !_signingIn,
                                   label: l10n.signInWithGoogle,
                                   child: SizedBox(
                                     height: 46,
-                                    child: OutlinedButton(
-                                      onPressed:
+                                    child: Opacity(
+                                      opacity:
                                           (_signingIn || !_ugcTermsAccepted)
-                                          ? null
-                                          : () => _signInWithOAuth(
-                                              context,
-                                              OAuthProvider.google,
+                                          ? 0.6
+                                          : 1,
+                                      child: OutlinedButton(
+                                        onPressed: _signingIn
+                                            ? null
+                                            : () => _signInWithOAuth(
+                                                context,
+                                                OAuthProvider.google,
+                                              ),
+                                        style: OutlinedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          side: const BorderSide(
+                                            color: Color(0xFF6A7781),
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                        ),
-                                        side: const BorderSide(
-                                          color: Color(0xFF6A7781),
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
                                           ),
                                         ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          SvgPicture.string(
-                                            _googleLogoSvg,
-                                            width: 20,
-                                            height: 20,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Flexible(
-                                            child: Text(
-                                              l10n.signInWithGoogle,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Color(0xFF1F1F1F),
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            SvgPicture.string(
+                                              _googleLogoSvg,
+                                              width: 20,
+                                              height: 20,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Flexible(
+                                              child: Text(
+                                                l10n.signInWithGoogle,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF1F1F1F),
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              
+
                               // Legal Checkbox & Links (Refined Layout)
                               ConstrainedBox(
                                 constraints: const BoxConstraints(
@@ -356,16 +357,22 @@ class _SignInViewState extends State<SignInView> {
                                         scale: 0.85,
                                         child: Checkbox(
                                           value: _ugcTermsAccepted,
-                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
                                           onChanged: _signingIn
                                               ? null
                                               : (value) async {
-                                                  final accepted = value ?? false;
+                                                  final accepted =
+                                                      value ?? false;
                                                   setState(() {
-                                                    _ugcTermsAccepted = accepted;
+                                                    _ugcTermsAccepted =
+                                                        accepted;
                                                   });
-                                                  await AppSettingsRepository.instance
-                                                      .setUgcTermsAccepted(accepted);
+                                                  await AppSettingsRepository
+                                                      .instance
+                                                      .setUgcTermsAccepted(
+                                                        accepted,
+                                                      );
                                                 },
                                         ),
                                       ),
@@ -373,15 +380,19 @@ class _SignInViewState extends State<SignInView> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             l10n.signInSafetyAgreementLabel,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: const Color(0xFF505A62),
-                                              fontSize: 11,
-                                              height: 1.3,
-                                            ),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: const Color(
+                                                    0xFF505A62,
+                                                  ),
+                                                  fontSize: 11,
+                                                  height: 1.3,
+                                                ),
                                           ),
                                           const SizedBox(height: 6),
                                           Wrap(
@@ -390,27 +401,47 @@ class _SignInViewState extends State<SignInView> {
                                             children: [
                                               if (_privacyPolicyUri != null)
                                                 InkWell(
-                                                  onTap: () => _openExternalUri(_privacyPolicyUri!),
+                                                  onTap: () => _openExternalUri(
+                                                    _privacyPolicyUri!,
+                                                  ),
                                                   child: Text(
                                                     l10n.storePrivacyPolicy,
-                                                    style: theme.textTheme.bodySmall?.copyWith(
-                                                      color: const Color(0xFF18435E),
-                                                      fontSize: 11,
-                                                      decoration: TextDecoration.underline,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
+                                                    style: theme
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: const Color(
+                                                            0xFF18435E,
+                                                          ),
+                                                          fontSize: 11,
+                                                          decoration:
+                                                              TextDecoration
+                                                                  .underline,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
                                                   ),
                                                 ),
                                               InkWell(
-                                                onTap: () => _openExternalUri(_termsOfUseUri),
+                                                onTap: () => _openExternalUri(
+                                                  _termsOfUseUri,
+                                                ),
                                                 child: Text(
                                                   l10n.storeTermsOfUse,
-                                                  style: theme.textTheme.bodySmall?.copyWith(
-                                                    color: const Color(0xFF18435E),
-                                                    fontSize: 11,
-                                                    decoration: TextDecoration.underline,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: const Color(
+                                                          0xFF18435E,
+                                                        ),
+                                                        fontSize: 11,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .underline,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
                                                 ),
                                               ),
                                             ],

@@ -84,7 +84,23 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
       'feed_image_pick',
       parameters: {'source': source.name},
     );
-    final image = await _picker.pickImage(source: source);
+    XFile? image;
+    try {
+      image = await _picker.pickImage(source: source);
+    } catch (error, stackTrace) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = userFacingError(
+          context,
+          error,
+          stackTrace: stackTrace,
+          source: 'feed_pick_image',
+        );
+      });
+      return;
+    }
     if (image == null) {
       return;
     }

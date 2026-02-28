@@ -3999,9 +3999,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   onCamera: _openFeedCamera,
                   onStore: _openStoreFromNav,
                   onChat: _openChatRoom,
-                  cameraEnabled:
-                      !(petSnapshot.isDeparted || _petDeparted) &&
-                      !_isCurrentRoomLocked,
+                  cameraEnabled: true,
                   chatHasUnread: (unreadCountByRoom[activeRoomId] ?? 0) > 0,
                 ),
               ),

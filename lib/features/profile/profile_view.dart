@@ -737,8 +737,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         throw Exception('missing_session');
       }
 
+      late final FunctionResponse deleteResponse;
       try {
-        await _withNetworkTimeout(
+        deleteResponse = await _withNetworkTimeout(
           invokeWithToken(accessToken),
           operation: 'delete_account',
         );
@@ -751,7 +752,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           if (refreshedToken == null) {
             rethrow;
           }
-          await _withNetworkTimeout(
+          deleteResponse = await _withNetworkTimeout(
             invokeWithToken(refreshedToken),
             operation: 'delete_account_retry',
           );
@@ -759,9 +760,25 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           rethrow;
         }
       }
+      final payload = deleteResponse.data;
+      if (deleteResponse.status != 200 ||
+          payload is! Map ||
+          payload['deleted'] != true) {
+        throw Exception('delete_account_failed_unexpected_response');
+      }
 
-      await RevenueCatService().logOut();
-      await Supabase.instance.client.auth.signOut();
+      try {
+        await RevenueCatService().logOut();
+      } catch (error) {
+        debugPrint('delete_account cleanup: revenuecat logOut failed: $error');
+      }
+
+      try {
+        await Supabase.instance.client.auth.signOut();
+      } catch (error) {
+        debugPrint('delete_account cleanup: global signOut failed: $error');
+        await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+      }
     } catch (error) {
       if (!mounted) {
         return;

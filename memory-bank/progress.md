@@ -1,6 +1,9 @@
 # Progress
 
 ## Done
+- Fixed delete-account reliability end-to-end: `ProfileView._deleteAccount()` now treats RevenueCat logout and Supabase sign-out as best-effort post-delete cleanup (including local sign-out fallback) so successful server deletion no longer reports a client-side failure toast; deployed `delete_account` function v3 with hard-delete + constraint-triggered soft-delete fallback and explicit error logging.
+- Fixed iOS in-app Google OAuth callback return reliability by disabling Flutter framework deep-link route handling (`FlutterDeepLinkingEnabled=false`) so Supabase/app-links session callback processing is not blocked by `Failed to handle route information in Flutter`.
+- Fixed latest App Review blockers across auth/home/feed flows: OAuth sign-in now launches in-app web auth (`LaunchMode.inAppWebView`) instead of external browser handoff, Home room content is width-constrained on tablet/iPad-class layouts (`maxWidth 540` when width >= `700`) to prevent room-page cropping, Home camera CTA is always tappable so locked/departed states surface explicit feedback instead of silent disabled taps, and feed image picking now catches camera/gallery plugin errors and surfaces localized user-facing failures.
 - Applied hunger dispatcher scheduling fully via Supabase MCP: enabled `pg_cron`/`pg_net`, added vault secret bootstrap (`hunger_tick_secret`), and installed cron scheduler targeting `functions/v1/hunger_tick_dispatch`.
 - Added scheduler support RPCs in DB: `get_hunger_tick_secret` (vault-backed secret lookup) and `tick_pet_state_as_system` (service-role wrapper that runs `tick_pet_state` using an active room member claim context).
 - Updated `hunger_tick_dispatch` deployment (v4 active) to use vault/env scheduler secret resolution and `tick_pet_state_as_system`, then verified via `net.http_post` response (`status_code=200`, `ticked_pets>0`, dispatch path executed).
