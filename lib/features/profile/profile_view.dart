@@ -718,6 +718,22 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }
   }
 
+  Future<void> _returnToAuthRootIfSignedOut() async {
+    if (!mounted) {
+      return;
+    }
+    final navigator = Navigator.of(context, rootNavigator: true);
+    for (var attempt = 0; attempt < 6; attempt++) {
+      if (Supabase.instance.client.auth.currentSession == null) {
+        navigator.popUntil((route) => route.isFirst);
+        return;
+      }
+      if (attempt < 5) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+    }
+  }
+
   Future<void> _deleteAccount() async {
     if (_busy) {
       return;
@@ -779,6 +795,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         debugPrint('delete_account cleanup: global signOut failed: $error');
         await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
       }
+
+      await _returnToAuthRootIfSignedOut();
     } catch (error) {
       if (!mounted) {
         return;

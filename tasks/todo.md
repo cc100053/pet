@@ -1,5 +1,28 @@
 # App Review Rejection Fixes (Done)
 
+## iPad Scale Handling Fix (Done)
+
+### Plan
+- [x] Add a shared adaptive-width helper so scaling and breakpoints use the same effective width on iPad/tablet layouts.
+- [x] Update global UI scaling (`appUiScale`) and Home responsive breakpoint selection to use the adaptive effective width.
+- [x] Apply tablet-safe width constraints to stretched Home room-selection content so cards/elements no longer oversize on iPad.
+- [x] Run required checks: `flutter analyze` and `flutter test`.
+- [x] Update memory docs + review notes with final behavior changes.
+
+### Review
+- Added `lib/shared/ui/adaptive_layout.dart` as a single source of truth for adaptive tablet handling (`effectiveAdaptiveWidth`, `adaptiveContentMaxWidth`, and `kTabletLayoutBreakpoint`).
+- Updated `appUiScale` to use adaptive effective width with a tablet fallback width of `540` (follow-up fix after iPad Air validation), so full-size iPad now resolves to expanded scale instead of the smaller tier.
+- Added iOS tablet-display detection (`detectIosTabletDisplay`) and wired it into both `appUiScale` and `HomeResponsiveSpec.fromWidth` so iPad running iPhone-compat viewport widths no longer falls into compact/smallest scale paths.
+- Updated Home breakpoint selection (`HomeResponsiveSpec.fromWidth`) to use shared adaptive width logic plus tablet-display override, keeping compact/regular/expanded choice deterministic on iPad.
+- Replaced hardcoded Home main-content width logic with `adaptiveContentMaxWidth(..., tabletMaxWidth: 540)` in `HomeMainContent`.
+- Added tablet-safe room-selection width constraint (`maxWidth: 560` when width >= `700`) so room cards/background ornaments/CTA positioning remain stable on iPad.
+- Aligned Room Selection card layout sizing with `homeUiScale` across paddings, gaps, icon sizes, badges, and CTA spacing so room cards follow the same scale path as the pet-home feed card cluster.
+- Added debug logs for runtime scale diagnosis: app-level `[UI_SCALE]` and room-selection-level `[ROOM_SELECTION_LAYOUT]`.
+- Reduced only Pet Home center photo gallery card visual size for compact/regular tiers (`0.90` / `0.94`), while leaving expanded tier unchanged (`1.00`).
+- Switched from visual-only scaling to layout-space tuning for compact/regular pet-home: reduced `PetPhotoGallery` occupied height via larger aspect ratios (`compact 1.44`, `regular 1.32`) and tightened Home main vertical gaps/padding so the pet movement field gains real usable area.
+- Added unit coverage for iPad-compat override behavior in scale/breakpoint tests.
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped as expected).
+
 ## Plan
 - [x] Keep OAuth sign-in inside the app (`SFSafariViewController`) to satisfy Guideline 4.0.
 - [x] Fix room-page iPad cropping by constraining oversized tablet layout width.
@@ -226,4 +249,17 @@
 - `cron.job` shows `hunger_tick_dispatch_every_20m` active on `*/20 * * * *`.
 - Manual DB-triggered call returned `status_code=200` with due-only no-op payload (`scanned_pets=0`) when no rows were currently due.
 - Schedule table snapshot shows sparse workset (`35` rows total, `2` scheduled, `0` due at check time), confirming non-full-scan behavior.
+- Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped as expected).
+
+## Account Deletion Redirect to Login (Done)
+### Plan
+- [x] Confirm the account-deletion success path and why Profile stays visible.
+- [x] Update Profile delete-account flow to return to auth root after successful sign-out.
+- [x] Run required checks: `flutter analyze` and `flutter test`.
+- [x] Update memory docs + this review section with final behavior.
+
+### Review
+- Root cause: `ProfileView` is pushed on top of `HomeView`; account deletion signs out successfully, but the pushed route remains visible even after `AuthGate` transitions underlying root content.
+- Added `_returnToAuthRootIfSignedOut()` in `ProfileView` to poll briefly for a null session after delete-account cleanup sign-out, then pop to root navigator (`popUntil(isFirst)`), revealing the login screen immediately.
+- Kept deletion semantics unchanged: `delete_account` invocation and RevenueCat/Supabase sign-out cleanup still run as before, with no backward-incompatible API changes.
 - Verification: `flutter analyze` (clean) and `flutter test` (pass; env-gated integration test skipped as expected).

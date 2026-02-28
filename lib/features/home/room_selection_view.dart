@@ -1,12 +1,14 @@
 import 'dart:ui';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
 import '../pet/pet_catalog.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/adaptive_layout.dart';
 import '../../shared/ui/pet_name_text_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'widgets/home_responsive.dart';
@@ -44,6 +46,7 @@ class RoomSelectionView extends StatelessWidget {
   final Widget? topBanner;
 
   static const _filmBase = Color(0xFFFFF9F2);
+  static String? _lastLayoutDebugLogKey;
 
   @override
   Widget build(BuildContext context) {
@@ -53,241 +56,269 @@ class RoomSelectionView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final maxContentWidth = adaptiveContentMaxWidth(
+          constraints.maxWidth,
+          tabletMaxWidth: 560,
+        );
         final responsive = HomeResponsiveSpec.fromWidth(constraints.maxWidth);
-        final horizontalPadding = responsive.pick(
-          compact: 14,
-          regular: 20,
-          expanded: 24,
-        );
-        final headerTopPadding = responsive.pick(
-          compact: 10,
-          regular: 16,
-          expanded: 18,
-        );
-        final meButtonSize = responsive.pick(
-          compact: 38,
-          regular: 42,
-          expanded: 44,
-        );
-        final gridSpacing = responsive.pick(
-          compact: 12,
-          regular: 16,
-          expanded: 18,
-        );
-        final gridBottomInset = responsive.pick(
-          compact: 98,
-          regular: 112,
-          expanded: 118,
-        );
-        final ctaBottomInset = responsive.pick(
-          compact: 8,
-          regular: 10,
-          expanded: 12,
-        );
+        final uiScale = homeUiScale(constraints.maxWidth);
+        if (kDebugMode) {
+          final key = [
+            constraints.maxWidth.toStringAsFixed(1),
+            maxContentWidth.isFinite
+                ? maxContentWidth.toStringAsFixed(1)
+                : 'inf',
+            responsive.breakpoint.name,
+            uiScale.toStringAsFixed(2),
+          ].join('|');
+          if (_lastLayoutDebugLogKey != key) {
+            _lastLayoutDebugLogKey = key;
+            debugPrint(
+              '[ROOM_SELECTION_LAYOUT] viewportWidth=${constraints.maxWidth.toStringAsFixed(1)} '
+              'maxContentWidth=${maxContentWidth.isFinite ? maxContentWidth.toStringAsFixed(1) : 'infinity'} '
+              'breakpoint=${responsive.breakpoint.name} '
+              'scale=${uiScale.toStringAsFixed(2)}',
+            );
+          }
+        }
+        final horizontalPadding =
+            responsive.pick(compact: 14, regular: 20, expanded: 24) * uiScale;
+        final headerTopPadding =
+            responsive.pick(compact: 10, regular: 16, expanded: 18) * uiScale;
+        final meButtonSize =
+            responsive.pick(compact: 38, regular: 42, expanded: 44) * uiScale;
+        final gridSpacing =
+            responsive.pick(compact: 12, regular: 16, expanded: 18) * uiScale;
+        final gridBottomInset =
+            responsive.pick(compact: 98, regular: 112, expanded: 118) * uiScale;
+        final ctaBottomInset =
+            responsive.pick(compact: 8, regular: 10, expanded: 12) * uiScale;
         final crossAxisCount = responsive.isCompact ? 1 : 2;
-        final bgTopOrbSize = responsive.pick(
-          compact: 132,
-          regular: 180,
-          expanded: 200,
-        );
-        final bgBottomOrbSize = responsive.pick(
-          compact: 150,
-          regular: 200,
-          expanded: 220,
-        );
+        final bgTopOrbSize =
+            responsive.pick(compact: 132, regular: 180, expanded: 200) *
+            uiScale;
+        final bgBottomOrbSize =
+            responsive.pick(compact: 150, regular: 200, expanded: 220) *
+            uiScale;
 
-        return Stack(
-          children: [
-            Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
-            Positioned(
-              top: -bgTopOrbSize * 0.34,
-              right: -bgTopOrbSize * 0.22,
-              child: Container(
-                width: bgTopOrbSize,
-                height: bgTopOrbSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.5),
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(color: AppTheme.backgroundColor),
                 ),
-              ),
-            ),
-            Positioned(
-              bottom: 120,
-              left: -bgBottomOrbSize * 0.25,
-              child: Container(
-                width: bgBottomOrbSize,
-                height: bgBottomOrbSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.4),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPadding,
-                      headerTopPadding,
-                      horizontalPadding,
-                      8,
+                Positioned(
+                  top: -bgTopOrbSize * 0.34,
+                  right: -bgTopOrbSize * 0.22,
+                  child: Container(
+                    width: bgTopOrbSize,
+                    height: bgTopOrbSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.5),
                     ),
-                    child: Row(
-                      children: [
-                        _buildMeButton(buttonSize: meButtonSize),
-                        Gap(
-                          responsive.pick(
-                            compact: 8,
-                            regular: 12,
-                            expanded: 14,
-                          ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 120,
+                  left: -bgBottomOrbSize * 0.25,
+                  child: Container(
+                    width: bgBottomOrbSize,
+                    height: bgBottomOrbSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ),
+                SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          headerTopPadding,
+                          horizontalPadding,
+                          8,
                         ),
-                        Expanded(
-                          child: Text(
-                            l10n.roomSelectionTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                (responsive.isCompact
-                                        ? theme.textTheme.titleLarge
-                                        : theme.textTheme.headlineSmall)
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                          ),
-                        ),
-                        if (responsive.isCompact)
-                          IconButton(
-                            onPressed: joiningRoom ? null : onJoinRoom,
-                            icon: const Icon(Icons.key_rounded, size: 20),
-                            color: AppTheme.textSecondary,
-                            tooltip: l10n.roomSelectionEnterInvite,
-                            visualDensity: VisualDensity.compact,
-                          )
-                        else
-                          TextButton.icon(
-                            onPressed: joiningRoom ? null : onJoinRoom,
-                            icon: const Icon(Icons.key_rounded, size: 18),
-                            label: Text(
-                              joiningRoom
-                                  ? l10n.roomSelectionJoining
-                                  : l10n.roomSelectionEnterInvite,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                        child: Row(
+                          children: [
+                            _buildMeButton(buttonSize: meButtonSize),
+                            Gap(
+                              responsive.pick(
+                                    compact: 8,
+                                    regular: 12,
+                                    expanded: 14,
+                                  ) *
+                                  uiScale,
+                            ),
+                            Expanded(
+                              child: Text(
+                                l10n.roomSelectionTitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    (responsive.isCompact
+                                            ? theme.textTheme.titleLarge
+                                            : theme.textTheme.headlineSmall)
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.textPrimary,
+                                        ),
                               ),
                             ),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppTheme.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPadding,
-                      4,
-                      horizontalPadding,
-                      12,
-                    ),
-                    child: Text(
-                      l10n.roomSelectionSubtitle,
-                      maxLines: responsive.isCompact ? 3 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
-                        fontSize: responsive.pick(
-                          compact: 13,
-                          regular: 14,
-                          expanded: 15,
+                            if (responsive.isCompact)
+                              IconButton(
+                                onPressed: joiningRoom ? null : onJoinRoom,
+                                icon: Icon(
+                                  Icons.key_rounded,
+                                  size: 20 * uiScale,
+                                ),
+                                color: AppTheme.textSecondary,
+                                tooltip: l10n.roomSelectionEnterInvite,
+                                visualDensity: VisualDensity.compact,
+                              )
+                            else
+                              TextButton.icon(
+                                onPressed: joiningRoom ? null : onJoinRoom,
+                                icon: Icon(
+                                  Icons.key_rounded,
+                                  size: 18 * uiScale,
+                                ),
+                                label: Text(
+                                  joiningRoom
+                                      ? l10n.roomSelectionJoining
+                                      : l10n.roomSelectionEnterInvite,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppTheme.textSecondary,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                  if (topBanner != null)
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        horizontalPadding,
-                        0,
-                        horizontalPadding,
-                        8,
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          4,
+                          horizontalPadding,
+                          12,
+                        ),
+                        child: Text(
+                          l10n.roomSelectionSubtitle,
+                          maxLines: responsive.isCompact ? 3 : 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondary,
+                            fontSize:
+                                responsive.pick(
+                                  compact: 13,
+                                  regular: 14,
+                                  expanded: 15,
+                                ) *
+                                uiScale,
+                          ),
+                        ),
                       ),
-                      child: topBanner!,
-                    ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: LayoutBuilder(
-                            builder: (context, gridConstraints) {
-                              final availableWidth =
-                                  gridConstraints.maxWidth -
-                                  (horizontalPadding * 2);
-                              final totalGap =
-                                  gridSpacing * (crossAxisCount - 1);
-                              final itemWidth =
-                                  (availableWidth - totalGap) / crossAxisCount;
-                              final cardMinHeight = _roomCardMinHeight(
-                                itemWidth,
-                                responsive,
-                              );
-                              final childAspectRatio =
-                                  itemWidth / cardMinHeight;
-
-                              return GridView.builder(
-                                padding: EdgeInsets.fromLTRB(
-                                  horizontalPadding,
-                                  8,
-                                  horizontalPadding,
-                                  gridBottomInset,
-                                ),
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: crossAxisCount,
-                                      mainAxisSpacing: gridSpacing,
-                                      crossAxisSpacing: gridSpacing,
-                                      childAspectRatio: childAspectRatio,
-                                    ),
-                                itemCount: totalSlots,
-                                itemBuilder: (context, index) {
-                                  if (index < rooms.length) {
-                                    return _buildRoomCard(
-                                      context,
-                                      rooms[index],
-                                      l10n,
-                                      responsive,
-                                    );
-                                  }
-                                  return _buildEmptySlot(
-                                    context,
-                                    l10n,
+                      if (topBanner != null)
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            horizontalPadding,
+                            0,
+                            horizontalPadding,
+                            8,
+                          ),
+                          child: topBanner!,
+                        ),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: LayoutBuilder(
+                                builder: (context, gridConstraints) {
+                                  final availableWidth =
+                                      gridConstraints.maxWidth -
+                                      (horizontalPadding * 2);
+                                  final totalGap =
+                                      gridSpacing * (crossAxisCount - 1);
+                                  final itemWidth =
+                                      (availableWidth - totalGap) /
+                                      crossAxisCount;
+                                  final cardMinHeight = _roomCardMinHeight(
+                                    itemWidth,
                                     responsive,
+                                    uiScale,
+                                  );
+                                  final childAspectRatio =
+                                      itemWidth / cardMinHeight;
+
+                                  return GridView.builder(
+                                    padding: EdgeInsets.fromLTRB(
+                                      horizontalPadding,
+                                      8,
+                                      horizontalPadding,
+                                      gridBottomInset,
+                                    ),
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: crossAxisCount,
+                                          mainAxisSpacing: gridSpacing,
+                                          crossAxisSpacing: gridSpacing,
+                                          childAspectRatio: childAspectRatio,
+                                        ),
+                                    itemCount: totalSlots,
+                                    itemBuilder: (context, index) {
+                                      if (index < rooms.length) {
+                                        return _buildRoomCard(
+                                          context,
+                                          rooms[index],
+                                          l10n,
+                                          responsive,
+                                          uiScale,
+                                        );
+                                      }
+                                      return _buildEmptySlot(
+                                        context,
+                                        l10n,
+                                        responsive,
+                                        uiScale,
+                                      );
+                                    },
                                   );
                                 },
-                              );
-                            },
-                          ),
+                              ),
+                            ),
+                            Positioned(
+                              left: horizontalPadding,
+                              right: horizontalPadding,
+                              bottom: ctaBottomInset,
+                              child: SafeArea(
+                                top: false,
+                                child: _buildPrimaryCta(
+                                  context,
+                                  l10n,
+                                  responsive,
+                                  uiScale,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Positioned(
-                          left: horizontalPadding,
-                          right: horizontalPadding,
-                          bottom: ctaBottomInset,
-                          child: SafeArea(
-                            top: false,
-                            child: _buildPrimaryCta(context, l10n, responsive),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -328,6 +359,7 @@ class RoomSelectionView extends StatelessWidget {
     Map<String, dynamic> room,
     AppLocalizations l10n,
     HomeResponsiveSpec responsive,
+    double uiScale,
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
@@ -371,7 +403,7 @@ class RoomSelectionView extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18 * uiScale),
         onTap: roomId == null ? null : () => onSelectRoom(roomId),
         onLongPress: roomId == null
             ? null
@@ -379,7 +411,7 @@ class RoomSelectionView extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             color: _filmBase,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(18 * uiScale),
             border: Border.all(
               color: isSelected
                   ? AppTheme.textPrimary
@@ -398,10 +430,14 @@ class RoomSelectionView extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(
-                  responsive.pick(compact: 10, regular: 12, expanded: 14),
-                  responsive.pick(compact: 10, regular: 12, expanded: 14),
-                  responsive.pick(compact: 10, regular: 12, expanded: 14),
-                  responsive.pick(compact: 10, regular: 12, expanded: 14),
+                  responsive.pick(compact: 10, regular: 12, expanded: 14) *
+                      uiScale,
+                  responsive.pick(compact: 10, regular: 12, expanded: 14) *
+                      uiScale,
+                  responsive.pick(compact: 10, regular: 12, expanded: 14) *
+                      uiScale,
+                  responsive.pick(compact: 10, regular: 12, expanded: 14) *
+                      uiScale,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,11 +451,15 @@ class RoomSelectionView extends StatelessWidget {
                           senderAvatar: senderAvatar,
                           senderFallbackText: senderName,
                           responsive: responsive,
+                          uiScale: uiScale,
                           showAvatar: !responsive.isCompact,
                         ),
                       ),
                     ),
-                    Gap(responsive.pick(compact: 6, regular: 8, expanded: 10)),
+                    Gap(
+                      responsive.pick(compact: 6, regular: 8, expanded: 10) *
+                          uiScale,
+                    ),
                     Row(
                       children: [
                         Expanded(
@@ -429,41 +469,51 @@ class RoomSelectionView extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: petNameTextStyle(
                               color: AppTheme.textPrimary,
-                              fontSize: responsive.pick(
-                                compact: 12,
-                                regular: 13,
-                                expanded: 14,
-                              ),
+                              fontSize:
+                                  responsive.pick(
+                                    compact: 12,
+                                    regular: 13,
+                                    expanded: 14,
+                                  ) *
+                                  uiScale,
                             ),
                           ),
                         ),
                         Gap(
-                          responsive.pick(compact: 4, regular: 6, expanded: 8),
+                          responsive.pick(compact: 4, regular: 6, expanded: 8) *
+                              uiScale,
                         ),
                         _RoomPetIconWithFloatingLevel(
                           assetPath: petDefinition.stayAsset,
                           level: petLevel,
-                          size: responsive.pick(
-                            compact: 24,
-                            regular: 28,
-                            expanded: 30,
-                          ),
-                          badgeFontSize: responsive.pick(
-                            compact: 9,
-                            regular: 10,
-                            expanded: 10,
-                          ),
+                          size:
+                              responsive.pick(
+                                compact: 24,
+                                regular: 28,
+                                expanded: 30,
+                              ) *
+                              uiScale,
+                          badgeFontSize:
+                              responsive.pick(
+                                compact: 9,
+                                regular: 10,
+                                expanded: 10,
+                              ) *
+                              uiScale,
                         ),
                         Gap(
-                          responsive.pick(compact: 4, regular: 6, expanded: 8),
+                          responsive.pick(compact: 4, regular: 6, expanded: 8) *
+                              uiScale,
                         ),
                         _RoomHealthRing(
                           value: healthValue,
-                          size: responsive.pick(
-                            compact: 24,
-                            regular: 28,
-                            expanded: 30,
-                          ),
+                          size:
+                              responsive.pick(
+                                compact: 24,
+                                regular: 28,
+                                expanded: 30,
+                              ) *
+                              uiScale,
                         ),
                       ],
                     ),
@@ -476,19 +526,20 @@ class RoomSelectionView extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(18 * uiScale),
                       ),
                     ),
                   ),
                 ),
               if (hasUnread)
                 PositionedDirectional(
-                  top: 10,
-                  end: 10,
+                  top: 10 * uiScale,
+                  end: 10 * uiScale,
                   child: IgnorePointer(
                     child: _buildUnreadCountBadge(
                       responsive: responsive,
                       unreadText: unreadText,
+                      uiScale: uiScale,
                       key: roomId == null
                           ? null
                           : Key('room_unread_indicator_$roomId'),
@@ -497,12 +548,13 @@ class RoomSelectionView extends StatelessWidget {
                 ),
               if (isLocked)
                 PositionedDirectional(
-                  top: 10,
-                  start: 10,
+                  top: 10 * uiScale,
+                  start: 10 * uiScale,
                   child: IgnorePointer(
                     child: _buildLockedBadgeChip(
                       responsive: responsive,
                       text: l10n.roomLockedBadge,
+                      uiScale: uiScale,
                     ),
                   ),
                 ),
@@ -516,9 +568,11 @@ class RoomSelectionView extends StatelessWidget {
   Widget _buildUnreadCountBadge({
     required HomeResponsiveSpec responsive,
     required String unreadText,
+    required double uiScale,
     Key? key,
   }) {
-    final size = responsive.pick(compact: 22, regular: 24, expanded: 24);
+    final size =
+        responsive.pick(compact: 22, regular: 24, expanded: 24) * uiScale;
     return Container(
       key: key,
       width: size,
@@ -542,7 +596,8 @@ class RoomSelectionView extends StatelessWidget {
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w800,
-          fontSize: responsive.pick(compact: 10, regular: 11, expanded: 11),
+          fontSize:
+              responsive.pick(compact: 10, regular: 11, expanded: 11) * uiScale,
         ),
       ),
     );
@@ -551,11 +606,14 @@ class RoomSelectionView extends StatelessWidget {
   Widget _buildLockedBadgeChip({
     required HomeResponsiveSpec responsive,
     required String text,
+    required double uiScale,
   }) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: responsive.pick(compact: 6, regular: 8, expanded: 8),
-        vertical: responsive.pick(compact: 3, regular: 4, expanded: 4),
+        horizontal:
+            responsive.pick(compact: 6, regular: 8, expanded: 8) * uiScale,
+        vertical:
+            responsive.pick(compact: 3, regular: 4, expanded: 4) * uiScale,
       ),
       decoration: BoxDecoration(
         color: Colors.black87,
@@ -565,7 +623,8 @@ class RoomSelectionView extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white,
-          fontSize: responsive.pick(compact: 9, regular: 10, expanded: 10),
+          fontSize:
+              responsive.pick(compact: 9, regular: 10, expanded: 10) * uiScale,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
         ),
@@ -630,16 +689,17 @@ class RoomSelectionView extends StatelessWidget {
     BuildContext context,
     AppLocalizations l10n,
     HomeResponsiveSpec responsive,
+    double uiScale,
   ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18 * uiScale),
         onTap: creatingRoom ? null : onCreateRoom,
         child: Ink(
           decoration: BoxDecoration(
             color: _filmBase,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(18 * uiScale),
             border: Border.all(color: Colors.black12),
             boxShadow: [
               BoxShadow(
@@ -653,29 +713,36 @@ class RoomSelectionView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: responsive.pick(compact: 72, regular: 90, expanded: 98),
-                height: responsive.pick(compact: 72, regular: 90, expanded: 98),
+                width:
+                    responsive.pick(compact: 72, regular: 90, expanded: 98) *
+                    uiScale,
+                height:
+                    responsive.pick(compact: 72, regular: 90, expanded: 98) *
+                    uiScale,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14 * uiScale),
                   border: Border.all(color: Colors.black12, width: 1.2),
                 ),
                 child: Icon(
                   Icons.add_rounded,
-                  size: responsive.pick(compact: 22, regular: 26, expanded: 28),
+                  size:
+                      responsive.pick(compact: 22, regular: 26, expanded: 28) *
+                      uiScale,
                   color: AppTheme.textSecondary,
                 ),
               ),
-              Gap(responsive.pick(compact: 8, regular: 10, expanded: 12)),
+              Gap(
+                responsive.pick(compact: 8, regular: 10, expanded: 12) *
+                    uiScale,
+              ),
               Text(
                 l10n.roomSelectionEmptySlot,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textSecondary,
-                  fontSize: responsive.pick(
-                    compact: 13,
-                    regular: 14,
-                    expanded: 15,
-                  ),
+                  fontSize:
+                      responsive.pick(compact: 13, regular: 14, expanded: 15) *
+                      uiScale,
                 ),
               ),
             ],
@@ -689,12 +756,18 @@ class RoomSelectionView extends StatelessWidget {
     return responsive.pick(compact: 1.25, regular: 0.88, expanded: 0.92);
   }
 
-  double _roomCardMinHeight(double cardWidth, HomeResponsiveSpec responsive) {
+  double _roomCardMinHeight(
+    double cardWidth,
+    HomeResponsiveSpec responsive,
+    double uiScale,
+  ) {
     final frameHeight = cardWidth / _memoryFrameAspectRatio(responsive);
     final verticalPadding =
-        responsive.pick(compact: 10, regular: 12, expanded: 14) * 2;
-    final footerGap = responsive.pick(compact: 6, regular: 8, expanded: 10);
-    final footerHeight = responsive.pick(compact: 2, regular: 2, expanded: 2);
+        responsive.pick(compact: 10, regular: 12, expanded: 14) * 2 * uiScale;
+    final footerGap =
+        responsive.pick(compact: 6, regular: 8, expanded: 10) * uiScale;
+    final footerHeight =
+        responsive.pick(compact: 2, regular: 2, expanded: 2) * uiScale;
     return frameHeight + verticalPadding + footerGap + footerHeight;
   }
 
@@ -702,6 +775,7 @@ class RoomSelectionView extends StatelessWidget {
     BuildContext context,
     AppLocalizations l10n,
     HomeResponsiveSpec responsive,
+    double uiScale,
   ) {
     final radius = BorderRadius.circular(999);
     return Opacity(
@@ -735,16 +809,20 @@ class RoomSelectionView extends StatelessWidget {
                 highlightColor: AppTheme.primaryColor.withValues(alpha: 0.08),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
-                    vertical: responsive.pick(
-                      compact: 12,
-                      regular: 14,
-                      expanded: 15,
-                    ),
-                    horizontal: responsive.pick(
-                      compact: 14,
-                      regular: 18,
-                      expanded: 20,
-                    ),
+                    vertical:
+                        responsive.pick(
+                          compact: 12,
+                          regular: 14,
+                          expanded: 15,
+                        ) *
+                        uiScale,
+                    horizontal:
+                        responsive.pick(
+                          compact: 14,
+                          regular: 18,
+                          expanded: 20,
+                        ) *
+                        uiScale,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -752,13 +830,18 @@ class RoomSelectionView extends StatelessWidget {
                       Icon(
                         Icons.add_circle_outline_rounded,
                         color: AppTheme.primaryColor,
-                        size: responsive.pick(
-                          compact: 18,
-                          regular: 20,
-                          expanded: 21,
-                        ),
+                        size:
+                            responsive.pick(
+                              compact: 18,
+                              regular: 20,
+                              expanded: 21,
+                            ) *
+                            uiScale,
                       ),
-                      Gap(responsive.pick(compact: 6, regular: 8, expanded: 9)),
+                      Gap(
+                        responsive.pick(compact: 6, regular: 8, expanded: 9) *
+                            uiScale,
+                      ),
                       Text(
                         creatingRoom
                             ? l10n.roomSelectionCreating
@@ -767,11 +850,13 @@ class RoomSelectionView extends StatelessWidget {
                             ?.copyWith(
                               color: AppTheme.textPrimary,
                               fontWeight: FontWeight.w800,
-                              fontSize: responsive.pick(
-                                compact: 15,
-                                regular: 16,
-                                expanded: 17,
-                              ),
+                              fontSize:
+                                  responsive.pick(
+                                    compact: 15,
+                                    regular: 16,
+                                    expanded: 17,
+                                  ) *
+                                  uiScale,
                             ),
                       ),
                     ],
@@ -793,6 +878,7 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
     required this.senderAvatar,
     required this.senderFallbackText,
     required this.responsive,
+    required this.uiScale,
     required this.showAvatar,
   });
 
@@ -801,16 +887,16 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
   final String? senderAvatar;
   final String? senderFallbackText;
   final HomeResponsiveSpec responsive;
+  final double uiScale;
   final bool showAvatar;
 
   @override
   Widget build(BuildContext context) {
-    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     final hasCaption = caption.trim().isNotEmpty;
     final captionTopPadding =
-        responsive.pick(compact: 16, regular: 16, expanded: 16) * scale;
+        responsive.pick(compact: 16, regular: 16, expanded: 16) * uiScale;
     final tokens = _RoomSelectionFrameTokens.from(
-      scale: scale,
+      scale: uiScale,
       responsive: responsive,
       showAvatar: showAvatar,
     );
@@ -856,7 +942,7 @@ class _RoomSelectionMemoryFrame extends StatelessWidget {
                         caption.trim(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13 * scale,
+                          fontSize: 13 * uiScale,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textPrimary,
                         ),

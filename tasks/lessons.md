@@ -10,3 +10,10 @@
 ## 2026-02-25
 - If the user explicitly says not to modify a governance file (for example `AGENTS.md`), treat it as a hard constraint for the rest of the task and implement runtime/code fixes without further edits to that file.
 - When MCP login/handshake paths are flaky, retry with project MCP tools directly (`mcp__supabase__*`) and verify real runtime behavior end-to-end (HTTP response + logs), not just job creation.
+
+## 2026-02-28
+- When normalizing tablet widths for breakpoint/scale selection, do not collapse to phone-regular width by default; use a tablet content width that preserves the expanded tier unless there is explicit evidence oversized rendering persists.
+- Treat real-device iPad validation feedback as authoritative and adjust adaptive constants to match actual layout behavior, then lock with tests.
+- Do not rely on viewport width alone for iPad classification; in iPhone-compat mode on iPad, use physical display traits to prevent accidental compact-tier selection.
+- Keep scaling architecture consistent across related screens: avoid mixing globally scaled and locally unscaled card dimensions (or vice versa), because users immediately notice mismatched sizing between Room Selection and Pet Home gallery cards.
+- When users report limited movement area, verify layout occupancy first: visual transforms (`Transform.scale`) do not free interaction space; adjust parent layout constraints (aspect ratio, gaps, padding) to increase real movement bounds.

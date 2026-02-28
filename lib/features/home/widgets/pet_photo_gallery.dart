@@ -133,8 +133,8 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
           responsive: responsive,
         );
         final aspectRatio = responsive.pick(
-          compact: 1.2,
-          regular: 1.2,
+          compact: 1.44,
+          regular: 1.44,
           expanded: 1.08,
         );
         final cardMargin = responsive.pick(compact: 4, regular: 6, expanded: 8);

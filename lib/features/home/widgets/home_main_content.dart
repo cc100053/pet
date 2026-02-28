@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import '../../../shared/ui/adaptive_layout.dart';
+import 'home_responsive.dart';
+
 class HomeMainContent extends StatelessWidget {
   const HomeMainContent({
     super.key,
@@ -23,9 +26,28 @@ class HomeMainContent extends StatelessWidget {
       bottom: false,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final maxContentWidth = constraints.maxWidth >= 700
-              ? 540.0
-              : double.infinity;
+          final maxContentWidth = adaptiveContentMaxWidth(
+            constraints.maxWidth,
+            tabletMaxWidth: 540,
+          );
+          final responsive = HomeResponsiveSpec.fromWidth(constraints.maxWidth);
+          final uiScale = homeUiScale(constraints.maxWidth);
+          final topGap = responsive.pick(compact: 4, regular: 6, expanded: 12);
+          final middleGap = responsive.pick(
+            compact: 2,
+            regular: 4,
+            expanded: 10,
+          );
+          final horizontalPadding = responsive.pick(
+            compact: 14,
+            regular: 16,
+            expanded: 20,
+          );
+          final navTopGap = responsive.pick(
+            compact: 4,
+            regular: 6,
+            expanded: 8,
+          );
           return Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
@@ -33,17 +55,24 @@ class HomeMainContent extends StatelessWidget {
               child: Column(
                 children: [
                   statusBar,
-                  const Gap(12),
+                  Gap(topGap * uiScale),
                   photoGallery,
-                  const Gap(10),
+                  Gap(middleGap * uiScale),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding * uiScale,
+                      ),
                       child: petHomeCard,
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(0, 8, 0, bottomInset + 8),
+                    padding: EdgeInsets.fromLTRB(
+                      0,
+                      navTopGap * uiScale,
+                      0,
+                      bottomInset + 8,
+                    ),
                     child: bottomNavBar,
                   ),
                 ],

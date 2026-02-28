@@ -1,3 +1,4 @@
+import '../../../shared/ui/adaptive_layout.dart';
 import '../../../shared/ui/app_ui_scale.dart';
 
 enum HomeBreakpoint { compact, regular, expanded }
@@ -11,11 +12,19 @@ class HomeResponsiveSpec {
 
   final HomeBreakpoint breakpoint;
 
-  static HomeResponsiveSpec fromWidth(double width) {
-    if (width <= 360) {
+  static HomeResponsiveSpec fromWidth(
+    double width, {
+    bool? isIosTabletDisplay,
+  }) {
+    final tabletDisplay = isIosTabletDisplay ?? detectIosTabletDisplay();
+    if (tabletDisplay) {
+      return const HomeResponsiveSpec._(HomeBreakpoint.expanded);
+    }
+    final effectiveWidth = effectiveAdaptiveWidth(width, tabletMaxWidth: 540);
+    if (effectiveWidth <= 360) {
       return const HomeResponsiveSpec._(HomeBreakpoint.compact);
     }
-    if (width <= 430) {
+    if (effectiveWidth <= 430) {
       return const HomeResponsiveSpec._(HomeBreakpoint.regular);
     }
     return const HomeResponsiveSpec._(HomeBreakpoint.expanded);

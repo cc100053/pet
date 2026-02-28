@@ -55,7 +55,11 @@ class PicPetApp extends ConsumerWidget {
         ],
         builder: (context, child) {
           final mediaQuery = MediaQuery.of(context);
-          final scale = appUiScale(mediaQuery.size.width);
+          final scale = appUiScale(
+            mediaQuery.size.width,
+            log: true,
+            logSource: 'MaterialApp.builder',
+          );
           if (child == null || (scale - 1.0).abs() < 0.001) {
             return child ?? const SizedBox.shrink();
           }
