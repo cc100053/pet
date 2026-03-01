@@ -11,9 +11,13 @@ extension _HomeOnboardingFlow on _HomeViewState {
   }
 
   bool get _isBasicOnboardingActive {
-    return _basicOnboardingReady &&
-        ((_isDebugForceOnboardingActive && !_debugForceOnboardingHidden) ||
-            (!_basicOnboardingDismissed && !_basicOnboardingCompleted));
+    if (!_basicOnboardingReady) {
+      return false;
+    }
+    if (_isDebugForceOnboardingActive) {
+      return !_debugForceOnboardingHidden;
+    }
+    return !_basicOnboardingDismissed && !_basicOnboardingCompleted;
   }
 
   bool get _isCreatePetOnboardingStepActive {
@@ -58,7 +62,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
   }
 
   Future<void> _dismissBasicOnboarding() async {
-    if (!_basicOnboardingReady || _basicOnboardingDismissed) {
+    if (!_basicOnboardingReady) {
       return;
     }
     if (_isDebugForceOnboardingActive) {
@@ -69,6 +73,9 @@ extension _HomeOnboardingFlow on _HomeViewState {
       } else {
         _debugForceOnboardingHidden = true;
       }
+      return;
+    }
+    if (_basicOnboardingDismissed) {
       return;
     }
     if (mounted) {

@@ -20,3 +20,5 @@
 
 ## 2026-03-01
 - For multi-step create flows, keep the progress/loading state on the page where the user confirms the action (for example `PetSelectionPage`) instead of popping early and showing loading on the previous page, to avoid disorienting context switches.
+- In debug-override flows, evaluate override-specific dismiss/hide branches before normal persisted-state guards; otherwise users can get stuck with non-dismissible debug UI.
+- In debug-force visibility logic, avoid combining debug and normal activation conditions with `OR`; treat debug mode as an exclusive branch so hide flags are not reactivated by normal-state predicates.

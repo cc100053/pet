@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Fixed true root cause for Step 1 CTA not closing in debug force mode: onboarding active-state logic now uses an exclusive debug branch (debug force => honor `_debugForceOnboardingHidden` only) instead of combining debug/normal activation with `OR`.
+- Fixed Step 1 onboarding close behavior in debug force mode: reordered dismiss guards so debug close path always sets `_debugForceOnboardingHidden`, even when normal onboarding had been previously dismissed/completed.
 - Updated room-creation execution UX so `PetSelectionPage` keeps users on-page during create: Home now injects an async submit callback into pet selection, creation runs before page pop, and the page shows a localized in-page loading state (`roomSelectionCreating`) plus retryable inline error on failure instead of jumping back to Home first.
 - Removed onboarding Step 2 (open room): onboarding now focuses only on Step 1 (create pet CTA) in room selection; removed room-card spotlight/highlight wiring and Step 2 coach copy/localization, and added legacy state migration so persisted `open_room` now resumes at `invite_friend`.
 - Updated room-creation UX to a single in-page flow on `PetSelectionPage`: users now select pet and input pet name on the same screen, then confirm to create and enter the room directly (removed the post-selection pet-name dialog on Home).
