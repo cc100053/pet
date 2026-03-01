@@ -29,6 +29,10 @@ class RoomSelectionView extends StatelessWidget {
     this.selectedRoomId,
     this.userAvatarUrl,
     this.topBanner,
+    this.highlightCreateRoomCta = false,
+    this.createRoomCtaKey,
+    this.highlightRoomCardId,
+    this.highlightRoomCardKey,
   });
 
   final List<Map<String, dynamic>> rooms;
@@ -44,6 +48,10 @@ class RoomSelectionView extends StatelessWidget {
   final String? selectedRoomId;
   final String? userAvatarUrl;
   final Widget? topBanner;
+  final bool highlightCreateRoomCta;
+  final Key? createRoomCtaKey;
+  final String? highlightRoomCardId;
+  final Key? highlightRoomCardKey;
 
   static const _filmBase = Color(0xFFFFF9F2);
   static String? _lastLayoutDebugLogKey;
@@ -363,6 +371,7 @@ class RoomSelectionView extends StatelessWidget {
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
+    final isOnboardingTarget = roomId != null && roomId == highlightRoomCardId;
     final isLocked = room['is_locked'] == true;
     final latestPhoto = room['latest_photo'] as String?;
     final latestCaption = (room['latest_caption'] as String? ?? '').trim();
@@ -401,6 +410,7 @@ class RoomSelectionView extends StatelessWidget {
     final petLevel = (room['pet_level'] as num?)?.toInt();
     final memoryFrameAspectRatio = _memoryFrameAspectRatio(responsive);
     return Material(
+      key: isOnboardingTarget ? highlightRoomCardKey : null,
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(18 * uiScale),
@@ -413,10 +423,12 @@ class RoomSelectionView extends StatelessWidget {
             color: _filmBase,
             borderRadius: BorderRadius.circular(18 * uiScale),
             border: Border.all(
-              color: isSelected
-                  ? AppTheme.textPrimary
-                  : (isLocked ? Colors.black38 : Colors.black12),
-              width: isSelected ? 2 : 1,
+              color: isOnboardingTarget
+                  ? AppTheme.secondaryColor.withValues(alpha: 0.95)
+                  : (isSelected
+                        ? AppTheme.textPrimary
+                        : (isLocked ? Colors.black38 : Colors.black12)),
+              width: isOnboardingTarget ? 2.2 : (isSelected ? 2 : 1),
             ),
             boxShadow: [
               BoxShadow(
@@ -424,6 +436,13 @@ class RoomSelectionView extends StatelessWidget {
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
+              if (isOnboardingTarget)
+                BoxShadow(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.3),
+                  blurRadius: 18,
+                  spreadRadius: 1.2,
+                  offset: const Offset(0, 6),
+                ),
             ],
           ),
           child: Stack(
@@ -780,86 +799,110 @@ class RoomSelectionView extends StatelessWidget {
     final radius = BorderRadius.circular(999);
     return Opacity(
       opacity: creatingRoom ? 0.6 : 1,
-      child: ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              color: Colors.white.withValues(alpha: 0.34),
-              border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.72),
-                width: 0.8,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: creatingRoom ? null : onCreateRoom,
-                borderRadius: radius,
-                splashColor: AppTheme.primaryColor.withValues(alpha: 0.14),
-                highlightColor: AppTheme.primaryColor.withValues(alpha: 0.08),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical:
-                        responsive.pick(
-                          compact: 12,
-                          regular: 14,
-                          expanded: 15,
-                        ) *
-                        uiScale,
-                    horizontal:
-                        responsive.pick(
-                          compact: 14,
-                          regular: 18,
-                          expanded: 20,
-                        ) *
-                        uiScale,
+      child: AnimatedContainer(
+        key: createRoomCtaKey,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          border: highlightCreateRoomCta
+              ? Border.all(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.88),
+                  width: 2.2,
+                )
+              : null,
+          boxShadow: highlightCreateRoomCta
+              ? [
+                  BoxShadow(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.34),
+                    blurRadius: 18,
+                    spreadRadius: 1.5,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add_circle_outline_rounded,
-                        color: AppTheme.primaryColor,
-                        size:
-                            responsive.pick(
-                              compact: 18,
-                              regular: 20,
-                              expanded: 21,
-                            ) *
-                            uiScale,
-                      ),
-                      Gap(
-                        responsive.pick(compact: 6, regular: 8, expanded: 9) *
-                            uiScale,
-                      ),
-                      Text(
-                        creatingRoom
-                            ? l10n.roomSelectionCreating
-                            : l10n.roomSelectionCreatePet,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: AppTheme.textPrimary,
-                              fontWeight: FontWeight.w800,
-                              fontSize:
-                                  responsive.pick(
-                                    compact: 15,
-                                    regular: 16,
-                                    expanded: 17,
-                                  ) *
-                                  uiScale,
-                            ),
-                      ),
-                    ],
+                ]
+              : const [],
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                color: Colors.white.withValues(alpha: 0.34),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.72),
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: creatingRoom ? null : onCreateRoom,
+                  borderRadius: radius,
+                  splashColor: AppTheme.primaryColor.withValues(alpha: 0.14),
+                  highlightColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical:
+                          responsive.pick(
+                            compact: 12,
+                            regular: 14,
+                            expanded: 15,
+                          ) *
+                          uiScale,
+                      horizontal:
+                          responsive.pick(
+                            compact: 14,
+                            regular: 18,
+                            expanded: 20,
+                          ) *
+                          uiScale,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_circle_outline_rounded,
+                          color: AppTheme.primaryColor,
+                          size:
+                              responsive.pick(
+                                compact: 18,
+                                regular: 20,
+                                expanded: 21,
+                              ) *
+                              uiScale,
+                        ),
+                        Gap(
+                          responsive.pick(compact: 6, regular: 8, expanded: 9) *
+                              uiScale,
+                        ),
+                        Text(
+                          creatingRoom
+                              ? l10n.roomSelectionCreating
+                              : l10n.roomSelectionCreatePet,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w800,
+                                fontSize:
+                                    responsive.pick(
+                                      compact: 15,
+                                      regular: 16,
+                                      expanded: 17,
+                                    ) *
+                                    uiScale,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

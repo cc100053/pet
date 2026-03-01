@@ -73,10 +73,19 @@ part 'controllers/home_pet_movement_controller.dart';
 part 'controllers/home_feed_orchestrator.dart';
 part 'controllers/home_room_manager.dart';
 part 'flows/home_invite_flow.dart';
+part 'flows/home_onboarding_flow.dart';
 
 enum _PetStationaryState { staying, sleeping }
 
 enum _FeedDoubleRewardPromptAction { watch, cancel }
+
+enum _BasicOnboardingStep {
+  createPet,
+  openRoom,
+  inviteFriend,
+  feedOnce,
+  completed,
+}
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -140,6 +149,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _diamonds = 0;
   bool _isDebugAdmin = false;
   bool _debugProPlan = false;
+  bool _debugAlwaysShowOnboarding = false;
   bool _revenueCatProPlan = false;
   final RevenueCatService _revenueCatService = RevenueCatService();
   String? _myAvatarUrl;
@@ -251,6 +261,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _showingFeedDoubleRewardPrompt = false;
   String? _lastCrashContextRoomId;
   String? _lastCrashContextNetworkState;
+  final GlobalKey _onboardingCreateRoomCtaKey = GlobalKey();
+  final GlobalKey _onboardingOpenRoomCardKey = GlobalKey();
+  _BasicOnboardingStep _basicOnboardingStep = _BasicOnboardingStep.createPet;
+  bool _basicOnboardingDismissed = false;
+  bool _basicOnboardingCompleted = false;
+  bool _basicOnboardingReady = false;
+  bool _debugForceOnboardingHidden = false;
 
   @override
   void initState() {
@@ -263,6 +280,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       ),
     );
     _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
+    _debugAlwaysShowOnboarding =
+        AppSettingsRepository.instance.debugAlwaysShowOnboarding;
+    unawaited(_loadBasicOnboardingState());
     unawaited(_refreshDebugAdminAccess());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -474,6 +494,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _syncCurrencyProvider();
       _syncRoomProviders();
       _syncUnreadCountsProvider(_myRooms);
+      _evaluateBasicOnboardingAgainstCurrentData();
     } catch (_) {
       // Best effort. If cache read fails we continue with network bootstrap.
     }
@@ -1056,6 +1077,29 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  Future<void> _setDebugAlwaysShowOnboarding(bool value) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
+    if (_debugAlwaysShowOnboarding == value) {
+      return;
+    }
+    setState(() {
+      _debugAlwaysShowOnboarding = value;
+      _debugForceOnboardingHidden = false;
+    });
+    if (value) {
+      _applyDebugOnboardingOverrideIfNeeded();
+    } else {
+      unawaited(_loadBasicOnboardingState());
+    }
+    try {
+      await AppSettingsRepository.instance.setDebugAlwaysShowOnboarding(value);
+    } catch (error) {
+      debugPrint('[settings] failed to save debug onboarding toggle: $error');
+    }
+  }
+
   bool get _hasProPlanAccess =>
       (_isDebugAdmin && _debugProPlan) || _revenueCatProPlan;
 
@@ -1162,6 +1206,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     _syncRoomProviders();
     _syncPetStateProvider();
     _syncCrashContextFromHome();
+  }
+
+  void _setStateForOnboarding(VoidCallback mutation) {
+    setState(mutation);
   }
 
   void _syncCrashContextFromHome({String? networkState, String? lastAction}) {
@@ -1317,15 +1365,22 @@ class _HomeViewState extends ConsumerState<HomeView>
         _isAdminClaim(user.appMetadata) || _isAdminClaim(debugSession.claims);
     if (!mounted) {
       _isDebugAdmin = isAdmin;
+      if (_isDebugAdmin) {
+        _applyDebugOnboardingOverrideIfNeeded();
+      }
       return;
     }
     if (_isDebugAdmin == isAdmin) {
+      if (_isDebugAdmin) {
+        _applyDebugOnboardingOverrideIfNeeded();
+      }
       return;
     }
     setState(() {
       _isDebugAdmin = isAdmin;
       _myRooms = _applyLegacyRoomLocking(_myRooms);
     });
+    _applyDebugOnboardingOverrideIfNeeded();
     _syncRoomProviders();
   }
 
@@ -3867,26 +3922,38 @@ class _HomeViewState extends ConsumerState<HomeView>
         value: overlayStyle,
         child: Scaffold(
           drawer: _buildSideDrawer(),
-          body: RoomSelectionView(
-            rooms: _myRooms,
-            unreadCountByRoom: unreadCountByRoom,
-            creatingRoom: _creatingRoom,
-            joiningRoom: _joiningRoom,
-            onCreateRoom: _createRoom,
-            onJoinRoom: _joinRoomByCode,
-            onSelectRoom: _enterRoomFromSelection,
-            onLeaveRoom: _confirmLeaveRoom,
-            userAvatarById: _profileByUserId.map(
-              (key, value) => MapEntry(key, value.avatarUrl),
-            ),
-            userNameById: _profileByUserId.map(
-              (key, value) => MapEntry(key, value.nickname),
-            ),
-            selectedRoomId: roomSelectionId,
-            userAvatarUrl: _myAvatarUrl,
-            topBanner: AdMobIds.isSupported && !_hasProPlanAccess
-                ? const AdMobBannerSlot()
-                : null,
+          body: Stack(
+            children: [
+              RoomSelectionView(
+                rooms: _myRooms,
+                unreadCountByRoom: unreadCountByRoom,
+                creatingRoom: _creatingRoom,
+                joiningRoom: _joiningRoom,
+                onCreateRoom: _createRoom,
+                onJoinRoom: _joinRoomByCode,
+                onSelectRoom: _enterRoomFromSelection,
+                onLeaveRoom: _confirmLeaveRoom,
+                userAvatarById: _profileByUserId.map(
+                  (key, value) => MapEntry(key, value.avatarUrl),
+                ),
+                userNameById: _profileByUserId.map(
+                  (key, value) => MapEntry(key, value.nickname),
+                ),
+                selectedRoomId: roomSelectionId,
+                userAvatarUrl: _myAvatarUrl,
+                highlightCreateRoomCta: _isCreatePetOnboardingStepActive,
+                createRoomCtaKey: _onboardingCreateRoomCtaKey,
+                highlightRoomCardId: _openRoomOnboardingTargetRoomId,
+                highlightRoomCardKey: _onboardingOpenRoomCardKey,
+                topBanner: AdMobIds.isSupported && !_hasProPlanAccess
+                    ? const AdMobBannerSlot()
+                    : null,
+              ),
+              if (_shouldShowCreatePetOnboardingCoachCard)
+                _buildBasicOnboardingFocusOverlay(),
+              if (_shouldShowCreatePetOnboardingCoachCard)
+                _buildBasicOnboardingCoachCard(),
+            ],
           ),
         ),
       );
@@ -4248,6 +4315,18 @@ class _HomeViewState extends ConsumerState<HomeView>
                   ),
                   value: _debugProPlan,
                   onChanged: (value) => unawaited(_setDebugProPlan(value)),
+                ),
+                SwitchListTile(
+                  contentPadding: const EdgeInsets.only(left: 16, right: 8),
+                  title: Text(l10n.drawerDebugForceOnboarding),
+                  subtitle: Text(
+                    _debugAlwaysShowOnboarding
+                        ? l10n.drawerDebugForceOnboardingEnabled
+                        : l10n.drawerDebugForceOnboardingDisabled,
+                  ),
+                  value: _debugAlwaysShowOnboarding,
+                  onChanged: (value) =>
+                      unawaited(_setDebugAlwaysShowOnboarding(value)),
                 ),
                 ListTile(
                   title: Text(l10n.drawerDebugHungerDown),

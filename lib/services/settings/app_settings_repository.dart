@@ -8,11 +8,23 @@ class AppSettingsRepository {
   static const String _boxName = 'app_settings';
   static const String _preferredLocaleKey = 'preferred_locale_tag';
   static const String _debugProPlanEnabledKey = 'debug_pro_plan_enabled';
+  static const String _debugAlwaysShowOnboardingKey =
+      'debug_always_show_onboarding';
   static const String _reviewFeedSuccessCountKey = 'review_feed_success_count';
   static const String _reviewNextMilestoneIndexKey =
       'review_next_milestone_index';
   static const String _reviewLastPromptAtIsoKey = 'review_last_prompt_at_iso';
   static const String _ugcTermsAcceptedKey = 'ugc_terms_accepted';
+  static const String _onboardingBasicCurrentStepKey =
+      'onboarding_basic_current_step';
+  static const String _onboardingBasicDismissedKey =
+      'onboarding_basic_dismissed';
+  static const String _onboardingBasicCompletedKey =
+      'onboarding_basic_completed';
+  static const String _onboardingBasicStartedAtIsoKey =
+      'onboarding_basic_started_at_iso';
+  static const String _onboardingBasicCompletedAtIsoKey =
+      'onboarding_basic_completed_at_iso';
 
   Box<dynamic>? _box;
 
@@ -36,6 +48,13 @@ class AppSettingsRepository {
 
   Future<void> setDebugProPlanEnabled(bool enabled) async {
     await _box?.put(_debugProPlanEnabledKey, enabled);
+  }
+
+  bool get debugAlwaysShowOnboarding =>
+      (_box?.get(_debugAlwaysShowOnboardingKey) as bool?) ?? false;
+
+  Future<void> setDebugAlwaysShowOnboarding(bool enabled) async {
+    await _box?.put(_debugAlwaysShowOnboardingKey, enabled);
   }
 
   int get reviewFeedSuccessCount =>
@@ -75,5 +94,68 @@ class AppSettingsRepository {
 
   Future<void> setUgcTermsAccepted(bool accepted) async {
     await _box?.put(_ugcTermsAcceptedKey, accepted);
+  }
+
+  String? get onboardingBasicCurrentStep =>
+      _box?.get(_onboardingBasicCurrentStepKey) as String?;
+
+  Future<void> setOnboardingBasicCurrentStep(String? step) async {
+    if (step == null || step.isEmpty) {
+      await _box?.delete(_onboardingBasicCurrentStepKey);
+      return;
+    }
+    await _box?.put(_onboardingBasicCurrentStepKey, step);
+  }
+
+  bool get onboardingBasicDismissed =>
+      (_box?.get(_onboardingBasicDismissedKey) as bool?) ?? false;
+
+  Future<void> setOnboardingBasicDismissed(bool dismissed) async {
+    await _box?.put(_onboardingBasicDismissedKey, dismissed);
+  }
+
+  bool get onboardingBasicCompleted =>
+      (_box?.get(_onboardingBasicCompletedKey) as bool?) ?? false;
+
+  Future<void> setOnboardingBasicCompleted(bool completed) async {
+    await _box?.put(_onboardingBasicCompletedKey, completed);
+  }
+
+  DateTime? get onboardingBasicStartedAt {
+    final iso = _box?.get(_onboardingBasicStartedAtIsoKey) as String?;
+    if (iso == null || iso.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(iso)?.toUtc();
+  }
+
+  Future<void> setOnboardingBasicStartedAt(DateTime? value) async {
+    if (value == null) {
+      await _box?.delete(_onboardingBasicStartedAtIsoKey);
+      return;
+    }
+    await _box?.put(
+      _onboardingBasicStartedAtIsoKey,
+      value.toUtc().toIso8601String(),
+    );
+  }
+
+  DateTime? get onboardingBasicCompletedAt {
+    final iso = _box?.get(_onboardingBasicCompletedAtIsoKey) as String?;
+    if (iso == null || iso.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(iso)?.toUtc();
+  }
+
+  Future<void> setOnboardingBasicCompletedAt(DateTime? value) async {
+    if (value == null) {
+      await _box?.delete(_onboardingBasicCompletedAtIsoKey);
+      return;
+    }
+    await _box?.put(
+      _onboardingBasicCompletedAtIsoKey,
+      value.toUtc().toIso8601String(),
+    );
   }
 }

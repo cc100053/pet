@@ -176,6 +176,9 @@
   "drawerDebugAddCandy": "+100 キャンディ",
   "drawerDebugAddDiamonds": "+100 ダイヤ",
   "drawerDebugTogglePlan": "プラン切り替え",
+  "drawerDebugForceOnboarding": "毎回オンボーディングを表示",
+  "drawerDebugForceOnboardingEnabled": "アプリ起動ごとに表示",
+  "drawerDebugForceOnboardingDisabled": "通常の一回表示動作",
   "drawerDebugHungerDown": "ペット空腹度 -10",
   "drawerDebugAddExp": "経験値 +10",
   "drawerDebugSpawnPoop": "うんちさせる",
@@ -183,6 +186,8 @@
   "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
   "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
   "drawerDebugTestCrashReport": "クラッシュ報告をテスト",
+  "onboardingOpenRoomTitle": "ルームに入ろう",
+  "onboardingOpenRoomDescription": "ルームカードをタップして、ペットのお世話を始めましょう。",
   "drawerInviteCode": "コード: {code}",
   "@drawerInviteCode": {
     "placeholders": {

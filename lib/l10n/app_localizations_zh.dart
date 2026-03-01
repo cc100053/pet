@@ -292,6 +292,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTogglePlan => '切換方案';
 
   @override
+  String get drawerDebugForceOnboarding => '每次都顯示新手引導';
+
+  @override
+  String get drawerDebugForceOnboardingEnabled => '每次打開 App 都顯示';
+
+  @override
+  String get drawerDebugForceOnboardingDisabled => '使用正常一次性顯示';
+
+  @override
   String get drawerDebugHungerDown => '宠物飢餓度 -10';
 
   @override
@@ -311,6 +320,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
+
+  @override
+  String get onboardingOpenRoomTitle => '進入你的房間';
+
+  @override
+  String get onboardingOpenRoomDescription => '點擊房間卡片，開始照顧你的寵物。';
 
   @override
   String drawerInviteCode(Object code) {
@@ -1543,6 +1558,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerDebugTogglePlan => '切換方案';
 
   @override
+  String get drawerDebugForceOnboarding => '每次都顯示新手引導';
+
+  @override
+  String get drawerDebugForceOnboardingEnabled => '每次打開 App 都顯示';
+
+  @override
+  String get drawerDebugForceOnboardingDisabled => '使用正常一次性顯示';
+
+  @override
   String get drawerDebugHungerDown => '寵物飢餓度 -10';
 
   @override
@@ -1562,6 +1586,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
+
+  @override
+  String get onboardingOpenRoomTitle => '進入你的房間';
+
+  @override
+  String get onboardingOpenRoomDescription => '點一下房間卡片，開始照顧你的寵物。';
 
   @override
   String drawerInviteCode(Object code) {

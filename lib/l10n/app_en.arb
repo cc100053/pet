@@ -176,6 +176,9 @@
   "drawerDebugAddCandy": "+100 Candy",
   "drawerDebugAddDiamonds": "+100 Diamonds",
   "drawerDebugTogglePlan": "Toggle Plan",
+  "drawerDebugForceOnboarding": "Always Show Onboarding",
+  "drawerDebugForceOnboardingEnabled": "Show on every app open",
+  "drawerDebugForceOnboardingDisabled": "Use normal one-time behavior",
   "drawerDebugHungerDown": "-10 Pet Hunger",
   "drawerDebugAddExp": "+10 EXP",
   "drawerDebugSpawnPoop": "Make Pet Poop",
@@ -183,6 +186,8 @@
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
   "drawerDebugTestCrashReport": "Test Crash Report",
+  "onboardingOpenRoomTitle": "Enter Your Room",
+  "onboardingOpenRoomDescription": "Tap your room card to start taking care of your pet.",
   "drawerInviteCode": "Code: {code}",
   "@drawerInviteCode": {
     "placeholders": {

@@ -176,6 +176,9 @@
   "drawerDebugAddCandy": "+100 캔디",
   "drawerDebugAddDiamonds": "+100 다이아몬드",
   "drawerDebugTogglePlan": "플랜 전환",
+  "drawerDebugForceOnboarding": "온보딩 항상 표시",
+  "drawerDebugForceOnboardingEnabled": "앱 실행마다 표시",
+  "drawerDebugForceOnboardingDisabled": "기본 1회 표시 동작",
   "drawerDebugHungerDown": "펫 배고픔 -10",
   "drawerDebugAddExp": "EXP +10",
   "drawerDebugSpawnPoop": "펫 배변 생성",
@@ -183,6 +186,8 @@
   "drawerDebugTestSoftUpdate": "소프트 업데이트 안내 테스트",
   "drawerDebugTestHardUpdate": "강제 업데이트 안내 테스트",
   "drawerDebugTestCrashReport": "크래시 보고 테스트",
+  "onboardingOpenRoomTitle": "방에 들어가기",
+  "onboardingOpenRoomDescription": "방 카드를 눌러 펫 돌보기를 시작하세요.",
   "drawerInviteCode": "코드: {code}",
   "@drawerInviteCode": {
     "placeholders": {

@@ -41,6 +41,7 @@
 - `supabase/functions/hunger_tick_dispatch/index.ts`: Server-side pet ticker + hunger-alert push dispatcher for closed-app delivery.
 - `supabase/seed.sql`: Seed data for label mappings and quests.
 - `docs/crash_reporting.md`: Crash reporting validation + alerting runbook.
+- `docs/onboarding_basic_tutorial_spec.md`: Lightweight first-login onboarding spec (create pet, open room, invite friend, feed).
 - `ios/scripts/upload_crashlytics_symbols.sh`: iOS release dSYM upload script for Crashlytics symbolication.
 - `.github/workflows/ci.yml`: Flutter analyze/test workflow.
 
@@ -51,6 +52,7 @@ Implemented:
 - `lib/app/`: App bootstrap and theme.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
+  - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1/2 coach cards, spotlight focus resolution (create CTA + open-room card), skip/persistence, and debug force-show override.
   - `lib/features/home/providers/home_unread_counts_provider.dart`: Riverpod unread-count state for Home/Room Selection badges and app-icon badge sync.
   - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).

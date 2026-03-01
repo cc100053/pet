@@ -298,6 +298,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugTogglePlan => '플랜 전환';
 
   @override
+  String get drawerDebugForceOnboarding => '온보딩 항상 표시';
+
+  @override
+  String get drawerDebugForceOnboardingEnabled => '앱 실행마다 표시';
+
+  @override
+  String get drawerDebugForceOnboardingDisabled => '기본 1회 표시 동작';
+
+  @override
   String get drawerDebugHungerDown => '펫 배고픔 -10';
 
   @override
@@ -317,6 +326,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => '크래시 보고 테스트';
+
+  @override
+  String get onboardingOpenRoomTitle => '방에 들어가기';
+
+  @override
+  String get onboardingOpenRoomDescription => '방 카드를 눌러 펫 돌보기를 시작하세요.';
 
   @override
   String drawerInviteCode(Object code) {

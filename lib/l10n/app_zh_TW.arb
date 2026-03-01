@@ -169,6 +169,9 @@
   "drawerDebugAddCandy": "+100 糖果",
   "drawerDebugAddDiamonds": "+100 鑽石",
   "drawerDebugTogglePlan": "切換方案",
+  "drawerDebugForceOnboarding": "每次都顯示新手引導",
+  "drawerDebugForceOnboardingEnabled": "每次打開 App 都顯示",
+  "drawerDebugForceOnboardingDisabled": "使用正常一次性顯示",
   "drawerDebugHungerDown": "寵物飢餓度 -10",
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓寵物便便",
@@ -176,6 +179,8 @@
   "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
   "drawerDebugTestHardUpdate": "測試強制更新彈窗",
   "drawerDebugTestCrashReport": "測試崩潰上報",
+  "onboardingOpenRoomTitle": "進入你的房間",
+  "onboardingOpenRoomDescription": "點一下房間卡片，開始照顧你的寵物。",
   "drawerInviteCode": "代碼：{code}",
   "@drawerInviteCode": {
     "placeholders": {

@@ -9,15 +9,32 @@ import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import 'pet_catalog.dart';
 
+class PetSelectionResult {
+  const PetSelectionResult({required this.pet, required this.petName});
+
+  final PetDefinition pet;
+  final String petName;
+}
+
 class PetSelectionPage extends StatefulWidget {
-  const PetSelectionPage({super.key, this.initialSelectionId});
+  const PetSelectionPage({
+    super.key,
+    this.initialSelectionId,
+    this.maxPetNameLength = 20,
+  });
 
   final String? initialSelectionId;
+  final int maxPetNameLength;
 
-  static Route<PetDefinition> route({String? initialSelectionId}) {
-    return PageRouteBuilder<PetDefinition>(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          PetSelectionPage(initialSelectionId: initialSelectionId),
+  static Route<PetSelectionResult> route({
+    String? initialSelectionId,
+    int maxPetNameLength = 20,
+  }) {
+    return PageRouteBuilder<PetSelectionResult>(
+      pageBuilder: (context, animation, secondaryAnimation) => PetSelectionPage(
+        initialSelectionId: initialSelectionId,
+        maxPetNameLength: maxPetNameLength,
+      ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(
           parent: animation,
@@ -43,12 +60,42 @@ class PetSelectionPage extends StatefulWidget {
 
 class _PetSelectionPageState extends State<PetSelectionPage> {
   String? _selectedPetId;
+  late final TextEditingController _petNameController;
+  String? _petNameError;
   bool _didRefreshStatusBar = false;
 
   @override
   void initState() {
     super.initState();
     _selectedPetId = widget.initialSelectionId;
+    _petNameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _petNameController.dispose();
+    super.dispose();
+  }
+
+  void _submitSelection() {
+    final l10n = AppLocalizations.of(context)!;
+    final selectedPetId = _selectedPetId;
+    if (selectedPetId == null) {
+      return;
+    }
+    final petName = _petNameController.text.trim();
+    if (petName.isEmpty) {
+      setState(() {
+        _petNameError = l10n.petNameEmptyError;
+      });
+      return;
+    }
+    setState(() {
+      _petNameError = null;
+    });
+    Navigator.of(context).pop(
+      PetSelectionResult(pet: PetCatalog.byId(selectedPetId), petName: petName),
+    );
   }
 
   @override
@@ -163,29 +210,58 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                          child: AnimatedSwitcher(
-                            duration: 200.ms,
-                            child: _selectedPetId == null
-                                ? Text(
-                                    l10n.petSelectionHint,
-                                    key: const ValueKey('petSelectionHint'),
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textSecondary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  )
-                                : Text(
-                                    l10n.petSelectionSelected(
-                                      PetCatalog.byId(
-                                        _selectedPetId,
-                                      ).name(l10n),
-                                    ),
-                                    key: const ValueKey('petSelectionSelected'),
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textPrimary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AnimatedSwitcher(
+                                duration: 200.ms,
+                                child: _selectedPetId == null
+                                    ? Text(
+                                        l10n.petSelectionHint,
+                                        key: const ValueKey('petSelectionHint'),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: AppTheme.textSecondary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      )
+                                    : Text(
+                                        l10n.petSelectionSelected(
+                                          PetCatalog.byId(
+                                            _selectedPetId,
+                                          ).name(l10n),
+                                        ),
+                                        key: const ValueKey(
+                                          'petSelectionSelected',
+                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: AppTheme.textPrimary,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                              ),
+                              const SizedBox(height: 10),
+                              TextField(
+                                controller: _petNameController,
+                                textInputAction: TextInputAction.done,
+                                maxLength: widget.maxPetNameLength,
+                                decoration: InputDecoration(
+                                  labelText: l10n.petNameLabel,
+                                  helperText: l10n.petNameHint,
+                                  errorText: _petNameError,
+                                ),
+                                onChanged: (_) {
+                                  if (_petNameError == null) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    _petNameError = null;
+                                  });
+                                },
+                                onSubmitted: (_) => _submitSelection(),
+                              ),
+                            ],
                           ),
                         ),
                         Padding(
@@ -193,12 +269,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                           child: FilledButton(
                             onPressed: _selectedPetId == null
                                 ? null
-                                : () {
-                                    final selected = PetCatalog.byId(
-                                      _selectedPetId,
-                                    );
-                                    Navigator.of(context).pop(selected);
-                                  },
+                                : _submitSelection,
                             child: Text(l10n.petSelectionConfirm),
                           ),
                         ),
@@ -233,6 +304,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
         onTap: () {
           setState(() {
             _selectedPetId = pet.id;
+            _petNameError = null;
           });
         },
         child: AnimatedContainer(

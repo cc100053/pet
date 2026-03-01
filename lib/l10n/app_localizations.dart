@@ -595,6 +595,24 @@ abstract class AppLocalizations {
   /// **'Toggle Plan'**
   String get drawerDebugTogglePlan;
 
+  /// No description provided for @drawerDebugForceOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Always Show Onboarding'**
+  String get drawerDebugForceOnboarding;
+
+  /// No description provided for @drawerDebugForceOnboardingEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on every app open'**
+  String get drawerDebugForceOnboardingEnabled;
+
+  /// No description provided for @drawerDebugForceOnboardingDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Use normal one-time behavior'**
+  String get drawerDebugForceOnboardingDisabled;
+
   /// No description provided for @drawerDebugHungerDown.
   ///
   /// In en, this message translates to:
@@ -636,6 +654,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Test Crash Report'**
   String get drawerDebugTestCrashReport;
+
+  /// No description provided for @onboardingOpenRoomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Your Room'**
+  String get onboardingOpenRoomTitle;
+
+  /// No description provided for @onboardingOpenRoomDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap your room card to start taking care of your pet.'**
+  String get onboardingOpenRoomDescription;
 
   /// No description provided for @drawerInviteCode.
   ///

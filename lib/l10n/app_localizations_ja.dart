@@ -292,6 +292,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTogglePlan => 'プラン切り替え';
 
   @override
+  String get drawerDebugForceOnboarding => '毎回オンボーディングを表示';
+
+  @override
+  String get drawerDebugForceOnboardingEnabled => 'アプリ起動ごとに表示';
+
+  @override
+  String get drawerDebugForceOnboardingDisabled => '通常の一回表示動作';
+
+  @override
   String get drawerDebugHungerDown => 'ペット空腹度 -10';
 
   @override
@@ -311,6 +320,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => 'クラッシュ報告をテスト';
+
+  @override
+  String get onboardingOpenRoomTitle => 'ルームに入ろう';
+
+  @override
+  String get onboardingOpenRoomDescription => 'ルームカードをタップして、ペットのお世話を始めましょう。';
 
   @override
   String drawerInviteCode(Object code) {

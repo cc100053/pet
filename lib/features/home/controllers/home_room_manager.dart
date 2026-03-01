@@ -115,6 +115,7 @@ extension _HomeRoomManager on _HomeViewState {
           _roomSelectionId ??= _roomId ?? sortedRooms.first['id'] as String?;
         }
       });
+      _evaluateBasicOnboardingAgainstCurrentData();
       _syncUnreadCountsProvider(sortedRooms);
       _syncAppIconBadge(rooms: sortedRooms);
       for (final senderId in senderIds) {
@@ -387,6 +388,7 @@ extension _HomeRoomManager on _HomeViewState {
   void _enterRoomFromSelection(String roomId, {String? petType}) {
     if (!_showRoomSelection) {
       _switchRoom(roomId, petType: petType, showEntryLoading: true);
+      unawaited(_markOpenRoomOnboardingStepCompleted());
       return;
     }
     _setStateForRoomManager(() {
@@ -394,6 +396,7 @@ extension _HomeRoomManager on _HomeViewState {
       _roomSelectionId = roomId;
     });
     _switchRoom(roomId, petType: petType, showEntryLoading: true);
+    unawaited(_markOpenRoomOnboardingStepCompleted());
   }
 
   Future<void> _createRoom() async {
@@ -409,22 +412,21 @@ extension _HomeRoomManager on _HomeViewState {
       return;
     }
 
-    final selectedPet = await Navigator.of(
-      context,
-    ).push<PetDefinition>(PetSelectionPage.route());
-    if (!mounted || selectedPet == null) {
+    final selection = await Navigator.of(context).push<PetSelectionResult>(
+      PetSelectionPage.route(
+        maxPetNameLength: _HomeViewState._petNameMaxLength,
+      ),
+    );
+    if (!mounted || selection == null) {
       return;
     }
-
-    final creation = await _promptRoomCreationDetails();
-    if (!mounted || creation == null) {
-      return;
-    }
+    final selectedPet = selection.pet;
+    final petName = selection.petName.trim();
 
     _setStateForRoomManager(() => _creatingRoom = true);
     try {
       final response = await Supabase.instance.client
-          .rpc('create_room', params: {'p_name': creation.petName.trim()})
+          .rpc('create_room', params: {'p_name': petName})
           .single();
 
       final newId = response['room_id'] as String?;
@@ -438,7 +440,7 @@ extension _HomeRoomManager on _HomeViewState {
       }
 
       final applied = await _applyPetSelection(newId, selectedPet);
-      await _applyInitialPetName(newId, creation.petName);
+      await _applyInitialPetName(newId, petName);
       if (!mounted) {
         return;
       }
@@ -451,6 +453,7 @@ extension _HomeRoomManager on _HomeViewState {
       } else {
         _enterRoomFromSelection(newId);
       }
+      unawaited(_markCreatePetOnboardingStepCompleted());
       AnalyticsService.instance.logEvent(
         'room_create',
         parameters: {'result': 'success'},
@@ -572,15 +575,6 @@ extension _HomeRoomManager on _HomeViewState {
         ),
       );
     }
-  }
-
-  Future<_RoomCreationDetails?> _promptRoomCreationDetails() async {
-    return showAppDialog<_RoomCreationDetails>(
-      context: context,
-      builder: (context) => const _RoomCreationDialog(
-        maxPetNameLength: _HomeViewState._petNameMaxLength,
-      ),
-    );
   }
 
   Future<void> _joinRoomByCode() async {

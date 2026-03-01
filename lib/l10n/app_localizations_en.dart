@@ -302,6 +302,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTogglePlan => 'Toggle Plan';
 
   @override
+  String get drawerDebugForceOnboarding => 'Always Show Onboarding';
+
+  @override
+  String get drawerDebugForceOnboardingEnabled => 'Show on every app open';
+
+  @override
+  String get drawerDebugForceOnboardingDisabled =>
+      'Use normal one-time behavior';
+
+  @override
   String get drawerDebugHungerDown => '-10 Pet Hunger';
 
   @override
@@ -321,6 +331,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => 'Test Crash Report';
+
+  @override
+  String get onboardingOpenRoomTitle => 'Enter Your Room';
+
+  @override
+  String get onboardingOpenRoomDescription =>
+      'Tap your room card to start taking care of your pet.';
 
   @override
   String drawerInviteCode(Object code) {
