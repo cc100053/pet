@@ -16,24 +16,31 @@ class PetSelectionResult {
   final String petName;
 }
 
+typedef PetSelectionSubmitHandler =
+    Future<String?> Function(PetSelectionResult selection);
+
 class PetSelectionPage extends StatefulWidget {
   const PetSelectionPage({
     super.key,
     this.initialSelectionId,
     this.maxPetNameLength = 20,
+    this.onSubmitSelection,
   });
 
   final String? initialSelectionId;
   final int maxPetNameLength;
+  final PetSelectionSubmitHandler? onSubmitSelection;
 
   static Route<PetSelectionResult> route({
     String? initialSelectionId,
     int maxPetNameLength = 20,
+    PetSelectionSubmitHandler? onSubmitSelection,
   }) {
     return PageRouteBuilder<PetSelectionResult>(
       pageBuilder: (context, animation, secondaryAnimation) => PetSelectionPage(
         initialSelectionId: initialSelectionId,
         maxPetNameLength: maxPetNameLength,
+        onSubmitSelection: onSubmitSelection,
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(
@@ -62,6 +69,8 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
   String? _selectedPetId;
   late final TextEditingController _petNameController;
   String? _petNameError;
+  String? _submitError;
+  bool _submitting = false;
   bool _didRefreshStatusBar = false;
 
   @override
@@ -77,7 +86,10 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
     super.dispose();
   }
 
-  void _submitSelection() {
+  Future<void> _submitSelection() async {
+    if (_submitting) {
+      return;
+    }
     final l10n = AppLocalizations.of(context)!;
     final selectedPetId = _selectedPetId;
     if (selectedPetId == null) {
@@ -90,12 +102,50 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
       });
       return;
     }
+    final selection = PetSelectionResult(
+      pet: PetCatalog.byId(selectedPetId),
+      petName: petName,
+    );
+    final submitHandler = widget.onSubmitSelection;
+    if (submitHandler == null) {
+      setState(() {
+        _petNameError = null;
+        _submitError = null;
+      });
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).pop(selection);
+      return;
+    }
+
     setState(() {
       _petNameError = null;
+      _submitError = null;
+      _submitting = true;
     });
-    Navigator.of(context).pop(
-      PetSelectionResult(pet: PetCatalog.byId(selectedPetId), petName: petName),
-    );
+    try {
+      final errorMessage = await submitHandler(selection);
+      if (!mounted) {
+        return;
+      }
+      if (errorMessage != null && errorMessage.trim().isNotEmpty) {
+        setState(() {
+          _submitting = false;
+          _submitError = errorMessage;
+        });
+        return;
+      }
+      Navigator.of(context).pop(selection);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submitting = false;
+        _submitError = l10n.commonTryAgain;
+      });
+    }
   }
 
   @override
@@ -141,141 +191,228 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                     child: _bubble(size: responsive.s(220), opacity: 0.4),
                   ),
                   SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 8, 20, 8),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                tooltip: MaterialLocalizations.of(
-                                  context,
-                                ).backButtonTooltip,
-                                icon: const Icon(Icons.arrow_back_rounded),
-                                color: AppTheme.textPrimary,
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  l10n.petSelectionTitle,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                          child: Text(
-                            l10n.petSelectionSubtitle,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.textSecondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GridView.builder(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 8,
-                            ),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 16,
-                                  crossAxisSpacing: 16,
-                                  childAspectRatio: 0.8,
-                                ),
-                            itemCount: pets.length,
-                            itemBuilder: (context, index) {
-                              final pet = pets[index];
-                              final isSelected = pet.id == _selectedPetId;
-                              return _buildPetCard(
+                    child: IgnorePointer(
+                      ignoring: _submitting,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 8, 20, 8),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  tooltip: MaterialLocalizations.of(
                                     context,
-                                    pet: pet,
-                                    isSelected: isSelected,
-                                    l10n: l10n,
-                                  )
-                                  .animate()
-                                  .fadeIn(delay: (80 * index).ms)
-                                  .slideY(begin: 0.08, end: 0);
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AnimatedSwitcher(
-                                duration: 200.ms,
-                                child: _selectedPetId == null
-                                    ? Text(
-                                        l10n.petSelectionHint,
-                                        key: const ValueKey('petSelectionHint'),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: AppTheme.textSecondary,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      )
-                                    : Text(
-                                        l10n.petSelectionSelected(
-                                          PetCatalog.byId(
-                                            _selectedPetId,
-                                          ).name(l10n),
-                                        ),
-                                        key: const ValueKey(
-                                          'petSelectionSelected',
-                                        ),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: AppTheme.textPrimary,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                      ),
-                              ),
-                              const SizedBox(height: 10),
-                              TextField(
-                                controller: _petNameController,
-                                textInputAction: TextInputAction.done,
-                                maxLength: widget.maxPetNameLength,
-                                decoration: InputDecoration(
-                                  labelText: l10n.petNameLabel,
-                                  helperText: l10n.petNameHint,
-                                  errorText: _petNameError,
+                                  ).backButtonTooltip,
+                                  icon: const Icon(Icons.arrow_back_rounded),
+                                  color: AppTheme.textPrimary,
+                                  onPressed: _submitting
+                                      ? null
+                                      : () => Navigator.of(context).pop(),
                                 ),
-                                onChanged: (_) {
-                                  if (_petNameError == null) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    _petNameError = null;
-                                  });
-                                },
-                                onSubmitted: (_) => _submitSelection(),
+                                Expanded(
+                                  child: Text(
+                                    l10n.petSelectionTitle,
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                            child: Text(
+                              l10n.petSelectionSubtitle,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppTheme.textSecondary,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                          child: FilledButton(
-                            onPressed: _selectedPetId == null
-                                ? null
-                                : _submitSelection,
-                            child: Text(l10n.petSelectionConfirm),
+                          Expanded(
+                            child: GridView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 16,
+                                    crossAxisSpacing: 16,
+                                    childAspectRatio: 0.8,
+                                  ),
+                              itemCount: pets.length,
+                              itemBuilder: (context, index) {
+                                final pet = pets[index];
+                                final isSelected = pet.id == _selectedPetId;
+                                return _buildPetCard(
+                                      context,
+                                      pet: pet,
+                                      isSelected: isSelected,
+                                      l10n: l10n,
+                                    )
+                                    .animate()
+                                    .fadeIn(delay: (80 * index).ms)
+                                    .slideY(begin: 0.08, end: 0);
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AnimatedSwitcher(
+                                  duration: 200.ms,
+                                  child: _selectedPetId == null
+                                      ? Text(
+                                          l10n.petSelectionHint,
+                                          key: const ValueKey(
+                                            'petSelectionHint',
+                                          ),
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: AppTheme.textSecondary,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        )
+                                      : Text(
+                                          l10n.petSelectionSelected(
+                                            PetCatalog.byId(
+                                              _selectedPetId,
+                                            ).name(l10n),
+                                          ),
+                                          key: const ValueKey(
+                                            'petSelectionSelected',
+                                          ),
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: AppTheme.textPrimary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                ),
+                                const SizedBox(height: 10),
+                                TextField(
+                                  controller: _petNameController,
+                                  textInputAction: TextInputAction.done,
+                                  maxLength: widget.maxPetNameLength,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.petNameLabel,
+                                    helperText: l10n.petNameHint,
+                                    errorText: _petNameError,
+                                  ),
+                                  onChanged: (_) {
+                                    if (_petNameError == null &&
+                                        _submitError == null) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _petNameError = null;
+                                      _submitError = null;
+                                    });
+                                  },
+                                  onSubmitted: (_) => _submitSelection(),
+                                ),
+                                if (_submitError != null) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _submitError!,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.errorColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            child: FilledButton(
+                              onPressed: _selectedPetId == null || _submitting
+                                  ? null
+                                  : _submitSelection,
+                              child: _submitting
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(l10n.roomSelectionCreating),
+                                      ],
+                                    )
+                                  : Text(l10n.petSelectionConfirm),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  if (_submitting)
+                    Positioned.fill(
+                      child: ColoredBox(
+                        color: Colors.black.withValues(alpha: 0.24),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.16),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  l10n.roomSelectionCreating,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               );
             },

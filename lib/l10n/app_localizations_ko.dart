@@ -328,12 +328,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugTestCrashReport => '크래시 보고 테스트';
 
   @override
-  String get onboardingOpenRoomTitle => '방에 들어가기';
-
-  @override
-  String get onboardingOpenRoomDescription => '방 카드를 눌러 펫 돌보기를 시작하세요.';
-
-  @override
   String drawerInviteCode(Object code) {
     return '코드: $code';
   }

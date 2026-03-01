@@ -79,13 +79,7 @@ enum _PetStationaryState { staying, sleeping }
 
 enum _FeedDoubleRewardPromptAction { watch, cancel }
 
-enum _BasicOnboardingStep {
-  createPet,
-  openRoom,
-  inviteFriend,
-  feedOnce,
-  completed,
-}
+enum _BasicOnboardingStep { createPet, inviteFriend, feedOnce, completed }
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -262,7 +256,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _lastCrashContextRoomId;
   String? _lastCrashContextNetworkState;
   final GlobalKey _onboardingCreateRoomCtaKey = GlobalKey();
-  final GlobalKey _onboardingOpenRoomCardKey = GlobalKey();
   _BasicOnboardingStep _basicOnboardingStep = _BasicOnboardingStep.createPet;
   bool _basicOnboardingDismissed = false;
   bool _basicOnboardingCompleted = false;
@@ -3943,8 +3936,6 @@ class _HomeViewState extends ConsumerState<HomeView>
                 userAvatarUrl: _myAvatarUrl,
                 highlightCreateRoomCta: _isCreatePetOnboardingStepActive,
                 createRoomCtaKey: _onboardingCreateRoomCtaKey,
-                highlightRoomCardId: _openRoomOnboardingTargetRoomId,
-                highlightRoomCardKey: _onboardingOpenRoomCardKey,
                 topBanner: AdMobIds.isSupported && !_hasProPlanAccess
                     ? const AdMobBannerSlot()
                     : null,

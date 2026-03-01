@@ -655,18 +655,6 @@ abstract class AppLocalizations {
   /// **'Test Crash Report'**
   String get drawerDebugTestCrashReport;
 
-  /// No description provided for @onboardingOpenRoomTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter Your Room'**
-  String get onboardingOpenRoomTitle;
-
-  /// No description provided for @onboardingOpenRoomDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap your room card to start taking care of your pet.'**
-  String get onboardingOpenRoomDescription;
-
   /// No description provided for @drawerInviteCode.
   ///
   /// In en, this message translates to:

@@ -186,8 +186,6 @@
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
   "drawerDebugTestCrashReport": "Test Crash Report",
-  "onboardingOpenRoomTitle": "Enter Your Room",
-  "onboardingOpenRoomDescription": "Tap your room card to start taking care of your pet.",
   "drawerInviteCode": "Code: {code}",
   "@drawerInviteCode": {
     "placeholders": {

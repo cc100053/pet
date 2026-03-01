@@ -1,11 +1,14 @@
 # TODO
 
 ## Plan
-- [x] Confirm Step 2 onboarding touchpoints (flow state, room-card highlight, focus overlay, l10n).
-- [ ] Remove Step 2 onboarding UI and state transitions.
-- [ ] Remove Step 2 room-card highlight wiring from Room Selection/Home.
-- [ ] Remove Step 2 l10n keys and regenerate localization outputs.
-- [ ] Run `flutter analyze` and `flutter test`.
+- [x] Confirm current room-creation flow between `PetSelectionPage` and Home controller.
+- [x] Move room-creation execution trigger to `PetSelectionPage` via async submit callback.
+- [x] Keep loading UI on `PetSelectionPage` (`建立中...`) until room creation finishes.
+- [x] Keep failure on `PetSelectionPage` (do not pop), show actionable error, and allow retry.
+- [x] Run `flutter analyze` and `flutter test`.
 
 ## Review
-- In progress.
+- `PetSelectionPage` now submits room creation through an async callback and stays on the same page while creating.
+- During creation, the page shows an in-page loading state (`roomSelectionCreating`) with interaction blocked; it only pops after successful creation.
+- On creation failure, the page remains open and surfaces localized error text for immediate retry.
+- Validation: `flutter analyze` and `flutter test` both passed.

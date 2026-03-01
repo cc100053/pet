@@ -2,7 +2,6 @@ part of '../home_view.dart';
 
 extension _HomeOnboardingFlow on _HomeViewState {
   static const String _stepCreatePet = 'create_pet';
-  static const String _stepOpenRoom = 'open_room';
   static const String _stepInviteFriend = 'invite_friend';
   static const String _stepFeedOnce = 'feed_once';
   static const String _stepCompleted = 'completed';
@@ -23,31 +22,8 @@ extension _HomeOnboardingFlow on _HomeViewState {
         _showRoomSelection;
   }
 
-  bool get _isOpenRoomOnboardingStepActive {
-    return _isBasicOnboardingActive &&
-        _basicOnboardingStep == _BasicOnboardingStep.openRoom &&
-        _showRoomSelection &&
-        _openRoomOnboardingTargetRoomId != null;
-  }
-
-  String? get _openRoomOnboardingTargetRoomId {
-    for (final room in _myRooms) {
-      final roomId = room['id'] as String?;
-      if (roomId == null || roomId.isEmpty) {
-        continue;
-      }
-      if (room['is_locked'] == true) {
-        continue;
-      }
-      return roomId;
-    }
-    return _myRooms.isNotEmpty ? _myRooms.first['id'] as String? : null;
-  }
-
   bool get _shouldShowCreatePetOnboardingCoachCard {
-    return (_isCreatePetOnboardingStepActive ||
-            _isOpenRoomOnboardingStepActive) &&
-        !_loadingRoom;
+    return _isCreatePetOnboardingStepActive && !_loadingRoom;
   }
 
   Future<void> _loadBasicOnboardingState() async {
@@ -114,16 +90,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
       return;
     }
 
-    await _advanceBasicOnboardingTo(_BasicOnboardingStep.openRoom);
-  }
-
-  Future<void> _markOpenRoomOnboardingStepCompleted() async {
-    if (!_basicOnboardingReady ||
-        _basicOnboardingDismissed ||
-        _basicOnboardingCompleted ||
-        _basicOnboardingStep != _BasicOnboardingStep.openRoom) {
-      return;
-    }
     await _advanceBasicOnboardingTo(_BasicOnboardingStep.inviteFriend);
   }
 
@@ -139,12 +105,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
 
     final hasAnyRoom = _myRooms.isNotEmpty;
     if (_basicOnboardingStep == _BasicOnboardingStep.createPet && hasAnyRoom) {
-      unawaited(_advanceBasicOnboardingTo(_BasicOnboardingStep.openRoom));
-      return;
-    }
-    if (_basicOnboardingStep == _BasicOnboardingStep.openRoom &&
-        !_showRoomSelection &&
-        _roomId != null) {
       unawaited(_advanceBasicOnboardingTo(_BasicOnboardingStep.inviteFriend));
     }
   }
@@ -204,7 +164,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
   String _basicOnboardingStepStorageValue(_BasicOnboardingStep step) {
     return switch (step) {
       _BasicOnboardingStep.createPet => _stepCreatePet,
-      _BasicOnboardingStep.openRoom => _stepOpenRoom,
       _BasicOnboardingStep.inviteFriend => _stepInviteFriend,
       _BasicOnboardingStep.feedOnce => _stepFeedOnce,
       _BasicOnboardingStep.completed => _stepCompleted,
@@ -213,7 +172,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
 
   _BasicOnboardingStep _parseBasicOnboardingStep(String? raw) {
     return switch (raw) {
-      _stepOpenRoom => _BasicOnboardingStep.openRoom,
+      'open_room' => _BasicOnboardingStep.inviteFriend,
       _stepInviteFriend => _BasicOnboardingStep.inviteFriend,
       _stepFeedOnce => _BasicOnboardingStep.feedOnce,
       _stepCompleted => _BasicOnboardingStep.completed,
@@ -227,14 +186,9 @@ extension _HomeOnboardingFlow on _HomeViewState {
     final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final bottomOffset = (92 * scale) + bottomInset;
-    final isOpenRoom = _isOpenRoomOnboardingStepActive;
-    final title = isOpenRoom
-        ? l10n.onboardingOpenRoomTitle
-        : l10n.roomSelectionCreatePet;
-    final description = isOpenRoom
-        ? l10n.onboardingOpenRoomDescription
-        : l10n.roomSelectionSubtitle;
-    final icon = isOpenRoom ? Icons.meeting_room_rounded : Icons.pets_rounded;
+    final title = l10n.roomSelectionCreatePet;
+    final description = l10n.roomSelectionSubtitle;
+    const icon = Icons.pets_rounded;
 
     return Positioned(
       left: 16,
@@ -328,7 +282,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
             return CustomPaint(
               painter: _OnboardingFocusPainter(
                 targetRect: targetRect.inflate(6),
-                cornerRadius: _isOpenRoomOnboardingStepActive ? 20 : 28,
+                cornerRadius: 28,
               ),
             );
           },
@@ -338,9 +292,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
   }
 
   Rect? _resolveOnboardingFocusRect(BuildContext overlayContext) {
-    if (_isOpenRoomOnboardingStepActive) {
-      return _openRoomCardRectInOverlay(overlayContext);
-    }
     if (_isCreatePetOnboardingStepActive) {
       return _createPetCtaRectInOverlay(overlayContext);
     }
@@ -349,24 +300,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
 
   Rect? _createPetCtaRectInOverlay(BuildContext overlayContext) {
     final targetContext = _onboardingCreateRoomCtaKey.currentContext;
-    if (targetContext == null) {
-      return null;
-    }
-    final targetBox = targetContext.findRenderObject() as RenderBox?;
-    final overlayBox = overlayContext.findRenderObject() as RenderBox?;
-    if (targetBox == null ||
-        overlayBox == null ||
-        !targetBox.hasSize ||
-        !overlayBox.hasSize) {
-      return null;
-    }
-    final topLeftGlobal = targetBox.localToGlobal(Offset.zero);
-    final topLeftLocal = overlayBox.globalToLocal(topLeftGlobal);
-    return topLeftLocal & targetBox.size;
-  }
-
-  Rect? _openRoomCardRectInOverlay(BuildContext overlayContext) {
-    final targetContext = _onboardingOpenRoomCardKey.currentContext;
     if (targetContext == null) {
       return null;
     }

@@ -333,13 +333,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTestCrashReport => 'Test Crash Report';
 
   @override
-  String get onboardingOpenRoomTitle => 'Enter Your Room';
-
-  @override
-  String get onboardingOpenRoomDescription =>
-      'Tap your room card to start taking care of your pet.';
-
-  @override
   String drawerInviteCode(Object code) {
     return 'Code: $code';
   }

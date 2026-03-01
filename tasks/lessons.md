@@ -17,3 +17,6 @@
 - Do not rely on viewport width alone for iPad classification; in iPhone-compat mode on iPad, use physical display traits to prevent accidental compact-tier selection.
 - Keep scaling architecture consistent across related screens: avoid mixing globally scaled and locally unscaled card dimensions (or vice versa), because users immediately notice mismatched sizing between Room Selection and Pet Home gallery cards.
 - When users report limited movement area, verify layout occupancy first: visual transforms (`Transform.scale`) do not free interaction space; adjust parent layout constraints (aspect ratio, gaps, padding) to increase real movement bounds.
+
+## 2026-03-01
+- For multi-step create flows, keep the progress/loading state on the page where the user confirms the action (for example `PetSelectionPage`) instead of popping early and showing loading on the previous page, to avoid disorienting context switches.

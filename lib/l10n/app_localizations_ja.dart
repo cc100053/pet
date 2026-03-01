@@ -322,12 +322,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTestCrashReport => 'クラッシュ報告をテスト';
 
   @override
-  String get onboardingOpenRoomTitle => 'ルームに入ろう';
-
-  @override
-  String get onboardingOpenRoomDescription => 'ルームカードをタップして、ペットのお世話を始めましょう。';
-
-  @override
   String drawerInviteCode(Object code) {
     return 'コード: $code';
   }

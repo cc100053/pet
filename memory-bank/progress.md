@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Updated room-creation execution UX so `PetSelectionPage` keeps users on-page during create: Home now injects an async submit callback into pet selection, creation runs before page pop, and the page shows a localized in-page loading state (`roomSelectionCreating`) plus retryable inline error on failure instead of jumping back to Home first.
+- Removed onboarding Step 2 (open room): onboarding now focuses only on Step 1 (create pet CTA) in room selection; removed room-card spotlight/highlight wiring and Step 2 coach copy/localization, and added legacy state migration so persisted `open_room` now resumes at `invite_friend`.
 - Updated room-creation UX to a single in-page flow on `PetSelectionPage`: users now select pet and input pet name on the same screen, then confirm to create and enter the room directly (removed the post-selection pet-name dialog on Home).
 - Implemented onboarding Step 2 (open room): room-card highlight target + spotlight support, step-specific coach copy, and progression to `inviteFriend` on room entry.
 - Polished onboarding Step 1 debug UX: moved coach card above the room-create CTA (no tap blocking), enabled session-level close behavior while debug force-show is active, and added a spotlight focus overlay (screen dim + CTA cutout + highlight ring).

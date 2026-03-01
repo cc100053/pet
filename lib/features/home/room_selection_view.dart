@@ -31,8 +31,6 @@ class RoomSelectionView extends StatelessWidget {
     this.topBanner,
     this.highlightCreateRoomCta = false,
     this.createRoomCtaKey,
-    this.highlightRoomCardId,
-    this.highlightRoomCardKey,
   });
 
   final List<Map<String, dynamic>> rooms;
@@ -50,8 +48,6 @@ class RoomSelectionView extends StatelessWidget {
   final Widget? topBanner;
   final bool highlightCreateRoomCta;
   final Key? createRoomCtaKey;
-  final String? highlightRoomCardId;
-  final Key? highlightRoomCardKey;
 
   static const _filmBase = Color(0xFFFFF9F2);
   static String? _lastLayoutDebugLogKey;
@@ -371,7 +367,6 @@ class RoomSelectionView extends StatelessWidget {
   ) {
     final roomId = room['id'] as String?;
     final isSelected = roomId != null && roomId == selectedRoomId;
-    final isOnboardingTarget = roomId != null && roomId == highlightRoomCardId;
     final isLocked = room['is_locked'] == true;
     final latestPhoto = room['latest_photo'] as String?;
     final latestCaption = (room['latest_caption'] as String? ?? '').trim();
@@ -410,7 +405,6 @@ class RoomSelectionView extends StatelessWidget {
     final petLevel = (room['pet_level'] as num?)?.toInt();
     final memoryFrameAspectRatio = _memoryFrameAspectRatio(responsive);
     return Material(
-      key: isOnboardingTarget ? highlightRoomCardKey : null,
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(18 * uiScale),
@@ -423,12 +417,10 @@ class RoomSelectionView extends StatelessWidget {
             color: _filmBase,
             borderRadius: BorderRadius.circular(18 * uiScale),
             border: Border.all(
-              color: isOnboardingTarget
-                  ? AppTheme.secondaryColor.withValues(alpha: 0.95)
-                  : (isSelected
-                        ? AppTheme.textPrimary
-                        : (isLocked ? Colors.black38 : Colors.black12)),
-              width: isOnboardingTarget ? 2.2 : (isSelected ? 2 : 1),
+              color: isSelected
+                  ? AppTheme.textPrimary
+                  : (isLocked ? Colors.black38 : Colors.black12),
+              width: isSelected ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
@@ -436,13 +428,6 @@ class RoomSelectionView extends StatelessWidget {
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
-              if (isOnboardingTarget)
-                BoxShadow(
-                  color: AppTheme.secondaryColor.withValues(alpha: 0.3),
-                  blurRadius: 18,
-                  spreadRadius: 1.2,
-                  offset: const Offset(0, 6),
-                ),
             ],
           ),
           child: Stack(

@@ -186,8 +186,6 @@
   "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
   "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
   "drawerDebugTestCrashReport": "クラッシュ報告をテスト",
-  "onboardingOpenRoomTitle": "ルームに入ろう",
-  "onboardingOpenRoomDescription": "ルームカードをタップして、ペットのお世話を始めましょう。",
   "drawerInviteCode": "コード: {code}",
   "@drawerInviteCode": {
     "placeholders": {

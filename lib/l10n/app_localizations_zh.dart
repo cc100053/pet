@@ -322,12 +322,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTestCrashReport => '測試崩潰上報';
 
   @override
-  String get onboardingOpenRoomTitle => '進入你的房間';
-
-  @override
-  String get onboardingOpenRoomDescription => '點擊房間卡片，開始照顧你的寵物。';
-
-  @override
   String drawerInviteCode(Object code) {
     return '代碼：$code';
   }
@@ -1586,12 +1580,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
-
-  @override
-  String get onboardingOpenRoomTitle => '進入你的房間';
-
-  @override
-  String get onboardingOpenRoomDescription => '點一下房間卡片，開始照顧你的寵物。';
 
   @override
   String drawerInviteCode(Object code) {

@@ -388,7 +388,6 @@ extension _HomeRoomManager on _HomeViewState {
   void _enterRoomFromSelection(String roomId, {String? petType}) {
     if (!_showRoomSelection) {
       _switchRoom(roomId, petType: petType, showEntryLoading: true);
-      unawaited(_markOpenRoomOnboardingStepCompleted());
       return;
     }
     _setStateForRoomManager(() {
@@ -396,11 +395,13 @@ extension _HomeRoomManager on _HomeViewState {
       _roomSelectionId = roomId;
     });
     _switchRoom(roomId, petType: petType, showEntryLoading: true);
-    unawaited(_markOpenRoomOnboardingStepCompleted());
   }
 
   Future<void> _createRoom() async {
     _syncCrashContextFromHome(lastAction: 'create_room_start');
+    if (_creatingRoom) {
+      return;
+    }
     final l10n = AppLocalizations.of(context)!;
     final reachedFreePlanLimit =
         !_hasProPlanAccess &&
@@ -412,13 +413,20 @@ extension _HomeRoomManager on _HomeViewState {
       return;
     }
 
-    final selection = await Navigator.of(context).push<PetSelectionResult>(
+    await Navigator.of(context).push<PetSelectionResult>(
       PetSelectionPage.route(
         maxPetNameLength: _HomeViewState._petNameMaxLength,
+        onSubmitSelection: _submitCreateRoomFromPetSelection,
       ),
     );
-    if (!mounted || selection == null) {
-      return;
+  }
+
+  Future<String?> _submitCreateRoomFromPetSelection(
+    PetSelectionResult selection,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_creatingRoom) {
+      return l10n.roomSelectionCreating;
     }
     final selectedPet = selection.pet;
     final petName = selection.petName.trim();
@@ -436,13 +444,13 @@ extension _HomeRoomManager on _HomeViewState {
 
       await _fetchRooms();
       if (!mounted) {
-        return;
+        return l10n.commonTryAgain;
       }
 
       final applied = await _applyPetSelection(newId, selectedPet);
       await _applyInitialPetName(newId, petName);
       if (!mounted) {
-        return;
+        return l10n.commonTryAgain;
       }
       _setStateForRoomManager(() {
         _newRoomInviteRoomId = newId;
@@ -459,9 +467,12 @@ extension _HomeRoomManager on _HomeViewState {
         parameters: {'result': 'success'},
       );
       _syncCrashContextFromHome(lastAction: 'create_room_success');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.roomCreatedSuccess)));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.roomCreatedSuccess)));
+      }
+      return null;
     } catch (error) {
       unawaited(
         CrashReportingService.instance.reportError(
@@ -472,13 +483,9 @@ extension _HomeRoomManager on _HomeViewState {
         ),
       );
       if (!mounted) {
-        return;
+        return l10n.commonTryAgain;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.roomCreateFailed(userFacingError(context, error))),
-        ),
-      );
+      return l10n.roomCreateFailed(userFacingError(context, error));
     } finally {
       if (mounted) {
         _setStateForRoomManager(() => _creatingRoom = false);

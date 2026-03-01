@@ -1,5 +1,7 @@
 # Onboarding Basic Tutorial Spec (Game Style, Lightweight)
 
+> Note (2026-03-01): Production onboarding v1 has removed Step 2 ("Enter/open room"). Current runtime flow is Create Pet -> Invite Friend -> Feed Once.
+
 ## Goal
 Guide first-login users through the minimum core loop with a simple in-product coach flow (no mission system):
 1. Create pet
