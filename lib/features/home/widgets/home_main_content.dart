@@ -48,6 +48,21 @@ class HomeMainContent extends StatelessWidget {
             regular: 6,
             expanded: 8,
           );
+          final minGalleryHeight = responsive.pick(
+            compact: 210,
+            regular: 230,
+            expanded: 250,
+          );
+          final maxGalleryHeight = responsive.pick(
+            compact: 330,
+            regular: 400,
+            expanded: 420,
+          );
+          final gallerySplitRatio = responsive.pick(
+            compact: 0.6,
+            regular: 0.58,
+            expanded: 0.6,
+          );
           return Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
@@ -56,14 +71,42 @@ class HomeMainContent extends StatelessWidget {
                 children: [
                   statusBar,
                   Gap(topGap * uiScale),
-                  photoGallery,
-                  Gap(middleGap * uiScale),
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding * uiScale,
-                      ),
-                      child: petHomeCard,
+                    child: LayoutBuilder(
+                      builder: (context, bodyConstraints) {
+                        final splitGap = middleGap * uiScale;
+                        final splitAvailableHeight =
+                            bodyConstraints.maxHeight - splitGap;
+                        final safeSplitHeight = splitAvailableHeight.isFinite
+                            ? splitAvailableHeight.clamp(0.0, double.infinity)
+                            : 0.0;
+                        final galleryHeight =
+                            (safeSplitHeight * gallerySplitRatio).clamp(
+                              minGalleryHeight * uiScale,
+                              maxGalleryHeight * uiScale,
+                            );
+                        final petAreaHeight = (safeSplitHeight - galleryHeight)
+                            .clamp(0.0, double.infinity);
+                        return Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              height: galleryHeight,
+                              child: photoGallery,
+                            ),
+                            Gap(splitGap),
+                            SizedBox(
+                              height: petAreaHeight,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding * uiScale,
+                                ),
+                                child: petHomeCard,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   Padding(
