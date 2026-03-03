@@ -577,28 +577,6 @@ class ChatMessageListState extends State<ChatMessageList> {
     return _scrollController.position.pixels <= 72;
   }
 
-  bool _handleKeyboardPullDownDismiss(ScrollNotification notification) {
-    if (!mounted) {
-      return false;
-    }
-    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
-    if (!keyboardVisible || !_isNearLatest()) {
-      return false;
-    }
-    if (notification is! OverscrollNotification) {
-      return false;
-    }
-    final drag = notification.dragDetails;
-    if (drag == null) {
-      return false;
-    }
-    // dy > 0 means the finger is moving downward.
-    if (drag.delta.dy > 0) {
-      FocusManager.instance.primaryFocus?.unfocus();
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual;
@@ -646,105 +624,102 @@ class ChatMessageListState extends State<ChatMessageList> {
     }
     return Stack(
       children: [
-        NotificationListener<ScrollNotification>(
-          onNotification: _handleKeyboardPullDownDismiss,
-          child: _messages.isEmpty
-              ? ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  keyboardDismissBehavior: keyboardDismissBehavior,
-                  reverse: true,
-                  padding: resolvedPadding,
-                  children: [
-                    const SizedBox(height: 120),
-                    Center(
-                      child: Text(
-                        l10n.chatEmptyState,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: widget.useLightForeground
-                              ? Colors.white.withValues(alpha: 0.9)
-                              : null,
-                        ),
+        _messages.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                keyboardDismissBehavior: keyboardDismissBehavior,
+                reverse: true,
+                padding: resolvedPadding,
+                children: [
+                  const SizedBox(height: 120),
+                  Center(
+                    child: Text(
+                      l10n.chatEmptyState,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: widget.useLightForeground
+                            ? Colors.white.withValues(alpha: 0.9)
+                            : null,
                       ),
                     ),
-                  ],
-                )
-              : ListView.separated(
-                  controller: _scrollController,
-                  reverse: true,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  keyboardDismissBehavior: keyboardDismissBehavior,
-                  padding: resolvedPadding,
-                  itemBuilder: (context, index) {
-                    if (index == _messages.length) {
-                      if (_loadingMore) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      if (!_hasMore) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Center(child: Text(l10n.chatNoOlderMessages)),
-                        );
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Center(
-                          child: OutlinedButton(
-                            onPressed: _loadingMore ? null : _loadMore,
-                            child: Text(l10n.chatLoadOlderMessages),
-                          ),
-                        ),
+                  ),
+                ],
+              )
+            : ListView.separated(
+                controller: _scrollController,
+                reverse: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                keyboardDismissBehavior: keyboardDismissBehavior,
+                padding: resolvedPadding,
+                itemBuilder: (context, index) {
+                  if (index == _messages.length) {
+                    if (_loadingMore) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Center(child: CircularProgressIndicator()),
                       );
                     }
-
-                    final message = _messages[index];
-                    final isMe =
-                        message.senderId != null &&
-                        message.senderId == widget.currentUserId;
-                    final isOptimistic = _optimisticIds.contains(message.id);
-                    final imageIndex = imageIndexByMessageId[message.id];
-                    final senderName = isMe
-                        ? null
-                        : _profileNicknames[message.senderId];
-                    return ChatMessageTile(
-                      key: ValueKey(message.id),
-                      message: message,
-                      isMe: isMe,
-                      isOptimistic: isOptimistic,
-                      useLightForeground: widget.useLightForeground,
-                      senderName: senderName,
-                      onLongPress: _shouldShowActions(message, isMe)
-                          ? () => _showMessageActions(message)
-                          : null,
-                      onImageTap: imageIndex == null
-                          ? null
-                          : () => FullScreenPhotoViewer.open(
-                              context,
-                              items: imageViewerItems,
-                              initialIndex: imageIndex,
-                              showIndicator: false,
-                            ),
+                    if (!_hasMore) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Center(child: Text(l10n.chatNoOlderMessages)),
+                      );
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Center(
+                        child: OutlinedButton(
+                          onPressed: _loadingMore ? null : _loadMore,
+                          child: Text(l10n.chatLoadOlderMessages),
+                        ),
+                      ),
                     );
-                  },
-                  separatorBuilder: (context, index) {
-                    if (index == _messages.length - 1) {
-                      return _DateSeparator(date: _messages[index].createdAt);
+                  }
+
+                  final message = _messages[index];
+                  final isMe =
+                      message.senderId != null &&
+                      message.senderId == widget.currentUserId;
+                  final isOptimistic = _optimisticIds.contains(message.id);
+                  final imageIndex = imageIndexByMessageId[message.id];
+                  final senderName = isMe
+                      ? null
+                      : _profileNicknames[message.senderId];
+                  return ChatMessageTile(
+                    key: ValueKey(message.id),
+                    message: message,
+                    isMe: isMe,
+                    isOptimistic: isOptimistic,
+                    useLightForeground: widget.useLightForeground,
+                    senderName: senderName,
+                    onLongPress: _shouldShowActions(message, isMe)
+                        ? () => _showMessageActions(message)
+                        : null,
+                    onImageTap: imageIndex == null
+                        ? null
+                        : () => FullScreenPhotoViewer.open(
+                            context,
+                            items: imageViewerItems,
+                            initialIndex: imageIndex,
+                            showIndicator: false,
+                          ),
+                  );
+                },
+                separatorBuilder: (context, index) {
+                  if (index == _messages.length - 1) {
+                    return _DateSeparator(date: _messages[index].createdAt);
+                  }
+                  if (index < _messages.length - 1) {
+                    final newer = _messages[index];
+                    final older = _messages[index + 1];
+                    if (!_isSameDay(newer.createdAt, older.createdAt)) {
+                      return _DateSeparator(date: newer.createdAt);
                     }
-                    if (index < _messages.length - 1) {
-                      final newer = _messages[index];
-                      final older = _messages[index + 1];
-                      if (!_isSameDay(newer.createdAt, older.createdAt)) {
-                        return _DateSeparator(date: newer.createdAt);
-                      }
-                    }
-                    return const SizedBox(height: 2);
-                  },
-                  itemCount: _messages.length + 1,
-                ),
-        ),
+                  }
+                  return const SizedBox(height: 2);
+                },
+                itemCount: _messages.length + 1,
+              ),
         if (_showScrollToBottom)
           Positioned(
             right: resolvedPadding.right,

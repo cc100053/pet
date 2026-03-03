@@ -27,3 +27,7 @@
 - Use the dedicated `apply_patch` tool directly for patch edits; do not invoke `apply_patch` through `exec_command`.
 - When users request a naming change on a localized item, confirm and update all locale variants for that key, not only the initially mentioned language.
 - When renaming a themed item (for example moonlight -> galaxy), update both the display name key and its description key so copy stays semantically consistent.
+- For chat keyboard dismiss gestures, never attach broad pointer-based dismissal logic that can start inside the composer/input hit area; restrict the start zone to a narrow band above composer so tap-to-focus cannot trigger immediate keyboard collapse.
+- For focus-sensitive chat composers, avoid global `Listener`-based gesture interception for keyboard dismiss; use isolated gesture regions (for example a dedicated strip above composer) so focus and dismiss recognizers cannot race on the same tap sequence.
+- Avoid wrapping the entire chat message list with `onTap => unfocus()` when keyboard/composer position is dynamically shifting with `viewInsets`; tap recognizers can race with input-focus and cause immediate keyboard collapse.
+- In `Stack`-based chat layouts, do not conditionally insert/remove unkeyed siblings around the composer on keyboard visibility changes; this can remount `TextField` and drop focus. Keep stable keys (or stable child slots) for message list + composer across inset transitions.

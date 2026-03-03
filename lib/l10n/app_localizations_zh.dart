@@ -574,7 +574,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileFeedbackEncouragement =>
-      '欢迎你积极提出意见和需求，我会尽力完成你的建议，一起把产品做得更好。';
+      '欢迎你积极提出意见和需求，团队会尽力完成你的建议，一起把产品做得更好。';
 
   @override
   String get profileFeedback => '发送反馈';
