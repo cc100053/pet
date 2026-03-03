@@ -68,6 +68,27 @@ class ChatMessageListState extends State<ChatMessageList> {
     });
   }
 
+  /// Force the list to show the latest message (bottom in chat semantics).
+  void scrollToLatest({bool animated = true}) {
+    if (!mounted) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) {
+        return;
+      }
+      if (animated) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(0);
+      }
+    });
+  }
+
   void removeOptimisticMessage(String tempId) {
     if (!mounted) return;
     setState(() {
@@ -594,6 +615,8 @@ class ChatMessageListState extends State<ChatMessageList> {
         _messages.isEmpty
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 reverse: true,
                 padding: resolvedPadding,
                 children: [
@@ -615,6 +638,8 @@ class ChatMessageListState extends State<ChatMessageList> {
                 controller: _scrollController,
                 reverse: true,
                 physics: const AlwaysScrollableScrollPhysics(),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: resolvedPadding,
                 itemBuilder: (context, index) {
                   if (index == _messages.length) {
@@ -957,6 +982,7 @@ class _ChatLoadingList extends StatelessWidget {
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       reverse: true,
       padding: padding,
       children: [

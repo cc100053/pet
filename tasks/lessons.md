@@ -26,3 +26,4 @@
 ## 2026-03-04
 - Use the dedicated `apply_patch` tool directly for patch edits; do not invoke `apply_patch` through `exec_command`.
 - When users request a naming change on a localized item, confirm and update all locale variants for that key, not only the initially mentioned language.
+- When renaming a themed item (for example moonlight -> galaxy), update both the display name key and its description key so copy stays semantically consistent.

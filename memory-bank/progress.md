@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Updated `storeItemDescBackgroundMoonlight` localized copy across EN/JA/KO/ZH/ZH-TW to galaxy-themed wording and regenerated l10n outputs.
+- Fixed chat send auto-scroll behavior when user is reading older messages: added `ChatMessageListState.scrollToLatest()` and trigger it immediately after optimistic text/feed message insertion so sending a new message instantly jumps to the latest message area.
 - Added Supabase migration `20260304001000_set_user_admin_metadata.sql` to mark user `1964870f-c0e9-4c72-8c54-6360a6dd605d` as admin in `auth.users.raw_app_meta_data` (`is_admin=true`, `admin=true`, `role='admin'`) so Home debug/admin gating resolves from metadata.
 - Updated localized naming for `storeItemNameBackgroundMoonlight` across EN/JA/KO/ZH/ZH-TW to galaxy wording (`Galaxy/銀河/은하/银河/銀河`) and regenerated l10n outputs.
 - Renamed the Japanese store background item name `storeItemNameBackgroundMoonlight` from `月明かり背景` to `銀河` and regenerated l10n outputs.

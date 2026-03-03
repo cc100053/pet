@@ -1780,7 +1780,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeItemDescBackgroundMoonlight.
   ///
   /// In en, this message translates to:
-  /// **'A calm moonlit room backdrop.'**
+  /// **'A calm galaxy room backdrop.'**
   String get storeItemDescBackgroundMoonlight;
 
   /// No description provided for @storeItemNameFurnitureSofa.

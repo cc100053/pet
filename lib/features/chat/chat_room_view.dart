@@ -138,6 +138,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
 
     // Add optimistic message immediately
     _chatMessageListKey.currentState?.addOptimisticMessage(optimisticMessage);
+    _chatMessageListKey.currentState?.scrollToLatest(animated: true);
 
     try {
       final insertedMessage = await Supabase.instance.client
@@ -299,6 +300,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       localImagePath: entry.localImagePath,
     );
     _chatMessageListKey.currentState?.addOptimisticMessage(optimisticMessage);
+    _chatMessageListKey.currentState?.scrollToLatest(animated: true);
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
@@ -524,6 +526,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                           child: TextField(
                             controller: _messageController,
                             textInputAction: TextInputAction.send,
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
                             onSubmitted: (_) =>
                                 _sending ? null : _sendMessage(),
                             decoration: InputDecoration(

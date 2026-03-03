@@ -959,7 +959,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemNameBackgroundMoonlight => '銀河';
 
   @override
-  String get storeItemDescBackgroundMoonlight => '月明かりの静かな部屋背景。';
+  String get storeItemDescBackgroundMoonlight => '銀河の静かな部屋背景。';
 
   @override
   String get storeItemNameFurnitureSofa => 'ソファ';

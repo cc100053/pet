@@ -979,8 +979,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemNameBackgroundMoonlight => 'Galaxy Background';
 
   @override
-  String get storeItemDescBackgroundMoonlight =>
-      'A calm moonlit room backdrop.';
+  String get storeItemDescBackgroundMoonlight => 'A calm galaxy room backdrop.';
 
   @override
   String get storeItemNameFurnitureSofa => 'Sofa';

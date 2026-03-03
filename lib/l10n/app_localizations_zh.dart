@@ -957,7 +957,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemNameBackgroundMoonlight => '银河背景';
 
   @override
-  String get storeItemDescBackgroundMoonlight => '寧靜月光房间背景。';
+  String get storeItemDescBackgroundMoonlight => '寧靜银河房间背景。';
 
   @override
   String get storeItemNameFurnitureSofa => '沙發';
@@ -2234,7 +2234,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemNameBackgroundMoonlight => '銀河背景';
 
   @override
-  String get storeItemDescBackgroundMoonlight => '寧靜月光房間背景。';
+  String get storeItemDescBackgroundMoonlight => '寧靜銀河房間背景。';
 
   @override
   String get storeItemNameFurnitureSofa => '沙發';

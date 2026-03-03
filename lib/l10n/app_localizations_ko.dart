@@ -964,7 +964,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemNameBackgroundMoonlight => '은하 배경';
 
   @override
-  String get storeItemDescBackgroundMoonlight => '고요한 달빛 방 배경입니다.';
+  String get storeItemDescBackgroundMoonlight => '고요한 은하 방 배경입니다.';
 
   @override
   String get storeItemNameFurnitureSofa => '소파';
