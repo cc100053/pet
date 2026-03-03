@@ -1105,11 +1105,23 @@ abstract class AppLocalizations {
   /// **'About & Support'**
   String get profileSectionAbout;
 
+  /// No description provided for @profileFeedbackEncouragement.
+  ///
+  /// In en, this message translates to:
+  /// **'We welcome your ideas and requests. Share what you want to improve, and we\'ll do our best to make it happen.'**
+  String get profileFeedbackEncouragement;
+
   /// No description provided for @profileFeedback.
   ///
   /// In en, this message translates to:
   /// **'Send Feedback'**
   String get profileFeedback;
+
+  /// No description provided for @profileVersionPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Version: '**
+  String get profileVersionPrefix;
 
   /// No description provided for @profileSectionDangerZone.
   ///

@@ -1,6 +1,11 @@
 # Progress
 
 ## Done
+- Updated Profile page feedback UX: moved feedback into a standalone card/section with an encouragement message above the legal links section (privacy/terms), and prefixed footer app version text with localized `版本：`/`Version:` label.
+- Fixed two chat keyboard UX regressions: (1) reverted list keyboard dismiss mode to `manual` so scrolling message content no longer collapses keyboard (dismiss now only via tap-outside or keyboard swipe-down), and (2) corrected iOS keyboard corner underlay mismatch by using a keyboard-matching scaffold background while keyboard is visible to avoid white corner blocks.
+- Refined iOS chat keyboard behavior toward Telegram UX: message lists now use `ScrollViewKeyboardDismissBehavior.onDrag` on iOS (manual on other platforms), outside dismissal remains tap-only via parent `GestureDetector.onTap`, and chat scaffold now has a non-transparent fallback background to avoid black bleed at keyboard rounded corners.
+- Fixed keyboard-collapse root cause in Chat Room: `TextField.onTapOutside` (pointer-down semantics) was dismissing keyboard when users began scrolling message content; replaced it with tap-only outside dismissal via parent `GestureDetector.onTap`, so chat scroll no longer collapses keyboard unexpectedly while tap-to-dismiss remains.
+- Adjusted chat keyboard UX to Telegram-like behavior on mobile: tapping outside the chat composer input dismisses the keyboard, while scrolling chat content keeps the keyboard open (`ScrollViewKeyboardDismissBehavior.manual`); keyboard collapse is left to keyboard swipe-down gesture, and realtime auto-follow now scrolls to latest only when the user is already near bottom.
 - Updated `storeItemDescBackgroundMoonlight` localized copy across EN/JA/KO/ZH/ZH-TW to galaxy-themed wording and regenerated l10n outputs.
 - Fixed chat send auto-scroll behavior when user is reading older messages: added `ChatMessageListState.scrollToLatest()` and trigger it immediately after optimistic text/feed message insertion so sending a new message instantly jumps to the latest message area.
 - Added Supabase migration `20260304001000_set_user_admin_metadata.sql` to mark user `1964870f-c0e9-4c72-8c54-6360a6dd605d` as admin in `auth.users.raw_app_meta_data` (`is_admin=true`, `admin=true`, `role='admin'`) so Home debug/admin gating resolves from metadata.

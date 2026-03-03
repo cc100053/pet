@@ -587,7 +587,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSectionAbout => 'About & Support';
 
   @override
+  String get profileFeedbackEncouragement =>
+      'We welcome your ideas and requests. Share what you want to improve, and we\'ll do our best to make it happen.';
+
+  @override
   String get profileFeedback => 'Send Feedback';
+
+  @override
+  String get profileVersionPrefix => 'Version: ';
 
   @override
   String get profileSectionDangerZone => 'Danger Zone';

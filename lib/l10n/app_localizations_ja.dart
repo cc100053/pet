@@ -573,7 +573,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileSectionAbout => 'サポートと情報';
 
   @override
+  String get profileFeedbackEncouragement =>
+      'ご意見やご要望をぜひお寄せください。いただいた内容の実現に向けて、できる限り対応していきます。';
+
+  @override
   String get profileFeedback => 'フィードバックを送る';
+
+  @override
+  String get profileVersionPrefix => 'バージョン：';
 
   @override
   String get profileSectionDangerZone => '危険エリア';

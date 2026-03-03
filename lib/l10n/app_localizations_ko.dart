@@ -579,7 +579,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileSectionAbout => '정보 및 지원';
 
   @override
+  String get profileFeedbackEncouragement =>
+      '의견과 요청을 적극적으로 보내 주세요. 보내주신 내용을 바탕으로 더 나은 서비스가 되도록 최선을 다하겠습니다.';
+
+  @override
   String get profileFeedback => '피드백 보내기';
+
+  @override
+  String get profileVersionPrefix => '버전: ';
 
   @override
   String get profileSectionDangerZone => '위험 구역';

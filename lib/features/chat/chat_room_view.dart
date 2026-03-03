@@ -406,10 +406,21 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     final overlayStyle = AppStatusBarStyles.forBackground(
       isDark: widget.isDarkBackground,
     );
+    final isKeyboardVisible = media.viewInsets.bottom > 0;
+    final isIos = Theme.of(context).platform == TargetPlatform.iOS;
+    final keyboardUnderlayColor = widget.isDarkBackground
+        ? const Color(0xFF1C1C1E)
+        : const Color(0xFFB0B3BA);
+    final scaffoldBackgroundColor = (isIos && isKeyboardVisible)
+        ? keyboardUnderlayColor
+        : (widget.backgroundDecoration?.color ??
+              (widget.isDarkBackground
+                  ? const Color(0xFF111111)
+                  : AppTheme.backgroundColor));
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -469,16 +480,20 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           child: Stack(
             children: [
               Positioned.fill(
-                child: ChatMessageList(
-                  key: _chatMessageListKey,
-                  roomId: widget.roomId,
-                  currentUserId: currentUserId,
-                  useLightForeground: useLightForeground,
-                  contentPadding: EdgeInsets.fromLTRB(
-                    16,
-                    listTopPadding,
-                    16,
-                    listBottomPadding,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: ChatMessageList(
+                    key: _chatMessageListKey,
+                    roomId: widget.roomId,
+                    currentUserId: currentUserId,
+                    useLightForeground: useLightForeground,
+                    contentPadding: EdgeInsets.fromLTRB(
+                      16,
+                      listTopPadding,
+                      16,
+                      listBottomPadding,
+                    ),
                   ),
                 ),
               ),
@@ -526,8 +541,6 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                           child: TextField(
                             controller: _messageController,
                             textInputAction: TextInputAction.send,
-                            onTapOutside: (_) =>
-                                FocusManager.instance.primaryFocus?.unfocus(),
                             onSubmitted: (_) =>
                                 _sending ? null : _sendMessage(),
                             decoration: InputDecoration(

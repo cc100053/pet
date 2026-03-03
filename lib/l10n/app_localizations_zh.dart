@@ -573,7 +573,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileSectionAbout => '关于与支持';
 
   @override
+  String get profileFeedbackEncouragement =>
+      '欢迎你积极提出意见和需求，我会尽力完成你的建议，一起把产品做得更好。';
+
+  @override
   String get profileFeedback => '发送反馈';
+
+  @override
+  String get profileVersionPrefix => '版本：';
 
   @override
   String get profileSectionDangerZone => '危险区域';
@@ -1850,7 +1857,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get profileSectionAbout => '關於與支援';
 
   @override
+  String get profileFeedbackEncouragement =>
+      '歡迎你積極提供意見同需求，我會盡力完成你提出嘅建議，一起把產品變得更好。';
+
+  @override
   String get profileFeedback => '提供意見回饋';
+
+  @override
+  String get profileVersionPrefix => '版本：';
 
   @override
   String get profileSectionDangerZone => '危險區域';

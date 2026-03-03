@@ -1136,6 +1136,39 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ),
               const SizedBox(height: 8),
               Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                      child: Text(
+                        l10n.profileFeedbackEncouragement,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.feedback_outlined,
+                        color: AppTheme.primaryColor,
+                      ),
+                      title: Text(l10n.profileFeedback),
+                      trailing: const Icon(
+                        Icons.open_in_new_rounded,
+                        color: Colors.grey,
+                        size: 18,
+                      ),
+                      onTap: () => _openExternalUrl(_feedbackUrl(context)),
+                    ),
+                  ],
+                ),
+              ),
+              Card(
                 margin: const EdgeInsets.only(bottom: 24),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -1166,20 +1199,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         size: 18,
                       ),
                       onTap: () => _openExternalUrl(Env.termsOfUseUrl),
-                    ),
-                    const Divider(height: 1, indent: 56),
-                    ListTile(
-                      leading: const Icon(
-                        Icons.feedback_outlined,
-                        color: AppTheme.primaryColor,
-                      ),
-                      title: Text(l10n.profileFeedback),
-                      trailing: const Icon(
-                        Icons.open_in_new_rounded,
-                        color: Colors.grey,
-                        size: 18,
-                      ),
-                      onTap: () => _openExternalUrl(_feedbackUrl(context)),
                     ),
                   ],
                 ),
@@ -1220,7 +1239,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   final info = packageSnapshot.data!;
                   return Center(
                     child: Text(
-                      'v${info.version} (${info.buildNumber})',
+                      '${l10n.profileVersionPrefix}v${info.version} (${info.buildNumber})',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondary.withValues(alpha: 0.5),
                       ),
