@@ -124,6 +124,16 @@
     }
   },
   "chatTitle": "チャット",
+  "chatRoomMembersTitle": "ルームメンバー",
+  "chatRoomMembersEmpty": "メンバーが見つかりません。",
+  "chatRoomMembersLoadFailed": "ルームメンバーの読み込みに失敗しました: {error}",
+  "@chatRoomMembersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatRoomMemberRoleOwner": "オーナー",
+  "chatRoomMemberYou": "あなた",
   "chatUserAlreadyBlocked": "ブロック済み",
   "chatUserBlocked": "ユーザーをブロックしました。",
   "chatMemberCount": "{count}人",
@@ -542,7 +552,7 @@
   "storeItemDescReturnLetter": "旅立ったペットを呼び戻します。",
   "storeItemNameBackgroundDefault": "デフォルト背景",
   "storeItemDescBackgroundDefault": "元の落ち着いた部屋の背景。",
-  "storeItemNameBackgroundMoonlight": "月明かり背景",
+  "storeItemNameBackgroundMoonlight": "銀河",
   "storeItemDescBackgroundMoonlight": "月明かりの静かな部屋背景。",
   "storeItemNameFurnitureSofa": "ソファ",
   "storeItemDescFurnitureSofa": "座り心地のよいソファ。",

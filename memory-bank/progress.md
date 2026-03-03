@@ -1,6 +1,9 @@
 # Progress
 
 ## Done
+- Added Supabase migration `20260304001000_set_user_admin_metadata.sql` to mark user `1964870f-c0e9-4c72-8c54-6360a6dd605d` as admin in `auth.users.raw_app_meta_data` (`is_admin=true`, `admin=true`, `role='admin'`) so Home debug/admin gating resolves from metadata.
+- Updated localized naming for `storeItemNameBackgroundMoonlight` across EN/JA/KO/ZH/ZH-TW to galaxy wording (`Galaxy/銀河/은하/银河/銀河`) and regenerated l10n outputs.
+- Renamed the Japanese store background item name `storeItemNameBackgroundMoonlight` from `月明かり背景` to `銀河` and regenerated l10n outputs.
 - Fixed true root cause for Step 1 CTA not closing in debug force mode: onboarding active-state logic now uses an exclusive debug branch (debug force => honor `_debugForceOnboardingHidden` only) instead of combining debug/normal activation with `OR`.
 - Fixed Step 1 onboarding close behavior in debug force mode: reordered dismiss guards so debug close path always sets `_debugForceOnboardingHidden`, even when normal onboarding had been previously dismissed/completed.
 - Updated room-creation execution UX so `PetSelectionPage` keeps users on-page during create: Home now injects an async submit callback into pet selection, creation runs before page pop, and the page shows a localized in-page loading state (`roomSelectionCreating`) plus retryable inline error on failure instead of jumping back to Home first.

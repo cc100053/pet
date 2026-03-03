@@ -1,11 +1,15 @@
 # TODO
 
 ## Plan
-- [x] Verify why Step 1 CTA close does not work under debug force mode.
-- [x] Fix close-path guard ordering so debug close always sets hidden state.
-- [x] Run `flutter analyze` and `flutter test`.
+- [x] Add a Supabase migration to mark user `1964870f-c0e9-4c72-8c54-6360a6dd605d` as admin in auth metadata.
+- [x] Update `memory-bank/progress.md` with this metadata-admin change.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Add verification results in the review section.
 
 ## Review
-- Root cause: `_isBasicOnboardingActive` mixed debug and normal activation with `OR`; in debug force mode, even after setting `_debugForceOnboardingHidden=true`, the normal branch (`!dismissed && !completed`) re-activated CTA immediately.
-- Fixed by making activation mutually exclusive: when debug force is active, onboarding visibility is controlled only by `_debugForceOnboardingHidden`.
-- Validation: `flutter analyze` and `flutter test` both passed.
+- [x] Implemented and verified.
+- Added migration `supabase/migrations/20260304001000_set_user_admin_metadata.sql` to set `auth.users.raw_app_meta_data` admin keys for user `1964870f-c0e9-4c72-8c54-6360a6dd605d`.
+- Updated `memory-bank/progress.md` with the metadata-admin change entry.
+- Verification: `flutter analyze` passed with no issues.
+- Verification: `flutter test` passed; integration test `test/feed_flow_integration_test.dart` was skipped because required Supabase env vars are not set.

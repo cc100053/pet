@@ -126,6 +126,16 @@
     }
   },
   "chatTitle": "聊天",
+  "chatRoomMembersTitle": "房間成員",
+  "chatRoomMembersEmpty": "找不到成員。",
+  "chatRoomMembersLoadFailed": "載入房間成員失敗：{error}",
+  "@chatRoomMembersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatRoomMemberRoleOwner": "房主",
+  "chatRoomMemberYou": "你",
   "chatUserAlreadyBlocked": "已封鎖",
   "chatUserBlocked": "已封鎖用戶。",
   "commonBuy": "購買",
@@ -535,7 +545,7 @@
   "storeItemDescReturnLetter": "召回離開的寵物。",
   "storeItemNameBackgroundDefault": "預設背景",
   "storeItemDescBackgroundDefault": "原始溫馨房間背景。",
-  "storeItemNameBackgroundMoonlight": "月光背景",
+  "storeItemNameBackgroundMoonlight": "銀河背景",
   "storeItemDescBackgroundMoonlight": "寧靜月光房間背景。",
   "storeItemNameFurnitureSofa": "沙發",
   "storeItemDescFurnitureSofa": "舒適沙發。",

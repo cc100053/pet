@@ -168,6 +168,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatTitle => 'Chat';
 
   @override
+  String get chatRoomMembersTitle => 'Room members';
+
+  @override
+  String get chatRoomMembersEmpty => 'No members found.';
+
+  @override
+  String chatRoomMembersLoadFailed(Object error) {
+    return 'Failed to load room members: $error';
+  }
+
+  @override
+  String get chatRoomMemberRoleOwner => 'Owner';
+
+  @override
+  String get chatRoomMemberYou => 'You';
+
+  @override
   String get chatUserAlreadyBlocked => 'User blocked';
 
   @override
@@ -959,7 +976,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescBackgroundDefault => 'Original cozy room backdrop.';
 
   @override
-  String get storeItemNameBackgroundMoonlight => 'Moonlight Background';
+  String get storeItemNameBackgroundMoonlight => 'Galaxy Background';
 
   @override
   String get storeItemDescBackgroundMoonlight =>

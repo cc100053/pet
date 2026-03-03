@@ -22,3 +22,7 @@
 - For multi-step create flows, keep the progress/loading state on the page where the user confirms the action (for example `PetSelectionPage`) instead of popping early and showing loading on the previous page, to avoid disorienting context switches.
 - In debug-override flows, evaluate override-specific dismiss/hide branches before normal persisted-state guards; otherwise users can get stuck with non-dismissible debug UI.
 - In debug-force visibility logic, avoid combining debug and normal activation conditions with `OR`; treat debug mode as an exclusive branch so hide flags are not reactivated by normal-state predicates.
+
+## 2026-03-04
+- Use the dedicated `apply_patch` tool directly for patch edits; do not invoke `apply_patch` through `exec_command`.
+- When users request a naming change on a localized item, confirm and update all locale variants for that key, not only the initially mentioned language.

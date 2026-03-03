@@ -168,6 +168,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatTitle => 'チャット';
 
   @override
+  String get chatRoomMembersTitle => 'ルームメンバー';
+
+  @override
+  String get chatRoomMembersEmpty => 'メンバーが見つかりません。';
+
+  @override
+  String chatRoomMembersLoadFailed(Object error) {
+    return 'ルームメンバーの読み込みに失敗しました: $error';
+  }
+
+  @override
+  String get chatRoomMemberRoleOwner => 'オーナー';
+
+  @override
+  String get chatRoomMemberYou => 'あなた';
+
+  @override
   String get chatUserAlreadyBlocked => 'ブロック済み';
 
   @override
@@ -939,7 +956,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescBackgroundDefault => '元の落ち着いた部屋の背景。';
 
   @override
-  String get storeItemNameBackgroundMoonlight => '月明かり背景';
+  String get storeItemNameBackgroundMoonlight => '銀河';
 
   @override
   String get storeItemDescBackgroundMoonlight => '月明かりの静かな部屋背景。';

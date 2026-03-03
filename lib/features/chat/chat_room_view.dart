@@ -18,6 +18,7 @@ import '../feed/feed_capture_view.dart';
 import 'chat_message_list.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'room_members_sheet.dart';
 
 class ChatRoomView extends StatefulWidget {
   const ChatRoomView({
@@ -355,6 +356,33 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     }
   }
 
+  Future<void> _openRoomMembers() async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.authReauthRequired),
+        ),
+      );
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) =>
+          RoomMembersSheet(roomId: widget.roomId, currentUserId: currentUserId),
+    );
+
+    if (!mounted) {
+      return;
+    }
+    _fetchMemberCount();
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
@@ -399,6 +427,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
             uiScale: uiScale,
             useLightForeground: useLightForeground,
             onBack: () => Navigator.of(context).maybePop(),
+            onMembersTap: _openRoomMembers,
             menuButton: Theme(
               data: Theme.of(context).copyWith(
                 splashColor: Colors.transparent,
@@ -586,6 +615,7 @@ class _ChatTopBar extends StatelessWidget {
     required this.uiScale,
     required this.useLightForeground,
     required this.onBack,
+    required this.onMembersTap,
     required this.menuButton,
   });
 
@@ -594,6 +624,7 @@ class _ChatTopBar extends StatelessWidget {
   final double uiScale;
   final bool useLightForeground;
   final VoidCallback onBack;
+  final VoidCallback onMembersTap;
   final Widget menuButton;
 
   @override
@@ -635,39 +666,42 @@ class _ChatTopBar extends StatelessWidget {
                 alignment: Alignment.center,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: 220 * uiScale),
-                  child: _GlassPill(
-                    useDarkSurface: useLightForeground,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16 * uiScale,
-                      vertical: 8 * uiScale,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          petName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: (15 * uiScale).clamp(13.0, 15.0),
-                            fontWeight: FontWeight.w600,
-                            color: useLightForeground
-                                ? Colors.white
-                                : AppTheme.textPrimary,
-                          ),
-                        ),
-                        if (memberCount != null)
+                  child: GestureDetector(
+                    onTap: onMembersTap,
+                    child: _GlassPill(
+                      useDarkSurface: useLightForeground,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16 * uiScale,
+                        vertical: 8 * uiScale,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Text(
-                            memberCount!,
+                            petName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: (11 * uiScale).clamp(10.0, 11.0),
+                              fontSize: (15 * uiScale).clamp(13.0, 15.0),
+                              fontWeight: FontWeight.w600,
                               color: useLightForeground
-                                  ? Colors.white.withValues(alpha: 0.75)
-                                  : Colors.black.withValues(alpha: 0.55),
-                              fontWeight: FontWeight.w500,
+                                  ? Colors.white
+                                  : AppTheme.textPrimary,
                             ),
                           ),
-                      ],
+                          if (memberCount != null)
+                            Text(
+                              memberCount!,
+                              style: TextStyle(
+                                fontSize: (11 * uiScale).clamp(10.0, 11.0),
+                                color: useLightForeground
+                                    ? Colors.white.withValues(alpha: 0.75)
+                                    : Colors.black.withValues(alpha: 0.55),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -124,6 +124,16 @@
     }
   },
   "chatTitle": "채팅",
+  "chatRoomMembersTitle": "방 멤버",
+  "chatRoomMembersEmpty": "멤버를 찾을 수 없어요.",
+  "chatRoomMembersLoadFailed": "방 멤버를 불러오지 못했어요: {error}",
+  "@chatRoomMembersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatRoomMemberRoleOwner": "방장",
+  "chatRoomMemberYou": "나",
   "chatUserAlreadyBlocked": "사용자가 차단되었습니다",
   "chatUserBlocked": "사용자를 차단했습니다.",
   "chatMemberCount": "{count, plural, one {{count}명} other {{count}명}}",
@@ -539,7 +549,7 @@
   "storeItemDescReturnLetter": "떠난 펫을 다시 불러옵니다.",
   "storeItemNameBackgroundDefault": "기본 배경",
   "storeItemDescBackgroundDefault": "원래의 아늑한 방 배경입니다.",
-  "storeItemNameBackgroundMoonlight": "달빛 배경",
+  "storeItemNameBackgroundMoonlight": "은하 배경",
   "storeItemDescBackgroundMoonlight": "고요한 달빛 방 배경입니다.",
   "storeItemNameFurnitureSofa": "소파",
   "storeItemDescFurnitureSofa": "편안한 소파.",

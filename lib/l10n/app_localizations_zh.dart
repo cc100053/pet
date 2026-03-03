@@ -168,6 +168,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatTitle => '聊天';
 
   @override
+  String get chatRoomMembersTitle => '房间成员';
+
+  @override
+  String get chatRoomMembersEmpty => '找不到成员。';
+
+  @override
+  String chatRoomMembersLoadFailed(Object error) {
+    return '加载房间成员失败：$error';
+  }
+
+  @override
+  String get chatRoomMemberRoleOwner => '房主';
+
+  @override
+  String get chatRoomMemberYou => '你';
+
+  @override
   String get chatUserAlreadyBlocked => '已封鎖';
 
   @override
@@ -937,7 +954,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescBackgroundDefault => '原始溫馨房间背景。';
 
   @override
-  String get storeItemNameBackgroundMoonlight => '月光背景';
+  String get storeItemNameBackgroundMoonlight => '银河背景';
 
   @override
   String get storeItemDescBackgroundMoonlight => '寧靜月光房间背景。';
@@ -1426,6 +1443,23 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatTitle => '聊天';
+
+  @override
+  String get chatRoomMembersTitle => '房間成員';
+
+  @override
+  String get chatRoomMembersEmpty => '找不到成員。';
+
+  @override
+  String chatRoomMembersLoadFailed(Object error) {
+    return '載入房間成員失敗：$error';
+  }
+
+  @override
+  String get chatRoomMemberRoleOwner => '房主';
+
+  @override
+  String get chatRoomMemberYou => '你';
 
   @override
   String get chatUserAlreadyBlocked => '已封鎖';
@@ -2197,7 +2231,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemDescBackgroundDefault => '原始溫馨房間背景。';
 
   @override
-  String get storeItemNameBackgroundMoonlight => '月光背景';
+  String get storeItemNameBackgroundMoonlight => '銀河背景';
 
   @override
   String get storeItemDescBackgroundMoonlight => '寧靜月光房間背景。';

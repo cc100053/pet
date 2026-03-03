@@ -66,7 +66,7 @@ class ChatMessageTile extends StatelessWidget {
               color: useLightForeground
                   ? Colors.white.withValues(alpha: 0.9)
                   : Colors.grey[600],
-              fontSize: 10,
+              fontSize: 11,
             ),
           ),
         ),
@@ -272,8 +272,8 @@ class _TextMessageBubble extends StatelessWidget {
     final textColor = AppTheme.textPrimary;
 
     final bubble = Container(
-      constraints: const BoxConstraints(maxWidth: 280),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      constraints: const BoxConstraints(maxWidth: 320),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: decoration,
       child: IntrinsicWidth(
         child: Column(
@@ -286,7 +286,7 @@ class _TextMessageBubble extends StatelessWidget {
                 child: Text(
                   senderName!,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: ChatMessageTile.colorForUserId(message.senderId),
                   ),
@@ -303,7 +303,7 @@ class _TextMessageBubble extends StatelessWidget {
                       message.body ?? '',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: textColor,
-                        fontSize: 15,
+                        fontSize: 17,
                       ),
                     ),
                   ),
@@ -313,7 +313,7 @@ class _TextMessageBubble extends StatelessWidget {
                     child: Text(
                       _formatMessageTime(message.createdAt),
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: Colors.black45,
                       ),
                     ),
@@ -477,7 +477,7 @@ class _FeedMessageCard extends StatelessWidget {
                       child: Text(
                         senderName!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: ChatMessageTile.colorForUserId(
                             message.senderId,
@@ -502,7 +502,7 @@ class _FeedMessageCard extends StatelessWidget {
                         children: [
                           const Icon(
                             Icons.monetization_on_rounded,
-                            size: 14,
+                            size: 15,
                             color: Colors.orange,
                           ),
                           const SizedBox(width: 4),
@@ -511,7 +511,7 @@ class _FeedMessageCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.brown,
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 13,
                             ),
                           ),
                         ],
@@ -550,7 +550,7 @@ class _FeedMessageCard extends StatelessWidget {
                             child: Text(
                               _formatMessageTime(message.createdAt),
                               style: const TextStyle(
-                                fontSize: 10,
+                                fontSize: 11,
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -578,7 +578,7 @@ class _FeedMessageCard extends StatelessWidget {
                       message.caption!,
                       style: const TextStyle(
                         color: AppTheme.textPrimary,
-                        fontSize: 14,
+                        fontSize: 15,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -589,7 +589,7 @@ class _FeedMessageCard extends StatelessWidget {
                     child: Text(
                       _formatMessageTime(message.createdAt),
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: Colors.black45,
                       ),
                     ),

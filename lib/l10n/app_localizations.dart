@@ -355,6 +355,36 @@ abstract class AppLocalizations {
   /// **'Chat'**
   String get chatTitle;
 
+  /// No description provided for @chatRoomMembersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Room members'**
+  String get chatRoomMembersTitle;
+
+  /// No description provided for @chatRoomMembersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No members found.'**
+  String get chatRoomMembersEmpty;
+
+  /// No description provided for @chatRoomMembersLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load room members: {error}'**
+  String chatRoomMembersLoadFailed(Object error);
+
+  /// No description provided for @chatRoomMemberRoleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get chatRoomMemberRoleOwner;
+
+  /// No description provided for @chatRoomMemberYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get chatRoomMemberYou;
+
   /// No description provided for @chatUserAlreadyBlocked.
   ///
   /// In en, this message translates to:
@@ -1744,7 +1774,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeItemNameBackgroundMoonlight.
   ///
   /// In en, this message translates to:
-  /// **'Moonlight Background'**
+  /// **'Galaxy Background'**
   String get storeItemNameBackgroundMoonlight;
 
   /// No description provided for @storeItemDescBackgroundMoonlight.

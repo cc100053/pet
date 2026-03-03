@@ -124,6 +124,16 @@
     }
   },
   "chatTitle": "Chat",
+  "chatRoomMembersTitle": "Room members",
+  "chatRoomMembersEmpty": "No members found.",
+  "chatRoomMembersLoadFailed": "Failed to load room members: {error}",
+  "@chatRoomMembersLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatRoomMemberRoleOwner": "Owner",
+  "chatRoomMemberYou": "You",
   "chatUserAlreadyBlocked": "User blocked",
   "chatUserBlocked": "User blocked.",
   "chatMemberCount": "{count, plural, one {{count} member} other {{count} members}}",
@@ -542,7 +552,7 @@
   "storeItemDescReturnLetter": "Call back a departed pet.",
   "storeItemNameBackgroundDefault": "Default Background",
   "storeItemDescBackgroundDefault": "Original cozy room backdrop.",
-  "storeItemNameBackgroundMoonlight": "Moonlight Background",
+  "storeItemNameBackgroundMoonlight": "Galaxy Background",
   "storeItemDescBackgroundMoonlight": "A calm moonlit room backdrop.",
   "storeItemNameFurnitureSofa": "Sofa",
   "storeItemDescFurnitureSofa": "Comfy sofa.",
