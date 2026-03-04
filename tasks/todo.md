@@ -17,7 +17,84 @@
 - Fixes in `lib/features/chat/chat_room_view.dart`:
   - Added stable keys for keyboard underlay, message list container, dismiss strip, and composer container so keyboard visibility transitions preserve composer element identity/focus.
   - Kept dismiss strip in tree and gated it with `IgnorePointer(ignoring: !isKeyboardVisible)` instead of conditionally adding/removing it during focus transitions.
-  - Added a small downward drag threshold (`dy >= 6`) before dismissing keyboard to reduce accidental dismiss triggers.
+  - Restored `tap outside` dismiss on the message-list layer only and kept drag-dismiss trigger on positive downward delta (`dy > 0`) so dismiss works reliably without impacting composer tap focus.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed.
+
+## Follow-up Plan (2026-03-04)
+- [x] Switch chat message-list `keyboardDismissBehavior` to `ScrollViewKeyboardDismissBehavior.onDrag`.
+- [x] Remove custom 24px drag-dismiss strip from `ChatRoomView` to simplify keyboard-dismiss logic.
+- [x] Run `dart format` on touched files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with the simplification change.
+- [x] Update `tasks/lessons.md` per user correction/preference for simpler built-in behavior.
+
+## Follow-up Review (2026-03-04)
+- [x] Implemented and verified.
+- Changed `ChatMessageList` keyboard dismiss mode from `manual` to `onDrag` so drag-to-dismiss is handled natively by Flutter list scrolling.
+- Removed the custom 24px keyboard-dismiss strip from `ChatRoomView` to reduce bespoke gesture code and avoid duplicate drag-dismiss paths.
+- Kept message-list-layer tap-outside dismiss in `ChatRoomView` for explicit tap-based keyboard close behavior.
+- Verification:
+  - `dart format lib/features/chat/chat_message_list.dart lib/features/chat/chat_room_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed.
+
+## Follow-up Plan 2 (2026-03-04)
+- [x] Investigate keyboard-hide end-frame screen shake (downward overshoot then upward snap) after switching to `onDrag`.
+- [x] Clamp composer bottom inset so it never drops below safe-area bottom during keyboard dismissal animation.
+- [x] Run `dart format` on touched files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with this optimization.
+- [x] Update `tasks/lessons.md` with keyboard-inset clamping guideline.
+
+## Follow-up Review 2 (2026-03-04)
+- [x] Implemented and verified.
+- Root cause: during keyboard hide animation, `viewInsets.bottom` can transiently drop below device safe-area bottom; composer/list bottom spacing followed that lower value, creating a short downward overshoot then final upward snap when inset reached zero.
+- Fix in `lib/features/chat/chat_room_view.dart`: compute composer base inset as `max(viewInsets.bottom, media.padding.bottom)` before applying composer bottom padding.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed.
+
+## Follow-up Plan 3 (2026-03-04)
+- [x] Align iOS keyboard-corner underlay color with chatroom background to remove gray-square corner mismatch.
+- [x] Keep scaffold background logic unchanged (no keyboard-visible global swap).
+- [x] Run `dart format` on touched files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with this visual fix.
+- [x] Update `tasks/lessons.md` with underlay color-source guideline.
+
+## Follow-up Review 3 (2026-03-04)
+- [x] Implemented and verified.
+- Root cause: keyboard corner underlay was using a hardcoded gray tone that did not match the chatroom background surface.
+- Fix in `lib/features/chat/chat_room_view.dart`: set `keyboardUnderlayColor` to `scaffoldBackgroundColor`, so exposed keyboard-corner area inherits the same base background color as the room.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed.
+
+## Follow-up Plan 4 (2026-03-04)
+- [x] Fix white keyboard-corner artifacts for gradient/image room backgrounds where flat-color underlay still mismatches.
+- [x] Remove iOS keyboard underlay color layer so keyboard corner cutouts reveal the actual chatroom background rendering.
+- [x] Run `dart format` on touched files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with this final keyboard-corner fix.
+- [x] Update `tasks/lessons.md` with underlay-removal guideline for decorated backgrounds.
+
+## Follow-up Review 4 (2026-03-04)
+- [x] Implemented and verified.
+- Root cause: even after switching to a shared flat color source, keyboard-corner artifacts persisted on gradient/image room backgrounds because a single-color underlay cannot match decorated backgrounds.
+- Fix in `lib/features/chat/chat_room_view.dart`: removed the keyboard underlay `Positioned` layer entirely, so rounded keyboard corners expose the actual room decoration (gradient/image) instead of a synthetic fill color.
 - Verification:
   - `dart format lib/features/chat/chat_room_view.dart`
   - `flutter analyze`

@@ -1858,7 +1858,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileFeedbackEncouragement =>
-      '歡迎你積極提供意見同需求，我會盡力完成你提出嘅建議，一起把產品變得更好。';
+      '歡迎你積極提供意見同需求，團隊會盡力完成你提出嘅建議，一起把產品變得更好。';
 
   @override
   String get profileFeedback => '提供意見回饋';

@@ -579,7 +579,7 @@ class ChatMessageListState extends State<ChatMessageList> {
 
   @override
   Widget build(BuildContext context) {
-    const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual;
+    const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag;
     final defaultPadding = const EdgeInsets.symmetric(
       horizontal: 16,
       vertical: 12,
@@ -971,7 +971,7 @@ class _ChatLoadingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual;
+    const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag;
     final theme = Theme.of(context);
     final bubbleColor = theme.colorScheme.surfaceContainerHighest;
 

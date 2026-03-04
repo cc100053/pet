@@ -401,20 +401,18 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     final composerVerticalPadding = (6.0 * uiScale).clamp(4.0, 6.0);
     final composerScreenPadding = (10.0 * uiScale).clamp(8.0, 10.0);
     final keyboardInset = media.viewInsets.bottom;
-    final composerBottom = keyboardInset > 0
-        ? keyboardInset + composerScreenPadding
-        : media.padding.bottom + composerScreenPadding;
+    final baseBottomInset = media.padding.bottom;
+    // Prevent end-of-dismiss overshoot when keyboard inset dips below safe-area.
+    final keyboardAwareBottomInset = keyboardInset > baseBottomInset
+        ? keyboardInset
+        : baseBottomInset;
+    final composerBottom = keyboardAwareBottomInset + composerScreenPadding;
     final listTopPadding = media.padding.top + topBarHeight + 12;
     final listBottomPadding = composerHeight + composerBottom + 6;
 
     final overlayStyle = AppStatusBarStyles.forBackground(
       isDark: widget.isDarkBackground,
     );
-    final isKeyboardVisible = keyboardInset > 0;
-    final isIos = Theme.of(context).platform == TargetPlatform.iOS;
-    final keyboardUnderlayColor = widget.isDarkBackground
-        ? const Color(0xFF1C1C1E)
-        : const Color(0xFFB0B3BA);
     final scaffoldBackgroundColor =
         widget.backgroundDecoration?.color ??
         (widget.isDarkBackground
@@ -483,49 +481,22 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           decoration: widget.backgroundDecoration,
           child: Stack(
             children: [
-              if (isIos)
-                Positioned(
-                  key: const ValueKey('chatKeyboardUnderlay'),
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: keyboardInset,
-                  child: IgnorePointer(
-                    ignoring: !isKeyboardVisible,
-                    child: ColoredBox(color: keyboardUnderlayColor),
-                  ),
-                ),
               Positioned.fill(
                 key: const ValueKey('chatMessageList'),
-                child: ChatMessageList(
-                  key: _chatMessageListKey,
-                  roomId: widget.roomId,
-                  currentUserId: currentUserId,
-                  useLightForeground: useLightForeground,
-                  contentPadding: EdgeInsets.fromLTRB(
-                    16,
-                    listTopPadding,
-                    16,
-                    listBottomPadding,
-                  ),
-                ),
-              ),
-              Positioned(
-                key: const ValueKey('chatKeyboardDismissStrip'),
-                left: 0,
-                right: 0,
-                bottom: composerBottom + composerHeight,
-                height: 24,
-                child: IgnorePointer(
-                  ignoring: !isKeyboardVisible,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onVerticalDragUpdate: (details) {
-                      if (details.delta.dy < 6) {
-                        return;
-                      }
-                      FocusManager.instance.primaryFocus?.unfocus();
-                    },
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: ChatMessageList(
+                    key: _chatMessageListKey,
+                    roomId: widget.roomId,
+                    currentUserId: currentUserId,
+                    useLightForeground: useLightForeground,
+                    contentPadding: EdgeInsets.fromLTRB(
+                      16,
+                      listTopPadding,
+                      16,
+                      listBottomPadding,
+                    ),
                   ),
                 ),
               ),
