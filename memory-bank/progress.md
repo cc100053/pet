@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Fixed store IAP localized-currency rendering so non-JPY storefronts no longer show forced `JPY` fallback: in `StoreItem.localizedIapPrice`, removed the logic that replaced valid storefront-localized prices with catalog JPY when currency code was not `JPY`, now always prefers `Package/StoreProduct.priceString` (for example `A$`/`HK$`) and only falls back to catalog JPY when store price is unavailable; added regression coverage in `test/store_item_test.dart`.
 - Finalized chat keyboard-corner visual fix for decorated room backgrounds: removed the iOS keyboard underlay color layer in `ChatRoomView` so keyboard rounded corners reveal the real room background decoration (gradient/image) rather than a mismatched solid fill.
 - Fixed iOS keyboard-corner background mismatch in chatroom: keyboard underlay now derives from `scaffoldBackgroundColor` instead of a hardcoded gray tone, so rounded keyboard top corners no longer reveal a square gray patch that differs from the room surface.
 - Optimized chat keyboard-hide animation stability: in `ChatRoomView`, composer/list bottom inset now uses `max(viewInsets.bottom, safeAreaBottom)` so end-of-dismiss frames cannot dip below safe-area and cause the brief down-then-up screen shake.

@@ -83,36 +83,17 @@ class StoreItem {
     AppLocalizations l10n,
   ) {
     final appStorePrice = package?.storeProduct.priceString;
-    final appStoreCurrency = package?.storeProduct.currencyCode;
     if (appStorePrice != null && appStorePrice.isNotEmpty) {
-      if (_shouldUseCatalogJpyFallback(appStoreCurrency)) {
-        return l10n.currencyJpy(priceJpy!);
-      }
       return appStorePrice;
     }
     final directStorePrice = storeProduct?.priceString;
-    final directStoreCurrency = storeProduct?.currencyCode;
     if (directStorePrice != null && directStorePrice.isNotEmpty) {
-      if (_shouldUseCatalogJpyFallback(directStoreCurrency)) {
-        return l10n.currencyJpy(priceJpy!);
-      }
       return directStorePrice;
     }
     if (priceJpy != null && _isCatalogJpy) {
       return l10n.currencyJpy(priceJpy!);
     }
     return l10n.storePriceUnavailable;
-  }
-
-  bool _shouldUseCatalogJpyFallback(String? storeCurrencyCode) {
-    if (!_isCatalogJpy || priceJpy == null) {
-      return false;
-    }
-    final code = storeCurrencyCode?.trim().toUpperCase();
-    if (code == null || code.isEmpty) {
-      return false;
-    }
-    return code != 'JPY';
   }
 
   bool get _isCatalogJpy =>

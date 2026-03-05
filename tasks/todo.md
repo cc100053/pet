@@ -1,5 +1,34 @@
 # TODO
 
+## Plan (2026-03-05 Localized IAP Currency)
+- [x] Trace current store IAP price-render path and confirm why JPY fallback is used for non-JPY storefronts.
+- [x] Update store price formatting logic to prefer App Store localized price strings for all storefront currencies.
+- [x] Add regression tests for `StoreItem.localizedIapPrice` covering non-JPY storefront prices and fallback scenarios.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with root cause + fix details.
+- [x] Update this file's review section with verification outcomes.
+
+## Review (2026-03-05 Localized IAP Currency)
+- [x] Implemented and verified.
+- Root cause: `StoreItem.localizedIapPrice()` used `_shouldUseCatalogJpyFallback` to replace valid storefront-localized prices with catalog JPY when the storefront currency code was not `JPY`, causing users in non-JP regions to still see `JPY 300`.
+- Fix in `lib/features/store/models/store_item.dart`:
+  - Removed non-JPY forced JPY fallback logic.
+  - Now always prefers `Package.storeProduct.priceString` or `StoreProduct.priceString` when available.
+  - Keeps JPY fallback only when no store price string is available and catalog currency is JPY.
+- Regression tests added in `test/store_item_test.dart`:
+  - package localized price is used even when catalog currency is JPY.
+  - direct store localized price is used for non-JPY storefront currency.
+  - JPY fallback only when store price is unavailable.
+  - unavailable label when neither localized price nor JPY fallback exists.
+- Verification:
+  - `dart format lib/features/store/models/store_item.dart test/store_item_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter test test/store_item_test.dart`
+  - All passed.
+
 ## Plan
 - [x] Reproduce and trace chatroom focus-loss path where tapping composer opens keyboard then immediately closes.
 - [x] Stabilize chat composer/message-list widget identity across keyboard visibility transitions so TextField focus is preserved.
