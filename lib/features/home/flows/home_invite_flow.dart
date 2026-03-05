@@ -58,9 +58,76 @@ extension _HomeInviteFlow on _HomeViewState {
     return null;
   }
 
+  List<String> _extractInviteCodes(dynamic response) {
+    final codes = <String>{};
+    if (response is List) {
+      for (final entry in response) {
+        if (entry is String) {
+          final trimmed = entry.trim();
+          if (trimmed.isNotEmpty) {
+            codes.add(trimmed);
+          }
+          continue;
+        }
+        if (entry is Map) {
+          final value = entry['code'];
+          if (value is String) {
+            final trimmed = value.trim();
+            if (trimmed.isNotEmpty) {
+              codes.add(trimmed);
+            }
+          }
+        }
+      }
+    } else if (response is Map) {
+      final value = response['code'];
+      if (value is String) {
+        final trimmed = value.trim();
+        if (trimmed.isNotEmpty) {
+          codes.add(trimmed);
+        }
+      }
+    } else if (response is String) {
+      final trimmed = response.trim();
+      if (trimmed.isNotEmpty) {
+        codes.add(trimmed);
+      }
+    }
+    return codes.toList(growable: false);
+  }
+
+  Future<List<String>> _fetchActiveInviteCodes(String roomId) async {
+    final response = await Supabase.instance.client.rpc(
+      'list_room_invite_codes',
+      params: {'p_room_id': roomId},
+    );
+    final codes = _extractInviteCodes(response);
+    if (codes.length <= 1) {
+      return codes;
+    }
+    return codes.take(3).toList(growable: false);
+  }
+
+  bool _isInviteCodeLimitReachedError(Object error) {
+    return error.toString().toLowerCase().contains('invite_code_limit_reached');
+  }
+
+  Future<void> _copyInviteCode(String code) async {
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!mounted) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    await _showInviteCopiedPremiumPopup(l10n);
+  }
+
   Future<void> _showInviteCodeDialog(String code) async {
     final l10n = AppLocalizations.of(context)!;
     var showingCopiedPrompt = false;
+    final displayCode = code.trim();
+    if (displayCode.isEmpty) {
+      return;
+    }
     await showAppDialog<void>(
       context: context,
       builder: (context) => AppDialog(
@@ -78,13 +145,12 @@ extension _HomeInviteFlow on _HomeViewState {
                   if (showingCopiedPrompt) {
                     return;
                   }
-                  await Clipboard.setData(ClipboardData(text: code));
-                  if (!mounted) {
-                    return;
-                  }
                   showingCopiedPrompt = true;
-                  await _showInviteCopiedPremiumPopup(l10n);
-                  showingCopiedPrompt = false;
+                  try {
+                    await _copyInviteCode(displayCode);
+                  } finally {
+                    showingCopiedPrompt = false;
+                  }
                 },
                 child: Container(
                   width: double.infinity,
@@ -99,7 +165,7 @@ extension _HomeInviteFlow on _HomeViewState {
                   ),
                   child: Center(
                     child: Text(
-                      code,
+                      displayCode,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -297,7 +363,7 @@ extension _HomeInviteFlow on _HomeViewState {
     _setInviteCodeLoading(true);
     try {
       final response = await Supabase.instance.client.rpc(
-        'regenerate_invite_code',
+        'create_room_invite_code',
         params: {'p_room_id': roomId},
       );
       final code = _extractInviteCode(response);
@@ -310,6 +376,15 @@ extension _HomeInviteFlow on _HomeViewState {
       _applyGeneratedInviteCode(roomId: roomId, code: code);
       await _showInviteCodeDialog(code);
     } catch (error) {
+      if (_isInviteCodeLimitReachedError(error)) {
+        try {
+          final codes = await _fetchActiveInviteCodes(roomId);
+          if (codes.isNotEmpty && mounted) {
+            await _showInviteCodeDialog(codes.first);
+            return;
+          }
+        } catch (_) {}
+      }
       if (!mounted) {
         return;
       }

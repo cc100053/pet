@@ -25,6 +25,13 @@ String userFacingError(
   if (summary.contains('invalid_invite')) {
     return l10n.errorInvalidInviteCode;
   }
+  if (summary.contains('not_owner')) {
+    return l10n.errorPermissionDenied;
+  }
+  if (summary.contains('not_member') ||
+      summary.contains('invite_code_limit_reached')) {
+    return l10n.errorPermissionDenied;
+  }
   if (summary.contains('invalid_pet_name') ||
       summary.contains('pet_name_invalid') ||
       summary.contains('name_too_long') ||

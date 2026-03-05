@@ -32,6 +32,7 @@
 - `supabase/migrations/20260225020844_add_hunger_tick_dispatch_cron_schedule.sql`: Create/refresh `hunger_tick_dispatch_every_10m` cron job and seed vault secret if missing.
 - `supabase/migrations/20260225023510_add_pet_hunger_tick_schedule_and_20m_cron.sql`: Add due-time hunger tick schedule table/triggers/functions and switch scheduler to `hunger_tick_dispatch_every_20m` (`*/20`).
 - `supabase/migrations/20260225024022_add_pet_hunger_tick_schedule_room_id_index.sql`: Add `pet_hunger_tick_schedule.room_id` index to cover FK checks and room-scoped queries.
+- `supabase/migrations/20260305231000_add_multi_invite_codes_and_member_generation.sql`: Add room-scoped multi invite-code storage (`room_invite_codes`), member-capable invite-code generation/list/revoke RPCs, and backward-compatible updates to `create_room`, `regenerate_invite_code`, and `join_room_by_code`.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
 - `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
 - `supabase/migrations/20260218170000_sync_room_timezone_on_owner_transfer.sql`: Sync `rooms.timezone` to the promoted owner's profile timezone when room ownership transfers.
@@ -104,6 +105,7 @@ Planned:
 - Postgres: Users, rooms, pets, messages, inventories, config.
 - Realtime: Chat and system events.
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
+- Room invites: `room_invite_codes` supports up to 3 active room codes; members can generate additional codes via RPC while legacy clients continue using `rooms.invite_code` as the current primary code.
 - Edge Functions: Feed validation + upload, avatar upload, account deletion, and scheduled hunger-alert dispatch.
 - Webhooks: Trigger friend notifications on feed events.
 - Notifications:

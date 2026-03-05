@@ -23,10 +23,23 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `id` (uuid, pk)
   - `name` (text)
   - `timezone` (text; room-scoped timezone for shared pet night-mode logic)
-  - `invite_code` (text, unique)
+  - `invite_code` (text, unique; legacy/current primary code for backward compatibility)
   - `invite_expires_at` (timestamptz)
   - `created_by` (uuid, current owner; updated on transfer)
   - `created_at`, `updated_at`, `is_archived` (bool)
+
+- `room_invite_codes`
+  - `id` (uuid, pk)
+  - `room_id` (uuid, fk -> rooms.id)
+  - `code` (text, unique, 6-digit format)
+  - `created_by` (uuid, nullable fk -> auth.users; legacy backfill compatible)
+  - `created_at` (timestamptz)
+  - `expires_at` (timestamptz)
+  - `revoked_at` (timestamptz, nullable)
+  - `revoked_by` (uuid, nullable fk -> auth.users)
+  - Notes:
+    - Keep up to 3 active codes per room.
+    - `rooms.invite_code` remains as current primary code for old client compatibility.
 
 - `room_members`
   - `room_id` (uuid, fk)
@@ -336,8 +349,11 @@ for select using (auth.role() = 'authenticated');
 ## RPC Functions (Postgres)
 - `create_room(name text)` -> creates room, owner membership, invite code, and initial pet + pet_state.
 - `join_room_by_code(code text)` -> validates invite, inserts into `room_members`.
+- `create_room_invite_code(p_room_id uuid, p_expires_in_minutes int default 60)` -> member-capable invite code creation with room-level active-code cap (`<= 3`) and primary-code sync to `rooms`.
+- `list_room_invite_codes(p_room_id uuid)` -> returns active invite codes for room members (latest first, max 3).
+- `revoke_room_invite_code(p_room_id uuid, p_code text)` -> owner can revoke any code; members can revoke own code.
 - `leave_room(room_id uuid)` -> sets membership inactive and triggers owner transfer if needed.
-- `regenerate_invite_code(room_id uuid)` -> owner-only refresh for invite code + expiry.
+- `regenerate_invite_code(room_id uuid)` -> owner-only helper delegating to multi-code creation path (legacy API compatibility).
 - `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters; feed currently grants +20 hunger and only one successful feed is allowed per 10-minute burst (later feeds trigger overfed state).
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger; when `action_type='feed'` and the reward is granted, grants pet EXP (+10), levels up with carry (`50 * current_level`), and caps at level 999.
 - `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.

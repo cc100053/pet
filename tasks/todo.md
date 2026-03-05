@@ -188,3 +188,118 @@
   - `flutter analyze`
   - `flutter test`
   - All passed.
+
+## Plan (2026-03-05 Room Invite Code Failure Investigation)
+- [x] Reproduce the invite-code request failure path and capture the exact failing callsite/error payload.
+- [x] Trace frontend invite-code flow (UI action -> repository/service -> Supabase RPC/query) and identify failure branch.
+- [x] Verify backend contract and constraints (RPC logic/RLS/room ownership rules) against affected multi-room behavior.
+- [x] Implement minimal fix for confirmed root cause (frontend/backend as needed) without breaking existing room flows.
+- [x] Run `dart format` on touched Dart files (if any).
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with root cause + fix details.
+- [x] Update this file with review outcomes.
+
+## Review (2026-03-05 Room Invite Code Failure Investigation)
+- [x] Implemented and verified.
+- Root cause:
+  - Home invite CTA always called owner-only RPC `regenerate_invite_code` for every room.
+  - Backend function explicitly requires `room_members.role = 'owner'`, so members consistently received `not_owner`.
+  - `userFacingError` lacked `not_owner` mapping, so users saw generic retry-style failure text.
+- Fixes:
+  - `lib/features/home/flows/home_invite_flow.dart`: gate invite behavior by current room role.
+    - Owner: keep current behavior (`regenerate_invite_code`).
+    - Member: no regenerate call; open invite dialog using current room invite code when available.
+    - Member + no local code: show localized permission-denied snackbar.
+  - `lib/shared/errors/user_facing_error.dart`: map `not_owner` to localized permission-denied text.
+- Verification:
+  - `dart format lib/features/home/flows/home_invite_flow.dart lib/shared/errors/user_facing_error.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-05 Multi Invite Codes + Member Generation)
+- [x] Design backward-compatible invite-code model that supports up to 3 active codes and member generation without breaking old clients.
+- [x] Implement Supabase migration (new table + backfill + RPC updates for create/list/revoke/join/create_room/regenerate behavior).
+- [x] Apply migration through Supabase MCP and verify schema/function availability.
+- [x] Update Flutter invite flow to call new member-capable RPC and display active invite codes.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update memory-bank docs with new invite-code architecture/schema/progress.
+- [x] Update this file with review outcomes.
+
+## Review (2026-03-05 Multi Invite Codes + Member Generation)
+- [x] Implemented and verified.
+- Backend changes:
+  - Added migration `supabase/migrations/20260305231000_add_multi_invite_codes_and_member_generation.sql`.
+  - New table: `public.room_invite_codes` (room-scoped multi-code storage with expiry/revoke metadata).
+  - Backfilled legacy `rooms.invite_code` into `room_invite_codes` (including null-`created_by` legacy compatibility).
+  - New RPCs:
+    - `create_room_invite_code(p_room_id uuid, p_expires_in_minutes int default 60)` (members can generate; max 3 active; owner rotates oldest when full; members rotate own oldest when needed).
+    - `list_room_invite_codes(p_room_id uuid)` (returns active codes for room members).
+    - `revoke_room_invite_code(p_room_id uuid, p_code text)` (owner can revoke any; members can revoke own non-null-created codes).
+  - Updated RPCs:
+    - `join_room_by_code(code text)` now checks `room_invite_codes` first, then legacy `rooms.invite_code`.
+    - `regenerate_invite_code(p_room_id uuid)` now delegates to `create_room_invite_code` (owner-only gate retained).
+    - `create_room(p_name text)` now seeds `room_invite_codes` for backward-compatible initial room code creation.
+- Frontend changes:
+  - `lib/features/home/flows/home_invite_flow.dart`:
+    - Invite action now calls `create_room_invite_code` (member-capable) instead of owner-only regenerate RPC.
+    - Invite dialog now supports and displays multiple active codes (up to 3), each tap-to-copy.
+    - Added fallback path: if room is full (`invite_code_limit_reached`), fetch and display existing active codes.
+  - `lib/shared/errors/user_facing_error.dart`:
+    - Added error mapping for `not_member` and `invite_code_limit_reached` to localized permission-denied message.
+- Supabase MCP verification:
+  - Applied migration successfully via `mcp__supabase__apply_migration`.
+  - Verified new table/functions exist via `mcp__supabase__execute_sql`.
+  - Ran advisors (`security`, `performance`) to sanity-check post-migration state.
+- Verification:
+  - `dart format lib/features/home/flows/home_invite_flow.dart lib/shared/errors/user_facing_error.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Plan (2026-03-05 Single-Code Invite Dialog UX)
+- [x] Keep multi-code backend validity model unchanged (up to 3 active codes) while reducing invite dialog output to a single code.
+- [x] Update Home invite dialog rendering to show only one copyable code (same UX shape as original flow).
+- [x] Preserve fallback behavior for limit/full cases by selecting one active code to display.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update memory-bank progress log with this UX decision.
+- [x] Update this file review section.
+
+## Follow-up Review (2026-03-05 Single-Code Invite Dialog UX)
+- [x] Implemented and verified.
+- Kept backend semantics unchanged: rooms can still have up to 3 simultaneously active invite codes.
+- Changed `lib/features/home/flows/home_invite_flow.dart` so invite dialog now shows exactly one code:
+  - successful new-code generation shows the newly generated code;
+  - limit/fallback path shows one existing active code (`list_room_invite_codes` newest item).
+- Verification:
+  - `dart format lib/features/home/flows/home_invite_flow.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Plan (2026-03-05 Shared Invite Rotation Rule)
+- [x] Change invite-code cap behavior so rotation is shared across owner/members (no role-based distinction when full).
+- [x] Apply a Supabase migration updating `create_room_invite_code` logic.
+- [x] Verify updated RPC exists and behavior is deployed.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update memory-bank progress with the policy change.
+- [x] Update this file review section.
+
+## Follow-up Review (2026-03-05 Shared Invite Rotation Rule)
+- [x] Implemented and verified.
+- Added migration `supabase/migrations/20260305235500_share_invite_code_rotation_across_members.sql`.
+- Updated DB function `create_room_invite_code` so once a room has 3 active codes, the oldest active code is rotated out regardless of caller role (owner/member now share the same rotation pool).
+- Kept other invite mechanics unchanged (member must still be active room member; max active codes remains 3; single-code dialog UX remains unchanged).
+- Deployment/verification:
+  - Applied migration via Supabase MCP (`apply_migration`).
+  - Verified active function definition via `pg_get_functiondef('public.create_room_invite_code(uuid, integer)'::regprocedure)`.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
