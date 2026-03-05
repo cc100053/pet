@@ -29,6 +29,9 @@ flutter run
 If `pod install` fails with cache permission errors, clear the CocoaPods cache
 or run it with elevated permissions.
 
+## Real Iphone手
+flutter run --release
+
 ## Notes
 - OAuth providers (Google/Apple) must be configured in Supabase.
 - The current UI is a Phase 0 scaffold: auth gate + profile stub.

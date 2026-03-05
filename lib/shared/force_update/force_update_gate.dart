@@ -148,7 +148,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     final debugConfig = ForceUpdateConfig(
       minimumRequiredVersion: _config?.minimumRequiredVersion ?? '999.0.0',
       latestAvailableVersion: _config?.latestAvailableVersion ?? '999.0.1',
-      storeUrl: _config?.storeUrl ?? 'https://example.com/update',
+      storeUrl: _config?.storeUrl ?? AppConfigService.iosAppStoreUrl,
     );
     if (type == ForceUpdateDebugPromptType.hard) {
       AnalyticsService.instance.logEvent('debug_hard_update_prompt_shown');

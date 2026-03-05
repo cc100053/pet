@@ -21,6 +21,9 @@ class AppConfigService {
   AppConfigService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
+  static const String iosAppStoreUrl =
+      'https://apps.apple.com/app/id6757725650';
+
   final SupabaseClient _client;
 
   Future<ForceUpdateConfig?> fetchForceUpdateConfig() async {
@@ -48,7 +51,10 @@ class AppConfigService {
     }
 
     final rawStoreUrl = await _fetchConfigValue('store_url');
-    final storeUrl = _valueForPlatform(rawStoreUrl);
+    final configuredStoreUrl = _valueForPlatform(rawStoreUrl);
+    final storeUrl = _isIOSPlatform()
+        ? iosAppStoreUrl
+        : (configuredStoreUrl ?? _defaultStoreUrlForPlatform());
     if (storeUrl == null || storeUrl.isEmpty) {
       return null;
     }
@@ -126,5 +132,28 @@ class AppConfigService {
       case TargetPlatform.fuchsia:
         return 'fuchsia';
     }
+  }
+
+  String? _defaultStoreUrlForPlatform() {
+    if (kIsWeb) {
+      return null;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        return iosAppStoreUrl;
+      case TargetPlatform.android:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return null;
+    }
+  }
+
+  bool _isIOSPlatform() {
+    if (kIsWeb) {
+      return false;
+    }
+    return defaultTargetPlatform == TargetPlatform.iOS;
   }
 }

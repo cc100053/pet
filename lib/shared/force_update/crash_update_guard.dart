@@ -99,8 +99,11 @@ class _CrashUpdateGuardState extends State<CrashUpdateGuard> {
     );
     try {
       final fallbackConfig = await _configService.fetchForceUpdateConfig();
-      final url = _storeUrl ?? fallbackConfig?.storeUrl;
-      final uri = url == null ? null : Uri.tryParse(url);
+      final url =
+          _storeUrl ??
+          fallbackConfig?.storeUrl ??
+          AppConfigService.iosAppStoreUrl;
+      final uri = Uri.tryParse(url);
       if (uri == null) {
         _showLinkError();
         return;

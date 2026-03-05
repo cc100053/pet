@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Corrected force-update App Store URL handling for iOS update prompts: `AppConfigService` now always uses `https://apps.apple.com/app/id6757725650` for iOS force/soft update links (instead of relying on backend `store_url`), debug soft/hard update prompt fallback now uses the same URL (instead of `example.com`), and crash fallback update button also defaults to that App Store URL.
 - Fixed store IAP localized-currency rendering so non-JPY storefronts no longer show forced `JPY` fallback: in `StoreItem.localizedIapPrice`, removed the logic that replaced valid storefront-localized prices with catalog JPY when currency code was not `JPY`, now always prefers `Package/StoreProduct.priceString` (for example `A$`/`HK$`) and only falls back to catalog JPY when store price is unavailable; added regression coverage in `test/store_item_test.dart`.
 - Finalized chat keyboard-corner visual fix for decorated room backgrounds: removed the iOS keyboard underlay color layer in `ChatRoomView` so keyboard rounded corners reveal the real room background decoration (gradient/image) rather than a mismatched solid fill.
 - Fixed iOS keyboard-corner background mismatch in chatroom: keyboard underlay now derives from `scaffoldBackgroundColor` instead of a hardcoded gray tone, so rounded keyboard top corners no longer reveal a square gray patch that differs from the room surface.

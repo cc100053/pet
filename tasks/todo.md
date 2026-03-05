@@ -1,5 +1,34 @@
 # TODO
 
+## Plan (2026-03-05 Force Update Store URL + Auto Detection Check)
+- [x] Trace force-update prompt store URL source and identify incorrect/default fallback paths.
+- [x] Update iOS force-update store URL fallback to `https://apps.apple.com/jp/app/id6757725650`.
+- [x] Align debug force-update prompt and crash fallback update button with the same App Store URL.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with behavior changes.
+- [x] Update this file's review section with verification outcomes.
+
+## Review (2026-03-05 Force Update Store URL + Auto Detection Check)
+- [x] Implemented and verified.
+- Store URL path/root cause:
+  - Force update prompts read `app_config.store_url` through `AppConfigService`.
+  - Debug prompt fallback URL still pointed to placeholder `https://example.com/update`.
+  - Crash fallback path had no guaranteed app-store URL when config was unavailable.
+- Fixes:
+  - `lib/services/app_config/app_config_service.dart`: added `iosAppStoreUrl = https://apps.apple.com/jp/app/id6757725650` and made iOS force-update prompts always use this URL (independent from backend `store_url`).
+  - `lib/shared/force_update/force_update_gate.dart`: debug prompt fallback URL now uses `AppConfigService.iosAppStoreUrl`.
+  - `lib/shared/force_update/crash_update_guard.dart`: crash-screen update button now falls back to `AppConfigService.iosAppStoreUrl`.
+- Auto-detection check result:
+  - Existing auto-detection is already implemented in `ForceUpdateGate`.
+  - Trigger points: app start (`initState`) and app foreground resume (`didChangeAppLifecycleState` on `resumed`).
+  - Behavior: compares current app version against `minimum_required_version` / `latest_available_version` from `app_config` and shows hard/soft update dialogs accordingly.
+- Verification:
+  - `dart format lib/services/app_config/app_config_service.dart lib/shared/force_update/force_update_gate.dart lib/shared/force_update/crash_update_guard.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-05 Localized IAP Currency)
 - [x] Trace current store IAP price-render path and confirm why JPY fallback is used for non-JPY storefronts.
 - [x] Update store price formatting logic to prefer App Store localized price strings for all storefront currencies.
