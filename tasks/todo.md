@@ -1,5 +1,35 @@
 # TODO
 
+## Plan (2026-03-05 App Review Store Fallback)
+- [x] Refactor `ReviewPromptService` with injectable review/settings dependencies for deterministic tests.
+- [x] Add App Store fallback flow (`openStoreListing` with app id `6757725650`) when in-app review is unavailable or fails.
+- [x] Add analytics events for review prompt shown / store fallback opened / fallback failure.
+- [x] Add unit tests covering in-app review path and App Store fallback path.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with this behavior.
+- [x] Update this file with review outcomes.
+
+## Review (2026-03-05 App Review Store Fallback)
+- [x] Implemented and verified.
+- Changes:
+  - `lib/services/review/review_prompt_service.dart` now uses injectable interfaces (`AppReviewGateway`, `ReviewPromptSettingsStore`) for testability.
+  - Added iOS fallback to App Store rating page via `openStoreListing(appStoreId: '6757725650')` when `isAvailable` is false or `requestReview` throws.
+  - Added analytics events: `review_prompt_shown`, `review_store_opened`, `review_prompt_failed`, `review_store_open_failed`.
+  - Prompt milestone progression and `reviewLastPromptAt` are updated only when in-app prompt or store fallback succeeds.
+- Tests:
+  - Added `test/review_prompt_service_test.dart` covering:
+    - in-app prompt success path
+    - unavailable -> App Store fallback path
+    - `requestReview` failure -> App Store fallback path
+    - fallback failure -> milestone not advanced
+- Verification:
+  - `dart format lib/services/review/review_prompt_service.dart test/review_prompt_service_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-05 Force Update Store URL + Auto Detection Check)
 - [x] Trace force-update prompt store URL source and identify incorrect/default fallback paths.
 - [x] Update iOS force-update store URL fallback to `https://apps.apple.com/jp/app/id6757725650`.
@@ -16,7 +46,7 @@
   - Debug prompt fallback URL still pointed to placeholder `https://example.com/update`.
   - Crash fallback path had no guaranteed app-store URL when config was unavailable.
 - Fixes:
-  - `lib/services/app_config/app_config_service.dart`: added `iosAppStoreUrl = https://apps.apple.com/jp/app/id6757725650` and made iOS force-update prompts always use this URL (independent from backend `store_url`).
+  - `lib/services/app_config/app_config_service.dart`: added `iosAppStoreUrl = https://apps.apple.com/app/id6757725650` and made iOS force-update prompts always use this URL (independent from backend `store_url`).
   - `lib/shared/force_update/force_update_gate.dart`: debug prompt fallback URL now uses `AppConfigService.iosAppStoreUrl`.
   - `lib/shared/force_update/crash_update_guard.dart`: crash-screen update button now falls back to `AppConfigService.iosAppStoreUrl`.
 - Auto-detection check result:
