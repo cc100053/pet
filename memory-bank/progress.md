@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Tightened first-login onboarding interactions so the coach card no longer duplicates the existing room-creation CTA: onboarding now keeps the original highlighted `Create New Room` button in `RoomSelectionView`, while the coach card adds only a localized `Skip` action for explicit dismissal.
+- Replaced the post-feed double reward prompt with a standard modal dialog after eligible feed completions, instead of the previous custom overlay pill, and hardened the eligibility fallback to still offer the prompt when reward metadata is missing but feed cooldown is inactive.
 - Fixed iOS AdMob ATT gating so denied tracking permission no longer blocks ads: `AdMobStartupService` now always initializes AdMob on supported iOS builds, switches denied ATT users to non-personalized `AdRequest`s, and rewarded/banner placements no longer show a false "tracking permission required" failure path; added regression tests in `test/admob_startup_service_test.dart`.
 - Updated invite-cap rotation policy to shared-pool behavior: when a room already has 3 active invite codes, `create_room_invite_code` now revokes the room’s oldest active code regardless of whether the requester is owner or member, so all active members effectively share the same rotating invite-code set.
 - Refined invite UX after multi-code rollout: kept backend multi-code validity (up to 3 active room invite codes) but restored single-code dialog presentation in Home invite flow so users see one copyable code per action (newly generated code on success; one active fallback code when room-level cap handling triggers).

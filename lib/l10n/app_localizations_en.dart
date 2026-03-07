@@ -217,6 +217,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonClose => 'Close';
 
   @override
+  String get commonSkip => 'Skip';
+
+  @override
   String get commonGallery => 'Gallery';
 
   @override

@@ -334,6 +334,8 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           );
           return;
       }
+    } catch (error) {
+      debugPrint('[ads] failed to present feed double reward prompt: $error');
     } finally {
       _showingFeedDoubleRewardPrompt = false;
     }
@@ -343,7 +345,14 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (result.coinsAwarded > 0) {
       return true;
     }
-    return result.rewardStatus?.toLowerCase() == 'granted';
+    final rewardStatus = result.rewardStatus?.trim().toLowerCase();
+    if (rewardStatus == 'granted') {
+      return true;
+    }
+    if (rewardStatus == 'cooldown') {
+      return false;
+    }
+    return !result.cooldownActive;
   }
 
   Future<_FeedDoubleRewardPromptAction> _showFeedDoubleRewardToast({
@@ -357,39 +366,29 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (!mounted) {
       return _FeedDoubleRewardPromptAction.cancel;
     }
-    final overlay = Overlay.of(context, rootOverlay: true);
-
-    final completer = Completer<_FeedDoubleRewardPromptAction>();
-    late final OverlayEntry entry;
-    Timer? timer;
-
-    void complete(_FeedDoubleRewardPromptAction action) {
-      if (completer.isCompleted) {
-        return;
-      }
-      completer.complete(action);
-      timer?.cancel();
-      timer = null;
-      entry.remove();
-    }
-
-    entry = OverlayEntry(
-      builder: (context) => _FeedDoubleRewardPill(
+    final action = await showAppDialog<_FeedDoubleRewardPromptAction>(
+      context: context,
+      builder: (dialogContext) => AppDialog(
+        tone: AppDialogTone.info,
         title: l10n.feedAdDoubleRewardTitle,
         message: l10n.feedAdDoubleRewardMessage(expectedExtra),
-        watchLabel: l10n.storeAdRewardAction,
-        onWatch: () => complete(_FeedDoubleRewardPromptAction.watch),
-        onClose: () => complete(_FeedDoubleRewardPromptAction.cancel),
+        actions: [
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
+            onPressed: () => Navigator.of(
+              dialogContext,
+            ).pop(_FeedDoubleRewardPromptAction.cancel),
+          ),
+          AppDialogAction.primary(
+            label: l10n.storeAdRewardAction,
+            onPressed: () => Navigator.of(
+              dialogContext,
+            ).pop(_FeedDoubleRewardPromptAction.watch),
+          ),
+        ],
       ),
     );
-
-    overlay.insert(entry);
-    timer = Timer(
-      const Duration(seconds: 6),
-      () => complete(_FeedDoubleRewardPromptAction.cancel),
-    );
-
-    return completer.future;
+    return action ?? _FeedDoubleRewardPromptAction.cancel;
   }
 
   void _applyCoinRewardFeedback(int amount) {

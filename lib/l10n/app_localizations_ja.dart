@@ -211,6 +211,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commonClose => '閉じる';
 
   @override
+  String get commonSkip => 'スキップ';
+
+  @override
   String get commonGallery => 'ギャラリー';
 
   @override

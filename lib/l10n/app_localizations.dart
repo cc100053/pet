@@ -433,6 +433,12 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get commonClose;
 
+  /// No description provided for @commonSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get commonSkip;
+
   /// No description provided for @commonGallery.
   ///
   /// In en, this message translates to:

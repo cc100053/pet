@@ -1,5 +1,54 @@
 # TODO
 
+## Plan (2026-03-07 Feed Double Reward Prompt Reliability)
+- [x] Inspect the post-feed reward flow and locate the conditions that control showing the rewarded-ad prompt after a successful feed.
+- [x] Implement the minimal fix so eligible feed completions trigger the double reward prompt again without regressing reward state handling.
+- [x] Add or update focused tests if the affected flow is testable, then run formatting, `flutter analyze`, and `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the root cause, fix, and verification results.
+
+## Review (2026-03-07 Feed Double Reward Prompt Reliability)
+- [x] Implemented and verified.
+- Root cause:
+  - The feed double-reward affordance used a custom `OverlayEntry` pill, which is a fragile presentation path right after the camera route dismisses.
+  - The eligibility fallback was also too narrow when the feed response omitted or normalized reward metadata differently than expected.
+- Fixes:
+  - `lib/features/home/controllers/home_feed_orchestrator.dart`: replaced the overlay pill prompt with a standard `showAppDialog` modal so successful feed rewards surface a reliable watch-ad choice.
+  - `lib/features/home/controllers/home_feed_orchestrator.dart`: hardened `_shouldOfferFeedDoubleReward()` to trim/normalize `reward_status` and fall back to `!cooldownActive` when reward metadata is missing.
+  - `lib/features/home/controllers/home_feed_orchestrator.dart`: added debug logging around prompt presentation failure instead of silently swallowing the path.
+  - `lib/features/home/home_view.dart`: removed the now-unused custom `_FeedDoubleRewardPill` widget.
+- Verification:
+  - `dart format lib/features/home/controllers/home_feed_orchestrator.dart lib/features/home/home_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-07 Onboarding Explicit Skip Action)
+- [x] Trace first-login onboarding interaction path and identify how incidental taps can affect the flow.
+- [x] Tighten onboarding interaction so only explicit coach-card actions can advance or skip it.
+- [x] Add a dedicated localized `Skip` button to the onboarding coach card and block background tap passthrough while onboarding is visible.
+- [x] Run `flutter gen-l10n` if localization keys change.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with the onboarding interaction change.
+- [x] Update this file with review outcomes.
+
+## Review (2026-03-07 Onboarding Explicit Skip Action)
+- [x] Implemented and verified.
+- Root cause:
+  - The onboarding spotlight overlay used `IgnorePointer`, so taps outside the coach card passed through to `RoomSelectionView`.
+  - On first sign-in, iOS notification permission prompts can return control mid-tap, making incidental touches hit underlying onboarding targets and effectively skip the intended tutorial moment.
+- Fixes:
+  - `lib/features/home/flows/home_onboarding_flow.dart`: changed the coach card to add only a localized `Skip` button, matching the existing room-creation interaction instead of duplicating the primary CTA inside onboarding chrome.
+  - `lib/features/home/flows/home_onboarding_flow.dart`: kept the spotlight overlay visual-only so users still tap the original highlighted `Create New Room` button in `RoomSelectionView`.
+  - `lib/l10n/app_*.arb`: added `commonSkip` across shipped locales and regenerated localizations.
+- Verification:
+  - `flutter gen-l10n`
+  - `dart format lib/features/home/flows/home_onboarding_flow.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-07 Rewarded Ads Without ATT Requirement)
 - [x] Trace current AdMob startup and rewarded-ad gating so ATT denial no longer blocks ad availability.
 - [x] Update the ads startup/service flow to allow iOS rewarded ads without tracking authorization and adjust user-facing messaging accordingly.

@@ -36,3 +36,6 @@
 - For keyboard-aware composer positioning, never let runtime keyboard inset drive bottom spacing below safe-area inset during dismiss animation; clamp with `max(viewInsets.bottom, safeAreaBottom)` to avoid end-frame down-then-up jitter.
 - For keyboard-corner underlay rendering, avoid hardcoded neutral colors; source the underlay from the same active chatroom background surface color to prevent rounded-corner square-patch artifacts.
 - For chatrooms using gradient/image decorations, prefer removing synthetic keyboard underlay color layers entirely; exposing the true decorated background avoids unavoidable color mismatch at keyboard rounded corners.
+
+## 2026-03-07
+- When the user asks to keep an existing primary CTA, do not duplicate that action inside onboarding chrome; add only the requested secondary control (for example `Skip`) and preserve the established interaction path through the original UI element.

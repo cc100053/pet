@@ -217,6 +217,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonClose => '닫기';
 
   @override
+  String get commonSkip => '건너뛰기';
+
+  @override
   String get commonGallery => '갤러리';
 
   @override

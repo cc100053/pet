@@ -211,6 +211,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonClose => '关闭';
 
   @override
+  String get commonSkip => '跳过';
+
+  @override
   String get commonGallery => '相簿';
 
   @override
@@ -1493,6 +1496,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get commonClose => '關閉';
+
+  @override
+  String get commonSkip => '略過';
 
   @override
   String get commonGallery => '相簿';
