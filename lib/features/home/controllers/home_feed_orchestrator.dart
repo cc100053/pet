@@ -366,27 +366,43 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (!mounted) {
       return _FeedDoubleRewardPromptAction.cancel;
     }
-    final action = await showAppDialog<_FeedDoubleRewardPromptAction>(
+    final action = await showGeneralDialog<_FeedDoubleRewardPromptAction>(
       context: context,
-      builder: (dialogContext) => AppDialog(
-        tone: AppDialogTone.info,
-        title: l10n.feedAdDoubleRewardTitle,
-        message: l10n.feedAdDoubleRewardMessage(expectedExtra),
-        actions: [
-          AppDialogAction.secondary(
-            label: l10n.commonCancel,
-            onPressed: () => Navigator.of(
-              dialogContext,
-            ).pop(_FeedDoubleRewardPromptAction.cancel),
+      barrierDismissible: true,
+      barrierLabel: l10n.commonClose,
+      barrierColor: Colors.black.withValues(alpha: 0.18),
+      transitionDuration: const Duration(milliseconds: 240),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return _FeedDoubleRewardPrompt(
+          title: l10n.feedAdDoubleRewardTitle,
+          message: l10n.feedAdDoubleRewardMessage(expectedExtra),
+          watchLabel: l10n.storeAdRewardAction,
+          cancelLabel: l10n.commonCancel,
+          onWatch: () => Navigator.of(
+            dialogContext,
+          ).pop(_FeedDoubleRewardPromptAction.watch),
+          onCancel: () => Navigator.of(
+            dialogContext,
+          ).pop(_FeedDoubleRewardPromptAction.cancel),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curve = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curve,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.08),
+              end: Offset.zero,
+            ).animate(curve),
+            child: child,
           ),
-          AppDialogAction.primary(
-            label: l10n.storeAdRewardAction,
-            onPressed: () => Navigator.of(
-              dialogContext,
-            ).pop(_FeedDoubleRewardPromptAction.watch),
-          ),
-        ],
-      ),
+        );
+      },
     );
     return action ?? _FeedDoubleRewardPromptAction.cancel;
   }
