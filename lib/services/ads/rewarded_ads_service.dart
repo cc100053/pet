@@ -127,12 +127,11 @@ class RewardedAdsAdMobService implements RewardedAdsService {
       message: 'Loading rewarded ad...',
     );
     try {
-      final initialized = await AdMobStartupService.instance
-          .initializeIfAuthorized();
-      if (!initialized) {
+      final startupResult = await AdMobStartupService.instance.initialize();
+      if (!startupResult.initialized) {
         _setState(
           RewardedAdAvailability.unavailable,
-          message: 'Rewarded ads require tracking permission on iOS.',
+          message: 'Rewarded ads are currently unavailable.',
         );
         return;
       }
@@ -160,7 +159,7 @@ class RewardedAdsAdMobService implements RewardedAdsService {
     if (!_initialized) {
       _setState(
         RewardedAdAvailability.unavailable,
-        message: 'Rewarded ads require tracking permission on iOS.',
+        message: 'Rewarded ads are still initializing.',
       );
       return;
     }
@@ -179,7 +178,7 @@ class RewardedAdsAdMobService implements RewardedAdsService {
 
     await RewardedAd.load(
       adUnitId: AdMobIds.rewardedAdUnitId,
-      request: const AdRequest(),
+      request: AdMobStartupService.instance.createAdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _loading = false;
@@ -210,7 +209,7 @@ class RewardedAdsAdMobService implements RewardedAdsService {
       await initialize();
       if (!_initialized) {
         return const RewardedAdResult.unavailable(
-          'Rewarded ads require tracking permission on iOS.',
+          'Rewarded ads are currently unavailable.',
         );
       }
     }

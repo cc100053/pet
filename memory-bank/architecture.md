@@ -77,7 +77,7 @@ Implemented:
   - `lib/features/store/widgets/store_departed_pet_selector.dart`: Extracted departed-pet selection/confirmation dialogs for return-letter purchase.
   - `lib/features/store/widgets/store_item_cards.dart`: Extracted Store card builders for IAP/items/themes.
 - `lib/features/ads/`: iOS AdMob rewarded + banner ad UI components and service wiring.
-  - `lib/services/ads/admob_startup_service.dart`: ATT-authorized lazy AdMob startup gate shared by rewarded/banner placements.
+  - `lib/services/ads/admob_startup_service.dart`: ATT-aware lazy AdMob startup gate shared by rewarded/banner placements; denied ATT falls back to non-personalized ad requests instead of blocking ad load.
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.

@@ -1,5 +1,31 @@
 # TODO
 
+## Plan (2026-03-07 Rewarded Ads Without ATT Requirement)
+- [x] Trace current AdMob startup and rewarded-ad gating so ATT denial no longer blocks ad availability.
+- [x] Update the ads startup/service flow to allow iOS rewarded ads without tracking authorization and adjust user-facing messaging accordingly.
+- [x] Add focused regression tests for the startup decision path.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` with the behavior change.
+- [x] Update this file with review outcomes.
+
+## Review (2026-03-07 Rewarded Ads Without ATT Requirement)
+- [x] Implemented and verified.
+- Root cause:
+  - `AdMobStartupService` returned failure whenever `TrackingConsentService.ensureTrackingAuthorization()` was false.
+  - Rewarded/banner flows treated that as a hard dependency and surfaced `Rewarded ads require tracking permission on iOS.` even though AdMob can still serve non-personalized ads without ATT authorization.
+- Fixes:
+  - `lib/services/ads/admob_startup_service.dart`: replaced the ATT hard gate with an ATT-aware startup result that always initializes AdMob on supported iOS builds and caches whether requests must be non-personalized.
+  - `lib/services/ads/rewarded_ads_service.dart`: switched rewarded loads to the startup service’s consent-aware `AdRequest` and removed the misleading tracking-required messages.
+  - `lib/features/ads/admob_banner_slot.dart`: switched banner loads to the same consent-aware startup/request path so ATT denial does not suppress banner ads either.
+  - `test/admob_startup_service_test.dart`: added regression coverage for denied ATT, authorized ATT, and cached initialization behavior.
+- Verification:
+  - `dart format lib/services/ads/admob_startup_service.dart lib/services/ads/rewarded_ads_service.dart lib/features/ads/admob_banner_slot.dart test/admob_startup_service_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-05 App Review Store Fallback)
 - [x] Refactor `ReviewPromptService` with injectable review/settings dependencies for deterministic tests.
 - [x] Add App Store fallback flow (`openStoreListing` with app id `6757725650`) when in-app review is unavailable or fails.

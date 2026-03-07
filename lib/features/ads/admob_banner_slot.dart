@@ -52,16 +52,15 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
       return;
     }
 
-    final initialized = await AdMobStartupService.instance
-        .initializeIfAuthorized();
-    if (!initialized || !mounted) {
+    final startupResult = await AdMobStartupService.instance.initialize();
+    if (!startupResult.initialized || !mounted) {
       return;
     }
 
     final bannerAd = BannerAd(
       adUnitId: AdMobIds.bannerAdUnitId,
       size: AdSize.banner,
-      request: const AdRequest(),
+      request: AdMobStartupService.instance.createAdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {
           if (!mounted) {
