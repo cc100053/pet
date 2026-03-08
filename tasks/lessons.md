@@ -46,3 +46,4 @@
 ## 2026-03-08
 - In `ConsumerState`, never call `ref.read(...)` from post-frame callbacks, timers, or other async/lifecycle work that can outlive the widget; cache provider-backed services/notifiers into fields during `initState` while the widget is still mounted.
 - If an initialization path needs `AppLocalizations`, `Theme`, `MediaQuery`, or any other inherited-widget data, do not start that path from `initState`; kick it off from `didChangeDependencies()` (or later) and guard it with a one-shot flag if it should run only once.
+- For new Supabase columns/relationships, do not make the primary app-load query depend on a fresh PostgREST self-referential join. Keep the critical path to direct columns first, then hydrate related preview data in a best-effort follow-up query so schema-cache lag cannot blank the whole screen.

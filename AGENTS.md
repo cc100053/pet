@@ -65,6 +65,7 @@ This file is for agentic coding agents working in this repo.
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimat Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+- **Prefer Mature Reuse**: If a mature, well-maintained package or library can solve the problem cleanly, use that first. Avoid building generic components from scratch unless there is a clear product-specific reason not to reuse an existing solution.
 
 ## Repo layout
 - `lib/`: Flutter app (features, shared UI, services, app entry points).

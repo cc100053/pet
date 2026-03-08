@@ -1,5 +1,27 @@
 # TODO
 
+## Plan (2026-03-08 Chat Reply Fetch Regression)
+- [x] Trace the chat load failure after reply rollout and confirm whether the new `messages` fetch path depends on a brittle self-referential PostgREST relation.
+- [x] Remove the initial chat-load dependency on the `messages -> messages` join while keeping reply previews available through the existing follow-up lookup path.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md`, `tasks/lessons.md`, and this file with the regression fix and verification results.
+
+## Review (2026-03-08 Chat Reply Fetch Regression)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/services/chat/chat_message_repository.dart` made the primary chat history query depend on a self-referential PostgREST join (`messages!messages_reply_to_message_id_fkey`) to hydrate reply previews inline.
+  - In production, PostgREST schema cache did not expose that self-relationship yet, so the entire message load failed with `PGRST200` instead of just missing reply previews.
+- Fix:
+  - `lib/services/chat/chat_message_repository.dart`: removed the inline self-join from the main `messages` select and now fetches only direct message columns plus `reply_to_message_id`.
+  - Reply preview hydration remains on the existing best-effort secondary lookup path in `ChatMessageList`, so quoted replies still resolve when available without blocking chatroom load.
+- Verification:
+  - `dart format lib/services/chat/chat_message_repository.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-08 Chat Reply Interaction)
 - [x] Inspect current chat data flow, message actions, and composer layout to identify the smallest backward-compatible path for message replies.
 - [x] Add reply data support for chat messages, including a nullable message self-reference and client model/cache/query updates.
@@ -17,7 +39,7 @@
   - Chat messages had no reply reference in schema or client model, so the app could not persist or render quoted replies.
   - Existing message interactions only exposed `report` and `block` from long-press, with no reply gesture path or composer state for quoted context.
 - Fixes:
-  - Added migration `supabase/migrations/20260308121000_add_message_reply_support.sql` to introduce nullable `messages.reply_to_message_id` with self-reference + index.
+  - Added migration `supabase/migrations/20260308110504_add_message_reply_support.sql` to introduce nullable `messages.reply_to_message_id` with self-reference + index.
   - `lib/features/chat/chat_message.dart` and `lib/services/chat/chat_message_repository.dart` now carry reply metadata through fetch/cache paths, including preview payload support for quoted messages.
   - `lib/features/chat/chat_message_list.dart` now supports reply requests from both long-press and left-swipe, includes `Copy` in the action sheet, resolves reply previews/sender names, and best-effort loads missing quoted targets.
   - `lib/features/chat/widgets/chat_message_tile.dart` now renders modern inline quoted previews inside text/feed bubbles and adds swipe-to-reply affordance for other users' messages.
@@ -119,16 +141,17 @@
 ## Review (2026-03-08 Photo Viewer Option 1 Fullscreen Redesign)
 - [x] Implemented and verified.
 - Root cause:
-  - `lib/shared/ui/full_screen_photo_viewer.dart` previously reserved fixed vertical space for metadata and caption, then rendered the image inside a computed `SizedBox`, so zoom and pan were constrained to a boxed image region instead of the full viewer viewport.
+  - The original boxed layout constrained zoom/pan to a metadata-sized image region.
+  - The first custom fullscreen rewrite still depended on `InteractiveViewer`, which kept coupling centering, pan bounds, tap handling, and overlay composition in a brittle way. Repeated alignment issues were a sign that we were fighting the gesture/layout engine instead of reusing a purpose-built photo viewer core.
 - Fixes:
-  - `lib/shared/ui/full_screen_photo_viewer.dart`: replaced the boxed `Column` layout with a full-bleed black canvas and layered chrome using `Stack`.
-  - `lib/shared/ui/full_screen_photo_viewer.dart`: moved sender/time into a lightweight top metadata strip and caption into a bottom gradient overlay, so metadata no longer constrains image size or interaction bounds.
-  - `lib/shared/ui/full_screen_photo_viewer.dart`: added per-page `TransformationController` state so zoom behavior is isolated per photo and page-swipe locking keys off the active page’s zoom state.
-  - `lib/shared/ui/full_screen_photo_viewer.dart`: restored image aspect-ratio sizing for the transformed child and clamped `InteractiveViewer` boundaries to the actual displayed image bounds, preventing over-pan into black empty space when zoomed.
-  - `lib/shared/ui/full_screen_photo_viewer.dart`: kept download, close, page indicator, swipe-down dismiss, and current-index return behavior while preserving multi-photo paging.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: replaced the custom `InteractiveViewer` core with `photo_view` / `PhotoViewGallery`, using per-page `PhotoViewController`s to track active zoom state and lock page swiping only while the current photo is zoomed.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: kept the product-specific chrome on top of the new viewer core, including sender/time, caption, close, download, swipe-down dismiss, and current-index return behavior.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: simplified bottom chrome from a full-width gradient slab into floating caption / indicator surfaces so overlay layout no longer distorts the perceived image center.
+  - `pubspec.yaml`: added `photo_view`.
   - `test/full_screen_photo_viewer_test.dart`: added stable rendering coverage for fullscreen metadata/caption overlays and the empty-metadata case.
 - Verification:
-  - `dart format lib/shared/ui/full_screen_photo_viewer.dart test/full_screen_photo_viewer_test.dart`
+  - `flutter pub get`
+  - `dart format lib/shared/ui/full_screen_photo_viewer.dart`
   - `flutter analyze`
   - `flutter test`
   - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
