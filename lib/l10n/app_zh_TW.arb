@@ -79,8 +79,19 @@
   },
   "chatLoadOlderMessages": "載入更早的訊息",
   "chatMessageHint": "訊息",
+  "chatCopyAction": "複製",
+  "chatMessageCopied": "已複製訊息。",
   "chatNoOlderMessages": "沒有更早的訊息。",
   "chatPartnerLabel": "對方",
+  "chatReplyAction": "回覆",
+  "chatReplyingTo": "回覆 {name}",
+  "@chatReplyingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chatReplyMessageFallback": "原始訊息",
+  "chatReplyPhotoFallback": "照片",
   "chatRefreshFailed": "更新失敗：{error}",
   "@chatRefreshFailed": {
     "placeholders": {

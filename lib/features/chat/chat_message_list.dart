@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
@@ -24,6 +25,7 @@ class ChatMessageList extends StatefulWidget {
     this.useLightForeground = false,
     this.scrollController,
     this.contentPadding,
+    this.onReplyRequested,
   });
 
   final String roomId;
@@ -31,12 +33,13 @@ class ChatMessageList extends StatefulWidget {
   final bool useLightForeground;
   final ScrollController? scrollController;
   final EdgeInsetsGeometry? contentPadding;
+  final ValueChanged<ChatReplyTarget>? onReplyRequested;
 
   @override
   State<ChatMessageList> createState() => ChatMessageListState();
 }
 
-enum _MessageAction { report, block }
+enum _MessageAction { reply, copy, report, block }
 
 class ChatMessageListState extends State<ChatMessageList> {
   static const int _pageSize = 20;
@@ -47,6 +50,7 @@ class ChatMessageListState extends State<ChatMessageList> {
   final Set<String> _messageIds = {};
   final Set<String> _optimisticIds = {}; // Track temp message IDs
   final Set<String> _blockedUserIds = {};
+  final Set<String> _loadingReplyPreviewIds = {};
   final Map<String, String> _profileNicknames = {}; // userId -> nickname
   final ChatMessageRepository _repository = ChatMessageRepository.instance;
 
@@ -191,6 +195,7 @@ class ChatMessageListState extends State<ChatMessageList> {
         _error = null;
         _usedCachedMessages = true;
       });
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
       PerformanceService.instance.markChatColdLoaded(
         messageCount: cached.length,
         source: 'cache',
@@ -290,6 +295,100 @@ class ChatMessageListState extends State<ChatMessageList> {
     unawaited(_repository.cacheMessages(widget.roomId, cacheable));
   }
 
+  String? _displayNameForSenderId(String? senderId) {
+    if (senderId == null || senderId.isEmpty) {
+      return null;
+    }
+    if (senderId == widget.currentUserId) {
+      return AppLocalizations.of(context)!.chatRoomMemberYou;
+    }
+    final nickname = _profileNicknames[senderId]?.trim();
+    if (nickname != null && nickname.isNotEmpty) {
+      return nickname;
+    }
+    return null;
+  }
+
+  ChatReplyPreview? _resolvedReplyPreview(ChatMessage message) {
+    final preview = message.replyPreview;
+    if (preview != null && preview.id.isNotEmpty) {
+      return preview;
+    }
+    final replyId = message.replyToMessageId;
+    if (replyId == null || replyId.isEmpty) {
+      return null;
+    }
+    for (final candidate in _messages) {
+      if (candidate.id == replyId) {
+        return ChatReplyPreview.fromMessage(candidate);
+      }
+    }
+    return null;
+  }
+
+  Future<void> _ensureReplyPreviewsForMessages(
+    List<ChatMessage> messages,
+  ) async {
+    final replyIds = <String>{};
+    for (final message in messages) {
+      final replyId = message.replyToMessageId;
+      if (replyId == null || replyId.isEmpty || message.replyPreview != null) {
+        continue;
+      }
+      final existsLocally = _messages.any((entry) => entry.id == replyId);
+      if (!existsLocally && !_loadingReplyPreviewIds.contains(replyId)) {
+        replyIds.add(replyId);
+      }
+    }
+
+    if (replyIds.isEmpty) {
+      return;
+    }
+
+    _loadingReplyPreviewIds.addAll(replyIds);
+    try {
+      final response = await Supabase.instance.client
+          .from('messages')
+          .select('id,sender_id,type,body,image_url,caption')
+          .filter('id', 'in', '(${replyIds.join(',')})');
+      final rows = response as List<dynamic>;
+      final previewById = <String, ChatReplyPreview>{};
+      for (final row in rows) {
+        final preview = ChatReplyPreview.fromJson(
+          Map<String, dynamic>.from(row),
+        );
+        if (preview.id.isNotEmpty) {
+          previewById[preview.id] = preview;
+        }
+      }
+      if (!mounted || previewById.isEmpty) {
+        return;
+      }
+
+      setState(() {
+        for (var index = 0; index < _messages.length; index++) {
+          final message = _messages[index];
+          final replyId = message.replyToMessageId;
+          if (replyId == null ||
+              replyId.isEmpty ||
+              message.replyPreview != null) {
+            continue;
+          }
+          final preview = previewById[replyId];
+          if (preview != null) {
+            _messages[index] = message.copyWith(replyPreview: preview);
+          }
+        }
+      });
+      _persistCache();
+      unawaited(_ensureProfilesForMessages(_messages));
+    } catch (_) {
+      // Best-effort reply preview loading.
+    } finally {
+      _loadingReplyPreviewIds.removeAll(replyIds);
+    }
+  }
+
   void _onScroll() {
     if (!_scrollController.hasClients) {
       return;
@@ -337,6 +436,7 @@ class ChatMessageListState extends State<ChatMessageList> {
       _mergePage(page);
       _persistCache();
       unawaited(_ensureProfilesForMessages(_messages));
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
       PerformanceService.instance.markChatColdLoaded(
         messageCount: _messages.length,
         source: _usedCachedMessages ? 'cache+network' : 'network',
@@ -410,6 +510,8 @@ class ChatMessageListState extends State<ChatMessageList> {
       _hasMore = page.length == _pageSize;
       _sortMessages();
       _persistCache();
+      unawaited(_ensureProfilesForMessages(page));
+      unawaited(_ensureReplyPreviewsForMessages(page));
     } catch (error) {
       if (!mounted) {
         return;
@@ -450,6 +552,13 @@ class ChatMessageListState extends State<ChatMessageList> {
           senderId.isNotEmpty &&
           !_profileNicknames.containsKey(senderId)) {
         userIds.add(senderId);
+      }
+      final replySenderId = _resolvedReplyPreview(message)?.senderId;
+      if (replySenderId != null &&
+          replySenderId.isNotEmpty &&
+          !_profileNicknames.containsKey(replySenderId) &&
+          replySenderId != widget.currentUserId) {
+        userIds.add(replySenderId);
       }
     }
 
@@ -525,7 +634,8 @@ class ChatMessageListState extends State<ChatMessageList> {
                     incomingClient != null &&
                     optimisticClient == incomingClient;
               }
-              return m.body == message.body;
+              return m.body == message.body &&
+                  m.replyToMessageId == message.replyToMessageId;
             });
             _optimisticIds.removeWhere(
               (id) => _messages.every((m) => m.id != id),
@@ -546,6 +656,9 @@ class ChatMessageListState extends State<ChatMessageList> {
             message.senderId != widget.currentUserId &&
             !_profileNicknames.containsKey(message.senderId)) {
           unawaited(_ensureProfilesForMessages([message]));
+        }
+        if (message.replyToMessageId != null && message.replyPreview == null) {
+          unawaited(_ensureReplyPreviewsForMessages([message]));
         }
       },
     );
@@ -685,15 +798,25 @@ class ChatMessageListState extends State<ChatMessageList> {
                   final senderName = isMe
                       ? null
                       : _profileNicknames[message.senderId];
+                  final resolvedReplyPreview = _resolvedReplyPreview(message);
+                  final replySenderName = _displayNameForSenderId(
+                    resolvedReplyPreview?.senderId,
+                  );
                   return ChatMessageTile(
                     key: ValueKey(message.id),
-                    message: message,
+                    message: resolvedReplyPreview == null
+                        ? message
+                        : message.copyWith(replyPreview: resolvedReplyPreview),
                     isMe: isMe,
                     isOptimistic: isOptimistic,
                     useLightForeground: widget.useLightForeground,
                     senderName: senderName,
+                    replySenderName: replySenderName,
                     onLongPress: _shouldShowActions(message, isMe)
                         ? () => _showMessageActions(message)
+                        : null,
+                    onSwipeReply: _shouldShowActions(message, isMe)
+                        ? () => _requestReply(message)
                         : null,
                     onImageTap: imageIndex == null
                         ? null
@@ -779,6 +902,19 @@ class ChatMessageListState extends State<ChatMessageList> {
     return message.senderId != null && message.id.isNotEmpty;
   }
 
+  void _requestReply(ChatMessage message) {
+    final callback = widget.onReplyRequested;
+    if (callback == null) {
+      return;
+    }
+    callback(
+      ChatReplyTarget(
+        message: message.copyWith(replyPreview: _resolvedReplyPreview(message)),
+        senderName: _displayNameForSenderId(message.senderId),
+      ),
+    );
+  }
+
   Future<void> _showMessageActions(ChatMessage message) async {
     final currentUserId = widget.currentUserId;
     final senderId = message.senderId;
@@ -788,6 +924,11 @@ class ChatMessageListState extends State<ChatMessageList> {
 
     final l10n = AppLocalizations.of(context)!;
     final isBlocked = _blockedUserIds.contains(senderId);
+    final copyText = message.body?.trim().isNotEmpty == true
+        ? message.body!.trim()
+        : (message.caption?.trim().isNotEmpty == true
+              ? message.caption!.trim()
+              : null);
     final action = await showModalBottomSheet<_MessageAction>(
       context: context,
       builder: (context) {
@@ -795,6 +936,19 @@ class ChatMessageListState extends State<ChatMessageList> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                leading: const Icon(Icons.reply_rounded),
+                title: Text(l10n.chatReplyAction),
+                onTap: () => Navigator.pop(context, _MessageAction.reply),
+              ),
+              ListTile(
+                leading: const Icon(Icons.content_copy_rounded),
+                title: Text(l10n.chatCopyAction),
+                enabled: copyText != null,
+                onTap: copyText == null
+                    ? null
+                    : () => Navigator.pop(context, _MessageAction.copy),
+              ),
               ListTile(
                 leading: const Icon(Icons.report_gmailerrorred_outlined),
                 title: Text(l10n.chatReportMessageTitle),
@@ -821,6 +975,20 @@ class ChatMessageListState extends State<ChatMessageList> {
     }
 
     switch (action) {
+      case _MessageAction.reply:
+        _requestReply(message);
+        break;
+      case _MessageAction.copy:
+        if (copyText != null) {
+          await Clipboard.setData(ClipboardData(text: copyText));
+          if (!mounted) {
+            return;
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.chatMessageCopied)));
+        }
+        break;
       case _MessageAction.report:
         await _reportMessage(message);
         break;

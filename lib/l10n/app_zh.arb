@@ -77,8 +77,19 @@
   },
   "chatLoadOlderMessages": "加载更早的消息",
   "chatMessageHint": "消息",
+  "chatCopyAction": "复制",
+  "chatMessageCopied": "已复制消息。",
   "chatNoOlderMessages": "沒有更早的消息。",
   "chatPartnerLabel": "對方",
+  "chatReplyAction": "回覆",
+  "chatReplyingTo": "回覆 {name}",
+  "@chatReplyingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chatReplyMessageFallback": "原消息",
+  "chatReplyPhotoFallback": "照片",
   "chatRefreshFailed": "更新失敗：{error}",
   "@chatRefreshFailed": {
     "placeholders": {

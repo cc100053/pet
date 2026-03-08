@@ -111,10 +111,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatMessageHint => '메시지';
 
   @override
+  String get chatCopyAction => '복사';
+
+  @override
+  String get chatMessageCopied => '메시지를 복사했어요.';
+
+  @override
   String get chatNoOlderMessages => '이전 메시지가 없습니다.';
 
   @override
   String get chatPartnerLabel => '파트너';
+
+  @override
+  String get chatReplyAction => '답장';
+
+  @override
+  String chatReplyingTo(Object name) {
+    return '$name에게 답장';
+  }
+
+  @override
+  String get chatReplyMessageFallback => '원본 메시지';
+
+  @override
+  String get chatReplyPhotoFallback => '사진';
 
   @override
   String chatRefreshFailed(Object error) {

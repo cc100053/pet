@@ -77,8 +77,19 @@
   },
   "chatLoadOlderMessages": "Load older messages",
   "chatMessageHint": "Message",
+  "chatCopyAction": "Copy",
+  "chatMessageCopied": "Message copied.",
   "chatNoOlderMessages": "No older messages.",
   "chatPartnerLabel": "Partner",
+  "chatReplyAction": "Reply",
+  "chatReplyingTo": "Replying to {name}",
+  "@chatReplyingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chatReplyMessageFallback": "Original message",
+  "chatReplyPhotoFallback": "Photo",
   "chatRefreshFailed": "Failed to refresh: {error}",
   "@chatRefreshFailed": {
     "placeholders": {

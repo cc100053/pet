@@ -77,8 +77,19 @@
   },
   "chatLoadOlderMessages": "過去のメッセージを読み込む",
   "chatMessageHint": "メッセージ",
+  "chatCopyAction": "コピー",
+  "chatMessageCopied": "メッセージをコピーしました。",
   "chatNoOlderMessages": "これ以上のメッセージはありません。",
   "chatPartnerLabel": "相手",
+  "chatReplyAction": "返信",
+  "chatReplyingTo": "{name} に返信",
+  "@chatReplyingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chatReplyMessageFallback": "元のメッセージ",
+  "chatReplyPhotoFallback": "写真",
   "chatRefreshFailed": "更新に失敗しました: {error}",
   "@chatRefreshFailed": {
     "placeholders": {

@@ -33,6 +33,7 @@
 - `supabase/migrations/20260225023510_add_pet_hunger_tick_schedule_and_20m_cron.sql`: Add due-time hunger tick schedule table/triggers/functions and switch scheduler to `hunger_tick_dispatch_every_20m` (`*/20`).
 - `supabase/migrations/20260225024022_add_pet_hunger_tick_schedule_room_id_index.sql`: Add `pet_hunger_tick_schedule.room_id` index to cover FK checks and room-scoped queries.
 - `supabase/migrations/20260305231000_add_multi_invite_codes_and_member_generation.sql`: Add room-scoped multi invite-code storage (`room_invite_codes`), member-capable invite-code generation/list/revoke RPCs, and backward-compatible updates to `create_room`, `regenerate_invite_code`, and `join_room_by_code`.
+- `supabase/migrations/20260308121000_add_message_reply_support.sql`: Add nullable `messages.reply_to_message_id` self-reference + index so chat can persist quoted replies without breaking older clients.
 - `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
 - `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
 - `supabase/migrations/20260218170000_sync_room_timezone_on_owner_transfer.sql`: Sync `rooms.timezone` to the promoted owner's profile timezone when room ownership transfers.
@@ -64,6 +65,7 @@ Implemented:
   - Home HUD now shows a localized reward-pending indicator during feed reward resolution (server-authoritative coin update remains unchanged).
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_message_list.dart`: Extracted stateful chat message list (pagination/realtime/cache/moderation UI state).
+    - Chat now supports modern reply interactions for other users' messages: long-press action sheet (`Reply`, `Copy`, moderation actions), left-swipe-to-reply, inline quoted previews, and composer reply-preview state for outgoing text messages.
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
   - `lib/features/gallery/`: Memory calendar view for feed images.

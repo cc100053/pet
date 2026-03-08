@@ -265,6 +265,18 @@ abstract class AppLocalizations {
   /// **'Message'**
   String get chatMessageHint;
 
+  /// No description provided for @chatCopyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get chatCopyAction;
+
+  /// No description provided for @chatMessageCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Message copied.'**
+  String get chatMessageCopied;
+
   /// No description provided for @chatNoOlderMessages.
   ///
   /// In en, this message translates to:
@@ -276,6 +288,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Partner'**
   String get chatPartnerLabel;
+
+  /// No description provided for @chatReplyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get chatReplyAction;
+
+  /// No description provided for @chatReplyingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Replying to {name}'**
+  String chatReplyingTo(Object name);
+
+  /// No description provided for @chatReplyMessageFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Original message'**
+  String get chatReplyMessageFallback;
+
+  /// No description provided for @chatReplyPhotoFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get chatReplyPhotoFallback;
 
   /// No description provided for @chatRefreshFailed.
   ///

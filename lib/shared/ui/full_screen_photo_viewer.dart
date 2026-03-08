@@ -513,6 +513,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer>
                 panEnabled: _scaleFor(index) > 1.001,
                 scaleEnabled: true,
                 constrained: false,
+                alignment: Alignment.center,
                 boundaryMargin: EdgeInsets.zero,
                 child: SizedBox(
                   width: imageWidth,

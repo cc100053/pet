@@ -111,10 +111,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMessageHint => 'Message';
 
   @override
+  String get chatCopyAction => 'Copy';
+
+  @override
+  String get chatMessageCopied => 'Message copied.';
+
+  @override
   String get chatNoOlderMessages => 'No older messages.';
 
   @override
   String get chatPartnerLabel => 'Partner';
+
+  @override
+  String get chatReplyAction => 'Reply';
+
+  @override
+  String chatReplyingTo(Object name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get chatReplyMessageFallback => 'Original message';
+
+  @override
+  String get chatReplyPhotoFallback => 'Photo';
 
   @override
   String chatRefreshFailed(Object error) {

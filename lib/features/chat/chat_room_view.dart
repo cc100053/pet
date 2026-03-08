@@ -58,10 +58,12 @@ final _chatMessageListKey = GlobalKey<ChatMessageListState>();
 
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
+  final FocusNode _messageFocusNode = FocusNode();
   final Map<String, String> _optimisticFeedImageByTempId = {};
   bool _shouldExitAfterFeedSend = false;
   bool _sending = false;
   int? _memberCount;
+  ChatReplyTarget? _replyTarget;
 
   @override
   void initState() {
@@ -90,6 +92,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
   @override
   void dispose() {
     _messageController.dispose();
+    _messageFocusNode.dispose();
     super.dispose();
   }
 
@@ -112,8 +115,11 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       return;
     }
 
+    final replyTarget = _replyTarget;
+
     setState(() {
       _sending = true;
+      _replyTarget = null;
     });
 
     // Clear immediately for better UX
@@ -134,6 +140,10 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       clientCreatedAt: DateTime.now().toUtc(),
       labels: const [],
       localImagePath: null,
+      replyToMessageId: replyTarget?.message.id,
+      replyPreview: replyTarget == null
+          ? null
+          : ChatReplyPreview.fromMessage(replyTarget.message),
     );
 
     // Add optimistic message immediately
@@ -148,6 +158,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
             'sender_id': userId,
             'type': 'text',
             'body': text,
+            'reply_to_message_id': replyTarget?.message.id,
             'client_created_at': DateTime.now().toUtc().toIso8601String(),
           })
           .select('id')
@@ -174,6 +185,9 @@ class _ChatRoomViewState extends State<ChatRoomView> {
       _messageController.selection = TextSelection.collapsed(
         offset: _messageController.text.length,
       );
+      setState(() {
+        _replyTarget = replyTarget;
+      });
       AnalyticsService.instance.logEvent(
         'message_send',
         parameters: {'result': 'failure'},
@@ -194,6 +208,22 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         });
       }
     }
+  }
+
+  void _handleReplyRequested(ChatReplyTarget target) {
+    setState(() {
+      _replyTarget = target;
+    });
+    _messageFocusNode.requestFocus();
+  }
+
+  void _clearReplyTarget() {
+    if (_replyTarget == null) {
+      return;
+    }
+    setState(() {
+      _replyTarget = null;
+    });
   }
 
   Future<void> _notifyTextMessage(String messageId) async {
@@ -393,7 +423,11 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     final media = MediaQuery.of(context);
     final uiScale = appUiScale(media.size.width);
     final topBarHeight = (64.0 * uiScale).clamp(56.0, 64.0);
-    final composerHeight = (64.0 * uiScale).clamp(54.0, 64.0);
+    final composerBaseHeight = (64.0 * uiScale).clamp(54.0, 64.0);
+    final replyPreviewHeight = _replyTarget == null
+        ? 0.0
+        : (60.0 * uiScale).clamp(50.0, 60.0);
+    final composerHeight = composerBaseHeight + replyPreviewHeight;
     final composerButtonSize = (42.0 * uiScale).clamp(36.0, 42.0);
     final composerIconSize = (26.0 * uiScale).clamp(20.0, 26.0);
     final composerOuterHorizontalPadding = (8.0 * uiScale).clamp(6.0, 8.0);
@@ -491,6 +525,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                     roomId: widget.roomId,
                     currentUserId: currentUserId,
                     useLightForeground: useLightForeground,
+                    onReplyRequested: _handleReplyRequested,
                     contentPadding: EdgeInsets.fromLTRB(
                       16,
                       listTopPadding,
@@ -514,102 +549,126 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                     composerInnerHorizontalPadding,
                     composerVerticalPadding,
                   ),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        onPressed: (_sending || widget.isRoomLocked)
-                            ? null
-                            : _openFeedCamera,
-                        icon: SvgPicture.asset(
-                          'assets/icon/solar--camera-linear.svg',
-                          width: composerIconSize,
-                          height: composerIconSize,
-                          colorFilter: ColorFilter.mode(
-                            useLightForeground
-                                ? Colors.white.withValues(alpha: 0.9)
-                                : AppTheme.textSecondary,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                        tooltip: l10n.feedTitle,
-                        iconSize: composerIconSize,
-                        constraints: BoxConstraints.tightFor(
-                          width: composerButtonSize,
-                          height: composerButtonSize,
-                        ),
-                        padding: EdgeInsets.zero,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 180),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        child: _replyTarget == null
+                            ? const SizedBox.shrink()
+                            : Padding(
+                                key: const ValueKey('chatReplyPreview'),
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: _ComposerReplyPreview(
+                                  target: _replyTarget!,
+                                  useLightForeground: useLightForeground,
+                                  onCancel: _clearReplyTarget,
+                                ),
+                              ),
                       ),
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          decoration: InputDecoration(
-                            hintText: l10n.chatMessageHint,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: (10.0 * uiScale).clamp(8.0, 10.0),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: (_sending || widget.isRoomLocked)
+                                ? null
+                                : _openFeedCamera,
+                            icon: SvgPicture.asset(
+                              'assets/icon/solar--camera-linear.svg',
+                              width: composerIconSize,
+                              height: composerIconSize,
+                              colorFilter: ColorFilter.mode(
+                                useLightForeground
+                                    ? Colors.white.withValues(alpha: 0.9)
+                                    : AppTheme.textSecondary,
+                                BlendMode.srcIn,
+                              ),
                             ),
-                            isDense: true,
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            hintStyle: TextStyle(
-                              color: useLightForeground
-                                  ? Colors.white.withValues(alpha: 0.72)
-                                  : AppTheme.textSecondary,
-                            ),
-                          ),
-                          minLines: 1,
-                          maxLines: 4,
-                          style: TextStyle(
-                            fontSize: (15.0 * uiScale).clamp(13.0, 15.0),
-                            color: useLightForeground
-                                ? Colors.white
-                                : AppTheme.textPrimary,
-                          ),
-                          cursorColor: useLightForeground
-                              ? Colors.white
-                              : AppTheme.primaryColor,
-                        ),
-                      ),
-                      SizedBox(width: (6.0 * uiScale).clamp(4.0, 6.0)),
-                      Tooltip(
-                        message: l10n.commonSend,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _sending ? null : _sendMessage,
-                            borderRadius: BorderRadius.circular(999),
-                            child: Container(
+                            tooltip: l10n.feedTitle,
+                            iconSize: composerIconSize,
+                            constraints: BoxConstraints.tightFor(
                               width: composerButtonSize,
                               height: composerButtonSize,
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.12),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _messageController,
+                              focusNode: _messageFocusNode,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              decoration: InputDecoration(
+                                hintText: l10n.chatMessageHint,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: (10.0 * uiScale).clamp(8.0, 10.0),
+                                ),
+                                isDense: true,
+                                filled: true,
+                                fillColor: Colors.transparent,
+                                hintStyle: TextStyle(
+                                  color: useLightForeground
+                                      ? Colors.white.withValues(alpha: 0.72)
+                                      : AppTheme.textSecondary,
+                                ),
                               ),
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  'assets/icon/mingcute--send-plane-line.svg',
-                                  width: composerIconSize,
-                                  height: composerIconSize,
-                                  colorFilter: const ColorFilter.mode(
-                                    Colors.white,
-                                    BlendMode.srcIn,
+                              minLines: 1,
+                              maxLines: 4,
+                              style: TextStyle(
+                                fontSize: (15.0 * uiScale).clamp(13.0, 15.0),
+                                color: useLightForeground
+                                    ? Colors.white
+                                    : AppTheme.textPrimary,
+                              ),
+                              cursorColor: useLightForeground
+                                  ? Colors.white
+                                  : AppTheme.primaryColor,
+                            ),
+                          ),
+                          SizedBox(width: (6.0 * uiScale).clamp(4.0, 6.0)),
+                          Tooltip(
+                            message: l10n.commonSend,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _sending ? null : _sendMessage,
+                                borderRadius: BorderRadius.circular(999),
+                                child: Container(
+                                  width: composerButtonSize,
+                                  height: composerButtonSize,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                      'assets/icon/mingcute--send-plane-line.svg',
+                                      width: composerIconSize,
+                                      height: composerIconSize,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -620,6 +679,112 @@ class _ChatRoomViewState extends State<ChatRoomView> {
         ),
       ),
     );
+  }
+}
+
+class _ComposerReplyPreview extends StatelessWidget {
+  const _ComposerReplyPreview({
+    required this.target,
+    required this.useLightForeground,
+    required this.onCancel,
+  });
+
+  final ChatReplyTarget target;
+  final bool useLightForeground;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final preview = ChatReplyPreview.fromMessage(target.message);
+    final accentColor = AppTheme.primaryColor;
+    final senderName =
+        (target.senderName != null && target.senderName!.trim().isNotEmpty)
+        ? target.senderName!.trim()
+        : l10n.chatPartnerLabel;
+    final text = _previewText(l10n, preview);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: useLightForeground
+            ? Colors.white.withValues(alpha: 0.18)
+            : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+        child: Row(
+          children: [
+            Container(
+              width: 3,
+              height: 32,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.chatReplyingTo(senderName),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: useLightForeground
+                          ? Colors.white
+                          : AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    text,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.2,
+                      color: useLightForeground
+                          ? Colors.white.withValues(alpha: 0.78)
+                          : Colors.black.withValues(alpha: 0.64),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: onCancel,
+              tooltip: l10n.commonCancel,
+              icon: Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: useLightForeground
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : Colors.black.withValues(alpha: 0.54),
+              ),
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+              padding: EdgeInsets.zero,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _previewText(AppLocalizations l10n, ChatReplyPreview preview) {
+    final text = (preview.body ?? preview.caption ?? '').trim();
+    if (text.isNotEmpty) {
+      return text;
+    }
+    if (preview.isImageFeed) {
+      return l10n.chatReplyPhotoFallback;
+    }
+    return l10n.chatReplyMessageFallback;
   }
 }
 

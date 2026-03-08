@@ -86,6 +86,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `id` (uuid, pk)
   - `room_id` (uuid, fk)
   - `sender_id` (uuid, nullable for system)
+  - `reply_to_message_id` (uuid, nullable fk -> `messages.id`; `on delete set null`)
   - `type` (text: text/image_feed/system)
   - `body` (text)
   - `image_url` (text), `caption` (text)

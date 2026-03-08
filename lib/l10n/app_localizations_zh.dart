@@ -111,10 +111,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatMessageHint => '消息';
 
   @override
+  String get chatCopyAction => '复制';
+
+  @override
+  String get chatMessageCopied => '已复制消息。';
+
+  @override
   String get chatNoOlderMessages => '沒有更早的消息。';
 
   @override
   String get chatPartnerLabel => '對方';
+
+  @override
+  String get chatReplyAction => '回覆';
+
+  @override
+  String chatReplyingTo(Object name) {
+    return '回覆 $name';
+  }
+
+  @override
+  String get chatReplyMessageFallback => '原消息';
+
+  @override
+  String get chatReplyPhotoFallback => '照片';
 
   @override
   String chatRefreshFailed(Object error) {
@@ -1419,10 +1439,30 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatMessageHint => '訊息';
 
   @override
+  String get chatCopyAction => '複製';
+
+  @override
+  String get chatMessageCopied => '已複製訊息。';
+
+  @override
   String get chatNoOlderMessages => '沒有更早的訊息。';
 
   @override
   String get chatPartnerLabel => '對方';
+
+  @override
+  String get chatReplyAction => '回覆';
+
+  @override
+  String chatReplyingTo(Object name) {
+    return '回覆 $name';
+  }
+
+  @override
+  String get chatReplyMessageFallback => '原始訊息';
+
+  @override
+  String get chatReplyPhotoFallback => '照片';
 
   @override
   String chatRefreshFailed(Object error) {

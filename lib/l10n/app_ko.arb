@@ -77,8 +77,19 @@
   },
   "chatLoadOlderMessages": "이전 메시지 불러오기",
   "chatMessageHint": "메시지",
+  "chatCopyAction": "복사",
+  "chatMessageCopied": "메시지를 복사했어요.",
   "chatNoOlderMessages": "이전 메시지가 없습니다.",
   "chatPartnerLabel": "파트너",
+  "chatReplyAction": "답장",
+  "chatReplyingTo": "{name}에게 답장",
+  "@chatReplyingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "chatReplyMessageFallback": "원본 메시지",
+  "chatReplyPhotoFallback": "사진",
   "chatRefreshFailed": "새로고침 실패: {error}",
   "@chatRefreshFailed": {
     "placeholders": {

@@ -1,5 +1,36 @@
 # TODO
 
+## Plan (2026-03-08 Chat Reply Interaction)
+- [x] Inspect current chat data flow, message actions, and composer layout to identify the smallest backward-compatible path for message replies.
+- [x] Add reply data support for chat messages, including a nullable message self-reference and client model/cache/query updates.
+- [x] Implement modern reply interactions in chat: long-press action sheet with `Reply`/`Copy`/existing moderation actions, left-swipe-to-reply on other users' messages, inline quoted preview in reply messages, and a composer reply preview with dismiss.
+- [x] Add or update focused tests for the new reply UI behavior.
+- [x] Run `flutter gen-l10n`.
+- [x] Run `dart format` on touched files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/*.md` and this file with the new behavior and verification results.
+
+## Review (2026-03-08 Chat Reply Interaction)
+- [x] Implemented and verified.
+- Root cause / gap:
+  - Chat messages had no reply reference in schema or client model, so the app could not persist or render quoted replies.
+  - Existing message interactions only exposed `report` and `block` from long-press, with no reply gesture path or composer state for quoted context.
+- Fixes:
+  - Added migration `supabase/migrations/20260308121000_add_message_reply_support.sql` to introduce nullable `messages.reply_to_message_id` with self-reference + index.
+  - `lib/features/chat/chat_message.dart` and `lib/services/chat/chat_message_repository.dart` now carry reply metadata through fetch/cache paths, including preview payload support for quoted messages.
+  - `lib/features/chat/chat_message_list.dart` now supports reply requests from both long-press and left-swipe, includes `Copy` in the action sheet, resolves reply previews/sender names, and best-effort loads missing quoted targets.
+  - `lib/features/chat/widgets/chat_message_tile.dart` now renders modern inline quoted previews inside text/feed bubbles and adds swipe-to-reply affordance for other users' messages.
+  - `lib/features/chat/chat_room_view.dart` now keeps composer reply state, shows a dismissible reply preview bar above the input, and sends `reply_to_message_id` with outgoing text messages while preserving optimistic UI/failure recovery.
+  - `lib/l10n/app_*.arb` gained reply/copy strings and generated localizations were refreshed with `flutter gen-l10n`.
+  - Added `test/chat_message_tile_reply_test.dart` to cover quoted preview rendering and swipe-to-reply trigger behavior.
+- Verification:
+  - `flutter gen-l10n`
+  - `dart format lib/features/chat/chat_message.dart lib/services/chat/chat_message_repository.dart lib/features/chat/chat_message_list.dart lib/features/chat/widgets/chat_message_tile.dart lib/features/chat/chat_room_view.dart lib/features/home/controllers/home_feed_orchestrator.dart test/chat_message_tile_system_message_test.dart test/chat_message_tile_reply_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-08 HomeView Localization Init Crash)
 - [x] Trace the Crashlytics stack to confirm which onboarding initialization path reads `AppLocalizations.of(context)` before `initState()` finishes.
 - [x] Move the onboarding initialization trigger onto a dependency-safe lifecycle point and keep it one-shot.

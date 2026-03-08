@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../../../shared/theme/app_theme.dart';
@@ -15,7 +16,9 @@ class ChatMessageTile extends StatelessWidget {
     required this.isOptimistic,
     this.useLightForeground = false,
     this.senderName,
+    this.replySenderName,
     this.onLongPress,
+    this.onSwipeReply,
     this.onImageTap,
   });
 
@@ -24,7 +27,9 @@ class ChatMessageTile extends StatelessWidget {
   final bool isOptimistic;
   final bool useLightForeground;
   final String? senderName;
+  final String? replySenderName;
   final VoidCallback? onLongPress;
+  final VoidCallback? onSwipeReply;
   final VoidCallback? onImageTap;
 
   // Color palette for different users (Telegram-style)
@@ -83,20 +88,28 @@ class ChatMessageTile extends StatelessWidget {
             isOptimistic: isOptimistic,
             onImageTap: onImageTap,
             senderName: senderName,
+            replySenderName: replySenderName,
           )
         : _TextMessageBubble(
             message: message,
             isMe: isMe,
             senderName: senderName,
+            replySenderName: replySenderName,
           );
 
-    return Align(
-      alignment: alignment,
-      child: GestureDetector(
-        onLongPress: onLongPress,
-        child: Opacity(opacity: isOptimistic ? 0.7 : 1.0, child: bubbleContent),
-      ),
+    Widget content = GestureDetector(
+      onLongPress: onLongPress,
+      child: Opacity(opacity: isOptimistic ? 0.7 : 1.0, child: bubbleContent),
     );
+
+    if (onSwipeReply != null) {
+      content = _SwipeToReplyWrapper(
+        onSwipeReply: onSwipeReply!,
+        child: content,
+      );
+    }
+
+    return Align(alignment: alignment, child: content);
   }
 
   String _localizedSystemMessage(AppLocalizations l10n) {
@@ -238,11 +251,13 @@ class _TextMessageBubble extends StatelessWidget {
     required this.message,
     required this.isMe,
     this.senderName,
+    this.replySenderName,
   });
 
   final ChatMessage message;
   final bool isMe;
   final String? senderName;
+  final String? replySenderName;
 
   @override
   Widget build(BuildContext context) {
@@ -293,6 +308,15 @@ class _TextMessageBubble extends StatelessWidget {
                 ),
               ),
             ],
+            if (message.replyPreview != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ReplyPreviewCard(
+                  preview: message.replyPreview!,
+                  senderName: replySenderName,
+                  isMe: isMe,
+                ),
+              ),
             SizedBox(
               width: double.infinity,
               child: Stack(
@@ -363,6 +387,184 @@ String _formatMessageTime(DateTime date) {
   final hour = local.hour.toString().padLeft(2, '0');
   final minute = local.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
+}
+
+class _SwipeToReplyWrapper extends StatefulWidget {
+  const _SwipeToReplyWrapper({required this.child, required this.onSwipeReply});
+
+  final Widget child;
+  final VoidCallback onSwipeReply;
+
+  @override
+  State<_SwipeToReplyWrapper> createState() => _SwipeToReplyWrapperState();
+}
+
+class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper> {
+  static const double _triggerOffset = -44;
+  static const double _maxOffset = -64;
+
+  double _dragOffset = 0;
+  bool _didTrigger = false;
+
+  void _reset() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _dragOffset = 0;
+      _didTrigger = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (_dragOffset.abs() / _triggerOffset).clamp(0.0, 1.0);
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragUpdate: (details) {
+        final delta = details.primaryDelta ?? 0;
+        if (delta >= 0) {
+          return;
+        }
+        final nextOffset = (_dragOffset + delta).clamp(_maxOffset, 0.0);
+        setState(() {
+          _dragOffset = nextOffset;
+        });
+        if (!_didTrigger && _dragOffset <= _triggerOffset) {
+          _didTrigger = true;
+          HapticFeedback.lightImpact();
+          widget.onSwipeReply();
+        }
+      },
+      onHorizontalDragEnd: (_) => _reset(),
+      onHorizontalDragCancel: _reset,
+      child: Stack(
+        alignment: Alignment.centerRight,
+        children: [
+          Positioned(
+            right: 8,
+            child: Opacity(
+              opacity: progress,
+              child: Transform.scale(
+                scale: 0.88 + (0.12 * progress),
+                child: const Icon(
+                  Icons.reply_rounded,
+                  size: 20,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ),
+          ),
+          AnimatedContainer(
+            duration: _dragOffset == 0
+                ? const Duration(milliseconds: 180)
+                : Duration.zero,
+            curve: Curves.easeOutCubic,
+            transform: Matrix4.translationValues(_dragOffset, 0, 0),
+            child: widget.child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReplyPreviewCard extends StatelessWidget {
+  const _ReplyPreviewCard({
+    required this.preview,
+    required this.isMe,
+    this.senderName,
+  });
+
+  final ChatReplyPreview preview;
+  final bool isMe;
+  final String? senderName;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final accentColor = ChatMessageTile.colorForUserId(preview.senderId);
+    final resolvedSenderName =
+        (senderName != null && senderName!.trim().isNotEmpty)
+        ? senderName!.trim()
+        : (preview.senderId == null
+              ? l10n.chatSystemUpdate
+              : l10n.chatPartnerLabel);
+    final previewText = _replyPreviewText(l10n);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: isMe
+            ? Colors.white.withValues(alpha: 0.7)
+            : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: Row(
+          children: [
+            Container(
+              width: 3,
+              height: 32,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    resolvedSenderName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: accentColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    previewText,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.2,
+                      color: Colors.black.withValues(alpha: 0.68),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (preview.isImageFeed) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.image_rounded,
+                size: 16,
+                color: Colors.black.withValues(alpha: 0.42),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _replyPreviewText(AppLocalizations l10n) {
+    final text = (preview.body ?? preview.caption ?? '').trim();
+    if (text.isNotEmpty) {
+      return text;
+    }
+    if (preview.isImageFeed) {
+      return l10n.chatReplyPhotoFallback;
+    }
+    return l10n.chatReplyMessageFallback;
+  }
 }
 
 /// Custom painter for Telegram-style bubble tail
@@ -436,6 +638,7 @@ class _FeedMessageCard extends StatelessWidget {
     required this.isOptimistic,
     required this.onImageTap,
     this.senderName,
+    this.replySenderName,
   });
 
   final ChatMessage message;
@@ -443,6 +646,7 @@ class _FeedMessageCard extends StatelessWidget {
   final bool isOptimistic;
   final VoidCallback? onImageTap;
   final String? senderName;
+  final String? replySenderName;
 
   @override
   Widget build(BuildContext context) {
@@ -518,6 +722,15 @@ class _FeedMessageCard extends StatelessWidget {
                       ),
                     ),
                 ],
+              ),
+            ),
+          if (message.replyPreview != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _ReplyPreviewCard(
+                preview: message.replyPreview!,
+                senderName: replySenderName,
+                isMe: isMe,
               ),
             ),
 

@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Implemented modern chat reply UX end-to-end: added nullable `messages.reply_to_message_id` support via migration `20260308121000_add_message_reply_support.sql`, updated chat fetch/cache models for reply previews, added long-press `Reply`/`Copy` actions plus left-swipe-to-reply on other users' messages, rendered inline quoted previews inside reply bubbles, and added a dismissible composer reply preview bar that sends `reply_to_message_id` with outgoing text messages.
 - Fixed a `HomeView` localization/inherited-widget init crash by moving one-shot onboarding-state bootstrap out of `initState()` and into `didChangeDependencies()`, so onboarding draft setup can safely resolve localized default nickname text.
 - Fixed a `HomeView` Riverpod lifecycle crash from post-frame/lifecycle service access: cached `FCMService` and `RewardedAdsService` during `initState()` and reused those fields in later callbacks so `ref.read(...)` is never touched after the widget has started unmounting.
 - Rebuilt the fullscreen Photo Viewer toward iPhone-style behavior: `FullScreenPhotoViewer` now uses a full-bleed black image canvas instead of a metadata-sized image box, with sender/time moved into a lightweight top overlay, caption moved into a bottom gradient overlay, per-page zoom state keeping page swipe locked only while the active photo is zoomed, and zoomed panning clamped to the image’s real displayed edges so black empty space no longer appears around over-dragged photos.
