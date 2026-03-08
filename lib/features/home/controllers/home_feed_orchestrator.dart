@@ -491,6 +491,19 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   Future<void> _refreshLatestFeed(String roomId) async {
+    final shouldShowLoading = roomId == _roomId && !_showRoomSelection;
+    final refreshToken = ++_latestFeedRefreshToken;
+    if (shouldShowLoading) {
+      if (mounted) {
+        _setStateForFeedOrchestrator(() {
+          _latestFeedRefreshInFlight = true;
+          _latestFeedRefreshingRoomId = roomId;
+        });
+      } else {
+        _latestFeedRefreshInFlight = true;
+        _latestFeedRefreshingRoomId = roomId;
+      }
+    }
     try {
       final rows = await Supabase.instance.client
           .from('messages')
@@ -513,9 +526,56 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
           .take(3)
           .toList(growable: false);
+      final imageUrls = entries
+          .map((entry) => entry.$1!)
+          .toList(growable: false);
+      final captions = entries.map((entry) => entry.$2).toList(growable: false);
+      final senderIds = entries
+          .map((entry) => entry.$3)
+          .toList(growable: false);
+      final sentAts = entries.map((entry) => entry.$4).toList(growable: false);
+      final imageUrl = imageUrls.isEmpty ? null : imageUrls.first;
+      final senderId = senderIds.isEmpty ? null : senderIds.first;
+      final caption = captions.isEmpty ? null : captions.first;
+
+      void applyRoomSnapshotUpdate() {
+        _myRooms = _myRooms
+            .map((room) {
+              if (room['id'] != roomId) {
+                return room;
+              }
+              final updated = Map<String, dynamic>.from(room);
+              if (imageUrls.isEmpty) {
+                updated.remove('latest_photo');
+                updated.remove('latest_photos');
+                updated.remove('latest_photo_captions');
+                updated.remove('latest_photo_sender_ids');
+                updated.remove('latest_photo_created_ats');
+                updated.remove('latest_caption');
+                updated.remove('latest_sender_id');
+              } else {
+                updated['latest_photo'] = imageUrl;
+                updated['latest_photos'] = imageUrls;
+                updated['latest_photo_captions'] = captions;
+                updated['latest_photo_sender_ids'] = senderIds;
+                updated['latest_photo_created_ats'] = sentAts
+                    .map((entry) => entry?.toUtc().toIso8601String())
+                    .toList(growable: false);
+                updated['latest_caption'] = caption;
+                updated['latest_sender_id'] = senderId;
+              }
+              return updated;
+            })
+            .toList(growable: false);
+      }
+
       if (entries.isEmpty) {
         if (mounted) {
           _setStateForFeedOrchestrator(() {
+            applyRoomSnapshotUpdate();
+            if (roomId != _roomId) {
+              return;
+            }
             _latestFeedImageUrl = null;
             _latestFeedImageUrls = <String>[];
             _latestFeedCaptions = <String?>[];
@@ -525,6 +585,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
             _latestFeedCaption = null;
           });
         } else {
+          applyRoomSnapshotUpdate();
           _latestFeedImageUrl = null;
           _latestFeedImageUrls = <String>[];
           _latestFeedCaptions = <String?>[];
@@ -533,24 +594,15 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           _latestFeedSenderId = null;
           _latestFeedCaption = null;
         }
+        unawaited(_cacheHomeBootstrapSnapshot());
         return;
       }
-      final imageUrls = entries
-          .map((entry) => entry.$1!)
-          .toList(growable: false);
-      final captions = entries.map((entry) => entry.$2).toList(growable: false);
-      final senderIds = entries
-          .map((entry) => entry.$3)
-          .toList(growable: false);
-      final sentAts = entries.map((entry) => entry.$4).toList(growable: false);
-      final firstRow = rows.firstWhere(
-        (row) => (row['image_url'] as String?)?.isNotEmpty ?? false,
-      );
-      final imageUrl = imageUrls.first;
-      final senderId = firstRow['sender_id'] as String?;
-      final caption = captions.first;
       if (mounted) {
         _setStateForFeedOrchestrator(() {
+          applyRoomSnapshotUpdate();
+          if (roomId != _roomId) {
+            return;
+          }
           _latestFeedImageUrl = imageUrl;
           _latestFeedImageUrls = imageUrls;
           _latestFeedCaptions = captions;
@@ -560,6 +612,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           _latestFeedCaption = caption;
         });
       } else {
+        applyRoomSnapshotUpdate();
         _latestFeedImageUrl = imageUrl;
         _latestFeedImageUrls = imageUrls;
         _latestFeedCaptions = captions;
@@ -568,6 +621,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         _latestFeedSenderId = senderId;
         _latestFeedCaption = caption;
       }
+      unawaited(_cacheHomeBootstrapSnapshot());
       for (final latestSenderId in senderIds) {
         if (latestSenderId != null && latestSenderId.isNotEmpty) {
           await _ensureProfileSummary(latestSenderId);
@@ -575,6 +629,19 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       }
     } catch (_) {
       // Best-effort.
+    } finally {
+      if (_latestFeedRefreshingRoomId == roomId &&
+          _latestFeedRefreshToken == refreshToken) {
+        if (mounted) {
+          _setStateForFeedOrchestrator(() {
+            _latestFeedRefreshInFlight = false;
+            _latestFeedRefreshingRoomId = null;
+          });
+        } else {
+          _latestFeedRefreshInFlight = false;
+          _latestFeedRefreshingRoomId = null;
+        }
+      }
     }
   }
 

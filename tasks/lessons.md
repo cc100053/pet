@@ -39,3 +39,10 @@
 
 ## 2026-03-07
 - When the user asks to keep an existing primary CTA, do not duplicate that action inside onboarding chrome; add only the requested secondary control (for example `Skip`) and preserve the established interaction path through the original UI element.
+- For onboarding coach cards, avoid repeating the same CTA label or step metadata inside both the card and the highlighted target. Keep the card to one short heading, one short explanation, and only the necessary secondary action.
+- When users ask for concise onboarding copy, create a dedicated localization key for the coach-card title instead of reusing broader CTA strings; this keeps CTA labels stable while letting the prompt use a more conversational tone per locale.
+- For Traditional Chinese product copy, default to written/formal wording unless the user explicitly asks for colloquial Cantonese phrasing.
+
+## 2026-03-08
+- In `ConsumerState`, never call `ref.read(...)` from post-frame callbacks, timers, or other async/lifecycle work that can outlive the widget; cache provider-backed services/notifiers into fields during `initState` while the widget is still mounted.
+- If an initialization path needs `AppLocalizations`, `Theme`, `MediaQuery`, or any other inherited-widget data, do not start that path from `initState`; kick it off from `didChangeDependencies()` (or later) and guard it with a one-shot flag if it should run only once.

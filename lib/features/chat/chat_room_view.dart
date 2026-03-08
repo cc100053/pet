@@ -542,8 +542,8 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                       Expanded(
                         child: TextField(
                           controller: _messageController,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sending ? null : _sendMessage(),
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
                           decoration: InputDecoration(
                             hintText: l10n.chatMessageHint,
                             border: InputBorder.none,

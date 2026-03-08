@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' show ImageFilter, lerpDouble;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,6 +38,8 @@ import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
+import '../../shared/ui/user_avatar.dart';
+import '../../shared/upload_limits.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_message_list.dart';
 import '../chat/chat_room_view.dart';
@@ -79,7 +84,13 @@ enum _PetStationaryState { staying, sleeping }
 
 enum _FeedDoubleRewardPromptAction { watch, cancel }
 
-enum _BasicOnboardingStep { createPet, inviteFriend, feedOnce, completed }
+enum _BasicOnboardingStep {
+  profileSetup,
+  createPet,
+  inviteFriend,
+  feedOnce,
+  completed,
+}
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -108,6 +119,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _overfedFeedEventWindow = Duration(seconds: 45);
   static const _furnitureItemSize = Size(42, 42);
   static const _poopEmojiSize = Size(28, 28);
+  static const int _profileNicknameMaxLength = 20;
+  static const int _onboardingAvatarMaxDimension = 512;
+  static const int _onboardingAvatarWebpQuality = 70;
 
   // Logic State
   bool _profileEnsured = false;
@@ -146,18 +160,26 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _debugAlwaysShowOnboarding = false;
   bool _revenueCatProPlan = false;
   final RevenueCatService _revenueCatService = RevenueCatService();
+  late final FCMService _fcmService;
+  late final RewardedAdsService _rewardedAdsService;
   String? _myAvatarUrl;
   String? _myNickname;
+  String? _onboardingProfileAvatarUrl;
+  String? _onboardingProfileError;
   int? _coinReward; // Triggers coin animation when set
   int _coinRewardEventId = 0;
   int _feedRewardPendingCount = 0;
   bool _coinsLoadInFlight = false;
   int? _pendingCoinsExpectedReward;
   bool _roomSelectionRefreshInFlight = false;
+  bool _showRoomSelectionRefreshIndicator = false;
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
   String? _petSubscriptionPetId;
   final GlobalKey _petFieldKey = GlobalKey();
+  final TextEditingController _onboardingProfileNicknameController =
+      TextEditingController();
+  final ImagePicker _onboardingProfileImagePicker = ImagePicker();
   final Random _random = Random();
   late final AnimationController _petMoveController;
   late final AnimationController _furnitureWiggleController;
@@ -176,6 +198,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Timer? _roomSelectionRefreshTimer;
   Timer? _unreadReconcileTimer;
   bool _petAssetsPrecached = false;
+  bool _basicOnboardingLoadStarted = false;
   final Set<String> _cachedPetAssets = {};
   bool _departureFontsWarmed = false;
   Future<void>? _departureFontsWarmup;
@@ -190,6 +213,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _onlineProbeThrottle = Duration(seconds: 10);
   bool _inviteCodeLoading = false;
   bool _roomEntryLoading = false;
+  bool _latestFeedRefreshInFlight = false;
+  String? _latestFeedRefreshingRoomId;
+  int _latestFeedRefreshToken = 0;
   int _roomEntryLoadingToken = 0;
   int _roomEntryFadeVersion = 0;
   bool _showNewRoomInvitePrompt = false;
@@ -261,10 +287,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _basicOnboardingCompleted = false;
   bool _basicOnboardingReady = false;
   bool _debugForceOnboardingHidden = false;
+  bool _onboardingProfileSaving = false;
 
   @override
   void initState() {
     super.initState();
+    _fcmService = ref.read(fcmServiceProvider);
+    _rewardedAdsService = ref.read(rewardedAdsServiceProvider);
     WidgetsBinding.instance.addObserver(this);
     unawaited(
       CrashReportingService.instance.setContext(
@@ -275,7 +304,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
     _debugAlwaysShowOnboarding =
         AppSettingsRepository.instance.debugAlwaysShowOnboarding;
-    unawaited(_loadBasicOnboardingState());
     unawaited(_refreshDebugAdminAccess());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -322,14 +350,17 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_petAssetsPrecached) {
-      return;
+    if (!_petAssetsPrecached) {
+      _petAssetsPrecached = true;
+      for (final pet in PetCatalog.pets) {
+        _precachePetAssets(pet);
+      }
+      unawaited(_warmDepartureNoteFonts());
     }
-    _petAssetsPrecached = true;
-    for (final pet in PetCatalog.pets) {
-      _precachePetAssets(pet);
+    if (!_basicOnboardingLoadStarted) {
+      _basicOnboardingLoadStarted = true;
+      unawaited(_loadBasicOnboardingState());
     }
-    unawaited(_warmDepartureNoteFonts());
   }
 
   @override
@@ -349,6 +380,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _roomSelectionRefreshTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _feedingAnimationToken++;
+    _onboardingProfileNicknameController.dispose();
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
@@ -361,10 +393,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
-    unawaited(ref.read(fcmServiceProvider).refreshTokenSync());
+    unawaited(_fcmService.refreshTokenSync());
     unawaited(_reconcileUnreadStateFromServer());
     _scheduleUnreadReconcile();
     if (!_showRoomSelection) {
+      final activeRoomId = _roomId;
+      if (activeRoomId != null) {
+        unawaited(_refreshLatestFeed(activeRoomId));
+      }
       return;
     }
     unawaited(_refreshRoomSelectionHealthBars());
@@ -403,10 +439,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _initializeRewardedAds() async {
-    final service = ref.read(rewardedAdsServiceProvider);
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    await service.initialize(userId: userId);
-    await service.preload(RewardedAdPlacement.doubleCoins);
+    await _rewardedAdsService.initialize(userId: userId);
+    await _rewardedAdsService.preload(RewardedAdPlacement.doubleCoins);
   }
 
   void _updatePetType(String? petType) {
@@ -484,6 +519,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   : null);
         _loadingRoom = false;
       });
+      _syncOnboardingProfileDraftFromCurrentData();
       _syncCurrencyProvider();
       _syncRoomProviders();
       _syncUnreadCountsProvider(_myRooms);
@@ -678,6 +714,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           rewardEventIdToClear = _coinRewardEventId;
         }
       });
+      _syncOnboardingProfileDraftFromCurrentData();
       _syncCurrencyProvider();
 
       if (rewardEventIdToClear != null) {
@@ -2217,7 +2254,15 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (_roomSelectionRefreshInFlight) {
       return;
     }
-    _roomSelectionRefreshInFlight = true;
+    if (mounted) {
+      setState(() {
+        _roomSelectionRefreshInFlight = true;
+        _showRoomSelectionRefreshIndicator = true;
+      });
+    } else {
+      _roomSelectionRefreshInFlight = true;
+      _showRoomSelectionRefreshIndicator = true;
+    }
     final roomIds = _myRooms
         .map((room) => room['id'])
         .whereType<String>()
@@ -2234,31 +2279,41 @@ class _HomeViewState extends ConsumerState<HomeView>
             .select('id, room_id')
             .inFilter('room_id', roomIds);
         final nowIso = DateTime.now().toUtc().toIso8601String();
-        for (final row in pets) {
-          final petId = row['id'] as String?;
-          final petRoomId = row['room_id'] as String?;
-          if (petId == null || petId.isEmpty) {
-            continue;
-          }
-          try {
-            await Supabase.instance.client.rpc(
-              'tick_pet_state',
-              params: {'p_pet_id': petId, 'p_now': nowIso},
-            );
-            if (petRoomId != null && petRoomId.isNotEmpty) {
-              await _dispatchNewHungerAlerts(petId: petId, roomId: petRoomId);
+        await Future.wait(
+          pets.map((row) async {
+            final petId = row['id'] as String?;
+            final petRoomId = row['room_id'] as String?;
+            if (petId == null || petId.isEmpty) {
+              return;
             }
-          } catch (_) {
-            // Best-effort per room: continue refreshing others.
-          }
-        }
+            try {
+              await Supabase.instance.client.rpc(
+                'tick_pet_state',
+                params: {'p_pet_id': petId, 'p_now': nowIso},
+              );
+              if (petRoomId != null && petRoomId.isNotEmpty) {
+                await _dispatchNewHungerAlerts(petId: petId, roomId: petRoomId);
+              }
+            } catch (_) {
+              // Best-effort per room: continue refreshing others.
+            }
+          }),
+        );
       } catch (_) {
         // Best-effort: still reload rooms below.
       }
 
       await _fetchRooms();
     } finally {
-      _roomSelectionRefreshInFlight = false;
+      if (mounted) {
+        setState(() {
+          _roomSelectionRefreshInFlight = false;
+          _showRoomSelectionRefreshIndicator = false;
+        });
+      } else {
+        _roomSelectionRefreshInFlight = false;
+        _showRoomSelectionRefreshIndicator = false;
+      }
     }
   }
 
@@ -3922,6 +3977,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 unreadCountByRoom: unreadCountByRoom,
                 creatingRoom: _creatingRoom,
                 joiningRoom: _joiningRoom,
+                refreshingRooms: _showRoomSelectionRefreshIndicator,
                 onCreateRoom: _createRoom,
                 onJoinRoom: _joinRoomByCode,
                 onSelectRoom: _enterRoomFromSelection,
@@ -3940,6 +3996,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                     ? const AdMobBannerSlot()
                     : null,
               ),
+              if (_isProfileSetupOnboardingStepActive)
+                _buildProfileSetupOnboardingOverlay(),
               if (_shouldShowCreatePetOnboardingCoachCard)
                 _buildBasicOnboardingFocusOverlay(),
               if (_shouldShowCreatePetOnboardingCoachCard)
@@ -4024,6 +4082,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   imageUrls: _latestFeedImageUrls,
                   captions: _latestFeedCaptions,
                   sentAts: _latestFeedSentAts,
+                  isRefreshing: _latestFeedRefreshInFlight,
                   senderAvatars: List<String?>.generate(
                     _latestFeedImageUrls.length,
                     (index) {
@@ -4285,8 +4344,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 ),
                 ListTile(
                   title: Text(l10n.drawerTestNotification),
-                  onTap: () =>
-                      ref.read(fcmServiceProvider).showTestNotification(),
+                  onTap: () => _fcmService.showTestNotification(),
                 ),
                 ListTile(
                   title: Text(l10n.drawerDebugAddCandy),

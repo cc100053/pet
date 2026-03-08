@@ -439,6 +439,48 @@ abstract class AppLocalizations {
   /// **'Skip'**
   String get commonSkip;
 
+  /// No description provided for @onboardingCreatePetPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a pet to move into your new room!'**
+  String get onboardingCreatePetPromptTitle;
+
+  /// No description provided for @onboardingProfileSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your profile'**
+  String get onboardingProfileSetupTitle;
+
+  /// No description provided for @onboardingProfileSetupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the name your friends will see. You can add a photo now or later.'**
+  String get onboardingProfileSetupSubtitle;
+
+  /// No description provided for @onboardingProfileSetupAvatarOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo optional'**
+  String get onboardingProfileSetupAvatarOptional;
+
+  /// No description provided for @onboardingProfileSetupContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onboardingProfileSetupContinue;
+
+  /// No description provided for @onboardingProfileSetupNameRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the name you want to use.'**
+  String get onboardingProfileSetupNameRequiredError;
+
+  /// No description provided for @onboardingProfileSetupNameChangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a name before continuing.'**
+  String get onboardingProfileSetupNameChangeHint;
+
   /// No description provided for @commonGallery.
   ///
   /// In en, this message translates to:

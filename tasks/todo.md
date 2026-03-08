@@ -1,5 +1,155 @@
 # TODO
 
+## Plan (2026-03-08 HomeView Localization Init Crash)
+- [x] Trace the Crashlytics stack to confirm which onboarding initialization path reads `AppLocalizations.of(context)` before `initState()` finishes.
+- [x] Move the onboarding initialization trigger onto a dependency-safe lifecycle point and keep it one-shot.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md`, `tasks/lessons.md`, and this file with the fix summary and verification results.
+
+## Review (2026-03-08 HomeView Localization Init Crash)
+- [x] Implemented and verified.
+- Root cause:
+  - `HomeView.initState()` directly started `_loadBasicOnboardingState()`.
+  - That flow called `_syncOnboardingProfileDraftFromCurrentData()`, which resolves `_defaultProfileNickname` via `AppLocalizations.of(context)`, so an inherited-widget lookup happened before `initState()` completed.
+- Fixes:
+  - `lib/features/home/home_view.dart`: deferred the one-shot onboarding-state bootstrap from `initState()` to `didChangeDependencies()`, where inherited widgets like localization are safe to read.
+  - `lib/features/home/home_view.dart`: added `_basicOnboardingLoadStarted` so the onboarding bootstrap still runs only once.
+- Verification:
+  - `dart format lib/features/home/home_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-08 HomeView Ref Lifecycle Crash)
+- [x] Trace the `HomeView` Crashlytics stack to locate the unsafe `ref.read(...)` call happening after widget deactivation.
+- [x] Replace dispose-unsafe provider reads in `HomeView` async/lifecycle paths with cached service references created while the widget is still mounted.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md`, `tasks/lessons.md`, and this file with the fix summary and verification results.
+
+## Review (2026-03-08 HomeView Ref Lifecycle Crash)
+- [x] Implemented and verified.
+- Root cause:
+  - `HomeView.initState()` scheduled a post-frame callback that later called `_initializeRewardedAds()`, and that method performed `ref.read(rewardedAdsServiceProvider)`.
+  - If `HomeView` had already been deactivated before the callback ran, Riverpod rejected the `ref` access because `ConsumerState.ref` depends on a live `BuildContext`.
+- Fixes:
+  - `lib/features/home/home_view.dart`: cached `FCMService` and `RewardedAdsService` into `late final` fields during `initState()`, when `ref.read(...)` is still safe.
+  - `lib/features/home/home_view.dart`: switched post-frame/lifecycle/debug-notification paths to use those cached fields instead of reading providers again later.
+- Verification:
+  - `dart format lib/features/home/home_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-08 Lightweight Profile Onboarding Step)
+- [x] Trace current first-login onboarding state machine and existing profile editing/upload logic to identify the lowest-risk insertion point.
+- [x] Add a lightweight profile onboarding step before create-pet onboarding, requiring nickname setup while keeping avatar upload optional.
+- [x] Reuse existing profile persistence/upload rules so Home onboarding updates `profiles.nickname` / `profiles.avatar_url` and refreshes local UI state immediately.
+- [x] Add or update localization keys for the new onboarding profile step.
+- [x] Run `flutter gen-l10n`.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md`, `tasks/lessons.md`, and this file with the change summary and verification results.
+
+## Review (2026-03-08 Lightweight Profile Onboarding Step)
+- [x] Implemented and partially verified.
+- Root cause / decision:
+  - First-login onboarding previously jumped straight to room creation, so users had no lightweight moment to personalize their identity before chat/invite surfaces started using the default profile nickname.
+  - The existing Profile page already supported nickname edits and avatar upload, but it was too heavy to force as a first-run screen.
+- Fixes:
+  - `lib/features/home/home_view.dart`: added a new onboarding state enum step (`profileSetup`) plus local draft state for nickname/avatar onboarding.
+  - `lib/features/home/flows/home_onboarding_flow.dart`: fresh onboarding now starts with a centered profile setup modal on Room Selection; nickname must change from the default value before continuing, while avatar upload remains optional.
+  - `lib/features/home/flows/home_onboarding_flow.dart`: added lightweight avatar upload handling in Home onboarding using the existing `avatar_upload` edge-function path and immediate local cache/UI refresh.
+  - `lib/l10n/app_*.arb`: added dedicated onboarding profile-step copy across supported locales.
+- Verification:
+  - `flutter gen-l10n`
+  - `dart format lib/features/home/home_view.dart lib/features/home/flows/home_onboarding_flow.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` now passes after the fullscreen photo viewer test coverage was stabilized around rendering assertions instead of brittle `InteractiveViewer` gesture simulation.
+
+## Plan (2026-03-08 Photo Viewer Option 1 Fullscreen Redesign)
+- [x] Confirm the target Option 1 interaction model for fullscreen photo viewing with persistent-but-non-blocking metadata.
+- [x] Refactor `FullScreenPhotoViewer` from a boxed `Column + SizedBox` layout into a full-bleed image canvas with overlay chrome layered above it.
+- [x] Separate image interaction state from overlay visibility so pinch/pan/double-tap behave like iPhone Photos while metadata remains available without constraining the image.
+- [x] Redesign metadata presentation (`sender`, `sent time`, `caption`) as top/bottom overlays with tap-to-toggle chrome visibility and zoom-aware auto-hide behavior.
+- [x] Preserve multi-photo paging, swipe-to-dismiss, download, and current-index return behavior across all viewer entry points (chat, home latest photo, gallery).
+- [x] Add or update focused widget/logic tests for overlay visibility rules and gesture/state transitions where practical.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the redesign summary, key decisions, and verification results.
+
+## Review (2026-03-08 Photo Viewer Option 1 Fullscreen Redesign)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/shared/ui/full_screen_photo_viewer.dart` previously reserved fixed vertical space for metadata and caption, then rendered the image inside a computed `SizedBox`, so zoom and pan were constrained to a boxed image region instead of the full viewer viewport.
+- Fixes:
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: replaced the boxed `Column` layout with a full-bleed black canvas and layered chrome using `Stack`.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: moved sender/time into a lightweight top metadata strip and caption into a bottom gradient overlay, so metadata no longer constrains image size or interaction bounds.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: added per-page `TransformationController` state so zoom behavior is isolated per photo and page-swipe locking keys off the active page’s zoom state.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: restored image aspect-ratio sizing for the transformed child and clamped `InteractiveViewer` boundaries to the actual displayed image bounds, preventing over-pan into black empty space when zoomed.
+  - `lib/shared/ui/full_screen_photo_viewer.dart`: kept download, close, page indicator, swipe-down dismiss, and current-index return behavior while preserving multi-photo paging.
+  - `test/full_screen_photo_viewer_test.dart`: added stable rendering coverage for fullscreen metadata/caption overlays and the empty-metadata case.
+- Verification:
+  - `dart format lib/shared/ui/full_screen_photo_viewer.dart test/full_screen_photo_viewer_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-08 Room/Gallery Refresh Freshness)
+- [x] Trace notification/open-room and room-selection refresh paths to confirm why the active room photo gallery and room cards can show stale cached photos.
+- [x] Update the active-room latest-feed refresh flow so entering a room refreshes the gallery immediately and syncs fresh photo metadata back into the cached room snapshot.
+- [x] Improve room-selection refresh responsiveness and add visible loading feedback while the refresh is running.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the root cause, fixes, and verification results.
+
+## Review (2026-03-08 Room/Gallery Refresh Freshness)
+- [x] Implemented and verified.
+- Root cause:
+  - Entering a room seeds the gallery from cached `_myRooms` snapshot first, then refreshes latest feed data asynchronously, so notification-driven entry could briefly stay on stale cached photos.
+  - `_refreshLatestFeed(roomId)` updated the active gallery but did not sync the refreshed photo metadata back into the corresponding `_myRooms` entry, so Room Selection could keep showing old photos until the slower full refresh loop completed.
+  - Room Selection refresh ticked each pet sequentially and had no visible loading feedback, so refreshes felt sluggish even when they were still in progress.
+- Fixes:
+  - `lib/features/home/controllers/home_feed_orchestrator.dart`: `_refreshLatestFeed(roomId)` now shows a lightweight in-gallery loading state for the active room, guards against cross-room async overwrite races, and writes fresh latest-photo metadata back into `_myRooms` plus bootstrap cache.
+  - `lib/features/home/home_view.dart`: app resume now refreshes the active room gallery when the user is already inside a room, and Room Selection now exposes a refresh indicator state.
+  - `lib/features/home/home_view.dart`: Room Selection refresh now runs per-room pet ticks concurrently instead of serially, then reloads the room list.
+  - `lib/features/home/widgets/pet_photo_gallery.dart`: added a small spinner overlay while latest photos are refreshing so stale cached content is clearly transitioning.
+  - `lib/features/home/room_selection_view.dart`: added a compact header loading pill while room cards are being refreshed.
+- Verification:
+  - `dart format lib/features/home/home_view.dart lib/features/home/controllers/home_feed_orchestrator.dart lib/features/home/room_selection_view.dart lib/features/home/widgets/pet_photo_gallery.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-08 Chat Keyboard Enter Key)
+- [x] Inspect the chat composer input configuration and confirm why the iOS keyboard shows a send action in the bottom-right corner.
+- [x] Change the composer input to use the standard multiline Enter key while keeping message send on the dedicated composer send button.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the behavior change and verification results.
+
+## Review (2026-03-08 Chat Keyboard Enter Key)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/features/chat/chat_room_view.dart` explicitly set the composer `TextField` to `TextInputAction.send` and handled `onSubmitted`, which tells iOS to replace the keyboard bottom-right Return key with a Send action.
+- Fix:
+  - `lib/features/chat/chat_room_view.dart`: changed the composer input to multiline keyboard behavior with `TextInputType.multiline` + `TextInputAction.newline`, and removed keyboard-submit sending so the iPhone keyboard shows the normal Enter/return key again.
+  - The existing in-composer send button remains the message send trigger.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-07 Feed Double Reward Prompt Reliability)
 - [x] Inspect the post-feed reward flow and locate the conditions that control showing the rewarded-ad prompt after a successful feed.
 - [x] Implement the minimal fix so eligible feed completions trigger the double reward prompt again without regressing reward state handling.
@@ -48,6 +198,8 @@
   - `flutter analyze`
   - `flutter test`
   - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+- UI follow-up:
+  - Refined the onboarding coach card into a more deliberate guidance surface with stronger spacing, a numbered badge, softer layered highlights, and a visual pointer toward the existing CTA while preserving the same interaction model.
 
 ## Plan (2026-03-07 Rewarded Ads Without ATT Requirement)
 - [x] Trace current AdMob startup and rewarded-ad gating so ATT denial no longer blocks ad availability.

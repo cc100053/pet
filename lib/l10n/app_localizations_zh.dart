@@ -214,6 +214,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonSkip => '跳过';
 
   @override
+  String get onboardingCreatePetPromptTitle => '選擇寵物入住你的新房間！';
+
+  @override
+  String get onboardingProfileSetupTitle => '先設定你的個人資料';
+
+  @override
+  String get onboardingProfileSetupSubtitle => '請設定朋友會看到的名稱。照片現在可以上傳，也可以稍後再加。';
+
+  @override
+  String get onboardingProfileSetupAvatarOptional => '照片可稍後再加';
+
+  @override
+  String get onboardingProfileSetupContinue => '繼續';
+
+  @override
+  String get onboardingProfileSetupNameRequiredError => '請輸入你要使用的名稱。';
+
+  @override
+  String get onboardingProfileSetupNameChangeHint => '請先設定名稱，再繼續下一步。';
+
+  @override
   String get commonGallery => '相簿';
 
   @override
@@ -1499,6 +1520,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get commonSkip => '略過';
+
+  @override
+  String get onboardingCreatePetPromptTitle => '選擇寵物入住你的新房間！';
+
+  @override
+  String get onboardingProfileSetupTitle => '先設定你的個人資料';
+
+  @override
+  String get onboardingProfileSetupSubtitle => '請設定朋友會看到的名稱。照片現在可以上傳，也可以稍後再加。';
+
+  @override
+  String get onboardingProfileSetupAvatarOptional => '照片可稍後再加';
+
+  @override
+  String get onboardingProfileSetupContinue => '繼續';
+
+  @override
+  String get onboardingProfileSetupNameRequiredError => '請輸入你要使用的名稱。';
+
+  @override
+  String get onboardingProfileSetupNameChangeHint => '請先設定名稱，再繼續下一步。';
 
   @override
   String get commonGallery => '相簿';

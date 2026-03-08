@@ -24,6 +24,7 @@ class RoomSelectionView extends StatelessWidget {
     required this.onLeaveRoom,
     required this.creatingRoom,
     required this.joiningRoom,
+    this.refreshingRooms = false,
     this.userAvatarById = const {},
     this.userNameById = const {},
     this.selectedRoomId,
@@ -41,6 +42,7 @@ class RoomSelectionView extends StatelessWidget {
   final ValueChanged<String> onLeaveRoom;
   final bool creatingRoom;
   final bool joiningRoom;
+  final bool refreshingRooms;
   final Map<String, String?> userAvatarById;
   final Map<String, String?> userNameById;
   final String? selectedRoomId;
@@ -173,6 +175,37 @@ class RoomSelectionView extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                           color: AppTheme.textPrimary,
                                         ),
+                              ),
+                            ),
+                            AnimatedOpacity(
+                              opacity: refreshingRooms ? 1 : 0,
+                              duration: const Duration(milliseconds: 180),
+                              curve: Curves.easeOut,
+                              child: IgnorePointer(
+                                ignoring: !refreshingRooms,
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 8 * uiScale),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 10 * uiScale,
+                                    vertical: 6 * uiScale,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.88),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(color: Colors.black12),
+                                  ),
+                                  child: SizedBox(
+                                    width: 14 * uiScale,
+                                    height: 14 * uiScale,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            AppTheme.textSecondary,
+                                          ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             if (responsive.isCompact)

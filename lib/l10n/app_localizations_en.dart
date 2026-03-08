@@ -220,6 +220,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSkip => 'Skip';
 
   @override
+  String get onboardingCreatePetPromptTitle =>
+      'Choose a pet to move into your new room!';
+
+  @override
+  String get onboardingProfileSetupTitle => 'Set up your profile';
+
+  @override
+  String get onboardingProfileSetupSubtitle =>
+      'Choose the name your friends will see. You can add a photo now or later.';
+
+  @override
+  String get onboardingProfileSetupAvatarOptional => 'Photo optional';
+
+  @override
+  String get onboardingProfileSetupContinue => 'Continue';
+
+  @override
+  String get onboardingProfileSetupNameRequiredError =>
+      'Enter the name you want to use.';
+
+  @override
+  String get onboardingProfileSetupNameChangeHint =>
+      'Choose a name before continuing.';
+
+  @override
   String get commonGallery => 'Gallery';
 
   @override

@@ -16,6 +16,7 @@ class PetPhotoGallery extends StatefulWidget {
     required this.imageUrls,
     required this.captions,
     required this.sentAts,
+    this.isRefreshing = false,
     required this.senderAvatars,
     required this.senderFallbackTexts,
     required this.onPlaceholderTap,
@@ -24,6 +25,7 @@ class PetPhotoGallery extends StatefulWidget {
   final List<String> imageUrls;
   final List<String?> captions;
   final List<DateTime?> sentAts;
+  final bool isRefreshing;
   final List<String?> senderAvatars;
   final List<String?> senderFallbackTexts;
   final VoidCallback onPlaceholderTap;
@@ -140,52 +142,87 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
         final cardMargin = responsive.pick(compact: 4, regular: 6, expanded: 8);
         return AspectRatio(
           aspectRatio: aspectRatio,
-          child: PageView.builder(
-            controller: _pageController,
-            padEnds: true,
-            itemCount: _slotCount,
-            itemBuilder: (context, index) {
-              final distance = ((_page - index).abs()).clamp(0.0, 1.0);
-              final dim = 1 - (distance * 0.30);
-              final hasPhoto = index < urls.length;
-              final caption = index < widget.captions.length
-                  ? (widget.captions[index] ?? '').trim()
-                  : '';
-              final senderAvatar = index < widget.senderAvatars.length
-                  ? widget.senderAvatars[index]
-                  : null;
-              final senderFallbackText =
-                  index < widget.senderFallbackTexts.length
-                  ? widget.senderFallbackTexts[index]
-                  : null;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 140),
-                curve: Curves.easeOutCubic,
-                margin: EdgeInsets.symmetric(
-                  horizontal: cardMargin,
-                  vertical: cardMargin,
-                ),
-                child: Opacity(
-                  opacity: dim,
-                  child: hasPhoto
-                      ? _GalleryPhotoCard(
-                          imageUrl: urls[index],
-                          caption: caption,
-                          senderAvatar: senderAvatar,
-                          senderFallbackText: senderFallbackText,
-                          scale: scale,
-                          tokens: tokens,
-                          onTap: () => _openViewerAt(index: index, urls: urls),
-                        )
-                      : _PlaceholderFrame(
-                          ctaText: l10n.feedPickPhotoHint,
-                          scale: scale,
-                          tokens: tokens,
-                          onTap: widget.onPlaceholderTap,
+          child: Stack(
+            children: [
+              PageView.builder(
+                controller: _pageController,
+                padEnds: true,
+                itemCount: _slotCount,
+                itemBuilder: (context, index) {
+                  final distance = ((_page - index).abs()).clamp(0.0, 1.0);
+                  final dim = 1 - (distance * 0.30);
+                  final hasPhoto = index < urls.length;
+                  final caption = index < widget.captions.length
+                      ? (widget.captions[index] ?? '').trim()
+                      : '';
+                  final senderAvatar = index < widget.senderAvatars.length
+                      ? widget.senderAvatars[index]
+                      : null;
+                  final senderFallbackText =
+                      index < widget.senderFallbackTexts.length
+                      ? widget.senderFallbackTexts[index]
+                      : null;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 140),
+                    curve: Curves.easeOutCubic,
+                    margin: EdgeInsets.symmetric(
+                      horizontal: cardMargin,
+                      vertical: cardMargin,
+                    ),
+                    child: Opacity(
+                      opacity: dim,
+                      child: hasPhoto
+                          ? _GalleryPhotoCard(
+                              imageUrl: urls[index],
+                              caption: caption,
+                              senderAvatar: senderAvatar,
+                              senderFallbackText: senderFallbackText,
+                              scale: scale,
+                              tokens: tokens,
+                              onTap: () =>
+                                  _openViewerAt(index: index, urls: urls),
+                            )
+                          : _PlaceholderFrame(
+                              ctaText: l10n.feedPickPhotoHint,
+                              scale: scale,
+                              tokens: tokens,
+                              onTap: widget.onPlaceholderTap,
+                            ),
+                    ),
+                  );
+                },
+              ),
+              Positioned(
+                top: 10 * scale,
+                right: 14 * scale,
+                child: IgnorePointer(
+                  ignoring: !widget.isRefreshing,
+                  child: AnimatedOpacity(
+                    opacity: widget.isRefreshing ? 1 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    child: Container(
+                      padding: EdgeInsets.all(8 * scale),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: SizedBox(
+                        width: 16 * scale,
+                        height: 16 * scale,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppTheme.textSecondary,
+                          ),
                         ),
+                      ),
+                    ),
+                  ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         );
       },

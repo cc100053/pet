@@ -220,6 +220,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonSkip => '건너뛰기';
 
   @override
+  String get onboardingCreatePetPromptTitle => '새 방에 함께할 펫을 선택해 주세요!';
+
+  @override
+  String get onboardingProfileSetupTitle => '프로필을 먼저 설정해 주세요';
+
+  @override
+  String get onboardingProfileSetupSubtitle =>
+      '친구에게 보여질 이름을 정해 주세요. 사진은 지금 올리거나 나중에 추가할 수 있어요.';
+
+  @override
+  String get onboardingProfileSetupAvatarOptional => '사진은 나중에 추가해도 돼요';
+
+  @override
+  String get onboardingProfileSetupContinue => '계속하기';
+
+  @override
+  String get onboardingProfileSetupNameRequiredError => '사용할 이름을 입력해 주세요.';
+
+  @override
+  String get onboardingProfileSetupNameChangeHint => '계속하기 전에 이름을 정해 주세요.';
+
+  @override
   String get commonGallery => '갤러리';
 
   @override
