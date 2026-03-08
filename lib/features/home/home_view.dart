@@ -43,6 +43,7 @@ import '../../shared/upload_limits.dart';
 import '../chat/chat_message.dart';
 import '../chat/chat_message_list.dart';
 import '../chat/chat_room_view.dart';
+import '../chat/chat_room_view_v2.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
 import '../gallery/memory_calendar_view.dart';
@@ -91,6 +92,8 @@ enum _BasicOnboardingStep {
   feedOnce,
   completed,
 }
+
+const bool _useChatRoomV2Prototype = false;
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -1867,20 +1870,37 @@ class _HomeViewState extends ConsumerState<HomeView>
     Navigator.of(context)
         .push(
           MaterialPageRoute(
-            builder: (_) => ChatRoomView(
-              roomId: roomId,
-              backgroundDecoration: backgroundDecoration,
-              isDarkBackground: isDarkBackground,
-              petName: petName == null || petName.isEmpty
-                  ? fallbackName
-                  : petName,
-              petAssetPath: petAssetPath,
-              isPetDeparted: _petDeparted,
-              isRoomLocked: isRoomLocked,
-              onFeedSendStarted: _handleOptimisticFeed,
-              onFeedUploaded: (result, _) => _handleFeedUploadCompleted(result),
-              onFeedUploadFailed: _handleFeedUploadFailed,
-            ),
+            builder: (_) => _useChatRoomV2Prototype
+                ? ChatRoomViewV2(
+                    roomId: roomId,
+                    backgroundDecoration: backgroundDecoration,
+                    isDarkBackground: isDarkBackground,
+                    petName: petName == null || petName.isEmpty
+                        ? fallbackName
+                        : petName,
+                    petAssetPath: petAssetPath,
+                    isPetDeparted: _petDeparted,
+                    isRoomLocked: isRoomLocked,
+                    onFeedSendStarted: _handleOptimisticFeed,
+                    onFeedUploaded: (result, _) =>
+                        _handleFeedUploadCompleted(result),
+                    onFeedUploadFailed: _handleFeedUploadFailed,
+                  )
+                : ChatRoomView(
+                    roomId: roomId,
+                    backgroundDecoration: backgroundDecoration,
+                    isDarkBackground: isDarkBackground,
+                    petName: petName == null || petName.isEmpty
+                        ? fallbackName
+                        : petName,
+                    petAssetPath: petAssetPath,
+                    isPetDeparted: _petDeparted,
+                    isRoomLocked: isRoomLocked,
+                    onFeedSendStarted: _handleOptimisticFeed,
+                    onFeedUploaded: (result, _) =>
+                        _handleFeedUploadCompleted(result),
+                    onFeedUploadFailed: _handleFeedUploadFailed,
+                  ),
           ),
         )
         .then((_) {

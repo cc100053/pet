@@ -1,0 +1,1960 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
+import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatMessage;
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/shared/ui/app_dialog.dart';
+import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
+import 'package:pet/shared/ui/photo_viewer_item.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../services/analytics/analytics_service.dart';
+import '../../services/auth/session_utils.dart';
+import '../../services/chat/chat_message_repository.dart';
+import '../../services/profile/profile_cache_service.dart';
+import '../../services/review/review_prompt_service.dart';
+import '../../shared/errors/user_facing_error.dart';
+import '../../shared/theme/app_theme.dart';
+import '../feed/feed_capture_view.dart';
+import '../../shared/ui/cached_network_image_view.dart';
+import 'adapters/pet_chat_message_adapter.dart';
+import 'chat_message.dart';
+
+class ChatRoomViewV2 extends StatefulWidget {
+  const ChatRoomViewV2({
+    super.key,
+    required this.roomId,
+    this.backgroundDecoration,
+    this.petName,
+    this.memberCount,
+    this.petAssetPath,
+    this.isDarkBackground = false,
+    this.isPetDeparted = false,
+    this.isRoomLocked = false,
+    this.onFeedSendStarted,
+    this.onFeedUploaded,
+    this.onFeedUploadFailed,
+  });
+
+  final String roomId;
+  final BoxDecoration? backgroundDecoration;
+  final String? petName;
+  final int? memberCount;
+  final String? petAssetPath;
+  final bool isDarkBackground;
+  final bool isPetDeparted;
+  final bool isRoomLocked;
+  final ValueChanged<FeedOptimisticMessage>? onFeedSendStarted;
+  final void Function(FeedUploadResult result, String? imageSource)?
+  onFeedUploaded;
+  final void Function(String tempId, Object error)? onFeedUploadFailed;
+
+  @override
+  State<ChatRoomViewV2> createState() => _ChatRoomViewV2State();
+}
+
+enum _MessageAction { reply, copy, report, block }
+
+class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
+  static const int _pageSize = 20;
+
+  final ChatMessageRepository _repository = ChatMessageRepository.instance;
+  final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
+  final TextEditingController _composerController = TextEditingController();
+  final FocusNode _composerFocusNode = FocusNode();
+  final List<ChatMessage> _messages = <ChatMessage>[];
+  final Map<String, ChatMessage> _messagesById = <String, ChatMessage>{};
+  final Map<String, ProfileSummary> _profilesById = <String, ProfileSummary>{};
+  final Map<String, String> _optimisticFeedImageByTempId = <String, String>{};
+  final Set<String> _blockedUserIds = <String>{};
+  final Set<String> _optimisticIds = <String>{};
+  final Set<String> _loadingReplyPreviewIds = <String>{};
+
+  RealtimeChannel? _channel;
+  bool _loading = true;
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  bool _sending = false;
+  bool _shouldExitAfterFeedSend = false;
+  String? _error;
+  String? _replyTargetMessageId;
+  String? _highlightedMessageId;
+  int? _memberCount;
+
+  String get _currentUserId =>
+      Supabase.instance.client.auth.currentUser?.id ?? '__anonymous__';
+
+  @override
+  void initState() {
+    super.initState();
+    _memberCount = widget.memberCount;
+    if (_memberCount == null) {
+      unawaited(_fetchMemberCount());
+    }
+    unawaited(_initialize());
+    _subscribeToMessages();
+  }
+
+  @override
+  void dispose() {
+    _channel?.unsubscribe();
+    _chatController.dispose();
+    _composerController.dispose();
+    _composerFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initialize() async {
+    await _loadBlockedUsers();
+    await _loadCachedMessages();
+    await _loadInitial();
+  }
+
+  Future<void> _fetchMemberCount() async {
+    try {
+      final count = await Supabase.instance.client
+          .from('room_members')
+          .count(CountOption.exact)
+          .eq('room_id', widget.roomId)
+          .eq('is_active', true);
+      if (!mounted) {
+        return;
+      }
+      setState(() => _memberCount = count);
+    } catch (_) {
+      // Ignore member count failures in the spike view.
+    }
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    _blockedUserIds.clear();
+    if (userId == null) {
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('blocks')
+          .select('blocked_user_id')
+          .eq('blocker_id', userId);
+      final rows = response as List<dynamic>;
+      for (final row in rows) {
+        final blockedId = row['blocked_user_id'] as String?;
+        if (blockedId != null && blockedId.isNotEmpty) {
+          _blockedUserIds.add(blockedId);
+        }
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadBlockedUsersFailed(userFacingError(context, error));
+      });
+    }
+  }
+
+  Future<void> _loadCachedMessages() async {
+    if (!_repository.isReady) {
+      return;
+    }
+
+    try {
+      final cached = _repository.loadCachedMessages(widget.roomId);
+      final messages = _toAscendingMessages(await cached);
+      if (!mounted || messages.isEmpty) {
+        return;
+      }
+      await _setMessages(messages, animated: false);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _loading = false;
+        _error = null;
+      });
+      unawaited(_ensureProfilesForMessages(messages));
+      unawaited(_ensureReplyPreviewsForMessages(messages));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadCacheFailed(userFacingError(context, error));
+      });
+    }
+  }
+
+  Future<void> _loadInitial() async {
+    if (mounted) {
+      setState(() {
+        _loading = _messages.isEmpty;
+        _error = null;
+      });
+    }
+
+    try {
+      final page = await _fetchMessages();
+      final mergedById = <String, ChatMessage>{
+        for (final message in _messages)
+          if (!_optimisticIds.contains(message.id)) message.id: message,
+      };
+      for (final message in page) {
+        mergedById[message.id] = message;
+      }
+      final merged = mergedById.values.toList()..sort(_sortByCreatedAtAsc);
+      _hasMore = page.length == _pageSize;
+      await _setMessages(merged, animated: false);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _loading = false;
+        _error = null;
+      });
+      unawaited(_ensureProfilesForMessages(merged));
+      unawaited(_ensureReplyPreviewsForMessages(merged));
+      unawaited(_persistCache());
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _loading = false;
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadMessagesFailed(userFacingError(context, error));
+      });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore || _messages.isEmpty) {
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _loadingMore = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final oldest = _messages.first;
+      final page = await _fetchMessages(
+        beforeCreatedAt: oldest.createdAt.toUtc().toIso8601String(),
+        beforeId: oldest.id,
+      );
+      final olderMessages =
+          page
+              .where((message) => !_messagesById.containsKey(message.id))
+              .toList()
+            ..sort(_sortByCreatedAtAsc);
+
+      _hasMore = page.length == _pageSize;
+      if (olderMessages.isNotEmpty) {
+        _messages.insertAll(0, olderMessages);
+        _rebuildMessageIndex();
+        await _chatController.insertAllMessages(
+          _toUiMessages(olderMessages),
+          index: 0,
+          animated: false,
+        );
+        unawaited(_ensureProfilesForMessages(olderMessages));
+        unawaited(_ensureReplyPreviewsForMessages(olderMessages));
+        unawaited(_persistCache());
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = AppLocalizations.of(
+          context,
+        )!.chatLoadMoreFailed(userFacingError(context, error));
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loadingMore = false);
+      }
+    }
+  }
+
+  Future<void> _refreshLatest() async {
+    try {
+      final page = await _fetchMessages();
+      final merged = <String, ChatMessage>{
+        for (final message in _messages)
+          if (!_optimisticIds.contains(message.id)) message.id: message,
+      };
+      for (final message in page) {
+        merged[message.id] = message;
+      }
+      final allMessages = merged.values.toList()..sort(_sortByCreatedAtAsc);
+      _hasMore = page.length == _pageSize;
+      await _setMessages(allMessages, animated: false);
+      unawaited(_ensureProfilesForMessages(allMessages));
+      unawaited(_ensureReplyPreviewsForMessages(allMessages));
+      unawaited(_persistCache());
+      if (!mounted) {
+        return;
+      }
+      setState(() => _error = null);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = AppLocalizations.of(
+          context,
+        )!.chatRefreshFailed(userFacingError(context, error));
+      });
+    }
+  }
+
+  Future<void> _setMessages(
+    List<ChatMessage> messages, {
+    required bool animated,
+  }) async {
+    _messages
+      ..clear()
+      ..addAll(messages.where(_isVisibleMessage));
+    _messages.sort(_sortByCreatedAtAsc);
+    _rebuildMessageIndex();
+    await _chatController.setMessages(
+      _toUiMessages(_messages),
+      animated: animated,
+    );
+  }
+
+  void _rebuildMessageIndex() {
+    _messagesById
+      ..clear()
+      ..addEntries(_messages.map((message) => MapEntry(message.id, message)));
+  }
+
+  Future<void> _persistCache() async {
+    if (!_repository.isReady) {
+      return;
+    }
+    final cacheable = _messages
+        .where((message) => !_optimisticIds.contains(message.id))
+        .toList();
+    await _repository.cacheMessages(widget.roomId, cacheable.reversed.toList());
+  }
+
+  List<ChatMessage> _toAscendingMessages(List<ChatMessage> messages) {
+    final filtered = messages.where(_isVisibleMessage).toList();
+    filtered.sort(_sortByCreatedAtAsc);
+    return filtered;
+  }
+
+  bool _isVisibleMessage(ChatMessage message) {
+    final senderId = message.senderId;
+    return senderId == null || !_blockedUserIds.contains(senderId);
+  }
+
+  Future<List<ChatMessage>> _fetchMessages({
+    String? beforeCreatedAt,
+    String? beforeId,
+  }) async {
+    final page = await _repository.fetchMessages(
+      roomId: widget.roomId,
+      beforeCreatedAt: beforeCreatedAt,
+      beforeId: beforeId,
+      limit: _pageSize,
+    );
+    return page.where(_isVisibleMessage).toList();
+  }
+
+  Future<void> _ensureProfilesForMessages(List<ChatMessage> messages) async {
+    final userIds = <String>{};
+    for (final message in messages) {
+      final senderId = message.senderId;
+      if (senderId != null &&
+          senderId.isNotEmpty &&
+          !_profilesById.containsKey(senderId)) {
+        userIds.add(senderId);
+      }
+      final replySenderId = _resolvedReplyPreview(message)?.senderId;
+      if (replySenderId != null &&
+          replySenderId.isNotEmpty &&
+          !_profilesById.containsKey(replySenderId)) {
+        userIds.add(replySenderId);
+      }
+    }
+
+    if (userIds.isEmpty) {
+      return;
+    }
+
+    try {
+      final profiles = await ProfileCacheService.instance.getProfiles(userIds);
+      if (!mounted) {
+        return;
+      }
+      bool hasNewProfiles = false;
+      for (final entry in profiles.entries) {
+        if (!_profilesById.containsKey(entry.key)) {
+          _profilesById[entry.key] = entry.value;
+          hasNewProfiles = true;
+        }
+      }
+      if (hasNewProfiles) {
+        setState(() {});
+      }
+    } catch (_) {
+      // Best-effort profile loading in the spike view.
+    }
+  }
+
+  ChatReplyPreview? _resolvedReplyPreview(ChatMessage message) {
+    final preview = message.replyPreview;
+    if (preview != null && preview.id.isNotEmpty) {
+      return preview;
+    }
+
+    final replyId = message.replyToMessageId;
+    if (replyId == null || replyId.isEmpty) {
+      return null;
+    }
+    final target = _messagesById[replyId];
+    if (target != null) {
+      return ChatReplyPreview.fromMessage(target);
+    }
+    return null;
+  }
+
+  Future<void> _ensureReplyPreviewsForMessages(
+    List<ChatMessage> messages,
+  ) async {
+    final replyIds = <String>{};
+    for (final message in messages) {
+      final replyId = message.replyToMessageId;
+      if (replyId == null ||
+          replyId.isEmpty ||
+          message.replyPreview != null ||
+          _messagesById.containsKey(replyId) ||
+          _loadingReplyPreviewIds.contains(replyId)) {
+        continue;
+      }
+      replyIds.add(replyId);
+    }
+
+    if (replyIds.isEmpty) {
+      return;
+    }
+
+    _loadingReplyPreviewIds.addAll(replyIds);
+    try {
+      final response = await Supabase.instance.client
+          .from('messages')
+          .select('id,sender_id,type,body,image_url,caption')
+          .filter('id', 'in', '(${replyIds.join(',')})');
+      final rows = response as List<dynamic>;
+      final previewById = <String, ChatReplyPreview>{};
+      for (final row in rows) {
+        final preview = ChatReplyPreview.fromJson(
+          Map<String, dynamic>.from(row),
+        );
+        if (preview.id.isNotEmpty) {
+          previewById[preview.id] = preview;
+        }
+      }
+      if (!mounted || previewById.isEmpty) {
+        return;
+      }
+      for (var index = 0; index < _messages.length; index += 1) {
+        final message = _messages[index];
+        final replyId = message.replyToMessageId;
+        if (replyId == null ||
+            replyId.isEmpty ||
+            message.replyPreview != null ||
+            !previewById.containsKey(replyId)) {
+          continue;
+        }
+        _messages[index] = message.copyWith(replyPreview: previewById[replyId]);
+      }
+      _rebuildMessageIndex();
+      setState(() {});
+    } catch (_) {
+      // Best-effort reply preview loading.
+    } finally {
+      _loadingReplyPreviewIds.removeAll(replyIds);
+    }
+  }
+
+  void _subscribeToMessages() {
+    final channel = Supabase.instance.client.channel(
+      'room_messages_v2_${widget.roomId}',
+    );
+    _channel = channel;
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'messages',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: widget.roomId,
+      ),
+      callback: (payload) {
+        final message = ChatMessage.fromJson(payload.newRecord);
+        if (!mounted || message.type.isEmpty || !_isVisibleMessage(message)) {
+          return;
+        }
+        final duplicateOptimisticId = _findMatchingOptimisticMessageId(message);
+        if (duplicateOptimisticId != null) {
+          unawaited(_removeMessageById(duplicateOptimisticId, animated: false));
+        }
+        if (_messagesById.containsKey(message.id)) {
+          return;
+        }
+        unawaited(
+          _insertMessage(
+            message,
+            animated: true,
+            isOptimistic: false,
+            scrollToLatest: true,
+          ),
+        );
+      },
+    );
+    channel.subscribe();
+  }
+
+  String? _findMatchingOptimisticMessageId(ChatMessage incoming) {
+    for (final message in _messages) {
+      if (!_optimisticIds.contains(message.id)) {
+        continue;
+      }
+      if (message.senderId != incoming.senderId) {
+        continue;
+      }
+      if (message.type == 'image_feed' && incoming.type == 'image_feed') {
+        final optimisticClient = message.clientCreatedAt?.toIso8601String();
+        final incomingClient = incoming.clientCreatedAt?.toIso8601String();
+        if (optimisticClient != null &&
+            incomingClient != null &&
+            optimisticClient == incomingClient) {
+          return message.id;
+        }
+      }
+      final sameText = message.body == incoming.body;
+      final sameReply = message.replyToMessageId == incoming.replyToMessageId;
+      if (sameText && sameReply) {
+        return message.id;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _insertMessage(
+    ChatMessage message, {
+    required bool animated,
+    required bool isOptimistic,
+    required bool scrollToLatest,
+  }) async {
+    final existingIndex = _messages.indexWhere(
+      (entry) => entry.id == message.id,
+    );
+    if (existingIndex != -1) {
+      final oldDomain = _messages[existingIndex];
+      _messages[existingIndex] = message;
+      _rebuildMessageIndex();
+      await _chatController.updateMessage(
+        _toUiMessage(oldDomain),
+        _toUiMessage(message, isOptimistic: isOptimistic),
+      );
+    } else {
+      _messages.add(message);
+      _messages.sort(_sortByCreatedAtAsc);
+      _rebuildMessageIndex();
+      final index = _messages.indexWhere((entry) => entry.id == message.id);
+      await _chatController.insertMessage(
+        _toUiMessage(message, isOptimistic: isOptimistic),
+        index: index == -1 ? null : index,
+        animated: animated,
+      );
+    }
+
+    if (isOptimistic) {
+      _optimisticIds.add(message.id);
+    } else {
+      _optimisticIds.remove(message.id);
+    }
+
+    unawaited(_ensureProfilesForMessages([message]));
+    unawaited(_ensureReplyPreviewsForMessages([message]));
+    unawaited(_persistCache());
+    if (scrollToLatest) {
+      unawaited(_chatController.scrollToMessage(message.id, alignment: 1));
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _removeMessageById(
+    String messageId, {
+    required bool animated,
+  }) async {
+    final index = _messages.indexWhere((message) => message.id == messageId);
+    if (index == -1) {
+      return;
+    }
+    final message = _messages.removeAt(index);
+    _optimisticIds.remove(messageId);
+    _rebuildMessageIndex();
+    await _chatController.removeMessage(
+      _toUiMessage(message),
+      animated: animated,
+    );
+    unawaited(_persistCache());
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  fc.Message _toUiMessage(ChatMessage message, {bool? isOptimistic}) {
+    return PetChatMessageAdapter.toUiMessage(
+      message,
+      AppLocalizations.of(context)!,
+      isOptimistic: isOptimistic ?? _optimisticIds.contains(message.id),
+    );
+  }
+
+  List<fc.Message> _toUiMessages(List<ChatMessage> messages) {
+    final l10n = AppLocalizations.of(context)!;
+    return messages
+        .map(
+          (message) => PetChatMessageAdapter.toUiMessage(
+            message,
+            l10n,
+            isOptimistic: _optimisticIds.contains(message.id),
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> _handleSendMessage(String rawText) async {
+    final text = rawText.trim();
+    if (text.isEmpty) {
+      return;
+    }
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.authReauthRequired),
+        ),
+      );
+      return;
+    }
+
+    final replyTargetId = _replyTargetMessageId;
+    final replyTarget = replyTargetId == null
+        ? null
+        : _messagesById[replyTargetId];
+
+    if (mounted) {
+      setState(() {
+        _sending = true;
+        _replyTargetMessageId = null;
+      });
+    }
+
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final optimisticMessage = ChatMessage(
+      id: tempId,
+      roomId: widget.roomId,
+      senderId: userId,
+      type: 'text',
+      body: text,
+      imageUrl: null,
+      caption: null,
+      coinsAwarded: 0,
+      createdAt: DateTime.now().toUtc(),
+      clientCreatedAt: DateTime.now().toUtc(),
+      labels: const <Map<String, dynamic>>[],
+      localImagePath: null,
+      replyToMessageId: replyTarget?.id,
+      replyPreview: replyTarget == null
+          ? null
+          : ChatReplyPreview.fromMessage(replyTarget),
+    );
+
+    await _insertMessage(
+      optimisticMessage,
+      animated: true,
+      isOptimistic: true,
+      scrollToLatest: true,
+    );
+
+    try {
+      final insertedMessage = await Supabase.instance.client
+          .from('messages')
+          .insert({
+            'room_id': widget.roomId,
+            'sender_id': userId,
+            'type': 'text',
+            'body': text,
+            'reply_to_message_id': replyTarget?.id,
+            'client_created_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .select('id')
+          .single();
+      final insertedMessageId = insertedMessage['id'] as String?;
+      await _removeMessageById(tempId, animated: false);
+      unawaited(_refreshLatest());
+      if (insertedMessageId != null) {
+        unawaited(_notifyTextMessage(insertedMessageId));
+      }
+      AnalyticsService.instance.logEvent(
+        'message_send',
+        parameters: {'result': 'success', 'ui': 'flutter_chat_ui_spike'},
+      );
+    } catch (error) {
+      await _removeMessageById(tempId, animated: false);
+      _composerController.text = text;
+      _composerController.selection = TextSelection.collapsed(
+        offset: _composerController.text.length,
+      );
+      if (mounted) {
+        setState(() {
+          _replyTargetMessageId = replyTarget?.id;
+        });
+      }
+      AnalyticsService.instance.logEvent(
+        'message_send',
+        parameters: {'result': 'failure', 'ui': 'flutter_chat_ui_spike'},
+      );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.chatSendFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _sending = false);
+      }
+    }
+  }
+
+  Future<void> _notifyTextMessage(String messageId) async {
+    try {
+      final accessToken = await ensureValidAccessToken();
+      if (accessToken == null) {
+        return;
+      }
+      final response = await Supabase.instance.client.functions.invoke(
+        'notify_friend',
+        headers: {'Authorization': 'Bearer $accessToken'},
+        body: {
+          'type': 'chat_message',
+          'room_id': widget.roomId,
+          'message_id': messageId,
+        },
+      );
+      if (response.status < 200 || response.status >= 300) {
+        return;
+      }
+    } catch (_) {
+      // Notification delivery should not block chat send success.
+    }
+  }
+
+  Future<void> _openFeedCamera() async {
+    final l10n = AppLocalizations.of(context)!;
+    if (widget.isRoomLocked) {
+      await showAppDialog<void>(
+        context: context,
+        builder: (context) => AppDialog(
+          tone: AppDialogTone.info,
+          title: l10n.roomLockedTitle,
+          message: l10n.roomLockedMessage,
+          actions: [
+            AppDialogAction.primary(
+              label: l10n.commonClose,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    if (widget.isPetDeparted) {
+      await showAppDialog<void>(
+        context: context,
+        builder: (context) => AppDialog(
+          tone: AppDialogTone.info,
+          title: l10n.petDepartureFeedDisabledTitle,
+          message: l10n.petDepartureFeedDisabledMessage,
+          actions: [
+            AppDialogAction.primary(
+              label: l10n.commonClose,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    AnalyticsService.instance.logEvent('feed_camera_open');
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FeedCaptureView(
+          roomId: widget.roomId,
+          onOptimisticMessage: _handleOptimisticFeed,
+          onSendStarted: _handleFeedSendStarted,
+          onUploadCompleted: _handleFeedUploadCompleted,
+          onUploadFailed: _handleFeedUploadFailed,
+        ),
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    await _refreshLatest();
+    if (!mounted) {
+      return;
+    }
+    if (_shouldExitAfterFeedSend) {
+      _shouldExitAfterFeedSend = false;
+      unawaited(Navigator.of(context).maybePop());
+    }
+  }
+
+  void _handleFeedSendStarted(FeedOptimisticMessage entry) {
+    _shouldExitAfterFeedSend = true;
+    widget.onFeedSendStarted?.call(entry);
+  }
+
+  void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
+    final optimisticMessage = ChatMessage(
+      id: entry.tempId,
+      roomId: entry.roomId,
+      senderId: entry.senderId,
+      type: 'image_feed',
+      body: null,
+      imageUrl: null,
+      caption: entry.caption,
+      coinsAwarded: 0,
+      createdAt: entry.clientCreatedAt,
+      clientCreatedAt: entry.clientCreatedAt,
+      labels: entry.labels,
+      localImagePath: entry.localImagePath,
+    );
+    unawaited(
+      _insertMessage(
+        optimisticMessage,
+        animated: true,
+        isOptimistic: true,
+        scrollToLatest: true,
+      ),
+    );
+  }
+
+  void _handleFeedUploadCompleted(FeedUploadResult result) {
+    final optimisticImage = _optimisticFeedImageByTempId.remove(result.tempId);
+    unawaited(_removeMessageById(result.tempId, animated: false));
+    unawaited(_refreshLatest());
+    widget.onFeedUploaded?.call(result, optimisticImage ?? result.imageUrl);
+    unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
+  }
+
+  void _handleFeedUploadFailed(String tempId, Object error) {
+    _optimisticFeedImageByTempId.remove(tempId);
+    unawaited(_removeMessageById(tempId, animated: false));
+    widget.onFeedUploadFailed?.call(tempId, error);
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(
+            context,
+          )!.feedUploadFailed(userFacingError(context, error)),
+        ),
+      ),
+    );
+  }
+
+  void _requestReply(ChatMessage message) {
+    setState(() => _replyTargetMessageId = message.id);
+    _composerFocusNode.requestFocus();
+  }
+
+  Future<void> _showMessageActions(ChatMessage message) async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final senderId = message.senderId;
+    if (currentUserId == null || senderId == null) {
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final isBlocked = _blockedUserIds.contains(senderId);
+    final copyText = (message.body ?? '').trim().isNotEmpty
+        ? message.body!.trim()
+        : ((message.caption ?? '').trim().isNotEmpty
+              ? message.caption!.trim()
+              : null);
+    final action = await showModalBottomSheet<_MessageAction>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.reply_rounded),
+                title: Text(l10n.chatReplyAction),
+                onTap: () => Navigator.pop(context, _MessageAction.reply),
+              ),
+              ListTile(
+                leading: const Icon(Icons.content_copy_rounded),
+                title: Text(l10n.chatCopyAction),
+                enabled: copyText != null,
+                onTap: copyText == null
+                    ? null
+                    : () => Navigator.pop(context, _MessageAction.copy),
+              ),
+              ListTile(
+                leading: const Icon(Icons.report_gmailerrorred_outlined),
+                title: Text(l10n.chatReportMessageTitle),
+                onTap: () => Navigator.pop(context, _MessageAction.report),
+              ),
+              ListTile(
+                leading: const Icon(Icons.block),
+                title: Text(
+                  isBlocked ? l10n.chatUserAlreadyBlocked : l10n.chatBlockUser,
+                ),
+                enabled: !isBlocked,
+                onTap: isBlocked
+                    ? null
+                    : () => Navigator.pop(context, _MessageAction.block),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || action == null) {
+      return;
+    }
+
+    switch (action) {
+      case _MessageAction.reply:
+        _requestReply(message);
+        break;
+      case _MessageAction.copy:
+        if (copyText != null) {
+          await Clipboard.setData(ClipboardData(text: copyText));
+          if (!mounted) {
+            return;
+          }
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.chatMessageCopied)));
+        }
+        break;
+      case _MessageAction.report:
+        await _reportMessage(message);
+        break;
+      case _MessageAction.block:
+        await _blockUser(senderId);
+        break;
+    }
+  }
+
+  Future<void> _reportMessage(ChatMessage message) async {
+    final reporterId = Supabase.instance.client.auth.currentUser?.id;
+    if (reporterId == null) {
+      return;
+    }
+
+    final reason = await _promptReportReason(context);
+    if (reason == null) {
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.from('reports').insert({
+        'reporter_id': reporterId,
+        'message_id': message.id,
+        'reason': reason,
+      });
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.chatReportSent)),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.chatReportFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _blockUser(String blockedUserId) async {
+    final blockerId = Supabase.instance.client.auth.currentUser?.id;
+    if (blockerId == null) {
+      return;
+    }
+
+    if (_blockedUserIds.contains(blockedUserId)) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.chatUserAlreadyBlocked),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.from('blocks').upsert({
+        'blocker_id': blockerId,
+        'blocked_user_id': blockedUserId,
+      });
+
+      _blockedUserIds.add(blockedUserId);
+      final toRemove = _messages
+          .where((message) => message.senderId == blockedUserId)
+          .map((message) => message.id)
+          .toList();
+      for (final messageId in toRemove) {
+        await _removeMessageById(messageId, animated: false);
+      }
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.chatUserBlocked)),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.chatBlockFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<String?> _promptReportReason(BuildContext context) async {
+    final controller = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showAppDialog<String>(
+      context: context,
+      builder: (context) => AppDialog(
+        tone: AppDialogTone.warning,
+        title: l10n.chatReportMessageTitle,
+        body: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: l10n.chatReportHint),
+          maxLines: 3,
+        ),
+        actions: [
+          AppDialogAction.secondary(
+            label: l10n.commonCancel,
+            onPressed: () => Navigator.pop(context),
+          ),
+          AppDialogAction.primary(
+            label: l10n.commonSubmit,
+            onPressed: () {
+              final text = controller.text.trim();
+              Navigator.pop(
+                context,
+                text.isEmpty ? l10n.chatReportNoReason : text,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    return result;
+  }
+
+  Future<void> _jumpToReplySource(ChatMessage message) async {
+    final targetId = message.replyToMessageId;
+    if (targetId == null || targetId.isEmpty) {
+      return;
+    }
+
+    var attempts = 0;
+    while (!_messagesById.containsKey(targetId) && _hasMore && attempts < 5) {
+      attempts += 1;
+      await _loadMore();
+    }
+
+    if (!_messagesById.containsKey(targetId)) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.chatNoOlderMessages),
+        ),
+      );
+      return;
+    }
+
+    await _chatController.scrollToMessage(
+      targetId,
+      alignment: 0.25,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() => _highlightedMessageId = targetId);
+    Future<void>.delayed(const Duration(seconds: 1), () {
+      if (!mounted || _highlightedMessageId != targetId) {
+        return;
+      }
+      setState(() => _highlightedMessageId = null);
+    });
+  }
+
+  Future<fc.User?> _resolveUser(String id) async {
+    if (id == PetChatMessageAdapter.systemAuthorId) {
+      return fc.User(id: id, name: widget.petName ?? 'System');
+    }
+    if (id == _currentUserId) {
+      return fc.User(
+        id: id,
+        name: AppLocalizations.of(context)!.chatRoomMemberYou,
+      );
+    }
+    final cached = _profilesById[id];
+    if (cached != null) {
+      return fc.User(
+        id: id,
+        name: cached.nickname,
+        imageSource: cached.avatarUrl,
+      );
+    }
+    final profile = await ProfileCacheService.instance.getProfile(id);
+    if (profile != null && mounted) {
+      _profilesById[id] = profile;
+      setState(() {});
+    }
+    return fc.User(
+      id: id,
+      name: profile?.nickname,
+      imageSource: profile?.avatarUrl,
+    );
+  }
+
+  String? _displayNameForSenderId(String? senderId) {
+    if (senderId == null || senderId.isEmpty) {
+      return null;
+    }
+    if (senderId == _currentUserId) {
+      return AppLocalizations.of(context)!.chatRoomMemberYou;
+    }
+    final nickname = _profilesById[senderId]?.nickname?.trim();
+    if (nickname == null || nickname.isEmpty) {
+      return null;
+    }
+    return nickname;
+  }
+
+  fc.ChatTheme _chatTheme(BuildContext context) {
+    final base = fc.ChatTheme.fromThemeData(Theme.of(context));
+    return base.copyWith(
+      colors: base.colors.copyWith(
+        primary: AppTheme.primaryColor,
+        onPrimary: Colors.white,
+        surface: widget.backgroundDecoration == null
+            ? (widget.isDarkBackground
+                  ? const Color(0xFF111111)
+                  : AppTheme.backgroundColor)
+            : Colors.transparent,
+        onSurface: widget.isDarkBackground
+            ? Colors.white
+            : AppTheme.textPrimary,
+        surfaceContainer: widget.isDarkBackground
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.88),
+        surfaceContainerLow: widget.isDarkBackground
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.white.withValues(alpha: 0.72),
+        surfaceContainerHigh: widget.isDarkBackground
+            ? Colors.white.withValues(alpha: 0.18)
+            : const Color(0xFFF1ECE4),
+      ),
+      shape: BorderRadius.circular(18),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scaffoldBackground =
+        widget.backgroundDecoration?.color ??
+        (widget.isDarkBackground
+            ? const Color(0xFF111111)
+            : AppTheme.backgroundColor);
+    final replyTarget = _replyTargetMessageId == null
+        ? null
+        : _messagesById[_replyTargetMessageId!];
+
+    return Scaffold(
+      backgroundColor: scaffoldBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.petName ?? l10n.chatTitle),
+            if (_memberCount != null)
+              Text(
+                l10n.chatMemberCount(_memberCount!),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: widget.isDarkBackground
+                      ? Colors.white.withValues(alpha: 0.8)
+                      : AppTheme.textSecondary,
+                ),
+              ),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Chat(
+                currentUserId: _currentUserId,
+                resolveUser: _resolveUser,
+                chatController: _chatController,
+                decoration: widget.backgroundDecoration,
+                backgroundColor: scaffoldBackground,
+                theme: _chatTheme(context),
+                onMessageSend: _sending ? null : _handleSendMessage,
+                onAttachmentTap: (_sending || widget.isRoomLocked)
+                    ? null
+                    : _openFeedCamera,
+                onMessageLongPress:
+                    (context, message, {required index, required details}) {
+                      final domainMessage = _messagesById[message.id];
+                      final isMine = domainMessage?.senderId == _currentUserId;
+                      if (domainMessage == null ||
+                          domainMessage.isSystem ||
+                          isMine ||
+                          domainMessage.senderId == null) {
+                        return;
+                      }
+                      unawaited(_showMessageActions(domainMessage));
+                    },
+                builders: fc.Builders(
+                  composerBuilder: (context) => Composer(
+                    textEditingController: _composerController,
+                    focusNode: _composerFocusNode,
+                    topWidget: replyTarget == null
+                        ? null
+                        : _ReplyComposerBar(
+                            message: replyTarget,
+                            senderName: _displayNameForSenderId(
+                              replyTarget.senderId,
+                            ),
+                            onCancel: () {
+                              setState(() => _replyTargetMessageId = null);
+                            },
+                          ),
+                    textInputAction: TextInputAction.newline,
+                    sendOnEnter: false,
+                    hintText: l10n.chatMessageHint,
+                    maxLines: 4,
+                    attachmentIcon: SvgPicture.asset(
+                      'assets/icon/solar--camera-linear.svg',
+                      width: 22,
+                      height: 22,
+                      colorFilter: ColorFilter.mode(
+                        widget.isDarkBackground
+                            ? Colors.white.withValues(alpha: 0.88)
+                            : AppTheme.textSecondary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    sendIcon: SvgPicture.asset(
+                      'assets/icon/mingcute--send-plane-line.svg',
+                      width: 20,
+                      height: 20,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    backgroundColor: widget.isDarkBackground
+                        ? Colors.black.withValues(alpha: 0.38)
+                        : Colors.white.withValues(alpha: 0.9),
+                    inputFillColor: widget.isDarkBackground
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : const Color(0xFFF6F1EA),
+                    textColor: widget.isDarkBackground
+                        ? Colors.white
+                        : AppTheme.textPrimary,
+                    hintColor: widget.isDarkBackground
+                        ? Colors.white.withValues(alpha: 0.64)
+                        : AppTheme.textSecondary,
+                    attachmentIconColor: widget.isDarkBackground
+                        ? Colors.white.withValues(alpha: 0.88)
+                        : AppTheme.textSecondary,
+                    sendIconColor: Colors.white,
+                    emptyFieldSendIconColor: widget.isDarkBackground
+                        ? Colors.white.withValues(alpha: 0.3)
+                        : Colors.black.withValues(alpha: 0.22),
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+                  ),
+                  systemMessageBuilder:
+                      (
+                        context,
+                        message,
+                        index, {
+                        required isSentByMe,
+                        groupStatus,
+                      }) {
+                        return _SystemPill(message: message.text);
+                      },
+                  customMessageBuilder:
+                      (
+                        context,
+                        message,
+                        index, {
+                        required isSentByMe,
+                        groupStatus,
+                      }) {
+                        return _FeedCard(
+                          message: message,
+                          isMe: isSentByMe,
+                          senderName: _displayNameForSenderId(
+                            _messagesById[message.id]?.senderId,
+                          ),
+                          onTapImage: () =>
+                              _openFeedViewer(_messagesById[message.id]),
+                        );
+                      },
+                  chatMessageBuilder:
+                      (
+                        context,
+                        message,
+                        index,
+                        animation,
+                        child, {
+                        isRemoved,
+                        required isSentByMe,
+                        groupStatus,
+                      }) {
+                        final domainMessage = _messagesById[message.id];
+                        if (domainMessage == null) {
+                          return child;
+                        }
+                        Widget content = _MessageEnvelope(
+                          replyPreview: _resolvedReplyPreview(domainMessage),
+                          replySenderName: _displayNameForSenderId(
+                            _resolvedReplyPreview(domainMessage)?.senderId,
+                          ),
+                          isHighlighted:
+                              _highlightedMessageId == domainMessage.id,
+                          onReplyTap: domainMessage.replyToMessageId == null
+                              ? null
+                              : () => _jumpToReplySource(domainMessage),
+                          child: child,
+                        );
+                        final canReply =
+                            !domainMessage.isSystem &&
+                            !isSentByMe &&
+                            domainMessage.senderId != null;
+                        if (canReply) {
+                          content = _ReplySwipeWrapper(
+                            onTriggered: () {
+                              HapticFeedback.lightImpact();
+                              _requestReply(domainMessage);
+                            },
+                            child: content,
+                          );
+                        }
+                        return content;
+                      },
+                  chatAnimatedListBuilder: (context, itemBuilder) {
+                    return ChatAnimatedList(
+                      itemBuilder: itemBuilder,
+                      reversed: true,
+                      onEndReached: _hasMore ? _loadMore : null,
+                      topPadding: 12,
+                      bottomPadding: 108,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                    );
+                  },
+                  emptyChatListBuilder: (context) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        l10n.chatEmptyState,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: widget.isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.84)
+                              : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  loadMoreBuilder: (context) => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (_loading)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
+          if (_error != null)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              child: IgnorePointer(
+                ignoring: true,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.errorContainer.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _openFeedViewer(ChatMessage? message) {
+    if (message == null) {
+      return;
+    }
+    final localPath = message.localImagePath?.trim();
+    final remoteUrl = (message.imageUrl ?? '').trim();
+    if (remoteUrl.isEmpty && (localPath == null || localPath.isEmpty)) {
+      return;
+    }
+
+    FullScreenPhotoViewer.open(
+      context,
+      items: [
+        PhotoViewerItem(
+          imageUrl: remoteUrl,
+          localImagePath: localPath,
+          caption: (message.caption ?? '').trim().isEmpty
+              ? null
+              : message.caption,
+          senderName: _displayNameForSenderId(message.senderId),
+          sentAt: message.createdAt,
+        ),
+      ],
+      showIndicator: false,
+    );
+  }
+
+  int _sortByCreatedAtAsc(ChatMessage a, ChatMessage b) {
+    final createdCompare = a.createdAt.compareTo(b.createdAt);
+    if (createdCompare != 0) {
+      return createdCompare;
+    }
+    return a.id.compareTo(b.id);
+  }
+}
+
+class _ReplyComposerBar extends StatelessWidget {
+  const _ReplyComposerBar({
+    required this.message,
+    required this.senderName,
+    required this.onCancel,
+  });
+
+  final ChatMessage message;
+  final String? senderName;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final label = senderName?.trim().isNotEmpty == true
+        ? senderName!.trim()
+        : l10n.chatPartnerLabel;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.chatReplyingTo(label),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  PetChatMessageAdapter.previewTextForMessage(message, l10n),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onCancel,
+            icon: const Icon(Icons.close_rounded, size: 18),
+            splashRadius: 18,
+            tooltip: l10n.commonCancel,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SystemPill extends StatelessWidget {
+  const _SystemPill({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageEnvelope extends StatelessWidget {
+  const _MessageEnvelope({
+    required this.child,
+    required this.replyPreview,
+    required this.replySenderName,
+    required this.isHighlighted,
+    required this.onReplyTap,
+  });
+
+  final Widget child;
+  final ChatReplyPreview? replyPreview;
+  final String? replySenderName;
+  final bool isHighlighted;
+  final VoidCallback? onReplyTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        color: isHighlighted
+            ? AppTheme.primaryColor.withValues(alpha: 0.09)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isHighlighted
+              ? AppTheme.primaryColor.withValues(alpha: 0.35)
+              : Colors.transparent,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (replyPreview != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, right: 4, bottom: 6),
+              child: InkWell(
+                onTap: onReplyTap,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              replySenderName?.trim().isNotEmpty == true
+                                  ? replySenderName!.trim()
+                                  : l10n.chatPartnerLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              PetChatMessageAdapter.previewTextForReply(
+                                replyPreview!,
+                                l10n,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_upward_rounded,
+                        size: 14,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _FeedCard extends StatelessWidget {
+  const _FeedCard({
+    required this.message,
+    required this.isMe,
+    required this.senderName,
+    required this.onTapImage,
+  });
+
+  final fc.CustomMessage message;
+  final bool isMe;
+  final String? senderName;
+  final VoidCallback onTapImage;
+
+  @override
+  Widget build(BuildContext context) {
+    final metadata = message.metadata ?? const <String, dynamic>{};
+    final remoteUrl =
+        (metadata[PetChatMessageAdapter.imageUrlKey] as String? ?? '').trim();
+    final localPath =
+        (metadata[PetChatMessageAdapter.localImagePathKey] as String? ?? '')
+            .trim();
+    final caption =
+        (metadata[PetChatMessageAdapter.captionKey] as String? ?? '').trim();
+    final coinsAwarded =
+        (metadata[PetChatMessageAdapter.coinsAwardedKey] as int?) ?? 0;
+    final theme = Theme.of(context);
+    final canShowRemote = remoteUrl.isNotEmpty;
+    final canShowLocal = localPath.isNotEmpty;
+
+    Widget image = Container(
+      color: theme.colorScheme.surfaceContainerHighest,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.image_outlined,
+        size: 28,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+    if (canShowLocal) {
+      image = Image.file(File(localPath), fit: BoxFit.cover);
+    } else if (canShowRemote) {
+      image = CachedNetworkImageView(imageUrl: remoteUrl, fit: BoxFit.cover);
+    }
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 280),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: InkWell(
+          onTap: onTapImage,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AspectRatio(
+                aspectRatio: 4 / 5,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    image,
+                    if (coinsAwarded > 0)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.55),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '+$coinsAwarded',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isMe && senderName?.trim().isNotEmpty == true)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          senderName!.trim(),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    if (caption.isNotEmpty)
+                      Text(
+                        caption,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.35,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReplySwipeWrapper extends StatefulWidget {
+  const _ReplySwipeWrapper({required this.child, required this.onTriggered});
+
+  final Widget child;
+  final VoidCallback onTriggered;
+
+  @override
+  State<_ReplySwipeWrapper> createState() => _ReplySwipeWrapperState();
+}
+
+class _ReplySwipeWrapperState extends State<_ReplySwipeWrapper>
+    with SingleTickerProviderStateMixin {
+  static const double _triggerDistance = 64;
+
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 180),
+  );
+  late Animation<double> _animation = const AlwaysStoppedAnimation<double>(0);
+  double _dragOffset = 0;
+  bool _triggered = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _animateBack() {
+    _animation =
+        Tween<double>(begin: _dragOffset, end: 0).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+        )..addListener(() {
+          setState(() => _dragOffset = _animation.value);
+        });
+    _controller
+      ..reset()
+      ..forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (_dragOffset / _triggerDistance).clamp(0.0, 1.0);
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragUpdate: (details) {
+        if (details.delta.dx >= 0) {
+          return;
+        }
+        setState(() {
+          _dragOffset = (_dragOffset + (-details.delta.dx)).clamp(0.0, 84.0);
+        });
+      },
+      onHorizontalDragEnd: (_) {
+        final shouldTrigger = _dragOffset >= _triggerDistance && !_triggered;
+        if (shouldTrigger) {
+          _triggered = true;
+          widget.onTriggered();
+        }
+        _animateBack();
+        _triggered = false;
+      },
+      onHorizontalDragCancel: _animateBack,
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          Positioned(
+            left: 8,
+            child: Opacity(
+              opacity: progress,
+              child: Transform.scale(
+                scale: 0.9 + (progress * 0.1),
+                child: Icon(
+                  Icons.reply_rounded,
+                  size: 18,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.9),
+                ),
+              ),
+            ),
+          ),
+          Transform.translate(
+            offset: Offset(-_dragOffset, 0),
+            child: widget.child,
+          ),
+        ],
+      ),
+    );
+  }
+}

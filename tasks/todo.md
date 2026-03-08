@@ -1,5 +1,74 @@
 # TODO
 
+## Plan (2026-03-08 flutter_chat_ui Migration Spike)
+- [x] Write the approved `flutter_chat_ui` migration/spec into this file so the adapter/controller/custom-renderer boundaries are explicit before code moves.
+- [x] Add `flutter_chat_ui` / `flutter_chat_core` dependencies and fetch packages.
+- [x] Build a non-production `ChatRoomViewV2` spike that proves package-based rendering for text, package reply structure, custom feed card, system message builder, and package composer integration.
+- [x] Keep Supabase/realtime/cache/moderation business logic outside the package by introducing an adapter/controller seam instead of rewriting domain data first.
+- [x] Validate package extensibility for Telegram-style swipe reply and jump-to-source highlight before replacing the production route.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with spike findings, chosen boundaries, and verification results.
+
+## Spec (2026-03-08 flutter_chat_ui Migration Spike)
+- Package choice:
+  - `flutter_chat_ui` owns list/bubble/composer/reply shell.
+  - `flutter_chat_core` owns the message/user/theme/controller types required by the UI package.
+- Product decisions already confirmed:
+  - Use package reply structure.
+  - Package composer replaces the current custom composer.
+  - Feed messages stay custom via a package custom-message path.
+  - System messages move to package system-message rendering.
+  - Swipe reply should feel Telegram-like (distance threshold, not instant trigger).
+  - Tapping a reply quote should jump back to the source message and briefly highlight it.
+  - Feed card keeps the `+coins` badge.
+- Adapter boundary:
+  - Existing `ChatMessage` / Supabase rows remain the source of truth.
+  - Add a `PetChatMessageAdapter` that maps `text` -> package text message, `system` -> package system message, and `image_feed` -> package custom message with feed metadata.
+  - Reply linkage continues using `reply_to_message_id`; package reply payload is derived from already-fetched/best-effort-loaded source messages.
+- Controller boundary:
+  - Add a `PetChatSessionController` to own initial load, pagination, realtime insert, optimistic temp messages, blocked filtering, scroll-to-latest, and jump-to-source lookup.
+  - Package widgets must not call Supabase directly.
+- Renderer boundary:
+  - Text/default reply visuals stay package-native.
+  - Feed card becomes a package custom-message builder, redesigned closer to package spacing/typography while keeping image tap, optimistic local image, caption, sender, reply preview, and `+coins`.
+  - System messages use a package system-message builder but keep the app’s existing localized parsing for hunger/rename/cleanup strings.
+- Composer boundary:
+  - Package composer is used end-to-end.
+  - Camera/feed action is injected through package composer actions.
+  - Send still routes into the current optimistic insert + Supabase insert + notification flow.
+  - iOS Enter-key behavior remains required.
+- Interaction boundary:
+  - Long-press actions remain `Reply`, `Copy`, `Report`, `Block`.
+  - Swipe reply is implemented as a thin wrapper around package message rows instead of forking package internals.
+  - Jump-to-source highlight should work for both already-loaded and paged-in older messages.
+- Spike success criteria:
+  - No package fork required.
+  - Package composer can host the camera/feed affordance without deep hacks.
+  - Custom feed card and package system-message builder can coexist in one chat timeline.
+  - Reply state can be driven from both long-press and Telegram-style swipe.
+  - If any two of the above require deep internal overrides, fall back to a mixed approach before production replacement.
+
+## Review (2026-03-08 flutter_chat_ui Migration Spike)
+- [x] Implemented and verified.
+- Result:
+  - Added `flutter_chat_ui` / `flutter_chat_core` to `pubspec.yaml` and fetched packages.
+  - Added `lib/features/chat/adapters/pet_chat_message_adapter.dart` to map existing `ChatMessage` domain rows into package `TextMessage` / `SystemMessage` / `CustomMessage`.
+  - Added `lib/features/chat/chat_room_view_v2.dart` as a default-off spike route that keeps Supabase fetch/realtime/cache/moderation in app code while letting `flutter_chat_ui` handle list/composer shell.
+  - Added a safe route toggle in `lib/features/home/home_view.dart` (`_useChatRoomV2Prototype = false`) so the spike does not replace production chat yet.
+- Key findings:
+  - `flutter_chat_core` exposes `replyToMessageId`, so package data structure fits the backend schema.
+  - `flutter_chat_ui` 2.11.1 does not appear to ship built-in quoted-reply rendering in the UI layer, so the spike keeps package reply structure but uses a thin wrapper builder for reply preview, Telegram-style swipe trigger, and jump-to-source highlight.
+  - Package composer is flexible enough for the camera action, Enter-key behavior, and a custom top reply bar without forking the package.
+  - Feed cards fit cleanly through `customMessageBuilder`, so product-specific feed UI can stay isolated.
+- Verification:
+  - `flutter pub get`
+  - `dart format lib/features/chat/adapters/pet_chat_message_adapter.dart lib/features/chat/chat_room_view_v2.dart lib/features/home/home_view.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-08 Chat Reply Fetch Regression)
 - [x] Trace the chat load failure after reply rollout and confirm whether the new `messages` fetch path depends on a brittle self-referential PostgREST relation.
 - [x] Remove the initial chat-load dependency on the `messages -> messages` join while keeping reply previews available through the existing follow-up lookup path.

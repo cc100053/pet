@@ -66,6 +66,9 @@ Implemented:
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_message_list.dart`: Extracted stateful chat message list (pagination/realtime/cache/moderation UI state).
     - Chat now supports modern reply interactions for other users' messages: long-press action sheet (`Reply`, `Copy`, moderation actions), left-swipe-to-reply, inline quoted previews, and composer reply-preview state for outgoing text messages.
+    - `lib/features/chat/chat_room_view_v2.dart`: Default-off `flutter_chat_ui` spike route that keeps Supabase/realtime/cache logic in-app while testing package list/composer integration behind a safe toggle in `HomeView`.
+    - `lib/features/chat/adapters/pet_chat_message_adapter.dart`: Maps app `ChatMessage` domain rows into `flutter_chat_core` message types for the spike route.
+    - Migration note: package models support `replyToMessageId`, but `flutter_chat_ui` 2.11.1 does not appear to render quoted replies out of the box, so a thin wrapper builder is still needed for reply previews/swipe/jump interactions even in a package-first migration.
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
   - `lib/features/gallery/`: Memory calendar view for feed images.
