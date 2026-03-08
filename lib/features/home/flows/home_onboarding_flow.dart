@@ -183,7 +183,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
       return;
     }
     final needsReset =
-        _basicOnboardingStep != _BasicOnboardingStep.createPet ||
+        _basicOnboardingStep != _BasicOnboardingStep.profileSetup ||
         _basicOnboardingDismissed ||
         _basicOnboardingCompleted;
     if (!needsReset) {
@@ -191,15 +191,17 @@ extension _HomeOnboardingFlow on _HomeViewState {
     }
     if (mounted) {
       _setStateForOnboarding(() {
-        _basicOnboardingStep = _BasicOnboardingStep.createPet;
+        _basicOnboardingStep = _BasicOnboardingStep.profileSetup;
         _basicOnboardingDismissed = false;
         _basicOnboardingCompleted = false;
       });
+      _syncOnboardingProfileDraftFromCurrentData(overwriteExistingText: true);
       return;
     }
-    _basicOnboardingStep = _BasicOnboardingStep.createPet;
+    _basicOnboardingStep = _BasicOnboardingStep.profileSetup;
     _basicOnboardingDismissed = false;
     _basicOnboardingCompleted = false;
+    _syncOnboardingProfileDraftFromCurrentData(overwriteExistingText: true);
   }
 
   String _basicOnboardingStepStorageValue(_BasicOnboardingStep step) {
