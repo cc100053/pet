@@ -97,6 +97,7 @@ Implemented:
 - `lib/services/privacy/tracking_consent_service.dart`: Central ATT consent coordinator that waits for app lifecycle `resumed` before requesting authorization.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - `lib/shared/ui/adaptive_layout.dart`: Shared adaptive width helpers for tablet-safe max-width constraints, plus iOS tablet-display detection to avoid compact-tier misclassification when running in iPhone-compat viewport mode on iPad.
+- `lib/features/chat/widgets/deterministic_chat_list.dart`: Shared deterministic chat timeline wrapper used by `ChatRoomViewV2`; it preserves manual keyboard-dismiss behavior, forwards per-message long-press actions, and exposes the jump-to-latest visibility threshold used by the restored floating button.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
 - Home HUD coin reward animation: `lib/features/home/home_view.dart` emits a monotonic `coinRewardEventId` so repeated rewards retrigger the animation reliably; coin loads are coalesced to avoid racey deltas.

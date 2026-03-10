@@ -1,5 +1,25 @@
 # TODO
 
+## Plan (2026-03-10 Chat Latest Button + Long-Press Regression)
+- [x] Trace the active V2 chat path to confirm why the jump-to-latest affordance disappeared and why long-press actions no longer open.
+- [x] Restore the missing latest-message button and reattach long-press handling at the deterministic list layer used by `ChatRoomViewV2`.
+- [x] Add targeted regression coverage, run required verification (`dart format`, `flutter analyze`, `flutter test`), and update task/memory notes with the confirmed root cause.
+
+## Review (2026-03-10 Chat Latest Button + Long-Press Regression)
+- [x] Implemented and verified.
+- Root cause:
+  - `ChatRoomViewV2` replaced the package-managed animated list with a custom deterministic scroll view to own reply-jump behavior, but that custom list only rendered message widgets.
+  - The migration did not recreate the package-level list affordances that used to sit around each rendered item, so the chat lost both the long-press action entry point and the built-in jump-to-latest button.
+- Fixes:
+  - `lib/features/chat/widgets/deterministic_chat_list.dart` now owns the deterministic list implementation, forwards per-message long-press events, and exposes a shared helper for deciding when the jump-to-latest affordance should appear.
+  - `lib/features/chat/chat_room_view_v2.dart` now routes long-presses from the deterministic list back into the existing reaction/action sheet flow and restores a floating jump-to-latest button above the composer whenever the user scrolls far enough away from the newest message.
+  - `test/features/chat/deterministic_chat_list_test.dart` locks the long-press forwarding and jump-button visibility threshold behavior.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart lib/features/chat/widgets/deterministic_chat_list.dart test/features/chat/deterministic_chat_list_test.dart`
+  - `flutter analyze`
+  - `flutter test test/features/chat/deterministic_chat_list_test.dart`
+  - `flutter test`
+
 ## Plan (2026-03-10 Chat Long-Press + Integrated Reply + Dark Bubble + Half-Screen Back Swipe)
 - [x] Add Supabase `message_reactions` schema via MCP-first migration, including RLS, indexes, updated_at trigger, and realtime publication; save matching repo migration file.
 - [x] Extend chat message domain/cache/V2 state to load grouped reaction summaries, toggle per-user reactions, and subscribe to reaction realtime changes.

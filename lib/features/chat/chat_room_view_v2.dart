@@ -30,6 +30,7 @@ import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
 import 'chat_reaction_utils.dart';
 import 'room_members_sheet.dart';
+import 'widgets/deterministic_chat_list.dart';
 import 'widgets/chat_message_action_sheet.dart';
 import 'widgets/chat_reaction_bar.dart';
 import 'widgets/chat_reply_preview_panel.dart';
@@ -118,6 +119,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   bool _hasMore = true;
   bool _sending = false;
   bool _shouldExitAfterFeedSend = false;
+  bool _showScrollToLatestButton = false;
   String? _error;
   String? _replyTargetMessageId;
   String? _highlightedMessageId;
@@ -1540,13 +1542,22 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   }
 
   void _handleChatScroll() {
-    if (!_chatScrollController.hasClients ||
-        _loadingMore ||
-        _loading ||
-        !_hasMore) {
+    if (!_chatScrollController.hasClients) {
       return;
     }
-    if (_chatScrollController.position.pixels <= 120) {
+    final position = _chatScrollController.position;
+    final showJumpButton = shouldShowChatScrollToLatestButton(
+      pixels: position.pixels,
+      maxScrollExtent: position.maxScrollExtent,
+    );
+    if (showJumpButton != _showScrollToLatestButton && mounted) {
+      setState(() => _showScrollToLatestButton = showJumpButton);
+    }
+
+    if (_loadingMore || _loading || !_hasMore) {
+      return;
+    }
+    if (position.pixels <= 120) {
       unawaited(_loadMore());
     }
   }
@@ -1590,21 +1601,38 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       if (!mounted || !_chatScrollController.hasClients) {
         return;
       }
-      final position = _chatScrollController.position;
-      final target = position.maxScrollExtent;
-      if ((position.pixels - target).abs() <= 1) {
-        return;
-      }
-      if (!animated) {
-        _chatScrollController.jumpTo(target);
-        return;
-      }
-      await _chatScrollController.animateTo(
-        target,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
+      await _scrollToLatest(animated: animated);
     });
+  }
+
+  Future<void> _scrollToLatest({required bool animated}) async {
+    if (!_chatScrollController.hasClients) {
+      return;
+    }
+    final position = _chatScrollController.position;
+    final target = position.maxScrollExtent;
+    if ((position.pixels - target).abs() <= 1) {
+      return;
+    }
+    if (!animated) {
+      _chatScrollController.jumpTo(target);
+      return;
+    }
+    await _chatScrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _handleDeterministicMessageLongPress(fc.Message message) {
+    final domainMessage = _messagesById[message.id];
+    if (domainMessage == null ||
+        domainMessage.isSystem ||
+        domainMessage.senderId == null) {
+      return;
+    }
+    unawaited(_showMessageActions(domainMessage));
   }
 
   double? _replyTargetCenterOffset(GlobalKey targetKey) {
@@ -1806,21 +1834,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                       onAttachmentTap: (_sending || widget.isRoomLocked)
                           ? null
                           : _openFeedCamera,
-                      onMessageLongPress:
-                          (
-                            context,
-                            message, {
-                            required index,
-                            required details,
-                          }) {
-                            final domainMessage = _messagesById[message.id];
-                            if (domainMessage == null ||
-                                domainMessage.isSystem ||
-                                domainMessage.senderId == null) {
-                              return;
-                            }
-                            unawaited(_showMessageActions(domainMessage));
-                          },
                       builders: fc.Builders(
                         textMessageBuilder:
                             (
@@ -1993,13 +2006,15 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                               ),
                             );
                           }
-                          return _DeterministicChatList(
+                          return DeterministicChatList(
                             itemBuilder: itemBuilder,
                             messages: uiMessages,
                             scrollController: _chatScrollController,
                             topPadding: listTopPadding,
                             bottomPadding: listBottomPadding,
                             loadingMore: _loadingMore,
+                            onMessageLongPress: (message, details) =>
+                                _handleDeterministicMessageLongPress(message),
                           );
                         },
                         emptyChatListBuilder: (context) =>
@@ -2014,6 +2029,22 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                 ),
               ),
             ),
+            if (_showScrollToLatestButton)
+              Positioned(
+                right: 16,
+                bottom: keyboardAwareBottomInset + _composerHeight + 16,
+                child: FloatingActionButton.small(
+                  heroTag: 'chatScrollToLatestButton',
+                  onPressed: () => unawaited(_scrollToLatest(animated: true)),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant,
+                  child: const Icon(Icons.arrow_downward),
+                ),
+              ),
             if (_loading)
               const Positioned.fill(
                 child: IgnorePointer(
@@ -2090,68 +2121,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return createdCompare;
     }
     return a.id.compareTo(b.id);
-  }
-}
-
-class _DeterministicChatList extends StatelessWidget {
-  const _DeterministicChatList({
-    required this.itemBuilder,
-    required this.messages,
-    required this.scrollController,
-    required this.topPadding,
-    required this.bottomPadding,
-    required this.loadingMore,
-  });
-
-  final fc.ChatItem itemBuilder;
-  final List<fc.Message> messages;
-  final ScrollController scrollController;
-  final double topPadding;
-  final double bottomPadding;
-  final bool loadingMore;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final content = Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (loadingMore)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 16),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            for (var index = 0; index < messages.length; index += 1)
-              itemBuilder(
-                context,
-                messages[index],
-                index,
-                const AlwaysStoppedAnimation<double>(1),
-              ),
-          ],
-        );
-
-        return SingleChildScrollView(
-          controller: scrollController,
-          keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - topPadding - bottomPadding)
-                  .clamp(0, double.infinity),
-            ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [content],
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }
 
