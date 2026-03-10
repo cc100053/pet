@@ -1,5 +1,20 @@
 # TODO
 
+# Plan (2026-03-10 Game SFX Respect Silent Mode)
+- [x] Read `memory-bank/*.md` and locate the shared gameplay SFX playback path for eating and coin/candy sounds.
+- [x] Update the shared SFX service so gameplay sound effects respect the device silent-mode setting instead of always forcing playback.
+- [x] Format touched files and update project task/memory notes without running `flutter analyze` or `flutter test` per user instruction.
+
+# Review (2026-03-10 Game SFX Respect Silent Mode)
+- [x] Implemented and locally checked without `flutter analyze` / `flutter test` per user instruction.
+- Root change:
+  - `lib/services/audio/app_sfx.dart` now plays all shared gameplay SFX with an `AudioContextConfig(respectSilence: true)`, so eating and coin/candy gain sounds follow the phone's silent-mode setting instead of bypassing it.
+  - Because both Home eating SFX and the HUD coin/candy reward SFX already route through `AppSfx`, no caller-specific changes were needed.
+- Verification:
+  - `dart format lib/services/audio/app_sfx.dart`
+  - `git diff -- lib/services/audio/app_sfx.dart memory-bank/progress.md memory-bank/architecture.md tasks/todo.md`
+  - Did not run `flutter analyze` or `flutter test` because the user explicitly said this change does not need them.
+
 ## Plan (2026-03-10 Notification Tap Room Routing)
 - [x] Add a unified notification intent model/parser in `FCMService`, including `message_kind` normalization, target resolution, and dedupe.
 - [x] Wire notification tap sources into that intent pipeline: `onMessageOpenedApp`, `getInitialMessage`, foreground local-notification taps, and Android launch-intent / `onNewIntent` bridge.

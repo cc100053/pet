@@ -87,6 +87,7 @@ Implemented:
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
 - `lib/services/crash/crash_reporting_service.dart`: Central Crashlytics wrapper (fatal/non-fatal reporting, custom keys, breadcrumb logging, and navigator route observer).
+- `lib/services/audio/app_sfx.dart`: Shared one-shot gameplay SFX player for Home interactions; eating and coin/candy reward sounds now respect the device silent-mode setting.
 - `lib/services/profile/profile_cache_service.dart`: Shared profile summary cache/service used by Home, Chat, and Memory Calendar sender resolution.
 - `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
 - `lib/services/`: Environment loader and shared service setup.

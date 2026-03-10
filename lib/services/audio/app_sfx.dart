@@ -5,6 +5,9 @@ class AppSfx {
 
   static final AudioPlayer _eatingPlayer = AudioPlayer();
   static final AudioPlayer _candyPlayer = AudioPlayer();
+  static final AudioContext _sfxAudioContext = AudioContextConfig(
+    respectSilence: true,
+  ).build();
 
   static Future<void> playEating() =>
       _play(player: _eatingPlayer, source: AssetSource('sound/eating.m4a'));
@@ -18,7 +21,11 @@ class AppSfx {
   }) async {
     try {
       await player.stop();
-      await player.play(source, mode: PlayerMode.lowLatency);
+      await player.play(
+        source,
+        mode: PlayerMode.lowLatency,
+        ctx: _sfxAudioContext,
+      );
     } catch (_) {
       // Best-effort SFX. Ignore plugin/platform failures.
     }
