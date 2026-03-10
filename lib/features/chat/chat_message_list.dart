@@ -15,6 +15,7 @@ import '../../services/profile/profile_cache_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_ui_scale.dart';
 import 'chat_message.dart';
+import 'widgets/chat_keyboard_dismiss_shell.dart';
 import 'widgets/chat_message_tile.dart';
 
 class ChatMessageList extends StatefulWidget {
@@ -692,7 +693,6 @@ class ChatMessageListState extends State<ChatMessageList> {
 
   @override
   Widget build(BuildContext context) {
-    const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag;
     final defaultPadding = const EdgeInsets.symmetric(
       horizontal: 16,
       vertical: 12,
@@ -740,7 +740,7 @@ class ChatMessageListState extends State<ChatMessageList> {
         _messages.isEmpty
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                keyboardDismissBehavior: keyboardDismissBehavior,
+                keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
                 reverse: true,
                 padding: resolvedPadding,
                 children: [
@@ -762,7 +762,7 @@ class ChatMessageListState extends State<ChatMessageList> {
                 controller: _scrollController,
                 reverse: true,
                 physics: const AlwaysScrollableScrollPhysics(),
-                keyboardDismissBehavior: keyboardDismissBehavior,
+                keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
                 padding: resolvedPadding,
                 itemBuilder: (context, index) {
                   if (index == _messages.length) {
@@ -1139,7 +1139,6 @@ class _ChatLoadingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag;
     final theme = Theme.of(context);
     final bubbleColor = theme.colorScheme.surfaceContainerHighest;
 
@@ -1161,7 +1160,7 @@ class _ChatLoadingList extends StatelessWidget {
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      keyboardDismissBehavior: keyboardDismissBehavior,
+      keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
       reverse: true,
       padding: padding,
       children: [

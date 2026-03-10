@@ -29,6 +29,7 @@ import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
 import 'room_members_sheet.dart';
+import 'widgets/chat_keyboard_dismiss_shell.dart';
 
 class ChatRoomViewV2 extends StatefulWidget {
   const ChatRoomViewV2({
@@ -75,6 +76,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   final ScrollController _chatScrollController = ScrollController();
   final TextEditingController _composerController = TextEditingController();
   final FocusNode _composerFocusNode = FocusNode();
+  final GlobalKey _composerSurfaceKey = GlobalKey();
+  final GlobalKey _composerInputRegionKey = GlobalKey();
   final List<ChatMessage> _messages = <ChatMessage>[];
   final Map<String, ChatMessage> _messagesById = <String, ChatMessage>{};
   final Map<String, GlobalKey> _messageAnchorKeys = <String, GlobalKey>{};
@@ -1547,179 +1550,194 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: Chat(
-                  currentUserId: _currentUserId,
-                  resolveUser: _resolveUser,
-                  chatController: _chatController,
-                  decoration: widget.backgroundDecoration,
-                  backgroundColor: scaffoldBackground,
-                  theme: _chatTheme(context),
-                  onMessageSend: _sending ? null : _handleSendMessage,
-                  onAttachmentTap: (_sending || widget.isRoomLocked)
-                      ? null
-                      : _openFeedCamera,
-                  onMessageLongPress:
-                      (context, message, {required index, required details}) {
-                        final domainMessage = _messagesById[message.id];
-                        final isMine =
-                            domainMessage?.senderId == _currentUserId;
-                        if (domainMessage == null ||
-                            domainMessage.isSystem ||
-                            isMine ||
-                            domainMessage.senderId == null) {
-                          return;
-                        }
-                        unawaited(_showMessageActions(domainMessage));
-                      },
-                  builders: fc.Builders(
-                    textMessageBuilder:
-                        (
-                          context,
-                          message,
-                          index, {
-                          required isSentByMe,
-                          groupStatus,
-                        }) {
-                          return _TelegramTextMessageBubble(
-                            surfaceKey: _messageAnchorKey(message.id),
-                            message: message,
-                            index: index,
-                            isSentByMe: isSentByMe,
-                            isDarkBackground: widget.isDarkBackground,
-                            isHighlighted: _highlightedMessageId == message.id,
-                            senderName: _displayNameForSenderId(
-                              _messagesById[message.id]?.senderId,
-                            ),
-                          );
-                        },
-                    composerBuilder: (context) => _TelegramComposer(
-                      controller: _composerController,
-                      focusNode: _composerFocusNode,
-                      hintText: l10n.chatMessageHint,
-                      isDarkBackground: widget.isDarkBackground,
-                      onHeightChanged: _handleComposerHeightChanged,
-                      onAttachmentTap: (_sending || widget.isRoomLocked)
-                          ? null
-                          : _openFeedCamera,
-                      onSend: _sending ? null : _handleSendMessage,
-                      topWidget: replyTarget == null
-                          ? null
-                          : _ReplyComposerBar(
-                              message: replyTarget,
-                              senderName: _displayNameForSenderId(
-                                replyTarget.senderId,
-                              ),
-                              isDarkBackground: widget.isDarkBackground,
-                              onCancel: () {
-                                setState(() => _replyTargetMessageId = null);
-                              },
-                            ),
-                    ),
-                    systemMessageBuilder:
-                        (
-                          context,
-                          message,
-                          index, {
-                          required isSentByMe,
-                          groupStatus,
-                        }) {
-                          return _SystemPill(message: message.text);
-                        },
-                    customMessageBuilder:
-                        (
-                          context,
-                          message,
-                          index, {
-                          required isSentByMe,
-                          groupStatus,
-                        }) {
-                          return _FeedCard(
-                            surfaceKey: _messageAnchorKey(message.id),
-                            message: message,
-                            isMe: isSentByMe,
-                            isDarkBackground: widget.isDarkBackground,
-                            isHighlighted: _highlightedMessageId == message.id,
-                            senderName: _displayNameForSenderId(
-                              _messagesById[message.id]?.senderId,
-                            ),
-                            onTapImage: () =>
-                                _openFeedViewer(_messagesById[message.id]),
-                          );
-                        },
-                    chatMessageBuilder:
-                        (
-                          context,
-                          message,
-                          index,
-                          animation,
-                          child, {
-                          isRemoved,
-                          required isSentByMe,
-                          groupStatus,
-                        }) {
+                child: ChatKeyboardSweepDismissLayer(
+                  focusNode: _composerFocusNode,
+                  keyboardInset: media.viewInsets.bottom,
+                  composerKey: _composerSurfaceKey,
+                  protectedRegionKey: _composerInputRegionKey,
+                  child: Chat(
+                    currentUserId: _currentUserId,
+                    resolveUser: _resolveUser,
+                    chatController: _chatController,
+                    decoration: widget.backgroundDecoration,
+                    backgroundColor: scaffoldBackground,
+                    theme: _chatTheme(context),
+                    onMessageSend: _sending ? null : _handleSendMessage,
+                    onAttachmentTap: (_sending || widget.isRoomLocked)
+                        ? null
+                        : _openFeedCamera,
+                    onMessageLongPress:
+                        (context, message, {required index, required details}) {
                           final domainMessage = _messagesById[message.id];
-                          if (domainMessage == null) {
-                            return child;
+                          final isMine =
+                              domainMessage?.senderId == _currentUserId;
+                          if (domainMessage == null ||
+                              domainMessage.isSystem ||
+                              isMine ||
+                              domainMessage.senderId == null) {
+                            return;
                           }
-                          Widget content = _MessageEnvelope(
-                            replyPreview: _resolvedReplyPreview(domainMessage),
-                            replySenderName: _displayNameForSenderId(
-                              _resolvedReplyPreview(domainMessage)?.senderId,
-                            ),
-                            isSentByMe: isSentByMe,
-                            isDarkBackground: widget.isDarkBackground,
-                            onReplyTap: domainMessage.replyToMessageId == null
-                                ? null
-                                : () => _jumpToReplySource(domainMessage),
-                            child: child,
-                          );
-                          final canReply =
-                              !domainMessage.isSystem &&
-                              !isSentByMe &&
-                              domainMessage.senderId != null;
-                          if (canReply) {
-                            content = _ReplySwipeWrapper(
-                              onTriggered: () {
-                                HapticFeedback.lightImpact();
-                                _requestReply(domainMessage);
-                              },
-                              child: content,
-                            );
-                          }
-                          return content;
+                          unawaited(_showMessageActions(domainMessage));
                         },
-                    chatAnimatedListBuilder: (context, itemBuilder) {
-                      final uiMessages = _toUiMessages(_messages);
-                      if (uiMessages.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Text(
-                              l10n.chatEmptyState,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: widget.isDarkBackground
-                                        ? Colors.white.withValues(alpha: 0.84)
-                                        : AppTheme.textSecondary,
-                                  ),
+                    builders: fc.Builders(
+                      textMessageBuilder:
+                          (
+                            context,
+                            message,
+                            index, {
+                            required isSentByMe,
+                            groupStatus,
+                          }) {
+                            return _TelegramTextMessageBubble(
+                              surfaceKey: _messageAnchorKey(message.id),
+                              message: message,
+                              index: index,
+                              isSentByMe: isSentByMe,
+                              isDarkBackground: widget.isDarkBackground,
+                              isHighlighted:
+                                  _highlightedMessageId == message.id,
+                              senderName: _displayNameForSenderId(
+                                _messagesById[message.id]?.senderId,
+                              ),
+                            );
+                          },
+                      composerBuilder: (context) => _TelegramComposer(
+                        controller: _composerController,
+                        focusNode: _composerFocusNode,
+                        surfaceKey: _composerSurfaceKey,
+                        inputRegionKey: _composerInputRegionKey,
+                        hintText: l10n.chatMessageHint,
+                        isDarkBackground: widget.isDarkBackground,
+                        onHeightChanged: _handleComposerHeightChanged,
+                        onAttachmentTap: (_sending || widget.isRoomLocked)
+                            ? null
+                            : _openFeedCamera,
+                        onSend: _sending ? null : _handleSendMessage,
+                        topWidget: replyTarget == null
+                            ? null
+                            : _ReplyComposerBar(
+                                message: replyTarget,
+                                senderName: _displayNameForSenderId(
+                                  replyTarget.senderId,
+                                ),
+                                isDarkBackground: widget.isDarkBackground,
+                                onCancel: () {
+                                  setState(() => _replyTargetMessageId = null);
+                                },
+                              ),
+                      ),
+                      systemMessageBuilder:
+                          (
+                            context,
+                            message,
+                            index, {
+                            required isSentByMe,
+                            groupStatus,
+                          }) {
+                            return _SystemPill(message: message.text);
+                          },
+                      customMessageBuilder:
+                          (
+                            context,
+                            message,
+                            index, {
+                            required isSentByMe,
+                            groupStatus,
+                          }) {
+                            return _FeedCard(
+                              surfaceKey: _messageAnchorKey(message.id),
+                              message: message,
+                              isMe: isSentByMe,
+                              isDarkBackground: widget.isDarkBackground,
+                              isHighlighted:
+                                  _highlightedMessageId == message.id,
+                              senderName: _displayNameForSenderId(
+                                _messagesById[message.id]?.senderId,
+                              ),
+                              onTapImage: () =>
+                                  _openFeedViewer(_messagesById[message.id]),
+                            );
+                          },
+                      chatMessageBuilder:
+                          (
+                            context,
+                            message,
+                            index,
+                            animation,
+                            child, {
+                            isRemoved,
+                            required isSentByMe,
+                            groupStatus,
+                          }) {
+                            final domainMessage = _messagesById[message.id];
+                            if (domainMessage == null) {
+                              return child;
+                            }
+                            Widget content = _MessageEnvelope(
+                              replyPreview: _resolvedReplyPreview(
+                                domainMessage,
+                              ),
+                              replySenderName: _displayNameForSenderId(
+                                _resolvedReplyPreview(domainMessage)?.senderId,
+                              ),
+                              isSentByMe: isSentByMe,
+                              isDarkBackground: widget.isDarkBackground,
+                              onReplyTap: domainMessage.replyToMessageId == null
+                                  ? null
+                                  : () => _jumpToReplySource(domainMessage),
+                              child: child,
+                            );
+                            final canReply =
+                                !domainMessage.isSystem &&
+                                !isSentByMe &&
+                                domainMessage.senderId != null;
+                            if (canReply) {
+                              content = _ReplySwipeWrapper(
+                                onTriggered: () {
+                                  HapticFeedback.lightImpact();
+                                  _requestReply(domainMessage);
+                                },
+                                child: content,
+                              );
+                            }
+                            return content;
+                          },
+                      chatAnimatedListBuilder: (context, itemBuilder) {
+                        final uiMessages = _toUiMessages(_messages);
+                        if (uiMessages.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: Text(
+                                l10n.chatEmptyState,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: widget.isDarkBackground
+                                          ? Colors.white.withValues(alpha: 0.84)
+                                          : AppTheme.textSecondary,
+                                    ),
+                              ),
                             ),
-                          ),
+                          );
+                        }
+                        return _DeterministicChatList(
+                          itemBuilder: itemBuilder,
+                          messages: uiMessages,
+                          scrollController: _chatScrollController,
+                          topPadding: listTopPadding,
+                          bottomPadding: listBottomPadding,
+                          loadingMore: _loadingMore,
                         );
-                      }
-                      return _DeterministicChatList(
-                        itemBuilder: itemBuilder,
-                        messages: uiMessages,
-                        scrollController: _chatScrollController,
-                        topPadding: listTopPadding,
-                        bottomPadding: listBottomPadding,
-                        loadingMore: _loadingMore,
-                      );
-                    },
-                    emptyChatListBuilder: (context) => const SizedBox.shrink(),
-                    loadMoreBuilder: (context) => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator()),
+                      },
+                      emptyChatListBuilder: (context) =>
+                          const SizedBox.shrink(),
+                      loadMoreBuilder: (context) => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
                     ),
                   ),
                 ),
@@ -1846,7 +1864,7 @@ class _DeterministicChatList extends StatelessWidget {
 
         return SingleChildScrollView(
           controller: scrollController,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: (constraints.maxHeight - topPadding - bottomPadding)
@@ -1963,6 +1981,8 @@ class _TelegramComposer extends StatefulWidget {
   const _TelegramComposer({
     required this.controller,
     required this.focusNode,
+    required this.surfaceKey,
+    required this.inputRegionKey,
     required this.hintText,
     required this.isDarkBackground,
     required this.onHeightChanged,
@@ -1973,6 +1993,8 @@ class _TelegramComposer extends StatefulWidget {
 
   final TextEditingController controller;
   final FocusNode focusNode;
+  final GlobalKey surfaceKey;
+  final GlobalKey inputRegionKey;
   final String hintText;
   final bool isDarkBackground;
   final ValueChanged<double> onHeightChanged;
@@ -2073,81 +2095,91 @@ class _TelegramComposerState extends State<_TelegramComposer> {
       left: 12,
       right: 12,
       bottom: composerBottomInset,
-      child: Padding(
-        key: _measureKey,
-        padding: EdgeInsets.zero,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.topWidget != null) widget.topWidget!,
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _ComposerActionButton(
-                  backgroundColor: attachmentSurface,
-                  iconColor: attachmentIconColor,
-                  tooltip: AppLocalizations.of(context)!.feedTitle,
-                  onTap: widget.onAttachmentTap,
-                  isDarkBackground: isDark,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 48),
-                    decoration: BoxDecoration(
-                      color: inputColor,
-                      borderRadius: BorderRadius.circular(24),
-                      border: isDark ? Border.all(color: darkPillBorder) : null,
-                      boxShadow: isDark
-                          ? [
-                              BoxShadow(
-                                color: darkPillShadow,
-                                blurRadius: 14,
-                                offset: const Offset(0, 6),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: TextField(
-                      controller: widget.controller,
-                      focusNode: widget.focusNode,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      minLines: 1,
-                      maxLines: 4,
-                      style: TextStyle(
-                        fontSize: 15,
-                        height: 1.35,
-                        color: textColor,
+      child: ChatComposerDismissShell(
+        focusNode: widget.focusNode,
+        keyboardInset: keyboardInset,
+        contentKey: widget.surfaceKey,
+        handleKey: const ValueKey('chatComposerDismissHandle'),
+        child: Padding(
+          key: _measureKey,
+          padding: EdgeInsets.zero,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.topWidget != null) widget.topWidget!,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _ComposerActionButton(
+                    backgroundColor: attachmentSurface,
+                    iconColor: attachmentIconColor,
+                    tooltip: AppLocalizations.of(context)!.feedTitle,
+                    onTap: widget.onAttachmentTap,
+                    isDarkBackground: isDark,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      key: widget.inputRegionKey,
+                      constraints: const BoxConstraints(minHeight: 48),
+                      decoration: BoxDecoration(
+                        color: inputColor,
+                        borderRadius: BorderRadius.circular(24),
+                        border: isDark
+                            ? Border.all(color: darkPillBorder)
+                            : null,
+                        boxShadow: isDark
+                            ? [
+                                BoxShadow(
+                                  color: darkPillShadow,
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ]
+                            : null,
                       ),
-                      cursorColor: AppTheme.primaryColor,
-                      decoration: InputDecoration(
-                        hintText: widget.hintText,
-                        hintStyle: TextStyle(color: hintColor, fontSize: 15),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: TextField(
+                        controller: widget.controller,
+                        focusNode: widget.focusNode,
+                        key: const ValueKey('chatComposerTextField'),
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        minLines: 1,
+                        maxLines: 4,
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.35,
+                          color: textColor,
                         ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        fillColor: Colors.transparent,
-                        filled: true,
-                        counterText: '',
+                        cursorColor: AppTheme.primaryColor,
+                        decoration: InputDecoration(
+                          hintText: widget.hintText,
+                          hintStyle: TextStyle(color: hintColor, fontSize: 15),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          fillColor: Colors.transparent,
+                          filled: true,
+                          counterText: '',
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                _ComposerSendButton(
-                  enabled: canSend,
-                  onTap: canSend ? _handleSend : null,
-                  isDarkBackground: isDark,
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  _ComposerSendButton(
+                    enabled: canSend,
+                    onTap: canSend ? _handleSend : null,
+                    isDarkBackground: isDark,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

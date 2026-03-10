@@ -19,6 +19,7 @@ import 'chat_message_list.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
 import 'room_members_sheet.dart';
+import 'widgets/chat_keyboard_dismiss_shell.dart';
 
 class ChatRoomView extends StatefulWidget {
   const ChatRoomView({
@@ -59,6 +60,8 @@ final _chatMessageListKey = GlobalKey<ChatMessageListState>();
 class _ChatRoomViewState extends State<ChatRoomView> {
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _messageFocusNode = FocusNode();
+  final GlobalKey _composerSurfaceKey = GlobalKey();
+  final GlobalKey _composerInputRegionKey = GlobalKey();
   final Map<String, String> _optimisticFeedImageByTempId = {};
   bool _shouldExitAfterFeedSend = false;
   bool _sending = false;
@@ -511,170 +514,196 @@ class _ChatRoomViewState extends State<ChatRoomView> {
             ),
           ),
         ),
-        body: Container(
-          decoration: widget.backgroundDecoration,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                key: const ValueKey('chatMessageList'),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                  child: ChatMessageList(
-                    key: _chatMessageListKey,
-                    roomId: widget.roomId,
-                    currentUserId: currentUserId,
-                    useLightForeground: useLightForeground,
-                    onReplyRequested: _handleReplyRequested,
-                    contentPadding: EdgeInsets.fromLTRB(
-                      16,
-                      listTopPadding,
-                      16,
-                      listBottomPadding,
+        body: ChatKeyboardSweepDismissLayer(
+          focusNode: _messageFocusNode,
+          keyboardInset: keyboardInset,
+          composerKey: _composerSurfaceKey,
+          protectedRegionKey: _composerInputRegionKey,
+          child: Container(
+            decoration: widget.backgroundDecoration,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  key: const ValueKey('chatMessageList'),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                    child: ChatMessageList(
+                      key: _chatMessageListKey,
+                      roomId: widget.roomId,
+                      currentUserId: currentUserId,
+                      useLightForeground: useLightForeground,
+                      onReplyRequested: _handleReplyRequested,
+                      contentPadding: EdgeInsets.fromLTRB(
+                        16,
+                        listTopPadding,
+                        16,
+                        listBottomPadding,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                key: const ValueKey('chatComposer'),
-                left: 12 * uiScale,
-                right: 12 * uiScale,
-                bottom: composerBottom,
-                child: _GlassPill(
-                  backgroundOpacity: useLightForeground ? 0.35 : 0.55,
-                  useDarkSurface: useLightForeground,
-                  padding: EdgeInsets.fromLTRB(
-                    composerOuterHorizontalPadding,
-                    composerVerticalPadding,
-                    composerInnerHorizontalPadding,
-                    composerVerticalPadding,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 180),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        child: _replyTarget == null
-                            ? const SizedBox.shrink()
-                            : Padding(
-                                key: const ValueKey('chatReplyPreview'),
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: _ComposerReplyPreview(
-                                  target: _replyTarget!,
-                                  useLightForeground: useLightForeground,
-                                  onCancel: _clearReplyTarget,
-                                ),
-                              ),
+                Positioned(
+                  key: const ValueKey('chatComposer'),
+                  left: 12 * uiScale,
+                  right: 12 * uiScale,
+                  bottom: composerBottom,
+                  child: ChatComposerDismissShell(
+                    focusNode: _messageFocusNode,
+                    keyboardInset: keyboardInset,
+                    contentKey: _composerSurfaceKey,
+                    handleKey: const ValueKey('chatComposerDismissHandle'),
+                    child: _GlassPill(
+                      backgroundOpacity: useLightForeground ? 0.35 : 0.55,
+                      useDarkSurface: useLightForeground,
+                      padding: EdgeInsets.fromLTRB(
+                        composerOuterHorizontalPadding,
+                        composerVerticalPadding,
+                        composerInnerHorizontalPadding,
+                        composerVerticalPadding,
                       ),
-                      Row(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            onPressed: (_sending || widget.isRoomLocked)
-                                ? null
-                                : _openFeedCamera,
-                            icon: SvgPicture.asset(
-                              'assets/icon/solar--camera-linear.svg',
-                              width: composerIconSize,
-                              height: composerIconSize,
-                              colorFilter: ColorFilter.mode(
-                                useLightForeground
-                                    ? Colors.white.withValues(alpha: 0.9)
-                                    : AppTheme.textSecondary,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                            tooltip: l10n.feedTitle,
-                            iconSize: composerIconSize,
-                            constraints: BoxConstraints.tightFor(
-                              width: composerButtonSize,
-                              height: composerButtonSize,
-                            ),
-                            padding: EdgeInsets.zero,
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 180),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            child: _replyTarget == null
+                                ? const SizedBox.shrink()
+                                : Padding(
+                                    key: const ValueKey('chatReplyPreview'),
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: _ComposerReplyPreview(
+                                      target: _replyTarget!,
+                                      useLightForeground: useLightForeground,
+                                      onCancel: _clearReplyTarget,
+                                    ),
+                                  ),
                           ),
-                          Expanded(
-                            child: TextField(
-                              controller: _messageController,
-                              focusNode: _messageFocusNode,
-                              keyboardType: TextInputType.multiline,
-                              textInputAction: TextInputAction.newline,
-                              decoration: InputDecoration(
-                                hintText: l10n.chatMessageHint,
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: (10.0 * uiScale).clamp(8.0, 10.0),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: (_sending || widget.isRoomLocked)
+                                    ? null
+                                    : _openFeedCamera,
+                                icon: SvgPicture.asset(
+                                  'assets/icon/solar--camera-linear.svg',
+                                  width: composerIconSize,
+                                  height: composerIconSize,
+                                  colorFilter: ColorFilter.mode(
+                                    useLightForeground
+                                        ? Colors.white.withValues(alpha: 0.9)
+                                        : AppTheme.textSecondary,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
-                                isDense: true,
-                                filled: true,
-                                fillColor: Colors.transparent,
-                                hintStyle: TextStyle(
-                                  color: useLightForeground
-                                      ? Colors.white.withValues(alpha: 0.72)
-                                      : AppTheme.textSecondary,
-                                ),
-                              ),
-                              minLines: 1,
-                              maxLines: 4,
-                              style: TextStyle(
-                                fontSize: (15.0 * uiScale).clamp(13.0, 15.0),
-                                color: useLightForeground
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
-                              ),
-                              cursorColor: useLightForeground
-                                  ? Colors.white
-                                  : AppTheme.primaryColor,
-                            ),
-                          ),
-                          SizedBox(width: (6.0 * uiScale).clamp(4.0, 6.0)),
-                          Tooltip(
-                            message: l10n.commonSend,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: _sending ? null : _sendMessage,
-                                borderRadius: BorderRadius.circular(999),
-                                child: Container(
+                                tooltip: l10n.feedTitle,
+                                iconSize: composerIconSize,
+                                constraints: BoxConstraints.tightFor(
                                   width: composerButtonSize,
                                   height: composerButtonSize,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primaryColor,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.12,
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              Expanded(
+                                child: Container(
+                                  key: _composerInputRegionKey,
+                                  child: TextField(
+                                    controller: _messageController,
+                                    focusNode: _messageFocusNode,
+                                    key: const ValueKey(
+                                      'chatComposerTextField',
+                                    ),
+                                    keyboardType: TextInputType.multiline,
+                                    textInputAction: TextInputAction.newline,
+                                    decoration: InputDecoration(
+                                      hintText: l10n.chatMessageHint,
+                                      border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        vertical: (10.0 * uiScale).clamp(
+                                          8.0,
+                                          10.0,
                                         ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
                                       ),
-                                    ],
+                                      isDense: true,
+                                      filled: true,
+                                      fillColor: Colors.transparent,
+                                      hintStyle: TextStyle(
+                                        color: useLightForeground
+                                            ? Colors.white.withValues(
+                                                alpha: 0.72,
+                                              )
+                                            : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                    minLines: 1,
+                                    maxLines: 4,
+                                    style: TextStyle(
+                                      fontSize: (15.0 * uiScale).clamp(
+                                        13.0,
+                                        15.0,
+                                      ),
+                                      color: useLightForeground
+                                          ? Colors.white
+                                          : AppTheme.textPrimary,
+                                    ),
+                                    cursorColor: useLightForeground
+                                        ? Colors.white
+                                        : AppTheme.primaryColor,
                                   ),
-                                  child: Center(
-                                    child: SvgPicture.asset(
-                                      'assets/icon/mingcute--send-plane-line.svg',
-                                      width: composerIconSize,
-                                      height: composerIconSize,
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
-                                        BlendMode.srcIn,
+                                ),
+                              ),
+                              SizedBox(width: (6.0 * uiScale).clamp(4.0, 6.0)),
+                              Tooltip(
+                                message: l10n.commonSend,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _sending ? null : _sendMessage,
+                                    borderRadius: BorderRadius.circular(999),
+                                    child: Container(
+                                      width: composerButtonSize,
+                                      height: composerButtonSize,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.12,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: SvgPicture.asset(
+                                          'assets/icon/mingcute--send-plane-line.svg',
+                                          width: composerIconSize,
+                                          height: composerIconSize,
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.white,
+                                            BlendMode.srcIn,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

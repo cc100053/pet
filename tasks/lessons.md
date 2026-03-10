@@ -48,3 +48,8 @@
 - If an initialization path needs `AppLocalizations`, `Theme`, `MediaQuery`, or any other inherited-widget data, do not start that path from `initState`; kick it off from `didChangeDependencies()` (or later) and guard it with a one-shot flag if it should run only once.
 - For new Supabase columns/relationships, do not make the primary app-load query depend on a fresh PostgREST self-referential join. Keep the critical path to direct columns first, then hydrate related preview data in a best-effort follow-up query so schema-cache lag cannot blank the whole screen.
 - When a debug tool is meant to replay onboarding, it must override all progression shortcuts and completeness checks, not just visibility. Start from the true first step so QA can exercise every onboarding page end-to-end.
+
+## 2026-03-10
+- For chat reply jumps to off-screen messages, do not stack package-managed lazy-list scrolling with app-side centering corrections. If the UX requires one clean jump-to-center motion, the screen must own a single scroll controller and compute the final offset itself after data is loaded.
+- When a package abstracts list virtualization and scroll positioning too aggressively, treat that as an architectural boundary issue instead of tuning durations/curves. Keep the package for rendering/providers if useful, but reclaim list ownership before shipping more scroll-behavior patches.
+- For Telegram-style chat keyboard dismiss, composer-local drag handlers are not enough: if the swipe may start in the message list and finish over the composer, track pointer movement at the route layer and key the dismiss logic to the composer bounds plus a protected text-input region.

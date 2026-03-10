@@ -1,5 +1,35 @@
 # TODO
 
+## Plan (2026-03-10 Chat Keyboard Dismiss UX)
+- [x] Replace chat timeline `keyboardDismissBehavior` with a shared manual setting so dragging the message list no longer collapses the composer.
+- [x] Add a composer-aware downward-dismiss helper and wire it into both `ChatRoomViewV2` and the legacy `ChatRoomView` without touching reply/scroll anchoring logic.
+- [x] Extend the dismiss interaction so a downward swipe that starts in the message list and sweeps into the composer also collapses the keyboard.
+- [x] Add widget regression coverage for list-drag retention, tap-outside dismiss, composer-edge downward dismiss, list-to-composer sweep dismiss, and the shared manual dismiss behavior constant.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md`, `memory-bank/architecture.md`, and this file with the shipped behavior + verification results.
+
+## Review (2026-03-10 Chat Keyboard Dismiss UX)
+- [x] Implemented and verified.
+- Root change:
+  - Chat timelines now use a shared manual keyboard-dismiss setting, so dragging either the active V2 timeline or the legacy fallback timeline keeps the keyboard/composer open.
+  - Chat routes now add a pointer-tracking dismiss layer keyed to the composer bounds, so a downward drag can start in the message list and dismiss as soon as it sweeps into the composer area, while the existing tap-empty-space dismissal path stays intact.
+  - The composer still keeps its narrow top-edge drag affordance, so direct composer-origin swipes continue to dismiss too.
+- Files:
+  - `lib/features/chat/widgets/chat_keyboard_dismiss_shell.dart`: added the shared manual timeline constant, composer shell helper, and route-level sweep-dismiss listener keyed to the composer / protected input region.
+  - `lib/features/chat/chat_room_view_v2.dart`: wrapped the active chat route in the shared sweep-dismiss layer, keyed the composer/input regions, and kept the deterministic scroll view on manual keyboard dismissal.
+  - `lib/features/chat/chat_room_view.dart` / `lib/features/chat/chat_message_list.dart`: applied the same sweep-dismiss helper and manual timeline behavior to the legacy route and all legacy list empty/loading/main states.
+  - `test/features/chat/chat_keyboard_dismiss_behavior_test.dart`: added regression tests for list drag retention, tap-outside dismiss, composer-edge drag dismiss, list-to-composer sweep dismiss, and the shared manual dismiss constant.
+- Verification:
+  - `dart format lib/features/chat/widgets/chat_keyboard_dismiss_shell.dart lib/features/chat/chat_room_view_v2.dart lib/features/chat/chat_room_view.dart lib/features/chat/chat_message_list.dart test/features/chat/chat_keyboard_dismiss_behavior_test.dart`
+  - `flutter test test/features/chat/chat_keyboard_dismiss_behavior_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - The new targeted chat keyboard regression test passed.
+  - Full `flutter test` passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-10 Reply Jump Deterministic Centering)
 - [x] Replace the current reply-jump centering flow with a deterministic viewport-offset calculation instead of relying on approximate package alignment / repeated `ensureVisible` corrections.
 - [x] Wire an explicit chat `ScrollController` into `ChatAnimatedList` so reply jumps can animate to a precise center offset once the target surface is rendered.
