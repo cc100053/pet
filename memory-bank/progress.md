@@ -1,6 +1,9 @@
 # Progress
 
 ## Done
+- Increased chat text readability to match a normal messenger UI: text bubbles now render at a larger 16px body size, and the timestamp label is slightly larger plus explicitly anchored to the bubble’s bottom-right corner instead of feeling embedded in the text flow.
+- Fixed text bubbles stretching across the full chat width: the reply/message envelope now hugs its child content instead of using a full-width stretch layout, so both text bubbles and quoted previews size to their content while still aligning sent messages right and received messages left.
+- Refined the active chat message hierarchy toward a more Telegram-like look without touching the top bar: text messages now use custom flatter sent/received bubbles with asymmetric corners and quieter timestamps, reply previews are slimmer and less card-like, feed messages use cleaner bordered media bubbles, and system messages were softened into lighter utility pills.
 - Removed the chat-route keyboard corner backdrop artifact on iOS: `ChatRoomViewV2` no longer lets `Scaffold` auto-resize for the keyboard, and the custom composer now follows `MediaQuery.viewInsets.bottom` directly, so the keyboard’s rounded top corners no longer reveal a separate rectangular route background behind them.
 - Tuned the dark-theme chat composer materials so the three pills stay slightly glassy without disappearing into dark room backgrounds: dark input/action pills now use more solid charcoal fills plus subtle borders/shadows, making message text and controls read clearly on dark themes.
 - Refined the Telegram-style chat composer again based on UI feedback: removed the outer floating shell so the composer now reads as three standalone pills, and aligned the camera/send action pills to the same 48px visual height as the message input pill for a cleaner, more balanced chat bar.

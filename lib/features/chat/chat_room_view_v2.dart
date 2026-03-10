@@ -1417,6 +1417,21 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                         unawaited(_showMessageActions(domainMessage));
                       },
                   builders: fc.Builders(
+                    textMessageBuilder:
+                        (
+                          context,
+                          message,
+                          index, {
+                          required isSentByMe,
+                          groupStatus,
+                        }) {
+                          return _TelegramTextMessageBubble(
+                            message: message,
+                            index: index,
+                            isSentByMe: isSentByMe,
+                            isDarkBackground: widget.isDarkBackground,
+                          );
+                        },
                     composerBuilder: (context) => _TelegramComposer(
                       controller: _composerController,
                       focusNode: _composerFocusNode,
@@ -1487,6 +1502,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                             replySenderName: _displayNameForSenderId(
                               _resolvedReplyPreview(domainMessage)?.senderId,
                             ),
+                            isSentByMe: isSentByMe,
+                            isDarkBackground: widget.isDarkBackground,
                             isHighlighted:
                                 _highlightedMessageId == domainMessage.id,
                             onReplyTap: domainMessage.replyToMessageId == null
@@ -2057,22 +2074,104 @@ class _SystemPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).colorScheme.surface.computeLuminance() < 0.2;
     return Center(
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.18),
+          color: isDark
+              ? const Color(0xFF232A34).withValues(alpha: 0.72)
+              : Colors.white.withValues(alpha: 0.84),
           borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.06),
+          ),
         ),
         child: Text(
           message,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white,
+            color: isDark ? Colors.white : AppTheme.textSecondary,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TelegramTextMessageBubble extends StatelessWidget {
+  const _TelegramTextMessageBubble({
+    required this.message,
+    required this.index,
+    required this.isSentByMe,
+    required this.isDarkBackground,
+  });
+
+  final fc.TextMessage message;
+  final int index;
+  final bool isSentByMe;
+  final bool isDarkBackground;
+
+  @override
+  Widget build(BuildContext context) {
+    final sentBackgroundColor = isDarkBackground
+        ? const Color(0xFF3D6E67)
+        : const Color(0xFFDDF3EA);
+    final receivedBackgroundColor = isDarkBackground
+        ? const Color(0xFF2A313D)
+        : Colors.white;
+    final sentTextColor = isDarkBackground
+        ? Colors.white
+        : const Color(0xFF1E3B34);
+    final receivedTextColor = isDarkBackground
+        ? Colors.white
+        : AppTheme.textPrimary;
+    final timeColor = isSentByMe
+        ? (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.72)
+              : const Color(0xFF4B7B6D))
+        : (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.5)
+              : AppTheme.textSecondary.withValues(alpha: 0.82));
+
+    return SimpleTextMessage(
+      message: message,
+      index: index,
+      padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
+      constraints: const BoxConstraints(maxWidth: 296),
+      borderRadius: BorderRadius.only(
+        topLeft: const Radius.circular(20),
+        topRight: const Radius.circular(20),
+        bottomLeft: Radius.circular(isSentByMe ? 20 : 8),
+        bottomRight: Radius.circular(isSentByMe ? 8 : 20),
+      ),
+      sentBackgroundColor: sentBackgroundColor,
+      receivedBackgroundColor: receivedBackgroundColor,
+      sentTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: sentTextColor,
+        fontSize: 16,
+        height: 1.36,
+        fontWeight: FontWeight.w400,
+      ),
+      receivedTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: receivedTextColor,
+        fontSize: 16,
+        height: 1.36,
+        fontWeight: FontWeight.w400,
+      ),
+      timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: timeColor,
+        fontSize: 10,
+        fontWeight: FontWeight.w500,
+      ),
+      timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
+      timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
+      showStatus: false,
     );
   }
 }
@@ -2082,6 +2181,8 @@ class _MessageEnvelope extends StatelessWidget {
     required this.child,
     required this.replyPreview,
     required this.replySenderName,
+    required this.isSentByMe,
+    required this.isDarkBackground,
     required this.isHighlighted,
     required this.onReplyTap,
   });
@@ -2089,20 +2190,30 @@ class _MessageEnvelope extends StatelessWidget {
   final Widget child;
   final ChatReplyPreview? replyPreview;
   final String? replySenderName;
+  final bool isSentByMe;
+  final bool isDarkBackground;
   final bool isHighlighted;
   final VoidCallback? onReplyTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final previewSurface = isDarkBackground
+        ? const Color(0xFF242B36).withValues(alpha: 0.86)
+        : const Color(0xFFF4F7FA);
+    final previewTextColor = isDarkBackground
+        ? Colors.white.withValues(alpha: 0.68)
+        : AppTheme.textSecondary;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
         color: isHighlighted
-            ? AppTheme.primaryColor.withValues(alpha: 0.09)
+            ? AppTheme.primaryColor.withValues(
+                alpha: isDarkBackground ? 0.16 : 0.08,
+              )
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isHighlighted
               ? AppTheme.primaryColor.withValues(alpha: 0.35)
@@ -2111,76 +2222,106 @@ class _MessageEnvelope extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: isSentByMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (replyPreview != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 4, right: 4, bottom: 6),
-              child: InkWell(
-                onTap: onReplyTap,
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 3,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(999),
+            Align(
+              alignment: isSentByMe
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 2, right: 2, bottom: 4),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 296),
+                  child: InkWell(
+                    onTap: onReplyTap,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 11,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: previewSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.04),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              replySenderName?.trim().isNotEmpty == true
-                                  ? replySenderName!.trim()
-                                  : l10n.chatPartnerLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w700,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 3,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  replySenderName?.trim().isNotEmpty == true
+                                      ? replySenderName!.trim()
+                                      : l10n.chatPartnerLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.labelMedium
+                                      ?.copyWith(
+                                        color: isSentByMe
+                                            ? (isDarkBackground
+                                                  ? const Color(0xFFA2E0CF)
+                                                  : const Color(0xFF4B8F7B))
+                                            : AppTheme.primaryColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  PetChatMessageAdapter.previewTextForReply(
+                                    replyPreview!,
+                                    l10n,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: previewTextColor,
+                                        height: 1.25,
+                                      ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              PetChatMessageAdapter.previewTextForReply(
-                                replyPreview!,
-                                l10n,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_upward_rounded,
+                            size: 14,
+                            color: previewTextColor,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.arrow_upward_rounded,
-                        size: 14,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          child,
+          Align(
+            alignment: isSentByMe
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: child,
+          ),
         ],
       ),
     );
@@ -2215,6 +2356,19 @@ class _FeedCard extends StatelessWidget {
     final theme = Theme.of(context);
     final canShowRemote = remoteUrl.isNotEmpty;
     final canShowLocal = localPath.isNotEmpty;
+    final cardBackground = isMe
+        ? (theme.brightness == Brightness.dark
+              ? const Color(0xFF365D57)
+              : const Color(0xFFDDF3EA))
+        : (theme.brightness == Brightness.dark
+              ? const Color(0xFF2A313D)
+              : Colors.white);
+    final cardTextColor = isMe && theme.brightness != Brightness.dark
+        ? const Color(0xFF1E3B34)
+        : theme.colorScheme.onSurface;
+    final cardBorderColor = theme.brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.black.withValues(alpha: 0.05);
 
     Widget image = Container(
       color: theme.colorScheme.surfaceContainerHighest,
@@ -2233,11 +2387,13 @@ class _FeedCard extends StatelessWidget {
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 280),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
+      child: Container(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(
+          color: cardBackground,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: cardBorderColor),
+        ),
         child: InkWell(
           onTap: onTapImage,
           child: Column(
@@ -2295,6 +2451,7 @@ class _FeedCard extends StatelessWidget {
                         caption,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           height: 1.35,
+                          color: cardTextColor,
                         ),
                       ),
                   ],

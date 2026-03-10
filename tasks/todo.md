@@ -706,3 +706,32 @@
   - `flutter analyze`
   - `flutter test`
   - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Telegram Message Bubble Polish)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` to use a custom `_TelegramTextMessageBubble` for text messages so sent/received bubbles now have flatter Telegram-style color blocks, asymmetric bubble corners, tighter padding, and quieter timestamp styling.
+- Tightened `_MessageEnvelope` quoted-reply presentation so reply previews feel like inline references instead of separate cards, and refreshed `_FeedCard` / `_SystemPill` to match the flatter bubble hierarchy.
+- Left the top bar unchanged for this pass, per request.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Text Bubble Width Fix)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` so `_MessageEnvelope` no longer stretches its child across the available row width; text bubbles and quoted previews now size to their content while preserving right alignment for the current user and left alignment for the other party.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Text Size + Timestamp Placement)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` text bubbles so the main message body now uses a more standard 16px chat size, and the timestamp label is slightly larger and explicitly positioned at the bubble’s bottom-right corner.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
