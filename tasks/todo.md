@@ -1,5 +1,59 @@
 # TODO
 
+## Plan (2026-03-10 Remove Chat Camera Button Shadow)
+- [x] Inspect the active V2 composer styling and confirm where the camera button's dark background/shadow is coming from.
+- [x] Remove the camera button's black shadow/background artifact with the smallest possible UI change.
+- [x] Update project notes and run required verification (`flutter analyze`, `flutter test`).
+
+## Plan (2026-03-10 Simplify Reply Swipe Gesture)
+- [x] Inspect the active V2 reply-swipe implementation and confirm why the current gesture feels too strict.
+- [x] Simplify the swipe trigger so any non-system message, including self-sent messages, can left-swipe into reply more easily.
+- [x] Add regression coverage for the new swipe rule/threshold and update project notes.
+- [x] Run required verification (`flutter analyze`, `flutter test`) and record the results.
+
+## Plan (2026-03-10 Remove Legacy Chat Room Code)
+- [x] Confirm the active chat entry points and isolate files/components that are only used by the legacy `ChatRoomView` path.
+- [x] Remove the legacy chat-room route switch from `HomeView` so the app always opens `ChatRoomViewV2`.
+- [x] Delete legacy-only chat files/tests, then update `memory-bank/progress.md`, `memory-bank/architecture.md`, and this file with the cleanup summary.
+- [x] Run required verification (`flutter analyze`, `flutter test`) and record the results.
+
+## Review (2026-03-10 Remove Legacy Chat Room Code)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/features/home/home_view.dart` now always opens `ChatRoomViewV2`; the old V1/V2 prototype switch, legacy imports, and unused chat-list key were removed.
+  - Deleted the legacy-only chat stack: `lib/features/chat/chat_room_view.dart`, `lib/features/chat/chat_message_list.dart`, `lib/features/chat/widgets/chat_message_tile.dart`, plus the matching widget tests `test/chat_message_tile_reply_test.dart` and `test/chat_message_tile_system_message_test.dart`.
+  - Removed dead `_chatListKey` refresh/optimistic-message hooks from `lib/features/home/controllers/home_feed_orchestrator.dart` and `lib/features/home/controllers/home_unread_manager.dart`; those callbacks were leftovers from the deleted legacy list and were not attached to the active V2 route.
+- Verification:
+  - `dart format lib/features/home/home_view.dart lib/features/home/controllers/home_feed_orchestrator.dart lib/features/home/controllers/home_unread_manager.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped as expected because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN` were not set.
+
+## Review (2026-03-10 Simplify Reply Swipe Gesture)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/features/chat/chat_room_view_v2.dart` now treats every non-system message as reply-swipable, so self-sent messages can also trigger the swipe-to-reply action.
+  - The reply swipe wrapper now uses a lower left-swipe threshold and fires as soon as the drag crosses that threshold, instead of waiting for drag-end.
+  - Added `test/features/chat/chat_reply_swipe_test.dart` to cover both the new eligibility rule and the immediate left-swipe trigger.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart test/features/chat/chat_reply_swipe_test.dart`
+  - `flutter test test/features/chat/chat_reply_swipe_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped as expected because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN` were not set.
+
+## Review (2026-03-10 Remove Chat Camera Button Shadow)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/features/chat/chat_room_view_v2.dart` no longer applies the dark-mode black box shadow behind the composer camera action button, so the button keeps its circular fill/border without the extra black backdrop artifact.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped as expected because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN` were not set.
+
 ## Plan (2026-03-10 Chat Latest Button + Long-Press Regression)
 - [x] Trace the active V2 chat path to confirm why the jump-to-latest affordance disappeared and why long-press actions no longer open.
 - [x] Restore the missing latest-message button and reattach long-press handling at the deterministic list layer used by `ChatRoomViewV2`.

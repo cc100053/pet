@@ -178,7 +178,6 @@ extension _HomeUnreadManager on _HomeViewState {
         _incrementRoomUnreadCount(roomId);
       }
       _handleSystemMessageInsert(record);
-      _chatListKey.currentState?.refreshLatest();
       return;
     }
     if (type != 'image_feed') {
@@ -295,8 +294,6 @@ extension _HomeUnreadManager on _HomeViewState {
     if (senderId != null && senderId.isNotEmpty) {
       unawaited(_ensureProfileSummary(senderId));
     }
-
-    _chatListKey.currentState?.refreshLatest();
   }
 
   void _handleSystemMessageInsert(Map<String, dynamic> record) {

@@ -36,6 +36,8 @@ import 'widgets/chat_reaction_bar.dart';
 import 'widgets/chat_reply_preview_panel.dart';
 import 'widgets/chat_keyboard_dismiss_shell.dart';
 
+bool canSwipeReplyToMessage(ChatMessage message) => !message.isSystem;
+
 class ChatRoomViewV2 extends StatefulWidget {
   const ChatRoomViewV2({
     super.key,
@@ -1968,12 +1970,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                                 },
                                 child: child,
                               );
-                              final canReply =
-                                  !domainMessage.isSystem &&
-                                  !isSentByMe &&
-                                  domainMessage.senderId != null;
+                              final canReply = canSwipeReplyToMessage(
+                                domainMessage,
+                              );
                               if (canReply) {
-                                content = _ReplySwipeWrapper(
+                                content = ReplySwipeWrapper(
                                   onTriggered: () {
                                     HapticFeedback.lightImpact();
                                     _requestReply(domainMessage);
@@ -2460,15 +2461,6 @@ class _ComposerActionButton extends StatelessWidget {
               shape: BoxShape.circle,
               border: isDarkBackground
                   ? Border.all(color: Colors.white.withValues(alpha: 0.08))
-                  : null,
-              boxShadow: isDarkBackground
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.28),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ]
                   : null,
             ),
             child: Center(
@@ -3166,19 +3158,23 @@ String? _formatBubbleTime(BuildContext context, DateTime? time) {
   );
 }
 
-class _ReplySwipeWrapper extends StatefulWidget {
-  const _ReplySwipeWrapper({required this.child, required this.onTriggered});
+class ReplySwipeWrapper extends StatefulWidget {
+  const ReplySwipeWrapper({
+    super.key,
+    required this.child,
+    required this.onTriggered,
+  });
 
   final Widget child;
   final VoidCallback onTriggered;
 
   @override
-  State<_ReplySwipeWrapper> createState() => _ReplySwipeWrapperState();
+  State<ReplySwipeWrapper> createState() => _ReplySwipeWrapperState();
 }
 
-class _ReplySwipeWrapperState extends State<_ReplySwipeWrapper>
+class _ReplySwipeWrapperState extends State<ReplySwipeWrapper>
     with SingleTickerProviderStateMixin {
-  static const double _triggerDistance = 64;
+  static const double _triggerDistance = 32;
 
   late final AnimationController _controller;
   Animation<double>? _animation;
@@ -3228,21 +3224,23 @@ class _ReplySwipeWrapperState extends State<_ReplySwipeWrapper>
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onHorizontalDragUpdate: (details) {
-        if (details.delta.dx >= 0) {
+        if (details.delta.dx >= 0 || _triggered) {
           return;
         }
         _controller.stop();
         setState(() {
           _dragOffset = (_dragOffset + (-details.delta.dx)).clamp(0.0, 84.0);
         });
-      },
-      onHorizontalDragEnd: (_) {
-        final shouldTrigger = _dragOffset >= _triggerDistance && !_triggered;
-        if (shouldTrigger) {
+        if (_dragOffset >= _triggerDistance) {
           _triggered = true;
           widget.onTriggered();
+          _animateBack();
         }
-        _animateBack();
+      },
+      onHorizontalDragEnd: (_) {
+        if (!_triggered) {
+          _animateBack();
+        }
         _triggered = false;
       },
       onHorizontalDragCancel: _animateBack,

@@ -40,9 +40,6 @@ import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import '../../shared/upload_limits.dart';
-import '../chat/chat_message.dart';
-import '../chat/chat_message_list.dart';
-import '../chat/chat_room_view.dart';
 import '../chat/chat_room_view_v2.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
@@ -92,8 +89,6 @@ enum _BasicOnboardingStep {
   feedOnce,
   completed,
 }
-
-const bool _useChatRoomV2Prototype = true;
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -254,9 +249,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _chatOpenRoomId;
   final Set<String> _notifiedHungerAlertMessageIds = <String>{};
   final Set<String> _shownHungerAlertMessageIds = <String>{};
-
-  // Chat State
-  final GlobalKey<ChatMessageListState> _chatListKey = GlobalKey();
 
   // Latest feed (polaroid)
   String? _latestFeedImageUrl;
@@ -1691,7 +1683,6 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _feedResult = 'Success: $details';
       });
-      _chatListKey.currentState?.refreshLatest();
     } on FunctionException catch (error) {
       final detailsText = error.details == null ? '' : ' | ${error.details}';
       setState(
@@ -1953,37 +1944,20 @@ class _HomeViewState extends ConsumerState<HomeView>
     Navigator.of(context)
         .push(
           MaterialPageRoute(
-            builder: (_) => _useChatRoomV2Prototype
-                ? ChatRoomViewV2(
-                    roomId: roomId,
-                    backgroundDecoration: backgroundDecoration,
-                    isDarkBackground: isDarkBackground,
-                    petName: petName == null || petName.isEmpty
-                        ? fallbackName
-                        : petName,
-                    petAssetPath: petAssetPath,
-                    isPetDeparted: _petDeparted,
-                    isRoomLocked: isRoomLocked,
-                    onFeedSendStarted: _handleOptimisticFeed,
-                    onFeedUploaded: (result, _) =>
-                        _handleFeedUploadCompleted(result),
-                    onFeedUploadFailed: _handleFeedUploadFailed,
-                  )
-                : ChatRoomView(
-                    roomId: roomId,
-                    backgroundDecoration: backgroundDecoration,
-                    isDarkBackground: isDarkBackground,
-                    petName: petName == null || petName.isEmpty
-                        ? fallbackName
-                        : petName,
-                    petAssetPath: petAssetPath,
-                    isPetDeparted: _petDeparted,
-                    isRoomLocked: isRoomLocked,
-                    onFeedSendStarted: _handleOptimisticFeed,
-                    onFeedUploaded: (result, _) =>
-                        _handleFeedUploadCompleted(result),
-                    onFeedUploadFailed: _handleFeedUploadFailed,
-                  ),
+            builder: (_) => ChatRoomViewV2(
+              roomId: roomId,
+              backgroundDecoration: backgroundDecoration,
+              isDarkBackground: isDarkBackground,
+              petName: petName == null || petName.isEmpty
+                  ? fallbackName
+                  : petName,
+              petAssetPath: petAssetPath,
+              isPetDeparted: _petDeparted,
+              isRoomLocked: isRoomLocked,
+              onFeedSendStarted: _handleOptimisticFeed,
+              onFeedUploaded: (result, _) => _handleFeedUploadCompleted(result),
+              onFeedUploadFailed: _handleFeedUploadFailed,
+            ),
           ),
         )
         .then((_) {

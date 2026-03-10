@@ -127,7 +127,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (!mounted) {
       return;
     }
-    _chatListKey.currentState?.refreshLatest();
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
@@ -137,22 +136,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     });
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
     _optimisticFeedRoomByTempId[entry.tempId] = entry.roomId;
-    final optimisticMessage = ChatMessage(
-      id: entry.tempId,
-      roomId: entry.roomId,
-      senderId: entry.senderId,
-      type: 'image_feed',
-      body: null,
-      imageUrl: null,
-      caption: entry.caption,
-      coinsAwarded: 0,
-      createdAt: entry.clientCreatedAt,
-      clientCreatedAt: entry.clientCreatedAt,
-      labels: entry.labels,
-      localImagePath: entry.localImagePath,
-    );
-    _chatListKey.currentState?.addOptimisticMessage(optimisticMessage);
-
     final roomId = _roomId;
     if (roomId == null || entry.roomId != roomId) {
       return;
@@ -207,8 +190,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     });
     _optimisticFeedImageByTempId.remove(result.tempId);
     final optimisticRoomId = _optimisticFeedRoomByTempId.remove(result.tempId);
-    _chatListKey.currentState?.removeOptimisticMessage(result.tempId);
-    _chatListKey.currentState?.refreshLatest();
 
     if (_latestFeedOptimisticTempId == result.tempId) {
       _latestFeedOptimisticTempId = null;
@@ -443,7 +424,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     });
     _optimisticFeedImageByTempId.remove(tempId);
     _optimisticFeedRoomByTempId.remove(tempId);
-    _chatListKey.currentState?.removeOptimisticMessage(tempId);
     if (_latestFeedOptimisticTempId == tempId) {
       final shouldRestore =
           _roomId != null && _roomId == _latestFeedOptimisticRoomId;
