@@ -68,17 +68,49 @@ void main() {
       expect(composerHasFocus(tester), isTrue);
 
       final timelineCenter = tester.getCenter(find.byKey(timelineKey));
-      final composerCenter = tester.getCenter(find.byKey(composerFieldKey));
+      final composerRect = tester.getRect(find.byKey(composerFieldKey));
       final gesture = await tester.startGesture(
         Offset(timelineCenter.dx, timelineCenter.dy - 120),
       );
       await tester.pump();
-      await gesture.moveTo(Offset(composerCenter.dx, composerCenter.dy - 6));
+      await gesture.moveTo(
+        Offset(composerRect.center.dx, composerRect.top + 6),
+      );
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, 36));
       await tester.pump();
       await gesture.up();
       await tester.pump();
 
       expect(composerHasFocus(tester), isFalse);
+    });
+
+    testWidgets('entering composer then dragging back up keeps focus', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: _ChatKeyboardHarness()));
+
+      await focusComposer(tester);
+      expect(composerHasFocus(tester), isTrue);
+
+      final timelineCenter = tester.getCenter(find.byKey(timelineKey));
+      final composerRect = tester.getRect(find.byKey(composerFieldKey));
+      final gesture = await tester.startGesture(
+        Offset(timelineCenter.dx, timelineCenter.dy - 120),
+      );
+      await tester.pump();
+      await gesture.moveTo(
+        Offset(composerRect.center.dx, composerRect.top + 6),
+      );
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, 12));
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, -28));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(composerHasFocus(tester), isTrue);
     });
 
     testWidgets('shared chat timeline keyboard dismiss behavior stays manual', (

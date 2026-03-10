@@ -14,13 +14,14 @@
 - [x] Implemented and verified.
 - Root change:
   - Chat timelines now use a shared manual keyboard-dismiss setting, so dragging either the active V2 timeline or the legacy fallback timeline keeps the keyboard/composer open.
-  - Chat routes now add a pointer-tracking dismiss layer keyed to the composer bounds, so a downward drag can start in the message list and dismiss as soon as it sweeps into the composer area, while the existing tap-empty-space dismissal path stays intact.
+  - Chat routes now add a pointer-tracking dismiss layer keyed to the composer bounds, so a downward drag can start in the message list and continue into the composer area without immediately dismissing on first contact.
+  - Once the drag enters the composer zone, the route now treats that entry point as the start of a second threshold: users must drag farther down into the composer before dismissal happens, and dragging back up before crossing that threshold cancels the dismiss.
   - The composer still keeps its narrow top-edge drag affordance, so direct composer-origin swipes continue to dismiss too.
 - Files:
   - `lib/features/chat/widgets/chat_keyboard_dismiss_shell.dart`: added the shared manual timeline constant, composer shell helper, and route-level sweep-dismiss listener keyed to the composer / protected input region.
   - `lib/features/chat/chat_room_view_v2.dart`: wrapped the active chat route in the shared sweep-dismiss layer, keyed the composer/input regions, and kept the deterministic scroll view on manual keyboard dismissal.
   - `lib/features/chat/chat_room_view.dart` / `lib/features/chat/chat_message_list.dart`: applied the same sweep-dismiss helper and manual timeline behavior to the legacy route and all legacy list empty/loading/main states.
-  - `test/features/chat/chat_keyboard_dismiss_behavior_test.dart`: added regression tests for list drag retention, tap-outside dismiss, composer-edge drag dismiss, list-to-composer sweep dismiss, and the shared manual dismiss constant.
+  - `test/features/chat/chat_keyboard_dismiss_behavior_test.dart`: added regression tests for list drag retention, tap-outside dismiss, composer-edge drag dismiss, list-to-composer sweep dismiss, partial-entry cancellation, and the shared manual dismiss constant.
 - Verification:
   - `dart format lib/features/chat/widgets/chat_keyboard_dismiss_shell.dart lib/features/chat/chat_room_view_v2.dart lib/features/chat/chat_room_view.dart lib/features/chat/chat_message_list.dart test/features/chat/chat_keyboard_dismiss_behavior_test.dart`
   - `flutter test test/features/chat/chat_keyboard_dismiss_behavior_test.dart`

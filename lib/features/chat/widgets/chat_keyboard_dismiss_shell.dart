@@ -30,8 +30,10 @@ class _ChatKeyboardSweepDismissLayerState
     extends State<ChatKeyboardSweepDismissLayer> {
   int? _activePointer;
   Offset? _dragStartGlobalPosition;
+  Offset? _composerEntryGlobalPosition;
   bool _startedInsideComposer = false;
   bool _startedInsideProtectedRegion = false;
+  bool _enteredComposer = false;
   bool _dismissedDuringGesture = false;
 
   bool get _canDismiss => widget.keyboardInset > 0 && widget.focusNode.hasFocus;
@@ -49,8 +51,10 @@ class _ChatKeyboardSweepDismissLayerState
   void _resetGesture() {
     _activePointer = null;
     _dragStartGlobalPosition = null;
+    _composerEntryGlobalPosition = null;
     _startedInsideComposer = false;
     _startedInsideProtectedRegion = false;
+    _enteredComposer = false;
     _dismissedDuringGesture = false;
   }
 
@@ -70,6 +74,8 @@ class _ChatKeyboardSweepDismissLayerState
     _startedInsideComposer = composerRect.contains(event.position);
     _startedInsideProtectedRegion =
         protectedRect?.contains(event.position) ?? false;
+    _enteredComposer = _startedInsideComposer && !_startedInsideProtectedRegion;
+    _composerEntryGlobalPosition = _enteredComposer ? event.position : null;
     _dismissedDuringGesture = false;
   }
 
@@ -91,22 +97,39 @@ class _ChatKeyboardSweepDismissLayerState
     }
 
     final protectedRect = _globalRectForKey(widget.protectedRegionKey);
-    final totalDeltaY = event.position.dy - start.dy;
-    if (totalDeltaY < widget.dismissThreshold) {
-      return;
-    }
-
     final currentInsideComposer = composerRect.contains(event.position);
     final currentInsideProtected =
         protectedRect?.contains(event.position) ?? false;
+
+    if (!_enteredComposer && currentInsideComposer) {
+      if (!_startedInsideComposer || !_startedInsideProtectedRegion) {
+        _enteredComposer = true;
+        _composerEntryGlobalPosition = event.position;
+      }
+    }
+
+    if (!_enteredComposer || _startedInsideProtectedRegion) {
+      return;
+    }
+
+    final entry = _composerEntryGlobalPosition;
+    if (entry == null) {
+      return;
+    }
+
     final startedAboveComposer = start.dy < composerRect.top;
     final startedInComposerChrome =
         _startedInsideComposer && !_startedInsideProtectedRegion;
-    final crossedIntoComposer = startedAboveComposer && currentInsideComposer;
-    final draggedWithinComposerChrome =
-        startedInComposerChrome && !currentInsideProtected;
+    final canDismissFromCurrentPosition = startedAboveComposer
+        ? currentInsideComposer
+        : startedInComposerChrome && !currentInsideProtected;
 
-    if (!crossedIntoComposer && !draggedWithinComposerChrome) {
+    if (!canDismissFromCurrentPosition) {
+      return;
+    }
+
+    final dragSinceEntry = event.position.dy - entry.dy;
+    if (dragSinceEntry < widget.dismissThreshold) {
       return;
     }
 
