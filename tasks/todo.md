@@ -696,3 +696,13 @@
   - `flutter analyze`
   - `flutter test`
   - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Keyboard Corner Backdrop Removal)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` so the chat route no longer relies on `Scaffold` keyboard resize; the custom composer now positions itself from `MediaQuery.viewInsets.bottom` instead.
+- This removes the separate rectangular background that was showing through the iOS keyboard’s rounded top-left/top-right corners while keeping the composer lifted just above the keyboard.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).

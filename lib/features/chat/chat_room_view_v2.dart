@@ -1332,6 +1332,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       value: overlayStyle,
       child: Scaffold(
         backgroundColor: scaffoldBackground,
+        resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -1798,6 +1799,11 @@ class _TelegramComposerState extends State<_TelegramComposer> {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureComposer());
+    final media = MediaQuery.of(context);
+    final keyboardInset = media.viewInsets.bottom;
+    final composerBottomInset = keyboardInset > 0
+        ? keyboardInset + 8
+        : media.padding.bottom + 10;
 
     final isDark = widget.isDarkBackground;
     final canSend = _hasText && widget.onSend != null;
@@ -1820,89 +1826,82 @@ class _TelegramComposerState extends State<_TelegramComposer> {
     return Positioned(
       left: 12,
       right: 12,
-      bottom: 0,
-      child: SafeArea(
-        top: false,
-        left: false,
-        right: false,
-        child: Padding(
-          key: _measureKey,
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.topWidget != null) widget.topWidget!,
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _ComposerActionButton(
-                    backgroundColor: attachmentSurface,
-                    iconColor: attachmentIconColor,
-                    tooltip: AppLocalizations.of(context)!.feedTitle,
-                    onTap: widget.onAttachmentTap,
-                    isDarkBackground: isDark,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      decoration: BoxDecoration(
-                        color: inputColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: isDark
-                            ? Border.all(color: darkPillBorder)
-                            : null,
-                        boxShadow: isDark
-                            ? [
-                                BoxShadow(
-                                  color: darkPillShadow,
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ]
-                            : null,
+      bottom: composerBottomInset,
+      child: Padding(
+        key: _measureKey,
+        padding: EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.topWidget != null) widget.topWidget!,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _ComposerActionButton(
+                  backgroundColor: attachmentSurface,
+                  iconColor: attachmentIconColor,
+                  tooltip: AppLocalizations.of(context)!.feedTitle,
+                  onTap: widget.onAttachmentTap,
+                  isDarkBackground: isDark,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    decoration: BoxDecoration(
+                      color: inputColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: isDark ? Border.all(color: darkPillBorder) : null,
+                      boxShadow: isDark
+                          ? [
+                              BoxShadow(
+                                color: darkPillShadow,
+                                blurRadius: 14,
+                                offset: const Offset(0, 6),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: TextField(
+                      controller: widget.controller,
+                      focusNode: widget.focusNode,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      minLines: 1,
+                      maxLines: 4,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.35,
+                        color: textColor,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: TextField(
-                        controller: widget.controller,
-                        focusNode: widget.focusNode,
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        minLines: 1,
-                        maxLines: 4,
-                        style: TextStyle(
-                          fontSize: 15,
-                          height: 1.35,
-                          color: textColor,
+                      cursorColor: AppTheme.primaryColor,
+                      decoration: InputDecoration(
+                        hintText: widget.hintText,
+                        hintStyle: TextStyle(color: hintColor, fontSize: 15),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
                         ),
-                        cursorColor: AppTheme.primaryColor,
-                        decoration: InputDecoration(
-                          hintText: widget.hintText,
-                          hintStyle: TextStyle(color: hintColor, fontSize: 15),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 14,
-                          ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          fillColor: Colors.transparent,
-                          filled: true,
-                          counterText: '',
-                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        fillColor: Colors.transparent,
+                        filled: true,
+                        counterText: '',
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _ComposerSendButton(
-                    enabled: canSend,
-                    onTap: canSend ? _handleSend : null,
-                    isDarkBackground: isDark,
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(width: 8),
+                _ComposerSendButton(
+                  enabled: canSend,
+                  onTap: canSend ? _handleSend : null,
+                  isDarkBackground: isDark,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
