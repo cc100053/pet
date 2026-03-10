@@ -3,12 +3,12 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatMessage;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pet/l10n/app_localizations.dart';
-import 'package:provider/provider.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
@@ -67,9 +67,12 @@ enum _MessageAction { reply, copy, report, block }
 
 class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   static const int _pageSize = 20;
+  static const Duration _replyJumpDuration = Duration(milliseconds: 360);
+  static const Curve _replyJumpCurve = Curves.easeInOutCubic;
 
   final ChatMessageRepository _repository = ChatMessageRepository.instance;
   final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
+  final ScrollController _chatScrollController = ScrollController();
   final TextEditingController _composerController = TextEditingController();
   final FocusNode _composerFocusNode = FocusNode();
   final List<ChatMessage> _messages = <ChatMessage>[];
@@ -91,6 +94,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   String? _replyTargetMessageId;
   String? _highlightedMessageId;
   int? _memberCount;
+  double _composerHeight = 0;
 
   String get _currentUserId =>
       Supabase.instance.client.auth.currentUser?.id ?? '__anonymous__';
@@ -99,6 +103,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   void initState() {
     super.initState();
     _memberCount = widget.memberCount;
+    _chatScrollController.addListener(_handleChatScroll);
     if (_memberCount == null) {
       unawaited(_fetchMemberCount());
     }
@@ -109,7 +114,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   @override
   void dispose() {
     _channel?.unsubscribe();
+    _chatScrollController.removeListener(_handleChatScroll);
     _chatController.dispose();
+    _chatScrollController.dispose();
     _composerController.dispose();
     _composerFocusNode.dispose();
     super.dispose();
@@ -191,6 +198,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         return;
       }
       await _setMessages(messages, animated: false);
+      _scheduleScrollToLatest(animated: false);
       if (!mounted) {
         return;
       }
@@ -232,6 +240,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       final merged = mergedById.values.toList()..sort(_sortByCreatedAtAsc);
       _hasMore = page.length == _pageSize;
       await _setMessages(merged, animated: false);
+      _scheduleScrollToLatest(animated: false);
       if (!mounted) {
         return;
       }
@@ -268,6 +277,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
 
     try {
+      final previousMaxExtent = _chatScrollController.hasClients
+          ? _chatScrollController.position.maxScrollExtent
+          : null;
+      final previousOffset = _chatScrollController.hasClients
+          ? _chatScrollController.position.pixels
+          : null;
       final oldest = _messages.first;
       final page = await _fetchMessages(
         beforeCreatedAt: oldest.createdAt.toUtc().toIso8601String(),
@@ -291,6 +306,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         unawaited(_ensureProfilesForMessages(olderMessages));
         unawaited(_ensureReplyPreviewsForMessages(olderMessages));
         unawaited(_persistCache());
+        _schedulePreserveViewport(
+          previousMaxExtent: previousMaxExtent,
+          previousOffset: previousOffset,
+        );
       }
     } catch (error) {
       if (!mounted) {
@@ -626,7 +645,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     unawaited(_ensureReplyPreviewsForMessages([message]));
     unawaited(_persistCache());
     if (scrollToLatest) {
-      unawaited(_chatController.scrollToMessage(message.id, alignment: 1));
+      _scheduleScrollToLatest(animated: animated);
     }
     if (mounted) {
       setState(() {});
@@ -1231,21 +1250,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
 
     final targetKey = _messageAnchorKey(targetId);
-    await _chatController.scrollToMessage(
-      targetId,
-      alignment: 0,
-      duration: Duration.zero,
-    );
-    for (var i = 0; i < 2 && targetKey.currentContext == null; i += 1) {
-      await WidgetsBinding.instance.endOfFrame;
-    }
-    if (targetKey.currentContext != null) {
-      await Scrollable.ensureVisible(
-        targetKey.currentContext!,
-        alignment: 0.5,
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-      );
+    if (!await _animateReplyTargetToCenter(
+      targetKey,
+      duration: _replyJumpDuration,
+      curve: _replyJumpCurve,
+    )) {
+      return;
     }
     if (!mounted) {
       return;
@@ -1257,6 +1267,124 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       }
       setState(() => _highlightedMessageId = null);
     });
+  }
+
+  Future<bool> _animateReplyTargetToCenter(
+    GlobalKey targetKey, {
+    required Duration duration,
+    required Curve curve,
+  }) async {
+    for (
+      var i = 0;
+      (!_chatScrollController.hasClients || targetKey.currentContext == null) &&
+          i < 4;
+      i += 1
+    ) {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!_chatScrollController.hasClients) {
+      return false;
+    }
+    final position = _chatScrollController.position;
+    final targetOffset = _replyTargetCenterOffset(targetKey);
+    if (targetOffset == null) {
+      return false;
+    }
+    if ((position.pixels - targetOffset).abs() <= 1) {
+      return true;
+    }
+    await _chatScrollController.animateTo(
+      targetOffset,
+      duration: duration,
+      curve: curve,
+    );
+    return true;
+  }
+
+  void _handleChatScroll() {
+    if (!_chatScrollController.hasClients ||
+        _loadingMore ||
+        _loading ||
+        !_hasMore) {
+      return;
+    }
+    if (_chatScrollController.position.pixels <= 120) {
+      unawaited(_loadMore());
+    }
+  }
+
+  void _handleComposerHeightChanged(double height) {
+    if ((_composerHeight - height).abs() <= 1) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() => _composerHeight = height);
+  }
+
+  void _schedulePreserveViewport({
+    required double? previousMaxExtent,
+    required double? previousOffset,
+  }) {
+    if (previousMaxExtent == null || previousOffset == null) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_chatScrollController.hasClients) {
+        return;
+      }
+      final position = _chatScrollController.position;
+      final delta = position.maxScrollExtent - previousMaxExtent;
+      if (delta.abs() <= 0.5) {
+        return;
+      }
+      final target = (previousOffset + delta).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      );
+      _chatScrollController.jumpTo(target);
+    });
+  }
+
+  void _scheduleScrollToLatest({required bool animated}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_chatScrollController.hasClients) {
+        return;
+      }
+      final position = _chatScrollController.position;
+      final target = position.maxScrollExtent;
+      if ((position.pixels - target).abs() <= 1) {
+        return;
+      }
+      if (!animated) {
+        _chatScrollController.jumpTo(target);
+        return;
+      }
+      await _chatScrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  double? _replyTargetCenterOffset(GlobalKey targetKey) {
+    final targetContext = targetKey.currentContext;
+    if (targetContext == null) {
+      return null;
+    }
+    final renderObject = targetContext.findRenderObject();
+    if (renderObject == null || !renderObject.attached) {
+      return null;
+    }
+    final viewport = RenderAbstractViewport.of(renderObject);
+    final position = _chatScrollController.position;
+    return viewport
+        .getOffsetToReveal(renderObject, 0.5)
+        .offset
+        .clamp(position.minScrollExtent, position.maxScrollExtent)
+        .toDouble();
   }
 
   Future<fc.User?> _resolveUser(String id) async {
@@ -1341,6 +1469,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     final listBottomInset = media.viewInsets.bottom > 0
         ? media.viewInsets.bottom + 8
         : media.padding.bottom + 8;
+    final listBottomPadding = listBottomInset + _composerHeight + 8;
     final scaffoldBackground =
         widget.backgroundDecoration?.color ??
         (widget.isDarkBackground
@@ -1452,10 +1581,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                           groupStatus,
                         }) {
                           return _TelegramTextMessageBubble(
+                            surfaceKey: _messageAnchorKey(message.id),
                             message: message,
                             index: index,
                             isSentByMe: isSentByMe,
                             isDarkBackground: widget.isDarkBackground,
+                            isHighlighted: _highlightedMessageId == message.id,
                             senderName: _displayNameForSenderId(
                               _messagesById[message.id]?.senderId,
                             ),
@@ -1466,6 +1597,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                       focusNode: _composerFocusNode,
                       hintText: l10n.chatMessageHint,
                       isDarkBackground: widget.isDarkBackground,
+                      onHeightChanged: _handleComposerHeightChanged,
                       onAttachmentTap: (_sending || widget.isRoomLocked)
                           ? null
                           : _openFeedCamera,
@@ -1502,9 +1634,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                           groupStatus,
                         }) {
                           return _FeedCard(
+                            surfaceKey: _messageAnchorKey(message.id),
                             message: message,
                             isMe: isSentByMe,
                             isDarkBackground: widget.isDarkBackground,
+                            isHighlighted: _highlightedMessageId == message.id,
                             senderName: _displayNameForSenderId(
                               _messagesById[message.id]?.senderId,
                             ),
@@ -1534,8 +1668,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                             ),
                             isSentByMe: isSentByMe,
                             isDarkBackground: widget.isDarkBackground,
-                            isHighlighted:
-                                _highlightedMessageId == domainMessage.id,
                             onReplyTap: domainMessage.replyToMessageId == null
                                 ? null
                                 : () => _jumpToReplySource(domainMessage),
@@ -1554,37 +1686,37 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                               child: content,
                             );
                           }
-                          return KeyedSubtree(
-                            key: _messageAnchorKey(domainMessage.id),
-                            child: content,
-                          );
+                          return content;
                         },
                     chatAnimatedListBuilder: (context, itemBuilder) {
-                      return ChatAnimatedList(
+                      final uiMessages = _toUiMessages(_messages);
+                      if (uiMessages.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              l10n.chatEmptyState,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: widget.isDarkBackground
+                                        ? Colors.white.withValues(alpha: 0.84)
+                                        : AppTheme.textSecondary,
+                                  ),
+                            ),
+                          ),
+                        );
+                      }
+                      return _DeterministicChatList(
                         itemBuilder: itemBuilder,
-                        reversed: true,
-                        onEndReached: _hasMore ? _loadMore : null,
+                        messages: uiMessages,
+                        scrollController: _chatScrollController,
                         topPadding: listTopPadding,
-                        bottomPadding: listBottomInset,
-                        keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        bottomPadding: listBottomPadding,
+                        loadingMore: _loadingMore,
                       );
                     },
-                    emptyChatListBuilder: (context) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          l10n.chatEmptyState,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: widget.isDarkBackground
-                                    ? Colors.white.withValues(alpha: 0.84)
-                                    : AppTheme.textSecondary,
-                              ),
-                        ),
-                      ),
-                    ),
+                    emptyChatListBuilder: (context) => const SizedBox.shrink(),
                     loadMoreBuilder: (context) => const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Center(child: CircularProgressIndicator()),
@@ -1669,6 +1801,68 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return createdCompare;
     }
     return a.id.compareTo(b.id);
+  }
+}
+
+class _DeterministicChatList extends StatelessWidget {
+  const _DeterministicChatList({
+    required this.itemBuilder,
+    required this.messages,
+    required this.scrollController,
+    required this.topPadding,
+    required this.bottomPadding,
+    required this.loadingMore,
+  });
+
+  final fc.ChatItem itemBuilder;
+  final List<fc.Message> messages;
+  final ScrollController scrollController;
+  final double topPadding;
+  final double bottomPadding;
+  final bool loadingMore;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final content = Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (loadingMore)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            for (var index = 0; index < messages.length; index += 1)
+              itemBuilder(
+                context,
+                messages[index],
+                index,
+                const AlwaysStoppedAnimation<double>(1),
+              ),
+          ],
+        );
+
+        return SingleChildScrollView(
+          controller: scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: (constraints.maxHeight - topPadding - bottomPadding)
+                  .clamp(0, double.infinity),
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [content],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -1771,6 +1965,7 @@ class _TelegramComposer extends StatefulWidget {
     required this.focusNode,
     required this.hintText,
     required this.isDarkBackground,
+    required this.onHeightChanged,
     required this.onSend,
     this.onAttachmentTap,
     this.topWidget,
@@ -1780,6 +1975,7 @@ class _TelegramComposer extends StatefulWidget {
   final FocusNode focusNode;
   final String hintText;
   final bool isDarkBackground;
+  final ValueChanged<double> onHeightChanged;
   final Future<void> Function(String text)? onSend;
   final VoidCallback? onAttachmentTap;
   final Widget? topWidget;
@@ -1831,7 +2027,7 @@ class _TelegramComposerState extends State<_TelegramComposer> {
     if (renderBox == null) {
       return;
     }
-    context.read<ComposerHeightNotifier>().setHeight(renderBox.size.height);
+    widget.onHeightChanged(renderBox.size.height);
   }
 
   Future<void> _handleSend() async {
@@ -2139,17 +2335,21 @@ class _SystemPill extends StatelessWidget {
 
 class _TelegramTextMessageBubble extends StatelessWidget {
   const _TelegramTextMessageBubble({
+    required this.surfaceKey,
     required this.message,
     required this.index,
     required this.isSentByMe,
     required this.isDarkBackground,
+    required this.isHighlighted,
     required this.senderName,
   });
 
+  final GlobalKey surfaceKey;
   final fc.TextMessage message;
   final int index;
   final bool isSentByMe;
   final bool isDarkBackground;
+  final bool isHighlighted;
   final String? senderName;
 
   @override
@@ -2174,52 +2374,62 @@ class _TelegramTextMessageBubble extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.5)
               : AppTheme.textSecondary.withValues(alpha: 0.82));
 
-    return SimpleTextMessage(
-      message: message,
-      index: index,
-      padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
-      constraints: const BoxConstraints(maxWidth: 296),
-      borderRadius: BorderRadius.only(
-        topLeft: const Radius.circular(20),
-        topRight: const Radius.circular(20),
-        bottomLeft: Radius.circular(isSentByMe ? 20 : 8),
-        bottomRight: Radius.circular(isSentByMe ? 8 : 20),
+    final bubbleRadius = BorderRadius.only(
+      topLeft: const Radius.circular(20),
+      topRight: const Radius.circular(20),
+      bottomLeft: Radius.circular(isSentByMe ? 20 : 8),
+      bottomRight: Radius.circular(isSentByMe ? 8 : 20),
+    );
+
+    return _MessageHighlightFrame(
+      isHighlighted: isHighlighted,
+      isDarkBackground: isDarkBackground,
+      borderRadius: BorderRadius.circular(22),
+      child: KeyedSubtree(
+        key: surfaceKey,
+        child: SimpleTextMessage(
+          message: message,
+          index: index,
+          padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
+          constraints: const BoxConstraints(maxWidth: 296),
+          borderRadius: bubbleRadius,
+          sentBackgroundColor: sentBackgroundColor,
+          receivedBackgroundColor: receivedBackgroundColor,
+          sentTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: sentTextColor,
+            fontSize: 16,
+            height: 1.36,
+            fontWeight: FontWeight.w400,
+          ),
+          receivedTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: receivedTextColor,
+            fontSize: 16,
+            height: 1.36,
+            fontWeight: FontWeight.w400,
+          ),
+          timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: timeColor,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
+          topWidget: !isSentByMe && senderName?.trim().isNotEmpty == true
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    senderName!.trim(),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                )
+              : null,
+          timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
+          timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
+          showStatus: false,
+        ),
       ),
-      sentBackgroundColor: sentBackgroundColor,
-      receivedBackgroundColor: receivedBackgroundColor,
-      sentTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: sentTextColor,
-        fontSize: 16,
-        height: 1.36,
-        fontWeight: FontWeight.w400,
-      ),
-      receivedTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: receivedTextColor,
-        fontSize: 16,
-        height: 1.36,
-        fontWeight: FontWeight.w400,
-      ),
-      timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: timeColor,
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-      ),
-      topWidget: !isSentByMe && senderName?.trim().isNotEmpty == true
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                senderName!.trim(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12.5,
-                ),
-              ),
-            )
-          : null,
-      timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
-      timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
-      showStatus: false,
     );
   }
 }
@@ -2231,7 +2441,6 @@ class _MessageEnvelope extends StatelessWidget {
     required this.replySenderName,
     required this.isSentByMe,
     required this.isDarkBackground,
-    required this.isHighlighted,
     required this.onReplyTap,
   });
 
@@ -2240,7 +2449,6 @@ class _MessageEnvelope extends StatelessWidget {
   final String? replySenderName;
   final bool isSentByMe;
   final bool isDarkBackground;
-  final bool isHighlighted;
   final VoidCallback? onReplyTap;
 
   @override
@@ -2252,22 +2460,7 @@ class _MessageEnvelope extends StatelessWidget {
     final previewTextColor = isDarkBackground
         ? Colors.white.withValues(alpha: 0.68)
         : AppTheme.textSecondary;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        color: isHighlighted
-            ? AppTheme.primaryColor.withValues(
-                alpha: isDarkBackground ? 0.16 : 0.08,
-              )
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isHighlighted
-              ? AppTheme.primaryColor.withValues(alpha: 0.35)
-              : Colors.transparent,
-        ),
-      ),
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       child: Column(
         crossAxisAlignment: isSentByMe
@@ -2376,18 +2569,73 @@ class _MessageEnvelope extends StatelessWidget {
   }
 }
 
+class _MessageHighlightFrame extends StatelessWidget {
+  const _MessageHighlightFrame({
+    required this.child,
+    required this.isHighlighted,
+    required this.isDarkBackground,
+    required this.borderRadius,
+  });
+
+  final Widget child;
+  final bool isHighlighted;
+  final bool isDarkBackground;
+  final BorderRadius borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final highlightBorder = AppTheme.primaryColor.withValues(
+      alpha: isDarkBackground ? 0.42 : 0.34,
+    );
+    final highlightFill = AppTheme.primaryColor.withValues(
+      alpha: isDarkBackground ? 0.10 : 0.06,
+    );
+    final highlightShadow = AppTheme.primaryColor.withValues(
+      alpha: isDarkBackground ? 0.26 : 0.18,
+    );
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: isHighlighted ? highlightFill : Colors.transparent,
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: isHighlighted ? highlightBorder : Colors.transparent,
+        ),
+        boxShadow: isHighlighted
+            ? [
+                BoxShadow(
+                  color: highlightShadow,
+                  blurRadius: 18,
+                  spreadRadius: 0.5,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : const <BoxShadow>[],
+      ),
+      child: child,
+    );
+  }
+}
+
 class _FeedCard extends StatelessWidget {
   const _FeedCard({
+    required this.surfaceKey,
     required this.message,
     required this.isMe,
     required this.isDarkBackground,
+    required this.isHighlighted,
     required this.senderName,
     required this.onTapImage,
   });
 
+  final GlobalKey surfaceKey;
   final fc.CustomMessage message;
   final bool isMe;
   final bool isDarkBackground;
+  final bool isHighlighted;
   final String? senderName;
   final VoidCallback onTapImage;
 
@@ -2478,133 +2726,142 @@ class _FeedCard extends StatelessWidget {
       );
     }
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 280),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: cardBackground,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: cardBorderColor),
-        ),
-        child: InkWell(
-          onTap: onTapImage,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (senderLabel != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-                  child: Text(
-                    senderLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12.5,
+    return _MessageHighlightFrame(
+      isHighlighted: isHighlighted,
+      isDarkBackground: isDarkBackground,
+      borderRadius: BorderRadius.circular(20),
+      child: KeyedSubtree(
+        key: surfaceKey,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: cardBackground,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: cardBorderColor),
+            ),
+            child: InkWell(
+              onTap: onTapImage,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (senderLabel != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                      child: Text(
+                        senderLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ),
+                  AspectRatio(
+                    aspectRatio: 4 / 5,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        image,
+                        if (coinsAwarded > 0)
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: buildGlassPill(
+                              borderRadius: BorderRadius.circular(999),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/icon/icon-park--candy.svg',
+                                    width: 14,
+                                    height: 14,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '+$coinsAwarded',
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: overlayPrimaryText,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (bubbleTime != null && caption.isEmpty)
+                          Positioned(
+                            right: 12,
+                            bottom: 12,
+                            child: buildGlassPill(
+                              borderRadius: BorderRadius.circular(999),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
+                              child: Text(
+                                bubbleTime,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: overlaySecondaryText,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ),
-              AspectRatio(
-                aspectRatio: 4 / 5,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    image,
-                    if (coinsAwarded > 0)
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: buildGlassPill(
-                          borderRadius: BorderRadius.circular(999),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/icon/icon-park--candy.svg',
-                                width: 14,
-                                height: 14,
-                                colorFilter: const ColorFilter.mode(
-                                  Colors.white,
-                                  BlendMode.srcIn,
-                                ),
+                  if (caption.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              caption,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                height: 1.35,
+                                color: cardTextColor,
                               ),
-                              const SizedBox(width: 5),
-                              Text(
-                                '+$coinsAwarded',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: overlayPrimaryText,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (bubbleTime != null && caption.isEmpty)
-                      Positioned(
-                        right: 12,
-                        bottom: 12,
-                        child: buildGlassPill(
-                          borderRadius: BorderRadius.circular(999),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          child: Text(
-                            bubbleTime,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: overlaySecondaryText,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              height: 1,
                             ),
                           ),
-                        ),
+                          if (bubbleTime != null) ...[
+                            const SizedBox(width: 10),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 1),
+                              child: Text(
+                                bubbleTime,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: metadataTimeColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
-              if (caption.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          caption,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            height: 1.35,
-                            color: cardTextColor,
-                          ),
-                        ),
-                      ),
-                      if (bubbleTime != null) ...[
-                        const SizedBox(width: 10),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 1),
-                          child: Text(
-                            bubbleTime,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: metadataTimeColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-            ],
+            ),
           ),
         ),
       ),

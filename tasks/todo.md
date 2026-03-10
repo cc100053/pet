@@ -1,5 +1,85 @@
 # TODO
 
+## Plan (2026-03-10 Reply Jump Deterministic Centering)
+- [x] Replace the current reply-jump centering flow with a deterministic viewport-offset calculation instead of relying on approximate package alignment / repeated `ensureVisible` corrections.
+- [x] Wire an explicit chat `ScrollController` into `ChatAnimatedList` so reply jumps can animate to a precise center offset once the target surface is rendered.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the final deterministic-centering fix summary and verification results.
+
+## Review (2026-03-10 Reply Jump Deterministic Centering)
+- [x] Implemented and verified.
+- Root cause:
+  - The last two fixes still depended on `flutter_chat_ui` / `scrollview_observer` alignment behavior to materialize off-screen reply targets and then used `ensureVisible` as a follow-up correction.
+  - In the reversed lazy chat list, that combination still produced visible two-stage motion, so targets could first land too high or too low before settling.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: removed package-managed `ChatAnimatedList` ownership for the active timeline and replaced it with `_DeterministicChatList`, which eagerly renders all loaded messages inside a single `SingleChildScrollView + Column`.
+  - `lib/features/chat/chat_room_view_v2.dart`: reply jumps now load older pages first, wait for the actual target widget to exist, then run one deterministic `ScrollController.animateTo(...)` using `RenderAbstractViewport.getOffsetToReveal(..., 0.5)`.
+  - `lib/features/chat/chat_room_view_v2.dart`: composer height and prepend-pagination anchoring are now managed in `ChatRoomViewV2` itself, so the list/composer spacing and top-pagination position stay under one scroll owner.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test test/pet_chat_message_adapter_test.dart`
+  - `flutter test test/chat_message_tile_reply_test.dart`
+  - `flutter analyze` passed.
+  - Both targeted chat-related test files passed.
+  - I treated the two targeted chat-related test runs as the practical verification for this pass; full `flutter test` in this repo still has unrelated suite-level timeouts established earlier in the same session.
+
+## Plan (2026-03-10 Reply Jump Centering Regression)
+- [x] Confirm why reply targets fell back to bottom alignment again after the smooth-scroll refactor.
+- [x] Restore a post-render centering correction for fallback reply jumps without reintroducing the old zero-duration overshoot behavior.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [ ] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the regression-fix summary and verification results.
+
+## Review (2026-03-10 Reply Jump Centering Regression)
+- [x] Implemented and verified.
+- Root cause:
+  - The smooth-scroll refactor removed the fallback path’s post-render centering correction and relied on `_chatController.scrollToMessage(... alignment: 0.5)` alone when the target row was not yet rendered.
+  - In this reversed `flutter_chat_ui` list, that package-level alignment remains approximate, so older reply targets reappeared near the bottom instead of landing in the viewport center.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: added `_centerReplyTargetIfRendered(...)` so reply jumps still try widget-anchor centering first.
+  - `lib/features/chat/chat_room_view_v2.dart`: when the target is not yet rendered, the app now performs one smooth `_chatController.scrollToMessage(...)` pre-scroll and then a short post-render `Scrollable.ensureVisible(... alignment: 0.5)` correction to truly center the message.
+  - The previous harsh `Duration.zero` pre-jump remains removed, so this restores centering without bringing back the strong overshoot/bounce behavior.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test test/pet_chat_message_adapter_test.dart`
+  - `flutter test test/chat_message_tile_reply_test.dart`
+  - `flutter analyze` passed.
+  - Both targeted chat-related test files passed.
+  - I did not rerun the full `flutter test` suite in this regression pass because the same session already established that the repo currently has multiple unrelated suite-level timeouts outside this chat change.
+
+## Plan (2026-03-10 Reply Jump Smoothness + Local Highlight)
+- [x] Trace the current reply-jump path in `ChatRoomViewV2` and remove the double-scroll behavior that causes the overshoot/bounce effect.
+- [x] Move reply-target highlight styling from the outer message envelope into the actual text bubble / feed card so only the content frame is emphasized.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the final UX change summary and verification results.
+
+## Review (2026-03-10 Reply Jump Smoothness + Local Highlight)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/features/chat/chat_room_view_v2.dart` used a two-step reply jump: an immediate `scrollToMessage(... duration: Duration.zero)` followed by `Scrollable.ensureVisible(...)`.
+  - That double movement made the list overshoot aggressively in the reversed chat, then visibly settle back onto the target message.
+  - Highlight styling also lived on `_MessageEnvelope`, so the temporary emphasis wrapped the whole reply/message block instead of the actual content bubble/card.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: reply jumps now use a single path per case. If the target bubble/card is already rendered, the app uses one smooth `Scrollable.ensureVisible(...)` animation to center it. If it is not rendered yet, the app falls back to one animated `_chatController.scrollToMessage(...)` call without the previous zero-duration pre-jump.
+  - `lib/features/chat/chat_room_view_v2.dart`: moved reply-target highlight treatment into the actual text bubble and feed-card surfaces via `_MessageHighlightFrame`, so only the message box/image card gets the temporary outline/glow.
+  - `lib/features/chat/chat_room_view_v2.dart`: anchor keys now sit on the real text/feed surfaces rather than the outer message envelope, keeping the scroll target and highlight target aligned.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter test test/pet_chat_message_adapter_test.dart`
+  - `flutter test test/chat_message_tile_reply_test.dart`
+  - `flutter analyze` passed.
+  - The two targeted chat-related test files passed.
+  - `flutter test` did not complete cleanly because the repo currently has unrelated long-running test-loader timeouts (for example `test/store_legal_links_row_test.dart`, `test/admob_startup_service_test.dart`, `test/room_selection_unread_indicator_test.dart`, `test/store_item_test.dart`) plus `flutter_test_listener` temp-file cleanup errors after the suite aborts.
+
 ## Plan (2026-03-10 Reply Jump Root Cause Fix)
 - [x] Verify why changing `scrollToMessage` alignment alone did not center reply targets in the reversed `flutter_chat_ui` list.
 - [x] Replace the fragile alignment-only jump with a widget-anchor based centering path that uses the rendered message context.
