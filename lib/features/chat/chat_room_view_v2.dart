@@ -28,7 +28,11 @@ import '../../shared/ui/cached_network_image_view.dart';
 import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'chat_reaction_utils.dart';
 import 'room_members_sheet.dart';
+import 'widgets/chat_message_action_sheet.dart';
+import 'widgets/chat_reaction_bar.dart';
+import 'widgets/chat_reply_preview_panel.dart';
 import 'widgets/chat_keyboard_dismiss_shell.dart';
 
 class ChatRoomViewV2 extends StatefulWidget {
@@ -66,10 +70,30 @@ class ChatRoomViewV2 extends StatefulWidget {
 
 enum _MessageAction { reply, copy, report, block }
 
+class _MessageActionSelection {
+  const _MessageActionSelection._({this.action, this.emoji});
+
+  const _MessageActionSelection.action(_MessageAction action)
+    : this._(action: action);
+
+  const _MessageActionSelection.reaction(String emoji) : this._(emoji: emoji);
+
+  final _MessageAction? action;
+  final String? emoji;
+}
+
 class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   static const int _pageSize = 20;
   static const Duration _replyJumpDuration = Duration(milliseconds: 360);
   static const Curve _replyJumpCurve = Curves.easeInOutCubic;
+  static const List<String> _quickReactionOptions = <String>[
+    '👍',
+    '❤️',
+    '😂',
+    '😮',
+    '😢',
+    '🙏',
+  ];
 
   final ChatMessageRepository _repository = ChatMessageRepository.instance;
   final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
@@ -78,6 +102,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   final FocusNode _composerFocusNode = FocusNode();
   final GlobalKey _composerSurfaceKey = GlobalKey();
   final GlobalKey _composerInputRegionKey = GlobalKey();
+  final GlobalKey _composerInteractionRegionKey = GlobalKey();
   final List<ChatMessage> _messages = <ChatMessage>[];
   final Map<String, ChatMessage> _messagesById = <String, ChatMessage>{};
   final Map<String, GlobalKey> _messageAnchorKeys = <String, GlobalKey>{};
@@ -211,6 +236,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       });
       unawaited(_ensureProfilesForMessages(messages));
       unawaited(_ensureReplyPreviewsForMessages(messages));
+      unawaited(_ensureReactionSummariesForMessages(messages));
     } catch (error) {
       if (!mounted) {
         return;
@@ -253,6 +279,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       });
       unawaited(_ensureProfilesForMessages(merged));
       unawaited(_ensureReplyPreviewsForMessages(merged));
+      unawaited(_ensureReactionSummariesForMessages(merged));
       unawaited(_persistCache());
     } catch (error) {
       if (!mounted) {
@@ -308,6 +335,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         );
         unawaited(_ensureProfilesForMessages(olderMessages));
         unawaited(_ensureReplyPreviewsForMessages(olderMessages));
+        unawaited(_ensureReactionSummariesForMessages(olderMessages));
         unawaited(_persistCache());
         _schedulePreserveViewport(
           previousMaxExtent: previousMaxExtent,
@@ -345,6 +373,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       await _setMessages(allMessages, animated: false);
       unawaited(_ensureProfilesForMessages(allMessages));
       unawaited(_ensureReplyPreviewsForMessages(allMessages));
+      unawaited(_ensureReactionSummariesForMessages(allMessages));
       unawaited(_persistCache());
       if (!mounted) {
         return;
@@ -544,6 +573,92 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
   }
 
+  Future<void> _ensureReactionSummariesForMessages(
+    List<ChatMessage> messages,
+  ) async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      return;
+    }
+
+    final messageIds = messages
+        .where((message) => !message.isSystem)
+        .map((message) => message.id)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (messageIds.isEmpty) {
+      return;
+    }
+
+    try {
+      final summaries = await _repository.fetchReactionSummaries(
+        roomId: widget.roomId,
+        messageIds: messageIds,
+        currentUserId: currentUserId,
+      );
+      if (!mounted) {
+        return;
+      }
+      _applyReactionSummaries(messageIds, summaries);
+    } catch (_) {
+      // Best-effort reaction loading in the spike view.
+    }
+  }
+
+  void _applyReactionSummaries(
+    List<String> messageIds,
+    Map<String, List<ChatMessageReactionSummary>> summariesByMessageId,
+  ) {
+    var changed = false;
+    for (var index = 0; index < _messages.length; index += 1) {
+      final message = _messages[index];
+      if (!messageIds.contains(message.id)) {
+        continue;
+      }
+      final nextReactions =
+          summariesByMessageId[message.id] ??
+          const <ChatMessageReactionSummary>[];
+      if (_sameReactions(message.reactions, nextReactions)) {
+        continue;
+      }
+      _messages[index] = message.copyWith(reactions: nextReactions);
+      changed = true;
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    _rebuildMessageIndex();
+    unawaited(_persistCache());
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  bool _sameReactions(
+    List<ChatMessageReactionSummary> a,
+    List<ChatMessageReactionSummary> b,
+  ) {
+    if (identical(a, b)) {
+      return true;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var index = 0; index < a.length; index += 1) {
+      final left = a[index];
+      final right = b[index];
+      if (left.emoji != right.emoji ||
+          left.count != right.count ||
+          left.reactedByMe != right.reactedByMe) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void _subscribeToMessages() {
     final channel = Supabase.instance.client.channel(
       'room_messages_v2_${widget.roomId}',
@@ -579,6 +694,51 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
           ),
         );
       },
+    );
+    void refreshReactionForPayload(Map<String, dynamic> record) {
+      final messageId = (record['message_id'] as String? ?? '').trim();
+      if (!mounted ||
+          messageId.isEmpty ||
+          !_messagesById.containsKey(messageId)) {
+        return;
+      }
+      unawaited(
+        _ensureReactionSummariesForMessages([_messagesById[messageId]!]),
+      );
+    }
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'message_reactions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: widget.roomId,
+      ),
+      callback: (payload) => refreshReactionForPayload(payload.newRecord),
+    );
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'message_reactions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: widget.roomId,
+      ),
+      callback: (payload) => refreshReactionForPayload(payload.newRecord),
+    );
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.delete,
+      schema: 'public',
+      table: 'message_reactions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: widget.roomId,
+      ),
+      callback: (payload) => refreshReactionForPayload(payload.oldRecord),
     );
     channel.subscribe();
   }
@@ -646,6 +806,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
     unawaited(_ensureProfilesForMessages([message]));
     unawaited(_ensureReplyPreviewsForMessages([message]));
+    unawaited(_ensureReactionSummariesForMessages([message]));
     unawaited(_persistCache());
     if (scrollToLatest) {
       _scheduleScrollToLatest(animated: animated);
@@ -813,6 +974,75 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
   }
 
+  void _setMessageReactionsLocally(
+    String messageId,
+    List<ChatMessageReactionSummary> reactions,
+  ) {
+    final index = _messages.indexWhere((message) => message.id == messageId);
+    if (index == -1) {
+      return;
+    }
+    final message = _messages[index];
+    if (_sameReactions(message.reactions, reactions)) {
+      return;
+    }
+    _messages[index] = message.copyWith(reactions: reactions);
+    _rebuildMessageIndex();
+    unawaited(_persistCache());
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _toggleReaction(ChatMessage message, String emoji) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null || message.isSystem) {
+      return;
+    }
+
+    final previousReactions = message.reactions;
+    final nextReactions = toggleReactionSummaries(previousReactions, emoji);
+    _setMessageReactionsLocally(message.id, nextReactions);
+
+    try {
+      ChatMessageReactionSummary? currentReaction;
+      for (final reaction in previousReactions) {
+        if (reaction.reactedByMe) {
+          currentReaction = reaction;
+          break;
+        }
+      }
+      if (currentReaction?.emoji == emoji) {
+        await Supabase.instance.client
+            .from('message_reactions')
+            .delete()
+            .eq('message_id', message.id)
+            .eq('user_id', userId);
+      } else {
+        await Supabase.instance.client.from('message_reactions').upsert({
+          'message_id': message.id,
+          'room_id': widget.roomId,
+          'user_id': userId,
+          'emoji': emoji,
+        }, onConflict: 'message_id,user_id');
+      }
+    } catch (error) {
+      _setMessageReactionsLocally(message.id, previousReactions);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.chatSendFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _notifyTextMessage(String messageId) async {
     try {
       final accessToken = await ensureValidAccessToken();
@@ -967,59 +1197,60 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return;
     }
 
-    final l10n = AppLocalizations.of(context)!;
+    final isMine = senderId == currentUserId;
     final isBlocked = _blockedUserIds.contains(senderId);
     final copyText = (message.body ?? '').trim().isNotEmpty
         ? message.body!.trim()
         : ((message.caption ?? '').trim().isNotEmpty
               ? message.caption!.trim()
               : null);
-    final action = await showModalBottomSheet<_MessageAction>(
+    ChatMessageReactionSummary? myReaction;
+    for (final reaction in message.reactions) {
+      if (reaction.reactedByMe) {
+        myReaction = reaction;
+        break;
+      }
+    }
+    final action = await showModalBottomSheet<_MessageActionSelection>(
       context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.reply_rounded),
-                title: Text(l10n.chatReplyAction),
-                onTap: () => Navigator.pop(context, _MessageAction.reply),
-              ),
-              ListTile(
-                leading: const Icon(Icons.content_copy_rounded),
-                title: Text(l10n.chatCopyAction),
-                enabled: copyText != null,
-                onTap: copyText == null
-                    ? null
-                    : () => Navigator.pop(context, _MessageAction.copy),
-              ),
-              ListTile(
-                leading: const Icon(Icons.report_gmailerrorred_outlined),
-                title: Text(l10n.chatReportMessageTitle),
-                onTap: () => Navigator.pop(context, _MessageAction.report),
-              ),
-              ListTile(
-                leading: const Icon(Icons.block),
-                title: Text(
-                  isBlocked ? l10n.chatUserAlreadyBlocked : l10n.chatBlockUser,
-                ),
-                enabled: !isBlocked,
-                onTap: isBlocked
-                    ? null
-                    : () => Navigator.pop(context, _MessageAction.block),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => ChatMessageActionSheet(
+        reactionOptions: _quickReactionOptions,
+        selectedReaction: myReaction?.emoji,
+        copyEnabled: copyText != null,
+        isMine: isMine,
+        isBlocked: isBlocked,
+        onReactionSelected: (emoji) =>
+            Navigator.pop(context, _MessageActionSelection.reaction(emoji)),
+        onReply: () => Navigator.pop(
+          context,
+          const _MessageActionSelection.action(_MessageAction.reply),
+        ),
+        onCopy: () => Navigator.pop(
+          context,
+          const _MessageActionSelection.action(_MessageAction.copy),
+        ),
+        onReport: () => Navigator.pop(
+          context,
+          const _MessageActionSelection.action(_MessageAction.report),
+        ),
+        onBlock: () => Navigator.pop(
+          context,
+          const _MessageActionSelection.action(_MessageAction.block),
+        ),
+      ),
     );
 
     if (!mounted || action == null) {
       return;
     }
 
-    switch (action) {
+    final emoji = action.emoji;
+    if (emoji != null && emoji.isNotEmpty) {
+      await _toggleReaction(message, emoji);
+      return;
+    }
+
+    switch (action.action) {
       case _MessageAction.reply:
         _requestReply(message);
         break;
@@ -1029,9 +1260,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
           if (!mounted) {
             return;
           }
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.chatMessageCopied)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.chatMessageCopied),
+            ),
+          );
         }
         break;
       case _MessageAction.report:
@@ -1039,6 +1272,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         break;
       case _MessageAction.block:
         await _blockUser(senderId);
+        break;
+      case null:
         break;
     }
   }
@@ -1549,196 +1784,230 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: ChatKeyboardSweepDismissLayer(
-                  focusNode: _composerFocusNode,
-                  keyboardInset: media.viewInsets.bottom,
-                  composerKey: _composerSurfaceKey,
-                  protectedRegionKey: _composerInputRegionKey,
-                  child: Chat(
-                    currentUserId: _currentUserId,
-                    resolveUser: _resolveUser,
-                    chatController: _chatController,
-                    decoration: widget.backgroundDecoration,
-                    backgroundColor: scaffoldBackground,
-                    theme: _chatTheme(context),
-                    onMessageSend: _sending ? null : _handleSendMessage,
-                    onAttachmentTap: (_sending || widget.isRoomLocked)
-                        ? null
-                        : _openFeedCamera,
-                    onMessageLongPress:
-                        (context, message, {required index, required details}) {
-                          final domainMessage = _messagesById[message.id];
-                          final isMine =
-                              domainMessage?.senderId == _currentUserId;
-                          if (domainMessage == null ||
-                              domainMessage.isSystem ||
-                              isMine ||
-                              domainMessage.senderId == null) {
-                            return;
-                          }
-                          unawaited(_showMessageActions(domainMessage));
-                        },
-                    builders: fc.Builders(
-                      textMessageBuilder:
+              child: ChatBackSwipePopLayer(
+                excludedRegionKey: _composerInteractionRegionKey,
+                onPop: () => Navigator.of(context).maybePop(),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: ChatKeyboardSweepDismissLayer(
+                    focusNode: _composerFocusNode,
+                    keyboardInset: media.viewInsets.bottom,
+                    composerKey: _composerSurfaceKey,
+                    protectedRegionKey: _composerInputRegionKey,
+                    child: Chat(
+                      currentUserId: _currentUserId,
+                      resolveUser: _resolveUser,
+                      chatController: _chatController,
+                      decoration: widget.backgroundDecoration,
+                      backgroundColor: scaffoldBackground,
+                      theme: _chatTheme(context),
+                      onMessageSend: _sending ? null : _handleSendMessage,
+                      onAttachmentTap: (_sending || widget.isRoomLocked)
+                          ? null
+                          : _openFeedCamera,
+                      onMessageLongPress:
                           (
                             context,
-                            message,
-                            index, {
-                            required isSentByMe,
-                            groupStatus,
-                          }) {
-                            return _TelegramTextMessageBubble(
-                              surfaceKey: _messageAnchorKey(message.id),
-                              message: message,
-                              index: index,
-                              isSentByMe: isSentByMe,
-                              isDarkBackground: widget.isDarkBackground,
-                              isHighlighted:
-                                  _highlightedMessageId == message.id,
-                              senderName: _displayNameForSenderId(
-                                _messagesById[message.id]?.senderId,
-                              ),
-                            );
-                          },
-                      composerBuilder: (context) => _TelegramComposer(
-                        controller: _composerController,
-                        focusNode: _composerFocusNode,
-                        surfaceKey: _composerSurfaceKey,
-                        inputRegionKey: _composerInputRegionKey,
-                        hintText: l10n.chatMessageHint,
-                        isDarkBackground: widget.isDarkBackground,
-                        onHeightChanged: _handleComposerHeightChanged,
-                        onAttachmentTap: (_sending || widget.isRoomLocked)
-                            ? null
-                            : _openFeedCamera,
-                        onSend: _sending ? null : _handleSendMessage,
-                        topWidget: replyTarget == null
-                            ? null
-                            : _ReplyComposerBar(
-                                message: replyTarget,
-                                senderName: _displayNameForSenderId(
-                                  replyTarget.senderId,
-                                ),
-                                isDarkBackground: widget.isDarkBackground,
-                                onCancel: () {
-                                  setState(() => _replyTargetMessageId = null);
-                                },
-                              ),
-                      ),
-                      systemMessageBuilder:
-                          (
-                            context,
-                            message,
-                            index, {
-                            required isSentByMe,
-                            groupStatus,
-                          }) {
-                            return _SystemPill(message: message.text);
-                          },
-                      customMessageBuilder:
-                          (
-                            context,
-                            message,
-                            index, {
-                            required isSentByMe,
-                            groupStatus,
-                          }) {
-                            return _FeedCard(
-                              surfaceKey: _messageAnchorKey(message.id),
-                              message: message,
-                              isMe: isSentByMe,
-                              isDarkBackground: widget.isDarkBackground,
-                              isHighlighted:
-                                  _highlightedMessageId == message.id,
-                              senderName: _displayNameForSenderId(
-                                _messagesById[message.id]?.senderId,
-                              ),
-                              onTapImage: () =>
-                                  _openFeedViewer(_messagesById[message.id]),
-                            );
-                          },
-                      chatMessageBuilder:
-                          (
-                            context,
-                            message,
-                            index,
-                            animation,
-                            child, {
-                            isRemoved,
-                            required isSentByMe,
-                            groupStatus,
+                            message, {
+                            required index,
+                            required details,
                           }) {
                             final domainMessage = _messagesById[message.id];
-                            if (domainMessage == null) {
-                              return child;
+                            if (domainMessage == null ||
+                                domainMessage.isSystem ||
+                                domainMessage.senderId == null) {
+                              return;
                             }
-                            Widget content = _MessageEnvelope(
-                              replyPreview: _resolvedReplyPreview(
-                                domainMessage,
-                              ),
-                              replySenderName: _displayNameForSenderId(
-                                _resolvedReplyPreview(domainMessage)?.senderId,
-                              ),
-                              isSentByMe: isSentByMe,
-                              isDarkBackground: widget.isDarkBackground,
-                              onReplyTap: domainMessage.replyToMessageId == null
-                                  ? null
-                                  : () => _jumpToReplySource(domainMessage),
-                              child: child,
-                            );
-                            final canReply =
-                                !domainMessage.isSystem &&
-                                !isSentByMe &&
-                                domainMessage.senderId != null;
-                            if (canReply) {
-                              content = _ReplySwipeWrapper(
-                                onTriggered: () {
-                                  HapticFeedback.lightImpact();
-                                  _requestReply(domainMessage);
-                                },
-                                child: content,
-                              );
-                            }
-                            return content;
+                            unawaited(_showMessageActions(domainMessage));
                           },
-                      chatAnimatedListBuilder: (context, itemBuilder) {
-                        final uiMessages = _toUiMessages(_messages);
-                        if (uiMessages.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              child: Text(
-                                l10n.chatEmptyState,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: widget.isDarkBackground
-                                          ? Colors.white.withValues(alpha: 0.84)
-                                          : AppTheme.textSecondary,
+                      builders: fc.Builders(
+                        textMessageBuilder:
+                            (
+                              context,
+                              message,
+                              index, {
+                              required isSentByMe,
+                              groupStatus,
+                            }) {
+                              final domainMessage = _messagesById[message.id];
+                              final resolvedReplyPreview = domainMessage == null
+                                  ? null
+                                  : _resolvedReplyPreview(domainMessage);
+                              final replyTap =
+                                  domainMessage == null ||
+                                      domainMessage.replyToMessageId == null
+                                  ? null
+                                  : () => _jumpToReplySource(domainMessage);
+                              return _TelegramTextMessageBubble(
+                                surfaceKey: _messageAnchorKey(message.id),
+                                message: message,
+                                index: index,
+                                isSentByMe: isSentByMe,
+                                isDarkBackground: widget.isDarkBackground,
+                                isHighlighted:
+                                    _highlightedMessageId == message.id,
+                                senderName: _displayNameForSenderId(
+                                  _messagesById[message.id]?.senderId,
+                                ),
+                                replyPreview: resolvedReplyPreview,
+                                replySenderName: _displayNameForSenderId(
+                                  resolvedReplyPreview?.senderId,
+                                ),
+                                onReplyTap: replyTap,
+                              );
+                            },
+                        composerBuilder: (context) => _TelegramComposer(
+                          controller: _composerController,
+                          focusNode: _composerFocusNode,
+                          surfaceKey: _composerSurfaceKey,
+                          inputRegionKey: _composerInputRegionKey,
+                          interactionRegionKey: _composerInteractionRegionKey,
+                          hintText: l10n.chatMessageHint,
+                          isDarkBackground: widget.isDarkBackground,
+                          onHeightChanged: _handleComposerHeightChanged,
+                          onAttachmentTap: (_sending || widget.isRoomLocked)
+                              ? null
+                              : _openFeedCamera,
+                          onSend: _sending ? null : _handleSendMessage,
+                          replyPreview: replyTarget,
+                          replySenderName: replyTarget == null
+                              ? null
+                              : _displayNameForSenderId(replyTarget.senderId),
+                          onCancelReply: replyTarget == null
+                              ? null
+                              : () {
+                                  setState(() => _replyTargetMessageId = null);
+                                },
+                        ),
+                        systemMessageBuilder:
+                            (
+                              context,
+                              message,
+                              index, {
+                              required isSentByMe,
+                              groupStatus,
+                            }) {
+                              return _SystemPill(message: message.text);
+                            },
+                        customMessageBuilder:
+                            (
+                              context,
+                              message,
+                              index, {
+                              required isSentByMe,
+                              groupStatus,
+                            }) {
+                              final domainMessage = _messagesById[message.id];
+                              final resolvedReplyPreview = domainMessage == null
+                                  ? null
+                                  : _resolvedReplyPreview(domainMessage);
+                              final replyTap =
+                                  domainMessage == null ||
+                                      domainMessage.replyToMessageId == null
+                                  ? null
+                                  : () => _jumpToReplySource(domainMessage);
+                              return _FeedCard(
+                                surfaceKey: _messageAnchorKey(message.id),
+                                message: message,
+                                isMe: isSentByMe,
+                                isDarkBackground: widget.isDarkBackground,
+                                isHighlighted:
+                                    _highlightedMessageId == message.id,
+                                senderName: _displayNameForSenderId(
+                                  _messagesById[message.id]?.senderId,
+                                ),
+                                replyPreview: resolvedReplyPreview,
+                                replySenderName: _displayNameForSenderId(
+                                  resolvedReplyPreview?.senderId,
+                                ),
+                                onReplyTap: replyTap,
+                                onTapImage: () =>
+                                    _openFeedViewer(_messagesById[message.id]),
+                              );
+                            },
+                        chatMessageBuilder:
+                            (
+                              context,
+                              message,
+                              index,
+                              animation,
+                              child, {
+                              isRemoved,
+                              required isSentByMe,
+                              groupStatus,
+                            }) {
+                              final domainMessage = _messagesById[message.id];
+                              if (domainMessage == null) {
+                                return child;
+                              }
+                              Widget content = _MessageEnvelope(
+                                isSentByMe: isSentByMe,
+                                isDarkBackground: widget.isDarkBackground,
+                                reactions: domainMessage.reactions,
+                                onReactionTap: (reaction) {
+                                  unawaited(
+                                    _toggleReaction(
+                                      domainMessage,
+                                      reaction.emoji,
                                     ),
+                                  );
+                                },
+                                child: child,
+                              );
+                              final canReply =
+                                  !domainMessage.isSystem &&
+                                  !isSentByMe &&
+                                  domainMessage.senderId != null;
+                              if (canReply) {
+                                content = _ReplySwipeWrapper(
+                                  onTriggered: () {
+                                    HapticFeedback.lightImpact();
+                                    _requestReply(domainMessage);
+                                  },
+                                  child: content,
+                                );
+                              }
+                              return content;
+                            },
+                        chatAnimatedListBuilder: (context, itemBuilder) {
+                          final uiMessages = _toUiMessages(_messages);
+                          if (uiMessages.isEmpty) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                child: Text(
+                                  l10n.chatEmptyState,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: widget.isDarkBackground
+                                            ? Colors.white.withValues(
+                                                alpha: 0.84,
+                                              )
+                                            : AppTheme.textSecondary,
+                                      ),
+                                ),
                               ),
-                            ),
+                            );
+                          }
+                          return _DeterministicChatList(
+                            itemBuilder: itemBuilder,
+                            messages: uiMessages,
+                            scrollController: _chatScrollController,
+                            topPadding: listTopPadding,
+                            bottomPadding: listBottomPadding,
+                            loadingMore: _loadingMore,
                           );
-                        }
-                        return _DeterministicChatList(
-                          itemBuilder: itemBuilder,
-                          messages: uiMessages,
-                          scrollController: _chatScrollController,
-                          topPadding: listTopPadding,
-                          bottomPadding: listBottomPadding,
-                          loadingMore: _loadingMore,
-                        );
-                      },
-                      emptyChatListBuilder: (context) =>
-                          const SizedBox.shrink(),
-                      loadMoreBuilder: (context) => const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(child: CircularProgressIndicator()),
+                        },
+                        emptyChatListBuilder: (context) =>
+                            const SizedBox.shrink(),
+                        loadMoreBuilder: (context) => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
                       ),
                     ),
                   ),
@@ -1886,123 +2155,36 @@ class _DeterministicChatList extends StatelessWidget {
   }
 }
 
-class _ReplyComposerBar extends StatelessWidget {
-  const _ReplyComposerBar({
-    required this.message,
-    required this.senderName,
-    required this.isDarkBackground,
-    required this.onCancel,
-  });
-
-  final ChatMessage message;
-  final String? senderName;
-  final bool isDarkBackground;
-  final VoidCallback onCancel;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final label = senderName?.trim().isNotEmpty == true
-        ? senderName!.trim()
-        : l10n.chatPartnerLabel;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
-      decoration: BoxDecoration(
-        color: isDarkBackground
-            ? Colors.white.withValues(alpha: 0.08)
-            : AppTheme.primaryColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDarkBackground
-              ? Colors.white.withValues(alpha: 0.08)
-              : AppTheme.primaryColor.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 28,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.chatReplyingTo(label),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: isDarkBackground
-                        ? Colors.white
-                        : AppTheme.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  PetChatMessageAdapter.previewTextForMessage(message, l10n),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isDarkBackground
-                        ? Colors.white.withValues(alpha: 0.66)
-                        : AppTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: onCancel,
-            icon: Icon(
-              Icons.close_rounded,
-              size: 16,
-              color: isDarkBackground
-                  ? Colors.white.withValues(alpha: 0.74)
-                  : AppTheme.textSecondary,
-            ),
-            splashRadius: 16,
-            tooltip: l10n.commonCancel,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _TelegramComposer extends StatefulWidget {
   const _TelegramComposer({
     required this.controller,
     required this.focusNode,
     required this.surfaceKey,
     required this.inputRegionKey,
+    required this.interactionRegionKey,
     required this.hintText,
     required this.isDarkBackground,
     required this.onHeightChanged,
     required this.onSend,
     this.onAttachmentTap,
-    this.topWidget,
+    this.replyPreview,
+    this.replySenderName,
+    this.onCancelReply,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final GlobalKey surfaceKey;
   final GlobalKey inputRegionKey;
+  final GlobalKey interactionRegionKey;
   final String hintText;
   final bool isDarkBackground;
   final ValueChanged<double> onHeightChanged;
   final Future<void> Function(String text)? onSend;
   final VoidCallback? onAttachmentTap;
-  final Widget? topWidget;
+  final ChatMessage? replyPreview;
+  final String? replySenderName;
+  final VoidCallback? onCancelReply;
 
   @override
   State<_TelegramComposer> createState() => _TelegramComposerState();
@@ -2028,7 +2210,8 @@ class _TelegramComposerState extends State<_TelegramComposer> {
       oldWidget.controller.removeListener(_handleTextChanged);
       widget.controller.addListener(_handleTextChanged);
     }
-    if (oldWidget.topWidget != widget.topWidget ||
+    if (oldWidget.replyPreview != widget.replyPreview ||
+        oldWidget.replySenderName != widget.replySenderName ||
         oldWidget.isDarkBackground != widget.isDarkBackground) {
       _scheduleComposerMeasure();
     }
@@ -2110,6 +2293,9 @@ class _TelegramComposerState extends State<_TelegramComposer> {
         : AppTheme.textSecondary;
     final darkPillBorder = Colors.white.withValues(alpha: 0.08);
     final darkPillShadow = Colors.black.withValues(alpha: 0.28);
+    final replySenderLabel = widget.replySenderName?.trim().isNotEmpty == true
+        ? widget.replySenderName!.trim()
+        : AppLocalizations.of(context)!.chatPartnerLabel;
 
     return Positioned(
       left: 12,
@@ -2118,85 +2304,152 @@ class _TelegramComposerState extends State<_TelegramComposer> {
       child: ChatComposerDismissShell(
         focusNode: widget.focusNode,
         keyboardInset: keyboardInset,
-        contentKey: widget.surfaceKey,
+        contentKey: widget.interactionRegionKey,
         handleKey: const ValueKey('chatComposerDismissHandle'),
         child: Padding(
           key: _measureKey,
           padding: EdgeInsets.zero,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (widget.topWidget != null) widget.topWidget!,
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _ComposerActionButton(
-                    backgroundColor: attachmentSurface,
-                    iconColor: attachmentIconColor,
-                    tooltip: AppLocalizations.of(context)!.feedTitle,
-                    onTap: widget.onAttachmentTap,
-                    isDarkBackground: isDark,
+              _ComposerActionButton(
+                backgroundColor: attachmentSurface,
+                iconColor: attachmentIconColor,
+                tooltip: AppLocalizations.of(context)!.feedTitle,
+                onTap: widget.onAttachmentTap,
+                isDarkBackground: isDark,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  key: widget.surfaceKey,
+                  constraints: const BoxConstraints(minHeight: 48),
+                  decoration: BoxDecoration(
+                    color: inputColor,
+                    borderRadius: BorderRadius.circular(24),
+                    border: isDark ? Border.all(color: darkPillBorder) : null,
+                    boxShadow: isDark
+                        ? [
+                            BoxShadow(
+                              color: darkPillShadow,
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ]
+                        : null,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      key: widget.inputRegionKey,
-                      constraints: const BoxConstraints(minHeight: 48),
-                      decoration: BoxDecoration(
-                        color: inputColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: isDark
-                            ? Border.all(color: darkPillBorder)
-                            : null,
-                        boxShadow: isDark
-                            ? [
-                                BoxShadow(
-                                  color: darkPillShadow,
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: TextField(
-                        controller: widget.controller,
-                        focusNode: widget.focusNode,
-                        key: const ValueKey('chatComposerTextField'),
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        minLines: 1,
-                        maxLines: 4,
-                        style: TextStyle(
-                          fontSize: 15,
-                          height: 1.35,
-                          color: textColor,
-                        ),
-                        cursorColor: AppTheme.primaryColor,
-                        decoration: InputDecoration(
-                          hintText: widget.hintText,
-                          hintStyle: TextStyle(color: hintColor, fontSize: 15),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 14,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.replyPreview != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                          child: Column(
+                            children: [
+                              ChatReplyPreviewPanel(
+                                key: const ValueKey('chatComposerReplyPreview'),
+                                senderName: replySenderLabel,
+                                previewText:
+                                    PetChatMessageAdapter.previewTextForMessage(
+                                      widget.replyPreview!,
+                                      AppLocalizations.of(context)!,
+                                    ),
+                                accentColor: AppTheme.primaryColor,
+                                senderColor: isDark
+                                    ? Colors.white
+                                    : AppTheme.textPrimary,
+                                previewTextColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.66)
+                                    : AppTheme.textSecondary,
+                                backgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : AppTheme.primaryColor.withValues(
+                                        alpha: 0.07,
+                                      ),
+                                iconColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.6)
+                                    : AppTheme.textSecondary,
+                                isImage: widget.replyPreview!.isImageFeed,
+                                compact: true,
+                              ),
+                              Divider(
+                                height: 12,
+                                thickness: 1,
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.05),
+                              ),
+                            ],
                           ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          fillColor: Colors.transparent,
-                          filled: true,
-                          counterText: '',
                         ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              key: widget.inputRegionKey,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                              ),
+                              child: TextField(
+                                controller: widget.controller,
+                                focusNode: widget.focusNode,
+                                key: const ValueKey('chatComposerTextField'),
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                minLines: 1,
+                                maxLines: 4,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  height: 1.35,
+                                  color: textColor,
+                                ),
+                                cursorColor: AppTheme.primaryColor,
+                                decoration: InputDecoration(
+                                  hintText: widget.hintText,
+                                  hintStyle: TextStyle(
+                                    color: hintColor,
+                                    fontSize: 15,
+                                  ),
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  fillColor: Colors.transparent,
+                                  filled: true,
+                                  counterText: '',
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (widget.replyPreview != null)
+                            IconButton(
+                              onPressed: widget.onCancelReply,
+                              icon: Icon(
+                                Icons.close_rounded,
+                                size: 16,
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.74)
+                                    : AppTheme.textSecondary,
+                              ),
+                              splashRadius: 16,
+                              tooltip: AppLocalizations.of(
+                                context,
+                              )!.commonCancel,
+                            ),
+                        ],
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  _ComposerSendButton(
-                    enabled: canSend,
-                    onTap: canSend ? _handleSend : null,
-                    isDarkBackground: isDark,
-                  ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _ComposerSendButton(
+                enabled: canSend,
+                onTap: canSend ? _handleSend : null,
+                isDarkBackground: isDark,
               ),
             ],
           ),
@@ -2394,6 +2647,9 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     required this.isDarkBackground,
     required this.isHighlighted,
     required this.senderName,
+    required this.replyPreview,
+    required this.replySenderName,
+    required this.onReplyTap,
   });
 
   final GlobalKey surfaceKey;
@@ -2403,11 +2659,14 @@ class _TelegramTextMessageBubble extends StatelessWidget {
   final bool isDarkBackground;
   final bool isHighlighted;
   final String? senderName;
+  final ChatReplyPreview? replyPreview;
+  final String? replySenderName;
+  final VoidCallback? onReplyTap;
 
   @override
   Widget build(BuildContext context) {
     final sentBackgroundColor = isDarkBackground
-        ? const Color(0xFF3D6E67)
+        ? const Color(0xFF4E7E76)
         : const Color(0xFFDDF3EA);
     final receivedBackgroundColor = isDarkBackground
         ? const Color(0xFF2A313D)
@@ -2432,6 +2691,16 @@ class _TelegramTextMessageBubble extends StatelessWidget {
       bottomLeft: Radius.circular(isSentByMe ? 20 : 8),
       bottomRight: Radius.circular(isSentByMe ? 8 : 20),
     );
+    final replyLabel = replySenderName?.trim().isNotEmpty == true
+        ? replySenderName!.trim()
+        : AppLocalizations.of(context)!.chatPartnerLabel;
+    final replyPreviewBackground = isSentByMe
+        ? (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.white.withValues(alpha: 0.7))
+        : (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.06)
+              : const Color(0xFFF1F5F8));
 
     return _MessageHighlightFrame(
       isHighlighted: isHighlighted,
@@ -2464,19 +2733,62 @@ class _TelegramTextMessageBubble extends StatelessWidget {
             fontSize: 10,
             fontWeight: FontWeight.w500,
           ),
-          topWidget: !isSentByMe && senderName?.trim().isNotEmpty == true
-              ? Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    senderName!.trim(),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12.5,
-                    ),
-                  ),
-                )
-              : null,
+          topWidget:
+              !isSentByMe &&
+                  senderName?.trim().isNotEmpty != true &&
+                  replyPreview == null
+              ? null
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!isSentByMe && senderName?.trim().isNotEmpty == true)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: replyPreview == null ? 4 : 6,
+                        ),
+                        child: Text(
+                          senderName!.trim(),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.5,
+                              ),
+                        ),
+                      ),
+                    if (replyPreview != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ChatReplyPreviewPanel(
+                          key: const ValueKey('chatTextBubbleReplyPreview'),
+                          senderName: replyLabel,
+                          previewText:
+                              PetChatMessageAdapter.previewTextForReply(
+                                replyPreview!,
+                                AppLocalizations.of(context)!,
+                              ),
+                          accentColor: AppTheme.primaryColor,
+                          senderColor: isSentByMe
+                              ? (isDarkBackground
+                                    ? const Color(0xFFA2E0CF)
+                                    : const Color(0xFF4B8F7B))
+                              : AppTheme.primaryColor,
+                          previewTextColor: isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.68)
+                              : AppTheme.textSecondary,
+                          backgroundColor: replyPreviewBackground,
+                          iconColor: isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.58)
+                              : AppTheme.textSecondary.withValues(alpha: 0.8),
+                          isImage: replyPreview!.isImageFeed,
+                          showJumpIcon: true,
+                          compact: true,
+                          onTap: onReplyTap,
+                        ),
+                      ),
+                  ],
+                ),
           timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
           timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
           showStatus: false,
@@ -2489,29 +2801,20 @@ class _TelegramTextMessageBubble extends StatelessWidget {
 class _MessageEnvelope extends StatelessWidget {
   const _MessageEnvelope({
     required this.child,
-    required this.replyPreview,
-    required this.replySenderName,
     required this.isSentByMe,
     required this.isDarkBackground,
-    required this.onReplyTap,
+    required this.reactions,
+    required this.onReactionTap,
   });
 
   final Widget child;
-  final ChatReplyPreview? replyPreview;
-  final String? replySenderName;
   final bool isSentByMe;
   final bool isDarkBackground;
-  final VoidCallback? onReplyTap;
+  final List<ChatMessageReactionSummary> reactions;
+  final ValueChanged<ChatMessageReactionSummary>? onReactionTap;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final previewSurface = isDarkBackground
-        ? const Color(0xFF242B36).withValues(alpha: 0.86)
-        : const Color(0xFFF4F7FA);
-    final previewTextColor = isDarkBackground
-        ? Colors.white.withValues(alpha: 0.68)
-        : AppTheme.textSecondary;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       child: Column(
@@ -2520,101 +2823,22 @@ class _MessageEnvelope extends StatelessWidget {
             : CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (replyPreview != null)
-            Align(
-              alignment: isSentByMe
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 2, right: 2, bottom: 4),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 296),
-                  child: InkWell(
-                    onTap: onReplyTap,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 11,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: previewSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDarkBackground
-                              ? Colors.white.withValues(alpha: 0.06)
-                              : Colors.black.withValues(alpha: 0.04),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 3,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  replySenderName?.trim().isNotEmpty == true
-                                      ? replySenderName!.trim()
-                                      : l10n.chatPartnerLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.labelMedium
-                                      ?.copyWith(
-                                        color: isSentByMe
-                                            ? (isDarkBackground
-                                                  ? const Color(0xFFA2E0CF)
-                                                  : const Color(0xFF4B8F7B))
-                                            : AppTheme.primaryColor,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  PetChatMessageAdapter.previewTextForReply(
-                                    replyPreview!,
-                                    l10n,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: previewTextColor,
-                                        height: 1.25,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_upward_rounded,
-                            size: 14,
-                            color: previewTextColor,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
           Align(
             alignment: isSentByMe
                 ? Alignment.centerRight
                 : Alignment.centerLeft,
             child: child,
           ),
+          if (reactions.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 2, right: 2),
+              child: ChatReactionBar(
+                reactions: reactions,
+                onReactionTap: onReactionTap,
+                alignEnd: isSentByMe,
+                isDarkBackground: isDarkBackground,
+              ),
+            ),
         ],
       ),
     );
@@ -2680,6 +2904,9 @@ class _FeedCard extends StatelessWidget {
     required this.isDarkBackground,
     required this.isHighlighted,
     required this.senderName,
+    required this.replyPreview,
+    required this.replySenderName,
+    required this.onReplyTap,
     required this.onTapImage,
   });
 
@@ -2689,6 +2916,9 @@ class _FeedCard extends StatelessWidget {
   final bool isDarkBackground;
   final bool isHighlighted;
   final String? senderName;
+  final ChatReplyPreview? replyPreview;
+  final String? replySenderName;
+  final VoidCallback? onReplyTap;
   final VoidCallback onTapImage;
 
   @override
@@ -2707,7 +2937,7 @@ class _FeedCard extends StatelessWidget {
     final canShowRemote = remoteUrl.isNotEmpty;
     final canShowLocal = localPath.isNotEmpty;
     final cardBackground = isMe
-        ? (isDarkBackground ? const Color(0xFF3D6E67) : const Color(0xFFDDF3EA))
+        ? (isDarkBackground ? const Color(0xFF4E7E76) : const Color(0xFFDDF3EA))
         : (isDarkBackground ? const Color(0xFF2A313D) : Colors.white);
     final cardTextColor = isMe && !isDarkBackground
         ? const Color(0xFF1E3B34)
@@ -2719,6 +2949,9 @@ class _FeedCard extends StatelessWidget {
     final senderLabel = !isMe && senderName?.trim().isNotEmpty == true
         ? senderName!.trim()
         : null;
+    final replyLabel = replySenderName?.trim().isNotEmpty == true
+        ? replySenderName!.trim()
+        : AppLocalizations.of(context)!.chatPartnerLabel;
     final metadataTimeColor = isMe
         ? (isDarkBackground
               ? Colors.white.withValues(alpha: 0.72)
@@ -2798,6 +3031,38 @@ class _FeedCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (replyPreview != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                      child: ChatReplyPreviewPanel(
+                        key: const ValueKey('chatFeedCardReplyPreview'),
+                        senderName: replyLabel,
+                        previewText: PetChatMessageAdapter.previewTextForReply(
+                          replyPreview!,
+                          AppLocalizations.of(context)!,
+                        ),
+                        accentColor: AppTheme.primaryColor,
+                        senderColor: isMe
+                            ? (isDarkBackground
+                                  ? const Color(0xFFA2E0CF)
+                                  : const Color(0xFF4B8F7B))
+                            : AppTheme.primaryColor,
+                        previewTextColor: isDarkBackground
+                            ? Colors.white.withValues(alpha: 0.68)
+                            : AppTheme.textSecondary,
+                        backgroundColor: isDarkBackground
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : const Color(0xFFF1F5F8),
+                        iconColor: isDarkBackground
+                            ? Colors.white.withValues(alpha: 0.58)
+                            : AppTheme.textSecondary.withValues(alpha: 0.8),
+                        isImage: replyPreview!.isImageFeed,
+                        showJumpIcon: true,
+                        compact: true,
+                        onTap: onReplyTap,
+                      ),
+                    ),
+                  if (replyPreview != null) const SizedBox(height: 10),
                   if (senderLabel != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),

@@ -14,6 +14,7 @@ class ChatMessage {
     required this.localImagePath,
     this.replyToMessageId,
     this.replyPreview,
+    this.reactions = const <ChatMessageReactionSummary>[],
   });
 
   final String id;
@@ -30,6 +31,7 @@ class ChatMessage {
   final String? localImagePath;
   final String? replyToMessageId;
   final ChatReplyPreview? replyPreview;
+  final List<ChatMessageReactionSummary> reactions;
 
   bool get isSystem => type == 'system';
   bool get isImageFeed => type == 'image_feed';
@@ -50,6 +52,7 @@ class ChatMessage {
       localImagePath: json['local_image_path'] as String?,
       replyToMessageId: json['reply_to_message_id'] as String?,
       replyPreview: _parseReplyPreview(json['reply_to']),
+      reactions: _parseReactionSummaries(json['reactions']),
     );
   }
 
@@ -68,6 +71,7 @@ class ChatMessage {
     String? localImagePath,
     String? replyToMessageId,
     ChatReplyPreview? replyPreview,
+    List<ChatMessageReactionSummary>? reactions,
     bool clearReplyPreview = false,
   }) {
     return ChatMessage(
@@ -87,6 +91,7 @@ class ChatMessage {
       replyPreview: clearReplyPreview
           ? null
           : (replyPreview ?? this.replyPreview),
+      reactions: reactions ?? this.reactions,
     );
   }
 
@@ -107,6 +112,7 @@ class ChatMessage {
       'local_image_path': localImagePath,
       'reply_to_message_id': replyToMessageId,
       'reply_to': replyPreview?.toJson(),
+      'reactions': reactions.map((reaction) => reaction.toJson()).toList(),
     };
   }
 
@@ -148,6 +154,47 @@ class ChatMessage {
       return ChatReplyPreview.fromJson(Map<String, dynamic>.from(value));
     }
     return null;
+  }
+
+  static List<ChatMessageReactionSummary> _parseReactionSummaries(
+    dynamic value,
+  ) {
+    if (value is! List) {
+      return const <ChatMessageReactionSummary>[];
+    }
+    return value
+        .whereType<Map>()
+        .map(
+          (entry) => ChatMessageReactionSummary.fromJson(
+            Map<String, dynamic>.from(entry),
+          ),
+        )
+        .where((reaction) => reaction.emoji.isNotEmpty && reaction.count > 0)
+        .toList();
+  }
+}
+
+class ChatMessageReactionSummary {
+  const ChatMessageReactionSummary({
+    required this.emoji,
+    required this.count,
+    required this.reactedByMe,
+  });
+
+  final String emoji;
+  final int count;
+  final bool reactedByMe;
+
+  factory ChatMessageReactionSummary.fromJson(Map<String, dynamic> json) {
+    return ChatMessageReactionSummary(
+      emoji: (json['emoji'] as String? ?? '').trim(),
+      count: (json['count'] as int?) ?? 0,
+      reactedByMe: json['reacted_by_me'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'emoji': emoji, 'count': count, 'reacted_by_me': reactedByMe};
   }
 }
 

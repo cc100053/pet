@@ -147,6 +147,56 @@ void main() {
         ScrollViewKeyboardDismissBehavior.manual,
       );
     });
+
+    testWidgets('right drag from left half triggers pop', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: _BackSwipeHarness()));
+
+      final size = tester.getSize(find.byType(Scaffold));
+      final gesture = await tester.startGesture(Offset(size.width * 0.2, 160));
+      await tester.pump();
+      await gesture.moveBy(const Offset(90, 6));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(find.text('popped'), findsOneWidget);
+    });
+
+    testWidgets('right drag from right half does not trigger pop', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: _BackSwipeHarness()));
+
+      final size = tester.getSize(find.byType(Scaffold));
+      final gesture = await tester.startGesture(Offset(size.width * 0.8, 160));
+      await tester.pump();
+      await gesture.moveBy(const Offset(90, 6));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(find.text('popped'), findsNothing);
+    });
+
+    testWidgets('composer region is excluded from back swipe pop', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: _BackSwipeHarness()));
+
+      final composerRect = tester.getRect(
+        find.byKey(const ValueKey('composerRegionFinder')),
+      );
+      final gesture = await tester.startGesture(
+        composerRect.centerLeft + const Offset(4, 0),
+      );
+      await tester.pump();
+      await gesture.moveBy(const Offset(90, 4));
+      await tester.pump();
+      await gesture.up();
+      await tester.pump();
+
+      expect(find.text('popped'), findsNothing);
+    });
   });
 }
 
@@ -265,6 +315,53 @@ class _ChatKeyboardHarnessState extends State<_ChatKeyboardHarness> {
                       ),
                     ),
                   ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BackSwipeHarness extends StatefulWidget {
+  const _BackSwipeHarness();
+
+  @override
+  State<_BackSwipeHarness> createState() => _BackSwipeHarnessState();
+}
+
+class _BackSwipeHarnessState extends State<_BackSwipeHarness> {
+  final GlobalKey _composerRegionKey = GlobalKey();
+  var _didPop = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ChatBackSwipePopLayer(
+        excludedRegionKey: _composerRegionKey,
+        onPop: () => setState(() => _didPop = true),
+        child: Stack(
+          children: [
+            Positioned.fill(child: Container(color: Colors.blueGrey.shade50)),
+            if (_didPop)
+              const Positioned(top: 40, left: 20, child: Text('popped')),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 24,
+              child: Container(
+                key: _composerRegionKey,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                alignment: Alignment.center,
+                child: const KeyedSubtree(
+                  key: ValueKey('composerRegionFinder'),
+                  child: Text('Composer'),
                 ),
               ),
             ),

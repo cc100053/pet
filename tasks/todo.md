@@ -1,5 +1,33 @@
 # TODO
 
+## Plan (2026-03-10 Chat Long-Press + Integrated Reply + Dark Bubble + Half-Screen Back Swipe)
+- [x] Add Supabase `message_reactions` schema via MCP-first migration, including RLS, indexes, updated_at trigger, and realtime publication; save matching repo migration file.
+- [x] Extend chat message domain/cache/V2 state to load grouped reaction summaries, toggle per-user reactions, and subscribe to reaction realtime changes.
+- [x] Upgrade V2 long-press actions to support all non-system messages with quick reactions and ownership-aware action rows.
+- [x] Integrate reply previews into the existing composer/input surface and into text/feed message bubbles so reply UI no longer renders as separate cards.
+- [x] Lighten dark-theme sent text/feed bubble surfaces and add a left-half back-swipe pop gesture that excludes the composer region.
+- [x] Add widget coverage for action-sheet variants, reaction chips/toggles, integrated reply layouts, and half-screen back swipe behavior.
+- [x] Run required verification (`flutter gen-l10n` if needed, `flutter analyze`, `flutter test`) and update `memory-bank/architecture.md`, `memory-bank/progress.md`, and this file with review notes.
+
+## Review (2026-03-10 Chat Long-Press + Integrated Reply + Dark Bubble + Half-Screen Back Swipe)
+- [x] Implemented and verified.
+- Root change:
+  - Added Supabase-backed `message_reactions` with room-member RLS, realtime publication, and a follow-up `user_id` FK index (`supabase/migrations/20260310113000_add_message_reactions.sql`, `supabase/migrations/20260310114500_add_message_reactions_user_id_idx.sql`).
+  - `ChatMessage` cache/domain models now persist grouped reaction summaries, and `ChatRoomViewV2` loads reactions in a best-effort secondary query, applies optimistic one-reaction-per-user toggles, and refreshes reactions from `message_reactions` realtime events.
+  - V2 long-press now works on all non-system messages and uses a type-aware bottom sheet with quick reactions plus ownership-aware `Reply` / `Copy` / `Report` / `Block`.
+  - Reply UI is now integrated into the existing surfaces: the composer input pill expands upward for reply state, text bubbles render reply preview inside `SimpleTextMessage.topWidget`, and feed cards render the same embedded preview at the top of the card instead of a detached card above.
+  - Dark-theme sent text/feed surfaces were lifted to a lighter muted teal, and a new left-half `ChatBackSwipePopLayer` now enables right-drag pop while excluding the composer region.
+  - Added widget/unit coverage for action-sheet variants, reaction summary toggle rules, reaction chip taps, and half-screen back swipe behavior.
+- Verification:
+  - `dart format lib/features/chat/chat_message.dart lib/services/chat/chat_message_repository.dart lib/features/chat/chat_room_view_v2.dart lib/features/chat/chat_reaction_utils.dart lib/features/chat/widgets/chat_keyboard_dismiss_shell.dart lib/features/chat/widgets/chat_message_action_sheet.dart lib/features/chat/widgets/chat_reaction_bar.dart lib/features/chat/widgets/chat_reply_preview_panel.dart test/features/chat/chat_message_action_sheet_test.dart test/features/chat/chat_reaction_bar_test.dart test/features/chat/chat_reaction_utils_test.dart test/features/chat/chat_keyboard_dismiss_behavior_test.dart`
+  - `flutter analyze`
+  - `flutter test test/features/chat/chat_message_action_sheet_test.dart test/features/chat/chat_reaction_utils_test.dart test/features/chat/chat_reaction_bar_test.dart test/features/chat/chat_keyboard_dismiss_behavior_test.dart`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - Targeted chat tests passed.
+  - Full `flutter test` passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+  - Supabase advisors still report pre-existing project-level security/performance lints (for example `notification_delivery_logs` missing policies and older mutable-search-path / auth-initplan findings); the new `message_reactions.user_id` FK index was added immediately after the initial advisor run.
+
 # Plan (2026-03-10 Game SFX Respect Silent Mode)
 - [x] Read `memory-bank/*.md` and locate the shared gameplay SFX playback path for eating and coin/candy sounds.
 - [x] Update the shared SFX service so gameplay sound effects respect the device silent-mode setting instead of always forcing playback.

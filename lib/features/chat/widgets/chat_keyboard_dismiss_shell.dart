@@ -31,6 +31,121 @@ class ChatKeyboardSweepDismissLayer extends StatefulWidget {
       _ChatKeyboardSweepDismissLayerState();
 }
 
+class ChatBackSwipePopLayer extends StatefulWidget {
+  const ChatBackSwipePopLayer({
+    super.key,
+    required this.child,
+    required this.onPop,
+    required this.excludedRegionKey,
+    this.triggerDistance = 72,
+    this.minFlingVelocity = 700,
+  });
+
+  final Widget child;
+  final VoidCallback onPop;
+  final GlobalKey excludedRegionKey;
+  final double triggerDistance;
+  final double minFlingVelocity;
+
+  @override
+  State<ChatBackSwipePopLayer> createState() => _ChatBackSwipePopLayerState();
+}
+
+class _ChatBackSwipePopLayerState extends State<ChatBackSwipePopLayer> {
+  int? _activePointer;
+  Offset? _startPosition;
+  DateTime? _startTime;
+  bool _tracking = false;
+  bool _popped = false;
+
+  Rect? _globalRectForKey(GlobalKey key) {
+    final context = key.currentContext;
+    final renderObject = context?.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) {
+      return null;
+    }
+    final origin = renderObject.localToGlobal(Offset.zero);
+    return origin & renderObject.size;
+  }
+
+  void _reset() {
+    _activePointer = null;
+    _startPosition = null;
+    _startTime = null;
+    _tracking = false;
+    _popped = false;
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    final media = MediaQuery.of(context);
+    final excludedRect = _globalRectForKey(widget.excludedRegionKey);
+    final isInLeftHalf = event.position.dx <= media.size.width / 2;
+    final isExcluded = excludedRect?.contains(event.position) ?? false;
+    if (!isInLeftHalf || isExcluded) {
+      _reset();
+      return;
+    }
+    _activePointer = event.pointer;
+    _startPosition = event.position;
+    _startTime = DateTime.now();
+    _tracking = true;
+    _popped = false;
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    if (!_tracking || _popped || _activePointer != event.pointer) {
+      return;
+    }
+    final start = _startPosition;
+    if (start == null) {
+      return;
+    }
+    final delta = event.position - start;
+    if (delta.dx <= 0) {
+      return;
+    }
+    if (delta.dy.abs() > delta.dx) {
+      _tracking = false;
+      return;
+    }
+    if (delta.dx >= widget.triggerDistance) {
+      _popped = true;
+      widget.onPop();
+    }
+  }
+
+  void _handlePointerEnd(PointerEvent event) {
+    if (_tracking && !_popped && _activePointer == event.pointer) {
+      final start = _startPosition;
+      final startedAt = _startTime;
+      if (start != null && startedAt != null) {
+        final elapsedMs = DateTime.now().difference(startedAt).inMilliseconds;
+        final deltaX = event.position.dx - start.dx;
+        final deltaY = (event.position.dy - start.dy).abs();
+        final velocity = elapsedMs <= 0 ? 0.0 : (deltaX / elapsedMs) * 1000;
+        if (deltaX > 24 &&
+            deltaX > deltaY &&
+            velocity >= widget.minFlingVelocity) {
+          widget.onPop();
+        }
+      }
+    }
+    _reset();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: _handlePointerDown,
+      onPointerMove: _handlePointerMove,
+      onPointerUp: _handlePointerEnd,
+      onPointerCancel: _handlePointerEnd,
+      child: widget.child,
+    );
+  }
+}
+
 class _ChatKeyboardSweepDismissLayerState
     extends State<ChatKeyboardSweepDismissLayer> {
   int? _activePointer;

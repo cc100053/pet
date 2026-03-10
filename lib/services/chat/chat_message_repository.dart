@@ -93,4 +93,74 @@ class ChatMessageRepository {
         .where((message) => message.type.isNotEmpty)
         .toList();
   }
+
+  Future<Map<String, List<ChatMessageReactionSummary>>> fetchReactionSummaries({
+    required String roomId,
+    required List<String> messageIds,
+    required String currentUserId,
+  }) async {
+    if (messageIds.isEmpty) {
+      return const <String, List<ChatMessageReactionSummary>>{};
+    }
+
+    final response = await _client
+        .from('message_reactions')
+        .select('message_id,emoji,user_id')
+        .eq('room_id', roomId)
+        .filter('message_id', 'in', '(${messageIds.join(',')})');
+    final rows = response as List<dynamic>;
+    final grouped = <String, Map<String, _ReactionAccumulator>>{};
+
+    for (final row in rows) {
+      final record = Map<String, dynamic>.from(row as Map);
+      final messageId = (record['message_id'] as String? ?? '').trim();
+      final emoji = (record['emoji'] as String? ?? '').trim();
+      final userId = (record['user_id'] as String? ?? '').trim();
+      if (messageId.isEmpty || emoji.isEmpty || userId.isEmpty) {
+        continue;
+      }
+
+      final byEmoji = grouped.putIfAbsent(
+        messageId,
+        () => <String, _ReactionAccumulator>{},
+      );
+      final accumulator = byEmoji.putIfAbsent(
+        emoji,
+        () => _ReactionAccumulator(emoji: emoji),
+      );
+      accumulator.count += 1;
+      if (userId == currentUserId) {
+        accumulator.reactedByMe = true;
+      }
+    }
+
+    return grouped.map((messageId, byEmoji) {
+      final summaries =
+          byEmoji.values
+              .map(
+                (accumulator) => ChatMessageReactionSummary(
+                  emoji: accumulator.emoji,
+                  count: accumulator.count,
+                  reactedByMe: accumulator.reactedByMe,
+                ),
+              )
+              .toList()
+            ..sort((a, b) {
+              final countCompare = b.count.compareTo(a.count);
+              if (countCompare != 0) {
+                return countCompare;
+              }
+              return a.emoji.compareTo(b.emoji);
+            });
+      return MapEntry(messageId, summaries);
+    });
+  }
+}
+
+class _ReactionAccumulator {
+  _ReactionAccumulator({required this.emoji});
+
+  final String emoji;
+  int count = 0;
+  bool reactedByMe = false;
 }
