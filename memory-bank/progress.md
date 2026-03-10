@@ -1,6 +1,8 @@
 # Progress
 
 ## Done
+- Fixed the real reply-jump centering root cause in active chat: reply taps now center on the target message via the rendered widget anchor (`Scrollable.ensureVisible`) instead of relying only on `flutter_chat_ui` / `scrollview_observer` alignment semantics, which still left targets too low in the reversed list.
+- Centered reply jump targets in active chat: tapping a quoted reply now scrolls the source message to the middle of the viewport before applying the temporary highlight, instead of leaving it anchored too close to the bottom edge.
 - Aligned feed-card metadata theming with the active chat background mode: `_FeedCard` now uses the same `isDarkBackground`-driven palette as text bubbles, so dark-background chats no longer leave the sender/caption/time rows on an incorrect light surface.
 - Refined feed-card metadata placement again: incoming sender names now sit in a dedicated row above the image, caption sits in its own row below the image with inline bubble-style time text, and caption-less feed cards fall back to the bottom-right timestamp pill on the image.
 - Refined the chat feed-card overlay again: incoming sender names now use the same plain top-left label style as text bubbles, caption now appears only as an optional left-bottom glass pill, and the timestamp is always its own right-bottom pill.

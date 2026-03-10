@@ -74,6 +74,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   final FocusNode _composerFocusNode = FocusNode();
   final List<ChatMessage> _messages = <ChatMessage>[];
   final Map<String, ChatMessage> _messagesById = <String, ChatMessage>{};
+  final Map<String, GlobalKey> _messageAnchorKeys = <String, GlobalKey>{};
   final Map<String, ProfileSummary> _profilesById = <String, ProfileSummary>{};
   final Map<String, String> _optimisticFeedImageByTempId = <String, String>{};
   final Set<String> _blockedUserIds = <String>{};
@@ -358,6 +359,16 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     _messagesById
       ..clear()
       ..addEntries(_messages.map((message) => MapEntry(message.id, message)));
+    _messageAnchorKeys.removeWhere(
+      (messageId, _) => !_messagesById.containsKey(messageId),
+    );
+  }
+
+  GlobalKey _messageAnchorKey(String messageId) {
+    return _messageAnchorKeys.putIfAbsent(
+      messageId,
+      () => GlobalKey(debugLabel: 'chat-message-$messageId'),
+    );
   }
 
   Future<void> _persistCache() async {
@@ -632,6 +643,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
     final message = _messages.removeAt(index);
     _optimisticIds.remove(messageId);
+    _messageAnchorKeys.remove(messageId);
     _rebuildMessageIndex();
     await _chatController.removeMessage(
       _toUiMessage(message),
@@ -1218,12 +1230,23 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return;
     }
 
+    final targetKey = _messageAnchorKey(targetId);
     await _chatController.scrollToMessage(
       targetId,
-      alignment: 0.25,
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
+      alignment: 0,
+      duration: Duration.zero,
     );
+    for (var i = 0; i < 2 && targetKey.currentContext == null; i += 1) {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (targetKey.currentContext != null) {
+      await Scrollable.ensureVisible(
+        targetKey.currentContext!,
+        alignment: 0.5,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
     if (!mounted) {
       return;
     }
@@ -1531,7 +1554,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                               child: content,
                             );
                           }
-                          return content;
+                          return KeyedSubtree(
+                            key: _messageAnchorKey(domainMessage.id),
+                            child: content,
+                          );
                         },
                     chatAnimatedListBuilder: (context, itemBuilder) {
                       return ChatAnimatedList(

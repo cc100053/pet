@@ -1,5 +1,49 @@
 # TODO
 
+## Plan (2026-03-10 Reply Jump Root Cause Fix)
+- [x] Verify why changing `scrollToMessage` alignment alone did not center reply targets in the reversed `flutter_chat_ui` list.
+- [x] Replace the fragile alignment-only jump with a widget-anchor based centering path that uses the rendered message context.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the true root-cause fix and verification results.
+
+## Review (2026-03-10 Reply Jump Root Cause Fix)
+- [x] Implemented and verified.
+- Root cause:
+  - `flutter_chat_core` exposes `alignment` as if it were viewport-based, but the underlying `scrollview_observer` path used by `flutter_chat_ui` does not center reversed-list items the way that API comment implies.
+  - As a result, changing `_chatController.scrollToMessage(... alignment: 0.5)` still left reply targets visually anchored too low.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: added stable per-message anchor keys in the custom message builder so reply jumps can reference the actual rendered widget.
+  - `lib/features/chat/chat_room_view_v2.dart`: reply jumps now first bring the target into view with the chat controller, then call `Scrollable.ensureVisible(... alignment: 0.5)` on the real target widget context to center it in the viewport.
+  - `lib/features/chat/chat_room_view_v2.dart`: pruned anchor keys when messages leave the in-memory list to avoid stale references.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-10 Reply Jump Centering)
+- [x] Trace why tapping a reply preview lands the source message near the bottom of the screen instead of centered.
+- [x] Update `ChatRoomViewV2` reply jump scrolling so the source message is positioned around the middle of the viewport.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the jump-centering fix and verification results.
+
+## Review (2026-03-10 Reply Jump Centering)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/features/chat/chat_room_view_v2.dart` called `_chatController.scrollToMessage(... alignment: 0.25)` when jumping to a replied-to source.
+  - In `flutter_chat_core`, `alignment` is viewport-based (`0 = top`, `0.5 = middle`, `1 = bottom`), so `0.25` kept the source message visibly too low instead of centered.
+- Fix:
+  - `lib/features/chat/chat_room_view_v2.dart`: changed reply jump alignment from `0.25` to `0.5` so the target message scrolls to the middle of the screen before highlight state is applied.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-10 Feed Card Theme Alignment)
 - [x] Trace why feed-card metadata rows ignore the active dark-background styling and confirm whether they still depend on `Theme.brightness` instead of chat-route background mode.
 - [x] Align `ChatRoomViewV2` feed card colors with the text-bubble palette by driving sender/caption/time/card surfaces from `isDarkBackground`.
