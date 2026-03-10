@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Tightened the active chat reaction layout so emoji chips sit closer to the owning bubble/card with reduced vertical gap and tighter chip spacing, making it more obvious which message the reactions belong to.
 - Removed the black shadow backdrop behind the active chat composer camera button in `ChatRoomViewV2`, leaving the camera pill as a clean circular surface without the extra dark square-ish base.
 - Simplified V2 reply swipe: any non-system message, including self-sent messages, now supports swipe-to-reply, and the left-swipe trigger now fires on a shorter threshold as soon as the drag crosses it instead of waiting for gesture end.
 - Removed the legacy chat-room implementation now that Home only opens `ChatRoomViewV2`: deleted the old `ChatRoomView`, `ChatMessageList`, and `ChatMessageTile` path plus its legacy widget tests, and removed the leftover `HomeView` V1/V2 route switch and unused legacy list key/imports so the codebase no longer suggests multiple active chat stacks.

@@ -2776,8 +2776,9 @@ class _MessageEnvelope extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const reactionHorizontalInset = 10.0;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      padding: EdgeInsets.fromLTRB(2, 4, 2, reactions.isNotEmpty ? 1 : 4),
       child: Column(
         crossAxisAlignment: isSentByMe
             ? CrossAxisAlignment.end
@@ -2792,12 +2793,19 @@ class _MessageEnvelope extends StatelessWidget {
           ),
           if (reactions.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 6, left: 2, right: 2),
-              child: ChatReactionBar(
-                reactions: reactions,
-                onReactionTap: onReactionTap,
-                alignEnd: isSentByMe,
-                isDarkBackground: isDarkBackground,
+              padding: EdgeInsets.only(
+                top: 2,
+                left: isSentByMe ? 2 : reactionHorizontalInset,
+                right: isSentByMe ? reactionHorizontalInset : 2,
+              ),
+              child: Transform.translate(
+                offset: const Offset(0, -2),
+                child: ChatReactionBar(
+                  reactions: reactions,
+                  onReactionTap: onReactionTap,
+                  alignEnd: isSentByMe,
+                  isDarkBackground: isDarkBackground,
+                ),
               ),
             ),
         ],

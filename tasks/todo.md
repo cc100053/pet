@@ -1,5 +1,10 @@
 # TODO
 
+## Plan (2026-03-11 Tighten Chat Reaction Attachment)
+- [x] Inspect the active V2 reaction-row layout and identify why the emoji chips feel detached from their message.
+- [x] Tighten the message/reaction spacing and alignment so reaction chips read as part of the same message surface.
+- [x] Update project notes and run required verification (`flutter analyze`, `flutter test`).
+
 ## Plan (2026-03-10 Remove Chat Camera Button Shadow)
 - [x] Inspect the active V2 composer styling and confirm where the camera button's dark background/shadow is coming from.
 - [x] Remove the camera button's black shadow/background artifact with the smallest possible UI change.
@@ -49,6 +54,18 @@
 - Root change:
   - `lib/features/chat/chat_room_view_v2.dart` no longer applies the dark-mode black box shadow behind the composer camera action button, so the button keeps its circular fill/border without the extra black backdrop artifact.
 - Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped as expected because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN` were not set.
+
+## Review (2026-03-11 Tighten Chat Reaction Attachment)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/features/chat/chat_room_view_v2.dart` now brings the reaction row closer to the message bubble/card, trims the extra bottom gap under message envelopes, and horizontally insets the reactions so they align more clearly under the same message surface.
+  - `lib/features/chat/widgets/chat_reaction_bar.dart` now uses slightly tighter chip spacing/padding so the reaction group reads more like a compact extension of the message instead of a separate row.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart lib/features/chat/widgets/chat_reaction_bar.dart`
   - `flutter analyze`
   - `flutter test`
   - `flutter analyze` passed.

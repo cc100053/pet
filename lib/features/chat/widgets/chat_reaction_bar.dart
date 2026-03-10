@@ -40,12 +40,12 @@ class ChatReactionBar extends StatelessWidget {
 
     return Wrap(
       alignment: alignEnd ? WrapAlignment.end : WrapAlignment.start,
-      spacing: 6,
-      runSpacing: 6,
+      spacing: 4,
+      runSpacing: 4,
       children: reactions.map((reaction) {
         final isActive = reaction.reactedByMe;
         final chip = Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: isActive ? activeSurfaceColor : surfaceColor,
             borderRadius: BorderRadius.circular(999),
