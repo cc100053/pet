@@ -1,5 +1,66 @@
 # TODO
 
+## Plan (2026-03-10 Feed Card Theme Alignment)
+- [x] Trace why feed-card metadata rows ignore the active dark-background styling and confirm whether they still depend on `Theme.brightness` instead of chat-route background mode.
+- [x] Align `ChatRoomViewV2` feed card colors with the text-bubble palette by driving sender/caption/time/card surfaces from `isDarkBackground`.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the theme-alignment fix and verification results.
+
+## Review (2026-03-10 Feed Card Theme Alignment)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/features/chat/chat_room_view_v2.dart` text bubbles already key off `isDarkBackground`, but `_FeedCard` metadata rows still used `Theme.brightness`.
+  - In dark-background / bright-frame combinations, that mismatch left feed metadata on the wrong light surface.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: `_FeedCard` now accepts `isDarkBackground` from the chat route.
+  - `lib/features/chat/chat_room_view_v2.dart`: card surface, caption text, inline time text, and no-caption overlay pill now all use the same dark/bright palette rules as text bubbles.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-10 Feed Card Outside-Image Metadata)
+- [x] Refine `ChatRoomViewV2` feed cards so the incoming sender label sits in its own row above the image, matching the text-bubble sender treatment.
+- [x] Move caption into its own row below the image with text-bubble-style inline time handling, while preserving the bottom-right time pill only for no-caption feed cards.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the follow-up layout fix and verification results.
+
+## Review (2026-03-10 Feed Card Outside-Image Metadata)
+- [x] Implemented and verified.
+- Follow-up changes:
+  - `lib/features/chat/chat_room_view_v2.dart` now renders incoming feed sender names in a dedicated row above the image instead of inside the photo area.
+  - `lib/features/chat/chat_room_view_v2.dart` now renders caption in its own row below the image, with the timestamp inline on the right using the same small text treatment as message bubbles.
+  - When a feed image has no caption, the lower metadata row is omitted and the timestamp falls back to the bottom-right image overlay pill.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-10 Feed Card Overlay Follow-up)
+- [x] Refine the just-updated `ChatRoomViewV2` feed card so incoming sender names use the same plain text style as text bubbles instead of a pill.
+- [x] Split feed caption/time overlays into two independent bottom components: optional caption pill on the left, time pill fixed on the right.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the follow-up style fix and verification results.
+
+## Review (2026-03-10 Feed Card Overlay Follow-up)
+- [x] Implemented and verified.
+- Follow-up changes:
+  - `lib/features/chat/chat_room_view_v2.dart` incoming feed sender names now use the same plain top-left text treatment as received text bubbles instead of a pill.
+  - `lib/features/chat/chat_room_view_v2.dart` now renders caption and time as two separate bottom overlays: caption pill only when caption exists, plus a time pill fixed at the bottom-right.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-10 Feed Card Overlay Restyle)
 - [x] Inspect the active `ChatRoomViewV2` feed card hierarchy and identify the smallest layout change that moves sender info into the image overlay while collapsing caption/time into a floating pill.
 - [x] Refactor the feed card so sender name sits at the top-left, while caption and time share a bottom floating pill instead of a dedicated lower text section.

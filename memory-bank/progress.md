@@ -1,6 +1,9 @@
 # Progress
 
 ## Done
+- Aligned feed-card metadata theming with the active chat background mode: `_FeedCard` now uses the same `isDarkBackground`-driven palette as text bubbles, so dark-background chats no longer leave the sender/caption/time rows on an incorrect light surface.
+- Refined feed-card metadata placement again: incoming sender names now sit in a dedicated row above the image, caption sits in its own row below the image with inline bubble-style time text, and caption-less feed cards fall back to the bottom-right timestamp pill on the image.
+- Refined the chat feed-card overlay again: incoming sender names now use the same plain top-left label style as text bubbles, caption now appears only as an optional left-bottom glass pill, and the timestamp is always its own right-bottom pill.
 - Restyled the active chat feed card into a cleaner overlay composition: sender name now sits in a top-left glass pill, the reward badge matches that overlay treatment on the top-right, and caption/time now live together in a bottom floating pill instead of a dedicated lower text band.
 - Restored sender/timestamp metadata inside the chat bubbles: received text bubbles now show the sender name at the top-left, feed cards regained the sender label in the same position, the `+coins` badge now includes the candy icon again, and feed cards now show a small timestamp at the bottom-right.
 - Fixed the active chat latest-message gap above the composer: `ChatRoomViewV2` no longer adds a hardcoded extra `108` bottom padding on top of `flutter_chat_ui`'s measured composer height, and now uses only the real floating-composer bottom inset so the newest message sits correctly above the input bar.

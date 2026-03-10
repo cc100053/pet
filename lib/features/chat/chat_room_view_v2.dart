@@ -1481,6 +1481,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                           return _FeedCard(
                             message: message,
                             isMe: isSentByMe,
+                            isDarkBackground: widget.isDarkBackground,
                             senderName: _displayNameForSenderId(
                               _messagesById[message.id]?.senderId,
                             ),
@@ -2353,12 +2354,14 @@ class _FeedCard extends StatelessWidget {
   const _FeedCard({
     required this.message,
     required this.isMe,
+    required this.isDarkBackground,
     required this.senderName,
     required this.onTapImage,
   });
 
   final fc.CustomMessage message;
   final bool isMe;
+  final bool isDarkBackground;
   final String? senderName;
   final VoidCallback onTapImage;
 
@@ -2378,21 +2381,27 @@ class _FeedCard extends StatelessWidget {
     final canShowRemote = remoteUrl.isNotEmpty;
     final canShowLocal = localPath.isNotEmpty;
     final cardBackground = isMe
-        ? (theme.brightness == Brightness.dark
-              ? const Color(0xFF365D57)
-              : const Color(0xFFDDF3EA))
-        : (theme.brightness == Brightness.dark
-              ? const Color(0xFF2A313D)
-              : Colors.white);
-    final cardBorderColor = theme.brightness == Brightness.dark
+        ? (isDarkBackground ? const Color(0xFF3D6E67) : const Color(0xFFDDF3EA))
+        : (isDarkBackground ? const Color(0xFF2A313D) : Colors.white);
+    final cardTextColor = isMe && !isDarkBackground
+        ? const Color(0xFF1E3B34)
+        : (isDarkBackground ? Colors.white : AppTheme.textPrimary);
+    final cardBorderColor = isDarkBackground
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.black.withValues(alpha: 0.05);
     final bubbleTime = _formatBubbleTime(context, message.resolvedTime);
     final senderLabel = !isMe && senderName?.trim().isNotEmpty == true
         ? senderName!.trim()
         : null;
+    final metadataTimeColor = isMe
+        ? (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.72)
+              : const Color(0xFF4B7B6D))
+        : (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.5)
+              : AppTheme.textSecondary.withValues(alpha: 0.82));
     final overlaySurface = Colors.black.withValues(
-      alpha: theme.brightness == Brightness.dark ? 0.42 : 0.34,
+      alpha: isDarkBackground ? 0.42 : 0.34,
     );
     final overlayBorder = Colors.white.withValues(alpha: 0.16);
     final overlayShadow = Colors.black.withValues(alpha: 0.18);
@@ -2454,126 +2463,122 @@ class _FeedCard extends StatelessWidget {
         ),
         child: InkWell(
           onTap: onTapImage,
-          child: AspectRatio(
-            aspectRatio: 4 / 5,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                image,
-                if (senderLabel != null)
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: buildGlassPill(
-                      borderRadius: BorderRadius.circular(999),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
-                      child: Text(
-                        senderLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: overlayPrimaryText,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (senderLabel != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                  child: Text(
+                    senderLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ),
+              AspectRatio(
+                aspectRatio: 4 / 5,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    image,
+                    if (coinsAwarded > 0)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: buildGlassPill(
+                          borderRadius: BorderRadius.circular(999),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/icon/icon-park--candy.svg',
+                                width: 14,
+                                height: 14,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '+$coinsAwarded',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: overlayPrimaryText,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                if (coinsAwarded > 0)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: buildGlassPill(
-                      borderRadius: BorderRadius.circular(999),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/icon/icon-park--candy.svg',
-                            width: 14,
-                            height: 14,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white,
-                              BlendMode.srcIn,
-                            ),
+                    if (bubbleTime != null && caption.isEmpty)
+                      Positioned(
+                        right: 12,
+                        bottom: 12,
+                        child: buildGlassPill(
+                          borderRadius: BorderRadius.circular(999),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
                           ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '+$coinsAwarded',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: overlayPrimaryText,
+                          child: Text(
+                            bubbleTime,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: overlaySecondaryText,
+                              fontSize: 10,
                               fontWeight: FontWeight.w700,
+                              height: 1,
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                if (caption.isNotEmpty || bubbleTime != null)
-                  Positioned(
-                    left: 12,
-                    right: 12,
-                    bottom: 12,
-                    child: buildGlassPill(
-                      borderRadius: BorderRadius.circular(18),
-                      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (caption.isNotEmpty)
-                            Expanded(
-                              child: Text(
-                                caption,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  height: 1.28,
-                                  color: overlayPrimaryText,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          if (caption.isNotEmpty && bubbleTime != null)
-                            const SizedBox(width: 10),
-                          if (bubbleTime != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 1),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.14),
-                                  borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                  ),
-                                ),
-                                child: Text(
-                                  bubbleTime,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: overlaySecondaryText,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                  ],
+                ),
+              ),
+              if (caption.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          caption,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            height: 1.35,
+                            color: cardTextColor,
+                          ),
+                        ),
                       ),
-                    ),
+                      if (bubbleTime != null) ...[
+                        const SizedBox(width: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 1),
+                          child: Text(
+                            bubbleTime,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: metadataTimeColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
