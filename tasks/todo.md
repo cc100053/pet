@@ -1,5 +1,31 @@
 # TODO
 
+## Plan (2026-03-10 Notification Tap Room Routing)
+- [x] Add a unified notification intent model/parser in `FCMService`, including `message_kind` normalization, target resolution, and dedupe.
+- [x] Wire notification tap sources into that intent pipeline: `onMessageOpenedApp`, `getInitialMessage`, foreground local-notification taps, and Android launch-intent / `onNewIntent` bridge.
+- [x] Update `HomeView` to consume pending notification intents after bootstrap/room readiness, switch to the target room, and open chat only for text notifications.
+- [x] Add regression coverage for notification intent parsing and Home routing fallbacks.
+- [x] Run `dart format` on touched files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md`, `memory-bank/architecture.md`, and this file with the shipped behavior + verification results.
+
+## Review (2026-03-10 Notification Tap Room Routing)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/services/fcm_service.dart` now exposes a typed `AppNotificationIntent` pipeline with `message_kind` / legacy `message_type` normalization, target resolution (`chat` vs `petHome`), dedupe, pending-intent buffering, and tap ingestion from `FirebaseMessaging.onMessageOpenedApp`, `FirebaseMessaging.getInitialMessage()`, iOS foreground local-notification responses, and the Android `pet/notification_taps` method channel.
+  - `android/app/src/main/kotlin/com/example/pet/MainActivity.kt` now captures cold-start notification extras and forwards resumed-app notification taps through `onNewIntent`, while `PetTomoFirebaseMessagingService` now includes `message_kind` in launch extras for Flutter-side routing.
+  - `lib/features/home/home_view.dart` and `lib/features/home/controllers/home_room_manager.dart` now queue notification intents until bootstrap/room entry is ready, pop back to Home before applying notification-driven navigation, switch into the requested room, open chat only for `text`, and keep `image_feed` / `hunger_alert_*` / other non-text intents on Pet home. Missing/stale rooms fall back safely to Room Selection.
+  - `test/fcm_service_notification_intent_test.dart` locks parser, dedupe, and room-routing decision behavior.
+- Verification:
+  - `dart format lib/services/fcm_service.dart lib/features/home/home_view.dart lib/features/home/controllers/home_room_manager.dart test/fcm_service_notification_intent_test.dart`
+  - `flutter analyze`
+  - `flutter test test/fcm_service_notification_intent_test.dart`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - Targeted notification intent test passed.
+  - Full `flutter test` passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-10 Chat Keyboard Dismiss UX)
 - [x] Replace chat timeline `keyboardDismissBehavior` with a shared manual setting so dragging the message list no longer collapses the composer.
 - [x] Add a composer-aware downward-dismiss helper and wire it into both `ChatRoomViewV2` and the legacy `ChatRoomView` without touching reply/scroll anchoring logic.

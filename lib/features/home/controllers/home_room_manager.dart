@@ -128,11 +128,13 @@ extension _HomeRoomManager on _HomeViewState {
         }
       }
       await _cacheHomeBootstrapSnapshot();
+      _processPendingNotificationIntent();
     } catch (_) {
     } finally {
       if (mounted) {
         _setStateForRoomManager(() => _loadingRoom = false);
       }
+      _processPendingNotificationIntent();
     }
   }
 
@@ -382,6 +384,7 @@ extension _HomeRoomManager on _HomeViewState {
           _roomEntryFadeVersion++;
         });
       }
+      _processPendingNotificationIntent();
     }
   }
 

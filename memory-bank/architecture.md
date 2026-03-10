@@ -91,6 +91,8 @@ Implemented:
 - `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
+  - Notification taps now flow through one typed intent pipeline: `onMessageOpenedApp`, `getInitialMessage`, iOS foreground local-notification taps, and an Android `MainActivity` launch-intent bridge all normalize into room-scoped intents (`room_id`, `message_kind` / legacy `message_type`) with dedupe.
+  - Intent routing contract: `text` opens the target room chat; `image_feed`, `hunger_alert_*`, and other non-text room notifications switch into the target room and stay on Pet home; stale/missing rooms fall back safely to Room Selection.
 - `lib/services/privacy/tracking_consent_service.dart`: Central ATT consent coordinator that waits for app lifecycle `resumed` before requesting authorization.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - `lib/shared/ui/adaptive_layout.dart`: Shared adaptive width helpers for tablet-safe max-width constraints, plus iOS tablet-display detection to avoid compact-tier misclassification when running in iPhone-compat viewport mode on iPad.
@@ -115,6 +117,7 @@ Planned:
 - Webhooks: Trigger friend notifications on feed events.
 - Notifications:
   - Android: custom native `FirebaseMessagingService` (`NotificationCompat.MessagingStyle`) using room thread grouping and composed pet-avatar + app-badge large icon.
+    - Tap routing now forwards `room_id`, `message_id`, and `message_kind` into Flutter through `MainActivity` (`pet/notification_taps`) for both cold-start and `onNewIntent` resume flows.
   - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) follows an Apple-default reliable style: fast title/body rewrite + room `thread-id` shaping only (no communication-intent donation and no remote media fetch in the extension), prioritizing consistent delivery/appearance across states.
   - Delivery diagnostics: `notify_friend` persists per-token send outcomes to `public.notification_delivery_logs` and returns non-2xx when all token sends fail.
   - Hunger alert dispatch supports server-driven runs via `hunger_tick_dispatch`, which ticks pets and invokes `notify_friend` webhook delivery without requiring any active client session.

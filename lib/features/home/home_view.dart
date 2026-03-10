@@ -128,6 +128,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   // Logic State
   bool _profileEnsured = false;
+  bool _homeBootstrapCompleted = false;
   bool _creatingRoom = false;
   bool _joiningRoom = false;
   bool _leavingRoom = false;
@@ -200,6 +201,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   Timer? _petTickTimer;
   Timer? _roomSelectionRefreshTimer;
   Timer? _unreadReconcileTimer;
+  StreamSubscription<AppNotificationIntent>? _notificationIntentSubscription;
+  AppNotificationIntent? _pendingNotificationIntent;
   bool _petAssetsPrecached = false;
   bool _basicOnboardingLoadStarted = false;
   final Set<String> _cachedPetAssets = {};
@@ -308,6 +311,13 @@ class _HomeViewState extends ConsumerState<HomeView>
     _debugAlwaysShowOnboarding =
         AppSettingsRepository.instance.debugAlwaysShowOnboarding;
     unawaited(_refreshDebugAdminAccess());
+    _notificationIntentSubscription = _fcmService.notificationIntents.listen((
+      intent,
+    ) {
+      _pendingNotificationIntent = intent;
+      _processPendingNotificationIntent();
+    });
+    _pendingNotificationIntent ??= _fcmService.takePendingNotificationIntent();
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
@@ -382,6 +392,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petTickTimer?.cancel();
     _roomSelectionRefreshTimer?.cancel();
     _unreadReconcileTimer?.cancel();
+    _notificationIntentSubscription?.cancel();
     _feedingAnimationToken++;
     _onboardingProfileNicknameController.dispose();
     _petMoveController.dispose();
@@ -471,6 +482,78 @@ class _HomeViewState extends ConsumerState<HomeView>
     await _fetchRooms();
     if (mounted && _showRoomSelection) {
       await _refreshRoomSelectionHealthBars();
+    }
+    _homeBootstrapCompleted = true;
+    _processPendingNotificationIntent();
+  }
+
+  void _processPendingNotificationIntent() {
+    if (!mounted) {
+      return;
+    }
+    final intent = _pendingNotificationIntent;
+    if (intent == null || !_homeBootstrapCompleted) {
+      return;
+    }
+
+    final roomIds = _myRooms
+        .map((room) => room['id'])
+        .whereType<String>()
+        .toList(growable: false);
+    final action = resolveNotificationRoomAction(
+      intent: intent,
+      roomIds: roomIds,
+      currentRoomId: _roomId,
+      showRoomSelection: _showRoomSelection,
+      roomEntryLoading: _roomEntryLoading || _loadingRoom,
+    );
+
+    switch (action) {
+      case NotificationRoomAction.ignore:
+        return;
+      case NotificationRoomAction.showRoomSelection:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _pendingNotificationIntent = null;
+        _setStateForRoomManager(() {
+          _chatOpenRoomId = null;
+          _showRoomSelection = true;
+          _roomSelectionId =
+              _roomSelectionId ?? (roomIds.isNotEmpty ? roomIds.first : null);
+        });
+        return;
+      case NotificationRoomAction.showPetHome:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _pendingNotificationIntent = null;
+        _chatOpenRoomId = null;
+        return;
+      case NotificationRoomAction.openChat:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        if (_chatOpenRoomId == intent.roomId) {
+          _pendingNotificationIntent = null;
+          return;
+        }
+        _pendingNotificationIntent = null;
+        _chatOpenRoomId = null;
+        _openChatRoom();
+        return;
+      case NotificationRoomAction.switchRoomThenShowPetHome:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _chatOpenRoomId = null;
+        if (_showRoomSelection) {
+          _enterRoomFromSelection(intent.roomId);
+        } else {
+          _switchRoom(intent.roomId, showEntryLoading: true);
+        }
+        return;
+      case NotificationRoomAction.switchRoomThenOpenChat:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _chatOpenRoomId = null;
+        if (_showRoomSelection) {
+          _enterRoomFromSelection(intent.roomId);
+        } else {
+          _switchRoom(intent.roomId, showEntryLoading: true);
+        }
+        return;
     }
   }
 

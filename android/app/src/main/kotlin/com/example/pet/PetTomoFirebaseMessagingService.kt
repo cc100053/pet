@@ -64,6 +64,7 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
             ?: Intent(this, MainActivity::class.java)
         launchIntent.putExtra("room_id", roomId)
         launchIntent.putExtra("message_id", messageId)
+        launchIntent.putExtra("message_kind", messageType)
         launchIntent.putExtra("message_type", messageType)
         launchIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
 

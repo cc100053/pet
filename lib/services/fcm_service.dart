@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -8,33 +10,136 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+enum NotificationIntentTarget { chat, petHome }
+
+enum NotificationRoomAction {
+  ignore,
+  showRoomSelection,
+  showPetHome,
+  openChat,
+  switchRoomThenShowPetHome,
+  switchRoomThenOpenChat,
+}
+
+class AppNotificationIntent {
+  const AppNotificationIntent({
+    required this.roomId,
+    required this.messageKind,
+    required this.target,
+    this.messageId,
+  });
+
+  final String roomId;
+  final String messageKind;
+  final NotificationIntentTarget target;
+  final String? messageId;
+
+  String get dedupeKey =>
+      '${messageId ?? 'missing'}|$roomId|$messageKind|${target.name}';
+
+  static AppNotificationIntent? fromData(Map<String, dynamic> data) {
+    final roomId = _trimmedString(data['room_id']);
+    if (roomId == null) {
+      return null;
+    }
+    final messageKind = _resolveMessageKind(data);
+    return AppNotificationIntent(
+      roomId: roomId,
+      messageId: _trimmedString(data['message_id']),
+      messageKind: messageKind,
+      target: _resolveTarget(messageKind),
+    );
+  }
+
+  static String _resolveMessageKind(Map<String, dynamic> data) {
+    return _trimmedString(data['message_kind']) ??
+        _trimmedString(data['message_type']) ??
+        'text';
+  }
+
+  static NotificationIntentTarget _resolveTarget(String messageKind) {
+    return messageKind == 'text'
+        ? NotificationIntentTarget.chat
+        : NotificationIntentTarget.petHome;
+  }
+
+  static String? _trimmedString(dynamic value) {
+    if (value is! String) {
+      return null;
+    }
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+}
+
+NotificationRoomAction resolveNotificationRoomAction({
+  required AppNotificationIntent intent,
+  required Iterable<String> roomIds,
+  required String? currentRoomId,
+  required bool showRoomSelection,
+  required bool roomEntryLoading,
+}) {
+  if (roomEntryLoading) {
+    return NotificationRoomAction.ignore;
+  }
+  final roomIdSet = roomIds.toSet();
+  if (!roomIdSet.contains(intent.roomId)) {
+    return NotificationRoomAction.showRoomSelection;
+  }
+  final needsRoomSwitch = showRoomSelection || currentRoomId != intent.roomId;
+  if (intent.target == NotificationIntentTarget.chat) {
+    return needsRoomSwitch
+        ? NotificationRoomAction.switchRoomThenOpenChat
+        : NotificationRoomAction.openChat;
+  }
+  return needsRoomSwitch
+      ? NotificationRoomAction.switchRoomThenShowPetHome
+      : NotificationRoomAction.showPetHome;
+}
+
 final fcmServiceProvider = Provider<FCMService>((ref) {
   return FCMService();
 });
 
 class FCMService {
-  final _messaging = FirebaseMessaging.instance;
-  final _supabase = Supabase.instance.client;
   final _localNotifications = FlutterLocalNotificationsPlugin();
+  final _notificationIntentController =
+      StreamController<AppNotificationIntent>.broadcast();
+  final _recentIntentKeys = ListQueue<String>();
+  final _recentIntentKeySet = <String>{};
   StreamSubscription<String>? _tokenRefreshSubscription;
   StreamSubscription<AuthState>? _authStateSubscription;
+  StreamSubscription<RemoteMessage>? _messageOpenedAppSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
   bool _initialized = false;
   bool _syncInFlight = false;
+  bool _tapListenersRegistered = false;
+  bool _initialTapCaptured = false;
   Timer? _retryTimer;
+  AppNotificationIntent? _pendingNotificationIntent;
   static const _channel = AndroidNotificationChannel(
     'feed_notifications',
     'Feed Notifications',
     description: 'Foreground notifications for feed events.',
     importance: Importance.high,
   );
+  static const MethodChannel _notificationTapChannel = MethodChannel(
+    'pet/notification_taps',
+  );
+  static const int _maxRememberedIntentKeys = 64;
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
+  SupabaseClient get _supabase => Supabase.instance.client;
+
+  Stream<AppNotificationIntent> get notificationIntents =>
+      _notificationIntentController.stream;
 
   Future<void> initialize() async {
     if (_initialized) {
       await _attemptTokenSync();
+      await _captureInitialNotificationTap();
       return;
     }
 
-    // 1. Request Permission (Critical for iOS)
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -48,18 +153,15 @@ class FCMService {
 
     await _messaging.setAutoInitEnabled(true);
     await _initLocalNotifications();
-
-    // 2. Fetch the FCM Token (retry until APNS is ready on iOS)
+    _registerTapHandlers();
+    await _captureInitialNotificationTap();
     await _attemptTokenSync();
 
-    // 3. Listen for token refreshes
     _tokenRefreshSubscription?.cancel();
     _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((newToken) {
       _saveTokenToSupabase(newToken);
     });
 
-    // 3b. Re-sync token after auth transitions (fresh installs may
-    // initialize FCM before a valid user session is available).
     _authStateSubscription?.cancel();
     _authStateSubscription = _supabase.auth.onAuthStateChange.listen((data) {
       if (data.session != null) {
@@ -67,20 +169,18 @@ class FCMService {
       }
     });
 
-    // 4. Foreground Message Handler
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // Android foreground rendering is handled by the native
-      // FirebaseMessagingService implementation.
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        return;
-      }
-      // Keep a local fallback for iOS foreground to guarantee a visible
-      // alert when system foreground presentation is suppressed by device
-      // notification settings/focus modes. Background notifications still
-      // use the remote communication-notification path.
-      _showForegroundNotification(message);
-    });
     _initialized = true;
+  }
+
+  AppNotificationIntent? takePendingNotificationIntent() {
+    final intent = _pendingNotificationIntent;
+    _pendingNotificationIntent = null;
+    return intent;
+  }
+
+  @visibleForTesting
+  bool debugConsumeNotificationDataForTesting(Map<String, dynamic> data) {
+    return _consumeNotificationData(data);
   }
 
   Future<void> refreshTokenSync() async {
@@ -97,7 +197,10 @@ class FCMService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(settings: settings);
+    await _localNotifications.initialize(
+      settings: settings,
+      onDidReceiveNotificationResponse: _handleLocalNotificationTap,
+    );
     final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -109,6 +212,81 @@ class FCMService {
           IOSFlutterLocalNotificationsPlugin
         >();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  void _registerTapHandlers() {
+    if (_tapListenersRegistered) {
+      return;
+    }
+    _tapListenersRegistered = true;
+
+    _messageOpenedAppSubscription?.cancel();
+    _messageOpenedAppSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
+      (message) {
+        _consumeNotificationData(message.data);
+      },
+    );
+
+    _foregroundMessageSubscription?.cancel();
+    _foregroundMessageSubscription = FirebaseMessaging.onMessage.listen((
+      RemoteMessage message,
+    ) {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        return;
+      }
+      _showForegroundNotification(message);
+    });
+
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      _notificationTapChannel.setMethodCallHandler(_handlePlatformMethodCall);
+    }
+  }
+
+  Future<void> _captureInitialNotificationTap() async {
+    if (_initialTapCaptured) {
+      return;
+    }
+    _initialTapCaptured = true;
+
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _consumeNotificationData(initialMessage.data);
+    }
+
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      final initialIntentPayload = await _notificationTapChannel
+          .invokeMapMethod<dynamic, dynamic>('consumeInitialNotificationTap');
+      if (initialIntentPayload != null) {
+        _consumeNotificationData(
+          Map<String, dynamic>.from(initialIntentPayload),
+        );
+      }
+    }
+  }
+
+  Future<void> _handlePlatformMethodCall(MethodCall call) async {
+    if (call.method != 'notificationTap') {
+      return;
+    }
+    final args = call.arguments;
+    if (args is Map) {
+      _consumeNotificationData(Map<String, dynamic>.from(args));
+    }
+  }
+
+  void _handleLocalNotificationTap(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null || payload.trim().isEmpty) {
+      return;
+    }
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map) {
+        _consumeNotificationData(Map<String, dynamic>.from(decoded));
+      }
+    } catch (_) {
+      // Ignore malformed local payloads.
+    }
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
@@ -139,7 +317,38 @@ class FCMService {
       title: title,
       body: body,
       notificationDetails: details,
+      payload: jsonEncode(_jsonSafeNotificationData(data)),
     );
+  }
+
+  bool _consumeNotificationData(Map<String, dynamic> data) {
+    final intent = AppNotificationIntent.fromData(data);
+    if (intent == null || _hasSeenIntent(intent.dedupeKey)) {
+      return false;
+    }
+    _rememberIntent(intent.dedupeKey);
+    _pendingNotificationIntent = intent;
+    _notificationIntentController.add(intent);
+    return true;
+  }
+
+  bool _hasSeenIntent(String key) => _recentIntentKeySet.contains(key);
+
+  void _rememberIntent(String key) {
+    _recentIntentKeys.addLast(key);
+    _recentIntentKeySet.add(key);
+    while (_recentIntentKeys.length > _maxRememberedIntentKeys) {
+      final removed = _recentIntentKeys.removeFirst();
+      _recentIntentKeySet.remove(removed);
+    }
+  }
+
+  Map<String, dynamic> _jsonSafeNotificationData(Map<String, dynamic> data) {
+    return {
+      for (final entry in data.entries)
+        if (entry.key.trim().isNotEmpty)
+          entry.key: entry.value?.toString() ?? '',
+    };
   }
 
   Future<void> _attemptTokenSync() async {
