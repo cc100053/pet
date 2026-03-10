@@ -655,3 +655,44 @@
   - `flutter analyze`
   - `flutter test`
   - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-10 Telegram-Style Chat Composer Polish)
+- [x] Inspect the active `ChatRoomViewV2` composer path and package constraints before changing visuals.
+- [x] Update the active chat composer shell, input field, send-state treatment, and reply preview toward a Telegram-like UI.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the composer-polish summary and verification results.
+
+## Review (2026-03-10 Telegram-Style Chat Composer Polish)
+- [x] Implemented and verified.
+- UI changes:
+  - `lib/features/chat/chat_room_view_v2.dart`: replaced the stock `flutter_chat_ui` composer shell with a custom `_TelegramComposer` that still uses package callbacks/height spacing but renders a rounded floating surface, a cleaner inner input pill, a circular attachment action, and an animated send button that visibly switches between inactive and active states.
+  - `lib/features/chat/chat_room_view_v2.dart`: tightened `_ReplyComposerBar` spacing, tinted it with the active chat accent, and reduced the close affordance weight so it reads more like a quoted-message preview than a secondary card.
+  - `pubspec.yaml`: added direct `provider` dependency because the custom composer now reads `ComposerHeightNotifier` from the package provider tree instead of relying on a transitive-only import.
+- Verification:
+  - `flutter pub get`
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Telegram Composer Pill Simplification)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` so the composer no longer draws an outer black/white wrapper around the row; the visible chat bar now consists only of the camera pill, message-input pill, and send pill.
+- Standardized the action-pill sizing with the input pill by setting both camera and send buttons to a 48px circle and giving the text input a matching 48px minimum height.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Dark Composer Contrast Tuning)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` dark-mode composer materials so the camera/input/send pills use more solid charcoal fills while keeping slight translucency.
+- Added subtle dark-mode borders and shadows to all three pills so they separate cleanly from dark room backgrounds without reintroducing the removed outer wrapper.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).

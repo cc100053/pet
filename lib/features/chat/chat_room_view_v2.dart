@@ -8,6 +8,7 @@ import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatMessage;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
@@ -1415,9 +1416,15 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                         unawaited(_showMessageActions(domainMessage));
                       },
                   builders: fc.Builders(
-                    composerBuilder: (context) => Composer(
-                      textEditingController: _composerController,
+                    composerBuilder: (context) => _TelegramComposer(
+                      controller: _composerController,
                       focusNode: _composerFocusNode,
+                      hintText: l10n.chatMessageHint,
+                      isDarkBackground: widget.isDarkBackground,
+                      onAttachmentTap: (_sending || widget.isRoomLocked)
+                          ? null
+                          : _openFeedCamera,
+                      onSend: _sending ? null : _handleSendMessage,
                       topWidget: replyTarget == null
                           ? null
                           : _ReplyComposerBar(
@@ -1425,54 +1432,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                               senderName: _displayNameForSenderId(
                                 replyTarget.senderId,
                               ),
+                              isDarkBackground: widget.isDarkBackground,
                               onCancel: () {
                                 setState(() => _replyTargetMessageId = null);
                               },
                             ),
-                      textInputAction: TextInputAction.newline,
-                      sendOnEnter: false,
-                      hintText: l10n.chatMessageHint,
-                      maxLines: 4,
-                      attachmentIcon: SvgPicture.asset(
-                        'assets/icon/solar--camera-linear.svg',
-                        width: 22,
-                        height: 22,
-                        colorFilter: ColorFilter.mode(
-                          widget.isDarkBackground
-                              ? Colors.white.withValues(alpha: 0.88)
-                              : AppTheme.textSecondary,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      sendIcon: SvgPicture.asset(
-                        'assets/icon/mingcute--send-plane-line.svg',
-                        width: 20,
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.white,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      backgroundColor: widget.isDarkBackground
-                          ? Colors.black.withValues(alpha: 0.38)
-                          : Colors.white.withValues(alpha: 0.9),
-                      inputFillColor: widget.isDarkBackground
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : const Color(0xFFF6F1EA),
-                      textColor: widget.isDarkBackground
-                          ? Colors.white
-                          : AppTheme.textPrimary,
-                      hintColor: widget.isDarkBackground
-                          ? Colors.white.withValues(alpha: 0.64)
-                          : AppTheme.textSecondary,
-                      attachmentIconColor: widget.isDarkBackground
-                          ? Colors.white.withValues(alpha: 0.88)
-                          : AppTheme.textSecondary,
-                      sendIconColor: Colors.white,
-                      emptyFieldSendIconColor: widget.isDarkBackground
-                          ? Colors.white.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.22),
-                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
                     ),
                     systemMessageBuilder:
                         (
@@ -1661,11 +1625,13 @@ class _ReplyComposerBar extends StatelessWidget {
   const _ReplyComposerBar({
     required this.message,
     required this.senderName,
+    required this.isDarkBackground,
     required this.onCancel,
   });
 
   final ChatMessage message;
   final String? senderName;
+  final bool isDarkBackground;
   final VoidCallback onCancel;
 
   @override
@@ -1677,16 +1643,23 @@ class _ReplyComposerBar extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
+        color: isDarkBackground
+            ? Colors.white.withValues(alpha: 0.08)
+            : AppTheme.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDarkBackground
+              ? Colors.white.withValues(alpha: 0.08)
+              : AppTheme.primaryColor.withValues(alpha: 0.12),
+        ),
       ),
       child: Row(
         children: [
           Container(
             width: 3,
-            height: 32,
+            height: 28,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor,
               borderRadius: BorderRadius.circular(999),
@@ -1703,6 +1676,9 @@ class _ReplyComposerBar extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: isDarkBackground
+                        ? Colors.white
+                        : AppTheme.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -1712,7 +1688,9 @@ class _ReplyComposerBar extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: isDarkBackground
+                        ? Colors.white.withValues(alpha: 0.66)
+                        : AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -1720,11 +1698,354 @@ class _ReplyComposerBar extends StatelessWidget {
           ),
           IconButton(
             onPressed: onCancel,
-            icon: const Icon(Icons.close_rounded, size: 18),
-            splashRadius: 18,
+            icon: Icon(
+              Icons.close_rounded,
+              size: 16,
+              color: isDarkBackground
+                  ? Colors.white.withValues(alpha: 0.74)
+                  : AppTheme.textSecondary,
+            ),
+            splashRadius: 16,
             tooltip: l10n.commonCancel,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TelegramComposer extends StatefulWidget {
+  const _TelegramComposer({
+    required this.controller,
+    required this.focusNode,
+    required this.hintText,
+    required this.isDarkBackground,
+    required this.onSend,
+    this.onAttachmentTap,
+    this.topWidget,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hintText;
+  final bool isDarkBackground;
+  final Future<void> Function(String text)? onSend;
+  final VoidCallback? onAttachmentTap;
+  final Widget? topWidget;
+
+  @override
+  State<_TelegramComposer> createState() => _TelegramComposerState();
+}
+
+class _TelegramComposerState extends State<_TelegramComposer> {
+  final GlobalKey _measureKey = GlobalKey();
+
+  bool get _hasText => widget.controller.text.trim().isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_handleTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TelegramComposer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_handleTextChanged);
+      widget.controller.addListener(_handleTextChanged);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measureComposer());
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_handleTextChanged);
+    super.dispose();
+  }
+
+  void _handleTextChanged() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
+  }
+
+  void _measureComposer() {
+    if (!mounted) {
+      return;
+    }
+    final renderBox =
+        _measureKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) {
+      return;
+    }
+    context.read<ComposerHeightNotifier>().setHeight(renderBox.size.height);
+  }
+
+  Future<void> _handleSend() async {
+    if (widget.onSend == null) {
+      return;
+    }
+    final text = widget.controller.text.trim();
+    if (text.isEmpty) {
+      return;
+    }
+    widget.controller.clear();
+    await widget.onSend!(text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measureComposer());
+
+    final isDark = widget.isDarkBackground;
+    final canSend = _hasText && widget.onSend != null;
+    final inputColor = isDark
+        ? const Color(0xFF2C3440).withValues(alpha: 0.86)
+        : const Color(0xFFF1F5F9);
+    final attachmentSurface = isDark
+        ? const Color(0xFF252D38).withValues(alpha: 0.84)
+        : const Color(0xFFF5F7FB);
+    final textColor = isDark ? Colors.white : AppTheme.textPrimary;
+    final hintColor = isDark
+        ? Colors.white.withValues(alpha: 0.5)
+        : AppTheme.textSecondary.withValues(alpha: 0.9);
+    final attachmentIconColor = isDark
+        ? Colors.white.withValues(alpha: 0.86)
+        : AppTheme.textSecondary;
+    final darkPillBorder = Colors.white.withValues(alpha: 0.08);
+    final darkPillShadow = Colors.black.withValues(alpha: 0.28);
+
+    return Positioned(
+      left: 12,
+      right: 12,
+      bottom: 0,
+      child: SafeArea(
+        top: false,
+        left: false,
+        right: false,
+        child: Padding(
+          key: _measureKey,
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.topWidget != null) widget.topWidget!,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _ComposerActionButton(
+                    backgroundColor: attachmentSurface,
+                    iconColor: attachmentIconColor,
+                    tooltip: AppLocalizations.of(context)!.feedTitle,
+                    onTap: widget.onAttachmentTap,
+                    isDarkBackground: isDark,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      decoration: BoxDecoration(
+                        color: inputColor,
+                        borderRadius: BorderRadius.circular(24),
+                        border: isDark
+                            ? Border.all(color: darkPillBorder)
+                            : null,
+                        boxShadow: isDark
+                            ? [
+                                BoxShadow(
+                                  color: darkPillShadow,
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: TextField(
+                        controller: widget.controller,
+                        focusNode: widget.focusNode,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        minLines: 1,
+                        maxLines: 4,
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.35,
+                          color: textColor,
+                        ),
+                        cursorColor: AppTheme.primaryColor,
+                        decoration: InputDecoration(
+                          hintText: widget.hintText,
+                          hintStyle: TextStyle(color: hintColor, fontSize: 15),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          fillColor: Colors.transparent,
+                          filled: true,
+                          counterText: '',
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _ComposerSendButton(
+                    enabled: canSend,
+                    onTap: canSend ? _handleSend : null,
+                    isDarkBackground: isDark,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ComposerActionButton extends StatelessWidget {
+  const _ComposerActionButton({
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.tooltip,
+    required this.onTap,
+    this.isDarkBackground = false,
+  });
+
+  final Color backgroundColor;
+  final Color iconColor;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final bool isDarkBackground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Ink(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              shape: BoxShape.circle,
+              border: isDarkBackground
+                  ? Border.all(color: Colors.white.withValues(alpha: 0.08))
+                  : null,
+              boxShadow: isDarkBackground
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.28),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/icon/solar--camera-linear.svg',
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ComposerSendButton extends StatelessWidget {
+  const _ComposerSendButton({
+    required this.enabled,
+    required this.onTap,
+    this.isDarkBackground = false,
+  });
+
+  final bool enabled;
+  final VoidCallback? onTap;
+  final bool isDarkBackground;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = enabled
+        ? AppTheme.primaryColor
+        : (isDarkBackground
+              ? const Color(0xFF252D38).withValues(alpha: 0.84)
+              : AppTheme.textSecondary.withValues(alpha: 0.18));
+    final iconColor = enabled
+        ? Colors.white
+        : (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.56)
+              : AppTheme.textSecondary.withValues(alpha: 0.55));
+
+    return Tooltip(
+      message: AppLocalizations.of(context)!.commonSend,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
+        scale: enabled ? 1 : 0.96,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(24),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                shape: BoxShape.circle,
+                border: isDarkBackground
+                    ? Border.all(
+                        color: enabled
+                            ? AppTheme.primaryColor.withValues(alpha: 0.32)
+                            : Colors.white.withValues(alpha: 0.08),
+                      )
+                    : null,
+                boxShadow: enabled
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.28),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : isDarkBackground
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.28),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : const <BoxShadow>[],
+              ),
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/icon/mingcute--send-plane-line.svg',
+                  width: enabled ? 20 : 18,
+                  height: enabled ? 20 : 18,
+                  colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
