@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,11 +19,15 @@ import '../../services/chat/chat_message_repository.dart';
 import '../../services/profile/profile_cache_service.dart';
 import '../../services/review/review_prompt_service.dart';
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/ui/status_bar_style.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/app_ui_scale.dart';
 import '../feed/feed_capture_view.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import 'adapters/pet_chat_message_adapter.dart';
+import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'room_members_sheet.dart';
 
 class ChatRoomViewV2 extends StatefulWidget {
   const ChatRoomViewV2({
@@ -159,6 +164,17 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         )!.chatLoadBlockedUsersFailed(userFacingError(context, error));
       });
     }
+  }
+
+  Future<void> _refreshAfterBlockChange() async {
+    await _loadBlockedUsers();
+    await _refreshLatest();
+    final visibleMessages = _messages.where(_isVisibleMessage).toList();
+    await _setMessages(visibleMessages, animated: false);
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 
   Future<void> _loadCachedMessages() async {
@@ -1086,6 +1102,61 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
   }
 
+  Future<void> _openBlockedUsers() async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.authReauthRequired),
+        ),
+      );
+      return;
+    }
+
+    final changed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => BlockedUsersSheet(
+        currentUserId: currentUserId,
+        onBlockListChanged: () => unawaited(_refreshAfterBlockChange()),
+      ),
+    );
+
+    if (changed == true) {
+      await _refreshAfterBlockChange();
+    }
+  }
+
+  Future<void> _openRoomMembers() async {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.authReauthRequired),
+        ),
+      );
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) =>
+          RoomMembersSheet(roomId: widget.roomId, currentUserId: currentUserId),
+    );
+
+    if (!mounted) {
+      return;
+    }
+    unawaited(_fetchMemberCount());
+  }
+
   Future<String?> _promptReportReason(BuildContext context) async {
     final controller = TextEditingController();
     final l10n = AppLocalizations.of(context)!;
@@ -1239,6 +1310,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final media = MediaQuery.of(context);
+    final uiScale = appUiScale(media.size.width);
+    final topBarHeight = (64.0 * uiScale).clamp(56.0, 64.0);
+    final listTopPadding = media.padding.top + topBarHeight + 12;
     final scaffoldBackground =
         widget.backgroundDecoration?.color ??
         (widget.isDarkBackground
@@ -1248,256 +1323,300 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         ? null
         : _messagesById[_replyTargetMessageId!];
 
-    return Scaffold(
-      backgroundColor: scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.petName ?? l10n.chatTitle),
-            if (_memberCount != null)
-              Text(
-                l10n.chatMemberCount(_memberCount!),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: widget.isDarkBackground
-                      ? Colors.white.withValues(alpha: 0.8)
-                      : AppTheme.textSecondary,
-                ),
+    final overlayStyle = AppStatusBarStyles.forBackground(
+      isDark: widget.isDarkBackground,
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: Scaffold(
+        backgroundColor: scaffoldBackground,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          toolbarHeight: topBarHeight,
+          automaticallyImplyLeading: false,
+          titleSpacing: 0,
+          title: _ChatTopBar(
+            petName: widget.petName ?? l10n.chatTitle,
+            memberCount: _memberCount == null
+                ? null
+                : l10n.chatMemberCount(_memberCount!),
+            uiScale: uiScale,
+            useLightForeground: widget.isDarkBackground,
+            onBack: () => Navigator.of(context).maybePop(),
+            onMembersTap: _openRoomMembers,
+            menuButton: Theme(
+              data: Theme.of(context).copyWith(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                hoverColor: Colors.transparent,
               ),
-          ],
-        ),
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: Chat(
-                currentUserId: _currentUserId,
-                resolveUser: _resolveUser,
-                chatController: _chatController,
-                decoration: widget.backgroundDecoration,
-                backgroundColor: scaffoldBackground,
-                theme: _chatTheme(context),
-                onMessageSend: _sending ? null : _handleSendMessage,
-                onAttachmentTap: (_sending || widget.isRoomLocked)
-                    ? null
-                    : _openFeedCamera,
-                onMessageLongPress:
-                    (context, message, {required index, required details}) {
-                      final domainMessage = _messagesById[message.id];
-                      final isMine = domainMessage?.senderId == _currentUserId;
-                      if (domainMessage == null ||
-                          domainMessage.isSystem ||
-                          isMine ||
-                          domainMessage.senderId == null) {
-                        return;
-                      }
-                      unawaited(_showMessageActions(domainMessage));
-                    },
-                builders: fc.Builders(
-                  composerBuilder: (context) => Composer(
-                    textEditingController: _composerController,
-                    focusNode: _composerFocusNode,
-                    topWidget: replyTarget == null
-                        ? null
-                        : _ReplyComposerBar(
-                            message: replyTarget,
-                            senderName: _displayNameForSenderId(
-                              replyTarget.senderId,
-                            ),
-                            onCancel: () {
-                              setState(() => _replyTargetMessageId = null);
-                            },
-                          ),
-                    textInputAction: TextInputAction.newline,
-                    sendOnEnter: false,
-                    hintText: l10n.chatMessageHint,
-                    maxLines: 4,
-                    attachmentIcon: SvgPicture.asset(
-                      'assets/icon/solar--camera-linear.svg',
-                      width: 22,
-                      height: 22,
-                      colorFilter: ColorFilter.mode(
-                        widget.isDarkBackground
-                            ? Colors.white.withValues(alpha: 0.88)
-                            : AppTheme.textSecondary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    sendIcon: SvgPicture.asset(
-                      'assets/icon/mingcute--send-plane-line.svg',
-                      width: 20,
-                      height: 20,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.white,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    backgroundColor: widget.isDarkBackground
-                        ? Colors.black.withValues(alpha: 0.38)
-                        : Colors.white.withValues(alpha: 0.9),
-                    inputFillColor: widget.isDarkBackground
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : const Color(0xFFF6F1EA),
-                    textColor: widget.isDarkBackground
-                        ? Colors.white
-                        : AppTheme.textPrimary,
-                    hintColor: widget.isDarkBackground
-                        ? Colors.white.withValues(alpha: 0.64)
-                        : AppTheme.textSecondary,
-                    attachmentIconColor: widget.isDarkBackground
-                        ? Colors.white.withValues(alpha: 0.88)
-                        : AppTheme.textSecondary,
-                    sendIconColor: Colors.white,
-                    emptyFieldSendIconColor: widget.isDarkBackground
-                        ? Colors.white.withValues(alpha: 0.3)
-                        : Colors.black.withValues(alpha: 0.22),
-                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
-                  ),
-                  systemMessageBuilder:
-                      (
-                        context,
-                        message,
-                        index, {
-                        required isSentByMe,
-                        groupStatus,
-                      }) {
-                        return _SystemPill(message: message.text);
-                      },
-                  customMessageBuilder:
-                      (
-                        context,
-                        message,
-                        index, {
-                        required isSentByMe,
-                        groupStatus,
-                      }) {
-                        return _FeedCard(
-                          message: message,
-                          isMe: isSentByMe,
-                          senderName: _displayNameForSenderId(
-                            _messagesById[message.id]?.senderId,
-                          ),
-                          onTapImage: () =>
-                              _openFeedViewer(_messagesById[message.id]),
-                        );
-                      },
-                  chatMessageBuilder:
-                      (
-                        context,
-                        message,
-                        index,
-                        animation,
-                        child, {
-                        isRemoved,
-                        required isSentByMe,
-                        groupStatus,
-                      }) {
-                        final domainMessage = _messagesById[message.id];
-                        if (domainMessage == null) {
-                          return child;
-                        }
-                        Widget content = _MessageEnvelope(
-                          replyPreview: _resolvedReplyPreview(domainMessage),
-                          replySenderName: _displayNameForSenderId(
-                            _resolvedReplyPreview(domainMessage)?.senderId,
-                          ),
-                          isHighlighted:
-                              _highlightedMessageId == domainMessage.id,
-                          onReplyTap: domainMessage.replyToMessageId == null
-                              ? null
-                              : () => _jumpToReplySource(domainMessage),
-                          child: child,
-                        );
-                        final canReply =
-                            !domainMessage.isSystem &&
-                            !isSentByMe &&
-                            domainMessage.senderId != null;
-                        if (canReply) {
-                          content = _ReplySwipeWrapper(
-                            onTriggered: () {
-                              HapticFeedback.lightImpact();
-                              _requestReply(domainMessage);
-                            },
-                            child: content,
-                          );
-                        }
-                        return content;
-                      },
-                  chatAnimatedListBuilder: (context, itemBuilder) {
-                    return ChatAnimatedList(
-                      itemBuilder: itemBuilder,
-                      reversed: true,
-                      onEndReached: _hasMore ? _loadMore : null,
-                      topPadding: 12,
-                      bottomPadding: 108,
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
-                    );
-                  },
-                  emptyChatListBuilder: (context) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        l10n.chatEmptyState,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: widget.isDarkBackground
-                              ? Colors.white.withValues(alpha: 0.84)
-                              : AppTheme.textSecondary,
-                        ),
-                      ),
+              child: PopupMenuButton<String>(
+                offset: const Offset(0, 8),
+                position: PopupMenuPosition.under,
+                onSelected: (value) {
+                  if (value == 'block') {
+                    unawaited(_openBlockedUsers());
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'block',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.block, size: 20),
+                        const SizedBox(width: 12),
+                        Text(l10n.blockedUsersTitle),
+                      ],
                     ),
                   ),
-                  loadMoreBuilder: (context) => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
+                ],
+                child: _ChatMenuAvatar(
+                  petAssetPath: widget.petAssetPath,
+                  uiScale: uiScale,
                 ),
               ),
             ),
           ),
-          if (_loading)
-            const Positioned.fill(
-              child: IgnorePointer(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-          if (_error != null)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-              child: IgnorePointer(
-                ignoring: true,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.errorContainer.withValues(alpha: 0.94),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    child: Text(
-                      _error!,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                        fontWeight: FontWeight.w600,
+        ),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                child: Chat(
+                  currentUserId: _currentUserId,
+                  resolveUser: _resolveUser,
+                  chatController: _chatController,
+                  decoration: widget.backgroundDecoration,
+                  backgroundColor: scaffoldBackground,
+                  theme: _chatTheme(context),
+                  onMessageSend: _sending ? null : _handleSendMessage,
+                  onAttachmentTap: (_sending || widget.isRoomLocked)
+                      ? null
+                      : _openFeedCamera,
+                  onMessageLongPress:
+                      (context, message, {required index, required details}) {
+                        final domainMessage = _messagesById[message.id];
+                        final isMine =
+                            domainMessage?.senderId == _currentUserId;
+                        if (domainMessage == null ||
+                            domainMessage.isSystem ||
+                            isMine ||
+                            domainMessage.senderId == null) {
+                          return;
+                        }
+                        unawaited(_showMessageActions(domainMessage));
+                      },
+                  builders: fc.Builders(
+                    composerBuilder: (context) => Composer(
+                      textEditingController: _composerController,
+                      focusNode: _composerFocusNode,
+                      topWidget: replyTarget == null
+                          ? null
+                          : _ReplyComposerBar(
+                              message: replyTarget,
+                              senderName: _displayNameForSenderId(
+                                replyTarget.senderId,
+                              ),
+                              onCancel: () {
+                                setState(() => _replyTargetMessageId = null);
+                              },
+                            ),
+                      textInputAction: TextInputAction.newline,
+                      sendOnEnter: false,
+                      hintText: l10n.chatMessageHint,
+                      maxLines: 4,
+                      attachmentIcon: SvgPicture.asset(
+                        'assets/icon/solar--camera-linear.svg',
+                        width: 22,
+                        height: 22,
+                        colorFilter: ColorFilter.mode(
+                          widget.isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.88)
+                              : AppTheme.textSecondary,
+                          BlendMode.srcIn,
+                        ),
                       ),
+                      sendIcon: SvgPicture.asset(
+                        'assets/icon/mingcute--send-plane-line.svg',
+                        width: 20,
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      backgroundColor: widget.isDarkBackground
+                          ? Colors.black.withValues(alpha: 0.38)
+                          : Colors.white.withValues(alpha: 0.9),
+                      inputFillColor: widget.isDarkBackground
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : const Color(0xFFF6F1EA),
+                      textColor: widget.isDarkBackground
+                          ? Colors.white
+                          : AppTheme.textPrimary,
+                      hintColor: widget.isDarkBackground
+                          ? Colors.white.withValues(alpha: 0.64)
+                          : AppTheme.textSecondary,
+                      attachmentIconColor: widget.isDarkBackground
+                          ? Colors.white.withValues(alpha: 0.88)
+                          : AppTheme.textSecondary,
+                      sendIconColor: Colors.white,
+                      emptyFieldSendIconColor: widget.isDarkBackground
+                          ? Colors.white.withValues(alpha: 0.3)
+                          : Colors.black.withValues(alpha: 0.22),
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+                    ),
+                    systemMessageBuilder:
+                        (
+                          context,
+                          message,
+                          index, {
+                          required isSentByMe,
+                          groupStatus,
+                        }) {
+                          return _SystemPill(message: message.text);
+                        },
+                    customMessageBuilder:
+                        (
+                          context,
+                          message,
+                          index, {
+                          required isSentByMe,
+                          groupStatus,
+                        }) {
+                          return _FeedCard(
+                            message: message,
+                            isMe: isSentByMe,
+                            senderName: _displayNameForSenderId(
+                              _messagesById[message.id]?.senderId,
+                            ),
+                            onTapImage: () =>
+                                _openFeedViewer(_messagesById[message.id]),
+                          );
+                        },
+                    chatMessageBuilder:
+                        (
+                          context,
+                          message,
+                          index,
+                          animation,
+                          child, {
+                          isRemoved,
+                          required isSentByMe,
+                          groupStatus,
+                        }) {
+                          final domainMessage = _messagesById[message.id];
+                          if (domainMessage == null) {
+                            return child;
+                          }
+                          Widget content = _MessageEnvelope(
+                            replyPreview: _resolvedReplyPreview(domainMessage),
+                            replySenderName: _displayNameForSenderId(
+                              _resolvedReplyPreview(domainMessage)?.senderId,
+                            ),
+                            isHighlighted:
+                                _highlightedMessageId == domainMessage.id,
+                            onReplyTap: domainMessage.replyToMessageId == null
+                                ? null
+                                : () => _jumpToReplySource(domainMessage),
+                            child: child,
+                          );
+                          final canReply =
+                              !domainMessage.isSystem &&
+                              !isSentByMe &&
+                              domainMessage.senderId != null;
+                          if (canReply) {
+                            content = _ReplySwipeWrapper(
+                              onTriggered: () {
+                                HapticFeedback.lightImpact();
+                                _requestReply(domainMessage);
+                              },
+                              child: content,
+                            );
+                          }
+                          return content;
+                        },
+                    chatAnimatedListBuilder: (context, itemBuilder) {
+                      return ChatAnimatedList(
+                        itemBuilder: itemBuilder,
+                        reversed: true,
+                        onEndReached: _hasMore ? _loadMore : null,
+                        topPadding: listTopPadding,
+                        bottomPadding: 108,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                      );
+                    },
+                    emptyChatListBuilder: (context) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          l10n.chatEmptyState,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: widget.isDarkBackground
+                                    ? Colors.white.withValues(alpha: 0.84)
+                                    : AppTheme.textSecondary,
+                              ),
+                        ),
+                      ),
+                    ),
+                    loadMoreBuilder: (context) => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ),
               ),
             ),
-        ],
+            if (_loading)
+              const Positioned.fill(
+                child: IgnorePointer(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ),
+            if (_error != null)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: media.padding.bottom + 16,
+                child: IgnorePointer(
+                  ignoring: true,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withValues(alpha: 0.94),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1954,6 +2073,196 @@ class _ReplySwipeWrapperState extends State<_ReplySwipeWrapper>
             child: widget.child,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ChatTopBar extends StatelessWidget {
+  const _ChatTopBar({
+    required this.petName,
+    required this.memberCount,
+    required this.uiScale,
+    required this.useLightForeground,
+    required this.onBack,
+    required this.onMembersTap,
+    required this.menuButton,
+  });
+
+  final String petName;
+  final String? memberCount;
+  final double uiScale;
+  final bool useLightForeground;
+  final VoidCallback onBack;
+  final VoidCallback onMembersTap;
+  final Widget menuButton;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          12 * uiScale,
+          8 * uiScale,
+          12 * uiScale,
+          8 * uiScale,
+        ),
+        child: Row(
+          children: [
+            _GlassPill(
+              useDarkSurface: useLightForeground,
+              padding: EdgeInsets.all(4 * uiScale),
+              child: IconButton(
+                iconSize: (20 * uiScale).clamp(18.0, 20.0),
+                constraints: BoxConstraints.tightFor(
+                  width: (36.0 * uiScale).clamp(32.0, 36.0),
+                  height: (36.0 * uiScale).clamp(32.0, 36.0),
+                ),
+                padding: EdgeInsets.all((8.0 * uiScale).clamp(6.0, 8.0)),
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                color: useLightForeground ? Colors.white : AppTheme.textPrimary,
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              ),
+            ),
+            SizedBox(width: 10 * uiScale),
+            Flexible(
+              fit: FlexFit.loose,
+              child: Align(
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 220 * uiScale),
+                  child: GestureDetector(
+                    onTap: onMembersTap,
+                    child: _GlassPill(
+                      useDarkSurface: useLightForeground,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16 * uiScale,
+                        vertical: 8 * uiScale,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            petName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: (15 * uiScale).clamp(13.0, 15.0),
+                              fontWeight: FontWeight.w600,
+                              color: useLightForeground
+                                  ? Colors.white
+                                  : AppTheme.textPrimary,
+                            ),
+                          ),
+                          if (memberCount != null)
+                            Text(
+                              memberCount!,
+                              style: TextStyle(
+                                fontSize: (11 * uiScale).clamp(10.0, 11.0),
+                                color: useLightForeground
+                                    ? Colors.white.withValues(alpha: 0.75)
+                                    : Colors.black.withValues(alpha: 0.55),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 10 * uiScale),
+            _GlassPill(
+              useDarkSurface: useLightForeground,
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              child: menuButton,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatMenuAvatar extends StatelessWidget {
+  const _ChatMenuAvatar({required this.petAssetPath, required this.uiScale});
+
+  final String? petAssetPath;
+  final double uiScale;
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarSize = (48.0 * uiScale).clamp(40.0, 48.0);
+    final petIconSize = (24.0 * uiScale).clamp(20.0, 24.0);
+    final petAssetSize = (40.0 * uiScale).clamp(32.0, 40.0);
+    return SizedBox(
+      width: avatarSize,
+      height: avatarSize,
+      child: Center(
+        child: CircleAvatar(
+          radius: avatarSize / 2,
+          backgroundColor: Colors.white.withValues(alpha: 0.9),
+          child: petAssetPath == null
+              ? Icon(Icons.pets, size: petIconSize, color: AppTheme.textPrimary)
+              : Image.asset(
+                  petAssetPath!,
+                  width: petAssetSize,
+                  height: petAssetSize,
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassPill extends StatelessWidget {
+  const _GlassPill({
+    required this.child,
+    this.padding,
+    this.useDarkSurface = false,
+  });
+
+  final Widget child;
+  final EdgeInsets? padding;
+  final bool useDarkSurface;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: useDarkSurface
+                ? Colors.black.withValues(alpha: 0.72)
+                : Colors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: useDarkSurface
+                  ? Colors.white.withValues(alpha: 0.24)
+                  : Colors.white.withValues(alpha: 0.6),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: useDarkSurface ? 0.18 : 0.08,
+                ),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: child,
+        ),
       ),
     );
   }

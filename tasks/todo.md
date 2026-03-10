@@ -55,8 +55,10 @@
 - Result:
   - Added `flutter_chat_ui` / `flutter_chat_core` to `pubspec.yaml` and fetched packages.
   - Added `lib/features/chat/adapters/pet_chat_message_adapter.dart` to map existing `ChatMessage` domain rows into package `TextMessage` / `SystemMessage` / `CustomMessage`.
-  - Added `lib/features/chat/chat_room_view_v2.dart` as a default-off spike route that keeps Supabase fetch/realtime/cache/moderation in app code while letting `flutter_chat_ui` handle list/composer shell.
-  - Added a safe route toggle in `lib/features/home/home_view.dart` (`_useChatRoomV2Prototype = false`) so the spike does not replace production chat yet.
+  - Added `lib/features/chat/chat_room_view_v2.dart` as the package-based spike route that keeps Supabase fetch/realtime/cache/moderation in app code while letting `flutter_chat_ui` handle list/composer shell.
+  - Added a safe route toggle in `lib/features/home/home_view.dart`; after user confirmation, `_useChatRoomV2Prototype` is now `true`, so Home currently opens the V2 route.
+  - Promoted the active V2 route beyond spike-level by restoring glass top-bar parity, room-members entry, blocked-users management entry, and keeping the package chat list padded correctly under the overlay header.
+  - Added `test/pet_chat_message_adapter_test.dart` to lock the adapter mapping for text, feed, and localized system messages.
 - Key findings:
   - `flutter_chat_core` exposes `replyToMessageId`, so package data structure fits the backend schema.
   - `flutter_chat_ui` 2.11.1 does not appear to ship built-in quoted-reply rendering in the UI layer, so the spike keeps package reply structure but uses a thin wrapper builder for reply preview, Telegram-style swipe trigger, and jump-to-source highlight.
@@ -64,7 +66,7 @@
   - Feed cards fit cleanly through `customMessageBuilder`, so product-specific feed UI can stay isolated.
 - Verification:
   - `flutter pub get`
-  - `dart format lib/features/chat/adapters/pet_chat_message_adapter.dart lib/features/chat/chat_room_view_v2.dart lib/features/home/home_view.dart`
+  - `dart format lib/features/chat/adapters/pet_chat_message_adapter.dart lib/features/chat/chat_room_view_v2.dart lib/features/home/home_view.dart test/pet_chat_message_adapter_test.dart`
   - `flutter analyze`
   - `flutter test`
   - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).

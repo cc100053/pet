@@ -93,7 +93,7 @@ enum _BasicOnboardingStep {
   completed,
 }
 
-const bool _useChatRoomV2Prototype = false;
+const bool _useChatRoomV2Prototype = true;
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
