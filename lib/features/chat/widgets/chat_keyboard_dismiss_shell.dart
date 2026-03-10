@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 const ScrollViewKeyboardDismissBehavior chatTimelineKeyboardDismissBehavior =
     ScrollViewKeyboardDismissBehavior.manual;
 
+double resolveChatKeyboardBottomInset({
+  required double keyboardInset,
+  required double safeAreaInset,
+}) => keyboardInset > safeAreaInset ? keyboardInset : safeAreaInset;
+
 class ChatKeyboardSweepDismissLayer extends StatefulWidget {
   const ChatKeyboardSweepDismissLayer({
     super.key,

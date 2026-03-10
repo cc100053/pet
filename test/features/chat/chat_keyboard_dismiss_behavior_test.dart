@@ -21,6 +21,24 @@ void main() {
   }
 
   group('chat keyboard dismiss UX', () {
+    test(
+      'keyboard bottom inset never drops below safe area during dismiss',
+      () {
+        expect(
+          resolveChatKeyboardBottomInset(keyboardInset: 20, safeAreaInset: 34),
+          34,
+        );
+        expect(
+          resolveChatKeyboardBottomInset(keyboardInset: 120, safeAreaInset: 34),
+          120,
+        );
+        expect(
+          resolveChatKeyboardBottomInset(keyboardInset: 0, safeAreaInset: 34),
+          34,
+        );
+      },
+    );
+
     testWidgets('dragging the timeline keeps composer focus', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: _ChatKeyboardHarness()));
 

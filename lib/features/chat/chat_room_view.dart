@@ -438,11 +438,10 @@ class _ChatRoomViewState extends State<ChatRoomView> {
     final composerVerticalPadding = (6.0 * uiScale).clamp(4.0, 6.0);
     final composerScreenPadding = (10.0 * uiScale).clamp(8.0, 10.0);
     final keyboardInset = media.viewInsets.bottom;
-    final baseBottomInset = media.padding.bottom;
-    // Prevent end-of-dismiss overshoot when keyboard inset dips below safe-area.
-    final keyboardAwareBottomInset = keyboardInset > baseBottomInset
-        ? keyboardInset
-        : baseBottomInset;
+    final keyboardAwareBottomInset = resolveChatKeyboardBottomInset(
+      keyboardInset: keyboardInset,
+      safeAreaInset: media.padding.bottom,
+    );
     final composerBottom = keyboardAwareBottomInset + composerScreenPadding;
     final listTopPadding = media.padding.top + topBarHeight + 12;
     final listBottomPadding = composerHeight + composerBottom + 6;

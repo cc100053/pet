@@ -1469,9 +1469,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     final uiScale = appUiScale(media.size.width);
     final topBarHeight = (64.0 * uiScale).clamp(56.0, 64.0);
     final listTopPadding = media.padding.top + topBarHeight + 12;
-    final listBottomInset = media.viewInsets.bottom > 0
-        ? media.viewInsets.bottom + 8
-        : media.padding.bottom + 8;
+    final keyboardAwareBottomInset = resolveChatKeyboardBottomInset(
+      keyboardInset: media.viewInsets.bottom,
+      safeAreaInset: media.padding.bottom,
+    );
+    final listBottomInset = keyboardAwareBottomInset + 8;
     final listBottomPadding = listBottomInset + _composerHeight + 8;
     final scaffoldBackground =
         widget.backgroundDecoration?.color ??
@@ -2008,6 +2010,7 @@ class _TelegramComposer extends StatefulWidget {
 
 class _TelegramComposerState extends State<_TelegramComposer> {
   final GlobalKey _measureKey = GlobalKey();
+  bool _measureScheduled = false;
 
   bool get _hasText => widget.controller.text.trim().isNotEmpty;
 
@@ -2015,6 +2018,7 @@ class _TelegramComposerState extends State<_TelegramComposer> {
   void initState() {
     super.initState();
     widget.controller.addListener(_handleTextChanged);
+    _scheduleComposerMeasure();
   }
 
   @override
@@ -2024,7 +2028,10 @@ class _TelegramComposerState extends State<_TelegramComposer> {
       oldWidget.controller.removeListener(_handleTextChanged);
       widget.controller.addListener(_handleTextChanged);
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureComposer());
+    if (oldWidget.topWidget != widget.topWidget ||
+        oldWidget.isDarkBackground != widget.isDarkBackground) {
+      _scheduleComposerMeasure();
+    }
   }
 
   @override
@@ -2038,6 +2045,18 @@ class _TelegramComposerState extends State<_TelegramComposer> {
       return;
     }
     setState(() {});
+    _scheduleComposerMeasure();
+  }
+
+  void _scheduleComposerMeasure() {
+    if (!mounted || _measureScheduled) {
+      return;
+    }
+    _measureScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _measureScheduled = false;
+      _measureComposer();
+    });
   }
 
   void _measureComposer() {
@@ -2066,12 +2085,13 @@ class _TelegramComposerState extends State<_TelegramComposer> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureComposer());
     final media = MediaQuery.of(context);
     final keyboardInset = media.viewInsets.bottom;
-    final composerBottomInset = keyboardInset > 0
-        ? keyboardInset + 8
-        : media.padding.bottom + 10;
+    final keyboardAwareBottomInset = resolveChatKeyboardBottomInset(
+      keyboardInset: keyboardInset,
+      safeAreaInset: media.padding.bottom,
+    );
+    final composerBottomInset = keyboardAwareBottomInset + 8;
 
     final isDark = widget.isDarkBackground;
     final canSend = _hasText && widget.onSend != null;
