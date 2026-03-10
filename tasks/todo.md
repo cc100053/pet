@@ -1,5 +1,71 @@
 # TODO
 
+## Plan (2026-03-10 Feed Card Overlay Restyle)
+- [x] Inspect the active `ChatRoomViewV2` feed card hierarchy and identify the smallest layout change that moves sender info into the image overlay while collapsing caption/time into a floating pill.
+- [x] Refactor the feed card so sender name sits at the top-left, while caption and time share a bottom floating pill instead of a dedicated lower text section.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the style-change summary and verification results.
+
+## Review (2026-03-10 Feed Card Overlay Restyle)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/features/chat/chat_room_view_v2.dart` feed cards no longer reserve a separate lower text block below the image.
+  - Sender name now renders as a top-left glass pill overlay, while caption and time render inside a bottom floating glass pill with tighter visual grouping.
+- UI details:
+  - Caption and time now share one overlay row; the time chip is bottom-aligned so it reads closer to the caption baseline instead of floating on a separate line.
+  - Existing reward badge remains top-right, restyled to match the new glass-pill treatment for a more consistent overlay hierarchy.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-10 Chat Latest Message Gap)
+- [x] Trace why the newest chat message sits too high above the composer in `ChatRoomViewV2` and confirm whether list bottom spacing is double-counting composer area.
+- [x] Fix the active chat route so the message list uses the real floating-composer inset instead of an oversized hardcoded bottom gap.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the fix summary and verification results.
+
+## Review (2026-03-10 Chat Latest Message Gap)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/features/chat/chat_room_view_v2.dart` passed `bottomPadding: 108` into `ChatAnimatedList`.
+  - `flutter_chat_ui` already adds the measured composer height via `ComposerHeightNotifier`, so the extra `108` created an oversized blank gap between the latest message and the floating composer.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: replaced the hardcoded list bottom padding with the same bottom-inset formula used by the floating composer (`keyboardInset + 8` or `safeArea + 10`).
+  - The list now reserves only the composer height plus its real distance from the screen bottom, so the newest message sits flush above the input bar again.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Plan (2026-03-10 Chat Swipe Dispose Crash)
+- [x] Trace the `Looking up a deactivated widget's ancestor is unsafe` exception in `ChatRoomViewV2` and confirm the exact lifecycle misuse around reply-swipe animation setup.
+- [x] Fix the reply-swipe wrapper so ticker/animation resources are created and disposed only from safe widget lifecycle points, without changing swipe-to-reply behavior.
+- [x] Run `dart format` on touched Dart files.
+- [x] Run `flutter analyze`.
+- [x] Run `flutter test`.
+- [x] Update `memory-bank/progress.md` and this file with the fix summary and verification results.
+
+## Review (2026-03-10 Chat Swipe Dispose Crash)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/features/chat/chat_room_view_v2.dart` declared `_ReplySwipeWrapperState._controller` as a lazy `late final AnimationController`.
+  - For message rows that were never swiped, the first `_controller` access happened inside `dispose()`, which tried to create a ticker after the widget had already been deactivated, triggering `Looking up a deactivated widget's ancestor is unsafe`.
+- Fixes:
+  - `lib/features/chat/chat_room_view_v2.dart`: moved `AnimationController` creation into `initState()` so ticker lookup always happens while the element tree is active.
+  - `lib/features/chat/chat_room_view_v2.dart`: track the current reply-reset animation explicitly, remove its listener in `dispose()`, and stop the controller when a new drag update starts to avoid stale animation callbacks.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
 ## Plan (2026-03-08 flutter_chat_ui Migration Spike)
 - [x] Write the approved `flutter_chat_ui` migration/spec into this file so the adapter/controller/custom-renderer boundaries are explicit before code moves.
 - [x] Add `flutter_chat_ui` / `flutter_chat_core` dependencies and fetch packages.
@@ -730,6 +796,16 @@
 ## Follow-up Review (2026-03-10 Text Size + Timestamp Placement)
 - [x] Implemented and verified.
 - Updated `lib/features/chat/chat_room_view_v2.dart` text bubbles so the main message body now uses a more standard 16px chat size, and the timestamp label is slightly larger and explicitly positioned at the bubble’s bottom-right corner.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Passed (`feed_flow_integration_test` remained skipped without required env vars, as expected).
+
+## Follow-up Review (2026-03-10 Sender Labels + Feed Metadata Restore)
+- [x] Implemented and verified.
+- Updated `lib/features/chat/chat_room_view_v2.dart` so received text bubbles now show the sender name at the top-left, and feed cards now also show the sender name in that position.
+- Updated `lib/features/chat/chat_room_view_v2.dart` feed cards so the `+coins` badge includes the candy icon again and the card shows a small timestamp at the bottom-right.
 - Verification:
   - `dart format lib/features/chat/chat_room_view_v2.dart`
   - `flutter analyze`

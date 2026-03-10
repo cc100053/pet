@@ -1315,6 +1315,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     final uiScale = appUiScale(media.size.width);
     final topBarHeight = (64.0 * uiScale).clamp(56.0, 64.0);
     final listTopPadding = media.padding.top + topBarHeight + 12;
+    final listBottomInset = media.viewInsets.bottom > 0
+        ? media.viewInsets.bottom + 8
+        : media.padding.bottom + 8;
     final scaffoldBackground =
         widget.backgroundDecoration?.color ??
         (widget.isDarkBackground
@@ -1430,6 +1433,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                             index: index,
                             isSentByMe: isSentByMe,
                             isDarkBackground: widget.isDarkBackground,
+                            senderName: _displayNameForSenderId(
+                              _messagesById[message.id]?.senderId,
+                            ),
                           );
                         },
                     composerBuilder: (context) => _TelegramComposer(
@@ -1532,7 +1538,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                         reversed: true,
                         onEndReached: _hasMore ? _loadMore : null,
                         topPadding: listTopPadding,
-                        bottomPadding: 108,
+                        bottomPadding: listBottomInset,
                         keyboardDismissBehavior:
                             ScrollViewKeyboardDismissBehavior.onDrag,
                       );
@@ -2110,12 +2116,14 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     required this.index,
     required this.isSentByMe,
     required this.isDarkBackground,
+    required this.senderName,
   });
 
   final fc.TextMessage message;
   final int index;
   final bool isSentByMe;
   final bool isDarkBackground;
+  final String? senderName;
 
   @override
   Widget build(BuildContext context) {
@@ -2169,6 +2177,19 @@ class _TelegramTextMessageBubble extends StatelessWidget {
         fontSize: 10,
         fontWeight: FontWeight.w500,
       ),
+      topWidget: !isSentByMe && senderName?.trim().isNotEmpty == true
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                senderName!.trim(),
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.5,
+                ),
+              ),
+            )
+          : null,
       timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
       timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
       showStatus: false,
@@ -2363,12 +2384,20 @@ class _FeedCard extends StatelessWidget {
         : (theme.brightness == Brightness.dark
               ? const Color(0xFF2A313D)
               : Colors.white);
-    final cardTextColor = isMe && theme.brightness != Brightness.dark
-        ? const Color(0xFF1E3B34)
-        : theme.colorScheme.onSurface;
     final cardBorderColor = theme.brightness == Brightness.dark
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.black.withValues(alpha: 0.05);
+    final bubbleTime = _formatBubbleTime(context, message.resolvedTime);
+    final senderLabel = !isMe && senderName?.trim().isNotEmpty == true
+        ? senderName!.trim()
+        : null;
+    final overlaySurface = Colors.black.withValues(
+      alpha: theme.brightness == Brightness.dark ? 0.42 : 0.34,
+    );
+    final overlayBorder = Colors.white.withValues(alpha: 0.16);
+    final overlayShadow = Colors.black.withValues(alpha: 0.18);
+    final overlayPrimaryText = Colors.white;
+    final overlaySecondaryText = Colors.white.withValues(alpha: 0.76);
 
     Widget image = Container(
       color: theme.colorScheme.surfaceContainerHighest,
@@ -2385,6 +2414,35 @@ class _FeedCard extends StatelessWidget {
       image = CachedNetworkImageView(imageUrl: remoteUrl, fit: BoxFit.cover);
     }
 
+    Widget buildGlassPill({
+      required Widget child,
+      required BorderRadius borderRadius,
+      required EdgeInsetsGeometry padding,
+    }) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: overlaySurface,
+              borderRadius: borderRadius,
+              border: Border.all(color: overlayBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: overlayShadow,
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ),
+      );
+    }
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 280),
       child: Container(
@@ -2396,73 +2454,142 @@ class _FeedCard extends StatelessWidget {
         ),
         child: InkWell(
           onTap: onTapImage,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AspectRatio(
-                aspectRatio: 4 / 5,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    image,
-                    if (coinsAwarded > 0)
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
+          child: AspectRatio(
+            aspectRatio: 4 / 5,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                image,
+                if (senderLabel != null)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: buildGlassPill(
+                      borderRadius: BorderRadius.circular(999),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      child: Text(
+                        senderLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: overlayPrimaryText,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (coinsAwarded > 0)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: buildGlassPill(
+                      borderRadius: BorderRadius.circular(999),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/icon-park--candy.svg',
+                            width: 14,
+                            height: 14,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.55),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
+                          const SizedBox(width: 5),
+                          Text(
                             '+$coinsAwarded',
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: Colors.white,
+                              color: overlayPrimaryText,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!isMe && senderName?.trim().isNotEmpty == true)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Text(
-                          senderName!.trim(),
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                    ),
+                  ),
+                if (caption.isNotEmpty || bubbleTime != null)
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    bottom: 12,
+                    child: buildGlassPill(
+                      borderRadius: BorderRadius.circular(18),
+                      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (caption.isNotEmpty)
+                            Expanded(
+                              child: Text(
+                                caption,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  height: 1.28,
+                                  color: overlayPrimaryText,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          if (caption.isNotEmpty && bubbleTime != null)
+                            const SizedBox(width: 10),
+                          if (bubbleTime != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 1),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.12),
+                                  ),
+                                ),
+                                child: Text(
+                                  bubbleTime,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: overlaySecondaryText,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    if (caption.isNotEmpty)
-                      Text(
-                        caption,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          height: 1.35,
-                          color: cardTextColor,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+String? _formatBubbleTime(BuildContext context, DateTime? time) {
+  if (time == null) {
+    return null;
+  }
+  final local = time.toLocal();
+  return MaterialLocalizations.of(context).formatTimeOfDay(
+    TimeOfDay.fromDateTime(local),
+    alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat,
+  );
 }
 
 class _ReplySwipeWrapper extends StatefulWidget {
@@ -2479,27 +2606,43 @@ class _ReplySwipeWrapperState extends State<_ReplySwipeWrapper>
     with SingleTickerProviderStateMixin {
   static const double _triggerDistance = 64;
 
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 180),
-  );
-  late Animation<double> _animation = const AlwaysStoppedAnimation<double>(0);
+  late final AnimationController _controller;
+  Animation<double>? _animation;
   double _dragOffset = 0;
   bool _triggered = false;
 
   @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+    );
+  }
+
+  @override
   void dispose() {
+    _animation?.removeListener(_handleAnimationTick);
     _controller.dispose();
     super.dispose();
   }
 
+  void _handleAnimationTick() {
+    final animation = _animation;
+    if (!mounted || animation == null) {
+      return;
+    }
+    setState(() => _dragOffset = animation.value);
+  }
+
   void _animateBack() {
-    _animation =
-        Tween<double>(begin: _dragOffset, end: 0).animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-        )..addListener(() {
-          setState(() => _dragOffset = _animation.value);
-        });
+    if (_dragOffset <= 0) {
+      return;
+    }
+    _animation?.removeListener(_handleAnimationTick);
+    _animation = Tween<double>(begin: _dragOffset, end: 0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    )..addListener(_handleAnimationTick);
     _controller
       ..reset()
       ..forward();
@@ -2514,6 +2657,7 @@ class _ReplySwipeWrapperState extends State<_ReplySwipeWrapper>
         if (details.delta.dx >= 0) {
           return;
         }
+        _controller.stop();
         setState(() {
           _dragOffset = (_dragOffset + (-details.delta.dx)).clamp(0.0, 84.0);
         });
