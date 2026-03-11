@@ -1,5 +1,26 @@
 # TODO
 
+## Plan (2026-03-11 Update Reminder Investigation)
+- [x] Trace the existing update reminder flow and confirm why publishing a new App Store version does not trigger a prompt.
+- [x] Make the iOS update check resilient by falling back to live App Store version lookup when Supabase config is missing or stale.
+- [x] Add regression coverage, run required verification (`flutter analyze`, `flutter test`), and document the confirmed behavior/fix.
+
+## Review (2026-03-11 Update Reminder Investigation)
+- [x] Implemented and verified.
+- Root cause:
+  - `ForceUpdateGate` only compared the installed app version against Supabase `app_config` values fetched by `AppConfigService`; it did not inspect the live App Store version at all.
+  - If `app_config` was missing, stale, or the `app_config` table was unavailable, `fetchForceUpdateConfig()` returned `null` and the app skipped the update reminder entirely.
+- Fixes:
+  - Added `lib/services/app_config/app_store_lookup_service.dart` plus conditional HTTP client helpers so iOS can query Apple’s lookup API for the current App Store version and store URL.
+  - Updated `lib/services/app_config/app_config_service.dart` to safely treat Supabase config reads as best-effort, merge App Store version data with configured versions, and fall back to a soft-update-only minimum (`0.0.0`) when only App Store latest-version data is available.
+  - Added regression coverage in `test/services/app_config/app_config_service_test.dart` and `test/services/app_config/app_store_lookup_service_test.dart` to lock the fallback and merge behavior.
+- Verification:
+  - `flutter test test/services/app_config/app_config_service_test.dart test/services/app_config/app_store_lookup_service_test.dart test/shared/force_update/update_policy_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped without required env vars, as expected.
+
 ## Plan (2026-03-11 Tighten Chat Reaction Attachment)
 - [x] Inspect the active V2 reaction-row layout and identify why the emoji chips feel detached from their message.
 - [x] Tighten the message/reaction spacing and alignment so reaction chips read as part of the same message surface.

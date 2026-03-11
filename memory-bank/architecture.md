@@ -89,6 +89,8 @@ Implemented:
 - `lib/services/audio/app_sfx.dart`: Shared one-shot gameplay SFX player for Home interactions; eating and coin/candy reward sounds now respect the device silent-mode setting.
 - `lib/services/profile/profile_cache_service.dart`: Shared profile summary cache/service used by Home, Chat, and Memory Calendar sender resolution.
 - `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
+- `lib/services/app_config/app_config_service.dart`: Best-effort remote app-config reader for force-update policy. Hard-update thresholds remain Supabase-driven, while iOS latest-version/store-link discovery now also merges live App Store lookup data so soft-update prompts can still appear when backend config is missing or stale.
+- `lib/services/app_config/app_store_lookup_service.dart`: Apple lookup client used by `AppConfigService` to resolve the latest iOS App Store version and store URL, with storefront fallbacks and conditional IO/web-safe transport helpers.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
   - Notification taps now flow through one typed intent pipeline: `onMessageOpenedApp`, `getInitialMessage`, iOS foreground local-notification taps, and an Android `MainActivity` launch-intent bridge all normalize into room-scoped intents (`room_id`, `message_kind` / legacy `message_type`) with dedupe.
