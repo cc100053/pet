@@ -20,6 +20,7 @@ import '../../shared/errors/user_facing_error.dart';
 import '../../shared/localization/app_locale_controller.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/user_avatar.dart';
 import '../../shared/upload_limits.dart';
 import '../../shared/utils/avatar_display_position.dart';
@@ -259,6 +260,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           title: Text(l10n.profileNicknameLabel),
           content: TextField(
             controller: _nicknameController,
+            onTapOutside: dismissKeyboardOnTapOutside,
             autofocus: true,
             textInputAction: TextInputAction.done,
             inputFormatters: [

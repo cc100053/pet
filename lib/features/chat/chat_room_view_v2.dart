@@ -25,6 +25,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_ui_scale.dart';
 import '../feed/feed_capture_view.dart';
 import '../../shared/ui/cached_network_image_view.dart';
+import '../../shared/ui/keyboard_dismiss_utils.dart';
 import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
@@ -1465,6 +1466,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         title: l10n.chatReportMessageTitle,
         body: TextField(
           controller: controller,
+          onTapOutside: dismissKeyboardOnTapOutside,
           decoration: InputDecoration(hintText: l10n.chatReportHint),
           maxLines: 3,
         ),
@@ -2388,6 +2390,7 @@ class _TelegramComposerState extends State<_TelegramComposer> {
                                 controller: widget.controller,
                                 focusNode: widget.focusNode,
                                 key: const ValueKey('chatComposerTextField'),
+                                onTapOutside: dismissKeyboardOnTapOutside,
                                 keyboardType: TextInputType.multiline,
                                 textInputAction: TextInputAction.newline,
                                 minLines: 1,

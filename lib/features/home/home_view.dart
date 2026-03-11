@@ -34,8 +34,9 @@ import '../../services/label_mapping/label_mapping_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
-import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/juice_wrappers.dart';
+import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/ui/user_avatar.dart';
@@ -2026,6 +2027,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               title: l10n.petNameEditTitle,
               body: TextField(
                 controller: controller,
+                onTapOutside: dismissKeyboardOnTapOutside,
                 maxLength: 20,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(

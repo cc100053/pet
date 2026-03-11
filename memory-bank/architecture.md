@@ -98,6 +98,7 @@ Implemented:
 - `lib/services/privacy/tracking_consent_service.dart`: Central ATT consent coordinator that waits for app lifecycle `resumed` before requesting authorization.
 - `lib/services/label_mapping/`: Label mapping normalization and matching utilities.
 - `lib/shared/ui/adaptive_layout.dart`: Shared adaptive width helpers for tablet-safe max-width constraints, plus iOS tablet-display detection to avoid compact-tier misclassification when running in iPhone-compat viewport mode on iPad.
+- `lib/shared/ui/keyboard_dismiss_utils.dart`: Shared keyboard-collapse helpers for non-chat inputs (`onTapOutside` unfocus + scroll-surface drag dismiss constant) so text-entry UX now matches chat expectations across dialogs and form screens.
 - `lib/features/chat/widgets/deterministic_chat_list.dart`: Shared deterministic chat timeline wrapper used by `ChatRoomViewV2`; it preserves manual keyboard-dismiss behavior, forwards per-message long-press actions, and exposes the jump-to-latest visibility threshold used by the restored floating button.
 - `lib/features/chat/chat_room_view_v2.dart`: Active chat route now treats post-await controller mutations as route-lifecycle-sensitive work; load/refresh/send/feed callback paths bail once the route is unmounted, and optimistic local feed cards decode file images at card-sized cache dimensions to reduce large-photo memory spikes.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.

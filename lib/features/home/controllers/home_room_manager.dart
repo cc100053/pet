@@ -603,6 +603,7 @@ extension _HomeRoomManager on _HomeViewState {
         message: l10n.roomJoinHelper,
         body: TextField(
           controller: controller,
+          onTapOutside: dismissKeyboardOnTapOutside,
           decoration: InputDecoration(hintText: l10n.roomJoinHint),
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [

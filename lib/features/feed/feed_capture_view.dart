@@ -12,6 +12,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/upload_limits.dart';
@@ -588,6 +589,8 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           return SingleChildScrollView(
+                            keyboardDismissBehavior:
+                                formScrollKeyboardDismissBehavior,
                             padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
@@ -682,6 +685,7 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
                                   const SizedBox(height: 16),
                                   TextField(
                                     controller: _captionController,
+                                    onTapOutside: dismissKeyboardOnTapOutside,
                                     decoration: InputDecoration(
                                       hintText: l10n.feedCaptionLabel,
                                       border: OutlineInputBorder(

@@ -510,6 +510,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: formScrollKeyboardDismissBehavior,
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
@@ -613,6 +614,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
                         SizedBox(height: 18 * scale),
                         TextField(
                           controller: _onboardingProfileNicknameController,
+                          onTapOutside: dismissKeyboardOnTapOutside,
                           enabled: !_onboardingProfileSaving,
                           autofocus: true,
                           textInputAction: TextInputAction.done,

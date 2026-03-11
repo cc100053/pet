@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
-import 'package:flutter/services.dart';
 
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import 'pet_catalog.dart';
@@ -235,6 +236,8 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                           ),
                           Expanded(
                             child: GridView.builder(
+                              keyboardDismissBehavior:
+                                  formScrollKeyboardDismissBehavior,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
                                 vertical: 8,
@@ -300,6 +303,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                 const SizedBox(height: 10),
                                 TextField(
                                   controller: _petNameController,
+                                  onTapOutside: dismissKeyboardOnTapOutside,
                                   textInputAction: TextInputAction.done,
                                   maxLength: widget.maxPetNameLength,
                                   decoration: InputDecoration(

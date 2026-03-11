@@ -1,5 +1,30 @@
 # TODO
 
+## Plan (2026-03-11 Global Keyboard Collapse Rollout)
+- [x] Audit every in-repo keyboard input surface and map which ones already have chat-style dismiss behavior versus missing tap/drag collapse.
+- [x] Add a shared keyboard-dismiss helper so non-chat input fields can consistently collapse on outside taps, and wire drag-to-dismiss into scrollable input screens.
+- [x] Verify the audited input surfaces after the rollout, update `memory-bank/progress.md` and `memory-bank/architecture.md`, and record the review here.
+- [x] Run required verification (`flutter analyze`, `flutter test`) and document the results.
+
+## Review (2026-03-11 Global Keyboard Collapse Rollout)
+- [x] Implemented and verified.
+- Audited input surfaces:
+  - Existing chat collapse behavior already lived in `ChatRoomViewV2` composer; the repo had 7 other non-chat `TextField` sites missing a consistent collapse affordance.
+  - All 8 current `TextField` usages are now covered: chat composer/report dialog, feed caption, profile nickname dialog, pet selection name field, onboarding profile nickname, pet rename dialog, and room join-code dialog.
+- Root change:
+  - Added `lib/shared/ui/keyboard_dismiss_utils.dart` with a shared `dismissKeyboardOnTapOutside` callback plus `formScrollKeyboardDismissBehavior`.
+  - Wired `onTapOutside` into every audited `TextField` so tapping blank space or other non-input UI collapses the keyboard consistently.
+  - Enabled drag-to-dismiss on the three scrollable input surfaces: `FeedCaptureView`, `PetSelectionPage`, and the onboarding profile setup overlay in `HomeView`.
+  - Added `test/shared/ui/keyboard_dismiss_utils_test.dart` to lock the shared tap-outside and drag-dismiss behavior.
+- Verification so far:
+  - `dart format lib/shared/ui/keyboard_dismiss_utils.dart lib/features/feed/feed_capture_view.dart lib/features/pet/pet_selection_page.dart lib/features/home/home_view.dart lib/features/home/flows/home_onboarding_flow.dart lib/features/home/controllers/home_room_manager.dart lib/features/profile/profile_view.dart lib/features/chat/chat_room_view_v2.dart test/shared/ui/keyboard_dismiss_utils_test.dart`
+  - `flutter test test/shared/ui/keyboard_dismiss_utils_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Targeted keyboard-dismiss test passed.
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 ## Plan (2026-03-11 Chat Crash Vulnerability Review)
 - [x] Inspect the active chat stack for crash-prone lifecycle, scrolling, gesture, async, and null-safety patterns.
 - [x] Record concrete findings with file/line references and decide whether any issue warrants an immediate fix.
