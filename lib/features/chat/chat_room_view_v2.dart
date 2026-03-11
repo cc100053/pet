@@ -263,6 +263,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
     try {
       final page = await _fetchMessages();
+      if (!mounted) {
+        return;
+      }
       final mergedById = <String, ChatMessage>{
         for (final message in _messages)
           if (!_optimisticIds.contains(message.id)) message.id: message,
@@ -322,6 +325,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         beforeCreatedAt: oldest.createdAt.toUtc().toIso8601String(),
         beforeId: oldest.id,
       );
+      if (!mounted) {
+        return;
+      }
       final olderMessages =
           page
               .where((message) => !_messagesById.containsKey(message.id))
@@ -365,6 +371,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   Future<void> _refreshLatest() async {
     try {
       final page = await _fetchMessages();
+      if (!mounted) {
+        return;
+      }
       final merged = <String, ChatMessage>{
         for (final message in _messages)
           if (!_optimisticIds.contains(message.id)) message.id: message,
@@ -399,6 +408,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     List<ChatMessage> messages, {
     required bool animated,
   }) async {
+    if (!mounted) {
+      return;
+    }
     _messages
       ..clear()
       ..addAll(messages.where(_isVisibleMessage));
@@ -779,6 +791,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     required bool isOptimistic,
     required bool scrollToLatest,
   }) async {
+    if (!mounted) {
+      return;
+    }
     final existingIndex = _messages.indexWhere(
       (entry) => entry.id == message.id,
     );
@@ -824,6 +839,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     String messageId, {
     required bool animated,
   }) async {
+    if (!mounted) {
+      return;
+    }
     final index = _messages.indexWhere((message) => message.id == messageId);
     if (index == -1) {
       return;
@@ -935,11 +953,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
           .select('id')
           .single();
       final insertedMessageId = insertedMessage['id'] as String?;
-      await _removeMessageById(tempId, animated: false);
-      unawaited(_refreshLatest());
       if (insertedMessageId != null) {
         unawaited(_notifyTextMessage(insertedMessageId));
       }
+      if (!mounted) {
+        return;
+      }
+      await _removeMessageById(tempId, animated: false);
+      unawaited(_refreshLatest());
       AnalyticsService.instance.logEvent(
         'message_send',
         parameters: {'result': 'success', 'ui': 'flutter_chat_ui_spike'},
@@ -1165,19 +1186,22 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
     final optimisticImage = _optimisticFeedImageByTempId.remove(result.tempId);
-    unawaited(_removeMessageById(result.tempId, animated: false));
-    unawaited(_refreshLatest());
     widget.onFeedUploaded?.call(result, optimisticImage ?? result.imageUrl);
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
+    if (!mounted) {
+      return;
+    }
+    unawaited(_removeMessageById(result.tempId, animated: false));
+    unawaited(_refreshLatest());
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
     _optimisticFeedImageByTempId.remove(tempId);
-    unawaited(_removeMessageById(tempId, animated: false));
     widget.onFeedUploadFailed?.call(tempId, error);
     if (!mounted) {
       return;
     }
+    unawaited(_removeMessageById(tempId, animated: false));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -2893,6 +2917,7 @@ class _FeedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metadata = message.metadata ?? const <String, dynamic>{};
+    final media = MediaQuery.of(context);
     final remoteUrl =
         (metadata[PetChatMessageAdapter.imageUrlKey] as String? ?? '').trim();
     final localPath =
@@ -2905,6 +2930,9 @@ class _FeedCard extends StatelessWidget {
     final theme = Theme.of(context);
     final canShowRemote = remoteUrl.isNotEmpty;
     final canShowLocal = localPath.isNotEmpty;
+    final localImageCacheWidth = (280 * media.devicePixelRatio).round();
+    final localImageCacheHeight = ((280 * 5 / 4) * media.devicePixelRatio)
+        .round();
     final cardBackground = isMe
         ? (isDarkBackground ? const Color(0xFF4E7E76) : const Color(0xFFDDF3EA))
         : (isDarkBackground ? const Color(0xFF2A313D) : Colors.white);
@@ -2946,7 +2974,22 @@ class _FeedCard extends StatelessWidget {
       ),
     );
     if (canShowLocal) {
-      image = Image.file(File(localPath), fit: BoxFit.cover);
+      image = Image.file(
+        File(localPath),
+        fit: BoxFit.cover,
+        cacheWidth: localImageCacheWidth,
+        cacheHeight: localImageCacheHeight,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, _, _) => Container(
+          color: theme.colorScheme.surfaceContainerHighest,
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.broken_image_outlined,
+            size: 28,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
     } else if (canShowRemote) {
       image = CachedNetworkImageView(imageUrl: remoteUrl, fit: BoxFit.cover);
     }

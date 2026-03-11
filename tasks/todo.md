@@ -1,5 +1,24 @@
 # TODO
 
+## Plan (2026-03-11 Chat Crash Vulnerability Review)
+- [x] Inspect the active chat stack for crash-prone lifecycle, scrolling, gesture, async, and null-safety patterns.
+- [x] Record concrete findings with file/line references and decide whether any issue warrants an immediate fix.
+- [x] If a clear bug is found, implement the smallest safe fix, run required verification (`flutter analyze`, `flutter test`), and document the result.
+
+## Review (2026-03-11 Chat Crash Vulnerability Review)
+- [x] Implemented and verified.
+- Findings:
+  - `lib/features/chat/chat_room_view_v2.dart` had several async chat-load/send paths that awaited network work and then continued mutating `_chatController` / `_messages` even if the route had already been popped and disposed. That made the active chat stack vulnerable to disposed-controller exceptions during fast leave/send/realtime races.
+  - `lib/features/feed/feed_capture_view.dart` passes the original picked file path into the optimistic chat message, and `lib/features/chat/chat_room_view_v2.dart` rendered that path with a raw `Image.file(...)` in the feed card. On large camera photos this can decode far more pixels than the card actually needs, which is a realistic iOS memory-pressure / app-termination risk while using chat.
+- Fixes:
+  - Added mounted guards before post-await chat-controller mutations in the active chat load/refresh/send paths, and skipped optimistic-message cleanup work when feed callbacks arrive after the chat route is gone.
+  - Downsampled local optimistic feed images in the chat card with `cacheWidth` / `cacheHeight` sized to the rendered card, plus a safe broken-image fallback.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped without required env vars, as expected.
+
 ## Plan (2026-03-11 Update Reminder Investigation)
 - [x] Trace the existing update reminder flow and confirm why publishing a new App Store version does not trigger a prompt.
 - [x] Make the iOS update check resilient by falling back to live App Store version lookup when Supabase config is missing or stale.
