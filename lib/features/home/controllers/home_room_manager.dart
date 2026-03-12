@@ -247,83 +247,9 @@ extension _HomeRoomManager on _HomeViewState {
       _photoFoodDropping = false;
       _photoFoodBiteStage = 0;
       _petEating = false;
-      _latestFeedImageUrl = roomSnapshot?['latest_photo'] as String?;
-      _latestFeedImageUrls =
-          ((roomSnapshot?['latest_photos'] as List?)
-                      ?.whereType<String>()
-                      .where((url) => url.isNotEmpty)
-                      .take(3)
-                      .toList() ??
-                  const <String>[])
-              .toList(growable: false);
-      final snapshotCaptions =
-          ((roomSnapshot?['latest_photo_captions'] as List?)
-                      ?.map((entry) => entry as String?)
-                      .take(3)
-                      .toList() ??
-                  const <String?>[])
-              .toList(growable: false);
-      if (snapshotCaptions.isEmpty) {
-        _latestFeedCaptions = _latestFeedImageUrls.isEmpty
-            ? <String?>[]
-            : <String?>[
-                roomSnapshot?['latest_caption'] as String?,
-                ...List<String?>.filled(_latestFeedImageUrls.length - 1, null),
-              ];
-      } else {
-        _latestFeedCaptions = List<String?>.generate(
-          _latestFeedImageUrls.length,
-          (index) =>
-              index < snapshotCaptions.length ? snapshotCaptions[index] : null,
-        );
-      }
-      final snapshotSenderIds =
-          ((roomSnapshot?['latest_photo_sender_ids'] as List?)
-                      ?.map((entry) => entry as String?)
-                      .take(3)
-                      .toList() ??
-                  const <String?>[])
-              .toList(growable: false);
-      final latestSenderId = roomSnapshot?['latest_sender_id'] as String?;
-      if (snapshotSenderIds.isEmpty) {
-        _latestFeedSenderIds = _latestFeedImageUrls.isEmpty
-            ? <String?>[]
-            : <String?>[
-                latestSenderId,
-                ...List<String?>.filled(_latestFeedImageUrls.length - 1, null),
-              ];
-      } else {
-        _latestFeedSenderIds = List<String?>.generate(
-          _latestFeedImageUrls.length,
-          (index) => index < snapshotSenderIds.length
-              ? snapshotSenderIds[index]
-              : null,
-        );
-      }
-      final snapshotSentAtValues =
-          ((roomSnapshot?['latest_photo_created_ats'] as List?)
-                      ?.take(3)
-                      .toList() ??
-                  const <dynamic>[])
-              .toList(growable: false);
-      _latestFeedSentAts = List<DateTime?>.generate(
-        _latestFeedImageUrls.length,
-        (index) {
-          if (index >= snapshotSentAtValues.length) {
-            return null;
-          }
-          final raw = snapshotSentAtValues[index];
-          if (raw is DateTime) {
-            return raw;
-          }
-          if (raw is String) {
-            return DateTime.tryParse(raw);
-          }
-          return null;
-        },
+      _applyLatestFeedData(
+        PetHomeGalleryFeedData.fromRoomSnapshot(roomSnapshot),
       );
-      _latestFeedSenderId = roomSnapshot?['latest_sender_id'] as String?;
-      _latestFeedCaption = roomSnapshot?['latest_caption'] as String?;
     });
     _overfedBubbleTimer?.cancel();
     _furnitureWiggleController.stop();
@@ -849,7 +775,7 @@ extension _HomeRoomManager on _HomeViewState {
         .eq('type', 'image_feed')
         .not('image_url', 'is', null)
         .order('created_at', ascending: false)
-        .limit(roomIds.length * 12);
+        .limit(roomIds.length * kPetHomeGalleryMaxPhotos * 3);
 
     final feeds = <String, _RoomLatestFeed>{};
     for (final row in rows) {
@@ -872,7 +798,7 @@ extension _HomeRoomManager on _HomeViewState {
         );
         continue;
       }
-      if (existing.imageUrls.length >= 3 ||
+      if (existing.imageUrls.length >= kPetHomeGalleryMaxPhotos ||
           existing.imageUrls.contains(imageUrl)) {
         continue;
       }

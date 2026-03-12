@@ -7,6 +7,8 @@ import 'package:pet/shared/ui/cached_network_image_view.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
 
+import '../home_gallery_feed_utils.dart';
+
 class HomeLatestPhotoCard extends StatelessWidget {
   const HomeLatestPhotoCard({super.key, required this.imageUrls});
 
@@ -15,7 +17,7 @@ class HomeLatestPhotoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final urls = imageUrls.where((url) => url.isNotEmpty).take(3).toList();
+    final urls = compactSummaryPhotoUrls(imageUrls);
     return AspectRatio(
       aspectRatio: 4 / 3,
       child: urls.isEmpty

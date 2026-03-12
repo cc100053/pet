@@ -53,6 +53,7 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../store/models/store_item.dart';
 import '../store/store_view.dart';
+import 'home_gallery_feed_utils.dart';
 import 'providers/home_currency_provider.dart';
 import 'providers/home_pet_state_provider.dart';
 import 'providers/home_unread_counts_provider.dart';
@@ -268,8 +269,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   List<DateTime?>? _latestFeedOptimisticPrevSentAts;
   String? _latestFeedOptimisticPrevSenderId;
   String? _latestFeedOptimisticPrevCaption;
-  final Map<String, String> _optimisticFeedImageByTempId = {};
-  final Map<String, String> _optimisticFeedRoomByTempId = {};
+  int _latestFeedJumpToLatestEventId = 0;
+  final Map<String, PendingPetHomeOptimisticFeed>
+  _pendingOptimisticFeedsByTempId = {};
   String? _photoFoodImageSource;
   Offset? _photoFoodNormalizedPosition;
   bool _photoFoodDropping = false;
@@ -4162,6 +4164,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   captions: _latestFeedCaptions,
                   sentAts: _latestFeedSentAts,
                   isRefreshing: _latestFeedRefreshInFlight,
+                  jumpToLatestEventId: _latestFeedJumpToLatestEventId,
                   senderAvatars: List<String?>.generate(
                     _latestFeedImageUrls.length,
                     (index) {

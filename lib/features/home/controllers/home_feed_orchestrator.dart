@@ -1,6 +1,86 @@
 part of '../home_view.dart';
 
 extension _HomeFeedOrchestrator on _HomeViewState {
+  PetHomeGalleryFeedData _currentLatestFeedData() => PetHomeGalleryFeedData(
+    imageUrls: List<String>.from(_latestFeedImageUrls),
+    captions: List<String?>.from(_latestFeedCaptions),
+    senderIds: List<String?>.from(_latestFeedSenderIds),
+    sentAts: List<DateTime?>.from(_latestFeedSentAts),
+  );
+
+  void _applyLatestFeedData(PetHomeGalleryFeedData data) {
+    _latestFeedImageUrl = data.latestImageUrl;
+    _latestFeedImageUrls = data.imageUrls;
+    _latestFeedCaptions = data.captions;
+    _latestFeedSenderIds = data.senderIds;
+    _latestFeedSentAts = data.sentAts;
+    _latestFeedSenderId = data.latestSenderId;
+    _latestFeedCaption = data.latestCaption;
+  }
+
+  void _updateRoomLatestFeedSnapshot(
+    String roomId,
+    PetHomeGalleryFeedData data,
+  ) {
+    _myRooms = _myRooms
+        .map(
+          (room) =>
+              room['id'] == roomId ? data.applyToRoomSnapshot(room) : room,
+        )
+        .toList(growable: false);
+  }
+
+  PetHomeGalleryFeedData _latestFeedDataFromRows(List<dynamic> rows) {
+    var data = const PetHomeGalleryFeedData.empty();
+    for (final row in rows.reversed) {
+      final imageUrl = row['image_url'] as String?;
+      if (imageUrl == null || imageUrl.isEmpty) {
+        continue;
+      }
+      data = data.prependEntry(
+        imageUrl: imageUrl,
+        caption: row['caption'] as String?,
+        senderId: row['sender_id'] as String?,
+        sentAt: _parseOptionalDate(row['created_at']),
+      );
+    }
+    return data;
+  }
+
+  void _prunePendingOptimisticFeeds() {
+    final expired = _pendingOptimisticFeedsByTempId.entries
+        .where((entry) => entry.value.isExpired)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    for (final tempId in expired) {
+      _pendingOptimisticFeedsByTempId.remove(tempId);
+    }
+  }
+
+  PendingPetHomeOptimisticFeed? _pendingOptimisticFeedForInsert({
+    required String roomId,
+    required String? senderId,
+    required String? caption,
+    required String? messageId,
+    required DateTime? clientCreatedAt,
+    required DateTime? createdAt,
+  }) {
+    _prunePendingOptimisticFeeds();
+    for (final pending in _pendingOptimisticFeedsByTempId.values) {
+      if (pending.matchesRealtimeInsert(
+        roomId: roomId,
+        senderId: senderId,
+        caption: caption,
+        messageId: messageId,
+        clientCreatedAt: clientCreatedAt,
+        createdAt: createdAt,
+      )) {
+        return pending;
+      }
+    }
+    return null;
+  }
+
   Future<void> _refreshLatestRoomPhoto(String roomId) async {
     try {
       final rows = await Supabase.instance.client
@@ -10,67 +90,19 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
           .order('created_at', ascending: false)
-          .limit(3);
+          .limit(kPetHomeGalleryMaxPhotos);
 
-      if (rows.isEmpty) {
+      final latest = _latestFeedDataFromRows(rows);
+      if (latest.imageUrls.isEmpty) {
         return;
       }
-      final latest = rows
-          .map(
-            (row) => (
-              row['image_url'] as String?,
-              row['caption'] as String?,
-              row['sender_id'] as String?,
-              _parseOptionalDate(row['created_at']),
-            ),
-          )
-          .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
-          .take(3)
-          .toList(growable: false);
-      if (latest.isEmpty) {
-        return;
-      }
-      final latestUrls = latest
-          .map((entry) => entry.$1!)
-          .toList(growable: false);
-      final latestCaptions = latest
-          .map((entry) => entry.$2)
-          .toList(growable: false);
-      final latestSenderIds = latest
-          .map((entry) => entry.$3)
-          .toList(growable: false);
-      final latestSentAts = latest
-          .map((entry) => entry.$4)
-          .toList(growable: false);
       if (!mounted) {
         return;
       }
-      final firstRow = rows.firstWhere(
-        (row) => (row['image_url'] as String?)?.isNotEmpty ?? false,
-      );
-      final senderId = firstRow['sender_id'] as String?;
-      final caption = firstRow['caption'] as String?;
       _setStateForFeedOrchestrator(() {
-        _myRooms = _myRooms
-            .map(
-              (room) => room['id'] == roomId
-                  ? {
-                      ...room,
-                      'latest_photo': latestUrls.first,
-                      'latest_photos': latestUrls,
-                      'latest_photo_captions': latestCaptions,
-                      'latest_photo_sender_ids': latestSenderIds,
-                      'latest_photo_created_ats': latestSentAts
-                          .map((entry) => entry?.toUtc().toIso8601String())
-                          .toList(growable: false),
-                      'latest_caption': caption,
-                      'latest_sender_id': senderId,
-                    }
-                  : room,
-            )
-            .toList();
+        _updateRoomLatestFeedSnapshot(roomId, latest);
       });
-      for (final latestSenderId in latestSenderIds) {
+      for (final latestSenderId in latest.senderIds) {
         if (latestSenderId != null && latestSenderId.isNotEmpty) {
           unawaited(_ensureProfileSummary(latestSenderId));
         }
@@ -131,11 +163,19 @@ extension _HomeFeedOrchestrator on _HomeViewState {
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
     _armOverfedBubbleForFeedEvent();
+    _prunePendingOptimisticFeeds();
     _setStateForFeedOrchestrator(() {
       _feedRewardPendingCount += 1;
     });
-    _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
-    _optimisticFeedRoomByTempId[entry.tempId] = entry.roomId;
+    _pendingOptimisticFeedsByTempId[entry.tempId] =
+        PendingPetHomeOptimisticFeed(
+          tempId: entry.tempId,
+          roomId: entry.roomId,
+          senderId: entry.senderId,
+          localImagePath: entry.localImagePath,
+          caption: entry.caption,
+          clientCreatedAt: entry.clientCreatedAt,
+        );
     final roomId = _roomId;
     if (roomId == null || entry.roomId != roomId) {
       return;
@@ -162,23 +202,13 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       );
       _latestFeedOptimisticPrevSenderId = _latestFeedSenderId;
       _latestFeedOptimisticPrevCaption = _latestFeedCaption;
-      final latestFeed = _prependLatestFeedItem(
+      final latestFeed = _currentLatestFeedData().prependEntry(
         imageUrl: entry.localImagePath,
         caption: entry.caption,
         senderId: entry.senderId,
         sentAt: entry.clientCreatedAt,
-        existingUrls: _latestFeedImageUrls,
-        existingCaptions: _latestFeedCaptions,
-        existingSenderIds: _latestFeedSenderIds,
-        existingSentAts: _latestFeedSentAts,
       );
-      _latestFeedImageUrl = entry.localImagePath;
-      _latestFeedImageUrls = latestFeed.imageUrls;
-      _latestFeedCaptions = latestFeed.captions;
-      _latestFeedSenderIds = latestFeed.senderIds;
-      _latestFeedSentAts = latestFeed.sentAts;
-      _latestFeedSenderId = entry.senderId;
-      _latestFeedCaption = entry.caption;
+      _applyLatestFeedData(latestFeed);
     });
     unawaited(_ensureProfileSummary(entry.senderId));
     unawaited(_playFeedSequence(entry.localImagePath));
@@ -188,8 +218,51 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     _setStateForFeedOrchestrator(() {
       _feedRewardPendingCount = max(0, _feedRewardPendingCount - 1);
     });
-    _optimisticFeedImageByTempId.remove(result.tempId);
-    final optimisticRoomId = _optimisticFeedRoomByTempId.remove(result.tempId);
+    _prunePendingOptimisticFeeds();
+    final pending = _pendingOptimisticFeedsByTempId[result.tempId];
+    final optimisticRoomId = pending?.roomId;
+    final canonicalImageUrl = result.imageUrl?.trim();
+    if (pending != null &&
+        canonicalImageUrl != null &&
+        canonicalImageUrl.isNotEmpty) {
+      final acknowledged = pending.withServerAck(
+        messageId: result.messageId,
+        remoteImageUrl: canonicalImageUrl,
+      );
+      _pendingOptimisticFeedsByTempId[result.tempId] = acknowledged;
+      _setStateForFeedOrchestrator(() {
+        final currentRoomId = pending.roomId;
+        final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+          (room) => room?['id'] == currentRoomId,
+          orElse: () => null,
+        );
+        final nextRoomData =
+            PetHomeGalleryFeedData.fromRoomSnapshot(roomSnapshot).replaceImage(
+              fromImageUrl: pending.localImagePath,
+              toImageUrl: canonicalImageUrl,
+              caption: pending.caption,
+              senderId: pending.senderId,
+              sentAt: pending.clientCreatedAt,
+              prependIfMissing: true,
+            );
+        _updateRoomLatestFeedSnapshot(currentRoomId, nextRoomData);
+        if (_roomId == currentRoomId) {
+          final nextActiveData = _currentLatestFeedData().replaceImage(
+            fromImageUrl: pending.localImagePath,
+            toImageUrl: canonicalImageUrl,
+            caption: pending.caption,
+            senderId: pending.senderId,
+            sentAt: pending.clientCreatedAt,
+            prependIfMissing: true,
+          );
+          _applyLatestFeedData(nextActiveData);
+          _latestFeedJumpToLatestEventId++;
+        }
+      });
+      if (acknowledged.reconciledWithRealtime) {
+        _pendingOptimisticFeedsByTempId.remove(result.tempId);
+      }
+    }
 
     if (_latestFeedOptimisticTempId == result.tempId) {
       _latestFeedOptimisticTempId = null;
@@ -214,14 +287,15 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     unawaited(
       _loadCoinsInternal(expectedReward: result.coinsAwarded > 0 ? null : 0),
     );
-    if (roomId != null) {
-      unawaited(_refreshLatestRoomPhoto(roomId));
-      unawaited(_refreshLatestFeed(roomId));
+    final refreshRoomId = optimisticRoomId ?? roomId;
+    if (refreshRoomId != null) {
+      unawaited(_refreshLatestRoomPhoto(refreshRoomId));
+      unawaited(_refreshLatestFeed(refreshRoomId));
       unawaited(_refreshPetState());
       unawaited(() async {
-        final petId = _petId ?? await _loadPetId(roomId);
+        final petId = _petId ?? await _loadPetId(refreshRoomId);
         if (petId != null) {
-          await _loadPetInfo(petId, roomId: roomId);
+          await _loadPetInfo(petId, roomId: refreshRoomId);
         }
       }());
     }
@@ -422,8 +496,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     _setStateForFeedOrchestrator(() {
       _feedRewardPendingCount = max(0, _feedRewardPendingCount - 1);
     });
-    _optimisticFeedImageByTempId.remove(tempId);
-    _optimisticFeedRoomByTempId.remove(tempId);
+    _pendingOptimisticFeedsByTempId.remove(tempId);
     if (_latestFeedOptimisticTempId == tempId) {
       final shouldRestore =
           _roomId != null && _roomId == _latestFeedOptimisticRoomId;
@@ -492,87 +565,26 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
           .order('created_at', ascending: false)
-          .limit(3);
+          .limit(kPetHomeGalleryMaxPhotos);
 
-      final entries = rows
-          .map(
-            (row) => (
-              row['image_url'] as String?,
-              row['caption'] as String?,
-              row['sender_id'] as String?,
-              _parseOptionalDate(row['created_at']),
-            ),
-          )
-          .where((entry) => entry.$1 != null && entry.$1!.isNotEmpty)
-          .take(3)
-          .toList(growable: false);
-      final imageUrls = entries
-          .map((entry) => entry.$1!)
-          .toList(growable: false);
-      final captions = entries.map((entry) => entry.$2).toList(growable: false);
-      final senderIds = entries
-          .map((entry) => entry.$3)
-          .toList(growable: false);
-      final sentAts = entries.map((entry) => entry.$4).toList(growable: false);
-      final imageUrl = imageUrls.isEmpty ? null : imageUrls.first;
-      final senderId = senderIds.isEmpty ? null : senderIds.first;
-      final caption = captions.isEmpty ? null : captions.first;
+      final data = _latestFeedDataFromRows(rows);
 
       void applyRoomSnapshotUpdate() {
-        _myRooms = _myRooms
-            .map((room) {
-              if (room['id'] != roomId) {
-                return room;
-              }
-              final updated = Map<String, dynamic>.from(room);
-              if (imageUrls.isEmpty) {
-                updated.remove('latest_photo');
-                updated.remove('latest_photos');
-                updated.remove('latest_photo_captions');
-                updated.remove('latest_photo_sender_ids');
-                updated.remove('latest_photo_created_ats');
-                updated.remove('latest_caption');
-                updated.remove('latest_sender_id');
-              } else {
-                updated['latest_photo'] = imageUrl;
-                updated['latest_photos'] = imageUrls;
-                updated['latest_photo_captions'] = captions;
-                updated['latest_photo_sender_ids'] = senderIds;
-                updated['latest_photo_created_ats'] = sentAts
-                    .map((entry) => entry?.toUtc().toIso8601String())
-                    .toList(growable: false);
-                updated['latest_caption'] = caption;
-                updated['latest_sender_id'] = senderId;
-              }
-              return updated;
-            })
-            .toList(growable: false);
+        _updateRoomLatestFeedSnapshot(roomId, data);
       }
 
-      if (entries.isEmpty) {
+      if (data.imageUrls.isEmpty) {
         if (mounted) {
           _setStateForFeedOrchestrator(() {
             applyRoomSnapshotUpdate();
             if (roomId != _roomId) {
               return;
             }
-            _latestFeedImageUrl = null;
-            _latestFeedImageUrls = <String>[];
-            _latestFeedCaptions = <String?>[];
-            _latestFeedSenderIds = <String?>[];
-            _latestFeedSentAts = <DateTime?>[];
-            _latestFeedSenderId = null;
-            _latestFeedCaption = null;
+            _applyLatestFeedData(const PetHomeGalleryFeedData.empty());
           });
         } else {
           applyRoomSnapshotUpdate();
-          _latestFeedImageUrl = null;
-          _latestFeedImageUrls = <String>[];
-          _latestFeedCaptions = <String?>[];
-          _latestFeedSenderIds = <String?>[];
-          _latestFeedSentAts = <DateTime?>[];
-          _latestFeedSenderId = null;
-          _latestFeedCaption = null;
+          _applyLatestFeedData(const PetHomeGalleryFeedData.empty());
         }
         unawaited(_cacheHomeBootstrapSnapshot());
         return;
@@ -583,26 +595,14 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           if (roomId != _roomId) {
             return;
           }
-          _latestFeedImageUrl = imageUrl;
-          _latestFeedImageUrls = imageUrls;
-          _latestFeedCaptions = captions;
-          _latestFeedSenderIds = senderIds;
-          _latestFeedSentAts = sentAts;
-          _latestFeedSenderId = senderId;
-          _latestFeedCaption = caption;
+          _applyLatestFeedData(data);
         });
       } else {
         applyRoomSnapshotUpdate();
-        _latestFeedImageUrl = imageUrl;
-        _latestFeedImageUrls = imageUrls;
-        _latestFeedCaptions = captions;
-        _latestFeedSenderIds = senderIds;
-        _latestFeedSentAts = sentAts;
-        _latestFeedSenderId = senderId;
-        _latestFeedCaption = caption;
+        _applyLatestFeedData(data);
       }
       unawaited(_cacheHomeBootstrapSnapshot());
-      for (final latestSenderId in senderIds) {
+      for (final latestSenderId in data.senderIds) {
         if (latestSenderId != null && latestSenderId.isNotEmpty) {
           await _ensureProfileSummary(latestSenderId);
         }
@@ -623,59 +623,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         }
       }
     }
-  }
-
-  ({
-    List<String> imageUrls,
-    List<String?> captions,
-    List<String?> senderIds,
-    List<DateTime?> sentAts,
-  })
-  _prependLatestFeedItem({
-    required String imageUrl,
-    required String? caption,
-    required String? senderId,
-    required DateTime? sentAt,
-    required List<String> existingUrls,
-    required List<String?> existingCaptions,
-    required List<String?> existingSenderIds,
-    required List<DateTime?> existingSentAts,
-  }) {
-    if (imageUrl.isEmpty) {
-      return (
-        imageUrls: existingUrls,
-        captions: existingCaptions,
-        senderIds: existingSenderIds,
-        sentAts: existingSentAts,
-      );
-    }
-    final nextUrls = <String>[imageUrl];
-    final nextCaptions = <String?>[caption];
-    final nextSenderIds = <String?>[senderId];
-    final nextSentAts = <DateTime?>[sentAt];
-    for (var i = 0; i < existingUrls.length; i++) {
-      final url = existingUrls[i];
-      if (url.isEmpty || url == imageUrl) {
-        continue;
-      }
-      nextUrls.add(url);
-      nextCaptions.add(
-        i < existingCaptions.length ? existingCaptions[i] : null,
-      );
-      nextSenderIds.add(
-        i < existingSenderIds.length ? existingSenderIds[i] : null,
-      );
-      nextSentAts.add(i < existingSentAts.length ? existingSentAts[i] : null);
-      if (nextUrls.length >= 3) {
-        break;
-      }
-    }
-    return (
-      imageUrls: nextUrls,
-      captions: nextCaptions,
-      senderIds: nextSenderIds,
-      sentAts: nextSentAts,
-    );
   }
 
   void _handleOverfedState() {

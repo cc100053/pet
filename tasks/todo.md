@@ -1,5 +1,29 @@
 # TODO
 
+## Plan (2026-03-12 Pet Home Gallery 10 Photos + Feed Ordering Fix)
+- [x] Introduce a shared Pet Home gallery photo-limit utility, update Home feed/gallery state paths from 3 to 10, and keep compact summary surfaces capped at 3.
+- [x] Rework optimistic self-feed reconciliation so local-path optimistic entries are replaced by canonical remote feed records without transient duplicates or wrong ordering.
+- [x] Add widget/unit regression coverage for the 10-photo gallery behavior, minimum placeholder floor, own-feed jump-to-latest behavior, and optimistic reconciliation/truncation rules.
+- [x] Update `memory-bank/architecture.md`, `memory-bank/progress.md`, and this file with the shipped behavior, then run `flutter analyze` and `flutter test`.
+
+## Review (2026-03-12 Pet Home Gallery 10 Photos + Feed Ordering Fix)
+- [x] Implemented and verified.
+- Root change:
+  - Added `lib/features/home/home_gallery_feed_utils.dart` as the shared source of truth for Pet Home gallery limits, snapshot hydration, optimistic pending-feed matching, canonical image replacement, and compact 3-photo summary previews.
+  - Updated Pet Home gallery fetch/hydration paths in `HomeView` controllers to keep up to 10 recent feed photos in active-room state and room snapshots, while leaving compact summary cards capped at 3 via `compactSummaryPhotoUrls(...)`.
+  - `PetPhotoGallery` now accepts a `jumpToLatestEventId`, keeps the 3-slot minimum placeholder floor, and auto-scrolls back to page 0 only after the current user successfully completes a feed upload.
+  - Realtime image-feed inserts now reconcile against pending optimistic self-feeds by room/sender/caption/client-created-at/message-id, so the uploaded remote photo replaces the optimistic local-path card instead of briefly appearing as a second item.
+- Tests:
+  - Added `test/features/home/home_gallery_feed_utils_test.dart` for 10-item truncation, optimistic reconciliation, room-snapshot retention, and compact 3-photo summary behavior.
+  - Added `test/features/home/widgets/pet_photo_gallery_test.dart` for the 10-slot gallery cap, 3-slot minimum floor, and jump-to-latest trigger.
+- Verification:
+  - `flutter test test/features/home/home_gallery_feed_utils_test.dart test/features/home/widgets/pet_photo_gallery_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - Targeted new tests passed.
+  - `flutter analyze` passed.
+  - `flutter test` passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 ## Plan (2026-03-11 Global Keyboard Collapse Rollout)
 - [x] Audit every in-repo keyboard input surface and map which ones already have chat-style dismiss behavior versus missing tap/drag collapse.
 - [x] Add a shared keyboard-dismiss helper so non-chat input fields can consistently collapse on outside taps, and wire drag-to-dismiss into scrollable input screens.

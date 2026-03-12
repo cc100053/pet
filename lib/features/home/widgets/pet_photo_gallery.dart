@@ -8,6 +8,7 @@ import 'package:pet/shared/ui/photo_viewer_item.dart';
 import 'package:pet/shared/ui/user_avatar.dart';
 
 import '../../../shared/theme/app_theme.dart';
+import '../home_gallery_feed_utils.dart';
 import 'home_responsive.dart';
 
 class PetPhotoGallery extends StatefulWidget {
@@ -17,6 +18,7 @@ class PetPhotoGallery extends StatefulWidget {
     required this.captions,
     required this.sentAts,
     this.isRefreshing = false,
+    this.jumpToLatestEventId = 0,
     required this.senderAvatars,
     required this.senderFallbackTexts,
     required this.onPlaceholderTap,
@@ -26,6 +28,7 @@ class PetPhotoGallery extends StatefulWidget {
   final List<String?> captions;
   final List<DateTime?> sentAts;
   final bool isRefreshing;
+  final int jumpToLatestEventId;
   final List<String?> senderAvatars;
   final List<String?> senderFallbackTexts;
   final VoidCallback onPlaceholderTap;
@@ -41,9 +44,9 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
 
   List<String> get _urls => widget.imageUrls
       .where((url) => url.isNotEmpty)
-      .take(3)
+      .take(kPetHomeGalleryMaxPhotos)
       .toList(growable: false);
-  int get _slotCount => math.max(3, _urls.length);
+  int get _slotCount => math.max(kPetHomeGalleryMinSlots, _urls.length);
 
   @override
   void initState() {
@@ -56,6 +59,17 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
   void didUpdateWidget(covariant PetPhotoGallery oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_pageController.hasClients) {
+      return;
+    }
+    if (oldWidget.jumpToLatestEventId != widget.jumpToLatestEventId &&
+        widget.jumpToLatestEventId > 0 &&
+        _urls.isNotEmpty) {
+      _pageController.animateToPage(
+        0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+      _page = 0;
       return;
     }
     final current = (_pageController.page ?? _page).round();
@@ -96,6 +110,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
             ? widget.senderFallbackTexts[i]
             : null,
         sentAt: i < widget.sentAts.length ? widget.sentAts[i] : null,
+        localImagePath: urls[i].startsWith('http') ? null : urls[i],
       ),
     );
     final resultIndex = await FullScreenPhotoViewer.open(
@@ -145,6 +160,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
           child: Stack(
             children: [
               PageView.builder(
+                key: const ValueKey('pet-photo-gallery-page-view'),
                 controller: _pageController,
                 padEnds: true,
                 itemCount: _slotCount,
@@ -163,6 +179,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
                       ? widget.senderFallbackTexts[index]
                       : null;
                   return AnimatedContainer(
+                    key: ValueKey('pet-photo-gallery-item-$index'),
                     duration: const Duration(milliseconds: 140),
                     curve: Curves.easeOutCubic,
                     margin: EdgeInsets.symmetric(

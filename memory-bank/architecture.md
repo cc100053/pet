@@ -101,7 +101,8 @@ Implemented:
 - `lib/shared/ui/keyboard_dismiss_utils.dart`: Shared keyboard-collapse helpers for non-chat inputs (`onTapOutside` unfocus + scroll-surface drag dismiss constant) so text-entry UX now matches chat expectations across dialogs and form screens.
 - `lib/features/chat/widgets/deterministic_chat_list.dart`: Shared deterministic chat timeline wrapper used by `ChatRoomViewV2`; it preserves manual keyboard-dismiss behavior, forwards per-message long-press actions, and exposes the jump-to-latest visibility threshold used by the restored floating button.
 - `lib/features/chat/chat_room_view_v2.dart`: Active chat route now treats post-await controller mutations as route-lifecycle-sensitive work; load/refresh/send/feed callback paths bail once the route is unmounted, and optimistic local feed cards decode file images at card-sized cache dimensions to reduce large-photo memory spikes.
-- Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 3) and stores them as `latest_photos` alongside `latest_photo`.
+- Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 10) and stores them as `latest_photos` alongside `latest_photo`; compact summary cards still locally cap their preview at 3.
+- Home feed gallery state now uses shared helpers in `lib/features/home/home_gallery_feed_utils.dart` to normalize snapshot hydration, prepend/truncate to 10, and reconcile optimistic local feed images with canonical realtime/uploaded records.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
 - Home HUD coin reward animation: `lib/features/home/home_view.dart` emits a monotonic `coinRewardEventId` so repeated rewards retrigger the animation reliably; coin loads are coalesced to avoid racey deltas.
 
