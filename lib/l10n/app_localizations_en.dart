@@ -244,6 +244,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose a pet to move into your new room!';
 
   @override
+  String get onboardingRoomEntryPromptTitle =>
+      'Create a room or enter an invite code.';
+
+  @override
+  String get onboardingRoomEntryPromptBody =>
+      'Start your pet home by creating a new room, or join one with a code.';
+
+  @override
   String get onboardingProfileSetupTitle => 'Set up your profile';
 
   @override

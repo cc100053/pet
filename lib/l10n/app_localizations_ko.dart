@@ -243,6 +243,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onboardingCreatePetPromptTitle => '새 방에 함께할 펫을 선택해 주세요!';
 
   @override
+  String get onboardingRoomEntryPromptTitle => '새 방을 만들거나 초대 코드를 입력해 참여해 주세요.';
+
+  @override
+  String get onboardingRoomEntryPromptBody =>
+      '직접 펫 홈을 만들거나, 코드를 입력해 친구의 방에 들어갈 수 있어요.';
+
+  @override
   String get onboardingProfileSetupTitle => '프로필을 먼저 설정해 주세요';
 
   @override

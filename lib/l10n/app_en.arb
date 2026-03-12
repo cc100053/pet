@@ -162,6 +162,8 @@
   "commonClose": "Close",
   "commonSkip": "Skip",
   "onboardingCreatePetPromptTitle": "Choose a pet to move into your new room!",
+  "onboardingRoomEntryPromptTitle": "Create a room or enter an invite code.",
+  "onboardingRoomEntryPromptBody": "Start your pet home by creating a new room, or join one with a code.",
   "onboardingProfileSetupTitle": "Set up your profile",
   "onboardingProfileSetupSubtitle": "Choose the name your friends will see. You can add a photo now or later.",
   "onboardingProfileSetupAvatarOptional": "Photo optional",

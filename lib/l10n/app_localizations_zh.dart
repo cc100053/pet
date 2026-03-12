@@ -237,6 +237,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingCreatePetPromptTitle => '選擇寵物入住你的新房間！';
 
   @override
+  String get onboardingRoomEntryPromptTitle => '创建新房间，或输入邀请码加入。';
+
+  @override
+  String get onboardingRoomEntryPromptBody => '你可以自己建立宠物房间，或者用邀请码加入朋友的房间。';
+
+  @override
   String get onboardingProfileSetupTitle => '先設定你的個人資料';
 
   @override
@@ -1563,6 +1569,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get onboardingCreatePetPromptTitle => '選擇寵物入住你的新房間！';
+
+  @override
+  String get onboardingRoomEntryPromptTitle => '建立新房間，或輸入邀請碼加入。';
+
+  @override
+  String get onboardingRoomEntryPromptBody => '你可以建立新的寵物房間，或使用邀請碼加入朋友的房間。';
 
   @override
   String get onboardingProfileSetupTitle => '先設定你的個人資料';

@@ -54,7 +54,7 @@ Implemented:
 - `lib/app/`: App bootstrap and theme.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
-  - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1 coach card, spotlight focus resolution (create CTA), skip/persistence, debug force-show override, and legacy `open_room` state migration to `invite_friend`.
+  - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1 coach card, dual spotlight focus resolution for the existing create-room CTA and header invite-code action, skip/persistence, debug force-show override, and legacy `open_room` state migration to `invite_friend`.
   - `lib/features/home/providers/home_unread_counts_provider.dart`: Riverpod unread-count state for Home/Room Selection badges and app-icon badge sync.
   - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).

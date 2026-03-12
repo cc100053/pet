@@ -162,6 +162,8 @@
   "commonClose": "閉じる",
   "commonSkip": "スキップ",
   "onboardingCreatePetPromptTitle": "新しいお部屋に迎えるペットを選ぼう！",
+  "onboardingRoomEntryPromptTitle": "新しいルームを作成するか、招待コードで参加しよう。",
+  "onboardingRoomEntryPromptBody": "自分でルームを作るか、コードを入力して友だちのルームに参加できます。",
   "onboardingProfileSetupTitle": "プロフィールを設定しよう",
   "onboardingProfileSetupSubtitle": "お友だちに表示される名前を決めましょう。写真は今でも後でも追加できます。",
   "onboardingProfileSetupAvatarOptional": "写真はあとでも追加できます",

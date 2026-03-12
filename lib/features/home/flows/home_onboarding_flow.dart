@@ -699,8 +699,9 @@ extension _HomeOnboardingFlow on _HomeViewState {
     final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final bottomOffset = (92 * scale) + bottomInset;
-    final title = l10n.onboardingCreatePetPromptTitle;
-    const icon = Icons.pets_rounded;
+    final title = l10n.onboardingRoomEntryPromptTitle;
+    final body = l10n.onboardingRoomEntryPromptBody;
+    const icon = Icons.meeting_room_rounded;
     final cardRadius = BorderRadius.circular(24);
     final horizontalPadding = 18 * scale;
     final verticalPadding = 16 * scale;
@@ -791,13 +792,28 @@ extension _HomeOnboardingFlow on _HomeViewState {
                         ),
                         SizedBox(width: 12 * scale),
                         Expanded(
-                          child: Text(
-                            title,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: AppTheme.textPrimary,
-                              fontWeight: FontWeight.w900,
-                              height: 1.1,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                title,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.1,
+                                ),
+                              ),
+                              SizedBox(height: 4 * scale),
+                              Text(
+                                body,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppTheme.textSecondary,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         SizedBox(width: 10 * scale),
@@ -868,13 +884,15 @@ extension _HomeOnboardingFlow on _HomeViewState {
       child: IgnorePointer(
         child: Builder(
           builder: (overlayContext) {
-            final targetRect = _resolveOnboardingFocusRect(overlayContext);
-            if (targetRect == null) {
+            final targetRects = _resolveOnboardingFocusRects(overlayContext);
+            if (targetRects.isEmpty) {
               return const SizedBox.shrink();
             }
             return CustomPaint(
               painter: _OnboardingFocusPainter(
-                targetRect: targetRect.inflate(6),
+                targetRects: targetRects
+                    .map((rect) => rect.inflate(6))
+                    .toList(growable: false),
                 cornerRadius: 28,
               ),
             );
@@ -884,69 +902,65 @@ extension _HomeOnboardingFlow on _HomeViewState {
     );
   }
 
-  Rect? _resolveOnboardingFocusRect(BuildContext overlayContext) {
+  List<Rect> _resolveOnboardingFocusRects(BuildContext overlayContext) {
     if (_isCreatePetOnboardingStepActive) {
-      return _createPetCtaRectInOverlay(overlayContext);
+      return resolveOnboardingFocusTargetRects(
+        overlayContext: overlayContext,
+        targetKeys: <GlobalKey>[
+          _onboardingCreateRoomCtaKey,
+          _onboardingJoinRoomCtaKey,
+        ],
+      );
     }
-    return null;
-  }
-
-  Rect? _createPetCtaRectInOverlay(BuildContext overlayContext) {
-    final targetContext = _onboardingCreateRoomCtaKey.currentContext;
-    if (targetContext == null) {
-      return null;
-    }
-    final targetBox = targetContext.findRenderObject() as RenderBox?;
-    final overlayBox = overlayContext.findRenderObject() as RenderBox?;
-    if (targetBox == null ||
-        overlayBox == null ||
-        !targetBox.hasSize ||
-        !overlayBox.hasSize) {
-      return null;
-    }
-    final topLeftGlobal = targetBox.localToGlobal(Offset.zero);
-    final topLeftLocal = overlayBox.globalToLocal(topLeftGlobal);
-    return topLeftLocal & targetBox.size;
+    return const <Rect>[];
   }
 }
 
 class _OnboardingFocusPainter extends CustomPainter {
   const _OnboardingFocusPainter({
-    required this.targetRect,
+    required this.targetRects,
     required this.cornerRadius,
   });
 
-  final Rect targetRect;
+  final List<Rect> targetRects;
   final double cornerRadius;
 
   @override
   void paint(Canvas canvas, Size size) {
     final fullRect = Offset.zero & size;
-    final focusRRect = RRect.fromRectAndRadius(
-      targetRect,
-      Radius.circular(cornerRadius),
-    );
 
     canvas.saveLayer(fullRect, Paint());
     canvas.drawRect(
       fullRect,
       Paint()..color = Colors.black.withValues(alpha: 0.34),
     );
-    canvas.drawRRect(focusRRect, Paint()..blendMode = BlendMode.clear);
+    for (final targetRect in targetRects) {
+      final focusRRect = RRect.fromRectAndRadius(
+        targetRect,
+        Radius.circular(cornerRadius),
+      );
+      canvas.drawRRect(focusRRect, Paint()..blendMode = BlendMode.clear);
+    }
     canvas.restore();
 
-    canvas.drawRRect(
-      focusRRect.inflate(2),
-      Paint()
-        ..color = AppTheme.secondaryColor.withValues(alpha: 0.95)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2,
-    );
+    for (final targetRect in targetRects) {
+      final focusRRect = RRect.fromRectAndRadius(
+        targetRect,
+        Radius.circular(cornerRadius),
+      );
+      canvas.drawRRect(
+        focusRRect.inflate(2),
+        Paint()
+          ..color = AppTheme.secondaryColor.withValues(alpha: 0.95)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.2,
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _OnboardingFocusPainter oldDelegate) {
-    return oldDelegate.targetRect != targetRect ||
+    return !listEquals(oldDelegate.targetRects, targetRects) ||
         oldDelegate.cornerRadius != cornerRadius;
   }
 }

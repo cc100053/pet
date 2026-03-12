@@ -381,7 +381,7 @@ class _GalleryPolaroidFrame extends StatelessWidget {
                           );
                           final effectiveTopInset = math.min(
                             tokens.captionTopInset,
-                            safeCaptionHeight * 0.35,
+                            safeCaptionHeight * 0.42,
                           );
                           return ClipRect(
                             child: Padding(
@@ -485,7 +485,7 @@ class _GalleryFrameTokens {
         expanded: 0.62,
       ),
       captionTopInset:
-          responsive.pick(compact: 16, regular: 20, expanded: 20) * scale,
+          responsive.pick(compact: 16, regular: 24, expanded: 24) * scale,
       captionBottomInset:
           responsive.pick(compact: 7, regular: 8, expanded: 8) * scale,
       minCaptionHeight:

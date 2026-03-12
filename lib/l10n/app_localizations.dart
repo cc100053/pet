@@ -481,6 +481,18 @@ abstract class AppLocalizations {
   /// **'Choose a pet to move into your new room!'**
   String get onboardingCreatePetPromptTitle;
 
+  /// No description provided for @onboardingRoomEntryPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a room or enter an invite code.'**
+  String get onboardingRoomEntryPromptTitle;
+
+  /// No description provided for @onboardingRoomEntryPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your pet home by creating a new room, or join one with a code.'**
+  String get onboardingRoomEntryPromptBody;
+
   /// No description provided for @onboardingProfileSetupTitle.
   ///
   /// In en, this message translates to:

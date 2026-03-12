@@ -162,6 +162,8 @@
   "commonClose": "关闭",
   "commonSkip": "跳过",
   "onboardingCreatePetPromptTitle": "選擇寵物入住你的新房間！",
+  "onboardingRoomEntryPromptTitle": "创建新房间，或输入邀请码加入。",
+  "onboardingRoomEntryPromptBody": "你可以自己建立宠物房间，或者用邀请码加入朋友的房间。",
   "onboardingProfileSetupTitle": "先設定你的個人資料",
   "onboardingProfileSetupSubtitle": "請設定朋友會看到的名稱。照片現在可以上傳，也可以稍後再加。",
   "onboardingProfileSetupAvatarOptional": "照片可稍後再加",

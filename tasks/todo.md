@@ -1,5 +1,24 @@
 # TODO
 
+# Plan (2026-03-12 Onboarding Highlight Both Room Entry Options)
+- [x] Extend `RoomSelectionView` so onboarding can highlight the existing top-right join action in parallel with the bottom create-room CTA without changing the normal layout.
+- [x] Update Home onboarding overlay/focus logic and coach-card copy so the room-entry step explicitly guides users to either create a room or join by invite code.
+- [x] Add widget coverage for the new dual-highlight behavior, update memory/task notes, and run `flutter analyze` plus `flutter test`.
+
+# Review (2026-03-12 Onboarding Highlight Both Room Entry Options)
+- [x] Implemented and verified.
+- Root change:
+  - `RoomSelectionView` now accepts onboarding-only join-action highlight state/key alongside the existing create-room highlight contract, so the header invite-code action can glow without moving or replacing the normal UI.
+  - Home onboarding now resolves focus rects for both entry points through `onboarding_focus_utils.dart`, and the overlay painter cuts out/highlights both targets at once during the room-entry step.
+  - The coach card copy now explicitly says users can create a room or enter an invite code, matching the dual-highlight behavior.
+- Tests:
+  - Added `test/features/home/room_selection_view_test.dart` for visible/tappable dual highlights.
+  - Added `test/features/home/onboarding_focus_utils_test.dart` for dual rect resolution and English copy regression coverage.
+- Verification:
+  - `flutter test test/features/home/room_selection_view_test.dart test/features/home/onboarding_focus_utils_test.dart test/room_selection_unread_indicator_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-12 Shared Image 404 Guard Follow-up)
 - [x] Re-trace the remaining 404 image exceptions after the fullscreen fix and identify which shared image wrappers still resolve network images without error handling.
 - [x] Harden the shared cached-image wrapper (and any other remaining direct resolve path) so deleted/missing remote images render fallback UI instead of surfacing codec exceptions.

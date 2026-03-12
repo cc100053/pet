@@ -32,6 +32,8 @@ class RoomSelectionView extends StatelessWidget {
     this.topBanner,
     this.highlightCreateRoomCta = false,
     this.createRoomCtaKey,
+    this.highlightJoinRoomCta = false,
+    this.joinRoomCtaKey,
   });
 
   final List<Map<String, dynamic>> rooms;
@@ -50,6 +52,8 @@ class RoomSelectionView extends StatelessWidget {
   final Widget? topBanner;
   final bool highlightCreateRoomCta;
   final Key? createRoomCtaKey;
+  final bool highlightJoinRoomCta;
+  final Key? joinRoomCtaKey;
 
   static const _filmBase = Color(0xFFFFF9F2);
   static String? _lastLayoutDebugLogKey;
@@ -208,36 +212,12 @@ class RoomSelectionView extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            if (responsive.isCompact)
-                              IconButton(
-                                onPressed: joiningRoom ? null : onJoinRoom,
-                                icon: Icon(
-                                  Icons.key_rounded,
-                                  size: 20 * uiScale,
-                                ),
-                                color: AppTheme.textSecondary,
-                                tooltip: l10n.roomSelectionEnterInvite,
-                                visualDensity: VisualDensity.compact,
-                              )
-                            else
-                              TextButton.icon(
-                                onPressed: joiningRoom ? null : onJoinRoom,
-                                icon: Icon(
-                                  Icons.key_rounded,
-                                  size: 18 * uiScale,
-                                ),
-                                label: Text(
-                                  joiningRoom
-                                      ? l10n.roomSelectionJoining
-                                      : l10n.roomSelectionEnterInvite,
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppTheme.textSecondary,
-                                ),
-                              ),
+                            _buildJoinRoomHeaderAction(
+                              context,
+                              l10n,
+                              responsive,
+                              uiScale,
+                            ),
                           ],
                         ),
                       ),
@@ -388,6 +368,72 @@ class RoomSelectionView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildJoinRoomHeaderAction(
+    BuildContext context,
+    AppLocalizations l10n,
+    HomeResponsiveSpec responsive,
+    double uiScale,
+  ) {
+    final radius = BorderRadius.circular(responsive.isCompact ? 999 : 18);
+    final action = responsive.isCompact
+        ? IconButton(
+            onPressed: joiningRoom ? null : onJoinRoom,
+            icon: Icon(Icons.key_rounded, size: 20 * uiScale),
+            color: AppTheme.textSecondary,
+            tooltip: l10n.roomSelectionEnterInvite,
+            visualDensity: VisualDensity.compact,
+          )
+        : TextButton.icon(
+            onPressed: joiningRoom ? null : onJoinRoom,
+            icon: Icon(Icons.key_rounded, size: 18 * uiScale),
+            label: Text(
+              joiningRoom
+                  ? l10n.roomSelectionJoining
+                  : l10n.roomSelectionEnterInvite,
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: AppTheme.textSecondary,
+            ),
+          );
+
+    return AnimatedContainer(
+      key: joinRoomCtaKey,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        border: highlightJoinRoomCta
+            ? Border.all(
+                color: AppTheme.secondaryColor.withValues(alpha: 0.88),
+                width: 2.2,
+              )
+            : null,
+        boxShadow: highlightJoinRoomCta
+            ? [
+                BoxShadow(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.26),
+                  blurRadius: 14,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : const [],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: ColoredBox(
+          color: highlightJoinRoomCta
+              ? Colors.white.withValues(alpha: 0.22)
+              : Colors.transparent,
+          child: action,
+        ),
+      ),
     );
   }
 

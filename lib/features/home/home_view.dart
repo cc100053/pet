@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' show ImageFilter, lerpDouble;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,6 +58,7 @@ import 'providers/home_currency_provider.dart';
 import 'providers/home_pet_state_provider.dart';
 import 'providers/home_unread_counts_provider.dart';
 import 'providers/home_rooms_provider.dart';
+import 'onboarding_focus_utils.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
 import 'widgets/home_bottom_nav_bar.dart';
@@ -283,6 +284,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _lastCrashContextRoomId;
   String? _lastCrashContextNetworkState;
   final GlobalKey _onboardingCreateRoomCtaKey = GlobalKey();
+  final GlobalKey _onboardingJoinRoomCtaKey = GlobalKey();
   _BasicOnboardingStep _basicOnboardingStep = _BasicOnboardingStep.createPet;
   bool _basicOnboardingDismissed = false;
   bool _basicOnboardingCompleted = false;
@@ -4073,6 +4075,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                 userAvatarUrl: _myAvatarUrl,
                 highlightCreateRoomCta: _isCreatePetOnboardingStepActive,
                 createRoomCtaKey: _onboardingCreateRoomCtaKey,
+                highlightJoinRoomCta: _isCreatePetOnboardingStepActive,
+                joinRoomCtaKey: _onboardingJoinRoomCtaKey,
                 topBanner: AdMobIds.isSupported && !_hasProPlanAccess
                     ? const AdMobBannerSlot()
                     : null,

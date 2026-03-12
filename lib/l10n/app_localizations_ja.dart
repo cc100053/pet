@@ -237,6 +237,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingCreatePetPromptTitle => '新しいお部屋に迎えるペットを選ぼう！';
 
   @override
+  String get onboardingRoomEntryPromptTitle => '新しいルームを作成するか、招待コードで参加しよう。';
+
+  @override
+  String get onboardingRoomEntryPromptBody =>
+      '自分でルームを作るか、コードを入力して友だちのルームに参加できます。';
+
+  @override
   String get onboardingProfileSetupTitle => 'プロフィールを設定しよう';
 
   @override
