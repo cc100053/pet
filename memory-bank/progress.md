@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Hardened fullscreen feed-photo loading against bad debug URLs: `FullScreenPhotoViewer` now gives `PhotoView` an explicit `errorBuilder`/broken-image fallback, so a simulated `404` feed image renders safely instead of bubbling an uncaught codec exception that can crash the app in debug.
 - Expanded the Pet Home photo gallery from 3 to 10 recent feed photos by introducing shared gallery feed helpers, updating room bootstrap/refresh/snapshot paths to keep 10 items for the active-room carousel while compact summary cards remain capped at 3.
 - Fixed the transient self-feed ordering bug in Pet Home: optimistic local-path feed entries are now reconciled against canonical realtime/uploaded feed records instead of being prepended as a second photo, so a just-fed photo no longer briefly appears in slot 2 before refresh. Own-feed success now also snaps the gallery back to the newest photo at index 0.
 - Rolled the chat-style keyboard collapse expectation out to every in-repo text-input surface. Added shared helper `lib/shared/ui/keyboard_dismiss_utils.dart`, wired `onTapOutside` unfocus into all 8 `TextField` usages (chat composer/report dialog, feed caption, profile nickname, pet naming, onboarding nickname, room join code, pet rename), and enabled drag-to-dismiss on the three scrollable input surfaces (`FeedCaptureView`, `PetSelectionPage`, onboarding profile setup overlay). Added widget coverage for the shared tap-outside and drag-dismiss helper behavior.

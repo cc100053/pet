@@ -1,5 +1,28 @@
 # TODO
 
+# Plan (2026-03-12 Pet Home Gallery Caption Position Adjustment)
+- [ ] Update `PetPhotoGallery` caption layout to reserve safe caption height, shift the caption slightly lower, and enforce single-line ellipsis without bottom clipping.
+- [ ] Add a compact-width widget regression covering long-caption overflow and caption bounds safety while preserving existing gallery paging behavior.
+- [ ] Update memory/task notes and run `flutter analyze` plus `flutter test`.
+
+# Plan (2026-03-12 Fullscreen Feed Photo 404 Crash Guard)
+- [x] Inspect the feed-photo rendering paths and confirm which image-loading surface still throws on a 404 debug photo URL.
+- [x] Add the smallest safe fallback so a missing remote feed photo renders a broken-image state instead of crashing the app.
+- [x] Add a regression test for the 404 fullscreen path, update memory/task notes, and run `flutter analyze` plus `flutter test`.
+
+# Review (2026-03-12 Fullscreen Feed Photo 404 Crash Guard)
+- [x] Implemented and verified.
+- Root cause:
+  - Feed/gallery thumbnails already render through `CachedNetworkImage` with fallback UI, but `FullScreenPhotoViewer` bypassed that protection by handing `CachedNetworkImageProvider(url)` directly to `PhotoView`.
+  - When the debug feed photo URL returned `404`, `PhotoView` had no `errorBuilder`, so the failed codec resolve bubbled up as an uncaught image error in debug and could take down the route/app.
+- Fixes:
+  - `lib/shared/ui/full_screen_photo_viewer.dart` now attaches a `PhotoView` `errorBuilder` and reuses a dedicated broken-image fallback page for both missing sources and failed remote loads.
+  - `test/full_screen_photo_viewer_test.dart` now simulates a `404` network image and asserts that the fullscreen viewer shows the fallback icon without surfacing a test exception.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; the existing networked integration test remained skipped without its required Supabase env vars, as expected.
+
 ## Plan (2026-03-12 Pet Home Gallery 10 Photos + Feed Ordering Fix)
 - [x] Introduce a shared Pet Home gallery photo-limit utility, update Home feed/gallery state paths from 3 to 10, and keep compact summary surfaces capped at 3.
 - [x] Rework optimistic self-feed reconciliation so local-path optimistic entries are replaced by canonical remote feed records without transient duplicates or wrong ordering.

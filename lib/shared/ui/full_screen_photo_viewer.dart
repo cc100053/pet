@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:photo_view/photo_view.dart';
@@ -23,17 +24,20 @@ class FullScreenPhotoViewer extends StatefulWidget {
     required this.items,
     this.initialIndex = 0,
     this.showIndicator = true,
+    this.cacheManager,
   });
 
   final List<PhotoViewerItem> items;
   final int initialIndex;
   final bool showIndicator;
+  final BaseCacheManager? cacheManager;
 
   static Future<int?> open(
     BuildContext context, {
     required List<PhotoViewerItem> items,
     int initialIndex = 0,
     bool showIndicator = true,
+    BaseCacheManager? cacheManager,
   }) {
     if (items.isEmpty) {
       return Future<int?>.value(null);
@@ -48,6 +52,7 @@ class FullScreenPhotoViewer extends StatefulWidget {
               items: items,
               initialIndex: initialIndex,
               showIndicator: showIndicator,
+              cacheManager: cacheManager,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -174,7 +179,11 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     }
     final url = item.imageUrl.trim();
     if (url.isNotEmpty) {
-      return CachedNetworkImageProvider(url);
+      return CachedNetworkImageProvider(
+        url,
+        cacheManager: widget.cacheManager,
+        errorListener: (_) {},
+      );
     }
     return null;
   }
@@ -323,16 +332,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     final item = widget.items[index];
     final provider = _imageProviderFor(item);
     if (provider == null) {
-      return PhotoViewGalleryPageOptions.customChild(
-        child: const Center(
-          child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
-        ),
-        childSize: const Size(320, 320),
-        minScale: PhotoViewComputedScale.contained,
-        maxScale: PhotoViewComputedScale.covered * 3,
-        initialScale: PhotoViewComputedScale.contained,
-        basePosition: Alignment.center,
-      );
+      return _buildBrokenImagePageOption();
     }
 
     return PhotoViewGalleryPageOptions(
@@ -346,6 +346,29 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
       filterQuality: FilterQuality.medium,
       heroAttributes: PhotoViewHeroAttributes(tag: 'photo-viewer-$index'),
       onTapUp: (context, details, controllerValue) => _toggleChrome(),
+      errorBuilder: (context, error, stackTrace) => _buildBrokenImageView(),
+    );
+  }
+
+  PhotoViewGalleryPageOptions _buildBrokenImagePageOption() {
+    return PhotoViewGalleryPageOptions.customChild(
+      child: _buildBrokenImageView(),
+      childSize: const Size(320, 320),
+      minScale: PhotoViewComputedScale.contained,
+      maxScale: PhotoViewComputedScale.covered * 3,
+      initialScale: PhotoViewComputedScale.contained,
+      basePosition: Alignment.center,
+    );
+  }
+
+  Widget _buildBrokenImageView() {
+    return const Center(
+      child: Icon(
+        Icons.broken_image,
+        key: ValueKey<String>('photo-viewer-broken-image'),
+        color: Colors.white54,
+        size: 64,
+      ),
     );
   }
 
