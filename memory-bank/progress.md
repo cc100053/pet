@@ -1,6 +1,7 @@
 # Progress
 
 ## Done
+- Hardened the shared remote-image wrapper against deleted feed assets: `CachedNetworkImageView` now supplies `CachedNetworkImage.errorListener`, guards its aspect-ratio probe with `onError`, and adds `errorBuilder` to the inner render path so `404` R2 feed photos fall back cleanly instead of bubbling codec exceptions. Applied the same guard to the profile avatar framing editor’s direct image-stream path.
 - Hardened fullscreen feed-photo loading against bad debug URLs: `FullScreenPhotoViewer` now gives `PhotoView` an explicit `errorBuilder`/broken-image fallback, so a simulated `404` feed image renders safely instead of bubbling an uncaught codec exception that can crash the app in debug.
 - Tightened the Pet Home photo gallery caption layout so gallery and placeholder captions always stay on a single line with ellipsis overflow, sit slightly lower in the polaroid footer, and reserve bottom-safe caption space first so compact layouts no longer clip descenders at the card edge.
 - Expanded the Pet Home photo gallery from 3 to 10 recent feed photos by introducing shared gallery feed helpers, updating room bootstrap/refresh/snapshot paths to keep 10 items for the active-room carousel while compact summary cards remain capped at 3.

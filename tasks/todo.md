@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-03-12 Shared Image 404 Guard Follow-up)
+- [x] Re-trace the remaining 404 image exceptions after the fullscreen fix and identify which shared image wrappers still resolve network images without error handling.
+- [x] Harden the shared cached-image wrapper (and any other remaining direct resolve path) so deleted/missing remote images render fallback UI instead of surfacing codec exceptions.
+- [x] Add regression coverage for the shared wrapper 404 path, then rerun `flutter analyze` and `flutter test`.
+
+# Review (2026-03-12 Shared Image 404 Guard Follow-up)
+- [x] Implemented and verified.
+- Root cause:
+  - The fullscreen viewer fix covered direct `PhotoView` usage, but Home/gallery cards still render through `lib/shared/ui/cached_network_image_view.dart`.
+  - That shared wrapper was re-resolving the image stream to compute aspect ratio and then rendering the same provider again via plain `Image(...)`, both without `onError` / `errorBuilder`, so a deleted R2 image could still bubble `HttpExceptionWithStatus(404)` through Flutter's image pipeline.
+- Fixes:
+  - `lib/shared/ui/cached_network_image_view.dart` now passes a no-op `errorListener` into `CachedNetworkImage`, guards the aspect-ratio probe with `onError`, and adds `errorBuilder` to the inner `Image(...)` renders so missing files collapse cleanly to the existing outer fallback UI.
+  - `lib/features/profile/profile_view.dart` now adds the same guard around the avatar framing editor's image-stream probe/render path to avoid the same 404 class of crash there.
+  - Added `test/shared/ui/cached_network_image_view_test.dart` to simulate a `404` through a fake cache manager and assert the shared wrapper shows its fallback without surfacing an exception.
+- Verification:
+  - `flutter test test/shared/ui/cached_network_image_view_test.dart test/full_screen_photo_viewer_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; the existing networked integration test remained skipped without its required Supabase env vars, as expected.
+
 # Plan (2026-03-12 Pet Home Gallery Caption Position Adjustment)
 - [x] Update `PetPhotoGallery` caption layout to reserve safe caption height, shift the caption slightly lower, and enforce single-line ellipsis without bottom clipping.
 - [x] Add a compact-width widget regression covering long-caption overflow and caption bounds safety while preserving existing gallery paging behavior.

@@ -1320,20 +1320,27 @@ class _AvatarPositionEditorPageState extends State<_AvatarPositionEditorPage> {
     _imageStream = widget.imageProvider.resolve(
       createLocalImageConfiguration(context),
     );
-    _imageStreamListener = ImageStreamListener((imageInfo, _) {
-      final width = imageInfo.image.width.toDouble();
-      final height = imageInfo.image.height.toDouble();
-      if (!mounted || height <= 0 || width <= 0) {
-        return;
-      }
-      final nextRatio = width / height;
-      if ((_imageAspectRatio - nextRatio).abs() < 0.0001) {
-        return;
-      }
-      setState(() {
-        _imageAspectRatio = nextRatio;
-      });
-    });
+    _imageStreamListener = ImageStreamListener(
+      (imageInfo, _) {
+        final width = imageInfo.image.width.toDouble();
+        final height = imageInfo.image.height.toDouble();
+        if (!mounted || height <= 0 || width <= 0) {
+          return;
+        }
+        final nextRatio = width / height;
+        if ((_imageAspectRatio - nextRatio).abs() < 0.0001) {
+          return;
+        }
+        setState(() {
+          _imageAspectRatio = nextRatio;
+        });
+      },
+      onError: (Object error, StackTrace? stackTrace) {
+        if (!mounted) {
+          return;
+        }
+      },
+    );
     _imageStream!.addListener(_imageStreamListener!);
   }
 
@@ -1504,6 +1511,8 @@ class _AvatarPositionEditorPageState extends State<_AvatarPositionEditorPage> {
               fit: BoxFit.fill,
               color: tintColor,
               colorBlendMode: tintBlendMode,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
             ),
           ),
         ),

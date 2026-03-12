@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 import '../utils/avatar_display_position.dart';
 import 'image_aspect_cache.dart';
@@ -18,6 +19,7 @@ class CachedNetworkImageView extends StatelessWidget {
     this.height,
     this.placeholder,
     this.errorWidget,
+    this.cacheManager,
   });
 
   final String imageUrl;
@@ -30,6 +32,7 @@ class CachedNetworkImageView extends StatelessWidget {
   final double? height;
   final Widget? placeholder;
   final Widget? errorWidget;
+  final BaseCacheManager? cacheManager;
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +62,14 @@ class CachedNetworkImageView extends StatelessWidget {
 
     return CachedNetworkImage(
       imageUrl: imageUrl,
+      cacheManager: cacheManager,
       width: width,
       height: height,
       fit: fit,
       alignment: Alignment.center,
       fadeInDuration: const Duration(milliseconds: 120),
       placeholderFadeInDuration: const Duration(milliseconds: 120),
+      errorListener: (_) {},
       imageBuilder: (context, imageProvider) => _PortraitAwareImage(
         imageProvider: imageProvider,
         imageUrl: imageUrl,
@@ -145,18 +150,26 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
     final stream = widget.imageProvider.resolve(
       createLocalImageConfiguration(context),
     );
-    final listener = ImageStreamListener((imageInfo, _) {
-      final width = imageInfo.image.width.toDouble();
-      final height = imageInfo.image.height.toDouble();
-      if (height <= 0 || !mounted) {
-        return;
-      }
-      final ratio = width / height;
-      ImageAspectCache.instance.set(widget.imageUrl, ratio);
-      setState(() {
-        _aspectRatio = ratio;
-      });
-    });
+    final listener = ImageStreamListener(
+      (imageInfo, _) {
+        final width = imageInfo.image.width.toDouble();
+        final height = imageInfo.image.height.toDouble();
+        if (height <= 0 || !mounted) {
+          return;
+        }
+        final ratio = width / height;
+        ImageAspectCache.instance.set(widget.imageUrl, ratio);
+        setState(() {
+          _aspectRatio = ratio;
+        });
+      },
+      onError: (Object error, StackTrace? stackTrace) {
+        if (!mounted) {
+          return;
+        }
+        // Keep the default ratio and let the outer CachedNetworkImage error UI win.
+      },
+    );
     _stream = stream;
     _listener = listener;
     stream.addListener(listener);
@@ -192,6 +205,8 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
                 fit: BoxFit.fill,
                 width: base.width,
                 height: base.height,
+                errorBuilder: (context, error, stackTrace) =>
+                    const SizedBox.shrink(),
               ),
             ),
           ),
@@ -214,6 +229,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
         width: widget.width,
         height: widget.height,
         alignment: widget.alignment,
+        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
       ),
     );
   }
