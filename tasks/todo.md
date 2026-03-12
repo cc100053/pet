@@ -1,9 +1,23 @@
 # TODO
 
 # Plan (2026-03-12 Pet Home Gallery Caption Position Adjustment)
-- [ ] Update `PetPhotoGallery` caption layout to reserve safe caption height, shift the caption slightly lower, and enforce single-line ellipsis without bottom clipping.
-- [ ] Add a compact-width widget regression covering long-caption overflow and caption bounds safety while preserving existing gallery paging behavior.
-- [ ] Update memory/task notes and run `flutter analyze` plus `flutter test`.
+- [x] Update `PetPhotoGallery` caption layout to reserve safe caption height, shift the caption slightly lower, and enforce single-line ellipsis without bottom clipping.
+- [x] Add a compact-width widget regression covering long-caption overflow and caption bounds safety while preserving existing gallery paging behavior.
+- [x] Update memory/task notes and run `flutter analyze` plus `flutter test`.
+
+# Review (2026-03-12 Pet Home Gallery Caption Position Adjustment)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/features/home/widgets/pet_photo_gallery.dart` now reserves a minimum caption band before sizing the photo area, adds a dedicated bottom inset for the caption, and clamps the downward top inset so lowering the caption no longer starves the footer on compact layouts.
+  - Gallery and placeholder captions now render as a single line only, with `TextOverflow.ellipsis` and `softWrap: false`, while the caption text remains horizontally centered and slightly lower in the footer band.
+  - The existing polaroid frame structure and avatar overlap behavior were preserved; only the caption band sizing/placement logic changed.
+- Tests:
+  - `test/features/home/widgets/pet_photo_gallery_test.dart` now covers the single-line ellipsis configuration and asserts the caption stays above the card bottom on a compact-width gallery.
+- Verification:
+  - `flutter test test/features/home/widgets/pet_photo_gallery_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
 
 # Plan (2026-03-12 Fullscreen Feed Photo 404 Crash Guard)
 - [x] Inspect the feed-photo rendering paths and confirm which image-loading surface still throws on a 404 debug photo URL.

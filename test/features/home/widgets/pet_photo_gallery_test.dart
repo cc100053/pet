@@ -18,6 +18,7 @@ void main() {
     required List<String> imageUrls,
     required List<String?> captions,
     int jumpToLatestEventId = 0,
+    double width = 360,
   }) {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -25,7 +26,7 @@ void main() {
       home: Scaffold(
         body: Center(
           child: SizedBox(
-            width: 360,
+            width: width,
             child: PetPhotoGallery(
               imageUrls: imageUrls,
               captions: captions,
@@ -47,6 +48,9 @@ void main() {
       ),
     );
   }
+
+  Finder galleryItem(int index) =>
+      find.byKey(ValueKey('pet-photo-gallery-item-$index'));
 
   SliverChildBuilderDelegate pageDelegate(WidgetTester tester) {
     final pageView = tester.widget<PageView>(
@@ -115,5 +119,31 @@ void main() {
       find.byKey(const ValueKey('pet-photo-gallery-page-view')),
     );
     expect(updatedPageView.controller!.page, 0);
+  });
+
+  testWidgets('uses single-line ellipsis and keeps caption above card bottom', (
+    WidgetTester tester,
+  ) async {
+    const longCaption =
+        'This caption is intentionally long so it must collapse with ellipsis instead of wrapping to a second line';
+    final imageUrls = createImageUrls(1);
+
+    await tester.pumpWidget(
+      buildGallery(
+        imageUrls: imageUrls,
+        captions: const <String?>[longCaption],
+        width: 320,
+      ),
+    );
+    await tester.pump();
+
+    final captionText = tester.widget<Text>(find.text(longCaption));
+    expect(captionText.maxLines, 1);
+    expect(captionText.softWrap, isFalse);
+    expect(captionText.overflow, TextOverflow.ellipsis);
+
+    final captionRect = tester.getRect(find.text(longCaption));
+    final itemRect = tester.getRect(galleryItem(0));
+    expect(itemRect.bottom - captionRect.bottom, greaterThan(6));
   });
 }

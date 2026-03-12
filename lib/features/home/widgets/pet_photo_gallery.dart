@@ -372,27 +372,44 @@ class _GalleryPolaroidFrame extends StatelessWidget {
               LayoutId(
                 id: _GalleryFrameSlot.caption,
                 child: hasCaption
-                    ? Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          8 * scale,
-                          tokens.captionTopInset,
-                          8 * scale,
-                          3 * scale,
-                        ),
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: Text(
-                            caption.trim(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13 * scale,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          final captionHeight = constraints.maxHeight;
+                          final safeCaptionHeight = math.max(
+                            0.0,
+                            captionHeight - tokens.captionBottomInset,
+                          );
+                          final effectiveTopInset = math.min(
+                            tokens.captionTopInset,
+                            safeCaptionHeight * 0.35,
+                          );
+                          return ClipRect(
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                8 * scale,
+                                effectiveTopInset,
+                                8 * scale,
+                                tokens.captionBottomInset,
+                              ),
+                              child: Align(
+                                alignment: const Alignment(0, -0.15),
+                                child: Text(
+                                  caption.trim(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 13 * scale,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.12,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+                          );
+                        },
                       )
                     : const SizedBox.shrink(),
               ),
@@ -440,6 +457,8 @@ class _GalleryFrameTokens {
     required this.photoRatio,
     required this.avatarOverlapRatio,
     required this.captionTopInset,
+    required this.captionBottomInset,
+    required this.minCaptionHeight,
   });
 
   final double innerPadding;
@@ -447,6 +466,8 @@ class _GalleryFrameTokens {
   final double photoRatio;
   final double avatarOverlapRatio;
   final double captionTopInset;
+  final double captionBottomInset;
+  final double minCaptionHeight;
 
   factory _GalleryFrameTokens.fromScale({
     required double scale,
@@ -464,7 +485,11 @@ class _GalleryFrameTokens {
         expanded: 0.62,
       ),
       captionTopInset:
-          responsive.pick(compact: 14, regular: 18, expanded: 18) * scale,
+          responsive.pick(compact: 16, regular: 20, expanded: 20) * scale,
+      captionBottomInset:
+          responsive.pick(compact: 7, regular: 8, expanded: 8) * scale,
+      minCaptionHeight:
+          responsive.pick(compact: 44, regular: 48, expanded: 48) * scale,
     );
   }
 }
@@ -476,10 +501,10 @@ class _GalleryFrameLayoutDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
-    final photoHeight = (size.height * tokens.photoRatio).clamp(
-      0.0,
-      size.height,
-    );
+    final maxPhotoHeight = math.max(0.0, size.height - tokens.minCaptionHeight);
+    final photoHeight = math
+        .min(size.height * tokens.photoRatio, maxPhotoHeight)
+        .clamp(0.0, size.height);
     final captionHeight = math.max(0.0, size.height - photoHeight);
 
     if (hasChild(_GalleryFrameSlot.photo)) {

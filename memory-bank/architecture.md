@@ -104,6 +104,7 @@ Implemented:
 - `lib/features/chat/chat_room_view_v2.dart`: Active chat route now treats post-await controller mutations as route-lifecycle-sensitive work; load/refresh/send/feed callback paths bail once the route is unmounted, and optimistic local feed cards decode file images at card-sized cache dimensions to reduce large-photo memory spikes.
 - Home “latest photo” UI: `lib/features/home/home_view.dart` fetches latest feed photos per room (max 10) and stores them as `latest_photos` alongside `latest_photo`; compact summary cards still locally cap their preview at 3.
 - Home feed gallery state now uses shared helpers in `lib/features/home/home_gallery_feed_utils.dart` to normalize snapshot hydration, prepend/truncate to 10, and reconcile optimistic local feed images with canonical realtime/uploaded records.
+- `lib/features/home/widgets/pet_photo_gallery.dart` now reserves a dedicated single-line caption band with ellipsis overflow and bottom-safe padding so slightly lowered captions do not clip on compact layouts.
 - Latest photo card: `lib/features/home/widgets/home_latest_photo_card.dart` renders 3 separated photo bubbles with subtle X/Y drift and tap-to-preview (fullscreen with zoom).
 - Home HUD coin reward animation: `lib/features/home/home_view.dart` emits a monotonic `coinRewardEventId` so repeated rewards retrigger the animation reliably; coin loads are coalesced to avoid racey deltas.
 
