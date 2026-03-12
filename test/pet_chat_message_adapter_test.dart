@@ -98,5 +98,64 @@ void main() {
         l10n.chatPetHungryUrgentMessage('Mochi'),
       );
     });
+
+    test('localizes structured store purchase system messages by item name', () {
+      final furnitureMessage = ChatMessage(
+        id: 'sys-store-1',
+        roomId: 'room',
+        senderId: null,
+        type: 'system',
+        body:
+            '{"kind":"store_purchase","user_id":"user-a","user_name":"Alice","pet_name":"Mochi","item_sku":"furniture_emoji_sofa","item_category":"furniture"}',
+        imageUrl: null,
+        caption: null,
+        coinsAwarded: 0,
+        createdAt: DateTime.utc(2026, 3, 10, 15),
+        clientCreatedAt: null,
+        labels: const [],
+        localImagePath: null,
+      );
+      final backgroundMessage = ChatMessage(
+        id: 'sys-store-2',
+        roomId: 'room',
+        senderId: null,
+        type: 'system',
+        body:
+            '{"kind":"store_purchase","user_id":"user-a","user_name":"Alice","pet_name":"Mochi","item_sku":"background_test1","item_category":"background"}',
+        imageUrl: null,
+        caption: null,
+        coinsAwarded: 0,
+        createdAt: DateTime.utc(2026, 3, 10, 16),
+        clientCreatedAt: null,
+        labels: const [],
+        localImagePath: null,
+      );
+
+      final furnitureMapped = PetChatMessageAdapter.toUiMessage(
+        furnitureMessage,
+        l10n,
+      );
+      final backgroundMapped = PetChatMessageAdapter.toUiMessage(
+        backgroundMessage,
+        l10n,
+      );
+
+      expect(
+        (furnitureMapped as fc.SystemMessage).text,
+        l10n.chatBoughtStoreItemMessage(
+          'Alice',
+          l10n.storeItemNameFurnitureSofa,
+          'Mochi',
+        ),
+      );
+      expect(
+        (backgroundMapped as fc.SystemMessage).text,
+        l10n.chatBoughtStoreItemMessage(
+          'Alice',
+          l10n.storeItemNameBackgroundMoonlight,
+          'Mochi',
+        ),
+      );
+    });
   });
 }

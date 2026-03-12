@@ -78,6 +78,7 @@ Implemented:
   - `lib/features/store/models/store_item.dart`: Store domain model with localized naming/pricing helpers.
   - `lib/features/store/services/store_iap_service.dart`: Extracted Store IAP loading/purchase/restore logic.
   - `lib/features/store/services/store_purchase_handler.dart`: Extracted Store candy/diamond purchase handlers.
+  - Successful room furniture/background purchases now emit a structured room `system` chat message from the purchase RPC with the exact purchased item SKU/name context, and the purchase handler best-effort invokes `notify_friend` so those purchase events also send push notifications to the other active room members.
   - `lib/features/store/widgets/store_departed_pet_selector.dart`: Extracted departed-pet selection/confirmation dialogs for return-letter purchase.
   - `lib/features/store/widgets/store_item_cards.dart`: Extracted Store card builders for IAP/items/themes.
 - `lib/features/ads/`: iOS AdMob rewarded + banner ad UI components and service wiring.
@@ -143,6 +144,7 @@ Planned:
 - `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
   - Feed sends now trigger notifications by directly invoking this function from `feed_validate` with the user auth token (no separate webhook URL dependency).
   - Webhook-mode requests are accepted with a configured `NOTIFY_WEBHOOK_SECRET` via either `Authorization: Bearer <secret>` or `X-Notify-Webhook-Secret` header; webhook payload message content is canonicalized from DB and recipients are constrained to active room members.
+  - Store purchase pushes now accept client-authenticated `store_purchase` payloads for `system` messages, validate the structured purchase JSON body against the calling buyer, localize the purchased item name by recipient locale, and emit `message_kind=store_purchase` so notification taps stay on Pet Home instead of jumping into chat.
   - Current deployment runs with `verify_jwt=false`; function-level auth checks enforce JWT-backed user mode for client calls and secret-backed webhook mode for scheduler calls.
 - `supabase/functions/hunger_tick_dispatch/index.ts`: Scheduled hunger-alert dispatcher.
   - Requires `HUNGER_TICK_SECRET` (or vault `hunger_tick_secret` / `NOTIFY_WEBHOOK_SECRET` fallback) for invocation auth and uses service-role RPC ticks + webhook-mode `notify_friend` dispatch.

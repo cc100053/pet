@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:pet/l10n/app_localizations.dart';
 
+import '../../store/store_item_localization.dart';
 import '../chat_message.dart';
 
 class PetChatMessageAdapter {
@@ -114,6 +117,11 @@ class PetChatMessageAdapter {
           : l10n.chatPetHungryReminderMessage(hungerAlert.petName);
     }
 
+    final storePurchase = _parseStructuredStorePurchase(raw, l10n);
+    if (storePurchase != null) {
+      return storePurchase;
+    }
+
     final lower = raw.toLowerCase();
     final phrases = <String>['cleaned the poop', '清理了便便', 'うんちを掃除した', '배변을 치웠'];
     final matchedPhrase = phrases.firstWhere(
@@ -136,6 +144,11 @@ class PetChatMessageAdapter {
     final renamedFromMessage = _parseRenameFromMessage(raw, l10n);
     if (renamedFromMessage != null) {
       return renamedFromMessage;
+    }
+
+    final storePurchaseMessage = _parseStorePurchaseMessage(raw, l10n);
+    if (storePurchaseMessage != null) {
+      return storePurchaseMessage;
     }
 
     final renameMatch = RegExp(
@@ -237,6 +250,57 @@ class PetChatMessageAdapter {
     final oldName = isUnnamed ? l10n.petNameUnnamed : normalizedOld;
 
     return l10n.chatPetRenamedMessage(userName, oldName, newName);
+  }
+
+  static String? _parseStorePurchaseMessage(String raw, AppLocalizations l10n) {
+    final match = RegExp(
+      r'^(.+?)\s+bought\s+(furniture|a background|background)\s+for\s+(.+?)\s*\.?$',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (match == null) {
+      return null;
+    }
+
+    final userName = (match.group(1) ?? '').trim();
+    final category = (match.group(2) ?? '').trim().toLowerCase();
+    final petName = (match.group(3) ?? '').trim();
+    if (petName.isEmpty) {
+      return null;
+    }
+
+    final normalizedUser = userName.isEmpty ? l10n.chatSystemUpdate : userName;
+    return category == 'furniture'
+        ? l10n.chatBoughtFurnitureMessage(normalizedUser, petName)
+        : l10n.chatBoughtBackgroundMessage(normalizedUser, petName);
+  }
+
+  static String? _parseStructuredStorePurchase(
+    String raw,
+    AppLocalizations l10n,
+  ) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        return null;
+      }
+      final payload = Map<String, dynamic>.from(decoded);
+      if ((payload['kind'] as String?) != 'store_purchase') {
+        return null;
+      }
+      final userName = (payload['user_name'] as String? ?? '').trim();
+      final petName = (payload['pet_name'] as String? ?? '').trim();
+      final itemSku = (payload['item_sku'] as String? ?? '').trim();
+      if (petName.isEmpty || itemSku.isEmpty) {
+        return null;
+      }
+      final normalizedUser = userName.isEmpty
+          ? l10n.chatSystemUpdate
+          : userName;
+      final itemName = localizedStoreItemNameForSku(itemSku, l10n);
+      return l10n.chatBoughtStoreItemMessage(normalizedUser, itemName, petName);
+    } catch (_) {
+      return null;
+    }
   }
 }
 

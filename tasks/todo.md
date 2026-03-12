@@ -1,5 +1,47 @@
 # TODO
 
+# Plan (2026-03-13 Store Purchase Item Names + Push)
+- [x] Update store purchase RPCs to store a structured purchase system-message payload with item SKU/name context and return the inserted `message_id`.
+- [x] Localize purchase system messages by purchased item name in chat and trigger best-effort push delivery after successful furniture/background purchases.
+- [x] Extend `notify_friend` to localize store-purchase pushes by recipient locale, then update memory/task notes and run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-03-13 Store Purchase Item Names + Push)
+- [x] Implemented and verified.
+- Root change:
+  - `supabase/migrations/20260313093000_store_purchase_item_details_and_push.sql` now recreates the four room cosmetic purchase RPCs with a structured JSON `system` message body (`kind/user_name/pet_name/item_sku/item_category`) and returns the inserted `message_id` so client-side push dispatch can target the exact stored message.
+  - `lib/features/store/services/store_purchase_handler.dart` now sends a best-effort authenticated `notify_friend` call for successful furniture/background purchases, while chat localization resolves the purchased item name through shared SKU-based localization helpers instead of hard-coded furniture/background-only copy.
+  - `supabase/functions/notify_friend/index.ts` now accepts `store_purchase` notification requests for `system` messages, verifies the structured purchase payload belongs to the calling buyer, localizes the purchased item name per recipient locale, and sends `message_kind=store_purchase` so taps stay on Pet Home.
+- Tests:
+  - Updated `test/pet_chat_message_adapter_test.dart` to cover structured item-aware purchase system messages.
+  - Added `test/fcm_service_notification_intent_test.dart` coverage for `message_kind=store_purchase` routing to Pet Home.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter test test/pet_chat_message_adapter_test.dart test/fcm_service_notification_intent_test.dart`
+  - Supabase MCP `apply_migration` on project `ilxzpszgirhwxpeocygs`
+  - Supabase MCP deploy `notify_friend` version 27
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-12 Store Purchase System Message)
+- [x] Update the room furniture/background purchase RPCs so successful purchases emit a chat system message that says the user bought furniture/background for the pet.
+- [x] Add chat localization/parsing support and regression coverage for the new purchase system messages.
+- [x] Update memory/task notes and run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-03-12 Store Purchase System Message)
+- [x] Implemented and verified.
+- Root change:
+  - Added Supabase migration `supabase/migrations/20260312161000_add_store_purchase_system_messages.sql` and applied it via Supabase MCP so successful `purchase_room_furniture_with_*` and `purchase_room_background_with_*` RPC calls now insert a room `system` chat message naming the buyer, purchase category, and pet.
+  - Kept the existing RPC signatures/return payloads unchanged, so purchase handlers continue working without client contract changes while older app versions still see a readable raw English system message.
+  - `lib/features/chat/adapters/pet_chat_message_adapter.dart` now recognizes the new purchase-message format and maps it through localized `chatBoughtFurnitureMessage` / `chatBoughtBackgroundMessage` strings added across all supported ARB locales.
+- Tests:
+  - `test/pet_chat_message_adapter_test.dart` now covers both furniture and background purchase system-message localization.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter test test/pet_chat_message_adapter_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-12 Onboarding Highlight Both Room Entry Options)
 - [x] Extend `RoomSelectionView` so onboarding can highlight the existing top-right join action in parallel with the bottom create-room CTA without changing the normal layout.
 - [x] Update Home onboarding overlay/focus logic and coach-card copy so the room-entry step explicitly guides users to either create a room or join by invite code.

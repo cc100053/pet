@@ -46,6 +46,7 @@ type L10nStrings = {
   feedBodyTemplate: string;
   hungerReminderTemplate: string;
   hungerUrgentTemplate: string;
+  storePurchaseTemplate: string;
 };
 
 const l10n: Record<string, L10nStrings> = {
@@ -56,6 +57,7 @@ const l10n: Record<string, L10nStrings> = {
     feedBodyTemplate: "{sender} fed {pet}",
     hungerReminderTemplate: "{pet} is getting hungry. Time to feed!",
     hungerUrgentTemplate: "{pet} is very hungry! Please feed now!",
+    storePurchaseTemplate: "{sender} bought {item} for {pet}",
   },
   ja: {
     defaultTextBody: "新しいメッセージ",
@@ -65,6 +67,25 @@ const l10n: Record<string, L10nStrings> = {
     hungerReminderTemplate:
       "{pet}がお腹を空かせています。ごはんをあげてください！",
     hungerUrgentTemplate: "{pet}がとてもお腹を空かせています！今すぐごはんを！",
+    storePurchaseTemplate: "{sender}が{pet}に{item}を買いました",
+  },
+  ko: {
+    defaultTextBody: "새 메시지",
+    defaultPetName: "펫",
+    defaultSenderName: "누군가",
+    feedBodyTemplate: "{sender}님이 {pet}에게 밥을 줬어요",
+    hungerReminderTemplate: "{pet}가 배고파하고 있어요. 먹이를 주세요!",
+    hungerUrgentTemplate: "{pet}가 매우 배고파요! 지금 바로 먹이를 주세요!",
+    storePurchaseTemplate: "{sender}님이 {pet}에게 {item}을 사줬어요",
+  },
+  zh: {
+    defaultTextBody: "新消息",
+    defaultPetName: "宠物",
+    defaultSenderName: "某人",
+    feedBodyTemplate: "{sender} 喂了 {pet}",
+    hungerReminderTemplate: "{pet}有点饿了，记得喂食！",
+    hungerUrgentTemplate: "{pet}非常饿！请立即喂食！",
+    storePurchaseTemplate: "{sender}给{pet}买了{item}",
   },
   "zh-TW": {
     defaultTextBody: "新訊息",
@@ -73,6 +94,70 @@ const l10n: Record<string, L10nStrings> = {
     feedBodyTemplate: "{sender} 餵了 {pet}",
     hungerReminderTemplate: "{pet} 有點餓了，記得餵食！",
     hungerUrgentTemplate: "{pet} 非常餓！請立即餵食！",
+    storePurchaseTemplate: "{sender}買了{item}給{pet}",
+  },
+};
+
+const localizedStoreItemNames: Record<string, Record<string, string>> = {
+  en: {
+    background_default: "Default Background",
+    background_test1: "Galaxy Background",
+    furniture_emoji_sofa: "Sofa",
+    furniture_emoji_plant: "Plant",
+    furniture_emoji_frame: "Picture Frame",
+    furniture_emoji_teddy: "Teddy Bear",
+    furniture_emoji_brick: "Bricks",
+    furniture_emoji_tv: "TV",
+    furniture_emoji_bath: "Bath",
+    furniture_emoji_ribbon: "Ribbon",
+  },
+  ja: {
+    background_default: "デフォルト背景",
+    background_test1: "銀河",
+    furniture_emoji_sofa: "ソファ",
+    furniture_emoji_plant: "観葉植物",
+    furniture_emoji_frame: "フォトフレーム",
+    furniture_emoji_teddy: "ぬいぐるみ",
+    furniture_emoji_brick: "レンガ",
+    furniture_emoji_tv: "テレビ",
+    furniture_emoji_bath: "バス",
+    furniture_emoji_ribbon: "リボン",
+  },
+  ko: {
+    background_default: "기본 배경",
+    background_test1: "은하 배경",
+    furniture_emoji_sofa: "소파",
+    furniture_emoji_plant: "식물",
+    furniture_emoji_frame: "액자",
+    furniture_emoji_teddy: "테디베어",
+    furniture_emoji_brick: "벽돌",
+    furniture_emoji_tv: "TV",
+    furniture_emoji_bath: "욕조",
+    furniture_emoji_ribbon: "리본",
+  },
+  zh: {
+    background_default: "默认背景",
+    background_test1: "银河背景",
+    furniture_emoji_sofa: "沙发",
+    furniture_emoji_plant: "盆栽",
+    furniture_emoji_frame: "画框",
+    furniture_emoji_teddy: "泰迪熊",
+    furniture_emoji_brick: "积木墙",
+    furniture_emoji_tv: "电视",
+    furniture_emoji_bath: "浴缸",
+    furniture_emoji_ribbon: "缎带",
+  },
+  "zh-TW": {
+    background_default: "預設背景",
+    background_test1: "銀河背景",
+    furniture_emoji_sofa: "沙發",
+    furniture_emoji_plant: "盆栽",
+    furniture_emoji_frame: "畫框",
+    furniture_emoji_teddy: "泰迪熊",
+    furniture_emoji_brick: "積木牆",
+    furniture_emoji_tv: "電視",
+    furniture_emoji_bath: "浴缸",
+    furniture_emoji_ribbon: "緞帶",
   },
 };
 
@@ -81,12 +166,15 @@ function normalizeLocale(locale: string | null | undefined): string {
   const trimmed = locale.trim();
   if (!trimmed) return "zh-TW";
   if (/^ja([_-].+)?$/i.test(trimmed)) return "ja";
+  if (/^ko([_-].+)?$/i.test(trimmed)) return "ko";
   if (/^en([_-].+)?$/i.test(trimmed)) return "en";
-  if (/^zh([_-].+)?$/i.test(trimmed)) return "zh-TW";
+  if (/^zh[-_](hant|tw|hk)([_-].+)?$/i.test(trimmed)) return "zh-TW";
+  if (/^zh([_-].+)?$/i.test(trimmed)) return "zh";
   const lang = trimmed.split(/[-_]/)[0]?.toLowerCase();
   if (lang === "ja") return "ja";
+  if (lang === "ko") return "ko";
   if (lang === "en") return "en";
-  if (lang === "zh") return "zh-TW";
+  if (lang === "zh") return "zh";
   return "en";
 }
 
@@ -100,7 +188,7 @@ function getL10n(locale: string | null | undefined): L10nStrings {
 }
 
 type NotifyPayload = {
-  type: "feed_event" | "chat_message" | "hunger_alert";
+  type: "feed_event" | "chat_message" | "hunger_alert" | "store_purchase";
   room_id: string;
   sender_id?: string;
   recipient_ids?: string[];
@@ -111,6 +199,15 @@ type NotifyPayload = {
   body?: string | null;
   canonical_tags?: string[];
   created_at?: string | null;
+};
+
+type StorePurchaseMessage = {
+  kind: "store_purchase";
+  user_id?: string;
+  user_name?: string;
+  pet_name?: string;
+  item_sku?: string;
+  item_category?: string;
 };
 
 type TokenTarget = {
@@ -294,6 +391,87 @@ function resolveHungerAlertLevel(
   return null;
 }
 
+function parseStorePurchaseMessage(
+  body: string | null | undefined,
+): StorePurchaseMessage | null {
+  const trimmed = nonEmptyOrNull(body);
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const decoded = JSON.parse(trimmed);
+    if (!decoded || typeof decoded !== "object") {
+      return null;
+    }
+    const message = decoded as Record<string, unknown>;
+    if (message.kind !== "store_purchase") {
+      return null;
+    }
+
+    const userId = nonEmptyOrNull(
+      typeof message.user_id === "string" ? message.user_id : null,
+    );
+    const userName = nonEmptyOrNull(
+      typeof message.user_name === "string" ? message.user_name : null,
+    );
+    const petName = nonEmptyOrNull(
+      typeof message.pet_name === "string" ? message.pet_name : null,
+    );
+    const itemSku = nonEmptyOrNull(
+      typeof message.item_sku === "string" ? message.item_sku : null,
+    );
+    const itemCategory = nonEmptyOrNull(
+      typeof message.item_category === "string" ? message.item_category : null,
+    );
+
+    if (!userId || !userName || !petName || !itemSku || !itemCategory) {
+      return null;
+    }
+
+    return {
+      kind: "store_purchase",
+      user_id: userId,
+      user_name: userName,
+      pet_name: petName,
+      item_sku: itemSku,
+      item_category: itemCategory,
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function localizedStoreItemName(
+  sku: string | null | undefined,
+  locale: string | null | undefined,
+): string {
+  const normalized = normalizeLocale(locale);
+  const fallbackSku = nonEmptyOrNull(sku) ?? "";
+  if (!fallbackSku) {
+    return "";
+  }
+  return localizedStoreItemNames[normalized]?.[fallbackSku] ??
+    localizedStoreItemNames.en[fallbackSku] ??
+    fallbackSku;
+}
+
+function notificationMessageKind(
+  payloadType: NotifyPayload["type"],
+  hungerAlertLevel: 50 | 30 | 10 | null,
+): string {
+  if (payloadType === "chat_message") {
+    return "text";
+  }
+  if (payloadType === "hunger_alert") {
+    return `hunger_alert_${hungerAlertLevel ?? 30}`;
+  }
+  if (payloadType === "store_purchase") {
+    return "store_purchase";
+  }
+  return "image_feed";
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -321,13 +499,14 @@ serve(async (req) => {
   const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   const isHungerAlert = payload.type === "hunger_alert";
+  const isStorePurchase = payload.type === "store_purchase";
   let senderId = payload.sender_id ?? null;
   let recipientIds = Array.isArray(payload.recipient_ids)
     ? payload.recipient_ids.filter((id) => typeof id === "string")
     : [];
 
   if (isWebhookRequest) {
-    if (!isHungerAlert && !senderId) {
+    if (!isHungerAlert && !isStorePurchase && !senderId) {
       return jsonResponse(400, { error: "missing_sender_id" });
     }
 
@@ -336,7 +515,7 @@ serve(async (req) => {
       .select("id, room_id, sender_id, type, body, caption, image_url")
       .eq("id", payload.message_id)
       .eq("room_id", payload.room_id);
-    if (!isHungerAlert && senderId) {
+    if (!isHungerAlert && !isStorePurchase && senderId) {
       messageQuery = messageQuery.eq("sender_id", senderId);
     }
 
@@ -358,6 +537,22 @@ serve(async (req) => {
       if (messageRow.type !== "system") {
         return jsonResponse(403, { error: "message_not_found" });
       }
+      payload.body = messageRow.body;
+      payload.caption = null;
+      payload.image_url = null;
+    } else if (isStorePurchase) {
+      if (messageRow.type !== "system") {
+        return jsonResponse(403, { error: "message_not_owned" });
+      }
+      const parsedPurchase = parseStorePurchaseMessage(messageRow.body);
+      if (!parsedPurchase) {
+        return jsonResponse(400, { error: "invalid_store_purchase_message" });
+      }
+      if (senderId && parsedPurchase.user_id !== senderId) {
+        return jsonResponse(403, { error: "message_not_owned" });
+      }
+      senderId = parsedPurchase.user_id ?? senderId;
+      payload.type = "store_purchase";
       payload.body = messageRow.body;
       payload.caption = null;
       payload.image_url = null;
@@ -465,6 +660,67 @@ serve(async (req) => {
       recipientIds = (memberRows ?? [])
         .map((row) => row.user_id as string | null)
         .filter((id): id is string => !!id);
+    } else if (isStorePurchase) {
+      const { data: membershipRow, error: membershipError } =
+        await supabaseAdmin
+          .from("room_members")
+          .select("room_id")
+          .eq("room_id", payload.room_id)
+          .eq("user_id", senderId)
+          .eq("is_active", true)
+          .maybeSingle();
+      if (membershipError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membershipError.message,
+        });
+      }
+      if (!membershipRow) {
+        return jsonResponse(403, { error: "not_room_member" });
+      }
+
+      const { data: messageRow, error: messageError } = await supabaseAdmin
+        .from("messages")
+        .select("id, room_id, type, body")
+        .eq("id", payload.message_id)
+        .eq("room_id", payload.room_id)
+        .eq("type", "system")
+        .maybeSingle();
+      if (messageError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: messageError.message,
+        });
+      }
+      if (!messageRow) {
+        return jsonResponse(403, { error: "message_not_owned" });
+      }
+
+      const parsedPurchase = parseStorePurchaseMessage(messageRow.body);
+      if (!parsedPurchase || parsedPurchase.user_id !== senderId) {
+        return jsonResponse(403, { error: "message_not_owned" });
+      }
+
+      payload.type = "store_purchase";
+      payload.body = messageRow.body;
+      payload.caption = null;
+      payload.image_url = null;
+
+      const { data: memberRows, error: membersError } = await supabaseAdmin
+        .from("room_members")
+        .select("user_id")
+        .eq("room_id", payload.room_id)
+        .eq("is_active", true);
+      if (membersError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membersError.message,
+        });
+      }
+
+      recipientIds = (memberRows ?? [])
+        .map((row) => row.user_id as string | null)
+        .filter((id): id is string => !!id && id !== senderId);
     } else {
       const { data: messageRow, error: messageError } = await supabaseAdmin
         .from("messages")
@@ -734,6 +990,12 @@ serve(async (req) => {
   if (isHungerAlert && hungerAlertLevel == null) {
     return jsonResponse(400, { error: "invalid_hunger_alert_level" });
   }
+  const storePurchaseMessage = payload.type === "store_purchase"
+    ? parseStorePurchaseMessage(payload.body)
+    : null;
+  if (payload.type === "store_purchase" && !storePurchaseMessage) {
+    return jsonResponse(400, { error: "invalid_store_purchase_message" });
+  }
 
   const projectId = serviceAccount.project_id;
   const fcmEndpoint =
@@ -764,14 +1026,30 @@ serve(async (req) => {
 
     const strings = getL10n(locale);
     const appName = localizedAppName(locale);
-    const resolvedPetName = petName ?? strings.defaultPetName;
-    const resolvedSenderName = senderNameRaw ?? strings.defaultSenderName;
+    const resolvedPetName = nonEmptyOrNull(storePurchaseMessage?.pet_name) ??
+      petName ??
+      strings.defaultPetName;
+    const resolvedSenderName =
+      nonEmptyOrNull(storePurchaseMessage?.user_name) ??
+      senderNameRaw ??
+      strings.defaultSenderName;
     const collapsedPetName = collapseName(resolvedPetName, 7);
     const collapsedPetNameForTitle = collapseName(resolvedPetName, 15);
     const collapsedSenderName = collapseName(resolvedSenderName, 7);
     const titleFull = collapsedPetNameForTitle;
-
-    const textBodyRaw = nonEmptyOrNull(payload.body) ?? strings.defaultTextBody;
+    const storePurchaseItemName = storePurchaseMessage == null
+      ? null
+      : localizedStoreItemName(storePurchaseMessage.item_sku, locale);
+    const storePurchaseBody = storePurchaseMessage == null
+      ? null
+      : fillTemplate(strings.storePurchaseTemplate, {
+        sender: collapsedSenderName,
+        pet: collapsedPetName,
+        item: storePurchaseItemName ?? "",
+      });
+    const textBodyRaw = payload.type === "chat_message"
+      ? (nonEmptyOrNull(payload.body) ?? strings.defaultTextBody)
+      : (storePurchaseBody ?? strings.defaultTextBody);
     const textBody = `${collapsedSenderName}: ${textBodyRaw}`;
     const feedCaption = nonEmptyOrNull(payload.caption);
     const feedBody = fillTemplate(strings.feedBodyTemplate, {
@@ -785,15 +1063,14 @@ serve(async (req) => {
       : fillTemplate(strings.hungerReminderTemplate, {
         pet: collapsedPetNameForTitle,
       });
-
-    const messageType = payload.type === "chat_message"
-      ? "text"
-      : (payload.type === "hunger_alert"
-        ? `hunger_alert_${hungerAlertLevel}`
-        : "image_feed");
+    const messageType = notificationMessageKind(payload.type, hungerAlertLevel);
     const pushBody = payload.type === "chat_message"
       ? textBody
-      : (payload.type === "hunger_alert" ? hungerBody : feedBody);
+      : (payload.type === "hunger_alert"
+        ? hungerBody
+        : (payload.type === "store_purchase"
+          ? (storePurchaseBody ?? strings.defaultTextBody)
+          : feedBody));
     const pushSenderName = payload.type === "hunger_alert"
       ? ""
       : collapsedSenderName;
@@ -817,6 +1094,9 @@ serve(async (req) => {
       title_full: titleFull,
       unread_total: String(unreadTotal),
       type: payload.type,
+      store_purchase_item_sku: storePurchaseMessage?.item_sku ?? "",
+      store_purchase_item_category: storePurchaseMessage?.item_category ?? "",
+      store_purchase_item_name: storePurchaseItemName ?? "",
       click_action: "FLUTTER_NOTIFICATION_CLICK",
     };
 
@@ -920,11 +1200,7 @@ serve(async (req) => {
     platform: result.platform,
     locale: result.locale,
     payload_type: payload.type,
-    message_kind: payload.type === "chat_message"
-      ? "text"
-      : (payload.type === "hunger_alert"
-        ? `hunger_alert_${hungerAlertLevel ?? 30}`
-        : "image_feed"),
+    message_kind: notificationMessageKind(payload.type, hungerAlertLevel),
     success: result.ok,
     http_status: result.status ?? null,
     error_text: result.ok ? null : result.error ?? "unknown_error",

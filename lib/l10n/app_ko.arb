@@ -328,6 +328,28 @@
       "petName": {}
     }
   },
+  "chatBoughtFurnitureMessage": "{user}님이 {petName}를 위해 가구를 샀어요.",
+  "@chatBoughtFurnitureMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtBackgroundMessage": "{user}님이 {petName}를 위해 배경을 샀어요.",
+  "@chatBoughtBackgroundMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtStoreItemMessage": "{user}님이 {petName}에게 {itemName}을 사줬어요.",
+  "@chatBoughtStoreItemMessage": {
+    "placeholders": {
+      "user": {},
+      "itemName": {},
+      "petName": {}
+    }
+  },
   "petNameUnnamed": "이름 없음",
   "petNotFound": "펫을 찾을 수 없습니다.",
   "petSyncFailed": "펫 동기화 오류: {error}",

@@ -200,6 +200,7 @@ extension _StorePurchaseHandler on _StoreViewState {
         if (row != null) {
           final remaining = row['remaining_coins'] as int?;
           final newQuantity = row['new_quantity'] as int?;
+          final messageId = row['message_id'] as String?;
           _setStoreState(() {
             if (remaining != null) {
               _coins = remaining;
@@ -208,6 +209,11 @@ extension _StorePurchaseHandler on _StoreViewState {
               _inventory[item.id] = newQuantity;
             }
           });
+          if (messageId != null && messageId.isNotEmpty) {
+            unawaited(
+              _notifyStorePurchase(roomId: roomId, messageId: messageId),
+            );
+          }
         }
       } else {
         final response = await Supabase.instance.client.rpc(
@@ -330,6 +336,7 @@ extension _StorePurchaseHandler on _StoreViewState {
         if (row != null) {
           final remaining = row['remaining_diamonds'] as int?;
           final newQuantity = row['new_quantity'] as int?;
+          final messageId = row['message_id'] as String?;
           _setStoreState(() {
             if (remaining != null) {
               _diamonds = remaining;
@@ -338,6 +345,11 @@ extension _StorePurchaseHandler on _StoreViewState {
               _inventory[item.id] = newQuantity;
             }
           });
+          if (messageId != null && messageId.isNotEmpty) {
+            unawaited(
+              _notifyStorePurchase(roomId: roomId, messageId: messageId),
+            );
+          }
         }
       } else {
         final response = await Supabase.instance.client.rpc(
@@ -442,6 +454,7 @@ extension _StorePurchaseHandler on _StoreViewState {
     if (row != null) {
       final remaining = row['remaining_coins'] as int?;
       final alreadyOwned = row['already_owned'] as bool? ?? false;
+      final messageId = row['message_id'] as String?;
       _setStoreState(() {
         if (remaining != null) {
           _coins = remaining;
@@ -450,6 +463,9 @@ extension _StorePurchaseHandler on _StoreViewState {
           _roomBackgroundOwned.add(item.id);
         }
       });
+      if (!alreadyOwned && messageId != null && messageId.isNotEmpty) {
+        unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
+      }
     }
     return true;
   }
@@ -482,6 +498,7 @@ extension _StorePurchaseHandler on _StoreViewState {
     if (row != null) {
       final remaining = row['remaining_diamonds'] as int?;
       final alreadyOwned = row['already_owned'] as bool? ?? false;
+      final messageId = row['message_id'] as String?;
       _setStoreState(() {
         if (remaining != null) {
           _diamonds = remaining;
@@ -490,7 +507,36 @@ extension _StorePurchaseHandler on _StoreViewState {
           _roomBackgroundOwned.add(item.id);
         }
       });
+      if (!alreadyOwned && messageId != null && messageId.isNotEmpty) {
+        unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
+      }
     }
     return true;
+  }
+
+  Future<void> _notifyStorePurchase({
+    required String roomId,
+    required String messageId,
+  }) async {
+    try {
+      final accessToken = await ensureValidAccessToken();
+      if (accessToken == null) {
+        return;
+      }
+      final response = await Supabase.instance.client.functions.invoke(
+        'notify_friend',
+        headers: {'Authorization': 'Bearer $accessToken'},
+        body: {
+          'type': 'store_purchase',
+          'room_id': roomId,
+          'message_id': messageId,
+        },
+      );
+      if (response.status < 200 || response.status >= 300) {
+        return;
+      }
+    } catch (_) {
+      // Notification delivery should not block store purchase success.
+    }
   }
 }

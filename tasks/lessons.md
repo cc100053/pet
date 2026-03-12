@@ -57,3 +57,6 @@
 - For sweep-into-composer keyboard dismissal, do not dismiss on first contact with the composer edge. Record the entry point into the composer zone and require additional downward travel from that entry point so reversing direction before the threshold cleanly cancels the dismiss.
 - For keyboard-collapse animation in chat, never let the active bottom inset fall below the route safe-area inset during dismiss. Clamp `viewInsets.bottom` with the safe-area bottom and use one shared helper for both list padding and composer bottom offset to avoid the final downward dip / rebound.
 - For dynamically measured chat composers, do not schedule post-frame height measurement from every build. Measure on real content changes only (text wrap/input growth, reply-preview presence changes, theme/layout-affecting props) or keyboard animation will create top-edge jitter even when bottom inset math is already fixed.
+
+## 2026-03-13
+- Before any mutating Supabase MCP call (`apply_migration`, `execute_sql`, function deploys), verify the current MCP project URL/ref against the repo's intended project (`.env`, known project ref, or explicit user confirmation). If they do not match, stop and resolve the target first.

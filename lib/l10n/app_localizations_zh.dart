@@ -586,6 +586,25 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String chatBoughtFurnitureMessage(Object user, Object petName) {
+    return '$user为$petName买了家具。';
+  }
+
+  @override
+  String chatBoughtBackgroundMessage(Object user, Object petName) {
+    return '$user为$petName买了背景。';
+  }
+
+  @override
+  String chatBoughtStoreItemMessage(
+    Object user,
+    Object itemName,
+    Object petName,
+  ) {
+    return '$user给$petName买了$itemName。';
+  }
+
+  @override
   String get petNameUnnamed => '未命名';
 
   @override
@@ -1917,6 +1936,25 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String chatPetRenamedMessage(Object user, Object oldName, Object petName) {
     return '$user把寵物名字從$oldName改為$petName。';
+  }
+
+  @override
+  String chatBoughtFurnitureMessage(Object user, Object petName) {
+    return '$user為$petName買了家具。';
+  }
+
+  @override
+  String chatBoughtBackgroundMessage(Object user, Object petName) {
+    return '$user為$petName買了背景。';
+  }
+
+  @override
+  String chatBoughtStoreItemMessage(
+    Object user,
+    Object itemName,
+    Object petName,
+  ) {
+    return '$user買了$itemName給$petName。';
   }
 
   @override

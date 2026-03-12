@@ -125,6 +125,7 @@ flutter run
 ## Supabase
 
 ### Setup
+- Repo target Supabase project: `ilxzpszgirhwxpeocygs` (`https://ilxzpszgirhwxpeocygs.supabase.co`)
 - Migrations: `supabase/migrations/` (run in Supabase SQL editor).
 - Seed data: `supabase/seed.sql`.
 - Login (for MCP tooling): `codex mcp login supabase`.
@@ -193,6 +194,7 @@ flutter run
 #### MCP Workflow
 - Auth: `codex mcp login supabase` (one-time)
 - **If MCP tools fail or are unauthenticated**, run `codex mcp login supabase` directly in the terminal so the user can complete the interactive login, then retry the MCP operation.
+- Before any mutating Supabase MCP call (`apply_migration`, `execute_sql`, function deploys), verify the current MCP project URL/ref matches the repo's intended project (`.env`, known project ref, or explicit user confirmation). If they do not match, stop and resolve the target first.
 - Use MCP to explore schema, **execute SQL directly** (not just display it), and run migrations
 - Save migrations to `supabase/migrations/` with timestamp prefix, commit to Git
 

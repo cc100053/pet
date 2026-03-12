@@ -328,6 +328,28 @@
       "petName": {}
     }
   },
+  "chatBoughtFurnitureMessage": "{user} bought furniture for {petName}.",
+  "@chatBoughtFurnitureMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtBackgroundMessage": "{user} bought a background for {petName}.",
+  "@chatBoughtBackgroundMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtStoreItemMessage": "{user} bought {itemName} for {petName}.",
+  "@chatBoughtStoreItemMessage": {
+    "placeholders": {
+      "user": {},
+      "itemName": {},
+      "petName": {}
+    }
+  },
   "petNameUnnamed": "Unnamed",
   "petNotFound": "No pet found.",
   "petSyncFailed": "Pet sync error: {error}",

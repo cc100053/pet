@@ -594,6 +594,25 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String chatBoughtFurnitureMessage(Object user, Object petName) {
+    return '$user님이 $petName를 위해 가구를 샀어요.';
+  }
+
+  @override
+  String chatBoughtBackgroundMessage(Object user, Object petName) {
+    return '$user님이 $petName를 위해 배경을 샀어요.';
+  }
+
+  @override
+  String chatBoughtStoreItemMessage(
+    Object user,
+    Object itemName,
+    Object petName,
+  ) {
+    return '$user님이 $petName에게 $itemName을 사줬어요.';
+  }
+
+  @override
   String get petNameUnnamed => '이름 없음';
 
   @override

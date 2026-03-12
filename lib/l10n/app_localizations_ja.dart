@@ -588,6 +588,25 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String chatBoughtFurnitureMessage(Object user, Object petName) {
+    return '$userが$petNameのために家具を買った。';
+  }
+
+  @override
+  String chatBoughtBackgroundMessage(Object user, Object petName) {
+    return '$userが$petNameのために背景を買った。';
+  }
+
+  @override
+  String chatBoughtStoreItemMessage(
+    Object user,
+    Object itemName,
+    Object petName,
+  ) {
+    return '$userが$petNameに$itemNameを買いました。';
+  }
+
+  @override
   String get petNameUnnamed => '名前なし';
 
   @override

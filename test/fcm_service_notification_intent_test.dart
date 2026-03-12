@@ -38,6 +38,18 @@ void main() {
       expect(intent.messageKind, 'hunger_alert_50');
     });
 
+    test('routes store purchases to pet home', () {
+      final intent = AppNotificationIntent.fromData({
+        'room_id': 'room-1',
+        'message_id': 'msg-store-1',
+        'message_kind': 'store_purchase',
+      });
+
+      expect(intent, isNotNull);
+      expect(intent!.target, NotificationIntentTarget.petHome);
+      expect(intent.messageKind, 'store_purchase');
+    });
+
     test('falls back to legacy message_type', () {
       final intent = AppNotificationIntent.fromData({
         'room_id': 'room-1',

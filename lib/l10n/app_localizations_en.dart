@@ -606,6 +606,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chatBoughtFurnitureMessage(Object user, Object petName) {
+    return '$user bought furniture for $petName.';
+  }
+
+  @override
+  String chatBoughtBackgroundMessage(Object user, Object petName) {
+    return '$user bought a background for $petName.';
+  }
+
+  @override
+  String chatBoughtStoreItemMessage(
+    Object user,
+    Object itemName,
+    Object petName,
+  ) {
+    return '$user bought $itemName for $petName.';
+  }
+
+  @override
   String get petNameUnnamed => 'Unnamed';
 
   @override

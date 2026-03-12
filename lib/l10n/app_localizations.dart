@@ -1135,6 +1135,28 @@ abstract class AppLocalizations {
   /// **'{user} renamed the pet from {oldName} to {petName}.'**
   String chatPetRenamedMessage(Object user, Object oldName, Object petName);
 
+  /// No description provided for @chatBoughtFurnitureMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{user} bought furniture for {petName}.'**
+  String chatBoughtFurnitureMessage(Object user, Object petName);
+
+  /// No description provided for @chatBoughtBackgroundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{user} bought a background for {petName}.'**
+  String chatBoughtBackgroundMessage(Object user, Object petName);
+
+  /// No description provided for @chatBoughtStoreItemMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{user} bought {itemName} for {petName}.'**
+  String chatBoughtStoreItemMessage(
+    Object user,
+    Object itemName,
+    Object petName,
+  );
+
   /// No description provided for @petNameUnnamed.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../ads/admob_banner_slot.dart';
 import '../../services/analytics/analytics_service.dart';
+import '../../services/auth/session_utils.dart';
 import '../../services/env.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/iap/revenuecat_service.dart';

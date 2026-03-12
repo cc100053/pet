@@ -328,6 +328,28 @@
       "petName": {}
     }
   },
+  "chatBoughtFurnitureMessage": "{user}が{petName}のために家具を買った。",
+  "@chatBoughtFurnitureMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtBackgroundMessage": "{user}が{petName}のために背景を買った。",
+  "@chatBoughtBackgroundMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtStoreItemMessage": "{user}が{petName}に{itemName}を買いました。",
+  "@chatBoughtStoreItemMessage": {
+    "placeholders": {
+      "user": {},
+      "itemName": {},
+      "petName": {}
+    }
+  },
   "petNameUnnamed": "名前なし",
   "petNotFound": "ペットが見つかりません。",
   "petSyncFailed": "ペット同期エラー: {error}",

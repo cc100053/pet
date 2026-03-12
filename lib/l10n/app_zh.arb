@@ -328,6 +328,28 @@
       "petName": {}
     }
   },
+  "chatBoughtFurnitureMessage": "{user}为{petName}买了家具。",
+  "@chatBoughtFurnitureMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtBackgroundMessage": "{user}为{petName}买了背景。",
+  "@chatBoughtBackgroundMessage": {
+    "placeholders": {
+      "user": {},
+      "petName": {}
+    }
+  },
+  "chatBoughtStoreItemMessage": "{user}给{petName}买了{itemName}。",
+  "@chatBoughtStoreItemMessage": {
+    "placeholders": {
+      "user": {},
+      "itemName": {},
+      "petName": {}
+    }
+  },
   "petNameUnnamed": "未命名",
   "petNotFound": "找不到宠物。",
   "petSyncFailed": "宠物同步错误：{error}",
