@@ -181,6 +181,7 @@
   "photoViewerReplyActionTitle": "写真に返信",
   "photoViewerReplySendAction": "送信",
   "photoViewerReplySent": "返信を送信しました。",
+  "photoViewerReplySentState": "送信済み",
   "photoViewerSavedToGallery": "フォトライブラリに保存しました。",
   "photoViewerSaveFailed": "フォトライブラリへの保存に失敗しました。",
   "commonSend": "送信",

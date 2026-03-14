@@ -294,6 +294,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get photoViewerReplySent => '已发送回复。';
 
   @override
+  String get photoViewerReplySentState => '已发送';
+
+  @override
   String get photoViewerSavedToGallery => '已保存到你的相簿。';
 
   @override
@@ -1657,6 +1660,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get photoViewerReplySent => '已傳送回覆。';
+
+  @override
+  String get photoViewerReplySentState => '已傳送';
 
   @override
   String get photoViewerSavedToGallery => '已儲存到你的相簿。';

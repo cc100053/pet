@@ -99,8 +99,10 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   bool _isCurrentPageZoomed = false;
   bool _savingToGallery = false;
   bool _showDownloadedIcon = false;
+  bool _showReplySentState = false;
   final Map<String, String?> _selectedReactionByMessageId = <String, String?>{};
   Timer? _downloadedIconTimer;
+  Timer? _replySentTimer;
 
   @override
   void initState() {
@@ -119,6 +121,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   @override
   void dispose() {
     _downloadedIconTimer?.cancel();
+    _replySentTimer?.cancel();
     _pageController.dispose();
     for (final subscription in _photoControllerSubscriptions.values) {
       subscription.cancel();
@@ -398,9 +401,14 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
                   return;
                 }
                 navigator.pop();
-                messenger.showSnackBar(
-                  SnackBar(content: Text(l10n.photoViewerReplySent)),
-                );
+                _replySentTimer?.cancel();
+                setState(() => _showReplySentState = true);
+                _replySentTimer = Timer(const Duration(seconds: 1), () {
+                  if (!mounted) {
+                    return;
+                  }
+                  setState(() => _showReplySentState = false);
+                });
               } catch (error) {
                 if (!mounted) {
                   return;
@@ -704,8 +712,10 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
                   emojiEnabled:
                       _currentItem.canChatInteract &&
                       widget.onToggleReaction != null,
+                  showReplySentState: _showReplySentState,
                   selectedReactionEmoji: _currentReactionEmoji,
                   replyLabel: l10n.chatReplyAction,
+                  replySentLabel: l10n.photoViewerReplySentState,
                   emojiLabel: l10n.photoViewerEmojiAction,
                   onReply: _currentItem.canChatInteract
                       ? _openReplyComposer
@@ -921,8 +931,10 @@ class _ViewerActionRow extends StatelessWidget {
   const _ViewerActionRow({
     required this.replyEnabled,
     required this.emojiEnabled,
+    required this.showReplySentState,
     required this.selectedReactionEmoji,
     required this.replyLabel,
+    required this.replySentLabel,
     required this.emojiLabel,
     required this.onReply,
     required this.onEmoji,
@@ -930,8 +942,10 @@ class _ViewerActionRow extends StatelessWidget {
 
   final bool replyEnabled;
   final bool emojiEnabled;
+  final bool showReplySentState;
   final String? selectedReactionEmoji;
   final String replyLabel;
+  final String replySentLabel;
   final String emojiLabel;
   final VoidCallback? onReply;
   final VoidCallback? onEmoji;
@@ -943,9 +957,9 @@ class _ViewerActionRow extends StatelessWidget {
         _ViewerActionButton(
           key: const ValueKey<String>('photo-viewer-reply-button'),
           enabled: replyEnabled,
-          label: replyLabel,
-          icon: Icons.reply_rounded,
-          onTap: onReply,
+          label: showReplySentState ? replySentLabel : replyLabel,
+          icon: showReplySentState ? Icons.check_rounded : Icons.reply_rounded,
+          onTap: showReplySentState ? null : onReply,
         ),
         const Spacer(),
         _ViewerActionButton(
@@ -1125,8 +1139,6 @@ class _ReplyComposerSheet extends StatelessWidget {
                 controller: controller,
                 minLines: 1,
                 maxLines: 4,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => onSend(),
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: l10n.chatMessageHint,

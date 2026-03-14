@@ -12,6 +12,7 @@
   - Added `lib/services/chat/chat_message_action_service.dart` plus shared `kChatQuickReactionOptions`, so fullscreen viewer and `ChatRoomViewV2` now use the same reply-message insert / reaction-toggle path instead of duplicating Supabase write logic.
   - Extended `PhotoViewerItem` and `FullScreenPhotoViewer` with chat linkage (`roomId`, `messageId`, selected reaction, reply/reaction callbacks) and added in-viewer bottom-corner `Reply` / `Emoji` controls, a reply composer sheet, and disabled-state handling for local-only unsynced photos.
   - Plumbed `message_id` through Pet Home latest-feed data (`latest_photo_message_ids` in room snapshots plus optimistic/realtime reconciliation), so expanded gallery photos can target the correct chat message when replying/reacting.
+  - Follow-up UX adjustment: reply composer now keeps the default keyboard newline action, and successful sends switch the `Reply` button to a temporary inline `Sent` state instead of showing a bottom snackbar.
 - Tests:
   - Added `test/services/chat/chat_message_action_service_test.dart`.
   - Expanded `test/full_screen_photo_viewer_test.dart`.

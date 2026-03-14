@@ -181,6 +181,7 @@
   "photoViewerReplyActionTitle": "回复这张照片",
   "photoViewerReplySendAction": "发送",
   "photoViewerReplySent": "已发送回复。",
+  "photoViewerReplySentState": "已发送",
   "photoViewerSavedToGallery": "已保存到你的相簿。",
   "photoViewerSaveFailed": "无法保存到你的相簿。",
   "commonSend": "送出",

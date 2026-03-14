@@ -296,6 +296,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get photoViewerReplySent => '返信を送信しました。';
 
   @override
+  String get photoViewerReplySentState => '送信済み';
+
+  @override
   String get photoViewerSavedToGallery => 'フォトライブラリに保存しました。';
 
   @override

@@ -60,3 +60,7 @@
 
 ## 2026-03-13
 - Before any mutating Supabase MCP call (`apply_migration`, `execute_sql`, function deploys), verify the current MCP project URL/ref against the repo's intended project (`.env`, known project ref, or explicit user confirmation). If they do not match, stop and resolve the target first.
+
+## 2026-03-15
+- For reply composers and other multi-line text inputs, keep the platform-default keyboard action (`newline`) unless the user explicitly asks for a custom IME action; do not override it to `send`.
+- When a user asks to reduce success-toast intrusion inside media viewers, prefer inline control-level success feedback (for example a temporary `Sent` state on the initiating button) over bottom snackbars.

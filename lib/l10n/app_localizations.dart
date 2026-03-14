@@ -595,6 +595,12 @@ abstract class AppLocalizations {
   /// **'Reply sent.'**
   String get photoViewerReplySent;
 
+  /// No description provided for @photoViewerReplySentState.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get photoViewerReplySentState;
+
   /// No description provided for @photoViewerSavedToGallery.
   ///
   /// In en, this message translates to:

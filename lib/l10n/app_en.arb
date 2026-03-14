@@ -181,6 +181,7 @@
   "photoViewerReplyActionTitle": "Reply to photo",
   "photoViewerReplySendAction": "Send",
   "photoViewerReplySent": "Reply sent.",
+  "photoViewerReplySentState": "Sent",
   "photoViewerSavedToGallery": "Saved to your photo gallery.",
   "photoViewerSaveFailed": "Couldn't save photo to your gallery.",
   "commonSend": "Send",

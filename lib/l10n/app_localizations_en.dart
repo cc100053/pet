@@ -306,6 +306,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get photoViewerReplySent => 'Reply sent.';
 
   @override
+  String get photoViewerReplySentState => 'Sent';
+
+  @override
   String get photoViewerSavedToGallery => 'Saved to your photo gallery.';
 
   @override

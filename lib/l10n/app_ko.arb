@@ -181,6 +181,7 @@
   "photoViewerReplyActionTitle": "사진에 답장",
   "photoViewerReplySendAction": "전송",
   "photoViewerReplySent": "답장을 보냈어요.",
+  "photoViewerReplySentState": "보냄",
   "photoViewerSavedToGallery": "사진이 갤러리에 저장되었어요.",
   "photoViewerSaveFailed": "사진을 갤러리에 저장하지 못했어요.",
   "commonSend": "보내기",

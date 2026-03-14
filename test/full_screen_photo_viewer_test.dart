@@ -191,6 +191,10 @@ void main() {
       find.byKey(const ValueKey<String>('photo-viewer-reply-text-field')),
       findsOneWidget,
     );
+    final replyField = tester.widget<TextField>(
+      find.byKey(const ValueKey<String>('photo-viewer-reply-text-field')),
+    );
+    expect(replyField.textInputAction, isNull);
     await tester.enterText(
       find.byKey(const ValueKey<String>('photo-viewer-reply-text-field')),
       'Quick reply',
@@ -202,6 +206,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
 
     expect(repliedText, 'Quick reply');
+    expect(find.text('Sent'), findsOneWidget);
   });
 
   testWidgets('opens emoji picker and forwards selected emoji', (tester) async {
