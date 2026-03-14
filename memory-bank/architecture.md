@@ -4,47 +4,11 @@
 - `memory-bank/game-design-document.md`: GDD master plan and requirements.
 - `memory-bank/tech-stack.md`: Technology stack choices and key packages.
 - `memory-bank/implementation-plan.md`: Phased delivery plan and milestones.
-- `memory-bank/database-schema.md`: Draft schema + RLS policy notes for Supabase.
+- `memory-bank/database-schema.md`: Database tables, RLS policies, and RPC signatures.
 - `memory-bank/label-mapping.md`: Seed dictionary for ML Kit label mapping and quests.
-- `memory-bank/progress.md`: Running log of completed steps.
-- `supabase/migrations/20260101000000_init_schema.sql`: Initial database schema, RLS policies, and RPCs.
-- `supabase/migrations/20260101001000_add_leave_room_rpc.sql`: Leave-room RPC with ownership handoff.
-- `supabase/migrations/20260101002000_add_regenerate_invite_code_rpc.sql`: Owner-only invite code refresh.
-- `supabase/migrations/20260101003000_add_award_quest_reward_rpc.sql`: Daily quest bonus RPC.
-- `supabase/migrations/20260101004000_fix_room_members_rls.sql`: RLS recursion fix via helper.
-- `supabase/migrations/20260101005000_fix_create_room_rpc.sql`: Create-room invite code fix.
-- `supabase/migrations/20260101006000_pet_state_machine.sql`: Pet state machine updates and backfill.
-- `supabase/migrations/20260101007000_add_device_tokens.sql`: Device token storage for FCM.
-- `supabase/migrations/20260101008000_device_tokens_single_device.sql`: Enforce single-device token per user.
-- `supabase/migrations/20260213143000_allow_multi_device_tokens.sql`: Remove per-user token uniqueness to allow concurrent push tokens across multiple devices.
-- `supabase/migrations/20260211100000_notification_payload_upgrade.sql`: Add `pets.avatar_url`, `device_tokens.device_locale`, and pet-avatar backfill for push payload shaping.
-- `supabase/migrations/20260214223500_add_notification_delivery_logs.sql`: Add push delivery log table for per-token send diagnostics.
-- `supabase/migrations/20260216233000_rebalance_mood_decay_and_feed_gain.sql`: Remove `low` mood tier, retune hunger decay (`mid=3`, `sad=4`), and change feed gain to `+20` once per 10-minute burst.
-- `supabase/migrations/20260217000000_add_pet_hunger_alerts.sql`: Add one-time hunger alert state (`30/10`), emit hunger system messages on threshold crossings, and reset alert flags when hunger recovers above thresholds.
-- `supabase/migrations/20260221103000_add_hunger_alert_50.sql`: Extend hunger alert pipeline with `50` threshold state/message metadata and reset logic so alerts fire once per recovery cycle for `50/30/10`.
-- `supabase/migrations/20260217113000_add_unread_tracking_and_badge_rpc.sql`: Add `room_members.last_read_at`, create `mark_room_read` RPC, and add unread-total RPC used for APNs app-icon badge counts.
-- `supabase/migrations/20260217143000_add_unread_counts_per_room_rpc.sql`: Add `get_unread_message_counts_for_user` RPC so clients can restore per-room unread badges from server state after app relaunch.
-- `supabase/migrations/20260223123000_secure_unread_rpc_user_scope.sql`: Restrict unread RPCs so authenticated callers can query only their own unread state.
-- `supabase/migrations/20260223150000_align_unread_rpc_with_block_visibility.sql`: Align unread RPC sender filtering with block-enforced message visibility so badges do not count hidden messages.
-- `supabase/migrations/20260225015727_enable_pg_cron_pg_net_for_hunger_tick_dispatch.sql`: Enable `pg_cron` + `pg_net` for server-driven hunger dispatch scheduling.
-- `supabase/migrations/20260225015942_add_get_hunger_tick_secret_rpc.sql`: Add vault-backed RPC to fetch scheduler auth secret.
-- `supabase/migrations/20260225020133_add_tick_pet_state_as_system_rpc.sql`: Add service-role tick wrapper to run `tick_pet_state` without end-user session context.
-- `supabase/migrations/20260225020844_add_hunger_tick_dispatch_cron_schedule.sql`: Create/refresh `hunger_tick_dispatch_every_10m` cron job and seed vault secret if missing.
-- `supabase/migrations/20260225023510_add_pet_hunger_tick_schedule_and_20m_cron.sql`: Add due-time hunger tick schedule table/triggers/functions and switch scheduler to `hunger_tick_dispatch_every_20m` (`*/20`).
-- `supabase/migrations/20260225024022_add_pet_hunger_tick_schedule_room_id_index.sql`: Add `pet_hunger_tick_schedule.room_id` index to cover FK checks and room-scoped queries.
-- `supabase/migrations/20260305231000_add_multi_invite_codes_and_member_generation.sql`: Add room-scoped multi invite-code storage (`room_invite_codes`), member-capable invite-code generation/list/revoke RPCs, and backward-compatible updates to `create_room`, `regenerate_invite_code`, and `join_room_by_code`.
-- `supabase/migrations/20260308110504_add_message_reply_support.sql`: Add nullable `messages.reply_to_message_id` self-reference + index so chat can persist quoted replies without breaking older clients.
-- `supabase/migrations/20260217100000_room_scoped_furniture_inventory.sql`: Add room-scoped furniture inventory + purchase RPCs and enforce room-scoped quantity checks in furniture placement.
-- `supabase/migrations/20260218113000_harden_join_room_membership_ordering.sql`: Preserve original `room_members.joined_at` on invite rejoin reactivation to prevent lock-order manipulation.
-- `supabase/migrations/20260218170000_sync_room_timezone_on_owner_transfer.sql`: Sync `rooms.timezone` to the promoted owner's profile timezone when room ownership transfers.
-- `supabase/migrations/20260127090000_add_pet_exp_and_leveling.sql`: Add pet EXP and feed-based leveling in reward RPC.
-- `supabase/functions/feed_validate/index.ts`: Feed validation edge function.
-- `supabase/functions/notify_friend/index.ts`: Partner notification webhook (FCM sender).
-- `supabase/functions/hunger_tick_dispatch/index.ts`: Server-side pet ticker + hunger-alert push dispatcher for closed-app delivery.
-- `supabase/seed.sql`: Seed data for label mappings and quests.
-- `docs/crash_reporting.md`: Crash reporting validation + alerting runbook.
-- `docs/onboarding_basic_tutorial_spec.md`: Lightweight first-login onboarding spec draft (create pet, open room, invite friend, feed); current shipped flow has Step 2 (open room onboarding) removed.
-- `ios/scripts/upload_crashlytics_symbols.sh`: iOS release dSYM upload script for Crashlytics symbolication.
+- `memory-bank/progress.md`: Running log of recent completed steps (see `archive/` for history).
+- `supabase/migrations/`: Database schema, policies, and RPC definitions (Note for AI agents: use directory listing tools like `list_directory` or `ls` to view individual migration files as needed; they are not listed here to save tokens).
+- `supabase/functions/`: Edge Functions for feed, notifications, and account management.
 - `.github/workflows/ci.yml`: Flutter analyze/test workflow.
 
 ## App Modules (Phase 0)

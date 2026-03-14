@@ -190,6 +190,7 @@ flutter run
 > **MCP-First**: Always use Supabase MCP tools for schema/function/policy changes.
 > **Execute immediately** — do NOT just write or display SQL; apply it directly via MCP tools (`execute_sql` / `apply_migration`).
 > Never ask user to open dashboard or run SQL manually.
+> **Current-state rule**: When tracing a DB behavior implemented through migrations/RPCs, never infer the live rule from the first/oldest matching migration. Identify the latest migration actually applied on the target project that rewrites the relevant function/object, and cross-check with the current schema/memory docs before proposing or applying a change.
 
 #### MCP Workflow
 - Auth: `codex mcp login supabase` (one-time)

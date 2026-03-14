@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-03-15 Feed Hunger Gain 25)
+- [x] Trace the authoritative feed hunger rule and update the current server-side `apply_pet_action` implementation from +20 to +25.
+- [x] Update repo notes to reflect the new feed gain.
+- [x] Apply the migration to the target Supabase project and run required verification (`flutter analyze`, `flutter test`).
+
+# Review (2026-03-15 Feed Hunger Gain 25)
+- [x] Implemented and verified.
+- Root change:
+  - Added `supabase/migrations/20260315013405_increase_feed_hunger_gain_to_25.sql` and applied it via `mcp__supabase-pet__apply_migration`, so the authoritative `public.apply_pet_action(...)` rule now restores `+25` hunger for a successful feed instead of `+20`.
+  - Kept the existing one-successful-feed-per-10-minute burst rule, overfed handling, poop counter behavior, and mood-boost timing unchanged.
+  - Updated `memory-bank/database-schema.md` and `memory-bank/progress.md` to reflect the new server-side feed gain.
+- Verification:
+  - Supabase MCP `apply_migration` on project `ilxzpszgirhwxpeocygs`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-15 Fullscreen Photo Viewer Reply + Emoji)
 - [x] Extract shared chat message actions for text replies and emoji reactions so both chat and fullscreen viewer use the same mutation path.
 - [x] Extend fullscreen photo viewer context/data flow with room/message linkage and Pet Home gallery message-id plumbing, including optimistic/latest-feed reconciliation.

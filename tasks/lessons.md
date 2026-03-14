@@ -64,3 +64,4 @@
 ## 2026-03-15
 - For reply composers and other multi-line text inputs, keep the platform-default keyboard action (`newline`) unless the user explicitly asks for a custom IME action; do not override it to `send`.
 - When a user asks to reduce success-toast intrusion inside media viewers, prefer inline control-level success feedback (for example a temporary `Sent` state on the initiating button) over bottom snackbars.
+- For Supabase RPC/schema tracing, do not infer the live behavior from the first matching migration found by `rg`; first identify the latest applied migration that rewrites the relevant function/object on the target project, then confirm against current schema/memory notes before stating the rule.

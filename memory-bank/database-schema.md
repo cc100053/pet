@@ -355,7 +355,7 @@ for select using (auth.role() = 'authenticated');
 - `revoke_room_invite_code(p_room_id uuid, p_code text)` -> owner can revoke any code; members can revoke own code.
 - `leave_room(room_id uuid)` -> sets membership inactive and triggers owner transfer if needed.
 - `regenerate_invite_code(room_id uuid)` -> owner-only helper delegating to multi-code creation path (legacy API compatibility).
-- `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters; feed currently grants +20 hunger and only one successful feed is allowed per 10-minute burst (later feeds trigger overfed state).
+- `apply_pet_action(pet_id uuid, action_type text)` -> updates pet_state, mood boosts, cooldowns, and poop counters; feed currently grants +25 hunger and only one successful feed is allowed per 10-minute burst (later feeds trigger overfed state).
 - `claim_action_reward(action_type text, room_id uuid)` -> checks `action_cooldowns`, updates coins + ledger; when `action_type='feed'` and the reward is granted, grants pet EXP (+10), levels up with carry (`50 * current_level`), and caps at level 999.
 - `purchase_item_with_coins(item_id uuid, quantity int)` -> spends coins, updates inventories, and inserts a ledger entry.
 - `purchase_item_with_diamonds(item_id uuid, quantity int)` -> spends diamonds; if `metadata.coin_amount` is set, exchanges diamonds for coins.
