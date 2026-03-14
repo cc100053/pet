@@ -11,6 +11,7 @@ void main() {
           caption: 'caption $i',
           senderId: 'sender-$i',
           sentAt: DateTime.utc(2026, 3, 12, 0, i),
+          messageId: 'message-$i',
         );
       }
 
@@ -19,10 +20,12 @@ void main() {
         caption: 'latest',
         senderId: 'sender-latest',
         sentAt: DateTime.utc(2026, 3, 12, 1),
+        messageId: 'message-latest',
       );
 
       expect(next.imageUrls, hasLength(kPetHomeGalleryMaxPhotos));
       expect(next.imageUrls.first, 'https://example.com/latest.jpg');
+      expect(next.messageIds.first, 'message-latest');
       expect(next.imageUrls, isNot(contains('https://example.com/0.jpg')));
     });
 
@@ -41,12 +44,14 @@ void main() {
             caption: 'Older',
             senderId: 'user-2',
             sentAt: DateTime.utc(2026, 3, 11, 12),
+            messageId: 'message-older',
           )
           .prependEntry(
             imageUrl: pending.localImagePath,
             caption: pending.caption,
             senderId: pending.senderId,
             sentAt: pending.clientCreatedAt,
+            messageId: null,
           );
 
       final reconciled = existing.reconcilePendingRealtime(
@@ -72,6 +77,7 @@ void main() {
         reconciled.data.imageUrls,
         isNot(contains(pending.localImagePath)),
       );
+      expect(reconciled.data.messageIds.first, 'message-1');
     });
 
     test('stores 10 gallery items in room snapshots', () {
@@ -94,6 +100,10 @@ void main() {
           12,
           (index) => DateTime.utc(2026, 3, 12, 0, index).toIso8601String(),
         ),
+        'latest_photo_message_ids': List<String?>.generate(
+          12,
+          (index) => 'message-$index',
+        ),
         'latest_caption': 'caption 0',
         'latest_sender_id': 'sender-0',
       };
@@ -102,7 +112,12 @@ void main() {
       final applied = data.applyToRoomSnapshot(snapshot);
 
       expect(data.imageUrls, hasLength(kPetHomeGalleryMaxPhotos));
+      expect(data.messageIds.first, 'message-0');
       expect(applied['latest_photos'], hasLength(kPetHomeGalleryMaxPhotos));
+      expect(
+        applied['latest_photo_message_ids'],
+        hasLength(kPetHomeGalleryMaxPhotos),
+      );
       expect(applied['latest_photo'], 'https://example.com/0.jpg');
     });
   });

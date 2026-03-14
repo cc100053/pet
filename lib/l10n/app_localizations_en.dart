@@ -294,6 +294,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get photoViewerDownloadTooltip => 'Download';
 
   @override
+  String get photoViewerEmojiAction => 'Emoji';
+
+  @override
+  String get photoViewerReplyActionTitle => 'Reply to photo';
+
+  @override
+  String get photoViewerReplySendAction => 'Send';
+
+  @override
+  String get photoViewerReplySent => 'Reply sent.';
+
+  @override
   String get photoViewerSavedToGallery => 'Saved to your photo gallery.';
 
   @override

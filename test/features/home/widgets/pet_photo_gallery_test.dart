@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/home/widgets/pet_photo_gallery.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +16,10 @@ void main() {
   }
 
   Widget buildGallery({
+    String? roomId = 'room-1',
     required List<String> imageUrls,
     required List<String?> captions,
+    List<String?>? messageIds,
     int jumpToLatestEventId = 0,
     double width = 360,
   }) {
@@ -28,12 +31,19 @@ void main() {
           child: SizedBox(
             width: width,
             child: PetPhotoGallery(
+              roomId: roomId,
               imageUrls: imageUrls,
               captions: captions,
               sentAts: List<DateTime?>.generate(
                 imageUrls.length,
                 (index) => DateTime.utc(2026, 3, 12, 0, index),
               ),
+              messageIds:
+                  messageIds ??
+                  List<String?>.generate(
+                    imageUrls.length,
+                    (index) => 'message-$index',
+                  ),
               isRefreshing: false,
               jumpToLatestEventId: jumpToLatestEventId,
               senderAvatars: List<String?>.filled(imageUrls.length, null),
@@ -145,5 +155,63 @@ void main() {
     final captionRect = tester.getRect(find.text(longCaption));
     final itemRect = tester.getRect(galleryItem(0));
     expect(itemRect.bottom - captionRect.bottom, greaterThan(6));
+  });
+
+  testWidgets('passes room and message linkage into fullscreen viewer', (
+    WidgetTester tester,
+  ) async {
+    final imageUrls = createImageUrls(2);
+
+    await tester.pumpWidget(
+      buildGallery(
+        roomId: 'room-42',
+        imageUrls: imageUrls,
+        captions: const <String?>['caption 0', 'caption 1'],
+        messageIds: const <String?>['message-0', 'message-1'],
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(galleryItem(0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    final viewer = tester.widget<FullScreenPhotoViewer>(
+      find.byType(FullScreenPhotoViewer),
+    );
+    expect(viewer.items.first.roomId, 'room-42');
+    expect(viewer.items.first.messageId, 'message-0');
+  });
+
+  testWidgets('fullscreen viewer disables actions for unsynced local photos', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      buildGallery(
+        imageUrls: const <String>['/tmp/photo.jpg'],
+        captions: const <String?>['caption 0'],
+        messageIds: const <String?>[null],
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(galleryItem(0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    final replyButton = tester.widget<InkWell>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('photo-viewer-reply-button')),
+        matching: find.byType(InkWell),
+      ),
+    );
+    final emojiButton = tester.widget<InkWell>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('photo-viewer-emoji-button')),
+        matching: find.byType(InkWell),
+      ),
+    );
+    expect(replyButton.onTap, isNull);
+    expect(emojiButton.onTap, isNull);
   });
 }

@@ -6,6 +6,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     captions: List<String?>.from(_latestFeedCaptions),
     senderIds: List<String?>.from(_latestFeedSenderIds),
     sentAts: List<DateTime?>.from(_latestFeedSentAts),
+    messageIds: List<String?>.from(_latestFeedMessageIds),
   );
 
   void _applyLatestFeedData(PetHomeGalleryFeedData data) {
@@ -14,6 +15,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     _latestFeedCaptions = data.captions;
     _latestFeedSenderIds = data.senderIds;
     _latestFeedSentAts = data.sentAts;
+    _latestFeedMessageIds = data.messageIds;
     _latestFeedSenderId = data.latestSenderId;
     _latestFeedCaption = data.latestCaption;
   }
@@ -42,6 +44,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         caption: row['caption'] as String?,
         senderId: row['sender_id'] as String?,
         sentAt: _parseOptionalDate(row['created_at']),
+        messageId: row['id'] as String?,
       );
     }
     return data;
@@ -85,7 +88,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     try {
       final rows = await Supabase.instance.client
           .from('messages')
-          .select('image_url, caption, sender_id, created_at')
+          .select('id, image_url, caption, sender_id, created_at')
           .eq('room_id', roomId)
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)
@@ -200,6 +203,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _latestFeedOptimisticPrevSentAts = List<DateTime?>.from(
         _latestFeedSentAts,
       );
+      _latestFeedOptimisticPrevMessageIds = List<String?>.from(
+        _latestFeedMessageIds,
+      );
       _latestFeedOptimisticPrevSenderId = _latestFeedSenderId;
       _latestFeedOptimisticPrevCaption = _latestFeedCaption;
       final latestFeed = _currentLatestFeedData().prependEntry(
@@ -207,6 +213,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         caption: entry.caption,
         senderId: entry.senderId,
         sentAt: entry.clientCreatedAt,
+        messageId: null,
       );
       _applyLatestFeedData(latestFeed);
     });
@@ -243,6 +250,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
               caption: pending.caption,
               senderId: pending.senderId,
               sentAt: pending.clientCreatedAt,
+              messageId: acknowledged.messageId,
               prependIfMissing: true,
             );
         _updateRoomLatestFeedSnapshot(currentRoomId, nextRoomData);
@@ -253,6 +261,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
             caption: pending.caption,
             senderId: pending.senderId,
             sentAt: pending.clientCreatedAt,
+            messageId: acknowledged.messageId,
             prependIfMissing: true,
           );
           _applyLatestFeedData(nextActiveData);
@@ -272,6 +281,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _latestFeedOptimisticPrevCaptions = null;
       _latestFeedOptimisticPrevSenderIds = null;
       _latestFeedOptimisticPrevSentAts = null;
+      _latestFeedOptimisticPrevMessageIds = null;
       _latestFeedOptimisticPrevSenderId = null;
       _latestFeedOptimisticPrevCaption = null;
     }
@@ -515,6 +525,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
           _latestFeedSentAts = _latestFeedOptimisticPrevSentAts == null
               ? <DateTime?>[]
               : List<DateTime?>.from(_latestFeedOptimisticPrevSentAts!);
+          _latestFeedMessageIds = _latestFeedOptimisticPrevMessageIds == null
+              ? <String?>[]
+              : List<String?>.from(_latestFeedOptimisticPrevMessageIds!);
           _latestFeedSenderId = _latestFeedOptimisticPrevSenderId;
           _latestFeedCaption = _latestFeedOptimisticPrevCaption;
         }
@@ -525,6 +538,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         _latestFeedOptimisticPrevCaptions = null;
         _latestFeedOptimisticPrevSenderIds = null;
         _latestFeedOptimisticPrevSentAts = null;
+        _latestFeedOptimisticPrevMessageIds = null;
         _latestFeedOptimisticPrevSenderId = null;
         _latestFeedOptimisticPrevCaption = null;
       });
@@ -560,7 +574,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     try {
       final rows = await Supabase.instance.client
           .from('messages')
-          .select('sender_id,image_url,caption,created_at')
+          .select('id,sender_id,image_url,caption,created_at')
           .eq('room_id', roomId)
           .eq('type', 'image_feed')
           .not('image_url', 'is', null)

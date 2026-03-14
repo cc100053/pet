@@ -284,6 +284,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get photoViewerDownloadTooltip => 'ダウンロード';
 
   @override
+  String get photoViewerEmojiAction => '絵文字';
+
+  @override
+  String get photoViewerReplyActionTitle => '写真に返信';
+
+  @override
+  String get photoViewerReplySendAction => '送信';
+
+  @override
+  String get photoViewerReplySent => '返信を送信しました。';
+
+  @override
   String get photoViewerSavedToGallery => 'フォトライブラリに保存しました。';
 
   @override

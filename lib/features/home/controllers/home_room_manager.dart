@@ -88,6 +88,7 @@ extension _HomeRoomManager on _HomeViewState {
               room['latest_photos'] = latest.imageUrls;
               room['latest_photo_captions'] = latest.imageCaptions;
               room['latest_photo_sender_ids'] = latest.imageSenderIds;
+              room['latest_photo_message_ids'] = latest.imageMessageIds;
               room['latest_photo_created_ats'] = latest.imageSentAts
                   .map((entry) => entry?.toUtc().toIso8601String())
                   .toList(growable: false);
@@ -770,7 +771,7 @@ extension _HomeRoomManager on _HomeViewState {
     }
     final rows = await Supabase.instance.client
         .from('messages')
-        .select('room_id, image_url, caption, sender_id, created_at')
+        .select('id, room_id, image_url, caption, sender_id, created_at')
         .inFilter('room_id', roomIds)
         .eq('type', 'image_feed')
         .not('image_url', 'is', null)
@@ -795,6 +796,7 @@ extension _HomeRoomManager on _HomeViewState {
           imageCaptions: [row['caption'] as String?],
           imageSenderIds: [row['sender_id'] as String?],
           imageSentAts: [_parseLatestFeedCreatedAt(row['created_at'])],
+          imageMessageIds: [row['id'] as String?],
         );
         continue;
       }
@@ -806,6 +808,7 @@ extension _HomeRoomManager on _HomeViewState {
       existing.imageCaptions.add(row['caption'] as String?);
       existing.imageSenderIds.add(row['sender_id'] as String?);
       existing.imageSentAts.add(_parseLatestFeedCreatedAt(row['created_at']));
+      existing.imageMessageIds.add(row['id'] as String?);
     }
     return feeds;
   }

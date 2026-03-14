@@ -116,18 +116,21 @@ class PetHomeGalleryFeedData {
     required this.captions,
     required this.senderIds,
     required this.sentAts,
+    required this.messageIds,
   });
 
   const PetHomeGalleryFeedData.empty()
     : imageUrls = const <String>[],
       captions = const <String?>[],
       senderIds = const <String?>[],
-      sentAts = const <DateTime?>[];
+      sentAts = const <DateTime?>[],
+      messageIds = const <String?>[];
 
   final List<String> imageUrls;
   final List<String?> captions;
   final List<String?> senderIds;
   final List<DateTime?> sentAts;
+  final List<String?> messageIds;
 
   String? get latestImageUrl => imageUrls.isEmpty ? null : imageUrls.first;
   String? get latestCaption => captions.isEmpty ? null : captions.first;
@@ -195,6 +198,13 @@ class PetHomeGalleryFeedData {
                     .toList() ??
                 const <dynamic>[])
             .toList(growable: false);
+    final snapshotMessageIds =
+        ((roomSnapshot['latest_photo_message_ids'] as List?)
+                    ?.map((entry) => entry as String?)
+                    .take(maxItems)
+                    .toList() ??
+                const <String?>[])
+            .toList(growable: false);
     final sentAts = List<DateTime?>.generate(imageUrls.length, (index) {
       if (index >= snapshotSentAtValues.length) {
         return null;
@@ -213,6 +223,12 @@ class PetHomeGalleryFeedData {
       captions: captions,
       senderIds: senderIds,
       sentAts: sentAts,
+      messageIds: List<String?>.generate(
+        imageUrls.length,
+        (index) => index < snapshotMessageIds.length
+            ? snapshotMessageIds[index]
+            : null,
+      ),
     );
   }
 
@@ -224,6 +240,7 @@ class PetHomeGalleryFeedData {
       updated.remove('latest_photo_captions');
       updated.remove('latest_photo_sender_ids');
       updated.remove('latest_photo_created_ats');
+      updated.remove('latest_photo_message_ids');
       updated.remove('latest_caption');
       updated.remove('latest_sender_id');
       return updated;
@@ -236,6 +253,7 @@ class PetHomeGalleryFeedData {
     updated['latest_photo_created_ats'] = sentAts
         .map((entry) => entry?.toUtc().toIso8601String())
         .toList(growable: false);
+    updated['latest_photo_message_ids'] = messageIds;
     updated['latest_caption'] = latestCaption;
     updated['latest_sender_id'] = latestSenderId;
     return updated;
@@ -246,6 +264,7 @@ class PetHomeGalleryFeedData {
     required String? caption,
     required String? senderId,
     required DateTime? sentAt,
+    String? messageId,
     int maxItems = kPetHomeGalleryMaxPhotos,
   }) {
     if (imageUrl.isEmpty) {
@@ -257,6 +276,7 @@ class PetHomeGalleryFeedData {
         caption: caption,
         senderId: senderId,
         sentAt: sentAt,
+        messageId: messageId,
       ),
       ..._entries.where((entry) => entry.imageUrl != imageUrl),
     ];
@@ -269,6 +289,7 @@ class PetHomeGalleryFeedData {
     required String? caption,
     required String? senderId,
     required DateTime? sentAt,
+    String? messageId,
     bool prependIfMissing = false,
     int maxItems = kPetHomeGalleryMaxPhotos,
   }) {
@@ -286,6 +307,7 @@ class PetHomeGalleryFeedData {
         caption: caption,
         senderId: senderId,
         sentAt: sentAt,
+        messageId: messageId,
       );
       replaced = true;
       break;
@@ -298,6 +320,7 @@ class PetHomeGalleryFeedData {
           caption: caption,
           senderId: senderId,
           sentAt: sentAt,
+          messageId: messageId,
         ),
       );
     }
@@ -345,6 +368,7 @@ class PetHomeGalleryFeedData {
       caption: caption,
       senderId: senderId,
       sentAt: clientCreatedAt ?? createdAt ?? pending.clientCreatedAt,
+      messageId: messageId ?? pending.messageId,
       prependIfMissing: !containsImageUrl(imageUrl),
       maxItems: maxItems,
     );
@@ -361,6 +385,7 @@ class PetHomeGalleryFeedData {
         caption: i < captions.length ? captions[i] : null,
         senderId: i < senderIds.length ? senderIds[i] : null,
         sentAt: i < sentAts.length ? sentAts[i] : null,
+        messageId: i < messageIds.length ? messageIds[i] : null,
       );
     }
   }
@@ -385,6 +410,9 @@ class PetHomeGalleryFeedData {
       captions: deduped.map((entry) => entry.caption).toList(growable: false),
       senderIds: deduped.map((entry) => entry.senderId).toList(growable: false),
       sentAts: deduped.map((entry) => entry.sentAt).toList(growable: false),
+      messageIds: deduped
+          .map((entry) => entry.messageId)
+          .toList(growable: false),
     );
   }
 }
@@ -412,10 +440,12 @@ class _PetHomeGalleryFeedEntry {
     required this.caption,
     required this.senderId,
     required this.sentAt,
+    required this.messageId,
   });
 
   final String imageUrl;
   final String? caption;
   final String? senderId;
   final DateTime? sentAt;
+  final String? messageId;
 }

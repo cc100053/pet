@@ -16,6 +16,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
+import '../../services/chat/chat_message_action_service.dart';
 import '../../services/chat/chat_message_repository.dart';
 import '../../services/profile/profile_cache_service.dart';
 import '../../services/review/review_prompt_service.dart';
@@ -29,6 +30,7 @@ import '../../shared/ui/keyboard_dismiss_utils.dart';
 import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'chat_reaction_options.dart';
 import 'chat_reaction_utils.dart';
 import 'room_members_sheet.dart';
 import 'widgets/deterministic_chat_list.dart';
@@ -90,16 +92,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   static const int _pageSize = 20;
   static const Duration _replyJumpDuration = Duration(milliseconds: 360);
   static const Curve _replyJumpCurve = Curves.easeInOutCubic;
-  static const List<String> _quickReactionOptions = <String>[
-    '👍',
-    '❤️',
-    '😂',
-    '😮',
-    '😢',
-    '🙏',
-  ];
 
   final ChatMessageRepository _repository = ChatMessageRepository.instance;
+  final ChatMessageActionService _messageActionService =
+      ChatMessageActionService.instance;
   final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
   final ScrollController _chatScrollController = ScrollController();
   final TextEditingController _composerController = TextEditingController();
@@ -941,20 +937,29 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     );
 
     try {
-      final insertedMessage = await Supabase.instance.client
-          .from('messages')
-          .insert({
-            'room_id': widget.roomId,
-            'sender_id': userId,
-            'type': 'text',
-            'body': text,
-            'reply_to_message_id': replyTarget?.id,
-            'client_created_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .select('id')
-          .single();
-      final insertedMessageId = insertedMessage['id'] as String?;
-      if (insertedMessageId != null) {
+      String? insertedMessageId;
+      if (replyTarget != null) {
+        insertedMessageId = await _messageActionService.sendTextReply(
+          roomId: widget.roomId,
+          replyToMessageId: replyTarget.id,
+          text: text,
+          userId: userId,
+        );
+      } else {
+        final insertedMessage = await Supabase.instance.client
+            .from('messages')
+            .insert({
+              'room_id': widget.roomId,
+              'sender_id': userId,
+              'type': 'text',
+              'body': text,
+              'client_created_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .select('id')
+            .single();
+        insertedMessageId = insertedMessage['id'] as String?;
+      }
+      if (replyTarget == null && insertedMessageId != null) {
         unawaited(_notifyTextMessage(insertedMessageId));
       }
       if (!mounted) {
@@ -1038,20 +1043,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
           break;
         }
       }
-      if (currentReaction?.emoji == emoji) {
-        await Supabase.instance.client
-            .from('message_reactions')
-            .delete()
-            .eq('message_id', message.id)
-            .eq('user_id', userId);
-      } else {
-        await Supabase.instance.client.from('message_reactions').upsert({
-          'message_id': message.id,
-          'room_id': widget.roomId,
-          'user_id': userId,
-          'emoji': emoji,
-        }, onConflict: 'message_id,user_id');
-      }
+      await _messageActionService.toggleReaction(
+        roomId: widget.roomId,
+        messageId: message.id,
+        emoji: emoji,
+        currentReactionEmoji: currentReaction?.emoji,
+        userId: userId,
+      );
     } catch (error) {
       _setMessageReactionsLocally(message.id, previousReactions);
       if (!mounted) {
@@ -1243,7 +1241,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     final action = await showModalBottomSheet<_MessageActionSelection>(
       context: context,
       builder: (context) => ChatMessageActionSheet(
-        reactionOptions: _quickReactionOptions,
+        reactionOptions: kChatQuickReactionOptions,
         selectedReaction: myReaction?.emoji,
         copyEnabled: copyText != null,
         isMine: isMine,
@@ -2136,10 +2134,34 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
               : message.caption,
           senderName: _displayNameForSenderId(message.senderId),
           sentAt: message.createdAt,
+          roomId: widget.roomId,
+          messageId: message.id,
+          selectedReactionEmoji: _selectedReactionEmoji(message),
         ),
       ],
       showIndicator: false,
+      onSendReply: (item, text) => _messageActionService.sendTextReply(
+        roomId: item.roomId!,
+        replyToMessageId: item.messageId!,
+        text: text,
+      ),
+      onToggleReaction: (item, emoji, currentReactionEmoji) =>
+          _messageActionService.toggleReaction(
+            roomId: item.roomId!,
+            messageId: item.messageId!,
+            emoji: emoji,
+            currentReactionEmoji: currentReactionEmoji,
+          ),
     );
+  }
+
+  String? _selectedReactionEmoji(ChatMessage message) {
+    for (final reaction in message.reactions) {
+      if (reaction.reactedByMe && reaction.emoji.isNotEmpty) {
+        return reaction.emoji;
+      }
+    }
+    return null;
   }
 
   int _sortByCreatedAtAsc(ChatMessage a, ChatMessage b) {

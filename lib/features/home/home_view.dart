@@ -259,6 +259,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   List<String?> _latestFeedCaptions = <String?>[];
   List<String?> _latestFeedSenderIds = <String?>[];
   List<DateTime?> _latestFeedSentAts = <DateTime?>[];
+  List<String?> _latestFeedMessageIds = <String?>[];
   String? _latestFeedSenderId;
   String? _latestFeedCaption;
   String? _latestFeedOptimisticTempId;
@@ -268,6 +269,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   List<String?>? _latestFeedOptimisticPrevCaptions;
   List<String?>? _latestFeedOptimisticPrevSenderIds;
   List<DateTime?>? _latestFeedOptimisticPrevSentAts;
+  List<String?>? _latestFeedOptimisticPrevMessageIds;
   String? _latestFeedOptimisticPrevSenderId;
   String? _latestFeedOptimisticPrevCaption;
   int _latestFeedJumpToLatestEventId = 0;
@@ -4164,9 +4166,11 @@ class _HomeViewState extends ConsumerState<HomeView>
                   },
                 ),
                 photoGallery: PetPhotoGallery(
+                  roomId: _roomId,
                   imageUrls: _latestFeedImageUrls,
                   captions: _latestFeedCaptions,
                   sentAts: _latestFeedSentAts,
+                  messageIds: _latestFeedMessageIds,
                   isRefreshing: _latestFeedRefreshInFlight,
                   jumpToLatestEventId: _latestFeedJumpToLatestEventId,
                   senderAvatars: List<String?>.generate(

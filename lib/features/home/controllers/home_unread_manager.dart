@@ -211,6 +211,7 @@ extension _HomeUnreadManager on _HomeViewState {
                 caption: caption,
                 senderId: senderId,
                 sentAt: clientCreatedAt ?? sentAt,
+                messageId: messageId,
               )
             : currentFeed
                   .reconcilePendingRealtime(
@@ -237,6 +238,7 @@ extension _HomeUnreadManager on _HomeViewState {
                 caption: caption,
                 senderId: senderId,
                 sentAt: clientCreatedAt ?? sentAt,
+                messageId: messageId,
               )
             : currentFeed
                   .reconcilePendingRealtime(

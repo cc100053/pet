@@ -9,6 +9,7 @@ class _RoomLatestFeed {
     required this.imageCaptions,
     required this.imageSenderIds,
     required this.imageSentAts,
+    required this.imageMessageIds,
   });
 
   final String latestImageUrl;
@@ -18,6 +19,7 @@ class _RoomLatestFeed {
   final List<String?> imageCaptions;
   final List<String?> imageSenderIds;
   final List<DateTime?> imageSentAts;
+  final List<String?> imageMessageIds;
 }
 
 class _RoomPetSummary {

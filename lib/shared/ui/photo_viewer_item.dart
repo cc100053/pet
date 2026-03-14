@@ -5,6 +5,9 @@ class PhotoViewerItem {
     this.senderName,
     this.sentAt,
     this.localImagePath,
+    this.roomId,
+    this.messageId,
+    this.selectedReactionEmoji,
   });
 
   final String imageUrl;
@@ -12,8 +15,17 @@ class PhotoViewerItem {
   final String? senderName;
   final DateTime? sentAt;
   final String? localImagePath;
+  final String? roomId;
+  final String? messageId;
+  final String? selectedReactionEmoji;
 
   bool get hasImageSource =>
       imageUrl.trim().isNotEmpty ||
       (localImagePath != null && localImagePath!.trim().isNotEmpty);
+
+  bool get canChatInteract {
+    final room = roomId?.trim() ?? '';
+    final message = messageId?.trim() ?? '';
+    return room.isNotEmpty && message.isNotEmpty;
+  }
 }

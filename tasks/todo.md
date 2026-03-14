@@ -1,5 +1,29 @@
 # TODO
 
+# Plan (2026-03-15 Fullscreen Photo Viewer Reply + Emoji)
+- [x] Extract shared chat message actions for text replies and emoji reactions so both chat and fullscreen viewer use the same mutation path.
+- [x] Extend fullscreen photo viewer context/data flow with room/message linkage and Pet Home gallery message-id plumbing, including optimistic/latest-feed reconciliation.
+- [x] Add fullscreen viewer Reply/Emoji UI for Pet Home and chat image viewers, then cover the new behavior with widget/unit tests.
+- [x] Update memory-bank notes and this review section, then run required verification (`flutter analyze`, `flutter test`).
+
+# Review (2026-03-15 Fullscreen Photo Viewer Reply + Emoji)
+- [x] Implemented and verified.
+- Root change:
+  - Added `lib/services/chat/chat_message_action_service.dart` plus shared `kChatQuickReactionOptions`, so fullscreen viewer and `ChatRoomViewV2` now use the same reply-message insert / reaction-toggle path instead of duplicating Supabase write logic.
+  - Extended `PhotoViewerItem` and `FullScreenPhotoViewer` with chat linkage (`roomId`, `messageId`, selected reaction, reply/reaction callbacks) and added in-viewer bottom-corner `Reply` / `Emoji` controls, a reply composer sheet, and disabled-state handling for local-only unsynced photos.
+  - Plumbed `message_id` through Pet Home latest-feed data (`latest_photo_message_ids` in room snapshots plus optimistic/realtime reconciliation), so expanded gallery photos can target the correct chat message when replying/reacting.
+- Tests:
+  - Added `test/services/chat/chat_message_action_service_test.dart`.
+  - Expanded `test/full_screen_photo_viewer_test.dart`.
+  - Expanded `test/features/home/home_gallery_feed_utils_test.dart`.
+  - Expanded `test/features/home/widgets/pet_photo_gallery_test.dart`.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter test test/services/chat/chat_message_action_service_test.dart test/features/home/home_gallery_feed_utils_test.dart test/features/home/widgets/pet_photo_gallery_test.dart test/full_screen_photo_viewer_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-13 Store Purchase Item Names + Push)
 - [x] Update store purchase RPCs to store a structured purchase system-message payload with item SKU/name context and return the inserted `message_id`.
 - [x] Localize purchase system messages by purchased item name in chat and trigger best-effort push delivery after successful furniture/background purchases.

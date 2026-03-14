@@ -571,6 +571,30 @@ abstract class AppLocalizations {
   /// **'Download'**
   String get photoViewerDownloadTooltip;
 
+  /// No description provided for @photoViewerEmojiAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get photoViewerEmojiAction;
+
+  /// No description provided for @photoViewerReplyActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to photo'**
+  String get photoViewerReplyActionTitle;
+
+  /// No description provided for @photoViewerReplySendAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get photoViewerReplySendAction;
+
+  /// No description provided for @photoViewerReplySent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply sent.'**
+  String get photoViewerReplySent;
+
   /// No description provided for @photoViewerSavedToGallery.
   ///
   /// In en, this message translates to:

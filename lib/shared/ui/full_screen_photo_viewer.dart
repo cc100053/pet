@@ -10,8 +10,18 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
+import '../../features/chat/chat_reaction_options.dart';
 import 'photo_viewer_item.dart';
 import 'status_bar_style.dart';
+
+typedef PhotoViewerReplyHandler =
+    Future<void> Function(PhotoViewerItem item, String text);
+typedef PhotoViewerReactionHandler =
+    Future<void> Function(
+      PhotoViewerItem item,
+      String emoji,
+      String? currentReactionEmoji,
+    );
 
 /// iPhone-style full-screen photo viewer with:
 /// - Double-tap to zoom
@@ -25,12 +35,16 @@ class FullScreenPhotoViewer extends StatefulWidget {
     this.initialIndex = 0,
     this.showIndicator = true,
     this.cacheManager,
+    this.onSendReply,
+    this.onToggleReaction,
   });
 
   final List<PhotoViewerItem> items;
   final int initialIndex;
   final bool showIndicator;
   final BaseCacheManager? cacheManager;
+  final PhotoViewerReplyHandler? onSendReply;
+  final PhotoViewerReactionHandler? onToggleReaction;
 
   static Future<int?> open(
     BuildContext context, {
@@ -38,6 +52,8 @@ class FullScreenPhotoViewer extends StatefulWidget {
     int initialIndex = 0,
     bool showIndicator = true,
     BaseCacheManager? cacheManager,
+    PhotoViewerReplyHandler? onSendReply,
+    PhotoViewerReactionHandler? onToggleReaction,
   }) {
     if (items.isEmpty) {
       return Future<int?>.value(null);
@@ -53,6 +69,8 @@ class FullScreenPhotoViewer extends StatefulWidget {
               initialIndex: initialIndex,
               showIndicator: showIndicator,
               cacheManager: cacheManager,
+              onSendReply: onSendReply,
+              onToggleReaction: onToggleReaction,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -81,6 +99,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   bool _isCurrentPageZoomed = false;
   bool _savingToGallery = false;
   bool _showDownloadedIcon = false;
+  final Map<String, String?> _selectedReactionByMessageId = <String, String?>{};
   Timer? _downloadedIconTimer;
 
   @override
@@ -88,6 +107,13 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, widget.items.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
+    for (final item in widget.items) {
+      final messageId = item.messageId?.trim();
+      if (messageId == null || messageId.isEmpty) {
+        continue;
+      }
+      _selectedReactionByMessageId[messageId] = item.selectedReactionEmoji;
+    }
   }
 
   @override
@@ -313,6 +339,21 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     return sender;
   }
 
+  PhotoViewerItem get _currentItem => widget.items[_currentIndex];
+
+  bool get _canUseChatActions =>
+      _currentItem.canChatInteract &&
+      (widget.onSendReply != null || widget.onToggleReaction != null);
+
+  String? get _currentReactionEmoji {
+    final messageId = _currentItem.messageId?.trim();
+    if (messageId == null || messageId.isEmpty) {
+      return _currentItem.selectedReactionEmoji;
+    }
+    return _selectedReactionByMessageId[messageId] ??
+        _currentItem.selectedReactionEmoji;
+  }
+
   DateTime? _sentTimeFor(int index) => widget.items[index].sentAt;
 
   String _formatSentTime(DateTime date) {
@@ -326,6 +367,118 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     }
     final dateText = localizations.formatShortDate(localDate);
     return '$dateText $timeText';
+  }
+
+  Future<void> _openReplyComposer() async {
+    if (!_canUseChatActions || widget.onSendReply == null) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final textController = TextEditingController();
+    var sending = false;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> handleSend() async {
+              final text = textController.text.trim();
+              if (text.isEmpty || sending) {
+                return;
+              }
+              final navigator = Navigator.of(sheetContext);
+              setModalState(() => sending = true);
+              try {
+                await widget.onSendReply!(_currentItem, text);
+                if (!mounted) {
+                  return;
+                }
+                navigator.pop();
+                messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.photoViewerReplySent)),
+                );
+              } catch (error) {
+                if (!mounted) {
+                  return;
+                }
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.chatSendFailed(error.toString())),
+                  ),
+                );
+              } finally {
+                if (sheetContext.mounted) {
+                  setModalState(() => sending = false);
+                }
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.viewInsetsOf(sheetContext).bottom + 16,
+              ),
+              child: _ReplyComposerSheet(
+                controller: textController,
+                senderName: _senderNameFor(_currentIndex),
+                previewText: _captionFor(_currentIndex) ?? l10n.feedTitle,
+                sending: sending,
+                onSend: handleSend,
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openReactionSheet() async {
+    if (!_canUseChatActions || widget.onToggleReaction == null) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final selectedEmoji = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (context) =>
+          _ReactionPickerSheet(selectedReactionEmoji: _currentReactionEmoji),
+    );
+    if (!mounted || selectedEmoji == null || selectedEmoji.isEmpty) {
+      return;
+    }
+    final previousReactionEmoji = _currentReactionEmoji;
+    final messageId = _currentItem.messageId?.trim();
+    if (messageId == null || messageId.isEmpty) {
+      return;
+    }
+    setState(() {
+      _selectedReactionByMessageId[messageId] =
+          previousReactionEmoji == selectedEmoji ? null : selectedEmoji;
+    });
+    try {
+      await widget.onToggleReaction!(
+        _currentItem,
+        selectedEmoji,
+        previousReactionEmoji,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _selectedReactionByMessageId[messageId] = previousReactionEmoji;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.chatSendFailed(error.toString()))),
+      );
+    }
   }
 
   PhotoViewGalleryPageOptions _pageOptionFor(int index) {
@@ -471,11 +624,15 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   }
 
   Widget _buildBottomChrome({
+    required AppLocalizations l10n,
     required String? caption,
     required int imageCount,
   }) {
     final showIndicator = widget.showIndicator && imageCount > 1;
-    if (caption == null && !showIndicator) {
+    final showChatActions =
+        _currentItem.roomId?.trim().isNotEmpty == true &&
+        (widget.onSendReply != null || widget.onToggleReaction != null);
+    if (caption == null && !showIndicator && !showChatActions) {
       return const SizedBox.shrink();
     }
 
@@ -538,6 +695,25 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
                     ),
                   ),
                 ),
+              if (showChatActions) const SizedBox(height: 14),
+              if (showChatActions)
+                _ViewerActionRow(
+                  replyEnabled:
+                      _currentItem.canChatInteract &&
+                      widget.onSendReply != null,
+                  emojiEnabled:
+                      _currentItem.canChatInteract &&
+                      widget.onToggleReaction != null,
+                  selectedReactionEmoji: _currentReactionEmoji,
+                  replyLabel: l10n.chatReplyAction,
+                  emojiLabel: l10n.photoViewerEmojiAction,
+                  onReply: _currentItem.canChatInteract
+                      ? _openReplyComposer
+                      : null,
+                  onEmoji: _currentItem.canChatInteract
+                      ? _openReactionSheet
+                      : null,
+                ),
             ],
           ),
         ),
@@ -555,7 +731,11 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     return _ChromeOverlay(
       key: const ValueKey<String>('photo-viewer-chrome'),
       top: _buildTopChrome(l10n: l10n, senderName: senderName, sentAt: sentAt),
-      bottom: _buildBottomChrome(caption: caption, imageCount: imageCount),
+      bottom: _buildBottomChrome(
+        l10n: l10n,
+        caption: caption,
+        imageCount: imageCount,
+      ),
     );
   }
 
@@ -732,6 +912,308 @@ class _PhotoMetaStrip extends StatelessWidget {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _ViewerActionRow extends StatelessWidget {
+  const _ViewerActionRow({
+    required this.replyEnabled,
+    required this.emojiEnabled,
+    required this.selectedReactionEmoji,
+    required this.replyLabel,
+    required this.emojiLabel,
+    required this.onReply,
+    required this.onEmoji,
+  });
+
+  final bool replyEnabled;
+  final bool emojiEnabled;
+  final String? selectedReactionEmoji;
+  final String replyLabel;
+  final String emojiLabel;
+  final VoidCallback? onReply;
+  final VoidCallback? onEmoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _ViewerActionButton(
+          key: const ValueKey<String>('photo-viewer-reply-button'),
+          enabled: replyEnabled,
+          label: replyLabel,
+          icon: Icons.reply_rounded,
+          onTap: onReply,
+        ),
+        const Spacer(),
+        _ViewerActionButton(
+          key: const ValueKey<String>('photo-viewer-emoji-button'),
+          enabled: emojiEnabled,
+          label: emojiLabel,
+          icon: selectedReactionEmoji == null
+              ? Icons.emoji_emotions_outlined
+              : null,
+          iconText: selectedReactionEmoji,
+          onTap: onEmoji,
+        ),
+      ],
+    );
+  }
+}
+
+class _ViewerActionButton extends StatelessWidget {
+  const _ViewerActionButton({
+    super.key,
+    required this.enabled,
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.iconText,
+  });
+
+  final bool enabled;
+  final String label;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final String? iconText;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = enabled ? Colors.white : Colors.white54;
+    final background = enabled
+        ? Colors.black.withValues(alpha: 0.54)
+        : Colors.black.withValues(alpha: 0.24);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(999),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (iconText != null)
+                Text(iconText!, style: const TextStyle(fontSize: 20))
+              else if (icon != null)
+                Icon(icon, size: 20, color: foreground),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: foreground,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReplyComposerSheet extends StatelessWidget {
+  const _ReplyComposerSheet({
+    required this.controller,
+    required this.senderName,
+    required this.previewText,
+    required this.sending,
+    required this.onSend,
+  });
+
+  final TextEditingController controller;
+  final String? senderName;
+  final String previewText;
+  final bool sending;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Material(
+      color: Colors.transparent,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF131313),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.photoViewerReplyActionTitle,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.photo_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              senderName?.trim().isNotEmpty == true
+                                  ? senderName!.trim()
+                                  : l10n.feedTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              previewText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.76),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                key: const ValueKey<String>('photo-viewer-reply-text-field'),
+                controller: controller,
+                minLines: 1,
+                maxLines: 4,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => onSend(),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: l10n.chatMessageHint,
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.45),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.08),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  key: const ValueKey<String>('photo-viewer-reply-send-button'),
+                  onPressed: sending ? null : onSend,
+                  child: sending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.photoViewerReplySendAction),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReactionPickerSheet extends StatelessWidget {
+  const _ReactionPickerSheet({required this.selectedReactionEmoji});
+
+  final String? selectedReactionEmoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      child: Material(
+        color: const Color(0xFF131313),
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: kChatQuickReactionOptions
+                .map((emoji) {
+                  final isSelected = selectedReactionEmoji == emoji;
+                  return InkWell(
+                    onTap: () => Navigator.of(context).pop(emoji),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.white.withValues(alpha: 0.16)
+                            : Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.36)
+                              : Colors.white.withValues(alpha: 0.10),
+                        ),
+                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                    ),
+                  );
+                })
+                .toList(growable: false),
+          ),
+        ),
       ),
     );
   }

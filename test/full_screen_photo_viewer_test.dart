@@ -13,6 +13,8 @@ Future<void> _pumpViewer(
   required List<PhotoViewerItem> items,
   bool settle = true,
   BaseCacheManager? cacheManager,
+  PhotoViewerReplyHandler? onSendReply,
+  PhotoViewerReactionHandler? onToggleReaction,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -24,7 +26,12 @@ Future<void> _pumpViewer(
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: FullScreenPhotoViewer(items: items, cacheManager: cacheManager),
+      home: FullScreenPhotoViewer(
+        items: items,
+        cacheManager: cacheManager,
+        onSendReply: onSendReply,
+        onToggleReaction: onToggleReaction,
+      ),
     ),
   );
   if (settle) {
@@ -99,6 +106,133 @@ void main() {
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shows reply and emoji actions for chat-backed photos', (
+    tester,
+  ) async {
+    await _pumpViewer(
+      tester,
+      items: <PhotoViewerItem>[
+        const PhotoViewerItem(
+          imageUrl: '',
+          roomId: 'room-1',
+          messageId: 'message-1',
+        ),
+      ],
+      onSendReply: (item, text) async {},
+      onToggleReaction: (item, emoji, currentReactionEmoji) async {},
+    );
+
+    expect(
+      find.byKey(const ValueKey<String>('photo-viewer-reply-button')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('photo-viewer-emoji-button')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('disables reply and emoji actions when message id is missing', (
+    tester,
+  ) async {
+    await _pumpViewer(
+      tester,
+      items: <PhotoViewerItem>[
+        const PhotoViewerItem(imageUrl: '', roomId: 'room-1'),
+      ],
+      onSendReply: (item, text) async {},
+      onToggleReaction: (item, emoji, currentReactionEmoji) async {},
+    );
+
+    final replyButton = tester.widget<InkWell>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('photo-viewer-reply-button')),
+        matching: find.byType(InkWell),
+      ),
+    );
+    final emojiButton = tester.widget<InkWell>(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('photo-viewer-emoji-button')),
+        matching: find.byType(InkWell),
+      ),
+    );
+
+    expect(replyButton.onTap, isNull);
+    expect(emojiButton.onTap, isNull);
+  });
+
+  testWidgets('opens reply sheet and forwards submitted text', (tester) async {
+    String? repliedText;
+
+    await _pumpViewer(
+      tester,
+      items: <PhotoViewerItem>[
+        const PhotoViewerItem(
+          imageUrl: '',
+          roomId: 'room-1',
+          messageId: 'message-1',
+        ),
+      ],
+      onSendReply: (_, text) async {
+        repliedText = text;
+      },
+      onToggleReaction: (item, emoji, currentReactionEmoji) async {},
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('photo-viewer-reply-button')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(
+      find.byKey(const ValueKey<String>('photo-viewer-reply-text-field')),
+      findsOneWidget,
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('photo-viewer-reply-text-field')),
+      'Quick reply',
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('photo-viewer-reply-send-button')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(repliedText, 'Quick reply');
+  });
+
+  testWidgets('opens emoji picker and forwards selected emoji', (tester) async {
+    String? selectedEmoji;
+
+    await _pumpViewer(
+      tester,
+      items: <PhotoViewerItem>[
+        const PhotoViewerItem(
+          imageUrl: '',
+          roomId: 'room-1',
+          messageId: 'message-1',
+        ),
+      ],
+      onSendReply: (item, text) async {},
+      onToggleReaction: (item, emoji, currentReactionEmoji) async {
+        selectedEmoji = emoji;
+      },
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('photo-viewer-emoji-button')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    await tester.tap(find.text('❤️'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(selectedEmoji, '❤️');
   });
 }
 

@@ -2,11 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
 import 'package:pet/shared/ui/user_avatar.dart';
 
+import '../../../services/chat/chat_message_action_service.dart';
+import '../../../services/chat/chat_message_repository.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../home_gallery_feed_utils.dart';
 import 'home_responsive.dart';
@@ -14,9 +17,11 @@ import 'home_responsive.dart';
 class PetPhotoGallery extends StatefulWidget {
   const PetPhotoGallery({
     super.key,
+    required this.roomId,
     required this.imageUrls,
     required this.captions,
     required this.sentAts,
+    required this.messageIds,
     this.isRefreshing = false,
     this.jumpToLatestEventId = 0,
     required this.senderAvatars,
@@ -24,9 +29,11 @@ class PetPhotoGallery extends StatefulWidget {
     required this.onPlaceholderTap,
   });
 
+  final String? roomId;
   final List<String> imageUrls;
   final List<String?> captions;
   final List<DateTime?> sentAts;
+  final List<String?> messageIds;
   final bool isRefreshing;
   final int jumpToLatestEventId;
   final List<String?> senderAvatars;
@@ -101,6 +108,10 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
     required int index,
     required List<String> urls,
   }) async {
+    final selectedReactionByMessageId = await _loadSelectedReactions();
+    if (!mounted) {
+      return;
+    }
     final items = List<PhotoViewerItem>.generate(
       urls.length,
       (i) => PhotoViewerItem(
@@ -111,12 +122,36 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
             : null,
         sentAt: i < widget.sentAts.length ? widget.sentAts[i] : null,
         localImagePath: urls[i].startsWith('http') ? null : urls[i],
+        roomId: widget.roomId,
+        messageId: i < widget.messageIds.length ? widget.messageIds[i] : null,
+        selectedReactionEmoji: (() {
+          final messageId = i < widget.messageIds.length
+              ? widget.messageIds[i]
+              : null;
+          if (messageId == null || messageId.isEmpty) {
+            return null;
+          }
+          return selectedReactionByMessageId[messageId];
+        })(),
       ),
     );
     final resultIndex = await FullScreenPhotoViewer.open(
       context,
       items: items,
       initialIndex: index,
+      onSendReply: (item, text) =>
+          ChatMessageActionService.instance.sendTextReply(
+            roomId: item.roomId!,
+            replyToMessageId: item.messageId!,
+            text: text,
+          ),
+      onToggleReaction: (item, emoji, currentReactionEmoji) =>
+          ChatMessageActionService.instance.toggleReaction(
+            roomId: item.roomId!,
+            messageId: item.messageId!,
+            emoji: emoji,
+            currentReactionEmoji: currentReactionEmoji,
+          ),
     );
     if (!mounted || resultIndex == null || !_pageController.hasClients) {
       return;
@@ -131,6 +166,46 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
       return;
     }
     setState(() => _page = target.toDouble());
+  }
+
+  Future<Map<String, String>> _loadSelectedReactions() async {
+    try {
+      final roomId = widget.roomId?.trim();
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (roomId == null ||
+          roomId.isEmpty ||
+          userId == null ||
+          userId.isEmpty) {
+        return const <String, String>{};
+      }
+      final messageIds = widget.messageIds
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .take(kPetHomeGalleryMaxPhotos)
+          .toList(growable: false);
+      if (messageIds.isEmpty) {
+        return const <String, String>{};
+      }
+      final summaries = await ChatMessageRepository.instance
+          .fetchReactionSummaries(
+            roomId: roomId,
+            messageIds: messageIds,
+            currentUserId: userId,
+          );
+      final selected = <String, String>{};
+      for (final messageId in messageIds) {
+        final reactions = summaries[messageId] ?? const [];
+        for (final reaction in reactions) {
+          if (reaction.reactedByMe) {
+            selected[messageId] = reaction.emoji;
+            break;
+          }
+        }
+      }
+      return selected;
+    } catch (_) {
+      return const <String, String>{};
+    }
   }
 
   @override

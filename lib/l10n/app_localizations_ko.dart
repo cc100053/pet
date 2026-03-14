@@ -290,6 +290,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get photoViewerDownloadTooltip => '다운로드';
 
   @override
+  String get photoViewerEmojiAction => '이모지';
+
+  @override
+  String get photoViewerReplyActionTitle => '사진에 답장';
+
+  @override
+  String get photoViewerReplySendAction => '전송';
+
+  @override
+  String get photoViewerReplySent => '답장을 보냈어요.';
+
+  @override
   String get photoViewerSavedToGallery => '사진이 갤러리에 저장되었어요.';
 
   @override
