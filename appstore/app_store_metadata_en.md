@@ -40,6 +40,20 @@ This version enables photo feeding, shared rooms, and real-time chat. Label reco
 Terms of Use (EULA): https://pet-app-702be.web.app/terms_of_use.html
 Privacy Policy: https://pet-app-702be.web.app/privacy_policy.html
 
+### What's New
+> 【Ver 1.0.4 Update Details】
+> 
+> ・Instant Reactions for Your Photos:
+> We have added quick reply and emoji buttons directly to the image view! Now you can share your feelings instantly the moment you see a wonderful photo.
+> 
+> ・A Seamless Way to Stay Connected:
+> With one-tap reactions, interacting with everyone has become smoother and more fun than ever before!
+> 
+> With these improvements, the moments you share with your loved ones have become even warmer and more meaningful.
+> Keep sending your daily photos to your pet and brighten up your memories with plenty of reactions!
+> 
+> Thank you for your continued care of your pet. With your warm interactions, your pet will grow up feeling even happier!
+
 ### Keywords (100 chars)
 pet,couple,love,care,raise,shared,virtual,tamagotchi,long distance,relationship,cute,cat,photo
 

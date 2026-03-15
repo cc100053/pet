@@ -1,6 +1,6 @@
 import 'dart:async';
 
-enum ForceUpdateDebugPromptType { soft, hard }
+enum ForceUpdateDebugPromptType { soft, hard, whatsNew }
 
 class ForceUpdateDebugTool {
   ForceUpdateDebugTool._();
@@ -18,6 +18,10 @@ class ForceUpdateDebugTool {
 
   void showHardPrompt() {
     _controller.add(ForceUpdateDebugPromptType.hard);
+  }
+
+  void showWhatsNewPrompt() {
+    _controller.add(ForceUpdateDebugPromptType.whatsNew);
   }
 
   void dispose() {

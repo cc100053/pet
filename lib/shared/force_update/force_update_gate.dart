@@ -9,13 +9,28 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
 import '../../services/crash/crash_reporting_service.dart';
 import '../ui/app_dialog.dart';
+import '../whats_new/app_whats_new_catalog.dart';
+import '../whats_new/app_whats_new_entry.dart';
+import '../whats_new/whats_new_policy.dart';
+import '../whats_new/whats_new_service.dart';
 import 'force_update_debug_tool.dart';
 import 'update_policy.dart';
 
 class ForceUpdateGate extends StatefulWidget {
-  const ForceUpdateGate({super.key, required this.child});
+  const ForceUpdateGate({
+    super.key,
+    required this.child,
+    AppConfigService? configService,
+    WhatsNewService? whatsNewService,
+    Future<String> Function()? versionLoader,
+  }) : _configService = configService,
+       _whatsNewService = whatsNewService,
+       _versionLoader = versionLoader;
 
   final Widget child;
+  final AppConfigService? _configService;
+  final WhatsNewService? _whatsNewService;
+  final Future<String> Function()? _versionLoader;
 
   @override
   State<ForceUpdateGate> createState() => _ForceUpdateGateState();
@@ -23,8 +38,10 @@ class ForceUpdateGate extends StatefulWidget {
 
 class _ForceUpdateGateState extends State<ForceUpdateGate>
     with WidgetsBindingObserver {
-  final AppConfigService _configService = AppConfigService();
   StreamSubscription<ForceUpdateDebugPromptType>? _debugPromptSubscription;
+  late final AppConfigService _configService;
+  late final WhatsNewService _whatsNewService;
+  late final Future<String> Function() _versionLoader;
 
   bool _checking = true;
   bool _hardUpdateRequired = false;
@@ -35,6 +52,11 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   @override
   void initState() {
     super.initState();
+    _configService = widget._configService ?? AppConfigService();
+    _whatsNewService = widget._whatsNewService ?? WhatsNewService();
+    _versionLoader =
+        widget._versionLoader ??
+        () async => (await PackageInfo.fromPlatform()).version.trim();
     WidgetsBinding.instance.addObserver(this);
     _debugPromptSubscription = ForceUpdateDebugTool.instance.prompts.listen(
       _onDebugPromptRequested,
@@ -58,7 +80,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
   Future<void> _checkForUpdate() async {
     unawaited(
-      CrashReportingService.instance.setContext(
+      _setCrashContextSafe(
         feature: 'force_update_gate',
         lastAction: 'check_for_update',
       ),
@@ -71,6 +93,10 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
     try {
       final config = await _configService.fetchForceUpdateConfig();
+      final currentVersion = (await _versionLoader()).trim();
+      final whatsNewDecision = await _whatsNewService.prepareForLaunch(
+        currentVersion: currentVersion,
+      );
       if (!mounted) {
         return;
       }
@@ -80,11 +106,10 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
           _hardUpdateRequired = false;
           _config = null;
         });
+        await _maybeShowWhatsNewDialog(whatsNewDecision);
         return;
       }
 
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
       final requirement = AppUpdatePolicy.evaluate(
         currentVersion: currentVersion,
         minimumRequiredVersion: config.minimumRequiredVersion,
@@ -99,13 +124,15 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       });
 
       if (requiresHardUpdate) {
-        AnalyticsService.instance.logEvent(
-          'force_update_required',
-          parameters: {
-            'min_version': config.minimumRequiredVersion,
-            'latest_version': config.latestAvailableVersion,
-            'current_version': currentVersion,
-          },
+        unawaited(
+          _logEventSafe(
+            'force_update_required',
+            parameters: {
+              'min_version': config.minimumRequiredVersion,
+              'latest_version': config.latestAvailableVersion,
+              'current_version': currentVersion,
+            },
+          ),
         );
         _showHardUpdateDialog(config);
         return;
@@ -113,18 +140,24 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
       if (requirement == AppUpdateRequirement.soft &&
           _skippedSoftUpdateVersion != config.latestAvailableVersion) {
-        AnalyticsService.instance.logEvent(
-          'soft_update_available',
-          parameters: {
-            'latest_version': config.latestAvailableVersion,
-            'current_version': currentVersion,
-          },
+        unawaited(
+          _logEventSafe(
+            'soft_update_available',
+            parameters: {
+              'latest_version': config.latestAvailableVersion,
+              'current_version': currentVersion,
+            },
+          ),
         );
-        _showSoftUpdateDialog(config);
+        await _showSoftUpdateDialog(config);
+        await _maybeShowWhatsNewDialog(whatsNewDecision);
+        return;
       }
+
+      await _maybeShowWhatsNewDialog(whatsNewDecision);
     } catch (error, stackTrace) {
       unawaited(
-        CrashReportingService.instance.reportError(
+        _reportErrorSafe(
           error: error,
           stackTrace: stackTrace,
           source: 'force_update_check',
@@ -151,9 +184,9 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       storeUrl: _config?.storeUrl ?? AppConfigService.iosAppStoreUrl,
     );
     if (type == ForceUpdateDebugPromptType.hard) {
-      AnalyticsService.instance.logEvent('debug_hard_update_prompt_shown');
+      unawaited(_logEventSafe('debug_hard_update_prompt_shown'));
       unawaited(
-        CrashReportingService.instance.setContext(
+        _setCrashContextSafe(
           feature: 'force_update_gate',
           lastAction: 'show_debug_hard_update_prompt',
         ),
@@ -161,14 +194,156 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       await _showHardUpdateDialog(debugConfig);
       return;
     }
-    AnalyticsService.instance.logEvent('debug_soft_update_prompt_shown');
+    if (type == ForceUpdateDebugPromptType.whatsNew) {
+      await _showDebugWhatsNewPrompt();
+      return;
+    }
+    unawaited(_logEventSafe('debug_soft_update_prompt_shown'));
     unawaited(
-      CrashReportingService.instance.setContext(
+      _setCrashContextSafe(
         feature: 'force_update_gate',
         lastAction: 'show_debug_soft_update_prompt',
       ),
     );
     await _showSoftUpdateDialog(debugConfig);
+  }
+
+  Future<void> _maybeShowWhatsNewDialog(WhatsNewDecision decision) async {
+    if (!decision.shouldShow || decision.entry == null) {
+      return;
+    }
+    await _showWhatsNewDialog(
+      version: decision.currentVersion,
+      entry: decision.entry!,
+      markShown: true,
+      shownEventName: 'whats_new_shown',
+      dismissedEventName: 'whats_new_dismissed',
+    );
+  }
+
+  Future<void> _showDebugWhatsNewPrompt() async {
+    final currentVersion = (await _versionLoader()).trim();
+    final entry = AppWhatsNewCatalog.entryForVersion(currentVersion);
+    if (entry == null) {
+      return;
+    }
+    await _showWhatsNewDialog(
+      version: currentVersion,
+      entry: entry,
+      markShown: false,
+      shownEventName: 'debug_whats_new_shown',
+      dismissedEventName: 'debug_whats_new_dismissed',
+    );
+  }
+
+  Future<void> _showWhatsNewDialog({
+    required String version,
+    required AppWhatsNewEntry entry,
+    required bool markShown,
+    required String shownEventName,
+    required String dismissedEventName,
+  }) async {
+    if (_dialogShowing) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    _dialogShowing = true;
+    try {
+      unawaited(
+        _logEventSafe(shownEventName, parameters: {'version': version}),
+      );
+      await showAppDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          final l10n = AppLocalizations.of(context)!;
+          final theme = Theme.of(context);
+          final bullets = entry.bullets(l10n);
+          final actionLabel =
+              entry.actionLabel(l10n) ?? l10n.whatsNewContinueAction;
+          return PopScope(
+            canPop: false,
+            child: AppDialog(
+              tone: AppDialogTone.success,
+              title: l10n.whatsNewDialogTitle,
+              message: entry.title(l10n),
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.18,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.whatsNewVersionLabel(version),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  for (var index = 0; index < bullets.length; index++) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            bullets[index],
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (index < bullets.length - 1) const SizedBox(height: 10),
+                  ],
+                ],
+              ),
+              actions: [
+                AppDialogAction.primary(
+                  label: actionLabel,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      );
+      if (markShown) {
+        await _whatsNewService.markShown(version);
+      }
+      unawaited(
+        _logEventSafe(dismissedEventName, parameters: {'version': version}),
+      );
+    } finally {
+      _dialogShowing = false;
+    }
   }
 
   Future<void> _showHardUpdateDialog(ForceUpdateConfig config) async {
@@ -192,17 +367,19 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
               label: AppLocalizations.of(context)!.forceUpdateAction,
               onPressed: () {
                 unawaited(
-                  CrashReportingService.instance.setContext(
+                  _setCrashContextSafe(
                     feature: 'force_update_gate',
                     lastAction: 'tap_hard_update',
                   ),
                 );
-                AnalyticsService.instance.logEvent(
-                  'force_update_tap_update',
-                  parameters: {
-                    'min_version': config.minimumRequiredVersion,
-                    'latest_version': config.latestAvailableVersion,
-                  },
+                unawaited(
+                  _logEventSafe(
+                    'force_update_tap_update',
+                    parameters: {
+                      'min_version': config.minimumRequiredVersion,
+                      'latest_version': config.latestAvailableVersion,
+                    },
+                  ),
                 );
                 Navigator.of(context).pop();
                 _launchStore(config.storeUrl);
@@ -236,14 +413,16 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
               _skippedSoftUpdateVersion = config.latestAvailableVersion;
               Navigator.of(context).pop();
               unawaited(
-                CrashReportingService.instance.setContext(
+                _setCrashContextSafe(
                   feature: 'force_update_gate',
                   lastAction: 'tap_soft_update_later',
                 ),
               );
-              AnalyticsService.instance.logEvent(
-                'soft_update_tap_later',
-                parameters: {'latest_version': config.latestAvailableVersion},
+              unawaited(
+                _logEventSafe(
+                  'soft_update_tap_later',
+                  parameters: {'latest_version': config.latestAvailableVersion},
+                ),
               );
             },
           ),
@@ -253,14 +432,16 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
               _skippedSoftUpdateVersion = config.latestAvailableVersion;
               Navigator.of(context).pop();
               unawaited(
-                CrashReportingService.instance.setContext(
+                _setCrashContextSafe(
                   feature: 'force_update_gate',
                   lastAction: 'tap_soft_update',
                 ),
               );
-              AnalyticsService.instance.logEvent(
-                'soft_update_tap_update',
-                parameters: {'latest_version': config.latestAvailableVersion},
+              unawaited(
+                _logEventSafe(
+                  'soft_update_tap_update',
+                  parameters: {'latest_version': config.latestAvailableVersion},
+                ),
               );
               _launchStore(config.storeUrl);
             },
@@ -290,7 +471,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       }
     } catch (error, stackTrace) {
       unawaited(
-        CrashReportingService.instance.reportError(
+        _reportErrorSafe(
           error: error,
           stackTrace: stackTrace,
           source: 'force_update_launch_store',
@@ -298,6 +479,43 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
         ),
       );
     }
+  }
+
+  Future<void> _logEventSafe(
+    String name, {
+    Map<String, Object?>? parameters,
+  }) async {
+    try {
+      await AnalyticsService.instance.logEvent(name, parameters: parameters);
+    } catch (_) {}
+  }
+
+  Future<void> _setCrashContextSafe({
+    String? feature,
+    String? lastAction,
+  }) async {
+    try {
+      await CrashReportingService.instance.setContext(
+        feature: feature,
+        lastAction: lastAction,
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _reportErrorSafe({
+    required Object error,
+    required StackTrace stackTrace,
+    required String source,
+    required bool fatal,
+  }) async {
+    try {
+      await CrashReportingService.instance.reportError(
+        error: error,
+        stackTrace: stackTrace,
+        source: source,
+        fatal: fatal,
+      );
+    } catch (_) {}
   }
 
   @override

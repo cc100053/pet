@@ -221,6 +221,7 @@
   "drawerDebugShowFullBubble": "「おなかいっぱい！」を表示",
   "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
   "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
+  "drawerDebugTestWhatsNew": "What's New モーダルを確認",
   "drawerDebugTestCrashReport": "クラッシュ報告をテスト",
   "drawerInviteCode": "コード: {code}",
   "@drawerInviteCode": {
@@ -293,6 +294,18 @@
   "softUpdateLater": "あとで",
   "softUpdateMessage": "より快適に共同育成を続けるために、新しいバージョンへ更新してください。",
   "softUpdateTitle": "アップデートがあります",
+  "whatsNewDialogTitle": "今回のアップデート",
+  "whatsNewContinueAction": "続ける",
+  "whatsNewVersionLabel": "バージョン {version}",
+  "@whatsNewVersionLabel": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "whatsNew105Title": "共有とお世話の体験がさらに良くなりました",
+  "whatsNew105Bullet1": "全画面の写真ビューアーから、そのまま写真メッセージへの返信や絵文字リアクションができます。",
+  "whatsNew105Bullet2": "ショップ購入のお知らせに、ルームで実際に買ったアイテム名が表示されるようになりました。",
+  "whatsNew105Bullet3": "ごはん成功時の空腹回復量が、+20 から +25 に増えました。",
   "languageChineseSimplified": "簡体字中国語",
   "languageChineseTraditional": "繁体字中国語",
   "languageEnglish": "英語",

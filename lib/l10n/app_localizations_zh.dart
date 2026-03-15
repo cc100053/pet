@@ -401,6 +401,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
 
   @override
+  String get drawerDebugTestWhatsNew => '預覽 What\'s New 視窗';
+
+  @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
 
   @override
@@ -524,6 +527,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get softUpdateTitle => '可更新新版本';
+
+  @override
+  String get whatsNewDialogTitle => '本次更新內容';
+
+  @override
+  String get whatsNewContinueAction => '继续';
+
+  @override
+  String whatsNewVersionLabel(Object version) {
+    return '版本 $version';
+  }
+
+  @override
+  String get whatsNew105Title => '分享与照顾体验有了更多提升';
+
+  @override
+  String get whatsNew105Bullet1 => '在全屏照片查看器中，也可以直接回复照片消息和添加表情回应。';
+
+  @override
+  String get whatsNew105Bullet2 => '商店购买通知现在会显示房间里实际买到的道具名称。';
+
+  @override
+  String get whatsNew105Bullet3 => '成功喂食后恢复的饥饿值提升了，从 +20 提高到 +25。';
 
   @override
   String get languageChineseSimplified => '简体中文';
@@ -1769,6 +1795,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
 
   @override
+  String get drawerDebugTestWhatsNew => '預覽 What\'s New 視窗';
+
+  @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
 
   @override
@@ -1892,6 +1921,29 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get softUpdateTitle => '可更新新版本';
+
+  @override
+  String get whatsNewDialogTitle => '本次更新內容';
+
+  @override
+  String get whatsNewContinueAction => '繼續';
+
+  @override
+  String whatsNewVersionLabel(Object version) {
+    return '版本 $version';
+  }
+
+  @override
+  String get whatsNew105Title => '分享與照顧體驗有更多提升';
+
+  @override
+  String get whatsNew105Bullet1 => '在全螢幕照片檢視器中，也可以直接回覆照片訊息和加入表情反應。';
+
+  @override
+  String get whatsNew105Bullet2 => '商店購買通知現在會顯示房間裡實際買到的道具名稱。';
+
+  @override
+  String get whatsNew105Bullet3 => '成功餵食後恢復的飢餓值提升了，從 +20 提高到 +25。';
 
   @override
   String get languageChineseSimplified => '簡體中文';

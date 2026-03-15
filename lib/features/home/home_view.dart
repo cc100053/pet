@@ -4509,6 +4509,13 @@ class _HomeViewState extends ConsumerState<HomeView>
                   },
                 ),
                 ListTile(
+                  title: Text(l10n.drawerDebugTestWhatsNew),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ForceUpdateDebugTool.instance.showWhatsNewPrompt();
+                  },
+                ),
+                ListTile(
                   title: Text(l10n.drawerDebugTestCrashReport),
                   onTap: () {
                     Navigator.pop(context);

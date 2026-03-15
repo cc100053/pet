@@ -409,6 +409,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugTestHardUpdate => '강제 업데이트 안내 테스트';
 
   @override
+  String get drawerDebugTestWhatsNew => 'What\'s New 모달 미리보기';
+
+  @override
   String get drawerDebugTestCrashReport => '크래시 보고 테스트';
 
   @override
@@ -532,6 +535,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get softUpdateTitle => '업데이트 가능';
+
+  @override
+  String get whatsNewDialogTitle => '이번 업데이트';
+
+  @override
+  String get whatsNewContinueAction => '계속';
+
+  @override
+  String whatsNewVersionLabel(Object version) {
+    return '버전 $version';
+  }
+
+  @override
+  String get whatsNew105Title => '공유와 돌봄 경험이 더 좋아졌어요';
+
+  @override
+  String get whatsNew105Bullet1 =>
+      '전체 화면 사진 뷰어에서 바로 사진 메시지에 답장하고 이모지 반응을 남길 수 있어요.';
+
+  @override
+  String get whatsNew105Bullet2 => '상점 구매 알림에 방에서 실제로 산 아이템 이름이 표시돼요.';
+
+  @override
+  String get whatsNew105Bullet3 => '먹이 주기에 성공하면 배고픔 회복량이 +20에서 +25로 늘어났어요.';
 
   @override
   String get languageChineseSimplified => '중국어(간체)';

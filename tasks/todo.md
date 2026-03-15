@@ -1,5 +1,45 @@
 # TODO
 
+# Plan (2026-03-15 Debug Preview for What's New)
+- [x] Add a Debug Tool action that forces the current What’s New modal to appear immediately for visual review.
+- [x] Reuse the existing What’s New rendering path in `ForceUpdateGate` so the debug preview matches production styling exactly.
+- [x] Regenerate localization output and rerun required verification (`flutter analyze`, `flutter test`).
+
+# Review (2026-03-15 Debug Preview for What's New)
+- [x] Implemented and verified.
+- Root change:
+  - Extended `ForceUpdateDebugTool` with a dedicated `whatsNew` prompt type and added a matching Debug Tools drawer action in `HomeView`.
+  - Refactored `ForceUpdateGate` so the normal upgrade-triggered What’s New path and the new debug preview both call the same modal-rendering method, keeping the preview visually identical to the shipped flow.
+  - Debug preview bypasses persisted seen-state and does not mark the announcement as shown, so it can be reopened repeatedly for UI review without affecting real upgrade behavior.
+- Tests:
+  - Expanded `test/shared/force_update/force_update_gate_test.dart` with debug-preview coverage.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter test test/shared/force_update/force_update_gate_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-15 One-Time Versioned What's New)
+- [x] Add a local versioned What's New catalog plus decision/service logic for one-time upgraded-version announcements.
+- [x] Persist last launched version and last shown What's New version in app settings, then sequence the modal through `ForceUpdateGate`.
+- [x] Add localization, update repo notes, and run required verification (`flutter analyze`, `flutter test`).
+
+# Review (2026-03-15 One-Time Versioned What's New)
+- [x] Implemented and verified.
+- Root change:
+  - Added `lib/shared/whats_new/` with a local `AppWhatsNewCatalog`, pure `WhatsNewPolicy`, and `WhatsNewService`, so the app can match `PackageInfo.version` to an app-bundled release-note entry and decide if the modal should appear.
+  - Extended `AppSettingsRepository` with `last_launched_app_version` and `last_shown_whats_new_version`, allowing fresh installs to stay quiet while upgraded versions show exactly once and never repeat.
+  - Sequenced the new modal through `lib/shared/force_update/force_update_gate.dart`, so hard-update continues to block the app, soft-update still appears first, and What's New only shows after the soft-update dialog is dismissed or when no update prompt is needed.
+  - Added localized shell copy plus the first shipped release-note entry for `1.0.5` across all supported locales.
+- Tests:
+  - Added `test/shared/whats_new/whats_new_policy_test.dart`.
+  - Added `test/shared/force_update/force_update_gate_test.dart`.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter test test/shared/whats_new/whats_new_policy_test.dart test/shared/force_update/force_update_gate_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-15 Feed Hunger Gain 25)
 - [x] Trace the authoritative feed hunger rule and update the current server-side `apply_pet_action` implementation from +20 to +25.
 - [x] Update repo notes to reflect the new feed gain.

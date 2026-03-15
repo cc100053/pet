@@ -418,6 +418,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTestHardUpdate => 'Test Hard Update Prompt';
 
   @override
+  String get drawerDebugTestWhatsNew => 'Preview What\'s New Modal';
+
+  @override
   String get drawerDebugTestCrashReport => 'Test Crash Report';
 
   @override
@@ -544,6 +547,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get softUpdateTitle => 'Update available';
+
+  @override
+  String get whatsNewDialogTitle => 'What\'s new';
+
+  @override
+  String get whatsNewContinueAction => 'Continue';
+
+  @override
+  String whatsNewVersionLabel(Object version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get whatsNew105Title => 'Better updates for sharing and caring';
+
+  @override
+  String get whatsNew105Bullet1 =>
+      'Reply to photo feeds and add emoji reactions right from the full-screen viewer.';
+
+  @override
+  String get whatsNew105Bullet2 =>
+      'Store purchase updates now mention the exact item your room bought.';
+
+  @override
+  String get whatsNew105Bullet3 =>
+      'Successful feeds now restore more hunger, from +20 to +25.';
 
   @override
   String get languageChineseSimplified => 'Simplified Chinese';

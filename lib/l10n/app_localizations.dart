@@ -805,6 +805,12 @@ abstract class AppLocalizations {
   /// **'Test Hard Update Prompt'**
   String get drawerDebugTestHardUpdate;
 
+  /// No description provided for @drawerDebugTestWhatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview What\'s New Modal'**
+  String get drawerDebugTestWhatsNew;
+
   /// No description provided for @drawerDebugTestCrashReport.
   ///
   /// In en, this message translates to:
@@ -1026,6 +1032,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update available'**
   String get softUpdateTitle;
+
+  /// No description provided for @whatsNewDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNewDialogTitle;
+
+  /// No description provided for @whatsNewContinueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get whatsNewContinueAction;
+
+  /// No description provided for @whatsNewVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String whatsNewVersionLabel(Object version);
+
+  /// No description provided for @whatsNew105Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Better updates for sharing and caring'**
+  String get whatsNew105Title;
+
+  /// No description provided for @whatsNew105Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to photo feeds and add emoji reactions right from the full-screen viewer.'**
+  String get whatsNew105Bullet1;
+
+  /// No description provided for @whatsNew105Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Store purchase updates now mention the exact item your room bought.'**
+  String get whatsNew105Bullet2;
+
+  /// No description provided for @whatsNew105Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Successful feeds now restore more hunger, from +20 to +25.'**
+  String get whatsNew105Bullet3;
 
   /// No description provided for @languageChineseSimplified.
   ///

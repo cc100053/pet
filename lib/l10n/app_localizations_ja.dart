@@ -403,6 +403,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTestHardUpdate => '必須更新ポップアップを確認';
 
   @override
+  String get drawerDebugTestWhatsNew => 'What\'s New モーダルを確認';
+
+  @override
   String get drawerDebugTestCrashReport => 'クラッシュ報告をテスト';
 
   @override
@@ -526,6 +529,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get softUpdateTitle => 'アップデートがあります';
+
+  @override
+  String get whatsNewDialogTitle => '今回のアップデート';
+
+  @override
+  String get whatsNewContinueAction => '続ける';
+
+  @override
+  String whatsNewVersionLabel(Object version) {
+    return 'バージョン $version';
+  }
+
+  @override
+  String get whatsNew105Title => '共有とお世話の体験がさらに良くなりました';
+
+  @override
+  String get whatsNew105Bullet1 =>
+      '全画面の写真ビューアーから、そのまま写真メッセージへの返信や絵文字リアクションができます。';
+
+  @override
+  String get whatsNew105Bullet2 =>
+      'ショップ購入のお知らせに、ルームで実際に買ったアイテム名が表示されるようになりました。';
+
+  @override
+  String get whatsNew105Bullet3 => 'ごはん成功時の空腹回復量が、+20 から +25 に増えました。';
 
   @override
   String get languageChineseSimplified => '簡体字中国語';

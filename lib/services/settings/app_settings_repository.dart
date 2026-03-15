@@ -14,6 +14,9 @@ class AppSettingsRepository {
   static const String _reviewNextMilestoneIndexKey =
       'review_next_milestone_index';
   static const String _reviewLastPromptAtIsoKey = 'review_last_prompt_at_iso';
+  static const String _lastLaunchedAppVersionKey = 'last_launched_app_version';
+  static const String _lastShownWhatsNewVersionKey =
+      'last_shown_whats_new_version';
   static const String _ugcTermsAcceptedKey = 'ugc_terms_accepted';
   static const String _onboardingBasicCurrentStepKey =
       'onboarding_basic_current_step';
@@ -87,6 +90,28 @@ class AppSettingsRepository {
       return;
     }
     await _box?.put(_reviewLastPromptAtIsoKey, value.toUtc().toIso8601String());
+  }
+
+  String? get lastLaunchedAppVersion =>
+      _box?.get(_lastLaunchedAppVersionKey) as String?;
+
+  Future<void> setLastLaunchedAppVersion(String? version) async {
+    if (version == null || version.isEmpty) {
+      await _box?.delete(_lastLaunchedAppVersionKey);
+      return;
+    }
+    await _box?.put(_lastLaunchedAppVersionKey, version);
+  }
+
+  String? get lastShownWhatsNewVersion =>
+      _box?.get(_lastShownWhatsNewVersionKey) as String?;
+
+  Future<void> setLastShownWhatsNewVersion(String? version) async {
+    if (version == null || version.isEmpty) {
+      await _box?.delete(_lastShownWhatsNewVersionKey);
+      return;
+    }
+    await _box?.put(_lastShownWhatsNewVersionKey, version);
   }
 
   bool get ugcTermsAccepted =>

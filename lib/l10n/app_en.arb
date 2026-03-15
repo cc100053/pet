@@ -221,6 +221,7 @@
   "drawerDebugShowFullBubble": "Show \"I'm Full\" Bubble",
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
+  "drawerDebugTestWhatsNew": "Preview What's New Modal",
   "drawerDebugTestCrashReport": "Test Crash Report",
   "drawerInviteCode": "Code: {code}",
   "@drawerInviteCode": {
@@ -293,6 +294,18 @@
   "softUpdateLater": "Later",
   "softUpdateMessage": "A new version is available for a smoother co-petting experience.",
   "softUpdateTitle": "Update available",
+  "whatsNewDialogTitle": "What's new",
+  "whatsNewContinueAction": "Continue",
+  "whatsNewVersionLabel": "Version {version}",
+  "@whatsNewVersionLabel": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "whatsNew105Title": "Better updates for sharing and caring",
+  "whatsNew105Bullet1": "Reply to photo feeds and add emoji reactions right from the full-screen viewer.",
+  "whatsNew105Bullet2": "Store purchase updates now mention the exact item your room bought.",
+  "whatsNew105Bullet3": "Successful feeds now restore more hunger, from +20 to +25.",
   "languageChineseSimplified": "Simplified Chinese",
   "languageChineseTraditional": "Traditional Chinese",
   "languageEnglish": "English",

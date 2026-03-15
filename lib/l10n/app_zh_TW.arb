@@ -214,6 +214,7 @@
   "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
   "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
   "drawerDebugTestHardUpdate": "測試強制更新彈窗",
+  "drawerDebugTestWhatsNew": "預覽 What's New 視窗",
   "drawerDebugTestCrashReport": "測試崩潰上報",
   "drawerInviteCode": "代碼：{code}",
   "@drawerInviteCode": {
@@ -286,6 +287,18 @@
   "softUpdateLater": "稍後",
   "softUpdateMessage": "有新版本可用，更新後可獲得更順暢的共同養寵體驗。",
   "softUpdateTitle": "可更新新版本",
+  "whatsNewDialogTitle": "本次更新內容",
+  "whatsNewContinueAction": "繼續",
+  "whatsNewVersionLabel": "版本 {version}",
+  "@whatsNewVersionLabel": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "whatsNew105Title": "分享與照顧體驗有更多提升",
+  "whatsNew105Bullet1": "在全螢幕照片檢視器中，也可以直接回覆照片訊息和加入表情反應。",
+  "whatsNew105Bullet2": "商店購買通知現在會顯示房間裡實際買到的道具名稱。",
+  "whatsNew105Bullet3": "成功餵食後恢復的飢餓值提升了，從 +20 提高到 +25。",
   "languageChineseSimplified": "簡體中文",
   "languageChineseTraditional": "繁體中文",
   "languageEnglish": "英文",

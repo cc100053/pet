@@ -56,6 +56,9 @@ Implemented:
 - `lib/services/profile/device_timezone_service.dart`: Device timezone lookup service used to keep `profiles.timezone` aligned with host location.
 - `lib/services/app_config/app_config_service.dart`: Best-effort remote app-config reader for force-update policy. Hard-update thresholds remain Supabase-driven, while iOS latest-version/store-link discovery now also merges live App Store lookup data so soft-update prompts can still appear when backend config is missing or stale.
 - `lib/services/app_config/app_store_lookup_service.dart`: Apple lookup client used by `AppConfigService` to resolve the latest iOS App Store version and store URL, with storefront fallbacks and conditional IO/web-safe transport helpers.
+- `lib/shared/whats_new/`: Local versioned release-notes catalog and one-time upgrade-announcement logic.
+  - `lib/shared/whats_new/app_whats_new_catalog.dart`: App-bundled historical What's New entries keyed by public app version (`PackageInfo.version`).
+  - `lib/shared/whats_new/whats_new_service.dart`: Hive-backed last-launched / last-shown version tracking for one-time upgraded-version announcements.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).
   - Notification taps now flow through one typed intent pipeline: `onMessageOpenedApp`, `getInitialMessage`, iOS foreground local-notification taps, and an Android `MainActivity` launch-intent bridge all normalize into room-scoped intents (`room_id`, `message_kind` / legacy `message_type`) with dedupe.
