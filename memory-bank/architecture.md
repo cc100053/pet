@@ -58,6 +58,7 @@ Implemented:
 - `lib/services/app_config/app_store_lookup_service.dart`: Apple lookup client used by `AppConfigService` to resolve the latest iOS App Store version and store URL, with storefront fallbacks and conditional IO/web-safe transport helpers.
 - `lib/shared/whats_new/`: Local versioned release-notes catalog and one-time upgrade-announcement logic.
   - `lib/shared/whats_new/app_whats_new_catalog.dart`: App-bundled historical What's New entries keyed by public app version (`PackageInfo.version`).
+  - `lib/shared/whats_new/whats_new_dialog.dart`: Feature-owned What's New modal surface with a compact app-icon hero, a small inline version pill + title row, a capped three-item timeline layout, and a content-driven height; it no longer depends on `AppDialog`, so release-note hierarchy and sizing can be controlled independently from force-update dialogs.
   - `lib/shared/whats_new/whats_new_service.dart`: Hive-backed last-launched / last-shown version tracking for one-time upgraded-version announcements.
 - `lib/services/`: Environment loader and shared service setup.
 - `lib/services/fcm_service.dart`: FCM token sync + per-device locale sync + iOS foreground fallback; initialization now proceeds for `authorized/provisional/ephemeral` permission states (skips only `denied`).

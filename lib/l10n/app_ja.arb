@@ -294,8 +294,10 @@
   "softUpdateLater": "あとで",
   "softUpdateMessage": "より快適に共同育成を続けるために、新しいバージョンへ更新してください。",
   "softUpdateTitle": "アップデートがあります",
-  "whatsNewDialogTitle": "今回のアップデート",
+  "whatsNewDialogTitle": "バージョンアップデート",
   "whatsNewContinueAction": "続ける",
+  "whatsNewContentLabel": "更新内容",
+  "whatsNewHighlightsLabel": "このバージョンの主な変更",
   "whatsNewVersionLabel": "バージョン {version}",
   "@whatsNewVersionLabel": {
     "placeholders": {

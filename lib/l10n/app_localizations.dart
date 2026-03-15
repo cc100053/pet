@@ -1036,7 +1036,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNewDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'What\'s new'**
+  /// **'Version update'**
   String get whatsNewDialogTitle;
 
   /// No description provided for @whatsNewContinueAction.
@@ -1044,6 +1044,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get whatsNewContinueAction;
+
+  /// No description provided for @whatsNewContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNewContentLabel;
+
+  /// No description provided for @whatsNewHighlightsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlights in this release'**
+  String get whatsNewHighlightsLabel;
 
   /// No description provided for @whatsNewVersionLabel.
   ///

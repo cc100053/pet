@@ -11,6 +11,7 @@ import '../../services/crash/crash_reporting_service.dart';
 import '../ui/app_dialog.dart';
 import '../whats_new/app_whats_new_catalog.dart';
 import '../whats_new/app_whats_new_entry.dart';
+import '../whats_new/whats_new_dialog.dart';
 import '../whats_new/whats_new_policy.dart';
 import '../whats_new/whats_new_service.dart';
 import 'force_update_debug_tool.dart';
@@ -257,83 +258,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       await showAppDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (context) {
-          final l10n = AppLocalizations.of(context)!;
-          final theme = Theme.of(context);
-          final bullets = entry.bullets(l10n);
-          final actionLabel =
-              entry.actionLabel(l10n) ?? l10n.whatsNewContinueAction;
-          return PopScope(
-            canPop: false,
-            child: AppDialog(
-              tone: AppDialogTone.success,
-              title: l10n.whatsNewDialogTitle,
-              message: entry.title(l10n),
-              body: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withValues(
-                          alpha: 0.18,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      l10n.whatsNewVersionLabel(version),
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  for (var index = 0; index < bullets.length; index++) ...[
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Icon(
-                            Icons.check_circle_rounded,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            bullets[index],
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (index < bullets.length - 1) const SizedBox(height: 10),
-                  ],
-                ],
-              ),
-              actions: [
-                AppDialogAction.primary(
-                  label: actionLabel,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          );
-        },
+        builder: (context) => WhatsNewDialog(version: version, entry: entry),
       );
       if (markShown) {
         await _whatsNewService.markShown(version);

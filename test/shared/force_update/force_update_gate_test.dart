@@ -29,7 +29,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update required'), findsAtLeastNWidgets(1));
-    expect(find.text("What's new"), findsNothing);
+    expect(find.text('Version update'), findsNothing);
     expect(settings.lastShownWhatsNewVersion, isNull);
   });
 
@@ -56,19 +56,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update available'), findsOneWidget);
-    expect(find.text("What's new"), findsNothing);
+    expect(find.text('Version update'), findsNothing);
 
     await tester.tap(find.text('Later'));
     await tester.pumpAndSettle();
 
-    expect(find.text("What's new"), findsOneWidget);
+    expect(find.text('Version update'), findsAtLeastNWidgets(1));
     expect(find.text('Version 1.0.5'), findsOneWidget);
+    final versionCardTopLeft = tester.getTopLeft(find.text('Version 1.0.5'));
+    final titleTopLeft = tester.getTopLeft(find.text('Version update').first);
+    expect(versionCardTopLeft.dx, lessThan(titleTopLeft.dx));
     expect(settings.lastShownWhatsNewVersion, isNull);
 
+    await tester.ensureVisible(find.text('Continue'));
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(find.text("What's new"), findsNothing);
+    expect(find.text('Version update'), findsNothing);
     expect(settings.lastShownWhatsNewVersion, '1.0.5');
   });
 
@@ -96,8 +100,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text("What's new"), findsOneWidget);
+    expect(find.text('Version update'), findsAtLeastNWidgets(1));
 
+    await tester.ensureVisible(find.text('Continue'));
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
@@ -115,7 +120,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text("What's new"), findsNothing);
+    expect(find.text('Version update'), findsNothing);
   });
 
   testWidgets('debug prompt shows What\'s New even when already marked shown', (
@@ -139,13 +144,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text("What's new"), findsNothing);
+    expect(find.text('Version update'), findsNothing);
 
     ForceUpdateDebugTool.instance.showWhatsNewPrompt();
     await tester.pumpAndSettle();
 
-    expect(find.text("What's new"), findsOneWidget);
+    expect(find.text('Version update'), findsAtLeastNWidgets(1));
 
+    await tester.ensureVisible(find.text('Continue'));
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 

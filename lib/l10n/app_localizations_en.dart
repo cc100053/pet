@@ -549,10 +549,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get softUpdateTitle => 'Update available';
 
   @override
-  String get whatsNewDialogTitle => 'What\'s new';
+  String get whatsNewDialogTitle => 'Version update';
 
   @override
   String get whatsNewContinueAction => 'Continue';
+
+  @override
+  String get whatsNewContentLabel => 'What\'s new';
+
+  @override
+  String get whatsNewHighlightsLabel => 'Highlights in this release';
 
   @override
   String whatsNewVersionLabel(Object version) {

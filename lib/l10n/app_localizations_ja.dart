@@ -531,10 +531,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get softUpdateTitle => 'アップデートがあります';
 
   @override
-  String get whatsNewDialogTitle => '今回のアップデート';
+  String get whatsNewDialogTitle => 'バージョンアップデート';
 
   @override
   String get whatsNewContinueAction => '続ける';
+
+  @override
+  String get whatsNewContentLabel => '更新内容';
+
+  @override
+  String get whatsNewHighlightsLabel => 'このバージョンの主な変更';
 
   @override
   String whatsNewVersionLabel(Object version) {

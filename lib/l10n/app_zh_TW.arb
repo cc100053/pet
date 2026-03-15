@@ -287,8 +287,10 @@
   "softUpdateLater": "稍後",
   "softUpdateMessage": "有新版本可用，更新後可獲得更順暢的共同養寵體驗。",
   "softUpdateTitle": "可更新新版本",
-  "whatsNewDialogTitle": "本次更新內容",
+  "whatsNewDialogTitle": "版本更新",
   "whatsNewContinueAction": "繼續",
+  "whatsNewContentLabel": "更新內容",
+  "whatsNewHighlightsLabel": "這個版本的重點",
   "whatsNewVersionLabel": "版本 {version}",
   "@whatsNewVersionLabel": {
     "placeholders": {

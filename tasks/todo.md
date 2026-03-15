@@ -1,5 +1,56 @@
 # TODO
 
+# Plan (2026-03-15 Release Notes Sync Skill)
+- [x] Add a project-local skill that handles bundled What's New updates and App Store Connect release-note uploads from localized user input.
+- [x] Encode the current repo's file paths, locale mapping, and copy rules so the skill can update bundle copy concisely while keeping ASC copy verbatim.
+- [x] Review the skill for trigger coverage and repo-specific correctness.
+
+# Review (2026-03-15 Release Notes Sync Skill)
+- [x] Implemented and reviewed.
+- Root change:
+  - Added project-local skill `./.codex/skills/release-notes-sync/SKILL.md` so future agents can take one localized release-notes input set and perform the repo's two different release-note tasks correctly.
+  - The skill encodes the current bundle source of truth (`lib/shared/whats_new/app_whats_new_catalog.dart` + `lib/l10n/*.arb`) and the current ASC source of truth (`.asc/version-localizations/*.strings`), including the locale mapping differences between Flutter and App Store Connect.
+  - The skill explicitly separates bundle rules from ASC rules: bundle copy must be rewritten into one short title plus up to three user-visible bullets, while ASC `whatsNew` text must remain verbatim.
+- Review:
+  - Verified the skill stays concise, names the real repo paths, calls out the existing Simplified Chinese gap, and directs the ASC flow to discover the installed CLI's exact metadata-update subcommand instead of guessing.
+
+# Plan (2026-03-15 What's New Modal Compact Layout Polish)
+- [x] Remove the icon shadow treatment that creates the dark band feeling and tighten the hero spacing.
+- [x] Move the version card into a compact same-row layout with the title, cap the visible bullet list at three items, and remove fixed-height whitespace from the modal.
+- [x] Re-run targeted and full verification, then record the final compact-layout behavior.
+
+# Review (2026-03-15 What's New Modal Compact Layout Polish)
+- [x] Implemented and verified.
+- Root change:
+  - `lib/shared/whats_new/whats_new_dialog.dart` now uses a compact content-driven column instead of the previous `Expanded`-driven body, so the modal height shrinks with its actual content instead of reserving a large empty lower area.
+  - The app icon hero no longer has the extra outer shadow treatment, which removes the dark rectangular shadow feel under the icon/header area.
+  - The version pill is now a small card on the left with the `Version update` title on the same row, and the visible What's New list is capped to three timeline entries.
+- Tests:
+  - Updated `test/shared/force_update/force_update_gate_test.dart` to assert the version card renders to the left of the title and to scroll the CTA into view before tapping in the constrained widget-test viewport.
+- Verification:
+  - `flutter test test/shared/force_update/force_update_gate_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-15 What's New Dialog Hierarchy Fix)
+- [x] Confirm the actual render owner for the What's New title/version layout and document the root cause.
+- [x] Replace `AppDialog` usage in `lib/shared/whats_new/whats_new_dialog.dart` with a feature-owned dialog shell so the version card can render above the title while keeping the timeline layout.
+- [x] Re-run targeted and full verification (`flutter test`, `flutter analyze`) and record the verified fix.
+
+# Review (2026-03-15 What's New Dialog Hierarchy Fix)
+- [x] Implemented and verified.
+- Root cause:
+  - `lib/shared/whats_new/whats_new_dialog.dart` was still rendering inside `AppDialog`, and `AppDialog` has a fixed internal header that always paints `title` before `body`.
+  - Reordering widgets inside the What’s New body could never move the version card above the visible title, so the earlier change targeted the wrong render owner.
+- Fix:
+  - Replaced `AppDialog` with a feature-owned custom dialog shell in `lib/shared/whats_new/whats_new_dialog.dart`, preserving the same glass surface treatment while giving What’s New full control over hierarchy.
+  - The dialog now renders: app icon hero -> version card -> `Version update` title -> subtitle -> timeline list -> CTA.
+  - Added a gate-level widget assertion that `Version 1.0.5` sits above `Version update`, so future wrapper regressions are caught immediately.
+- Verification:
+  - `flutter test test/shared/force_update/force_update_gate_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-15 Debug Preview for What's New)
 - [x] Add a Debug Tool action that forces the current What’s New modal to appear immediately for visual review.
 - [x] Reuse the existing What’s New rendering path in `ForceUpdateGate` so the debug preview matches production styling exactly.

@@ -537,10 +537,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get softUpdateTitle => '업데이트 가능';
 
   @override
-  String get whatsNewDialogTitle => '이번 업데이트';
+  String get whatsNewDialogTitle => '버전 업데이트';
 
   @override
   String get whatsNewContinueAction => '계속';
+
+  @override
+  String get whatsNewContentLabel => '업데이트 내용';
+
+  @override
+  String get whatsNewHighlightsLabel => '이번 버전의 핵심 변경사항';
 
   @override
   String whatsNewVersionLabel(Object version) {

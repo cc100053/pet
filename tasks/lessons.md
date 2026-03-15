@@ -65,3 +65,6 @@
 - For reply composers and other multi-line text inputs, keep the platform-default keyboard action (`newline`) unless the user explicitly asks for a custom IME action; do not override it to `send`.
 - When a user asks to reduce success-toast intrusion inside media viewers, prefer inline control-level success feedback (for example a temporary `Sent` state on the initiating button) over bottom snackbars.
 - For Supabase RPC/schema tracing, do not infer the live behavior from the first matching migration found by `rg`; first identify the latest applied migration that rewrites the relevant function/object on the target project, then confirm against current schema/memory notes before stating the rule.
+- When a user distinguishes a feature’s own UI from the gate/controller that triggers it, move the presentation into the feature module and keep orchestration code thin.
+- When changing visual order inside a shared wrapper component, inspect the wrapper’s own layout before claiming the UI moved; reordering children inside a body slot cannot override a wrapper that renders its own header first.
+- For compact announcement modals, avoid `Expanded`-driven vertical fill unless the product explicitly wants a tall sheet; content-driven sizing plus a bounded outer scroll is usually the correct default and prevents large dead zones under short bullet lists.

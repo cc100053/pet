@@ -529,10 +529,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get softUpdateTitle => '可更新新版本';
 
   @override
-  String get whatsNewDialogTitle => '本次更新內容';
+  String get whatsNewDialogTitle => '版本更新';
 
   @override
   String get whatsNewContinueAction => '继续';
+
+  @override
+  String get whatsNewContentLabel => '更新內容';
+
+  @override
+  String get whatsNewHighlightsLabel => '這個版本的重點';
 
   @override
   String whatsNewVersionLabel(Object version) {
@@ -1923,10 +1929,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get softUpdateTitle => '可更新新版本';
 
   @override
-  String get whatsNewDialogTitle => '本次更新內容';
+  String get whatsNewDialogTitle => '版本更新';
 
   @override
   String get whatsNewContinueAction => '繼續';
+
+  @override
+  String get whatsNewContentLabel => '更新內容';
+
+  @override
+  String get whatsNewHighlightsLabel => '這個版本的重點';
 
   @override
   String whatsNewVersionLabel(Object version) {

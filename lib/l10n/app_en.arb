@@ -294,8 +294,10 @@
   "softUpdateLater": "Later",
   "softUpdateMessage": "A new version is available for a smoother co-petting experience.",
   "softUpdateTitle": "Update available",
-  "whatsNewDialogTitle": "What's new",
+  "whatsNewDialogTitle": "Version update",
   "whatsNewContinueAction": "Continue",
+  "whatsNewContentLabel": "What's new",
+  "whatsNewHighlightsLabel": "Highlights in this release",
   "whatsNewVersionLabel": "Version {version}",
   "@whatsNewVersionLabel": {
     "placeholders": {
