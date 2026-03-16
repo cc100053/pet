@@ -548,18 +548,16 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get whatsNew105Title => '共有とお世話の体験がさらに良くなりました';
+  String get whatsNew105Title => '安定性とセキュリティの向上';
 
   @override
-  String get whatsNew105Bullet1 =>
-      '全画面の写真ビューアーから、そのまま写真メッセージへの返信や絵文字リアクションができます。';
+  String get whatsNew105Bullet1 => '安定性向上のためのセキュリティ強化。';
 
   @override
-  String get whatsNew105Bullet2 =>
-      'ショップ購入のお知らせに、ルームで実際に買ったアイテム名が表示されるようになりました。';
+  String get whatsNew105Bullet2 => '軽微な不具合の修正と改善。';
 
   @override
-  String get whatsNew105Bullet3 => 'ごはん成功時の空腹回復量が、+20 から +25 に増えました。';
+  String get whatsNew105Bullet3 => '';
 
   @override
   String get languageChineseSimplified => '簡体字中国語';

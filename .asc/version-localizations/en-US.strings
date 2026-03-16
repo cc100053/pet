@@ -1,17 +1,5 @@
 "promotionalText" = "Share a virtual pet with your partner or bestie! Feed it with your daily photos, decorate your shared room, and turn moments into memories. Great for LDR!";
-"description" = "PetTomo is the shared pet game where your photos become food, love, and memories.\n\nDesigned for couples and best friends, PetTomo lets you co-parent an adorable digital companion in a shared room. Whether you’re side-by-side or miles apart, your pet keeps you connected.\n\nShared Pet Parenting\nInvite your partner or friend to a room and raise one pet together. Every feed, every clean, and every pat is synced instantly.\n\nPhoto-to-Feed Gameplay\nSnap a pic of your lunch, your view, or your smile to feed your pet! Your daily moments turn into Energy (XP) for your pet, creating a unique photo diary of your relationship.\n\nCozy Shared Space\nChat in real-time, react to each other’s feeding photos, and decorate your room with furniture that reflects your style.\n\nGrow Together\nWatch your pet level up as your bond deepens. Keep feeding it to see it grow and thrive in your shared room!\n\nPerfect for:\n- Couples wanting a low-stress way to stay connected.\n- Long-distance relationships (LDR) looking for a shared daily ritual.\n- Besties who want a cute digital mascot for their friendship.\n\nNote:\nThis version enables photo feeding, shared rooms, and real-time chat. Label recognition AI is currently in beta and may be disabled; manual photo feeding works perfectly!\n\nLegal:\nTerms of Use (EULA): https://pet-app-702be.web.app/terms_of_use.html\nPrivacy Policy: https://pet-app-702be.web.app/privacy_policy.html";
-"keywords" = "pet,couple,love,care,raise,shared,virtual,tamagotchi,long distance,relationship,cute,cat,photo";
-"supportUrl" = "https://pet-app-702be.web.app/support.html";
-
-"whatsNew" = "【Ver 1.0.4 Update Details】
-
-・Instant Reactions for Your Photos:
-We have added quick reply and emoji buttons directly to the image view! Now you can share your feelings instantly the moment you see a wonderful photo.
-
-・A Seamless Way to Stay Connected:
-With one-tap reactions, interacting with everyone has become smoother and more fun than ever before!
-
-With these improvements, the moments you share with your loved ones have become even warmer and more meaningful.
-Keep sending your daily photos to your pet and brighten up your memories with plenty of reactions!
-
-Thank you for your continued care of your pet. With your warm interactions, your pet will grow up feeling even happier!";
+"description" = "PetTomo is the shared pet game where your photos become your pet's favorite food.\n\nDesigned for couples, best friends, and family, PetTomo brings you closer through the simple act of sharing daily moments. No matter the distance, you can co-raise a unique virtual pet together.\n\nCO-RAISE WITH LOVE\nInvite your partner or best friend to join your shared room. Together, you’ll care for a pet that grows based on your interactions.\n\nPHOTO FEEDING SYSTEM\nYour daily photos are the fuel! Take pictures of your lunch, your commute, or a sunset, and send them to your pet. Watch as your pet eats up your memories and grows happier with every share.\n\nDECORATE YOUR SHARED HOME\nEarn rewards to buy furniture and backgrounds. Style your room to reflect your shared taste and create a cozy space for your pet.\n\nSTAY CONNECTED THROUGH CHAT\nBuilt-in room chat lets you react to each other’s photos and stay in touch while looking after your pet. Every notification is a reminder that someone is thinking of you.\n\nCOLLECT MEMORIES\nLook back through your pet’s photo diary to relive all the small moments that make your bond special.\n\nWhether you’re in a long-distance relationship or just want a new way to stay connected, PetTomo turns everyday sharing into a rewarding and meaningful journey.\n\nDownload PetTomo today and start growing your shared bond!";
+"whatsNew" = "【Ver 1.0.5 Update Details】\n\n・Security Improvements:\nThis update includes critical security enhancements to ensure a more stable and reliable experience.\n\nThank you for your continued support!";
+"supportUrl" = "https://pet.mactop.me/support.html";
+"marketingUrl" = "https://pet.mactop.me/";

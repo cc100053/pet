@@ -47,16 +47,29 @@ Keep bundled `What's New` copy and App Store Connect `whatsNew` / `promotionalTe
 - If the user supplies locales that are not present in repo assets, stop and report the gap instead of inventing text.
 
 ## Repo Update Workflow
-1. Extract the target public version.
-2. Read the provided localized release-note input.
-3. Update bundled assets:
-   - append a new entry in `app_whats_new_catalog.dart`
-   - add matching ARB keys in the relevant `lib/l10n/app_*.arb` files.
-4. Update ASC assets:
-   - write the verbatim locale-specific `whatsNew` text and SEO-optimized `promotionalText` to `.asc/version-localizations/*.strings`.
-5. Preserve every older bundled version entry and ARB key.
-6. Run `flutter gen-l10n`, `flutter analyze` and `flutter test`.
-7. **Sync to App Store Connect:** Activate and refer to `asc-metadata-sync` and `asc-cli-usage` for best output practices. Use the `.strings` file upload workflow below to ensure multi-line formatting (newlines) is correctly rendered in App Store Connect.
+
+### Phase 0: Drafting (Input Processing)
+When the user provides a version and a summary (e.g., in Cantonese like "v1.0.5 呢個更新主要係一個安全性更新..."):
+1. **Translate & Draft:** Generate localized drafts for all supported locales (`en-US`, `ja`, `ko`, `zh-Hant`).
+2. **Review Formatting:** Ensure the ASC `whatsNew` follows the "Ver X.X.X Update Details" header format used in this repo.
+3. **Present for Approval:** Display the drafts clearly and wait for user approval before modifying any files.
+
+### Phase 1: Local Implementation
+After approval:
+1. **Extract Version:** Identify the target public version (e.g., `1.0.5`).
+2. **Update Bundled Assets:**
+   - Append a new entry in `app_whats_new_catalog.dart` (or update if it exists).
+   - Add/update matching ARB keys in `lib/l10n/app_*.arb` (e.g., `whatsNew105Title`, `whatsNew105Bullet1`).
+3. **Update ASC Assets:**
+   - Write the verbatim localized `whatsNew` text to `.asc/version-localizations/*.strings`.
+   - Ensure `promotionalText` is present and SEO-optimized.
+4. **Preserve History:** Never delete older bundled version entries or ARB keys.
+5. **Verify Build:** Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+### Phase 2: App Store Connect Sync
+1. **Activate Metadata Skill:** Use `asc-metadata-sync` and `asc-cli-usage` for exact command syntax.
+2. **Upload .strings Files:** Use the `.strings` file upload workflow to preserve multi-line formatting.
+3. **Verify Upload:** Use `asc localizations list` to confirm the updates are live in ASC.
 
 ## ASC CLI Workflow
 Do not guess subcommands from memory. **Always refer to `asc-metadata-sync` and `asc-cli-usage` for detailed flags and formatting rules.**

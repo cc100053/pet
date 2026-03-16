@@ -554,17 +554,16 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get whatsNew105Title => '공유와 돌봄 경험이 더 좋아졌어요';
+  String get whatsNew105Title => '안정성 및 보안 업데이트';
 
   @override
-  String get whatsNew105Bullet1 =>
-      '전체 화면 사진 뷰어에서 바로 사진 메시지에 답장하고 이모지 반응을 남길 수 있어요.';
+  String get whatsNew105Bullet1 => '더 안정적인 사용을 위한 보안 강화。';
 
   @override
-  String get whatsNew105Bullet2 => '상점 구매 알림에 방에서 실제로 산 아이템 이름이 표시돼요.';
+  String get whatsNew105Bullet2 => '기타 버그 수정 및 개선。';
 
   @override
-  String get whatsNew105Bullet3 => '먹이 주기에 성공하면 배고픔 회복량이 +20에서 +25로 늘어났어요.';
+  String get whatsNew105Bullet3 => '';
 
   @override
   String get languageChineseSimplified => '중국어(간체)';

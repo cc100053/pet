@@ -1066,25 +1066,25 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew105Title.
   ///
   /// In en, this message translates to:
-  /// **'Better updates for sharing and caring'**
+  /// **'Stability & Security Update'**
   String get whatsNew105Title;
 
   /// No description provided for @whatsNew105Bullet1.
   ///
   /// In en, this message translates to:
-  /// **'Reply to photo feeds and add emoji reactions right from the full-screen viewer.'**
+  /// **'Security enhancements for better stability.'**
   String get whatsNew105Bullet1;
 
   /// No description provided for @whatsNew105Bullet2.
   ///
   /// In en, this message translates to:
-  /// **'Store purchase updates now mention the exact item your room bought.'**
+  /// **'Minor bug fixes and improvements.'**
   String get whatsNew105Bullet2;
 
   /// No description provided for @whatsNew105Bullet3.
   ///
   /// In en, this message translates to:
-  /// **'Successful feeds now restore more hunger, from +20 to +25.'**
+  /// **''**
   String get whatsNew105Bullet3;
 
   /// No description provided for @languageChineseSimplified.

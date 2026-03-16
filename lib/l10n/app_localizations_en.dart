@@ -566,19 +566,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get whatsNew105Title => 'Better updates for sharing and caring';
+  String get whatsNew105Title => 'Stability & Security Update';
 
   @override
   String get whatsNew105Bullet1 =>
-      'Reply to photo feeds and add emoji reactions right from the full-screen viewer.';
+      'Security enhancements for better stability.';
 
   @override
-  String get whatsNew105Bullet2 =>
-      'Store purchase updates now mention the exact item your room bought.';
+  String get whatsNew105Bullet2 => 'Minor bug fixes and improvements.';
 
   @override
-  String get whatsNew105Bullet3 =>
-      'Successful feeds now restore more hunger, from +20 to +25.';
+  String get whatsNew105Bullet3 => '';
 
   @override
   String get languageChineseSimplified => 'Simplified Chinese';

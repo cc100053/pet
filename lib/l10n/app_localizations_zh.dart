@@ -1946,16 +1946,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get whatsNew105Title => '分享與照顧體驗有更多提升';
+  String get whatsNew105Title => '穩定性與安全性更新';
 
   @override
-  String get whatsNew105Bullet1 => '在全螢幕照片檢視器中，也可以直接回覆照片訊息和加入表情反應。';
+  String get whatsNew105Bullet1 => '提升安全性以確保更穩定的使用體驗。';
 
   @override
-  String get whatsNew105Bullet2 => '商店購買通知現在會顯示房間裡實際買到的道具名稱。';
+  String get whatsNew105Bullet2 => '修復已知問題並最佳化效能。';
 
   @override
-  String get whatsNew105Bullet3 => '成功餵食後恢復的飢餓值提升了，從 +20 提高到 +25。';
+  String get whatsNew105Bullet3 => '';
 
   @override
   String get languageChineseSimplified => '簡體中文';
