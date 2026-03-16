@@ -1,5 +1,36 @@
 # TODO
 
+# Plan (2026-03-16 Crashlytics dSYM Upload Timing Fix)
+- [x] Inspect the iOS Crashlytics upload flow and confirm why newly archived builds still report missing dSYMs.
+- [x] Fix the Xcode build-phase ordering so dSYM upload runs after all app/framework dSYMs are generated.
+- [x] Update repo notes and run `flutter analyze` plus `flutter test`.
+
+# Review (2026-03-16 Crashlytics dSYM Upload Timing Fix)
+- [x] Implemented and verified.
+- Root cause:
+  - `ios/Runner.xcodeproj/project.pbxproj` had `Upload Crashlytics dSYMs` before `Sources`, `Embed Frameworks`, and the custom `Generate objective_c dSYM` phase, so archive builds could attempt symbol upload before the final app/framework dSYMs existed.
+  - This especially broke the custom `objective_c.framework.dSYM` path, because that dSYM was generated after the upload step every time.
+- Fix:
+  - Moved `Upload Crashlytics dSYMs` to the end of the Runner target build phases so it now runs after app compilation, framework embedding, resource copying, and custom dSYM generation.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-15 AI What's New Implementation Guide)
+- [x] Add an AI-facing markdown guide that explains how to recreate this project's one-time versioned What's New flow in another project.
+- [x] Include the final UI/style decisions, startup logic, persistence rules, test expectations, and release-notes skill pattern in the guide.
+- [x] Update repo notes and run required verification.
+
+# Review (2026-03-15 AI What's New Implementation Guide)
+- [x] Implemented and verified.
+- Root change:
+  - Added `docs/whats_new_ai_implementation_guide.md` as an AI-facing implementation manual for reusing this project's versioned What's New system in other projects.
+  - The guide covers the full architecture: local catalog, pure decision policy, persistent version tracking, startup orchestration, compact feature-owned modal UI, debug preview path, localization strategy, test coverage, and common failure modes.
+  - It also includes the companion release-notes skill pattern, explicitly separating concise bundled copy from verbatim App Store Connect `whatsNew` text and documenting the ASC CLI discovery/upload workflow.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-15 Release Notes Sync Skill)
 - [x] Add a project-local skill that handles bundled What's New updates and App Store Connect release-note uploads from localized user input.
 - [x] Encode the current repo's file paths, locale mapping, and copy rules so the skill can update bundle copy concisely while keeping ASC copy verbatim.

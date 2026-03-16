@@ -256,7 +256,6 @@
 			buildPhases = (
 				75F77210FF46144ED84DB2FB /* [CP] Check Pods Manifest.lock */,
 				9740EEB61CF901F6004384FC /* Run Script */,
-				B7C100001111111111111111 /* Upload Crashlytics dSYMs */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
@@ -266,6 +265,7 @@
 				E9BA7EBF3008AC2949424DEE /* [CP] Embed Pods Frameworks */,
 				C3EDFA75015E69D6BBA9D2B5 /* [CP] Copy Pods Resources */,
 				A1B2C3D44F0A4E1200AA1122 /* Generate objective_c dSYM */,
+				B7C100001111111111111111 /* Upload Crashlytics dSYMs */,
 			);
 			buildRules = (
 			);
