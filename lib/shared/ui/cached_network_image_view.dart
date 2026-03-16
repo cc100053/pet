@@ -89,8 +89,6 @@ class CachedNetworkImageView extends StatelessWidget {
             portraitFriendlyCrop: portraitFriendlyCrop,
             width: width,
             height: height,
-            cacheWidth: cacheSize?.width,
-            cacheHeight: cacheSize?.height,
           ),
           placeholder: (context, url) => placeholder ?? fallbackPlaceholder,
           errorWidget: (context, url, error) => errorWidget ?? fallbackError,
@@ -158,8 +156,6 @@ class _PortraitAwareImage extends StatefulWidget {
     required this.portraitFriendlyCrop,
     required this.width,
     required this.height,
-    required this.cacheWidth,
-    required this.cacheHeight,
   });
 
   final ImageProvider imageProvider;
@@ -171,8 +167,6 @@ class _PortraitAwareImage extends StatefulWidget {
   final bool portraitFriendlyCrop;
   final double? width;
   final double? height;
-  final int? cacheWidth;
-  final int? cacheHeight;
 
   @override
   State<_PortraitAwareImage> createState() => _PortraitAwareImageState();
@@ -183,12 +177,6 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
   ImageStreamListener? _listener;
   double? _aspectRatio;
 
-  ImageProvider get _effectiveImageProvider => ResizeImage.resizeIfNeeded(
-    widget.cacheWidth,
-    widget.cacheHeight,
-    widget.imageProvider,
-  );
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -198,9 +186,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
   @override
   void didUpdateWidget(covariant _PortraitAwareImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageProvider != widget.imageProvider ||
-        oldWidget.cacheWidth != widget.cacheWidth ||
-        oldWidget.cacheHeight != widget.cacheHeight) {
+    if (oldWidget.imageProvider != widget.imageProvider) {
       _resolveImage();
     }
   }
@@ -219,7 +205,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
 
   void _resolveImage() {
     _removeListener();
-    final stream = _effectiveImageProvider.resolve(
+    final stream = widget.imageProvider.resolve(
       createLocalImageConfiguration(context),
     );
     final listener = ImageStreamListener(
@@ -273,7 +259,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
               width: base.width,
               height: base.height,
               child: Image(
-                image: _effectiveImageProvider,
+                image: widget.imageProvider,
                 fit: BoxFit.fill,
                 width: base.width,
                 height: base.height,
@@ -296,7 +282,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
     return Transform.scale(
       scale: widget.scale.clamp(0.5, 4.0),
       child: Image(
-        image: _effectiveImageProvider,
+        image: widget.imageProvider,
         fit: effectiveFit,
         width: widget.width,
         height: widget.height,

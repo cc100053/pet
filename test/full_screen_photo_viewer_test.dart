@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -8,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 
 Future<void> _pumpViewer(
   WidgetTester tester, {
@@ -42,48 +40,6 @@ Future<void> _pumpViewer(
 }
 
 void main() {
-  test('fullscreen decode target matches viewport pixel bounds', () {
-    expect(
-      fullscreenPhotoDecodeTargetForViewport(const Size(390, 844), 3.0),
-      isA<PhotoViewerDecodeTarget>()
-          .having((target) => target.width, 'width', 1170)
-          .having((target) => target.height, 'height', 2532),
-    );
-  });
-
-  testWidgets('fullscreen viewer bounds remote decode to viewport size', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(800, 1600);
-    tester.view.devicePixelRatio = 2.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await _pumpViewer(
-      tester,
-      items: <PhotoViewerItem>[
-        const PhotoViewerItem(imageUrl: 'https://example.com/test.jpg'),
-      ],
-      settle: false,
-      cacheManager: _NotFoundCacheManager(),
-    );
-
-    final gallery = tester.widget<PhotoViewGallery>(
-      find.byType(PhotoViewGallery),
-    );
-    final option = gallery.builder!(
-      tester.element(find.byType(PhotoViewGallery)),
-      0,
-    );
-    final provider = option.imageProvider;
-    expect(provider, isA<ResizeImage>());
-
-    final resizeImage = provider! as ResizeImage;
-    expect(resizeImage.width, 800);
-    expect(resizeImage.height, 1600);
-    expect(resizeImage.imageProvider, isA<CachedNetworkImageProvider>());
-  });
-
   testWidgets('renders fullscreen metadata and caption overlays', (
     tester,
   ) async {

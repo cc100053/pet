@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -23,30 +22,6 @@ typedef PhotoViewerReactionHandler =
       String emoji,
       String? currentReactionEmoji,
     );
-
-@visibleForTesting
-PhotoViewerDecodeTarget fullscreenPhotoDecodeTargetForViewport(
-  Size viewport,
-  double devicePixelRatio,
-) {
-  final width = viewport.width;
-  final height = viewport.height;
-  if (width <= 0 || height <= 0) {
-    return const PhotoViewerDecodeTarget(width: 0, height: 0);
-  }
-  final scale = devicePixelRatio.clamp(1.0, 3.0);
-  return PhotoViewerDecodeTarget(
-    width: (width * scale).round(),
-    height: (height * scale).round(),
-  );
-}
-
-class PhotoViewerDecodeTarget {
-  const PhotoViewerDecodeTarget({required this.width, required this.height});
-
-  final int width;
-  final int height;
-}
 
 /// iPhone-style full-screen photo viewer with:
 /// - Double-tap to zoom
@@ -225,30 +200,18 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   }
 
   ImageProvider<Object>? _imageProviderFor(PhotoViewerItem item) {
-    final decodeTarget = fullscreenPhotoDecodeTargetForViewport(
-      MediaQuery.sizeOf(context),
-      MediaQuery.devicePixelRatioOf(context),
-    );
     final localPath = item.localImagePath?.trim();
     if (localPath != null &&
         localPath.isNotEmpty &&
         File(localPath).existsSync()) {
-      return ResizeImage.resizeIfNeeded(
-        decodeTarget.width == 0 ? null : decodeTarget.width,
-        decodeTarget.height == 0 ? null : decodeTarget.height,
-        FileImage(File(localPath)),
-      );
+      return FileImage(File(localPath));
     }
     final url = item.imageUrl.trim();
     if (url.isNotEmpty) {
-      return ResizeImage.resizeIfNeeded(
-        decodeTarget.width == 0 ? null : decodeTarget.width,
-        decodeTarget.height == 0 ? null : decodeTarget.height,
-        CachedNetworkImageProvider(
-          url,
-          cacheManager: widget.cacheManager,
-          errorListener: (_) {},
-        ),
+      return CachedNetworkImageProvider(
+        url,
+        cacheManager: widget.cacheManager,
+        errorListener: (_) {},
       );
     }
     return null;

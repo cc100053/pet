@@ -68,3 +68,7 @@
 - When a user distinguishes a feature’s own UI from the gate/controller that triggers it, move the presentation into the feature module and keep orchestration code thin.
 - When changing visual order inside a shared wrapper component, inspect the wrapper’s own layout before claiming the UI moved; reordering children inside a body slot cannot override a wrapper that renders its own header first.
 - For compact announcement modals, avoid `Expanded`-driven vertical fill unless the product explicitly wants a tall sheet; content-driven sizing plus a bounded outer scroll is usually the correct default and prevents large dead zones under short bullet lists.
+
+## 2026-03-17
+- For media viewers and other layout-sensitive surfaces, do not use decode/provider changes as a first-line memory fix unless the rendered output is verified on-device; keep the UI path unchanged and prefer cache-level or non-visual memory guards first.
+- For shared thumbnail components, do not wrap the displayed provider in an exact-size resize layer just because cache bounds were added; keep cache sizing and rendered-provider semantics separate or image aspect/presentation can drift across multiple surfaces at once.
