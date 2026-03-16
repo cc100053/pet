@@ -1,5 +1,80 @@
 # TODO
 
+# Plan (2026-03-16 Firebase Crashlytics Triage Skill)
+- [x] Review the existing repo Crashlytics MCP workflow and derive a minimal reusable skill contract.
+- [x] Add a project-local skill for efficient Crashlytics issue triage and root-cause analysis in this workspace.
+- [x] Update repo notes and run required verification.
+
+# Review (2026-03-16 Firebase Crashlytics Triage Skill)
+- [x] Implemented and verified.
+- Root change:
+  - Added project-local skill `.codex/skills/firebase-crashlytics-triage/SKILL.md`.
+  - Encoded the fastest repo-specific workflow for Firebase MCP Crashlytics triage: confirm project/app ID, read the required Firebase guides, fetch `topIssues` / `topVersions`, pull sample events, and trace the failure path into this repo before deciding whether the issue is current or already fixed.
+  - Included PicPet-specific heuristics for force-update noise, crash-reporting custom keys, iOS dSYM quality, and the common repo search targets that surfaced during the top-issue investigation.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-16 Crashlytics Top Issue Investigation)
+- [x] Inspect the current top Crashlytics issue for the iOS app via Firebase MCP and capture the issue metadata.
+- [x] Fetch recent sample events / stack traces for that issue and identify the crashing code path.
+- [x] Trace the failing path in this repo, determine the most likely root cause, and record the findings plus evidence.
+
+# Review (2026-03-16 Crashlytics Top Issue Investigation)
+- [x] Investigated and verified.
+- Issue summary:
+  - Top current Crashlytics issue is iOS issue `5f2e809db34b69a598977233280e18a1` with 14 events / 5 impacted users over the last 7 days.
+  - Sample events consistently show `ClientException` network failures (`Failed host lookup`, `Operation timed out`, `Bad file descriptor`) against Supabase `app_config` reads during `force_update_check`.
+  - Affected versions in Crashlytics are `1.0.1 (3)`, `1.0.0 (15)`, and `1.0.2 (1)`; the current repo version is `1.0.5+1`.
+- Likely root cause:
+  - Older shipped builds let `AppConfigService.fetchForceUpdateConfig()` surface `app_config` network failures from Supabase, and `ForceUpdateGate._checkForUpdate()` reported those transient failures to Crashlytics as non-fatal `force_update_check` errors.
+  - The current repo already contains the hardening change from commit `0af98726` (`Check update reminder`): `AppConfigService` now wraps config fetches in `_safeFetchConfigValue(...)` and falls back to App Store lookup data instead of propagating Supabase read failures.
+  - Regression coverage exists in `test/services/app_config/app_config_service_test.dart` for the best-effort fallback behavior.
+- Evidence:
+  - Crashlytics sample stack: `IOClient.send` -> `BaseClient._sendUnstreamed` -> `PostgrestBuilder._execute` while requesting `rest/v1/app_config?...`, with `flutter_error_reason=thrown force_update_check`.
+  - Current repo code: `lib/services/app_config/app_config_service.dart` now swallows config-read exceptions in `_safeFetchConfigValue`, and `memory-bank/progress.md` records the iOS update-reminder hardening.
+- Verification:
+  - Firebase MCP `crashlytics_get_report`, `crashlytics_get_issue`, `crashlytics_batch_get_events`, `crashlytics_list_events`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-16 Firebase MCP ADC Migration)
+- [x] Rework the Firebase Crashlytics MCP setup to use ADC/service-account auth instead of expiring Firebase user login.
+- [x] Add repo-local files and docs for an untracked ADC env file plus a wrapper script that validates the service-account path.
+- [x] Verify the updated wrapper/docs and record the required remaining user actions.
+
+# Review (2026-03-16 Firebase MCP ADC Migration)
+- [x] Implemented and verified.
+- Root change:
+  - Switched the repo-local Firebase MCP workflow from expiring `firebase login` auth to ADC/service-account auth.
+  - Added `.firebase-mcp.env.example` plus `.gitignore` coverage for a local `.firebase-mcp.env` file that exports `GOOGLE_APPLICATION_CREDENTIALS` without committing credentials or machine-specific paths.
+  - Updated `scripts/start_firebase_mcp_crashlytics.sh` so it loads the local env file, validates the service-account key path for normal runs, and still allows `--generate-tool-list` without ADC for local verification.
+  - Updated `docs/firebase_crashlytics_mcp_workflow.md` and `README.md` to document the service-account setup, least-privilege role options, and the simplified Codex MCP config that points directly at the repo wrapper script.
+- Verification:
+  - `sh -n scripts/start_firebase_mcp_crashlytics.sh`
+  - `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-16 Firebase MCP Crash Triage Workflow)
+- [x] Inspect the current repo plus local Firebase/Codex setup to find the cleanest MCP integration point for Crashlytics.
+- [x] Add a repo-local workflow for using Firebase MCP to fetch Crashlytics issues/events and drive code fixes from this workspace.
+- [x] Verify the setup path and document the exact commands/steps needed for future use.
+
+# Review (2026-03-16 Firebase MCP Crash Triage Workflow)
+- [x] Implemented and verified.
+- Root change:
+  - Added `scripts/start_firebase_mcp_crashlytics.sh` as a repo-local wrapper for `firebase mcp --dir /Users/fatboy/pet --only core,crashlytics`, so this workspace can expose the exact Crashlytics MCP tool surface on demand.
+  - Added `docs/firebase_crashlytics_mcp_workflow.md` documenting the one-time Codex MCP server config, Firebase CLI reauth step, local verification command, and the recommended issue -> event -> fix workflow for Crashlytics crashes and non-fatals.
+  - Updated `README.md` to link the Crashlytics MCP workflow and wrapper script.
+- Notes:
+  - Local inspection showed the repo is mapped to Firebase project `pet-app-702be` via `firebase.json` and `.firebaserc`.
+  - Local Firebase CLI auth is currently expired, so `firebase login --reauth` remains a required user action before the MCP server can query project data.
+- Verification:
+  - `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-16 Crashlytics dSYM Upload Timing Fix)
 - [x] Inspect the iOS Crashlytics upload flow and confirm why newly archived builds still report missing dSYMs.
 - [x] Fix the Xcode build-phase ordering so dSYM upload runs after all app/framework dSYMs are generated.

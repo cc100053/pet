@@ -18,6 +18,12 @@
 - Run the SQL in the Supabase SQL editor before first app launch.
 - Run `codex mcp login supabase` to login to Supabase.
 
+## Firebase Crashlytics MCP
+- Repo Firebase project: `pet-app-702be`
+- Crash triage workflow: [docs/firebase_crashlytics_mcp_workflow.md](/Users/fatboy/pet/docs/firebase_crashlytics_mcp_workflow.md)
+- Local MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh`
+- Local ADC env template: `.firebase-mcp.env.example`
+
 ## iOS Clean Build
 If iOS builds act up or pods are out of sync, run:
 ```sh
