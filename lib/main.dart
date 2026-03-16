@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -22,11 +23,15 @@ import 'shared/force_update/crash_update_guard.dart';
 
 RawReceivePort? _isolateErrorPort;
 
+const int _maxImageCacheEntries = 150;
+const int _maxImageCacheBytes = 192 * 1024 * 1024;
+
 Future<void> main() async {
   runZonedGuarded(
     () async {
       final appStartTime = DateTime.now();
       WidgetsFlutterBinding.ensureInitialized();
+      _configureImageCache();
       await dotenv.load(fileName: '.env');
 
       await Firebase.initializeApp(
@@ -126,6 +131,12 @@ Future<void> main() async {
       );
     },
   );
+}
+
+void _configureImageCache() {
+  final imageCache = PaintingBinding.instance.imageCache;
+  imageCache.maximumSize = _maxImageCacheEntries;
+  imageCache.maximumSizeBytes = _maxImageCacheBytes;
 }
 
 void _registerIsolateErrorListener() {

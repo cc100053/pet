@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-03-17 Aggressive Image Memory Guards)
+- [x] Inspect app bootstrap and fullscreen viewer image decode paths for the remaining high-memory routes.
+- [x] Add a conservative global Flutter image cache cap during startup.
+- [x] Bound fullscreen viewer local/remote image decode sizes to the current viewport and add regression coverage.
+- [x] Run `flutter analyze` and `flutter test`, then record the outcome.
+
+# Review (2026-03-17 Aggressive Image Memory Guards)
+- [x] Implemented and verified.
+- Root change:
+  - Added a conservative Flutter image-cache cap in `lib/main.dart` so repeated room/chat/media navigation cannot retain unbounded decoded images in memory.
+  - Updated `lib/shared/ui/full_screen_photo_viewer.dart` to compute a viewport-based fullscreen decode target and wrap both `FileImage` and `CachedNetworkImageProvider` in `ResizeImage.resizeIfNeeded(...)` before handing them to `PhotoView`.
+  - Added `test/full_screen_photo_viewer_test.dart` coverage for the decode-target helper and the gallery page's resized image provider.
+- Verification:
+  - `flutter test test/full_screen_photo_viewer_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-16 Chat OOM on Room Switch)
 - [x] Trace the image decode paths exercised when repeatedly entering and leaving chat rooms.
 - [x] Downscale shared local/remote chat image loads to display-size cache targets instead of decoding original-resolution assets.
