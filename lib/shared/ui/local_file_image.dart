@@ -8,6 +8,15 @@ Widget? buildLocalFileImage(
   BoxFit fit = BoxFit.cover,
   double? width,
   double? height,
+  int? cacheWidth,
+  int? cacheHeight,
 }) {
-  return buildLocalFileImageImpl(path, fit: fit, width: width, height: height);
+  return buildLocalFileImageImpl(
+    path,
+    fit: fit,
+    width: width,
+    height: height,
+    cacheWidth: cacheWidth,
+    cacheHeight: cacheHeight,
+  );
 }

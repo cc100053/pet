@@ -1,5 +1,26 @@
 # TODO
 
+# Plan (2026-03-16 Chat OOM on Room Switch)
+- [x] Trace the image decode paths exercised when repeatedly entering and leaving chat rooms.
+- [x] Downscale shared local/remote chat image loads to display-size cache targets instead of decoding original-resolution assets.
+- [x] Add regression coverage for the shared image wrapper sizing behavior.
+- [x] Run `flutter analyze` and `flutter test`, then record the root cause and verification.
+
+# Review (2026-03-16 Chat OOM on Room Switch)
+- [x] Investigated and verified.
+- Root cause:
+  - Real-device iOS logs showed `EXC_RESOURCE (RESOURCE_TYPE_MEMORY: high watermark memory limit exceeded)` with Flutter stopped in `UpsampleRgbaLinePair_NEON`, pointing to oversized image decode/upscaling rather than a Dart exception or Crashlytics upload failure.
+  - Shared chat/home thumbnail paths still allowed original-resolution images to be decoded for display-size surfaces unless a specific callsite manually set cache bounds.
+- Root change:
+  - Updated `lib/shared/ui/cached_network_image_view.dart` to derive decode/cache targets from the rendered viewport and apply them to both memory and disk caches for remote images.
+  - Extended `lib/shared/ui/local_file_image.dart` / `lib/shared/ui/local_file_image_io.dart` so local file images loaded through the shared wrapper also use `cacheWidth` / `cacheHeight` and medium filter quality instead of decoding the full original file.
+  - Added `test/shared/ui/cached_network_image_view_test.dart` coverage to assert the shared wrapper sizes its cache to the rendered layout bounds.
+- Verification:
+  - `flutter test test/shared/ui/cached_network_image_view_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-16 Firebase Crashlytics Triage Skill)
 - [x] Review the existing repo Crashlytics MCP workflow and derive a minimal reusable skill contract.
 - [x] Add a project-local skill for efficient Crashlytics issue triage and root-cause analysis in this workspace.

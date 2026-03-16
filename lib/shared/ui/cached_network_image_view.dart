@@ -36,55 +36,115 @@ class CachedNetworkImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final local = buildLocalFileImage(
-      imageUrl,
-      fit: fit,
-      width: width,
-      height: height,
-    );
-    if (local != null) {
-      return local;
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cacheSize = _resolveCacheSize(context, constraints);
+        final local = buildLocalFileImage(
+          imageUrl,
+          fit: fit,
+          width: width,
+          height: height,
+          cacheWidth: cacheSize?.width,
+          cacheHeight: cacheSize?.height,
+        );
+        if (local != null) {
+          return local;
+        }
 
-    final theme = Theme.of(context);
-    final fallbackPlaceholder = Container(
-      color: theme.colorScheme.surfaceContainerHighest,
-    );
-    final fallbackError = Container(
-      color: theme.colorScheme.surface,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.broken_image,
-        size: 18,
-        color: theme.colorScheme.outline,
-      ),
-    );
+        final theme = Theme.of(context);
+        final fallbackPlaceholder = Container(
+          color: theme.colorScheme.surfaceContainerHighest,
+        );
+        final fallbackError = Container(
+          color: theme.colorScheme.surface,
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.broken_image,
+            size: 18,
+            color: theme.colorScheme.outline,
+          ),
+        );
 
-    return CachedNetworkImage(
-      imageUrl: imageUrl,
-      cacheManager: cacheManager,
-      width: width,
-      height: height,
-      fit: fit,
-      alignment: Alignment.center,
-      fadeInDuration: const Duration(milliseconds: 120),
-      placeholderFadeInDuration: const Duration(milliseconds: 120),
-      errorListener: (_) {},
-      imageBuilder: (context, imageProvider) => _PortraitAwareImage(
-        imageProvider: imageProvider,
-        imageUrl: imageUrl,
-        fit: fit,
-        alignment: alignment,
-        scale: scale,
-        avatarScaleMode: avatarScaleMode,
-        portraitFriendlyCrop: portraitFriendlyCrop,
-        width: width,
-        height: height,
-      ),
-      placeholder: (context, url) => placeholder ?? fallbackPlaceholder,
-      errorWidget: (context, url, error) => errorWidget ?? fallbackError,
+        return CachedNetworkImage(
+          imageUrl: imageUrl,
+          cacheManager: cacheManager,
+          width: width,
+          height: height,
+          fit: fit,
+          alignment: Alignment.center,
+          fadeInDuration: const Duration(milliseconds: 120),
+          placeholderFadeInDuration: const Duration(milliseconds: 120),
+          memCacheWidth: cacheSize?.width,
+          memCacheHeight: cacheSize?.height,
+          maxWidthDiskCache: cacheSize?.width,
+          maxHeightDiskCache: cacheSize?.height,
+          errorListener: (_) {},
+          imageBuilder: (context, imageProvider) => _PortraitAwareImage(
+            imageProvider: imageProvider,
+            imageUrl: imageUrl,
+            fit: fit,
+            alignment: alignment,
+            scale: scale,
+            avatarScaleMode: avatarScaleMode,
+            portraitFriendlyCrop: portraitFriendlyCrop,
+            width: width,
+            height: height,
+            cacheWidth: cacheSize?.width,
+            cacheHeight: cacheSize?.height,
+          ),
+          placeholder: (context, url) => placeholder ?? fallbackPlaceholder,
+          errorWidget: (context, url, error) => errorWidget ?? fallbackError,
+        );
+      },
     );
   }
+
+  _ImageCacheSize? _resolveCacheSize(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) {
+    final resolvedWidth = _resolveDimension(
+      explicit: width,
+      maxConstraint: constraints.maxWidth,
+    );
+    final resolvedHeight = _resolveDimension(
+      explicit: height,
+      maxConstraint: constraints.maxHeight,
+    );
+    if (resolvedWidth == null || resolvedHeight == null) {
+      return null;
+    }
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final effectiveScale = scale.clamp(1.0, 4.0);
+    final cacheWidth = (resolvedWidth * devicePixelRatio * effectiveScale)
+        .round();
+    final cacheHeight = (resolvedHeight * devicePixelRatio * effectiveScale)
+        .round();
+    if (cacheWidth <= 0 || cacheHeight <= 0) {
+      return null;
+    }
+    return _ImageCacheSize(width: cacheWidth, height: cacheHeight);
+  }
+
+  double? _resolveDimension({
+    required double? explicit,
+    required double maxConstraint,
+  }) {
+    if (explicit != null && explicit > 0) {
+      return explicit;
+    }
+    if (maxConstraint.isFinite && maxConstraint > 0) {
+      return maxConstraint;
+    }
+    return null;
+  }
+}
+
+class _ImageCacheSize {
+  const _ImageCacheSize({required this.width, required this.height});
+
+  final int width;
+  final int height;
 }
 
 class _PortraitAwareImage extends StatefulWidget {
@@ -98,6 +158,8 @@ class _PortraitAwareImage extends StatefulWidget {
     required this.portraitFriendlyCrop,
     required this.width,
     required this.height,
+    required this.cacheWidth,
+    required this.cacheHeight,
   });
 
   final ImageProvider imageProvider;
@@ -109,6 +171,8 @@ class _PortraitAwareImage extends StatefulWidget {
   final bool portraitFriendlyCrop;
   final double? width;
   final double? height;
+  final int? cacheWidth;
+  final int? cacheHeight;
 
   @override
   State<_PortraitAwareImage> createState() => _PortraitAwareImageState();
@@ -119,6 +183,12 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
   ImageStreamListener? _listener;
   double? _aspectRatio;
 
+  ImageProvider get _effectiveImageProvider => ResizeImage.resizeIfNeeded(
+    widget.cacheWidth,
+    widget.cacheHeight,
+    widget.imageProvider,
+  );
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -128,7 +198,9 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
   @override
   void didUpdateWidget(covariant _PortraitAwareImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageProvider != widget.imageProvider) {
+    if (oldWidget.imageProvider != widget.imageProvider ||
+        oldWidget.cacheWidth != widget.cacheWidth ||
+        oldWidget.cacheHeight != widget.cacheHeight) {
       _resolveImage();
     }
   }
@@ -147,7 +219,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
 
   void _resolveImage() {
     _removeListener();
-    final stream = widget.imageProvider.resolve(
+    final stream = _effectiveImageProvider.resolve(
       createLocalImageConfiguration(context),
     );
     final listener = ImageStreamListener(
@@ -201,7 +273,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
               width: base.width,
               height: base.height,
               child: Image(
-                image: widget.imageProvider,
+                image: _effectiveImageProvider,
                 fit: BoxFit.fill,
                 width: base.width,
                 height: base.height,
@@ -224,7 +296,7 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
     return Transform.scale(
       scale: widget.scale.clamp(0.5, 4.0),
       child: Image(
-        image: widget.imageProvider,
+        image: _effectiveImageProvider,
         fit: effectiveFit,
         width: widget.width,
         height: widget.height,

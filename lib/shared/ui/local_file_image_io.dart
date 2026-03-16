@@ -7,6 +7,8 @@ Widget? buildLocalFileImageImpl(
   BoxFit fit = BoxFit.cover,
   double? width,
   double? height,
+  int? cacheWidth,
+  int? cacheHeight,
 }) {
   if (path.startsWith('http://') ||
       path.startsWith('https://') ||
@@ -29,5 +31,13 @@ Widget? buildLocalFileImageImpl(
   if (!file.existsSync()) {
     return null;
   }
-  return Image.file(file, fit: fit, width: width, height: height);
+  return Image.file(
+    file,
+    fit: fit,
+    width: width,
+    height: height,
+    cacheWidth: cacheWidth,
+    cacheHeight: cacheHeight,
+    filterQuality: FilterQuality.medium,
+  );
 }

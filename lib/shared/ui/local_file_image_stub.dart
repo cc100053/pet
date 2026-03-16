@@ -5,6 +5,8 @@ Widget? buildLocalFileImageImpl(
   BoxFit fit = BoxFit.cover,
   double? width,
   double? height,
+  int? cacheWidth,
+  int? cacheHeight,
 }) {
   return null;
 }

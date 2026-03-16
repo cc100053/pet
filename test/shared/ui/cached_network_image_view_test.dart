@@ -1,9 +1,42 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
 
 void main() {
+  testWidgets('sizes remote image cache to rendered layout bounds', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 120,
+              height: 80,
+              child: CachedNetworkImageView(
+                imageUrl: 'https://example.com/image.jpg',
+                cacheManager: _NotFoundCacheManager(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.memCacheWidth, 240);
+    expect(image.memCacheHeight, 160);
+    expect(image.maxWidthDiskCache, 240);
+    expect(image.maxHeightDiskCache, 160);
+  });
+
   testWidgets('shows error widget when remote image returns 404', (
     tester,
   ) async {
