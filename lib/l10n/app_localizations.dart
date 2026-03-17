@@ -793,6 +793,36 @@ abstract class AppLocalizations {
   /// **'Show \"I\'m Full\" Bubble'**
   String get drawerDebugShowFullBubble;
 
+  /// No description provided for @drawerDebugCaptureMemorySnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture Memory Snapshot'**
+  String get drawerDebugCaptureMemorySnapshot;
+
+  /// No description provided for @drawerDebugClearImageCacheSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Image Cache + Snapshot'**
+  String get drawerDebugClearImageCacheSnapshot;
+
+  /// No description provided for @drawerDebugOpenMemoryDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Memory Diagnostics'**
+  String get drawerDebugOpenMemoryDiagnostics;
+
+  /// No description provided for @drawerDebugMemorySnapshotCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory snapshot captured.'**
+  String get drawerDebugMemorySnapshotCaptured;
+
+  /// No description provided for @drawerDebugImageCacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Image cache cleared and snapshot captured.'**
+  String get drawerDebugImageCacheCleared;
+
   /// No description provided for @drawerDebugTestSoftUpdate.
   ///
   /// In en, this message translates to:
@@ -816,6 +846,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Test Crash Report'**
   String get drawerDebugTestCrashReport;
+
+  /// No description provided for @debugMemoryDiagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory Diagnostics'**
+  String get debugMemoryDiagnosticsTitle;
+
+  /// No description provided for @debugMemoryDiagnosticsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No memory snapshots captured yet.'**
+  String get debugMemoryDiagnosticsEmpty;
 
   /// No description provided for @drawerInviteCode.
   ///

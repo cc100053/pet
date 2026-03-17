@@ -397,6 +397,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugShowFullBubble => '「おなかいっぱい！」を表示';
 
   @override
+  String get drawerDebugCaptureMemorySnapshot => 'メモリスナップショットを記録';
+
+  @override
+  String get drawerDebugClearImageCacheSnapshot => '画像キャッシュを消去して記録';
+
+  @override
+  String get drawerDebugOpenMemoryDiagnostics => 'メモリ診断を開く';
+
+  @override
+  String get drawerDebugMemorySnapshotCaptured => 'メモリスナップショットを記録しました。';
+
+  @override
+  String get drawerDebugImageCacheCleared => '画像キャッシュを消去してスナップショットを記録しました。';
+
+  @override
   String get drawerDebugTestSoftUpdate => 'ソフト更新ポップアップを確認';
 
   @override
@@ -407,6 +422,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => 'クラッシュ報告をテスト';
+
+  @override
+  String get debugMemoryDiagnosticsTitle => 'メモリ診断';
+
+  @override
+  String get debugMemoryDiagnosticsEmpty => 'まだメモリスナップショットがありません。';
 
   @override
   String drawerInviteCode(Object code) {

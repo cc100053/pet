@@ -214,6 +214,13 @@ extension _HomeRoomManager on _HomeViewState {
     bool showEntryLoading = false,
   }) {
     _syncCrashContextFromHome(lastAction: 'switch_room');
+    unawaited(
+      _captureHomeMemorySnapshot(
+        source: 'home_room_switch_start',
+        roomId: roomId,
+        note: showEntryLoading ? 'entry_loading' : null,
+      ),
+    );
     _feedingAnimationToken++;
     final roomEntryToken = showEntryLoading ? ++_roomEntryLoadingToken : -1;
     final roomEntryStartedAt = DateTime.now();
@@ -286,6 +293,13 @@ extension _HomeRoomManager on _HomeViewState {
     if (previousRoom != roomId) {
       AnalyticsService.instance.logEvent('room_switch');
     }
+    unawaited(
+      _captureHomeMemorySnapshot(
+        source: 'home_room_switch_ready',
+        roomId: roomId,
+        note: previousRoom == roomId ? 'same_room' : 'new_room',
+      ),
+    );
     _syncCrashContextFromHome(lastAction: 'switch_room_ready');
   }
 

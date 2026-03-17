@@ -395,6 +395,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
 
   @override
+  String get drawerDebugCaptureMemorySnapshot => '記錄記憶體快照';
+
+  @override
+  String get drawerDebugClearImageCacheSnapshot => '清除圖片快取並記錄';
+
+  @override
+  String get drawerDebugOpenMemoryDiagnostics => '開啟記憶體診斷';
+
+  @override
+  String get drawerDebugMemorySnapshotCaptured => '已記錄記憶體快照。';
+
+  @override
+  String get drawerDebugImageCacheCleared => '已清除圖片快取並記錄快照。';
+
+  @override
   String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';
 
   @override
@@ -405,6 +420,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
+
+  @override
+  String get debugMemoryDiagnosticsTitle => '記憶體診斷';
+
+  @override
+  String get debugMemoryDiagnosticsEmpty => '尚未記錄任何記憶體快照。';
 
   @override
   String drawerInviteCode(Object code) {
@@ -1795,6 +1816,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
 
   @override
+  String get drawerDebugCaptureMemorySnapshot => '記錄記憶體快照';
+
+  @override
+  String get drawerDebugClearImageCacheSnapshot => '清除圖片快取並記錄';
+
+  @override
+  String get drawerDebugOpenMemoryDiagnostics => '開啟記憶體診斷';
+
+  @override
+  String get drawerDebugMemorySnapshotCaptured => '已記錄記憶體快照。';
+
+  @override
+  String get drawerDebugImageCacheCleared => '已清除圖片快取並記錄快照。';
+
+  @override
   String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';
 
   @override
@@ -1805,6 +1841,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';
+
+  @override
+  String get debugMemoryDiagnosticsTitle => '記憶體診斷';
+
+  @override
+  String get debugMemoryDiagnosticsEmpty => '尚未記錄任何記憶體快照。';
 
   @override
   String drawerInviteCode(Object code) {

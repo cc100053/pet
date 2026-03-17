@@ -219,10 +219,17 @@
   "drawerDebugAddExp": "EXP +10",
   "drawerDebugSpawnPoop": "펫 배변 생성",
   "drawerDebugShowFullBubble": "\"배불러요\" 말풍선 표시",
+  "drawerDebugCaptureMemorySnapshot": "메모리 스냅샷 기록",
+  "drawerDebugClearImageCacheSnapshot": "이미지 캐시 비우고 기록",
+  "drawerDebugOpenMemoryDiagnostics": "메모리 진단 열기",
+  "drawerDebugMemorySnapshotCaptured": "메모리 스냅샷을 기록했습니다.",
+  "drawerDebugImageCacheCleared": "이미지 캐시를 비우고 스냅샷을 기록했습니다.",
   "drawerDebugTestSoftUpdate": "소프트 업데이트 안내 테스트",
   "drawerDebugTestHardUpdate": "강제 업데이트 안내 테스트",
   "drawerDebugTestWhatsNew": "What's New 모달 미리보기",
   "drawerDebugTestCrashReport": "크래시 보고 테스트",
+  "debugMemoryDiagnosticsTitle": "메모리 진단",
+  "debugMemoryDiagnosticsEmpty": "아직 기록된 메모리 스냅샷이 없습니다.",
   "drawerInviteCode": "코드: {code}",
   "@drawerInviteCode": {
     "placeholders": {

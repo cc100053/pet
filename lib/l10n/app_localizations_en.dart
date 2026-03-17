@@ -412,6 +412,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugShowFullBubble => 'Show \"I\'m Full\" Bubble';
 
   @override
+  String get drawerDebugCaptureMemorySnapshot => 'Capture Memory Snapshot';
+
+  @override
+  String get drawerDebugClearImageCacheSnapshot =>
+      'Clear Image Cache + Snapshot';
+
+  @override
+  String get drawerDebugOpenMemoryDiagnostics => 'Open Memory Diagnostics';
+
+  @override
+  String get drawerDebugMemorySnapshotCaptured => 'Memory snapshot captured.';
+
+  @override
+  String get drawerDebugImageCacheCleared =>
+      'Image cache cleared and snapshot captured.';
+
+  @override
   String get drawerDebugTestSoftUpdate => 'Test Soft Update Prompt';
 
   @override
@@ -422,6 +439,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => 'Test Crash Report';
+
+  @override
+  String get debugMemoryDiagnosticsTitle => 'Memory Diagnostics';
+
+  @override
+  String get debugMemoryDiagnosticsEmpty => 'No memory snapshots captured yet.';
 
   @override
   String drawerInviteCode(Object code) {

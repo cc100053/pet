@@ -219,10 +219,17 @@
   "drawerDebugAddExp": "経験値 +10",
   "drawerDebugSpawnPoop": "うんちさせる",
   "drawerDebugShowFullBubble": "「おなかいっぱい！」を表示",
+  "drawerDebugCaptureMemorySnapshot": "メモリスナップショットを記録",
+  "drawerDebugClearImageCacheSnapshot": "画像キャッシュを消去して記録",
+  "drawerDebugOpenMemoryDiagnostics": "メモリ診断を開く",
+  "drawerDebugMemorySnapshotCaptured": "メモリスナップショットを記録しました。",
+  "drawerDebugImageCacheCleared": "画像キャッシュを消去してスナップショットを記録しました。",
   "drawerDebugTestSoftUpdate": "ソフト更新ポップアップを確認",
   "drawerDebugTestHardUpdate": "必須更新ポップアップを確認",
   "drawerDebugTestWhatsNew": "What's New モーダルを確認",
   "drawerDebugTestCrashReport": "クラッシュ報告をテスト",
+  "debugMemoryDiagnosticsTitle": "メモリ診断",
+  "debugMemoryDiagnosticsEmpty": "まだメモリスナップショットがありません。",
   "drawerInviteCode": "コード: {code}",
   "@drawerInviteCode": {
     "placeholders": {

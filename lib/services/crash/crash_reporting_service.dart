@@ -112,6 +112,16 @@ class CrashReportingService {
     _crashlytics.log(_truncate(payload));
   }
 
+  Future<void> setCustomKeys(Map<String, Object?> values) async {
+    for (final entry in values.entries) {
+      final value = entry.value;
+      if (value == null) {
+        continue;
+      }
+      await _setCustomKey(entry.key, value);
+    }
+  }
+
   Future<void> reportError({
     required Object error,
     required StackTrace stackTrace,

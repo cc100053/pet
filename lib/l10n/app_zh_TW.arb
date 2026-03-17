@@ -212,10 +212,17 @@
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓寵物便便",
   "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
+  "drawerDebugCaptureMemorySnapshot": "記錄記憶體快照",
+  "drawerDebugClearImageCacheSnapshot": "清除圖片快取並記錄",
+  "drawerDebugOpenMemoryDiagnostics": "開啟記憶體診斷",
+  "drawerDebugMemorySnapshotCaptured": "已記錄記憶體快照。",
+  "drawerDebugImageCacheCleared": "已清除圖片快取並記錄快照。",
   "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
   "drawerDebugTestHardUpdate": "測試強制更新彈窗",
   "drawerDebugTestWhatsNew": "預覽 What's New 視窗",
   "drawerDebugTestCrashReport": "測試崩潰上報",
+  "debugMemoryDiagnosticsTitle": "記憶體診斷",
+  "debugMemoryDiagnosticsEmpty": "尚未記錄任何記憶體快照。",
   "drawerInviteCode": "代碼：{code}",
   "@drawerInviteCode": {
     "placeholders": {

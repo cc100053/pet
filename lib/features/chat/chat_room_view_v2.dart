@@ -18,6 +18,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/chat/chat_message_action_service.dart';
 import '../../services/chat/chat_message_repository.dart';
+import '../../services/performance/memory_diagnostics_service.dart';
 import '../../services/profile/profile_cache_service.dart';
 import '../../services/review/review_prompt_service.dart';
 import '../../shared/errors/user_facing_error.dart';
@@ -133,6 +134,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     super.initState();
     _memberCount = widget.memberCount;
     _chatScrollController.addListener(_handleChatScroll);
+    unawaited(_captureMemorySnapshot(source: 'chat_init_state'));
     if (_memberCount == null) {
       unawaited(_fetchMemberCount());
     }
@@ -142,6 +144,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
   @override
   void dispose() {
+    unawaited(_captureMemorySnapshot(source: 'chat_dispose'));
     _channel?.unsubscribe();
     _chatScrollController.removeListener(_handleChatScroll);
     _chatController.dispose();
@@ -149,6 +152,28 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     _composerController.dispose();
     _composerFocusNode.dispose();
     super.dispose();
+  }
+
+  int get _imageMessageCount =>
+      _messages.where((message) => message.isImageFeed).length;
+
+  Future<void> _captureMemorySnapshot({
+    required String source,
+    String? note,
+    String? fullscreenProviderType,
+    int? fullscreenItemCount,
+  }) {
+    return MemoryDiagnosticsService.instance.captureSnapshot(
+      source: source,
+      route: 'chat_room_view_v2',
+      roomId: widget.roomId,
+      messageCount: _messages.length,
+      imageMessageCount: _imageMessageCount,
+      optimisticMessageCount: _optimisticIds.length,
+      note: note,
+      fullscreenProviderType: fullscreenProviderType,
+      fullscreenItemCount: fullscreenItemCount,
+    );
   }
 
   Future<void> _initialize() async {
@@ -235,6 +260,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         _loading = false;
         _error = null;
       });
+      unawaited(_captureMemorySnapshot(source: 'chat_cached_messages_loaded'));
       unawaited(_ensureProfilesForMessages(messages));
       unawaited(_ensureReplyPreviewsForMessages(messages));
       unawaited(_ensureReactionSummariesForMessages(messages));
@@ -281,6 +307,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         _loading = false;
         _error = null;
       });
+      unawaited(_captureMemorySnapshot(source: 'chat_initial_messages_loaded'));
       unawaited(_ensureProfilesForMessages(merged));
       unawaited(_ensureReplyPreviewsForMessages(merged));
       unawaited(_ensureReactionSummariesForMessages(merged));
@@ -344,6 +371,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         unawaited(_ensureReplyPreviewsForMessages(olderMessages));
         unawaited(_ensureReactionSummariesForMessages(olderMessages));
         unawaited(_persistCache());
+        unawaited(_captureMemorySnapshot(source: 'chat_load_more_loaded'));
         _schedulePreserveViewport(
           previousMaxExtent: previousMaxExtent,
           previousOffset: previousOffset,
@@ -2152,6 +2180,15 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
             emoji: emoji,
             currentReactionEmoji: currentReactionEmoji,
           ),
+    );
+    unawaited(
+      _captureMemorySnapshot(
+        source: 'chat_fullscreen_viewer_open',
+        fullscreenProviderType: localPath != null && localPath.isNotEmpty
+            ? 'FileImage'
+            : 'CachedNetworkImageProvider',
+        fullscreenItemCount: 1,
+      ),
     );
   }
 

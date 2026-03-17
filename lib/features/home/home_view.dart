@@ -31,7 +31,9 @@ import '../../services/review/review_prompt_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
+import '../../services/performance/memory_diagnostics_service.dart';
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/debug/memory_diagnostics_sheet.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -1073,6 +1075,64 @@ class _HomeViewState extends ConsumerState<HomeView>
     });
   }
 
+  Future<void> _captureHomeMemorySnapshot({
+    required String source,
+    String? roomId,
+    String? note,
+  }) {
+    return MemoryDiagnosticsService.instance.captureSnapshot(
+      source: source,
+      route: 'home_view',
+      roomId: roomId ?? _roomId,
+      note: note,
+    );
+  }
+
+  Future<void> _captureDebugMemorySnapshot() async {
+    final l10n = AppLocalizations.of(context)!;
+    Navigator.pop(context);
+    await _captureHomeMemorySnapshot(
+      source: 'home_debug_manual_capture',
+      note: 'debug_drawer',
+    );
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.drawerDebugMemorySnapshotCaptured)),
+    );
+  }
+
+  Future<void> _clearImageCacheAndCaptureDebugSnapshot() async {
+    final l10n = AppLocalizations.of(context)!;
+    Navigator.pop(context);
+    await MemoryDiagnosticsService.instance.clearImageCacheAndCapture(
+      source: 'home_debug_clear_image_cache',
+      route: 'home_view',
+      roomId: _roomId,
+      note: 'debug_drawer',
+    );
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.drawerDebugImageCacheCleared)));
+  }
+
+  Future<void> _openMemoryDiagnosticsSheet() async {
+    Navigator.pop(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => MemoryDiagnosticsSheet(
+        snapshotsListenable:
+            MemoryDiagnosticsService.instance.snapshotsListenable,
+      ),
+    );
+  }
+
   Future<Map<String, dynamic>?> _fetchPetState(String petId) async {
     return Supabase.instance.client
         .from('pet_state')
@@ -1947,6 +2007,12 @@ class _HomeViewState extends ConsumerState<HomeView>
     final isRoomLocked = _isRoomLocked(roomId);
     _markRoomAsRead(roomId);
     _chatOpenRoomId = roomId;
+    unawaited(
+      _captureHomeMemorySnapshot(
+        source: 'home_chat_route_push',
+        roomId: roomId,
+      ),
+    );
 
     Navigator.of(context)
         .push(
@@ -1971,6 +2037,23 @@ class _HomeViewState extends ConsumerState<HomeView>
           if (_chatOpenRoomId == roomId) {
             _chatOpenRoomId = null;
           }
+          unawaited(
+            _captureHomeMemorySnapshot(
+              source: 'home_chat_route_pop',
+              roomId: roomId,
+            ),
+          );
+          unawaited(
+            Future<void>.delayed(const Duration(milliseconds: 350), () {
+              if (!mounted) {
+                return Future<void>.value();
+              }
+              return _captureHomeMemorySnapshot(
+                source: 'home_chat_route_pop_settled',
+                roomId: roomId,
+              );
+            }),
+          );
           if (!mounted) {
             return;
           }
@@ -4493,6 +4576,18 @@ class _HomeViewState extends ConsumerState<HomeView>
                           _effectivePetDeparted)
                       ? null
                       : _debugShowOverfedBubble,
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugCaptureMemorySnapshot),
+                  onTap: _captureDebugMemorySnapshot,
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugClearImageCacheSnapshot),
+                  onTap: _clearImageCacheAndCaptureDebugSnapshot,
+                ),
+                ListTile(
+                  title: Text(l10n.drawerDebugOpenMemoryDiagnostics),
+                  onTap: _openMemoryDiagnosticsSheet,
                 ),
                 ListTile(
                   title: Text(l10n.drawerDebugTestSoftUpdate),

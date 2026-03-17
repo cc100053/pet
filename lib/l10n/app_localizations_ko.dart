@@ -403,6 +403,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugShowFullBubble => '\"배불러요\" 말풍선 표시';
 
   @override
+  String get drawerDebugCaptureMemorySnapshot => '메모리 스냅샷 기록';
+
+  @override
+  String get drawerDebugClearImageCacheSnapshot => '이미지 캐시 비우고 기록';
+
+  @override
+  String get drawerDebugOpenMemoryDiagnostics => '메모리 진단 열기';
+
+  @override
+  String get drawerDebugMemorySnapshotCaptured => '메모리 스냅샷을 기록했습니다.';
+
+  @override
+  String get drawerDebugImageCacheCleared => '이미지 캐시를 비우고 스냅샷을 기록했습니다.';
+
+  @override
   String get drawerDebugTestSoftUpdate => '소프트 업데이트 안내 테스트';
 
   @override
@@ -413,6 +428,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get drawerDebugTestCrashReport => '크래시 보고 테스트';
+
+  @override
+  String get debugMemoryDiagnosticsTitle => '메모리 진단';
+
+  @override
+  String get debugMemoryDiagnosticsEmpty => '아직 기록된 메모리 스냅샷이 없습니다.';
 
   @override
   String drawerInviteCode(Object code) {

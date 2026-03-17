@@ -219,10 +219,17 @@
   "drawerDebugAddExp": "+10 EXP",
   "drawerDebugSpawnPoop": "Make Pet Poop",
   "drawerDebugShowFullBubble": "Show \"I'm Full\" Bubble",
+  "drawerDebugCaptureMemorySnapshot": "Capture Memory Snapshot",
+  "drawerDebugClearImageCacheSnapshot": "Clear Image Cache + Snapshot",
+  "drawerDebugOpenMemoryDiagnostics": "Open Memory Diagnostics",
+  "drawerDebugMemorySnapshotCaptured": "Memory snapshot captured.",
+  "drawerDebugImageCacheCleared": "Image cache cleared and snapshot captured.",
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
   "drawerDebugTestWhatsNew": "Preview What's New Modal",
   "drawerDebugTestCrashReport": "Test Crash Report",
+  "debugMemoryDiagnosticsTitle": "Memory Diagnostics",
+  "debugMemoryDiagnosticsEmpty": "No memory snapshots captured yet.",
   "drawerInviteCode": "Code: {code}",
   "@drawerInviteCode": {
     "placeholders": {

@@ -3,7 +3,8 @@
 This file is for agentic coding agents working in this repo.
 
 ## Core workflow (non-negotiable)
-- Read all `memory-bank/*.md` before making non-trivial code changes; update them if your work changes current behavior/decisions.
+- Read all `memory-bank/*.md` (excluding `archive/`) before making non-trivial code changes; update them if your work changes current behavior/decisions.
+- Optional: `memory-bank/archive/progress_archive.md` (Archive) contains historical development logs for deeper context when needed.
 - After changes, run: `flutter analyze` and `flutter test`.
 - When instructions require a website/dashboard step, mark it as `[USER ACTION REQUIRED]`.
 - If you touch Supabase schema/functions, prefer the Supabase MCP workflow first (see "Supabase" section).
