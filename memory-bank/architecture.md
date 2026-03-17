@@ -16,6 +16,7 @@ Scaffolding is in place; modules will expand as features are implemented.
 
 Implemented:
 - `lib/app/`: App bootstrap and theme.
+  - Shared light-theme `AppBar` chrome now defaults to `AppStatusBarStyles.light`, keeping dark status-bar content on all standard white/cream app surfaces. Home and chat continue to override overlay style per active room background.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
   - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1 coach card, dual spotlight focus resolution for the existing create-room CTA and header invite-code action, skip/persistence, debug force-show override, and legacy `open_room` state migration to `invite_friend`.

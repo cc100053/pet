@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../ui/status_bar_style.dart';
+
 class AppTheme {
   // Main accent: lighter green to pair with the pale yellow base.
   static const Color primaryColor = Color(0xFF5FBF9E); // Soft Green Accent
@@ -89,6 +91,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: AppStatusBarStyles.light,
         iconTheme: IconThemeData(color: textPrimary),
         titleTextStyle: TextStyle(
           color: textPrimary,

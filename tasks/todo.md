@@ -92,3 +92,18 @@
   - `flutter analyze`
   - `flutter test`
   - Both passed; `test/feed_flow_integration_test.dart` remained skipped without the required Supabase env vars, as expected.
+
+# Plan (2026-03-17 Global AppBar Status Bar)
+- [x] Audit all AppBar/status-bar handling and identify the correct shared default.
+- [x] Enforce dark status-bar content for non-Home/non-Chat AppBars while preserving explicit dark-theme overrides.
+- [x] Update memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-17 Global AppBar Status Bar)
+- [x] Implemented and verified.
+- Root change:
+  - Added `AppStatusBarStyles.light` to the shared `AppBarTheme` inside `AppTheme.lightTheme`, so every standard light-surface `AppBar` now defaults to dark iPhone status-bar content.
+  - Home and chat keep their explicit route-level overlay handling, so they remain the only places where dark-theme status-bar content can appear.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without the required Supabase env vars, as expected.
