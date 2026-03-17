@@ -1,6 +1,4 @@
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Main accent: lighter green to pair with the pale yellow base.
@@ -20,6 +18,7 @@ class AppTheme {
   static const Color chatBubbleOther = Colors.white;
 
   static ThemeData get lightTheme {
+    final baseTextTheme = Typography.material2021().black;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -35,18 +34,40 @@ class AppTheme {
         onSurface: textPrimary,
         onError: Colors.white,
       ),
-      
-      // Font Family
-      textTheme: GoogleFonts.poppinsTextTheme().copyWith(
-        displayLarge: const TextStyle(color: textPrimary, fontWeight: FontWeight.bold),
-        displayMedium: const TextStyle(color: textPrimary, fontWeight: FontWeight.bold),
-        displaySmall: const TextStyle(color: textPrimary, fontWeight: FontWeight.w600),
-        headlineMedium: const TextStyle(color: textPrimary, fontWeight: FontWeight.w600),
-        titleLarge: const TextStyle(color: textPrimary, fontWeight: FontWeight.w600),
-        titleMedium: const TextStyle(color: textPrimary, fontWeight: FontWeight.w500),
+
+      // Use a local Material text theme so app startup never depends on a
+      // runtime font fetch.
+      textTheme: baseTextTheme.copyWith(
+        displayLarge: const TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        displayMedium: const TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        displaySmall: const TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        headlineMedium: const TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        titleLarge: const TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        titleMedium: const TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
         bodyLarge: const TextStyle(color: textPrimary),
         bodyMedium: const TextStyle(color: textPrimary),
-        labelLarge: const TextStyle(color: primaryColor, fontWeight: FontWeight.w600),
+        labelLarge: const TextStyle(
+          color: primaryColor,
+          fontWeight: FontWeight.w600,
+        ),
       ),
 
       // Card Theme
@@ -55,7 +76,10 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE6E0D6), width: 1), // Warmer border
+          side: const BorderSide(
+            color: Color(0xFFE6E0D6),
+            width: 1,
+          ), // Warmer border
         ),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
@@ -77,7 +101,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
@@ -92,7 +119,7 @@ class AppTheme {
         ),
         hintStyle: const TextStyle(color: textSecondary),
       ),
-      
+
       // Floating Action Button
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
@@ -102,14 +129,14 @@ class AppTheme {
       ),
     );
   }
-  
+
   // Custom Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF5FBF9E), Color(0xFF7BD3B3)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const LinearGradient accentGradient = LinearGradient(
     colors: [Color(0xFFFFB36B), Color(0xFFF79B5F)],
     begin: Alignment.topLeft,

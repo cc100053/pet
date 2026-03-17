@@ -71,6 +71,11 @@ Use Firebase MCP first. This repo already targets Firebase project `pet-app-702b
   - most likely root cause
   - whether it is still present in the current repo or already fixed
   - the exact local files/lines supporting that conclusion
+- Then add a dedicated action section:
+  - explicitly answer whether action is needed right now
+  - explain that action decision in detail (what should or should not be done, why, urgency, and remaining risk)
+  - if action is recommended, summarize the concrete next implementation/investigation steps
+- End by asking the user whether they want you to execute the recommended action.
 - If the repo already contains the likely fix, say so explicitly and cite the relevant commit or progress note.
 
 ## Guardrails

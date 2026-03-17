@@ -133,19 +133,20 @@ class CrashReportingService {
     final normalizedSource = _truncate(
       source.trim().isEmpty ? 'unknown_source' : source.trim(),
     );
+    final effectiveFatal = shouldRecordAsFatal(error, requestedFatal: fatal);
     await _setCustomKey('last_error_source', normalizedSource);
     await breadcrumb(
       'captured_error',
       data: {
         'source': normalizedSource,
-        'fatal': fatal,
+        'fatal': effectiveFatal,
         'error_type': error.runtimeType.toString(),
       },
     );
     await _crashlytics.recordError(
       error,
       stackTrace,
-      fatal: fatal,
+      fatal: effectiveFatal,
       reason: reason ?? normalizedSource,
       information: information,
     );
@@ -200,6 +201,43 @@ class CrashReportingService {
       return value;
     }
     return value.substring(0, maxLength);
+  }
+
+  @visibleForTesting
+  static bool shouldRecordAsFatal(
+    Object error, {
+    required bool requestedFatal,
+  }) {
+    if (!requestedFatal) {
+      return false;
+    }
+    return !_isRetryableNetworkError(error);
+  }
+
+  static bool _isRetryableNetworkError(Object error) {
+    if (error is TimeoutException) {
+      return true;
+    }
+
+    final text = error.toString().toLowerCase();
+    if (text.contains('authretryablefetchexception') ||
+        text.contains('socketexception') ||
+        text.contains('failed host lookup') ||
+        text.contains('connection closed before full header was received') ||
+        text.contains('connection reset by peer') ||
+        text.contains('connection terminated during handshake') ||
+        text.contains('software caused connection abort') ||
+        text.contains('temporary failure in name resolution') ||
+        text.contains('network is unreachable') ||
+        text.contains('connection refused') ||
+        text.contains('connection timed out') ||
+        text.contains('operation timed out') ||
+        text.contains('timed out') ||
+        text.contains('bad file descriptor')) {
+      return true;
+    }
+
+    return false;
   }
 }
 
