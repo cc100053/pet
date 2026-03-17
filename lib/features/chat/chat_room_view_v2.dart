@@ -1817,6 +1817,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           shadowColor: Colors.transparent,
+          systemOverlayStyle: overlayStyle,
           toolbarHeight: topBarHeight,
           automaticallyImplyLeading: false,
           titleSpacing: 0,
