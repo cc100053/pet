@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-03-17 Telegram-Style Incoming Message Avatars)
+- [x] Extract the chat message envelope into a shared widget with Telegram-style received-avatar slot support.
+- [x] Wire the active chat route to pass avatar data and Telegram grouping visibility rules for received messages.
+- [x] Add widget coverage for received/sent alignment and reaction-bar positioning, then update memory-bank notes.
+- [x] Run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-17 Telegram-Style Incoming Message Avatars)
+- [x] Implemented and verified.
+- Root change:
+  - Extracted the chat row wrapper into `lib/features/chat/widgets/chat_message_envelope.dart`, which now owns the shared sent/received layout, the fixed left avatar slot for received messages, and the reaction-bar attachment point.
+  - `ChatRoomViewV2` now feeds that wrapper the existing profile avatar/nickname cache data and applies Telegram grouping behavior so only the last bubble in a consecutive received-message run shows the circular avatar while earlier bubbles keep the same left slot width.
+  - Added widget coverage for received-avatar visibility, spacer alignment, sent-message right alignment, and reaction-bar positioning in `test/features/chat/chat_message_envelope_test.dart`.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-17 Crashlytics Skill Workflow Update)
 - [x] Update the repo-local Crashlytics triage skill so its final report explicitly states whether action is needed in detail.
 - [x] Require the skill to end by asking whether the user wants the recommended action executed.

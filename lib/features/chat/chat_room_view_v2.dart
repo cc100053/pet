@@ -35,8 +35,8 @@ import 'chat_reaction_options.dart';
 import 'chat_reaction_utils.dart';
 import 'room_members_sheet.dart';
 import 'widgets/deterministic_chat_list.dart';
+import 'widgets/chat_message_envelope.dart';
 import 'widgets/chat_message_action_sheet.dart';
-import 'widgets/chat_reaction_bar.dart';
 import 'widgets/chat_reply_preview_panel.dart';
 import 'widgets/chat_keyboard_dismiss_shell.dart';
 
@@ -2009,10 +2009,21 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                               if (domainMessage == null) {
                                 return child;
                               }
-                              Widget content = _MessageEnvelope(
+                              final senderId = domainMessage.senderId;
+                              final showReceivedAvatar =
+                                  !isSentByMe &&
+                                  !domainMessage.isSystem &&
+                                  senderId != null &&
+                                  (groupStatus == null || groupStatus.isLast);
+                              Widget content = ChatMessageEnvelope(
                                 isSentByMe: isSentByMe,
                                 isDarkBackground: widget.isDarkBackground,
                                 reactions: domainMessage.reactions,
+                                avatar: senderId == null
+                                    ? null
+                                    : _profilesById[senderId]?.avatarUrl,
+                                fallbackText: _displayNameForSenderId(senderId),
+                                showReceivedAvatar: showReceivedAvatar,
                                 onReactionTap: (reaction) {
                                   unawaited(
                                     _toggleReaction(
@@ -2841,61 +2852,6 @@ class _TelegramTextMessageBubble extends StatelessWidget {
           timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
           showStatus: false,
         ),
-      ),
-    );
-  }
-}
-
-class _MessageEnvelope extends StatelessWidget {
-  const _MessageEnvelope({
-    required this.child,
-    required this.isSentByMe,
-    required this.isDarkBackground,
-    required this.reactions,
-    required this.onReactionTap,
-  });
-
-  final Widget child;
-  final bool isSentByMe;
-  final bool isDarkBackground;
-  final List<ChatMessageReactionSummary> reactions;
-  final ValueChanged<ChatMessageReactionSummary>? onReactionTap;
-
-  @override
-  Widget build(BuildContext context) {
-    const reactionHorizontalInset = 10.0;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(2, 4, 2, reactions.isNotEmpty ? 1 : 4),
-      child: Column(
-        crossAxisAlignment: isSentByMe
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Align(
-            alignment: isSentByMe
-                ? Alignment.centerRight
-                : Alignment.centerLeft,
-            child: child,
-          ),
-          if (reactions.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(
-                top: 2,
-                left: isSentByMe ? 2 : reactionHorizontalInset,
-                right: isSentByMe ? reactionHorizontalInset : 2,
-              ),
-              child: Transform.translate(
-                offset: const Offset(0, -2),
-                child: ChatReactionBar(
-                  reactions: reactions,
-                  onReactionTap: onReactionTap,
-                  alignEnd: isSentByMe,
-                  isDarkBackground: isDarkBackground,
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }

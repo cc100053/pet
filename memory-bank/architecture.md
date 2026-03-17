@@ -24,14 +24,16 @@ Implemented:
   - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).
   - `lib/features/home/providers/home_currency_provider.dart`: Riverpod currency snapshot for Home (coins, diamonds, coin reward amount/event id).
-- `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
+  - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
   - Feed uploads now precompute client-side WebP compression right after image pick and reuse it on send; profile selection early-exits on target/cap-safe size to keep reward feedback responsive.
   - On successful `feed_validate` response, Home applies `coins_awarded` immediately in local HUD state, then runs a background profile reconciliation fetch.
   - Home HUD now shows a localized reward-pending indicator during feed reward resolution (server-authoritative coin update remains unchanged).
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_room_view_v2.dart`: Sole chat-room route used by Home. It keeps Supabase fetch/realtime/cache/moderation/feed-send logic in app code while owning a deterministic timeline, the custom composer shell, reply-jump behavior, reactions, reply previews, keyboard-dismiss/back-swipe interactions, and the bright/dark status-bar overlay handoff for the in-chat top bar.
+    - Incoming non-system bubbles now use a shared `ChatMessageEnvelope` wrapper that adds a Telegram-style left avatar slot for received messages, reuses `UserAvatar`, and only shows the avatar on the last bubble in a grouped received-message run while preserving bubble alignment and reaction placement.
     - Chat now supports modern reply/reaction interactions in the active route: all non-system messages expose a long-press action sheet with quick emoji reactions plus ownership-aware `Reply` / `Copy` / moderation actions, any non-system message can also left-swipe into reply with a short immediate trigger (including self-sent messages), replies render as integrated sections inside the existing composer/bubble/card surfaces instead of detached cards, grouped reaction chips render as a tighter under-bubble/card extension with one-reaction-per-user toggle behavior, dark-theme sent text/feed surfaces use a lighter muted teal, and the route adds a left-half right-swipe back gesture that excludes the composer region.
     - `lib/features/chat/adapters/pet_chat_message_adapter.dart`: Maps app `ChatMessage` domain rows into `flutter_chat_core` message types consumed by the active V2 route.
+    - `lib/features/chat/widgets/chat_message_envelope.dart`: Shared chat row wrapper that owns sent/received alignment, the fixed received-avatar slot, and the reaction-bar attachment point used by the active chat route.
     - Legacy `ChatRoomView` / `ChatMessageList` / `ChatMessageTile` files were removed after the V2 rollout, so there is no longer a parallel legacy chat-room stack in the repo.
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
