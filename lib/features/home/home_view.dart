@@ -1795,6 +1795,9 @@ class _HomeViewState extends ConsumerState<HomeView>
 
     try {
       final petId = _petId ?? await _loadPetId(roomId);
+      if (!mounted) {
+        return;
+      }
       if (petId == null) {
         setState(() => _petError = AppLocalizations.of(context)!.petNotFound);
         return;
@@ -1812,6 +1815,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           .select()
           .eq('pet_id', petId)
           .maybeSingle();
+      if (!mounted) {
+        return;
+      }
       final hunger = state?['hunger'] as num?;
       final healthValue = _healthValueFromHunger(hunger);
 
@@ -1834,6 +1840,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       _handleOverfedState();
       _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
     } catch (error) {
+      if (!mounted) {
+        return;
+      }
       setState(
         () => _petError = AppLocalizations.of(
           context,
@@ -2783,6 +2792,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           .select('item_id,quantity')
           .eq('room_id', roomId)
           .eq('user_id', userId);
+      if (!mounted) {
+        return;
+      }
 
       final items = (itemsResponse as List<dynamic>)
           .map((row) => StoreItem.fromJson(row as Map<String, dynamic>))
@@ -2807,6 +2819,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           ..addAll(inventory);
       });
     } catch (error) {
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _furnitureError = AppLocalizations.of(
           context,

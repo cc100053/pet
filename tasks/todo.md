@@ -1,5 +1,47 @@
 # TODO
 
+# Plan (2026-03-19 Fix HomeView Crashlytics Lifecycle Crashes)
+- [x] Guard the `HomeView` pet refresh async path so it no longer touches `context` or `setState` after disposal.
+- [x] Guard the furniture inventory async path with the same mounted checks to prevent the fresh Crashlytics fatal.
+- [x] Update repo notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Fix HomeView Crashlytics Lifecycle Crashes)
+- [x] Implemented and verified.
+- Root change:
+  - Added mounted guards immediately after the awaited pet-id and pet-state fetches in `HomeView._refreshPetState`, and before the error UI update in its `catch`, so room-entry work now exits quietly if `HomeView` was disposed mid-flight.
+  - Added the same post-await / catch mounted guards in `HomeView._loadFurnitureInventory`, preventing the store inventory refresh path from calling `AppLocalizations.of(context)!` or `setState` on a dead `State`.
+  - This directly addresses the fresh Crashlytics fatals `9861065cc5b9361c4c837c524cfa7380` and `e671d70a27168c4d25cfa75d9998b128`.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
+# Plan (2026-03-19 Crashlytics New Issues Triage)
+- [x] Confirm the active Firebase project/app and pull the newest iOS Crashlytics issues, affected versions, and recent sample events.
+- [x] Map the new issue paths back to the current repo to determine whether each issue is current code, already-fixed old-build noise, or external/transient behavior.
+- [x] Record the triage outcome, action decision, and recommended next steps.
+
+# Review (2026-03-19 Crashlytics New Issues Triage)
+- [x] Investigated and summarized.
+- Scope:
+  - Firebase MCP target confirmed as `pet-app-702be`, using iOS app `1:69520994244:ios:d6fc14579fda1a1ca33e91`.
+  - Current repo version is `1.0.5+1` from `pubspec.yaml`, while the newest sampled Crashlytics events are on shipped version `1.0.4 (1)`.
+- Findings:
+  - `9861065cc5b9361c4c837c524cfa7380` (`_HomeViewState._refreshPetState.<fn>`, 2 fatal events / 2 users, first seen 2026-03-19):
+    - Still present in current repo logic. `home_view.dart` awaits room-entry work and then calls `setState` with `AppLocalizations.of(context)!` inside `_refreshPetState` without a pre-check that the widget is still mounted, so a disposed `State` can crash on `State.context`.
+    - Supporting current code: `lib/features/home/home_view.dart` around the current async path at lines 1797-1841.
+  - `e671d70a27168c4d25cfa75d9998b128` (`_HomeViewState._loadFurnitureInventory.<fn>`, 1 fatal event / 1 user, first seen 2026-03-19):
+    - Same root class and also still present in current repo logic. `_loadFurnitureInventory` does async Supabase fetches, then calls `setState` / `AppLocalizations.of(context)!` without guarding for disposal after the await.
+    - Supporting current code: `lib/features/home/home_view.dart` around the current inventory path at lines 2763-2814.
+  - `6cd7b77a79bd9f95739614da34231c2c` (Flutter Impeller `shadow_path_geometry.cc`, 2 fatal events / 2 users in the last 7 days, first seen 2026-03-17):
+    - Still open and affecting `1.0.4 (1)`, but the blamed frame is fully inside Flutter raster/Impeller, not app Dart code.
+    - Recent events show this happens after navigation/room-switch activity under high memory pressure, but current evidence is not enough to pin a precise app-owned root cause.
+  - `adf4620a60fc4130740584cf31e3ba51` (`invalid_invite`, 2 non-fatal events / 2 users in the last 7 days):
+    - This is user-facing bad invite code / expired invite behavior already recorded as `fatal: false`, not a crash regression.
+- Action decision:
+  - Action is needed now for the two fresh `home_view.dart` fatal issues because they are real lifecycle bugs in code that still exists in the current repo and can affect the next release unless fixed.
+  - The Impeller crash should be monitored/instrumented separately unless the user wants a deeper investigation pass focused on Flutter engine workarounds or memory correlations.
+
 # Plan (2026-03-19 Nudge Chat Avatar Upward)
 - [x] Add a proportional upward offset to the received-message sender avatar while preserving the existing Telegram-style last-message anchor rule.
 - [x] Extend widget coverage for the proportional avatar offset and update memory/task notes.
