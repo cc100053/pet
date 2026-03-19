@@ -1,5 +1,24 @@
 # TODO
 
+# Plan (2026-03-19 Bounded Chat Window Pagination)
+- [x] Add bounded chat-window state ownership for latest/live/history slices and pending live message tracking.
+- [x] Limit chat cache hydration/persistence to the latest 20 canonical messages per room.
+- [x] Refactor `ChatRoomViewV2` to use automatic older pagination with an 80-message in-memory cap and reset-to-latest behavior.
+- [x] Add repository, helper, and chat widget tests for the bounded-window flows.
+- [x] Update memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Bounded Chat Window Pagination)
+- [x] Implemented and verified.
+- Root change:
+  - Added `ChatWindowState` so chat now has one bounded state owner for live/latest vs history mode, pending realtime counts, prepend-older trimming, and latest-window resets.
+  - `ChatMessageRepository` cache hydration/persistence now stays on the newest 20 canonical messages per room, which removes the previous 200-message cold-open cache spike.
+  - `ChatRoomViewV2` now opens on the latest 20, auto-loads older pages near the top, caps visible in-memory history at 80 by trimming the newest tail during history browsing, buffers realtime inserts while browsing history, and makes the floating button reset back to the newest window instead of only scrolling.
+  - Added tests for helper logic, repository cache trimming, and widget-level chat-room behavior covering initial latest-slice load, auto older pagination, realtime buffering in history mode, and reset-to-latest.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-17 Telegram-Style Incoming Message Avatars)
 - [x] Extract the chat message envelope into a shared widget with Telegram-style received-avatar slot support.
 - [x] Wire the active chat route to pass avatar data and Telegram grouping visibility rules for received messages.

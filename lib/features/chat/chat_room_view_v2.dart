@@ -31,8 +31,10 @@ import '../../shared/ui/keyboard_dismiss_utils.dart';
 import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'chat_room_view_runtime.dart';
 import 'chat_reaction_options.dart';
 import 'chat_reaction_utils.dart';
+import 'chat_window_state.dart';
 import 'room_members_sheet.dart';
 import 'widgets/deterministic_chat_list.dart';
 import 'widgets/chat_message_envelope.dart';
@@ -56,6 +58,8 @@ class ChatRoomViewV2 extends StatefulWidget {
     this.onFeedSendStarted,
     this.onFeedUploaded,
     this.onFeedUploadFailed,
+    this.repository,
+    this.runtime,
   });
 
   final String roomId;
@@ -70,6 +74,8 @@ class ChatRoomViewV2 extends StatefulWidget {
   final void Function(FeedUploadResult result, String? imageSource)?
   onFeedUploaded;
   final void Function(String tempId, Object error)? onFeedUploadFailed;
+  final ChatMessageRepository? repository;
+  final ChatRoomViewRuntime? runtime;
 
   @override
   State<ChatRoomViewV2> createState() => _ChatRoomViewV2State();
@@ -91,10 +97,10 @@ class _MessageActionSelection {
 
 class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   static const int _pageSize = 20;
+  static const int _maxVisibleMessages = 80;
   static const Duration _replyJumpDuration = Duration(milliseconds: 360);
   static const Curve _replyJumpCurve = Curves.easeInOutCubic;
 
-  final ChatMessageRepository _repository = ChatMessageRepository.instance;
   final ChatMessageActionService _messageActionService =
       ChatMessageActionService.instance;
   final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
@@ -104,7 +110,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   final GlobalKey _composerSurfaceKey = GlobalKey();
   final GlobalKey _composerInputRegionKey = GlobalKey();
   final GlobalKey _composerInteractionRegionKey = GlobalKey();
-  final List<ChatMessage> _messages = <ChatMessage>[];
+  final ChatWindowState _window = ChatWindowState(
+    pageSize: _pageSize,
+    maxVisibleMessages: _maxVisibleMessages,
+  );
   final Map<String, ChatMessage> _messagesById = <String, ChatMessage>{};
   final Map<String, GlobalKey> _messageAnchorKeys = <String, GlobalKey>{};
   final Map<String, ProfileSummary> _profilesById = <String, ProfileSummary>{};
@@ -114,9 +123,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   final Set<String> _loadingReplyPreviewIds = <String>{};
 
   RealtimeChannel? _channel;
+  StreamSubscription<ChatMessage>? _runtimeIncomingSubscription;
+  StreamSubscription<String>? _runtimeReactionSubscription;
   bool _loading = true;
   bool _loadingMore = false;
-  bool _hasMore = true;
   bool _sending = false;
   bool _shouldExitAfterFeedSend = false;
   bool _showScrollToLatestButton = false;
@@ -126,8 +136,22 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   int? _memberCount;
   double _composerHeight = 0;
 
+  ChatMessageRepository get _repository =>
+      widget.repository ?? ChatMessageRepository.instance;
+  ChatRoomViewRuntime? get _runtime => widget.runtime;
+  List<ChatMessage> get _messages => _window.visibleMessages;
+  bool get _hasMore => _window.hasMoreOlder;
+  bool get _isHistoryMode => _window.isHistoryMode;
+  int get _pendingLiveMessageCount => _window.pendingLiveMessageCount;
+  bool get _shouldShowJumpToLatestButton =>
+      _showScrollToLatestButton ||
+      _isHistoryMode ||
+      _pendingLiveMessageCount > 0;
+
   String get _currentUserId =>
-      Supabase.instance.client.auth.currentUser?.id ?? '__anonymous__';
+      _runtime?.currentUserId ??
+      Supabase.instance.client.auth.currentUser?.id ??
+      '__anonymous__';
 
   @override
   void initState() {
@@ -146,6 +170,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   void dispose() {
     unawaited(_captureMemorySnapshot(source: 'chat_dispose'));
     _channel?.unsubscribe();
+    _runtimeIncomingSubscription?.cancel();
+    _runtimeReactionSubscription?.cancel();
     _chatScrollController.removeListener(_handleChatScroll);
     _chatController.dispose();
     _chatScrollController.dispose();
@@ -184,11 +210,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
   Future<void> _fetchMemberCount() async {
     try {
-      final count = await Supabase.instance.client
-          .from('room_members')
-          .count(CountOption.exact)
-          .eq('room_id', widget.roomId)
-          .eq('is_active', true);
+      final runtimeCountLoader = _runtime?.fetchMemberCount;
+      final count = runtimeCountLoader != null
+          ? await runtimeCountLoader(widget.roomId)
+          : await Supabase.instance.client
+                .from('room_members')
+                .count(CountOption.exact)
+                .eq('room_id', widget.roomId)
+                .eq('is_active', true);
       if (!mounted) {
         return;
       }
@@ -199,22 +228,29 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   }
 
   Future<void> _loadBlockedUsers() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
     _blockedUserIds.clear();
-    if (userId == null) {
-      return;
-    }
 
     try {
-      final response = await Supabase.instance.client
-          .from('blocks')
-          .select('blocked_user_id')
-          .eq('blocker_id', userId);
-      final rows = response as List<dynamic>;
-      for (final row in rows) {
-        final blockedId = row['blocked_user_id'] as String?;
-        if (blockedId != null && blockedId.isNotEmpty) {
-          _blockedUserIds.add(blockedId);
+      final runtimeLoader = _runtime?.loadBlockedUserIds;
+      if (runtimeLoader != null) {
+        _blockedUserIds.addAll(await runtimeLoader(widget.roomId));
+      } else if (_runtime != null) {
+        return;
+      } else {
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId == null) {
+          return;
+        }
+        final response = await Supabase.instance.client
+            .from('blocks')
+            .select('blocked_user_id')
+            .eq('blocker_id', userId);
+        final rows = response as List<dynamic>;
+        for (final row in rows) {
+          final blockedId = row['blocked_user_id'] as String?;
+          if (blockedId != null && blockedId.isNotEmpty) {
+            _blockedUserIds.add(blockedId);
+          }
         }
       }
     } catch (error) {
@@ -231,9 +267,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
   Future<void> _refreshAfterBlockChange() async {
     await _loadBlockedUsers();
-    await _refreshLatest();
-    final visibleMessages = _messages.where(_isVisibleMessage).toList();
-    await _setMessages(visibleMessages, animated: false);
+    await _refreshLatest(resetWindow: true);
     if (!mounted) {
       return;
     }
@@ -246,12 +280,16 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
 
     try {
-      final cached = _repository.loadCachedMessages(widget.roomId);
+      final cached = _repository.loadCachedMessages(
+        widget.roomId,
+        limit: _pageSize,
+      );
       final messages = _toAscendingMessages(await cached);
       if (!mounted || messages.isEmpty) {
         return;
       }
-      await _setMessages(messages, animated: false);
+      _window.hydrateCache(messages);
+      await _applyWindowToChat(animated: false);
       _scheduleScrollToLatest(animated: false);
       if (!mounted) {
         return;
@@ -261,9 +299,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         _error = null;
       });
       unawaited(_captureMemorySnapshot(source: 'chat_cached_messages_loaded'));
-      unawaited(_ensureProfilesForMessages(messages));
-      unawaited(_ensureReplyPreviewsForMessages(messages));
-      unawaited(_ensureReactionSummariesForMessages(messages));
+      unawaited(_ensureProfilesForMessages(_messages));
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
+      unawaited(_ensureReactionSummariesForMessages(_messages));
     } catch (error) {
       if (!mounted) {
         return;
@@ -285,20 +323,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
 
     try {
-      final page = await _fetchMessages();
+      final page = await _fetchMessagePage();
       if (!mounted) {
         return;
       }
-      final mergedById = <String, ChatMessage>{
-        for (final message in _messages)
-          if (!_optimisticIds.contains(message.id)) message.id: message,
-      };
-      for (final message in page) {
-        mergedById[message.id] = message;
-      }
-      final merged = mergedById.values.toList()..sort(_sortByCreatedAtAsc);
-      _hasMore = page.length == _pageSize;
-      await _setMessages(merged, animated: false);
+      _window.replaceWithLatest(page.messages, hasMoreOlder: page.hasMoreOlder);
+      await _applyWindowToChat(animated: false);
       _scheduleScrollToLatest(animated: false);
       if (!mounted) {
         return;
@@ -308,9 +338,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         _error = null;
       });
       unawaited(_captureMemorySnapshot(source: 'chat_initial_messages_loaded'));
-      unawaited(_ensureProfilesForMessages(merged));
-      unawaited(_ensureReplyPreviewsForMessages(merged));
-      unawaited(_ensureReactionSummariesForMessages(merged));
+      unawaited(_ensureProfilesForMessages(_messages));
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
+      unawaited(_ensureReactionSummariesForMessages(_messages));
       unawaited(_persistCache());
     } catch (error) {
       if (!mounted) {
@@ -344,39 +374,27 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       final previousOffset = _chatScrollController.hasClients
           ? _chatScrollController.position.pixels
           : null;
-      final oldest = _messages.first;
-      final page = await _fetchMessages(
+      final oldest = _window.oldestMessage;
+      if (oldest == null) {
+        return;
+      }
+      final page = await _fetchMessagePage(
         beforeCreatedAt: oldest.createdAt.toUtc().toIso8601String(),
         beforeId: oldest.id,
       );
       if (!mounted) {
         return;
       }
-      final olderMessages =
-          page
-              .where((message) => !_messagesById.containsKey(message.id))
-              .toList()
-            ..sort(_sortByCreatedAtAsc);
-
-      _hasMore = page.length == _pageSize;
-      if (olderMessages.isNotEmpty) {
-        _messages.insertAll(0, olderMessages);
-        _rebuildMessageIndex();
-        await _chatController.insertAllMessages(
-          _toUiMessages(olderMessages),
-          index: 0,
-          animated: false,
-        );
-        unawaited(_ensureProfilesForMessages(olderMessages));
-        unawaited(_ensureReplyPreviewsForMessages(olderMessages));
-        unawaited(_ensureReactionSummariesForMessages(olderMessages));
-        unawaited(_persistCache());
-        unawaited(_captureMemorySnapshot(source: 'chat_load_more_loaded'));
-        _schedulePreserveViewport(
-          previousMaxExtent: previousMaxExtent,
-          previousOffset: previousOffset,
-        );
-      }
+      _window.prependOlderPage(page.messages, hasMoreOlder: page.hasMoreOlder);
+      await _applyWindowToChat(animated: false);
+      unawaited(_ensureProfilesForMessages(_messages));
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
+      unawaited(_ensureReactionSummariesForMessages(_messages));
+      unawaited(_captureMemorySnapshot(source: 'chat_load_more_window_shift'));
+      _schedulePreserveViewport(
+        previousMaxExtent: previousMaxExtent,
+        previousOffset: previousOffset,
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -393,26 +411,32 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
   }
 
-  Future<void> _refreshLatest() async {
+  Future<void> _refreshLatest({bool resetWindow = false}) async {
     try {
-      final page = await _fetchMessages();
+      final page = await _fetchMessagePage();
       if (!mounted) {
         return;
       }
-      final merged = <String, ChatMessage>{
-        for (final message in _messages)
-          if (!_optimisticIds.contains(message.id)) message.id: message,
-      };
-      for (final message in page) {
-        merged[message.id] = message;
+      if (resetWindow || _isHistoryMode || _pendingLiveMessageCount > 0) {
+        _window.replaceWithLatest(
+          page.messages,
+          hasMoreOlder: page.hasMoreOlder,
+        );
+      } else {
+        _window.mergeLatestPage(page.messages, hasMoreOlder: page.hasMoreOlder);
       }
-      final allMessages = merged.values.toList()..sort(_sortByCreatedAtAsc);
-      _hasMore = page.length == _pageSize;
-      await _setMessages(allMessages, animated: false);
-      unawaited(_ensureProfilesForMessages(allMessages));
-      unawaited(_ensureReplyPreviewsForMessages(allMessages));
-      unawaited(_ensureReactionSummariesForMessages(allMessages));
+      await _applyWindowToChat(animated: false);
+      unawaited(_ensureProfilesForMessages(_messages));
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
+      unawaited(_ensureReactionSummariesForMessages(_messages));
       unawaited(_persistCache());
+      unawaited(
+        _captureMemorySnapshot(
+          source: resetWindow
+              ? 'chat_latest_window_reset'
+              : 'chat_refresh_latest_merged',
+        ),
+      );
       if (!mounted) {
         return;
       }
@@ -429,17 +453,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
   }
 
-  Future<void> _setMessages(
-    List<ChatMessage> messages, {
-    required bool animated,
-  }) async {
+  Future<void> _applyWindowToChat({required bool animated}) async {
     if (!mounted) {
       return;
     }
-    _messages
-      ..clear()
-      ..addAll(messages.where(_isVisibleMessage));
-    _messages.sort(_sortByCreatedAtAsc);
     _rebuildMessageIndex();
     await _chatController.setMessages(
       _toUiMessages(_messages),
@@ -464,13 +481,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   }
 
   Future<void> _persistCache() async {
-    if (!_repository.isReady) {
+    if (!_repository.isReady || !_window.isLiveMode) {
       return;
     }
-    final cacheable = _messages
-        .where((message) => !_optimisticIds.contains(message.id))
-        .toList();
-    await _repository.cacheMessages(widget.roomId, cacheable.reversed.toList());
+    final cacheable = _window.latestVisibleCanonicalSlice(
+      includeMessage: (message) => !_optimisticIds.contains(message.id),
+    );
+    await _repository.cacheMessages(widget.roomId, cacheable);
   }
 
   List<ChatMessage> _toAscendingMessages(List<ChatMessage> messages) {
@@ -484,7 +501,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     return senderId == null || !_blockedUserIds.contains(senderId);
   }
 
-  Future<List<ChatMessage>> _fetchMessages({
+  Future<_FetchedMessagePage> _fetchMessagePage({
     String? beforeCreatedAt,
     String? beforeId,
   }) async {
@@ -494,7 +511,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       beforeId: beforeId,
       limit: _pageSize,
     );
-    return page.where(_isVisibleMessage).toList();
+    return _FetchedMessagePage(
+      messages: page.where(_isVisibleMessage).toList()
+        ..sort(_sortByCreatedAtAsc),
+      hasMoreOlder: page.length == _pageSize,
+    );
   }
 
   Future<void> _ensureProfilesForMessages(List<ChatMessage> messages) async {
@@ -577,23 +598,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
 
     _loadingReplyPreviewIds.addAll(replyIds);
     try {
-      final response = await Supabase.instance.client
-          .from('messages')
-          .select('id,sender_id,type,body,image_url,caption')
-          .filter('id', 'in', '(${replyIds.join(',')})');
-      final rows = response as List<dynamic>;
-      final previewById = <String, ChatReplyPreview>{};
-      for (final row in rows) {
-        final preview = ChatReplyPreview.fromJson(
-          Map<String, dynamic>.from(row),
-        );
-        if (preview.id.isNotEmpty) {
-          previewById[preview.id] = preview;
-        }
-      }
+      final runtimePreviewLoader = _runtime?.fetchReplyPreviews;
+      final previewById = runtimePreviewLoader != null
+          ? await runtimePreviewLoader(replyIds)
+          : await _fetchReplyPreviewMap(replyIds);
       if (!mounted || previewById.isEmpty) {
         return;
       }
+      var changed = false;
       for (var index = 0; index < _messages.length; index += 1) {
         final message = _messages[index];
         final replyId = message.replyToMessageId;
@@ -603,9 +615,16 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
             !previewById.containsKey(replyId)) {
           continue;
         }
-        _messages[index] = message.copyWith(replyPreview: previewById[replyId]);
+        _window.replaceVisibleMessage(
+          message.copyWith(replyPreview: previewById[replyId]),
+        );
+        changed = true;
+      }
+      if (!changed) {
+        return;
       }
       _rebuildMessageIndex();
+      unawaited(_persistCache());
       setState(() {});
     } catch (_) {
       // Best-effort reply preview loading.
@@ -617,7 +636,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   Future<void> _ensureReactionSummariesForMessages(
     List<ChatMessage> messages,
   ) async {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId =
+        _runtime?.currentUserId ??
+        Supabase.instance.client.auth.currentUser?.id;
     if (currentUserId == null) {
       return;
     }
@@ -663,7 +684,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       if (_sameReactions(message.reactions, nextReactions)) {
         continue;
       }
-      _messages[index] = message.copyWith(reactions: nextReactions);
+      _window.replaceVisibleMessage(message.copyWith(reactions: nextReactions));
       changed = true;
     }
 
@@ -701,6 +722,17 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   }
 
   void _subscribeToMessages() {
+    if (_runtime?.incomingMessages != null ||
+        _runtime?.disableRealtime == true) {
+      _runtimeIncomingSubscription = _runtime?.incomingMessages?.listen(
+        _handleIncomingMessage,
+      );
+      _runtimeReactionSubscription = _runtime?.reactionMessageIds?.listen(
+        _handleReactionRefreshMessageId,
+      );
+      return;
+    }
+
     final channel = Supabase.instance.client.channel(
       'room_messages_v2_${widget.roomId}',
     );
@@ -715,38 +747,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         value: widget.roomId,
       ),
       callback: (payload) {
-        final message = ChatMessage.fromJson(payload.newRecord);
-        if (!mounted || message.type.isEmpty || !_isVisibleMessage(message)) {
-          return;
-        }
-        final duplicateOptimisticId = _findMatchingOptimisticMessageId(message);
-        if (duplicateOptimisticId != null) {
-          unawaited(_removeMessageById(duplicateOptimisticId, animated: false));
-        }
-        if (_messagesById.containsKey(message.id)) {
-          return;
-        }
-        unawaited(
-          _insertMessage(
-            message,
-            animated: true,
-            isOptimistic: false,
-            scrollToLatest: true,
-          ),
-        );
+        _handleIncomingMessage(ChatMessage.fromJson(payload.newRecord));
       },
     );
-    void refreshReactionForPayload(Map<String, dynamic> record) {
-      final messageId = (record['message_id'] as String? ?? '').trim();
-      if (!mounted ||
-          messageId.isEmpty ||
-          !_messagesById.containsKey(messageId)) {
-        return;
-      }
-      unawaited(
-        _ensureReactionSummariesForMessages([_messagesById[messageId]!]),
-      );
-    }
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.insert,
@@ -757,7 +760,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         column: 'room_id',
         value: widget.roomId,
       ),
-      callback: (payload) => refreshReactionForPayload(payload.newRecord),
+      callback: (payload) => _handleReactionRefreshMessageId(
+        (payload.newRecord['message_id'] as String? ?? '').trim(),
+      ),
     );
     channel.onPostgresChanges(
       event: PostgresChangeEvent.update,
@@ -768,7 +773,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         column: 'room_id',
         value: widget.roomId,
       ),
-      callback: (payload) => refreshReactionForPayload(payload.newRecord),
+      callback: (payload) => _handleReactionRefreshMessageId(
+        (payload.newRecord['message_id'] as String? ?? '').trim(),
+      ),
     );
     channel.onPostgresChanges(
       event: PostgresChangeEvent.delete,
@@ -779,9 +786,72 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         column: 'room_id',
         value: widget.roomId,
       ),
-      callback: (payload) => refreshReactionForPayload(payload.oldRecord),
+      callback: (payload) => _handleReactionRefreshMessageId(
+        (payload.oldRecord['message_id'] as String? ?? '').trim(),
+      ),
     );
     channel.subscribe();
+  }
+
+  Future<Map<String, ChatReplyPreview>> _fetchReplyPreviewMap(
+    Set<String> replyIds,
+  ) async {
+    final response = await Supabase.instance.client
+        .from('messages')
+        .select('id,sender_id,type,body,image_url,caption')
+        .filter('id', 'in', '(${replyIds.join(',')})');
+    final rows = response as List<dynamic>;
+    final previewById = <String, ChatReplyPreview>{};
+    for (final row in rows) {
+      final preview = ChatReplyPreview.fromJson(Map<String, dynamic>.from(row));
+      if (preview.id.isNotEmpty) {
+        previewById[preview.id] = preview;
+      }
+    }
+    return previewById;
+  }
+
+  void _handleReactionRefreshMessageId(String messageId) {
+    if (!mounted ||
+        messageId.isEmpty ||
+        !_messagesById.containsKey(messageId)) {
+      return;
+    }
+    unawaited(_ensureReactionSummariesForMessages([_messagesById[messageId]!]));
+  }
+
+  void _handleIncomingMessage(ChatMessage message) {
+    if (!mounted || message.type.isEmpty || !_isVisibleMessage(message)) {
+      return;
+    }
+    final duplicateOptimisticId = _findMatchingOptimisticMessageId(message);
+    if (duplicateOptimisticId != null) {
+      unawaited(_removeMessageById(duplicateOptimisticId, animated: false));
+    }
+    if (_messagesById.containsKey(message.id)) {
+      return;
+    }
+    if (_isHistoryMode) {
+      _window.bufferLiveMessage(message);
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+    final shouldAutoScroll =
+        !_chatScrollController.hasClients ||
+        !shouldShowChatScrollToLatestButton(
+          pixels: _chatScrollController.position.pixels,
+          maxScrollExtent: _chatScrollController.position.maxScrollExtent,
+        );
+    unawaited(
+      _insertMessage(
+        message,
+        animated: true,
+        isOptimistic: false,
+        scrollToLatest: shouldAutoScroll,
+      ),
+    );
   }
 
   String? _findMatchingOptimisticMessageId(ChatMessage incoming) {
@@ -819,28 +889,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     if (!mounted) {
       return;
     }
-    final existingIndex = _messages.indexWhere(
-      (entry) => entry.id == message.id,
-    );
-    if (existingIndex != -1) {
-      final oldDomain = _messages[existingIndex];
-      _messages[existingIndex] = message;
-      _rebuildMessageIndex();
-      await _chatController.updateMessage(
-        _toUiMessage(oldDomain),
-        _toUiMessage(message, isOptimistic: isOptimistic),
-      );
-    } else {
-      _messages.add(message);
-      _messages.sort(_sortByCreatedAtAsc);
-      _rebuildMessageIndex();
-      final index = _messages.indexWhere((entry) => entry.id == message.id);
-      await _chatController.insertMessage(
-        _toUiMessage(message, isOptimistic: isOptimistic),
-        index: index == -1 ? null : index,
-        animated: animated,
-      );
-    }
 
     if (isOptimistic) {
       _optimisticIds.add(message.id);
@@ -848,6 +896,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       _optimisticIds.remove(message.id);
     }
 
+    _window.upsertVisibleMessage(message, keepLatestWindow: _window.isLiveMode);
+    await _applyWindowToChat(animated: animated);
     unawaited(_ensureProfilesForMessages([message]));
     unawaited(_ensureReplyPreviewsForMessages([message]));
     unawaited(_ensureReactionSummariesForMessages([message]));
@@ -867,30 +917,19 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     if (!mounted) {
       return;
     }
-    final index = _messages.indexWhere((message) => message.id == messageId);
-    if (index == -1) {
+    if (!_window.containsVisibleMessage(messageId)) {
+      _optimisticIds.remove(messageId);
+      _window.removeVisibleMessage(messageId);
       return;
     }
-    final message = _messages.removeAt(index);
     _optimisticIds.remove(messageId);
+    _window.removeVisibleMessage(messageId);
     _messageAnchorKeys.remove(messageId);
-    _rebuildMessageIndex();
-    await _chatController.removeMessage(
-      _toUiMessage(message),
-      animated: animated,
-    );
+    await _applyWindowToChat(animated: animated);
     unawaited(_persistCache());
     if (mounted) {
       setState(() {});
     }
-  }
-
-  fc.Message _toUiMessage(ChatMessage message, {bool? isOptimistic}) {
-    return PetChatMessageAdapter.toUiMessage(
-      message,
-      AppLocalizations.of(context)!,
-      isOptimistic: isOptimistic ?? _optimisticIds.contains(message.id),
-    );
   }
 
   List<fc.Message> _toUiMessages(List<ChatMessage> messages) {
@@ -912,7 +951,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return;
     }
 
-    final userId = Supabase.instance.client.auth.currentUser?.id;
+    final userId =
+        _runtime?.currentUserId ??
+        Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       if (!mounted) {
         return;
@@ -922,6 +963,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
           content: Text(AppLocalizations.of(context)!.authReauthRequired),
         ),
       );
+      return;
+    }
+
+    await _ensureLatestWindowForCompose();
+    if (!mounted) {
       return;
     }
 
@@ -1037,15 +1083,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     String messageId,
     List<ChatMessageReactionSummary> reactions,
   ) {
-    final index = _messages.indexWhere((message) => message.id == messageId);
-    if (index == -1) {
+    final message = _messagesById[messageId];
+    if (message == null) {
       return;
     }
-    final message = _messages[index];
     if (_sameReactions(message.reactions, reactions)) {
       return;
     }
-    _messages[index] = message.copyWith(reactions: reactions);
+    _window.replaceVisibleMessage(message.copyWith(reactions: reactions));
     _rebuildMessageIndex();
     unawaited(_persistCache());
     if (mounted) {
@@ -1054,7 +1099,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   }
 
   Future<void> _toggleReaction(ChatMessage message, String emoji) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
+    final userId =
+        _runtime?.currentUserId ??
+        Supabase.instance.client.auth.currentUser?.id;
     if (userId == null || message.isSystem) {
       return;
     }
@@ -1185,6 +1232,25 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     widget.onFeedSendStarted?.call(entry);
   }
 
+  Future<void> _ensureLatestWindowForCompose() async {
+    if (!_isHistoryMode && _pendingLiveMessageCount == 0) {
+      return;
+    }
+    await _refreshLatest(resetWindow: true);
+    if (!mounted) {
+      return;
+    }
+    _scheduleScrollToLatest(animated: false);
+  }
+
+  Future<void> _handleJumpToLatestPressed() async {
+    await _refreshLatest(resetWindow: true);
+    if (!mounted) {
+      return;
+    }
+    _scheduleScrollToLatest(animated: true);
+  }
+
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
     final optimisticMessage = ChatMessage(
@@ -1201,14 +1267,18 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       labels: entry.labels,
       localImagePath: entry.localImagePath,
     );
-    unawaited(
-      _insertMessage(
+    unawaited(() async {
+      await _ensureLatestWindowForCompose();
+      if (!mounted) {
+        return;
+      }
+      await _insertMessage(
         optimisticMessage,
         animated: true,
         isOptimistic: true,
         scrollToLatest: true,
-      ),
-    );
+      );
+    }());
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
@@ -1219,7 +1289,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return;
     }
     unawaited(_removeMessageById(result.tempId, animated: false));
-    unawaited(_refreshLatest());
+    unawaited(_refreshLatest(resetWindow: true));
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
@@ -1529,6 +1599,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     while (!_messagesById.containsKey(targetId) && _hasMore && attempts < 5) {
       attempts += 1;
       await _loadMore();
+    }
+
+    if (!_messagesById.containsKey(targetId) && _isHistoryMode) {
+      await _refreshLatest(resetWindow: true);
     }
 
     if (!_messagesById.containsKey(targetId)) {
@@ -2094,20 +2168,55 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                 ),
               ),
             ),
-            if (_showScrollToLatestButton)
+            if (_shouldShowJumpToLatestButton)
               Positioned(
                 right: 16,
                 bottom: keyboardAwareBottomInset + _composerHeight + 16,
                 child: FloatingActionButton.small(
                   heroTag: 'chatScrollToLatestButton',
-                  onPressed: () => unawaited(_scrollToLatest(animated: true)),
+                  onPressed: () => unawaited(_handleJumpToLatestPressed()),
                   backgroundColor: Theme.of(
                     context,
                   ).colorScheme.surfaceContainerHighest,
                   foregroundColor: Theme.of(
                     context,
                   ).colorScheme.onSurfaceVariant,
-                  child: const Icon(Icons.arrow_downward),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.arrow_downward),
+                      if (_pendingLiveMessageCount > 0)
+                        Positioned(
+                          right: -8,
+                          top: -10,
+                          child: Container(
+                            key: const ValueKey(
+                              'chatScrollToLatestPendingCount',
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              _pendingLiveMessageCount > 99
+                                  ? '99+'
+                                  : '$_pendingLiveMessageCount',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             if (_loading)
@@ -2220,6 +2329,16 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
     return a.id.compareTo(b.id);
   }
+}
+
+class _FetchedMessagePage {
+  const _FetchedMessagePage({
+    required this.messages,
+    required this.hasMoreOlder,
+  });
+
+  final List<ChatMessage> messages;
+  final bool hasMoreOlder;
 }
 
 class _TelegramComposer extends StatefulWidget {

@@ -4,16 +4,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/chat/chat_message.dart';
 
 class ChatMessageRepository {
-  ChatMessageRepository._(this._client);
+  ChatMessageRepository({SupabaseClient? client, Box<dynamic>? box})
+    : _client = client,
+      _box = box;
 
-  static final ChatMessageRepository instance = ChatMessageRepository._(
-    Supabase.instance.client,
+  static final ChatMessageRepository instance = ChatMessageRepository(
+    client: Supabase.instance.client,
   );
 
   static const String _boxName = 'chat_messages';
-  static const int _maxMessagesPerRoom = 200;
+  static const int _maxMessagesPerRoom = 20;
 
-  final SupabaseClient _client;
+  final SupabaseClient? _client;
   Box<dynamic>? _box;
 
   bool get isReady => _box != null;
@@ -22,7 +24,10 @@ class ChatMessageRepository {
     _box ??= await Hive.openBox<dynamic>(_boxName);
   }
 
-  Future<List<ChatMessage>> loadCachedMessages(String roomId) async {
+  Future<List<ChatMessage>> loadCachedMessages(
+    String roomId, {
+    int limit = _maxMessagesPerRoom,
+  }) async {
     final box = _box;
     if (box == null) {
       return const [];
@@ -32,10 +37,14 @@ class ChatMessageRepository {
       return const [];
     }
 
-    return raw
+    final messages = raw
         .whereType<Map>()
         .map((entry) => ChatMessage.fromJson(Map<String, dynamic>.from(entry)))
         .toList();
+    if (limit >= messages.length) {
+      return messages;
+    }
+    return messages.sublist(0, limit);
   }
 
   Future<void> cacheMessages(String roomId, List<ChatMessage> messages) async {
@@ -67,7 +76,12 @@ class ChatMessageRepository {
     String? beforeId,
     int limit = 20,
   }) async {
-    var query = _client
+    final client = _client;
+    if (client == null) {
+      throw StateError('ChatMessageRepository client is not configured.');
+    }
+
+    var query = client
         .from('messages')
         .select(
           'id,room_id,sender_id,type,body,image_url,caption,coins_awarded,'
@@ -103,7 +117,12 @@ class ChatMessageRepository {
       return const <String, List<ChatMessageReactionSummary>>{};
     }
 
-    final response = await _client
+    final client = _client;
+    if (client == null) {
+      throw StateError('ChatMessageRepository client is not configured.');
+    }
+
+    final response = await client
         .from('message_reactions')
         .select('message_id,emoji,user_id')
         .eq('room_id', roomId)
