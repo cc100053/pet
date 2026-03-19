@@ -20,6 +20,7 @@ Implemented:
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
   - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1 coach card, dual spotlight focus resolution for the existing create-room CTA and header invite-code action, skip/persistence, debug force-show override, and legacy `open_room` state migration to `invite_friend`.
+  - `lib/features/home/home_unread_rules.dart`: Shared unread decision helper used to keep Home realtime badge increments aligned with the intended self-message behavior.
   - `lib/features/home/providers/home_unread_counts_provider.dart`: Riverpod unread-count state for Home/Room Selection badges and app-icon badge sync.
   - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).
@@ -30,6 +31,7 @@ Implemented:
   - Home HUD now shows a localized reward-pending indicator during feed reward resolution (server-authoritative coin update remains unchanged).
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_room_view_v2.dart`: Sole chat-room route used by Home. It keeps Supabase fetch/realtime/cache/moderation/feed-send logic in app code while owning a deterministic timeline, the custom composer shell, reply-jump behavior, reactions, reply previews, keyboard-dismiss/back-swipe interactions, and the bright/dark status-bar overlay handoff for the in-chat top bar. Chat entry now hydrates only the latest 20 cached/server messages, auto-loads 20 older messages near the top, keeps a bounded 80-message in-memory window, buffers realtime inserts while the user is browsing history, and uses the floating jump button as a true reset back to the newest live window.
+    - `lib/features/chat/widgets/deterministic_chat_list.dart`: Shared deterministic timeline wrapper for the active chat route. It preserves manual keyboard-dismiss behavior, forwards long-press hooks, and now owns the restored localized day-separator rendering for the message timeline.
     - Incoming non-system bubbles now use a shared `ChatMessageEnvelope` wrapper that adds a Telegram-style left avatar slot for received messages, reuses `UserAvatar`, and only shows the avatar on the last bubble in a grouped received-message run while preserving bubble alignment and reaction placement.
     - `lib/features/chat/chat_window_state.dart`: Pure Dart bounded-window helper used by the active chat route to own sorted merge/dedupe, live/history mode, pending realtime counts, latest-window resets, and 80-message trimming behavior.
     - `lib/features/chat/chat_room_view_runtime.dart`: Lightweight runtime override surface used by chat-room widget tests to inject bounded-window data/realtime behavior without touching production Supabase wiring.
@@ -114,6 +116,7 @@ Planned:
 - Storage: Cloudflare R2 for images.
 - Security: Enforced RLS policies for room-scoped access.
 - Unread badge RPCs (`get_unread_message_total_for_user`, `get_unread_message_counts_for_user`) now apply the same bilateral block filtering as message reads.
+- `clean_poop` now records new system messages with the acting user's `sender_id`, so unread/badge reconciliation excludes the actor for future clean actions without changing historical system rows.
 - Pet night-mode protection is evaluated against a room-scoped timezone (`rooms.timezone`), keeping behavior consistent for members in different districts/timezones.
 - Ownership: Triggered owner transfer when the active owner leaves.
 - Note: Edge Functions with `verify_jwt` require HS256 JWT signing in Supabase Auth settings (ES256/asymmetric will be rejected).

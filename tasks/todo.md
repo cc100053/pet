@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-03-19 Chat Date Labels + Self-Action Unread)
+- [x] Restore chat day separators in the active deterministic timeline with the previous Today/Yesterday/date formatting rules.
+- [x] Make the self-action unread decision explicit and add regression coverage for self feed/self system vs other-user messages.
+- [x] Add and apply a Supabase migration so new `clean_poop` system messages carry `sender_id = auth.uid()`.
+- [x] Update memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Chat Date Labels + Self-Action Unread)
+- [x] Implemented and verified.
+- Root change:
+  - `DeterministicChatList` now restores localized day separators in the active chat timeline and includes regression coverage for one-day, multi-day, and today/yesterday rendering.
+  - Home unread increments now flow through `home_unread_rules.dart`, making the self-message rule explicit and test-covered without changing unread behavior for other users' text/system messages.
+  - Added and applied Supabase migration `20260319091549_preserve_clean_poop_actor_for_unread.sql`, updating `clean_poop` so only future clean-poop system messages carry `sender_id = auth.uid()` for actor-safe unread reconciliation.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-19 Bounded Chat Window Pagination)
 - [x] Add bounded chat-window state ownership for latest/live/history slices and pending live message tracking.
 - [x] Limit chat cache hydration/persistence to the latest 20 canonical messages per room.

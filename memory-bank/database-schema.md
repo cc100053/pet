@@ -86,6 +86,9 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `id` (uuid, pk)
   - `room_id` (uuid, fk)
   - `sender_id` (uuid, nullable for system)
+  - Notes:
+    - Hunger/store and other room-wide system events may still use `null`.
+    - New `clean_poop` system messages now store the acting user id so unread calculations can exclude the actor.
   - `reply_to_message_id` (uuid, nullable fk -> `messages.id`; `on delete set null`)
   - `type` (text: text/image_feed/system)
   - `body` (text)

@@ -170,8 +170,12 @@ extension _HomeUnreadManager on _HomeViewState {
     }
     final senderId = record['sender_id'] as String?;
     final myUserId = Supabase.instance.client.auth.currentUser?.id;
-    final fromSelf = senderId != null && senderId == myUserId;
-    final shouldMarkUnread = !fromSelf && _chatOpenRoomId != roomId;
+    final shouldMarkUnread = shouldIncrementHomeUnreadForIncomingMessage(
+      roomId: roomId,
+      openChatRoomId: _chatOpenRoomId,
+      currentUserId: myUserId,
+      senderId: senderId,
+    );
     final type = record['type'] as String?;
     if (type == 'system') {
       if (shouldMarkUnread) {
