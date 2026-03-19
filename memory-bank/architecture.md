@@ -49,6 +49,7 @@ Implemented:
   - `lib/features/store/models/store_item.dart`: Store domain model with localized naming/pricing helpers.
   - `lib/features/store/services/store_iap_service.dart`: Extracted Store IAP loading/purchase/restore logic.
   - `lib/features/store/services/store_purchase_handler.dart`: Extracted Store candy/diamond purchase handlers.
+  - Active live IAP catalog is now intentionally limited to the monthly subscription and diamond pack. The retired `iap_coin_pack_small` row remains inactive for historical continuity, but its obsolete `Petcoins120` product metadata is stripped by forward-only migration so backend/App Store catalog checks no longer consider it a valid product binding.
   - Successful room furniture/background purchases now emit a structured room `system` chat message from the purchase RPC with the exact purchased item SKU/name context, and the purchase handler best-effort invokes `notify_friend` so those purchase events also send push notifications to the other active room members.
   - `lib/features/store/widgets/store_departed_pet_selector.dart`: Extracted departed-pet selection/confirmation dialogs for return-letter purchase.
   - `lib/features/store/widgets/store_item_cards.dart`: Extracted Store card builders for IAP/items/themes.

@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-03-19 Remove Unused Petcoins120 IAP)
+- [x] Confirm whether any active store catalog row still references the retired `Petcoins120` App Store product.
+- [x] Remove or deactivate the retired coin-pack reference from the live Supabase `items` catalog and commit the same change into local migrations/seed data.
+- [x] Update task tracking and memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Remove Unused Petcoins120 IAP)
+- [x] Implemented and verified.
+- Root change:
+  - Confirmed the live `public.items` catalog on the repo-target `ilxzpszgirhwxpeocygs` project no longer exposed `Petcoins120` as an active item, but the inactive `iap_coin_pack_small` row still carried stale IAP metadata.
+  - Applied Supabase migration `20260319110000_remove_retired_petcoins120_product_reference.sql` locally and via MCP so the retired row keeps its historical inactive record while dropping `iap_product_id`, `iap_type`, and `coin_amount`.
+  - Updated memory-bank notes so the current store architecture/progress now reflect that only the monthly subscription and diamond pack remain part of the live IAP integration surface.
+- Verification:
+  - Re-queried live `public.items` after the migration and confirmed `iap_coin_pack_small` metadata no longer contains `Petcoins120`.
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-19 Chat Date Labels + Self-Action Unread)
 - [x] Restore chat day separators in the active deterministic timeline with the previous Today/Yesterday/date formatting rules.
 - [x] Make the self-action unread decision explicit and add regression coverage for self feed/self system vs other-user messages.
