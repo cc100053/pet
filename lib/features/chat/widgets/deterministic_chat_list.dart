@@ -56,7 +56,6 @@ class DeterministicChatList extends StatelessWidget {
     required this.scrollController,
     required this.topPadding,
     required this.bottomPadding,
-    required this.loadingMore,
     this.onMessageLongPress,
   });
 
@@ -65,7 +64,6 @@ class DeterministicChatList extends StatelessWidget {
   final ScrollController scrollController;
   final double topPadding;
   final double bottomPadding;
-  final bool loadingMore;
   final DeterministicChatListItemLongPressCallback? onMessageLongPress;
 
   @override
@@ -76,11 +74,6 @@ class DeterministicChatList extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (loadingMore)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 16),
-                child: Center(child: CircularProgressIndicator()),
-              ),
             for (var index = 0; index < messages.length; index += 1) ...[
               if (_shouldShowDateSeparatorBefore(index))
                 _DateSeparator(date: _separatorTimeFor(messages[index])),

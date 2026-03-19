@@ -21,12 +21,14 @@ class _FakeChatMessageRepository extends ChatMessageRepository {
   _FakeChatMessageRepository({
     required List<ChatMessage> cachedMessages,
     required List<ChatMessage> canonicalMessages,
+    this.loadMoreGate,
   }) : _cachedMessages = List<ChatMessage>.from(cachedMessages),
        _canonicalMessages = List<ChatMessage>.from(canonicalMessages),
        super();
 
   final List<ChatMessage> _cachedMessages;
   final List<ChatMessage> _canonicalMessages;
+  final Completer<void>? loadMoreGate;
   final List<_FetchCall> fetchCalls = <_FetchCall>[];
   List<ChatMessage> lastPersistedMessages = const <ChatMessage>[];
 
@@ -72,6 +74,10 @@ class _FakeChatMessageRepository extends ChatMessageRepository {
 
     Iterable<ChatMessage> page = descending;
     if (beforeCreatedAt != null && beforeId != null) {
+      final gate = loadMoreGate;
+      if (gate != null && !gate.isCompleted) {
+        await gate.future;
+      }
       final before = DateTime.parse(beforeCreatedAt);
       page = page.where((message) {
         final createdCompare = message.createdAt.compareTo(before);
@@ -222,6 +228,65 @@ void main() {
     expect(repository.fetchCalls.length, greaterThanOrEqualTo(2));
     expect(repository.fetchCalls[1].beforeId, 'm41');
   });
+
+  testWidgets(
+    'load-more overlay stays outside timeline and preserves viewport anchor',
+    (tester) async {
+      final loadMoreGate = Completer<void>();
+      addTearDown(() {
+        if (!loadMoreGate.isCompleted) {
+          loadMoreGate.complete();
+        }
+      });
+
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: List<ChatMessage>.generate(
+          60,
+          (index) => message(60 - index),
+        ),
+        canonicalMessages: List<ChatMessage>.generate(
+          60,
+          (index) => message(index + 1),
+        ),
+        loadMoreGate: loadMoreGate,
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, 2400),
+      );
+      await tester.pump();
+
+      final overlayFinder = find.byKey(
+        const ValueKey('chatHistoryLoadOverlay'),
+      );
+      expect(overlayFinder, findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SingleChildScrollView),
+          matching: overlayFinder,
+        ),
+        findsNothing,
+      );
+
+      final anchorFinder = find.byKey(const ValueKey('chatMessageSurface_m42'));
+      expect(anchorFinder, findsOneWidget);
+      final beforeDy = tester.getTopLeft(anchorFinder).dy;
+
+      loadMoreGate.complete();
+      await tester.pumpAndSettle();
+
+      expect(overlayFinder, findsNothing);
+      final afterDy = tester.getTopLeft(anchorFinder).dy;
+      expect(afterDy, closeTo(beforeDy, 8));
+    },
+  );
 
   testWidgets(
     'history mode buffers live messages and jump button resets to latest',

@@ -98,6 +98,7 @@ class _MessageActionSelection {
 class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   static const int _pageSize = 20;
   static const int _maxVisibleMessages = 80;
+  static const double _viewportAnchorMinVisibleHeight = 1;
   static const Duration _replyJumpDuration = Duration(milliseconds: 360);
   static const Curve _replyJumpCurve = Curves.easeInOutCubic;
 
@@ -152,6 +153,27 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       _runtime?.currentUserId ??
       Supabase.instance.client.auth.currentUser?.id ??
       '__anonymous__';
+
+  double _resolvedTopBarHeight(MediaQueryData media) {
+    final uiScale = appUiScale(media.size.width);
+    return (64.0 * uiScale).clamp(56.0, 64.0);
+  }
+
+  double _resolvedListTopPadding(MediaQueryData media) {
+    return media.padding.top + _resolvedTopBarHeight(media) + 12;
+  }
+
+  double _resolvedKeyboardAwareBottomInset(MediaQueryData media) {
+    return resolveChatKeyboardBottomInset(
+      keyboardInset: media.viewInsets.bottom,
+      safeAreaInset: media.padding.bottom,
+    );
+  }
+
+  double _resolvedListBottomPadding(MediaQueryData media) {
+    final listBottomInset = _resolvedKeyboardAwareBottomInset(media) + 8;
+    return listBottomInset + _composerHeight + 8;
+  }
 
   @override
   void initState() {
@@ -360,6 +382,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       return;
     }
 
+    final viewportAnchor = _captureViewportAnchor();
+    final previousMaxExtent = _chatScrollController.hasClients
+        ? _chatScrollController.position.maxScrollExtent
+        : null;
+    final previousOffset = _chatScrollController.hasClients
+        ? _chatScrollController.position.pixels
+        : null;
+
     if (mounted) {
       setState(() {
         _loadingMore = true;
@@ -368,12 +398,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     }
 
     try {
-      final previousMaxExtent = _chatScrollController.hasClients
-          ? _chatScrollController.position.maxScrollExtent
-          : null;
-      final previousOffset = _chatScrollController.hasClients
-          ? _chatScrollController.position.pixels
-          : null;
       final oldest = _window.oldestMessage;
       if (oldest == null) {
         return;
@@ -392,6 +416,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       unawaited(_ensureReactionSummariesForMessages(_messages));
       unawaited(_captureMemorySnapshot(source: 'chat_load_more_window_shift'));
       _schedulePreserveViewport(
+        anchor: viewportAnchor,
         previousMaxExtent: previousMaxExtent,
         previousOffset: previousOffset,
       );
@@ -1700,28 +1725,118 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     setState(() => _composerHeight = height);
   }
 
+  _ViewportAnchor? _captureViewportAnchor() {
+    if (!mounted || !_chatScrollController.hasClients) {
+      return null;
+    }
+
+    final media = MediaQuery.of(context);
+    final viewportTop = _resolvedListTopPadding(media);
+    final viewportBottom =
+        media.size.height - _resolvedListBottomPadding(media);
+    if (viewportBottom <= viewportTop) {
+      return null;
+    }
+
+    for (final message in _messages) {
+      final rect = _messageGlobalRect(message.id);
+      if (rect == null) {
+        continue;
+      }
+      final visibleTop = rect.top < viewportTop ? viewportTop : rect.top;
+      final visibleBottom = rect.bottom > viewportBottom
+          ? viewportBottom
+          : rect.bottom;
+      final visibleHeight = visibleBottom - visibleTop;
+      if (visibleHeight >= _viewportAnchorMinVisibleHeight) {
+        return _ViewportAnchor(messageId: message.id, globalTop: rect.top);
+      }
+    }
+    return null;
+  }
+
+  Rect? _messageGlobalRect(String messageId) {
+    final renderObject = _messageAnchorKeys[messageId]?.currentContext
+        ?.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.attached) {
+      return null;
+    }
+    final topLeft = renderObject.localToGlobal(Offset.zero);
+    return topLeft & renderObject.size;
+  }
+
+  bool _restoreViewportAnchor(_ViewportAnchor anchor) {
+    if (!_chatScrollController.hasClients) {
+      return false;
+    }
+    final rect = _messageGlobalRect(anchor.messageId);
+    if (rect == null) {
+      return false;
+    }
+    final delta = rect.top - anchor.globalTop;
+    if (delta.abs() <= 0.5) {
+      return true;
+    }
+    final position = _chatScrollController.position;
+    final target = (position.pixels + delta).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    if ((position.pixels - target).abs() <= 0.5) {
+      return true;
+    }
+    _chatScrollController.jumpTo(target);
+    return true;
+  }
+
   void _schedulePreserveViewport({
+    required _ViewportAnchor? anchor,
     required double? previousMaxExtent,
     required double? previousOffset,
   }) {
-    if (previousMaxExtent == null || previousOffset == null) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted || !_chatScrollController.hasClients) {
         return;
       }
-      final position = _chatScrollController.position;
-      final delta = position.maxScrollExtent - previousMaxExtent;
-      if (delta.abs() <= 0.5) {
-        return;
+      if (anchor != null) {
+        var restoredAnchor = false;
+        for (var attempt = 0; attempt < 3; attempt += 1) {
+          restoredAnchor = _restoreViewportAnchor(anchor) || restoredAnchor;
+          await WidgetsBinding.instance.endOfFrame;
+          if (!mounted || !_chatScrollController.hasClients) {
+            return;
+          }
+        }
+        if (_restoreViewportAnchor(anchor) || restoredAnchor) {
+          return;
+        }
       }
-      final target = (previousOffset + delta).clamp(
-        position.minScrollExtent,
-        position.maxScrollExtent,
+      _restoreViewportFromScrollExtent(
+        previousMaxExtent: previousMaxExtent,
+        previousOffset: previousOffset,
       );
-      _chatScrollController.jumpTo(target);
     });
+  }
+
+  void _restoreViewportFromScrollExtent({
+    required double? previousMaxExtent,
+    required double? previousOffset,
+  }) {
+    if (!_chatScrollController.hasClients ||
+        previousMaxExtent == null ||
+        previousOffset == null) {
+      return;
+    }
+    final position = _chatScrollController.position;
+    final delta = position.maxScrollExtent - previousMaxExtent;
+    if (delta.abs() <= 0.5) {
+      return;
+    }
+    final target = (previousOffset + delta).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    _chatScrollController.jumpTo(target);
   }
 
   void _scheduleScrollToLatest({required bool animated}) {
@@ -1858,14 +1973,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     final l10n = AppLocalizations.of(context)!;
     final media = MediaQuery.of(context);
     final uiScale = appUiScale(media.size.width);
-    final topBarHeight = (64.0 * uiScale).clamp(56.0, 64.0);
-    final listTopPadding = media.padding.top + topBarHeight + 12;
-    final keyboardAwareBottomInset = resolveChatKeyboardBottomInset(
-      keyboardInset: media.viewInsets.bottom,
-      safeAreaInset: media.padding.bottom,
-    );
-    final listBottomInset = keyboardAwareBottomInset + 8;
-    final listBottomPadding = listBottomInset + _composerHeight + 8;
+    final topBarHeight = _resolvedTopBarHeight(media);
+    final listTopPadding = _resolvedListTopPadding(media);
+    final keyboardAwareBottomInset = _resolvedKeyboardAwareBottomInset(media);
+    final listBottomPadding = _resolvedListBottomPadding(media);
     final scaffoldBackground =
         widget.backgroundDecoration?.color ??
         (widget.isDarkBackground
@@ -2153,19 +2264,36 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                             scrollController: _chatScrollController,
                             topPadding: listTopPadding,
                             bottomPadding: listBottomPadding,
-                            loadingMore: _loadingMore,
                             onMessageLongPress: (message, details) =>
                                 _handleDeterministicMessageLongPress(message),
                           );
                         },
                         emptyChatListBuilder: (context) =>
                             const SizedBox.shrink(),
-                        loadMoreBuilder: (context) => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
+                        loadMoreBuilder: (context) => const SizedBox.shrink(),
                       ),
                     ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: media.padding.top + topBarHeight + 6,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    child: _loadingMore
+                        ? _ChatHistoryLoadingOverlay(
+                            key: const ValueKey('chatHistoryLoadOverlay'),
+                            label: l10n.chatLoadOlderMessages,
+                            isDarkBackground: widget.isDarkBackground,
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ),
               ),
@@ -2341,6 +2469,79 @@ class _FetchedMessagePage {
 
   final List<ChatMessage> messages;
   final bool hasMoreOlder;
+}
+
+class _ViewportAnchor {
+  const _ViewportAnchor({required this.messageId, required this.globalTop});
+
+  final String messageId;
+  final double globalTop;
+}
+
+class _ChatHistoryLoadingOverlay extends StatelessWidget {
+  const _ChatHistoryLoadingOverlay({
+    super.key,
+    required this.label,
+    required this.isDarkBackground,
+  });
+
+  final String label;
+  final bool isDarkBackground;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = isDarkBackground
+        ? Colors.black.withValues(alpha: 0.62)
+        : Colors.white.withValues(alpha: 0.94);
+    final borderColor = isDarkBackground
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.06);
+    final textColor = isDarkBackground ? Colors.white : AppTheme.textPrimary;
+    final spinnerColor = isDarkBackground
+        ? Colors.white
+        : AppTheme.primaryColor;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(
+              alpha: isDarkBackground ? 0.22 : 0.1,
+            ),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.1,
+                valueColor: AlwaysStoppedAnimation<Color>(spinnerColor),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _TelegramComposer extends StatefulWidget {
@@ -2886,92 +3087,95 @@ class _TelegramTextMessageBubble extends StatelessWidget {
       isHighlighted: isHighlighted,
       isDarkBackground: isDarkBackground,
       borderRadius: BorderRadius.circular(22),
-      child: KeyedSubtree(
-        key: surfaceKey,
-        child: SimpleTextMessage(
-          message: message,
-          index: index,
-          padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
-          constraints: const BoxConstraints(maxWidth: 296),
-          borderRadius: bubbleRadius,
-          sentBackgroundColor: sentBackgroundColor,
-          receivedBackgroundColor: receivedBackgroundColor,
-          sentTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: sentTextColor,
-            fontSize: 16,
-            height: 1.36,
-            fontWeight: FontWeight.w400,
-          ),
-          receivedTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: receivedTextColor,
-            fontSize: 16,
-            height: 1.36,
-            fontWeight: FontWeight.w400,
-          ),
-          timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: timeColor,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-          topWidget:
-              !isSentByMe &&
-                  senderName?.trim().isNotEmpty != true &&
-                  replyPreview == null
-              ? null
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!isSentByMe && senderName?.trim().isNotEmpty == true)
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: replyPreview == null ? 4 : 6,
+      child: Container(
+        key: ValueKey<String>('chatMessageSurface_${message.id}'),
+        child: KeyedSubtree(
+          key: surfaceKey,
+          child: SimpleTextMessage(
+            message: message,
+            index: index,
+            padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
+            constraints: const BoxConstraints(maxWidth: 296),
+            borderRadius: bubbleRadius,
+            sentBackgroundColor: sentBackgroundColor,
+            receivedBackgroundColor: receivedBackgroundColor,
+            sentTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: sentTextColor,
+              fontSize: 16,
+              height: 1.36,
+              fontWeight: FontWeight.w400,
+            ),
+            receivedTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: receivedTextColor,
+              fontSize: 16,
+              height: 1.36,
+              fontWeight: FontWeight.w400,
+            ),
+            timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: timeColor,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+            topWidget:
+                !isSentByMe &&
+                    senderName?.trim().isNotEmpty != true &&
+                    replyPreview == null
+                ? null
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isSentByMe && senderName?.trim().isNotEmpty == true)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: replyPreview == null ? 4 : 6,
+                          ),
+                          child: Text(
+                            senderName!.trim(),
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.5,
+                                ),
+                          ),
                         ),
-                        child: Text(
-                          senderName!.trim(),
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12.5,
-                              ),
+                      if (replyPreview != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ChatReplyPreviewPanel(
+                            key: const ValueKey('chatTextBubbleReplyPreview'),
+                            senderName: replyLabel,
+                            previewText:
+                                PetChatMessageAdapter.previewTextForReply(
+                                  replyPreview!,
+                                  AppLocalizations.of(context)!,
+                                ),
+                            accentColor: AppTheme.primaryColor,
+                            senderColor: isSentByMe
+                                ? (isDarkBackground
+                                      ? const Color(0xFFA2E0CF)
+                                      : const Color(0xFF4B8F7B))
+                                : AppTheme.primaryColor,
+                            previewTextColor: isDarkBackground
+                                ? Colors.white.withValues(alpha: 0.68)
+                                : AppTheme.textSecondary,
+                            backgroundColor: replyPreviewBackground,
+                            iconColor: isDarkBackground
+                                ? Colors.white.withValues(alpha: 0.58)
+                                : AppTheme.textSecondary.withValues(alpha: 0.8),
+                            isImage: replyPreview!.isImageFeed,
+                            showJumpIcon: true,
+                            compact: true,
+                            onTap: onReplyTap,
+                          ),
                         ),
-                      ),
-                    if (replyPreview != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ChatReplyPreviewPanel(
-                          key: const ValueKey('chatTextBubbleReplyPreview'),
-                          senderName: replyLabel,
-                          previewText:
-                              PetChatMessageAdapter.previewTextForReply(
-                                replyPreview!,
-                                AppLocalizations.of(context)!,
-                              ),
-                          accentColor: AppTheme.primaryColor,
-                          senderColor: isSentByMe
-                              ? (isDarkBackground
-                                    ? const Color(0xFFA2E0CF)
-                                    : const Color(0xFF4B8F7B))
-                              : AppTheme.primaryColor,
-                          previewTextColor: isDarkBackground
-                              ? Colors.white.withValues(alpha: 0.68)
-                              : AppTheme.textSecondary,
-                          backgroundColor: replyPreviewBackground,
-                          iconColor: isDarkBackground
-                              ? Colors.white.withValues(alpha: 0.58)
-                              : AppTheme.textSecondary.withValues(alpha: 0.8),
-                          isImage: replyPreview!.isImageFeed,
-                          showJumpIcon: true,
-                          compact: true,
-                          onTap: onReplyTap,
-                        ),
-                      ),
-                  ],
-                ),
-          timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
-          timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
-          showStatus: false,
+                    ],
+                  ),
+            timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
+            timeAndStatusPositionInlineInsets: const EdgeInsets.only(bottom: 1),
+            showStatus: false,
+          ),
         ),
       ),
     );
@@ -3167,168 +3371,172 @@ class _FeedCard extends StatelessWidget {
       isHighlighted: isHighlighted,
       isDarkBackground: isDarkBackground,
       borderRadius: BorderRadius.circular(20),
-      child: KeyedSubtree(
-        key: surfaceKey,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 280),
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: cardBackground,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: cardBorderColor),
-            ),
-            child: InkWell(
-              onTap: onTapImage,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (replyPreview != null)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                      child: ChatReplyPreviewPanel(
-                        key: const ValueKey('chatFeedCardReplyPreview'),
-                        senderName: replyLabel,
-                        previewText: PetChatMessageAdapter.previewTextForReply(
-                          replyPreview!,
-                          AppLocalizations.of(context)!,
-                        ),
-                        accentColor: AppTheme.primaryColor,
-                        senderColor: isMe
-                            ? (isDarkBackground
-                                  ? const Color(0xFFA2E0CF)
-                                  : const Color(0xFF4B8F7B))
-                            : AppTheme.primaryColor,
-                        previewTextColor: isDarkBackground
-                            ? Colors.white.withValues(alpha: 0.68)
-                            : AppTheme.textSecondary,
-                        backgroundColor: isDarkBackground
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : const Color(0xFFF1F5F8),
-                        iconColor: isDarkBackground
-                            ? Colors.white.withValues(alpha: 0.58)
-                            : AppTheme.textSecondary.withValues(alpha: 0.8),
-                        isImage: replyPreview!.isImageFeed,
-                        showJumpIcon: true,
-                        compact: true,
-                        onTap: onReplyTap,
-                      ),
-                    ),
-                  if (replyPreview != null) const SizedBox(height: 10),
-                  if (senderLabel != null)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-                      child: Text(
-                        senderLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12.5,
+      child: Container(
+        key: ValueKey<String>('chatMessageSurface_${message.id}'),
+        child: KeyedSubtree(
+          key: surfaceKey,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 280),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: cardBackground,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: cardBorderColor),
+              ),
+              child: InkWell(
+                onTap: onTapImage,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (replyPreview != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                        child: ChatReplyPreviewPanel(
+                          key: const ValueKey('chatFeedCardReplyPreview'),
+                          senderName: replyLabel,
+                          previewText:
+                              PetChatMessageAdapter.previewTextForReply(
+                                replyPreview!,
+                                AppLocalizations.of(context)!,
+                              ),
+                          accentColor: AppTheme.primaryColor,
+                          senderColor: isMe
+                              ? (isDarkBackground
+                                    ? const Color(0xFFA2E0CF)
+                                    : const Color(0xFF4B8F7B))
+                              : AppTheme.primaryColor,
+                          previewTextColor: isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.68)
+                              : AppTheme.textSecondary,
+                          backgroundColor: isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : const Color(0xFFF1F5F8),
+                          iconColor: isDarkBackground
+                              ? Colors.white.withValues(alpha: 0.58)
+                              : AppTheme.textSecondary.withValues(alpha: 0.8),
+                          isImage: replyPreview!.isImageFeed,
+                          showJumpIcon: true,
+                          compact: true,
+                          onTap: onReplyTap,
                         ),
                       ),
-                    ),
-                  AspectRatio(
-                    aspectRatio: 4 / 5,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        image,
-                        if (coinsAwarded > 0)
-                          Positioned(
-                            top: 12,
-                            right: 12,
-                            child: buildGlassPill(
-                              borderRadius: BorderRadius.circular(999),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/icon/icon-park--candy.svg',
-                                    width: 14,
-                                    height: 14,
-                                    colorFilter: const ColorFilter.mode(
-                                      Colors.white,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    '+$coinsAwarded',
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(
-                                          color: overlayPrimaryText,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                    if (replyPreview != null) const SizedBox(height: 10),
+                    if (senderLabel != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                        child: Text(
+                          senderLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
                           ),
-                        if (bubbleTime != null && caption.isEmpty)
-                          Positioned(
-                            right: 12,
-                            bottom: 12,
-                            child: buildGlassPill(
-                              borderRadius: BorderRadius.circular(999),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                              child: Text(
-                                bubbleTime,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: overlaySecondaryText,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (caption.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        ),
+                      ),
+                    AspectRatio(
+                      aspectRatio: 4 / 5,
+                      child: Stack(
+                        fit: StackFit.expand,
                         children: [
-                          Expanded(
-                            child: Text(
-                              caption,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                height: 1.35,
-                                color: cardTextColor,
-                              ),
-                            ),
-                          ),
-                          if (bubbleTime != null) ...[
-                            const SizedBox(width: 10),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 1),
-                              child: Text(
-                                bubbleTime,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: metadataTimeColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
+                          image,
+                          if (coinsAwarded > 0)
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: buildGlassPill(
+                                borderRadius: BorderRadius.circular(999),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/icon/icon-park--candy.svg',
+                                      width: 14,
+                                      height: 14,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '+$coinsAwarded',
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(
+                                            color: overlayPrimaryText,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
+                          if (bubbleTime != null && caption.isEmpty)
+                            Positioned(
+                              right: 12,
+                              bottom: 12,
+                              child: buildGlassPill(
+                                borderRadius: BorderRadius.circular(999),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 6,
+                                ),
+                                child: Text(
+                                  bubbleTime,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: overlaySecondaryText,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                ],
+                    if (caption.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                caption,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  height: 1.35,
+                                  color: cardTextColor,
+                                ),
+                              ),
+                            ),
+                            if (bubbleTime != null) ...[
+                              const SizedBox(width: 10),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 1),
+                                child: Text(
+                                  bubbleTime,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: metadataTimeColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

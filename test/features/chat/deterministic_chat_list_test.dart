@@ -36,7 +36,6 @@ void main() {
             scrollController: controller,
             topPadding: 0,
             bottomPadding: 0,
-            loadingMore: false,
           ),
         ),
       ),
@@ -96,7 +95,6 @@ void main() {
               scrollController: controller,
               topPadding: 0,
               bottomPadding: 0,
-              loadingMore: false,
               onMessageLongPress: (message, details) {
                 pressedMessageId = message.id;
               },

@@ -1,5 +1,21 @@
 # TODO
 
+# Plan (2026-03-19 Stabilize Chat History Loading)
+- [x] Remove layout-affecting inline history-loading UI from the deterministic chat list.
+- [x] Add top-overlay history loading feedback and anchor-based viewport preservation in `ChatRoomViewV2`.
+- [x] Extend chat widget tests for overlay rendering and viewport stability, update memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Stabilize Chat History Loading)
+- [x] Implemented and verified.
+- Root change:
+  - `DeterministicChatList` no longer inserts an inline load-more spinner, so older-history fetches stop changing the scrollable timeline height mid-scroll.
+  - `ChatRoomViewV2` now shows a compact non-interactive top overlay while loading older messages and preserves the viewport by re-anchoring to the first visible message across follow-up frames after older pages are prepended.
+  - Added regression coverage for the new overlay behavior and for keeping the visible viewport effectively anchored during older-page loads; exposed stable per-message surface keys for widget assertions without changing product behavior.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-19 Remove Unused Petcoins120 IAP)
 - [x] Confirm whether any active store catalog row still references the retired `Petcoins120` App Store product.
 - [x] Remove or deactivate the retired coin-pack reference from the live Supabase `items` catalog and commit the same change into local migrations/seed data.
