@@ -1,5 +1,37 @@
 # TODO
 
+# Plan (2026-03-19 Nudge Chat Avatar Upward)
+- [x] Add a proportional upward offset to the received-message sender avatar while preserving the existing Telegram-style last-message anchor rule.
+- [x] Extend widget coverage for the proportional avatar offset and update memory/task notes.
+- [x] Run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Nudge Chat Avatar Upward)
+- [x] Implemented and verified.
+- Root change:
+  - `ChatMessageEnvelope` now applies a small proportional upward `Transform.translate` offset (`10%` of the 32px avatar size) to the received sender icon while keeping the existing bottom-anchored last-message grouping rule intact.
+  - Extended `chat_message_envelope_test.dart` so the received-avatar test now verifies both the fixed left slot width and the expected proportional upward offset relative to the message bubble.
+  - Updated progress/task notes to describe the visual nudge without changing the Telegram-style anchor semantics.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
+# Plan (2026-03-19 Undo Chat Avatar Row Alignment)
+- [x] Revert the received-message avatar row alignment tweak so the sender icon stays anchored to the last message in the grouped stack.
+- [x] Remove the temporary top-alignment regression assertion and correct the related memory/task notes.
+- [x] Run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-19 Undo Chat Avatar Row Alignment)
+- [x] Implemented and verified.
+- Root change:
+  - Restored `ChatMessageEnvelope` received rows to bottom alignment so the sender icon remains anchored to the last message in the grouped received stack.
+  - Removed the temporary top-edge assertion from the envelope widget test while keeping the existing spacer/alignment coverage for Telegram-style avatar placement.
+  - Corrected task and memory notes to reflect the reverted behavior, and added a lesson to avoid changing avatar-anchor semantics when the user only wants a high/low adjustment.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+  - Both passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-19 Stabilize Chat History Loading)
 - [x] Remove layout-affecting inline history-loading UI from the deterministic chat list.
 - [x] Add top-overlay history loading feedback and anchor-based viewport preservation in `ChatRoomViewV2`.

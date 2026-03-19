@@ -29,7 +29,9 @@ void main() {
     'received ungrouped message shows avatar and shifts bubble column',
     (tester) async {
       final avatarSlotKey = GlobalKey();
+      final avatarKey = GlobalKey();
       final bubbleColumnKey = GlobalKey();
+      final bubbleKey = GlobalKey();
 
       await tester.pumpWidget(
         _wrap(
@@ -43,8 +45,9 @@ void main() {
               fallbackText: 'Alex',
               showReceivedAvatar: true,
               avatarSlotKey: avatarSlotKey,
+              avatarKey: avatarKey,
               bubbleColumnKey: bubbleColumnKey,
-              child: _bubble(),
+              child: _bubble(key: bubbleKey),
             ),
           ),
         ),
@@ -60,6 +63,12 @@ void main() {
       expect(
         bubbleColumnLeft - avatarSlotLeft,
         closeTo(ChatMessageEnvelope.receivedAvatarSlotWidth, 0.1),
+      );
+      final avatarBottom = tester.getBottomLeft(find.byKey(avatarKey)).dy;
+      final bubbleBottom = tester.getBottomLeft(find.byKey(bubbleKey)).dy;
+      expect(
+        bubbleBottom - avatarBottom,
+        closeTo(ChatMessageEnvelope.receivedAvatarVerticalOffset.abs(), 0.1),
       );
     },
   );

@@ -25,6 +25,8 @@ class ChatMessageEnvelope extends StatelessWidget {
   static const double receivedAvatarGap = 8;
   static const double receivedAvatarSlotWidth =
       receivedAvatarSize + receivedAvatarGap;
+  static const double receivedAvatarVerticalOffset =
+      -(receivedAvatarSize * 0.1);
 
   final Widget child;
   final bool isSentByMe;
@@ -65,11 +67,14 @@ class ChatMessageEnvelope extends StatelessWidget {
           child: Align(
             alignment: Alignment.bottomLeft,
             child: showReceivedAvatar
-                ? UserAvatar(
-                    key: avatarKey,
-                    avatar: avatar,
-                    fallbackText: fallbackText,
-                    size: receivedAvatarSize,
+                ? Transform.translate(
+                    offset: const Offset(0, receivedAvatarVerticalOffset),
+                    child: UserAvatar(
+                      key: avatarKey,
+                      avatar: avatar,
+                      fallbackText: fallbackText,
+                      size: receivedAvatarSize,
+                    ),
                   )
                 : const SizedBox.shrink(),
           ),

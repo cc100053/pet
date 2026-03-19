@@ -72,3 +72,6 @@
 ## 2026-03-17
 - For media viewers and other layout-sensitive surfaces, do not use decode/provider changes as a first-line memory fix unless the rendered output is verified on-device; keep the UI path unchanged and prefer cache-level or non-visual memory guards first.
 - For shared thumbnail components, do not wrap the displayed provider in an exact-size resize layer just because cache bounds were added; keep cache sizing and rendered-provider semantics separate or image aspect/presentation can drift across multiple surfaces at once.
+
+## 2026-03-19
+- When the user asks to adjust chat avatar "height" or "high/low" only, do not reinterpret that as changing the avatar’s anchor semantics in the message-group layout; preserve whether the icon belongs to the last message and limit the change to vertical offset/alignment within that existing anchor rule.
