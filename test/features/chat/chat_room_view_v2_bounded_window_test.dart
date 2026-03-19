@@ -116,6 +116,24 @@ void main() {
     );
   }
 
+  ChatMessage systemMessage(String body) {
+    final createdAt = DateTime.utc(2026, 3, 19, 12);
+    return ChatMessage(
+      id: 'system-1',
+      roomId: 'room-1',
+      senderId: null,
+      type: 'system',
+      body: body,
+      imageUrl: null,
+      caption: null,
+      coinsAwarded: 0,
+      createdAt: createdAt,
+      clientCreatedAt: createdAt,
+      labels: const <Map<String, dynamic>>[],
+      localImagePath: null,
+    );
+  }
+
   Future<void> pumpChatRoom(
     WidgetTester tester, {
     required _FakeChatMessageRepository repository,
@@ -256,4 +274,22 @@ void main() {
       );
     },
   );
+
+  testWidgets('system messages stay horizontally centered', (tester) async {
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[systemMessage('System update')],
+      canonicalMessages: <ChatMessage>[systemMessage('System update')],
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    final scaffoldCenter = tester.getCenter(find.byType(Scaffold)).dx;
+    final systemCenter = tester.getCenter(find.text('System update')).dx;
+
+    expect(systemCenter, closeTo(scaffoldCenter, 1));
+  });
 }

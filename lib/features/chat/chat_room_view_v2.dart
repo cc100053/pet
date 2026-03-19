@@ -2083,10 +2083,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                               if (domainMessage == null) {
                                 return child;
                               }
+                              if (domainMessage.isSystem) {
+                                return child;
+                              }
                               final senderId = domainMessage.senderId;
                               final showReceivedAvatar =
                                   !isSentByMe &&
-                                  !domainMessage.isSystem &&
                                   senderId != null &&
                                   (groupStatus == null || groupStatus.isLast);
                               Widget content = ChatMessageEnvelope(
