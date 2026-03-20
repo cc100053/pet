@@ -23,15 +23,15 @@ class ForceUpdateGate extends StatefulWidget {
     required this.child,
     AppConfigService? configService,
     WhatsNewService? whatsNewService,
-    Future<String> Function()? versionLoader,
+    Future<AppLaunchInfo> Function()? launchInfoLoader,
   }) : _configService = configService,
        _whatsNewService = whatsNewService,
-       _versionLoader = versionLoader;
+       _launchInfoLoader = launchInfoLoader;
 
   final Widget child;
   final AppConfigService? _configService;
   final WhatsNewService? _whatsNewService;
-  final Future<String> Function()? _versionLoader;
+  final Future<AppLaunchInfo> Function()? _launchInfoLoader;
 
   @override
   State<ForceUpdateGate> createState() => _ForceUpdateGateState();
@@ -42,7 +42,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   StreamSubscription<ForceUpdateDebugPromptType>? _debugPromptSubscription;
   late final AppConfigService _configService;
   late final WhatsNewService _whatsNewService;
-  late final Future<String> Function() _versionLoader;
+  late final Future<AppLaunchInfo> Function() _launchInfoLoader;
 
   bool _checking = true;
   bool _hardUpdateRequired = false;
@@ -55,9 +55,10 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     super.initState();
     _configService = widget._configService ?? AppConfigService();
     _whatsNewService = widget._whatsNewService ?? WhatsNewService();
-    _versionLoader =
-        widget._versionLoader ??
-        () async => (await PackageInfo.fromPlatform()).version.trim();
+    _launchInfoLoader =
+        widget._launchInfoLoader ??
+        () async =>
+            AppLaunchInfo.fromPackageInfo(await PackageInfo.fromPlatform());
     WidgetsBinding.instance.addObserver(this);
     _debugPromptSubscription = ForceUpdateDebugTool.instance.prompts.listen(
       _onDebugPromptRequested,
@@ -94,9 +95,11 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
     try {
       final config = await _configService.fetchForceUpdateConfig();
-      final currentVersion = (await _versionLoader()).trim();
+      final launchInfo = await _launchInfoLoader();
+      final currentVersion = launchInfo.version;
       final whatsNewDecision = await _whatsNewService.prepareForLaunch(
         currentVersion: currentVersion,
+        currentReleaseSignature: launchInfo.releaseSignature,
       );
       if (!mounted) {
         return;
@@ -215,6 +218,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     }
     await _showWhatsNewDialog(
       version: decision.currentVersion,
+      releaseSignature: decision.currentReleaseSignature,
       entry: decision.entry!,
       markShown: true,
       shownEventName: 'whats_new_shown',
@@ -223,13 +227,14 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   }
 
   Future<void> _showDebugWhatsNewPrompt() async {
-    final currentVersion = (await _versionLoader()).trim();
-    final entry = AppWhatsNewCatalog.entryForVersion(currentVersion);
+    final launchInfo = await _launchInfoLoader();
+    final entry = AppWhatsNewCatalog.entryForVersion(launchInfo.version);
     if (entry == null) {
       return;
     }
     await _showWhatsNewDialog(
-      version: currentVersion,
+      version: launchInfo.version,
+      releaseSignature: launchInfo.releaseSignature,
       entry: entry,
       markShown: false,
       shownEventName: 'debug_whats_new_shown',
@@ -239,6 +244,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
 
   Future<void> _showWhatsNewDialog({
     required String version,
+    required String releaseSignature,
     required AppWhatsNewEntry entry,
     required bool markShown,
     required String shownEventName,
@@ -261,7 +267,10 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
         builder: (context) => WhatsNewDialog(version: version, entry: entry),
       );
       if (markShown) {
-        await _whatsNewService.markShown(version);
+        await _whatsNewService.markShown(
+          version: version,
+          currentReleaseSignature: releaseSignature,
+        );
       }
       unawaited(
         _logEventSafe(dismissedEventName, parameters: {'version': version}),
@@ -454,6 +463,22 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       onUpdate: () => _launchStore(_config!.storeUrl),
     );
   }
+}
+
+class AppLaunchInfo {
+  const AppLaunchInfo({required this.version, required this.releaseSignature});
+
+  factory AppLaunchInfo.fromPackageInfo(PackageInfo packageInfo) {
+    final version = packageInfo.version.trim();
+    final buildNumber = packageInfo.buildNumber.trim();
+    final releaseSignature = buildNumber.isEmpty
+        ? version
+        : '$version+$buildNumber';
+    return AppLaunchInfo(version: version, releaseSignature: releaseSignature);
+  }
+
+  final String version;
+  final String releaseSignature;
 }
 
 class ForceUpdateScreen extends StatelessWidget {

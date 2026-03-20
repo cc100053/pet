@@ -11,6 +11,7 @@ void main() {
   testWidgets('hard update blocks the What\'s New dialog', (tester) async {
     final settings = _FakeWhatsNewSettingsStore(
       lastLaunchedAppVersion: '1.0.4',
+      lastLaunchedAppReleaseSignature: '1.0.4+9',
     );
 
     await tester.pumpWidget(
@@ -21,7 +22,10 @@ void main() {
             latestAvailableVersion: '1.0.6',
           ),
           whatsNewService: WhatsNewService(settingsStore: settings),
-          versionLoader: () async => '1.0.5',
+          launchInfoLoader: () async => const AppLaunchInfo(
+            version: '1.0.5',
+            releaseSignature: '1.0.5+1',
+          ),
           child: const SizedBox.shrink(),
         ),
       ),
@@ -38,6 +42,7 @@ void main() {
   ) async {
     final settings = _FakeWhatsNewSettingsStore(
       lastLaunchedAppVersion: '1.0.4',
+      lastLaunchedAppReleaseSignature: '1.0.4+9',
     );
 
     await tester.pumpWidget(
@@ -48,7 +53,10 @@ void main() {
             latestAvailableVersion: '1.0.6',
           ),
           whatsNewService: WhatsNewService(settingsStore: settings),
-          versionLoader: () async => '1.0.5',
+          launchInfoLoader: () async => const AppLaunchInfo(
+            version: '1.0.5',
+            releaseSignature: '1.0.5+1',
+          ),
           child: const SizedBox.shrink(),
         ),
       ),
@@ -67,6 +75,8 @@ void main() {
     final titleTopLeft = tester.getTopLeft(find.text('Version update').first);
     expect(versionCardTopLeft.dx, lessThan(titleTopLeft.dx));
     expect(settings.lastShownWhatsNewVersion, isNull);
+    expect(settings.lastLaunchedAppVersion, '1.0.4');
+    expect(settings.lastLaunchedAppReleaseSignature, '1.0.4+9');
 
     await tester.ensureVisible(find.text('Continue'));
     await tester.tap(find.text('Continue'));
@@ -74,6 +84,8 @@ void main() {
 
     expect(find.text('Version update'), findsNothing);
     expect(settings.lastShownWhatsNewVersion, '1.0.5');
+    expect(settings.lastLaunchedAppVersion, '1.0.5');
+    expect(settings.lastLaunchedAppReleaseSignature, '1.0.5+1');
   });
 
   testWidgets('dismissed What\'s New does not repeat on later launches', (
@@ -81,6 +93,7 @@ void main() {
   ) async {
     final settings = _FakeWhatsNewSettingsStore(
       lastLaunchedAppVersion: '1.0.4',
+      lastLaunchedAppReleaseSignature: '1.0.4+9',
     );
     final configService = _buildConfigService(
       minimumRequiredVersion: '1.0.0',
@@ -93,7 +106,10 @@ void main() {
         ForceUpdateGate(
           configService: configService,
           whatsNewService: whatsNewService,
-          versionLoader: () async => '1.0.5',
+          launchInfoLoader: () async => const AppLaunchInfo(
+            version: '1.0.5',
+            releaseSignature: '1.0.5+1',
+          ),
           child: const SizedBox.shrink(),
         ),
       ),
@@ -113,7 +129,10 @@ void main() {
         ForceUpdateGate(
           configService: configService,
           whatsNewService: whatsNewService,
-          versionLoader: () async => '1.0.5',
+          launchInfoLoader: () async => const AppLaunchInfo(
+            version: '1.0.5',
+            releaseSignature: '1.0.5+1',
+          ),
           child: const SizedBox.shrink(),
         ),
       ),
@@ -126,8 +145,10 @@ void main() {
   testWidgets('debug prompt shows What\'s New even when already marked shown', (
     tester,
   ) async {
-    final settings = _FakeWhatsNewSettingsStore(lastLaunchedAppVersion: '1.0.5')
-      ..lastShownWhatsNewVersion = '1.0.5';
+    final settings = _FakeWhatsNewSettingsStore(
+      lastLaunchedAppVersion: '1.0.5',
+      lastLaunchedAppReleaseSignature: '1.0.5+1',
+    )..lastShownWhatsNewVersion = '1.0.5';
 
     await tester.pumpWidget(
       _buildApp(
@@ -137,7 +158,10 @@ void main() {
             latestAvailableVersion: '1.0.5',
           ),
           whatsNewService: WhatsNewService(settingsStore: settings),
-          versionLoader: () async => '1.0.5',
+          launchInfoLoader: () async => const AppLaunchInfo(
+            version: '1.0.5',
+            releaseSignature: '1.0.5+1',
+          ),
           child: const SizedBox.shrink(),
         ),
       ),
@@ -157,6 +181,82 @@ void main() {
 
     expect(settings.lastShownWhatsNewVersion, '1.0.5');
   });
+
+  testWidgets(
+    'same-version build upgrade shows What\'s New when not shown before',
+    (tester) async {
+      final settings = _FakeWhatsNewSettingsStore(
+        lastLaunchedAppVersion: '1.0.5',
+        lastLaunchedAppReleaseSignature: '1.0.5+1',
+      );
+
+      await tester.pumpWidget(
+        _buildApp(
+          ForceUpdateGate(
+            configService: _buildConfigService(
+              minimumRequiredVersion: '1.0.0',
+              latestAvailableVersion: '1.0.5',
+            ),
+            whatsNewService: WhatsNewService(settingsStore: settings),
+            launchInfoLoader: () async => const AppLaunchInfo(
+              version: '1.0.5',
+              releaseSignature: '1.0.5+2',
+            ),
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Version update'), findsAtLeastNWidgets(1));
+      expect(settings.lastLaunchedAppReleaseSignature, '1.0.5+1');
+
+      await tester.ensureVisible(find.text('Continue'));
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(settings.lastShownWhatsNewVersion, '1.0.5');
+      expect(settings.lastLaunchedAppReleaseSignature, '1.0.5+2');
+    },
+  );
+
+  testWidgets(
+    'legacy install without recorded version still shows first tracked What\'s New',
+    (tester) async {
+      final settings = _FakeWhatsNewSettingsStore(
+        hadExistingInstallBeforeVersionTracking: true,
+      );
+
+      await tester.pumpWidget(
+        _buildApp(
+          ForceUpdateGate(
+            configService: _buildConfigService(
+              minimumRequiredVersion: '1.0.0',
+              latestAvailableVersion: '1.0.5',
+            ),
+            whatsNewService: WhatsNewService(settingsStore: settings),
+            launchInfoLoader: () async => const AppLaunchInfo(
+              version: '1.0.5',
+              releaseSignature: '1.0.5+1',
+            ),
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Version update'), findsAtLeastNWidgets(1));
+      expect(settings.lastLaunchedAppVersion, isNull);
+
+      await tester.ensureVisible(find.text('Continue'));
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(settings.lastShownWhatsNewVersion, '1.0.5');
+      expect(settings.lastLaunchedAppVersion, '1.0.5');
+      expect(settings.lastLaunchedAppReleaseSignature, '1.0.5+1');
+    },
+  );
 }
 
 Widget _buildApp(Widget child) {
@@ -191,17 +291,32 @@ class _FakeAppStoreVersionLookupService extends AppStoreVersionLookupService {
 }
 
 class _FakeWhatsNewSettingsStore implements WhatsNewSettingsStore {
-  _FakeWhatsNewSettingsStore({this.lastLaunchedAppVersion});
+  _FakeWhatsNewSettingsStore({
+    this.lastLaunchedAppVersion,
+    this.lastLaunchedAppReleaseSignature,
+    this.hadExistingInstallBeforeVersionTracking = false,
+  });
 
   @override
   String? lastLaunchedAppVersion;
 
   @override
+  String? lastLaunchedAppReleaseSignature;
+
+  @override
   String? lastShownWhatsNewVersion;
+
+  @override
+  final bool hadExistingInstallBeforeVersionTracking;
 
   @override
   Future<void> setLastLaunchedAppVersion(String? version) async {
     lastLaunchedAppVersion = version;
+  }
+
+  @override
+  Future<void> setLastLaunchedAppReleaseSignature(String? signature) async {
+    lastLaunchedAppReleaseSignature = signature;
   }
 
   @override

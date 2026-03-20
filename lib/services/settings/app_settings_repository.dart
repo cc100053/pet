@@ -15,6 +15,8 @@ class AppSettingsRepository {
       'review_next_milestone_index';
   static const String _reviewLastPromptAtIsoKey = 'review_last_prompt_at_iso';
   static const String _lastLaunchedAppVersionKey = 'last_launched_app_version';
+  static const String _lastLaunchedAppReleaseSignatureKey =
+      'last_launched_app_release_signature';
   static const String _lastShownWhatsNewVersionKey =
       'last_shown_whats_new_version';
   static const String _ugcTermsAcceptedKey = 'ugc_terms_accepted';
@@ -30,9 +32,14 @@ class AppSettingsRepository {
       'onboarding_basic_completed_at_iso';
 
   Box<dynamic>? _box;
+  bool _hadExistingBoxAtInit = false;
 
   Future<void> init() async {
-    _box ??= await Hive.openBox<dynamic>(_boxName);
+    if (_box != null) {
+      return;
+    }
+    _hadExistingBoxAtInit = await Hive.boxExists(_boxName);
+    _box = await Hive.openBox<dynamic>(_boxName);
   }
 
   /// Stored as a BCP-47 language tag (e.g. "en", "ja", "ko", "zh-Hans", "zh-TW").
@@ -103,6 +110,17 @@ class AppSettingsRepository {
     await _box?.put(_lastLaunchedAppVersionKey, version);
   }
 
+  String? get lastLaunchedAppReleaseSignature =>
+      _box?.get(_lastLaunchedAppReleaseSignatureKey) as String?;
+
+  Future<void> setLastLaunchedAppReleaseSignature(String? signature) async {
+    if (signature == null || signature.isEmpty) {
+      await _box?.delete(_lastLaunchedAppReleaseSignatureKey);
+      return;
+    }
+    await _box?.put(_lastLaunchedAppReleaseSignatureKey, signature);
+  }
+
   String? get lastShownWhatsNewVersion =>
       _box?.get(_lastShownWhatsNewVersionKey) as String?;
 
@@ -113,6 +131,8 @@ class AppSettingsRepository {
     }
     await _box?.put(_lastShownWhatsNewVersionKey, version);
   }
+
+  bool get hadExistingBoxAtInit => _hadExistingBoxAtInit;
 
   bool get ugcTermsAccepted =>
       (_box?.get(_ugcTermsAcceptedKey) as bool?) ?? false;

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/shared/whats_new/app_whats_new_catalog.dart';
+import 'package:pet/shared/whats_new/app_whats_new_entry.dart';
 import 'package:pet/shared/whats_new/whats_new_policy.dart';
 
 void main() {
@@ -7,10 +8,9 @@ void main() {
 
   group('WhatsNewPolicy.evaluate', () {
     test('does not show on fresh install', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.5',
         previousVersion: null,
-        lastShownVersion: null,
         entry: entry105,
       );
 
@@ -19,10 +19,11 @@ void main() {
     });
 
     test('does not show on same-version relaunch', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.5',
         previousVersion: '1.0.5',
-        lastShownVersion: null,
+        previousReleaseSignature: '1.0.5+1',
+        currentReleaseSignature: '1.0.5+1',
         entry: entry105,
       );
 
@@ -31,10 +32,11 @@ void main() {
     });
 
     test('shows on upgrade when current version has an entry', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.5',
         previousVersion: '1.0.4',
-        lastShownVersion: null,
+        previousReleaseSignature: '1.0.4+9',
+        currentReleaseSignature: '1.0.5+1',
         entry: entry105,
       );
 
@@ -43,9 +45,11 @@ void main() {
     });
 
     test('does not repeat when the current version was already shown', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.5',
         previousVersion: '1.0.4',
+        previousReleaseSignature: '1.0.4+9',
+        currentReleaseSignature: '1.0.5+1',
         lastShownVersion: '1.0.5',
         entry: entry105,
       );
@@ -55,10 +59,11 @@ void main() {
     });
 
     test('shows only the current version entry after skipped upgrades', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.5',
         previousVersion: '1.0.2',
-        lastShownVersion: null,
+        previousReleaseSignature: '1.0.2+1',
+        currentReleaseSignature: '1.0.5+1',
         entry: entry105,
       );
 
@@ -67,10 +72,11 @@ void main() {
     });
 
     test('does not show when the upgraded version has no local entry', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.6',
         previousVersion: '1.0.5',
-        lastShownVersion: null,
+        previousReleaseSignature: '1.0.5+1',
+        currentReleaseSignature: '1.0.6+1',
         entry: AppWhatsNewCatalog.entryForVersion('1.0.6'),
       );
 
@@ -79,15 +85,63 @@ void main() {
     });
 
     test('does not show on downgrade or reinstall to an older version', () {
-      final decision = WhatsNewPolicy.evaluate(
+      final decision = _evaluate(
         currentVersion: '1.0.5',
         previousVersion: '1.0.6',
-        lastShownVersion: null,
+        previousReleaseSignature: '1.0.6+1',
+        currentReleaseSignature: '1.0.5+1',
         entry: entry105,
       );
 
       expect(decision.shouldShow, isFalse);
       expect(decision.entry, isNull);
     });
+
+    test('shows on same-version build upgrade when not shown before', () {
+      final decision = _evaluate(
+        currentVersion: '1.0.5',
+        previousVersion: '1.0.5',
+        previousReleaseSignature: '1.0.5+1',
+        currentReleaseSignature: '1.0.5+2',
+        entry: entry105,
+      );
+
+      expect(decision.shouldShow, isTrue);
+      expect(decision.entry?.version, '1.0.5');
+    });
+
+    test('shows for existing installs that predate version tracking', () {
+      final decision = _evaluate(
+        currentVersion: '1.0.5',
+        previousVersion: null,
+        currentReleaseSignature: '1.0.5+1',
+        entry: entry105,
+        hadExistingInstallBeforeVersionTracking: true,
+      );
+
+      expect(decision.shouldShow, isTrue);
+      expect(decision.entry?.version, '1.0.5');
+    });
   });
+}
+
+WhatsNewDecision _evaluate({
+  required String currentVersion,
+  required AppWhatsNewEntry? entry,
+  String currentReleaseSignature = '1.0.5+1',
+  String? previousVersion,
+  String? previousReleaseSignature,
+  String? lastShownVersion,
+  bool hadExistingInstallBeforeVersionTracking = false,
+}) {
+  return WhatsNewPolicy.evaluate(
+    currentVersion: currentVersion,
+    currentReleaseSignature: currentReleaseSignature,
+    previousVersion: previousVersion,
+    previousReleaseSignature: previousReleaseSignature,
+    lastShownVersion: lastShownVersion,
+    entry: entry,
+    hadExistingInstallBeforeVersionTracking:
+        hadExistingInstallBeforeVersionTracking,
+  );
 }

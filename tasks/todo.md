@@ -1,5 +1,27 @@
 # TODO
 
+# Plan (2026-03-20 Investigate Missing Whats New on 1.0.5 Upgrade)
+- [x] Trace the `What's New` trigger path in app startup, including version detection, stored Hive keys, and ForceUpdateGate sequencing.
+- [x] Verify the bundled `1.0.5` release-note content and existing tests/logic to determine which gate suppressed the modal after upgrade.
+- [x] Record the root cause, impact, and recommended fix or follow-up in this file after verification.
+
+# Review (2026-03-20 Investigate Missing Whats New on 1.0.5 Upgrade)
+- [x] Implemented and verified.
+- Root cause:
+  - The shipped `What's New` gate only compared `PackageInfo.version`, so `1.0.5+1 -> 1.0.5+2` never counted as an upgrade because both launches looked like public version `1.0.5`.
+  - The feature itself was first introduced in commit `370c06c` together with app build `1.0.5+1`, so upgrades from pre-tracking builds had no stored `last_launched_app_version` yet and were treated like fresh installs.
+  - `WhatsNewService.prepareForLaunch()` also persisted `last_launched_app_version` immediately before the dialog actually rendered, which meant any first-launch interruption could permanently suppress the modal on later relaunches.
+- Fix:
+  - Added persisted `last_launched_app_release_signature` tracking so `ForceUpdateGate` and `WhatsNewPolicy` can detect same-public-version build upgrades when the current version's modal was never shown.
+  - Added a legacy-install signal from `AppSettingsRepository.init()` using the pre-existing `app_settings` Hive box, allowing the first tracked `What's New` release to show for upgraded installs that predate version tracking without showing on true fresh installs.
+  - Deferred launch-state persistence until the modal is actually dismissed (or until the policy decides no modal should show), preventing first-launch interruptions from permanently marking the version as already launched.
+  - Added policy and gate regression tests covering legacy installs, same-version build upgrades, and deferred persistence behavior.
+- Verification:
+  - `flutter test test/shared/whats_new/whats_new_policy_test.dart`
+  - `flutter test test/shared/force_update/force_update_gate_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-20 Telegram-Style Sender Name Grouping)
 - [x] Use existing chat `groupStatus` metadata so received sender names only render on the first message in a grouped run.
 - [x] Apply the same sender-name rule to both text bubbles and feed cards without changing sent/system/reply behavior or avatar grouping.
