@@ -392,6 +392,42 @@ void main() {
   );
 
   testWidgets(
+    'resuming the app refreshes latest messages after a backgrounded gap',
+    (tester) async {
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: List<ChatMessage>.generate(
+          60,
+          (index) => message(60 - index),
+        ),
+        canonicalMessages: List<ChatMessage>.generate(
+          60,
+          (index) => message(index + 1),
+        ),
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      final latestMessage = message(61);
+      repository.appendCanonical(latestMessage);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(find.text('message 61'), findsOneWidget);
+      expect(repository.fetchCalls.length, greaterThanOrEqualTo(2));
+    },
+  );
+
+  testWidgets(
     'grouped received text and feed messages show sender name only once',
     (tester) async {
       final firstCreatedAt = DateTime.utc(2026, 3, 20, 12, 0);

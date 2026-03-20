@@ -95,7 +95,8 @@ class _MessageActionSelection {
   final String? emoji;
 }
 
-class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
+class _ChatRoomViewV2State extends State<ChatRoomViewV2>
+    with WidgetsBindingObserver {
   static const int _pageSize = 20;
   static const int _maxVisibleMessages = 80;
   static const double _viewportAnchorMinVisibleHeight = 1;
@@ -179,6 +180,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _memberCount = widget.memberCount;
     _chatScrollController.addListener(_handleChatScroll);
     unawaited(_captureMemorySnapshot(source: 'chat_init_state'));
@@ -192,6 +194,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   @override
   void dispose() {
     unawaited(_captureMemorySnapshot(source: 'chat_dispose'));
+    WidgetsBinding.instance.removeObserver(this);
     _channel?.unsubscribe();
     _runtimeIncomingSubscription?.cancel();
     _runtimeReactionSubscription?.cancel();
@@ -201,6 +204,19 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     _composerController.dispose();
     _composerFocusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed ||
+        _loading ||
+        _loadingMore ||
+        !mounted) {
+      return;
+    }
+    // Reconcile the latest server page after backgrounded periods where the
+    // realtime channel may not have delivered foreground updates yet.
+    unawaited(_refreshLatest());
   }
 
   int get _imageMessageCount =>

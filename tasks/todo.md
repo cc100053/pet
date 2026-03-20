@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-03-20 Fix Chat Room Auto Refresh on New Messages)
+- [x] Trace `ChatRoomViewV2` realtime message updates, history-mode buffering, and foreground notification handling to find why newly arrived messages can fail to appear while the room is open.
+- [x] Implement the smallest fix that restores automatic visible refresh for newly arrived chat messages without regressing bounded-window/history behavior.
+- [x] Add regression coverage, run `flutter analyze` and `flutter test`, and record the outcome below.
+
+# Review (2026-03-20 Fix Chat Room Auto Refresh on New Messages)
+- [x] Implemented and verified.
+- Root cause:
+  - `ChatRoomViewV2` relied on the live Supabase channel for in-room freshness but had no lifecycle reconciliation when the route resumed after a backgrounded period.
+  - In the affected path, the user was still logically "in chat", a push notification could arrive while the app was backgrounded, and on return the room sometimes kept showing the pre-background latest window because no explicit `_refreshLatest()` ran on resume.
+  - This matched the symptom where notification delivery proved a new message existed, but the room view did not visibly refresh until another manual action happened.
+- Fix:
+  - `ChatRoomViewV2` now implements `WidgetsBindingObserver` and triggers a best-effort `_refreshLatest()` whenever the route resumes, as long as it is not already loading.
+  - The refresh uses the existing bounded-window merge path, so live-mode rooms pull in the latest server page without changing the established history-mode/load-more architecture.
+  - Added a widget regression test that simulates a background/resume gap with realtime disabled, appends a new canonical server message, resumes the app lifecycle, and asserts the new message becomes visible.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-20 Investigate Missing Whats New on 1.0.5 Upgrade)
 - [x] Trace the `What's New` trigger path in app startup, including version detection, stored Hive keys, and ForceUpdateGate sequencing.
 - [x] Verify the bundled `1.0.5` release-note content and existing tests/logic to determine which gate suppressed the modal after upgrade.
