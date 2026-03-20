@@ -134,6 +134,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
   String? _error;
   String? _replyTargetMessageId;
   String? _highlightedMessageId;
+  String? _historyGroupingBoundaryMessageId;
   int? _memberCount;
   double _composerHeight = 0;
 
@@ -310,6 +311,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       if (!mounted || messages.isEmpty) {
         return;
       }
+      _historyGroupingBoundaryMessageId = null;
       _window.hydrateCache(messages);
       await _applyWindowToChat(animated: false);
       _scheduleScrollToLatest(animated: false);
@@ -349,6 +351,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       if (!mounted) {
         return;
       }
+      _historyGroupingBoundaryMessageId = null;
       _window.replaceWithLatest(page.messages, hasMoreOlder: page.hasMoreOlder);
       await _applyWindowToChat(animated: false);
       _scheduleScrollToLatest(animated: false);
@@ -409,6 +412,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
       if (!mounted) {
         return;
       }
+      _historyGroupingBoundaryMessageId = oldest.id;
       _window.prependOlderPage(page.messages, hasMoreOlder: page.hasMoreOlder);
       await _applyWindowToChat(animated: false);
       unawaited(_ensureProfilesForMessages(_messages));
@@ -443,11 +447,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         return;
       }
       if (resetWindow || _isHistoryMode || _pendingLiveMessageCount > 0) {
+        _historyGroupingBoundaryMessageId = null;
         _window.replaceWithLatest(
           page.messages,
           hasMoreOlder: page.hasMoreOlder,
         );
       } else {
+        _historyGroupingBoundaryMessageId = null;
         _window.mergeLatestPage(page.messages, hasMoreOlder: page.hasMoreOlder);
       }
       await _applyWindowToChat(animated: false);
@@ -1789,6 +1795,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
     return true;
   }
 
+  bool _isViewportAnchorAligned(_ViewportAnchor anchor) {
+    final rect = _messageGlobalRect(anchor.messageId);
+    if (rect == null) {
+      return false;
+    }
+    return (rect.top - anchor.globalTop).abs() <= 0.5;
+  }
+
   void _schedulePreserveViewport({
     required _ViewportAnchor? anchor,
     required double? previousMaxExtent,
@@ -1799,15 +1813,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         return;
       }
       if (anchor != null) {
-        var restoredAnchor = false;
         for (var attempt = 0; attempt < 3; attempt += 1) {
-          restoredAnchor = _restoreViewportAnchor(anchor) || restoredAnchor;
+          _restoreViewportAnchor(anchor);
           await WidgetsBinding.instance.endOfFrame;
           if (!mounted || !_chatScrollController.hasClients) {
             return;
           }
         }
-        if (_restoreViewportAnchor(anchor) || restoredAnchor) {
+        if (_isViewportAnchorAligned(anchor)) {
           return;
         }
       }
@@ -1815,6 +1828,20 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
         previousMaxExtent: previousMaxExtent,
         previousOffset: previousOffset,
       );
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || !_chatScrollController.hasClients || anchor == null) {
+        return;
+      }
+      for (var attempt = 0; attempt < 3; attempt += 1) {
+        _restoreViewportAnchor(anchor);
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted || !_chatScrollController.hasClients) {
+          return;
+        }
+        if (_isViewportAnchorAligned(anchor)) {
+          return;
+        }
+      }
     });
   }
 
@@ -2103,6 +2130,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                                 senderName: _displayNameForSenderId(
                                   _messagesById[message.id]?.senderId,
                                 ),
+                                showSenderName:
+                                    isSentByMe ||
+                                    message.id ==
+                                        _historyGroupingBoundaryMessageId ||
+                                    groupStatus == null ||
+                                    groupStatus.isFirst,
                                 replyPreview: resolvedReplyPreview,
                                 replySenderName: _displayNameForSenderId(
                                   resolvedReplyPreview?.senderId,
@@ -2170,6 +2203,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2> {
                                 senderName: _displayNameForSenderId(
                                   _messagesById[message.id]?.senderId,
                                 ),
+                                showSenderName:
+                                    isSentByMe ||
+                                    message.id ==
+                                        _historyGroupingBoundaryMessageId ||
+                                    groupStatus == null ||
+                                    groupStatus.isFirst,
                                 replyPreview: resolvedReplyPreview,
                                 replySenderName: _displayNameForSenderId(
                                   resolvedReplyPreview?.senderId,
@@ -3028,6 +3067,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     required this.isDarkBackground,
     required this.isHighlighted,
     required this.senderName,
+    required this.showSenderName,
     required this.replyPreview,
     required this.replySenderName,
     required this.onReplyTap,
@@ -3040,6 +3080,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
   final bool isDarkBackground;
   final bool isHighlighted;
   final String? senderName;
+  final bool showSenderName;
   final ChatReplyPreview? replyPreview;
   final String? replySenderName;
   final VoidCallback? onReplyTap;
@@ -3118,14 +3159,17 @@ class _TelegramTextMessageBubble extends StatelessWidget {
             ),
             topWidget:
                 !isSentByMe &&
-                    senderName?.trim().isNotEmpty != true &&
+                    (!showSenderName ||
+                        senderName?.trim().isNotEmpty != true) &&
                     replyPreview == null
                 ? null
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (!isSentByMe && senderName?.trim().isNotEmpty == true)
+                      if (!isSentByMe &&
+                          showSenderName &&
+                          senderName?.trim().isNotEmpty == true)
                         Padding(
                           padding: EdgeInsets.only(
                             bottom: replyPreview == null ? 4 : 6,
@@ -3241,6 +3285,7 @@ class _FeedCard extends StatelessWidget {
     required this.isDarkBackground,
     required this.isHighlighted,
     required this.senderName,
+    required this.showSenderName,
     required this.replyPreview,
     required this.replySenderName,
     required this.onReplyTap,
@@ -3253,6 +3298,7 @@ class _FeedCard extends StatelessWidget {
   final bool isDarkBackground;
   final bool isHighlighted;
   final String? senderName;
+  final bool showSenderName;
   final ChatReplyPreview? replyPreview;
   final String? replySenderName;
   final VoidCallback? onReplyTap;
@@ -3287,7 +3333,8 @@ class _FeedCard extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.black.withValues(alpha: 0.05);
     final bubbleTime = _formatBubbleTime(context, message.resolvedTime);
-    final senderLabel = !isMe && senderName?.trim().isNotEmpty == true
+    final senderLabel =
+        !isMe && showSenderName && senderName?.trim().isNotEmpty == true
         ? senderName!.trim()
         : null;
     final replyLabel = replySenderName?.trim().isNotEmpty == true

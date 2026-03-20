@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-03-20 Telegram-Style Sender Name Grouping)
+- [x] Use existing chat `groupStatus` metadata so received sender names only render on the first message in a grouped run.
+- [x] Apply the same sender-name rule to both text bubbles and feed cards without changing sent/system/reply behavior or avatar grouping.
+- [x] Add widget coverage for grouped and broken-group sender-name visibility, update repo notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-20 Telegram-Style Sender Name Grouping)
+- [x] Implemented and verified.
+- Root change:
+  - `ChatRoomViewV2` now passes a `showSenderName` flag into both `_TelegramTextMessageBubble` and `_FeedCard`, using existing `flutter_chat_ui` `groupStatus.isFirst` metadata so received sender names only render on the first message in a grouped run.
+  - Sent messages, system pills, reply previews, and received-avatar grouping remain unchanged. Avatars still follow the existing `groupStatus.isLast` rule.
+  - Added a small pagination-boundary exception in history mode so the previously visible top message keeps its sender label when older pages are prepended; this preserves the existing viewport-anchor behavior instead of causing a visible jump during load-more.
+  - Added widget coverage for grouped text+feed messages and for timeout-broken groups that should re-show the sender name.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-19 Fix HomeView Crashlytics Lifecycle Crashes)
 - [x] Guard the `HomeView` pet refresh async path so it no longer touches `context` or `setState` after disposal.
 - [x] Guard the furniture inventory async path with the same mounted checks to prevent the fresh Crashlytics fatal.

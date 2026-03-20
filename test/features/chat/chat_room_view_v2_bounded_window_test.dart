@@ -140,6 +140,50 @@ void main() {
     );
   }
 
+  ChatMessage textMessage({
+    required String id,
+    required String senderId,
+    required String body,
+    required DateTime createdAt,
+  }) {
+    return ChatMessage(
+      id: id,
+      roomId: 'room-1',
+      senderId: senderId,
+      type: 'text',
+      body: body,
+      imageUrl: null,
+      caption: null,
+      coinsAwarded: 0,
+      createdAt: createdAt,
+      clientCreatedAt: createdAt,
+      labels: const <Map<String, dynamic>>[],
+      localImagePath: null,
+    );
+  }
+
+  ChatMessage feedMessage({
+    required String id,
+    required String senderId,
+    required String caption,
+    required DateTime createdAt,
+  }) {
+    return ChatMessage(
+      id: id,
+      roomId: 'room-1',
+      senderId: senderId,
+      type: 'image_feed',
+      body: null,
+      imageUrl: null,
+      caption: caption,
+      coinsAwarded: 0,
+      createdAt: createdAt,
+      clientCreatedAt: createdAt,
+      labels: const <Map<String, dynamic>>[],
+      localImagePath: null,
+    );
+  }
+
   Future<void> pumpChatRoom(
     WidgetTester tester, {
     required _FakeChatMessageRepository repository,
@@ -165,6 +209,13 @@ void main() {
     ProfileCacheService.instance.clear();
     ProfileCacheService.instance.prime(
       const ProfileSummary(userId: 'other', nickname: 'Other', avatarUrl: null),
+    );
+    ProfileCacheService.instance.prime(
+      const ProfileSummary(
+        userId: 'someone-else',
+        nickname: 'Someone Else',
+        avatarUrl: null,
+      ),
     );
   });
 
@@ -339,6 +390,77 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'grouped received text and feed messages show sender name only once',
+    (tester) async {
+      final firstCreatedAt = DateTime.utc(2026, 3, 20, 12, 0);
+      final secondCreatedAt = firstCreatedAt.add(const Duration(minutes: 1));
+      final groupedMessages = <ChatMessage>[
+        textMessage(
+          id: 'group-text',
+          senderId: 'other',
+          body: 'first grouped message',
+          createdAt: firstCreatedAt,
+        ),
+        feedMessage(
+          id: 'group-feed',
+          senderId: 'other',
+          caption: 'grouped feed caption',
+          createdAt: secondCreatedAt,
+        ),
+      ];
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: groupedMessages.reversed.toList(),
+        canonicalMessages: groupedMessages,
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      expect(find.text('first grouped message'), findsOneWidget);
+      expect(find.text('grouped feed caption'), findsOneWidget);
+      expect(find.text('Other'), findsOneWidget);
+    },
+  );
+
+  testWidgets('received sender name reappears after grouping timeout breaks', (
+    tester,
+  ) async {
+    final firstCreatedAt = DateTime.utc(2026, 3, 20, 13, 0);
+    final secondCreatedAt = firstCreatedAt.add(const Duration(minutes: 6));
+    final separatedMessages = <ChatMessage>[
+      textMessage(
+        id: 'timeout-text-1',
+        senderId: 'other',
+        body: 'before timeout',
+        createdAt: firstCreatedAt,
+      ),
+      textMessage(
+        id: 'timeout-text-2',
+        senderId: 'other',
+        body: 'after timeout',
+        createdAt: secondCreatedAt,
+      ),
+    ];
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: separatedMessages.reversed.toList(),
+      canonicalMessages: separatedMessages,
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    expect(find.text('before timeout'), findsOneWidget);
+    expect(find.text('after timeout'), findsOneWidget);
+    expect(find.text('Other'), findsNWidgets(2));
+  });
 
   testWidgets('system messages stay horizontally centered', (tester) async {
     final repository = _FakeChatMessageRepository(
