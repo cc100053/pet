@@ -108,6 +108,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatLoadOlderMessages => '이전 메시지 불러오기';
 
   @override
+  String get chatJumpToLatest => '최신';
+
+  @override
   String get chatMessageHint => '메시지';
 
   @override

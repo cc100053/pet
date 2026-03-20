@@ -15,6 +15,8 @@ class ChatMessageEnvelope extends StatelessWidget {
     this.avatar,
     this.fallbackText,
     this.showReceivedAvatar = false,
+    this.isGroupedWithPrevious = false,
+    this.isGroupedWithNext = false,
     this.avatarSlotKey,
     this.avatarKey,
     this.bubbleColumnKey,
@@ -36,6 +38,8 @@ class ChatMessageEnvelope extends StatelessWidget {
   final String? avatar;
   final String? fallbackText;
   final bool showReceivedAvatar;
+  final bool isGroupedWithPrevious;
+  final bool isGroupedWithNext;
   final Key? avatarSlotKey;
   final Key? avatarKey;
   final Key? bubbleColumnKey;
@@ -43,8 +47,12 @@ class ChatMessageEnvelope extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = isGroupedWithPrevious ? 1.5 : 4.0;
+    final bottomPadding = reactions.isNotEmpty
+        ? 1.0
+        : (isGroupedWithNext ? 1.5 : 4.0);
     return Padding(
-      padding: EdgeInsets.fromLTRB(2, 4, 2, reactions.isNotEmpty ? 1 : 4),
+      padding: EdgeInsets.fromLTRB(2, topPadding, 2, bottomPadding),
       child: isSentByMe ? _buildSentLayout() : _buildReceivedLayout(),
     );
   }

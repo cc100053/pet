@@ -76,6 +76,7 @@
     }
   },
   "chatLoadOlderMessages": "加载更早的消息",
+  "chatJumpToLatest": "最新",
   "chatMessageHint": "消息",
   "chatCopyAction": "复制",
   "chatMessageCopied": "已复制消息。",

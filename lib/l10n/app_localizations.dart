@@ -259,6 +259,12 @@ abstract class AppLocalizations {
   /// **'Load older messages'**
   String get chatLoadOlderMessages;
 
+  /// No description provided for @chatJumpToLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get chatJumpToLatest;
+
   /// No description provided for @chatMessageHint.
   ///
   /// In en, this message translates to:

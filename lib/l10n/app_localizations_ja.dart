@@ -108,6 +108,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatLoadOlderMessages => '過去のメッセージを読み込む';
 
   @override
+  String get chatJumpToLatest => '最新';
+
+  @override
   String get chatMessageHint => 'メッセージ';
 
   @override

@@ -138,6 +138,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   String? _historyGroupingBoundaryMessageId;
   int? _memberCount;
   double _composerHeight = 0;
+  int _latestScrollRequestId = 0;
 
   ChatMessageRepository get _repository =>
       widget.repository ?? ChatMessageRepository.instance;
@@ -591,6 +592,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       if (!mounted) {
         return;
       }
+      final shouldKeepLatestVisible = _shouldKeepLatestVisible();
       bool hasNewProfiles = false;
       for (final entry in profiles.entries) {
         if (!_profilesById.containsKey(entry.key)) {
@@ -600,6 +602,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       }
       if (hasNewProfiles) {
         setState(() {});
+        if (shouldKeepLatestVisible) {
+          _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+        }
       }
     } catch (_) {
       // Best-effort profile loading in the spike view.
@@ -652,6 +657,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       if (!mounted || previewById.isEmpty) {
         return;
       }
+      final shouldKeepLatestVisible = _shouldKeepLatestVisible();
       var changed = false;
       for (var index = 0; index < _messages.length; index += 1) {
         final message = _messages[index];
@@ -673,6 +679,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       _rebuildMessageIndex();
       unawaited(_persistCache());
       setState(() {});
+      if (shouldKeepLatestVisible) {
+        _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+      }
     } catch (_) {
       // Best-effort reply preview loading.
     } finally {
@@ -719,6 +728,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     List<String> messageIds,
     Map<String, List<ChatMessageReactionSummary>> summariesByMessageId,
   ) {
+    final shouldKeepLatestVisible = _shouldKeepLatestVisible();
     var changed = false;
     for (var index = 0; index < _messages.length; index += 1) {
       final message = _messages[index];
@@ -743,6 +753,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     unawaited(_persistCache());
     if (mounted) {
       setState(() {});
+      if (shouldKeepLatestVisible) {
+        _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+      }
     }
   }
 
@@ -1744,7 +1757,22 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (!mounted) {
       return;
     }
+    final shouldKeepLatestVisible = _shouldKeepLatestVisible();
     setState(() => _composerHeight = height);
+    if (shouldKeepLatestVisible) {
+      _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+    }
+  }
+
+  bool _shouldKeepLatestVisible({double tolerance = 72}) {
+    if (!_window.isLiveMode) {
+      return false;
+    }
+    if (!_chatScrollController.hasClients) {
+      return true;
+    }
+    final position = _chatScrollController.position;
+    return (position.maxScrollExtent - position.pixels) <= tolerance;
   }
 
   _ViewportAnchor? _captureViewportAnchor() {
@@ -1882,12 +1910,27 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     _chatScrollController.jumpTo(target);
   }
 
-  void _scheduleScrollToLatest({required bool animated}) {
+  void _scheduleScrollToLatest({
+    required bool animated,
+    int followUpFrames = 0,
+  }) {
+    final requestId = ++_latestScrollRequestId;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || !_chatScrollController.hasClients) {
+      if (!mounted ||
+          !_chatScrollController.hasClients ||
+          requestId != _latestScrollRequestId) {
         return;
       }
       await _scrollToLatest(animated: animated);
+      for (var frame = 0; frame < followUpFrames; frame += 1) {
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted ||
+            !_chatScrollController.hasClients ||
+            requestId != _latestScrollRequestId) {
+          return;
+        }
+        await _scrollToLatest(animated: false);
+      }
     });
   }
 
@@ -2140,6 +2183,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                                 message: message,
                                 index: index,
                                 isSentByMe: isSentByMe,
+                                isGroupedWithPrevious:
+                                    groupStatus != null && !groupStatus.isFirst,
+                                isGroupedWithNext:
+                                    groupStatus != null && !groupStatus.isLast,
                                 isDarkBackground: widget.isDarkBackground,
                                 isHighlighted:
                                     _highlightedMessageId == message.id,
@@ -2213,6 +2260,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                                 surfaceKey: _messageAnchorKey(message.id),
                                 message: message,
                                 isMe: isSentByMe,
+                                isGroupedWithPrevious:
+                                    groupStatus != null && !groupStatus.isFirst,
+                                isGroupedWithNext:
+                                    groupStatus != null && !groupStatus.isLast,
                                 isDarkBackground: widget.isDarkBackground,
                                 isHighlighted:
                                     _highlightedMessageId == message.id,
@@ -2261,6 +2312,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                                 isSentByMe: isSentByMe,
                                 isDarkBackground: widget.isDarkBackground,
                                 reactions: domainMessage.reactions,
+                                isGroupedWithPrevious:
+                                    groupStatus != null && !groupStatus.isFirst,
+                                isGroupedWithNext:
+                                    groupStatus != null && !groupStatus.isLast,
                                 avatar: senderId == null
                                     ? null
                                     : _profilesById[senderId]?.avatarUrl,
@@ -2357,51 +2412,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
               Positioned(
                 right: 16,
                 bottom: keyboardAwareBottomInset + _composerHeight + 16,
-                child: FloatingActionButton.small(
-                  heroTag: 'chatScrollToLatestButton',
-                  onPressed: () => unawaited(_handleJumpToLatestPressed()),
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest,
-                  foregroundColor: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.arrow_downward),
-                      if (_pendingLiveMessageCount > 0)
-                        Positioned(
-                          right: -8,
-                          top: -10,
-                          child: Container(
-                            key: const ValueKey(
-                              'chatScrollToLatestPendingCount',
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              _pendingLiveMessageCount > 99
-                                  ? '99+'
-                                  : '$_pendingLiveMessageCount',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                child: _JumpToLatestPill(
+                  label: l10n.chatJumpToLatest,
+                  pendingCount: _pendingLiveMessageCount,
+                  isDarkBackground: widget.isDarkBackground,
+                  onTap: () => unawaited(_handleJumpToLatestPressed()),
                 ),
               ),
             if (_loading)
@@ -2599,6 +2614,94 @@ class _ChatHistoryLoadingOverlay extends StatelessWidget {
   }
 }
 
+class _JumpToLatestPill extends StatelessWidget {
+  const _JumpToLatestPill({
+    required this.label,
+    required this.pendingCount,
+    required this.isDarkBackground,
+    required this.onTap,
+  });
+
+  final String label;
+  final int pendingCount;
+  final bool isDarkBackground;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final surfaceColor = isDarkBackground
+        ? const Color(0xFF222B35).withValues(alpha: 0.94)
+        : Colors.white.withValues(alpha: 0.96);
+    final borderColor = isDarkBackground
+        ? Colors.white.withValues(alpha: 0.1)
+        : Colors.black.withValues(alpha: 0.08);
+    final iconColor = isDarkBackground
+        ? Colors.white.withValues(alpha: 0.9)
+        : AppTheme.textSecondary;
+    final textColor = isDarkBackground ? Colors.white : AppTheme.textPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const ValueKey('chatJumpToLatestButton'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.14),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.arrow_downward_rounded, size: 18, color: iconColor),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                key: const ValueKey('chatJumpToLatestLabel'),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (pendingCount > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  key: const ValueKey('chatScrollToLatestPendingCount'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    pendingCount > 99 ? '99+' : '$pendingCount',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TelegramComposer extends StatefulWidget {
   const _TelegramComposer({
     required this.controller,
@@ -2787,41 +2890,66 @@ class _TelegramComposerState extends State<_TelegramComposer> {
                     children: [
                       if (widget.replyPreview != null)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                          child: Column(
+                          padding: const EdgeInsets.fromLTRB(10, 8, 8, 0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ChatReplyPreviewPanel(
-                                key: const ValueKey('chatComposerReplyPreview'),
-                                senderName: replySenderLabel,
-                                previewText:
-                                    PetChatMessageAdapter.previewTextForMessage(
-                                      widget.replyPreview!,
-                                      AppLocalizations.of(context)!,
-                                    ),
-                                accentColor: AppTheme.primaryColor,
-                                senderColor: isDark
-                                    ? Colors.white
-                                    : AppTheme.textPrimary,
-                                previewTextColor: isDark
-                                    ? Colors.white.withValues(alpha: 0.66)
-                                    : AppTheme.textSecondary,
-                                backgroundColor: isDark
-                                    ? Colors.white.withValues(alpha: 0.05)
-                                    : AppTheme.primaryColor.withValues(
-                                        alpha: 0.07,
+                              Expanded(
+                                child: ChatReplyPreviewPanel(
+                                  key: const ValueKey(
+                                    'chatComposerReplyPreview',
+                                  ),
+                                  senderName: replySenderLabel,
+                                  previewText:
+                                      PetChatMessageAdapter.previewTextForMessage(
+                                        widget.replyPreview!,
+                                        AppLocalizations.of(context)!,
                                       ),
-                                iconColor: isDark
-                                    ? Colors.white.withValues(alpha: 0.6)
-                                    : AppTheme.textSecondary,
-                                isImage: widget.replyPreview!.isImageFeed,
-                                compact: true,
+                                  accentColor: AppTheme.primaryColor,
+                                  senderColor: isDark
+                                      ? Colors.white
+                                      : AppTheme.textPrimary,
+                                  previewTextColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.66)
+                                      : AppTheme.textSecondary,
+                                  backgroundColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : AppTheme.primaryColor.withValues(
+                                          alpha: 0.07,
+                                        ),
+                                  iconColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.6)
+                                      : AppTheme.textSecondary,
+                                  isImage: widget.replyPreview!.isImageFeed,
+                                  compact: true,
+                                  maxLines: 1,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    9,
+                                    6,
+                                    9,
+                                    6,
+                                  ),
+                                ),
                               ),
-                              Divider(
-                                height: 12,
-                                thickness: 1,
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.06)
-                                    : Colors.black.withValues(alpha: 0.05),
+                              const SizedBox(width: 2),
+                              IconButton(
+                                onPressed: widget.onCancelReply,
+                                icon: Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.74)
+                                      : AppTheme.textSecondary,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                splashRadius: 14,
+                                tooltip: AppLocalizations.of(
+                                  context,
+                                )!.commonCancel,
                               ),
                             ],
                           ),
@@ -2869,21 +2997,6 @@ class _TelegramComposerState extends State<_TelegramComposer> {
                               ),
                             ),
                           ),
-                          if (widget.replyPreview != null)
-                            IconButton(
-                              onPressed: widget.onCancelReply,
-                              icon: Icon(
-                                Icons.close_rounded,
-                                size: 16,
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.74)
-                                    : AppTheme.textSecondary,
-                              ),
-                              splashRadius: 16,
-                              tooltip: AppLocalizations.of(
-                                context,
-                              )!.commonCancel,
-                            ),
                         ],
                       ),
                     ],
@@ -3074,12 +3187,46 @@ class _SystemPill extends StatelessWidget {
   }
 }
 
+BorderRadius _buildGroupedBubbleRadius({
+  required bool isSentByMe,
+  required bool isGroupedWithPrevious,
+  required bool isGroupedWithNext,
+  double expandedRadius = 20,
+  double groupedRadius = 8,
+}) {
+  if (isSentByMe) {
+    return BorderRadius.only(
+      topLeft: Radius.circular(expandedRadius),
+      topRight: Radius.circular(
+        isGroupedWithPrevious ? groupedRadius : expandedRadius,
+      ),
+      bottomLeft: Radius.circular(expandedRadius),
+      bottomRight: Radius.circular(
+        isGroupedWithNext ? groupedRadius : expandedRadius,
+      ),
+    );
+  }
+
+  return BorderRadius.only(
+    topLeft: Radius.circular(
+      isGroupedWithPrevious ? groupedRadius : expandedRadius,
+    ),
+    topRight: Radius.circular(expandedRadius),
+    bottomLeft: Radius.circular(
+      isGroupedWithNext ? groupedRadius : expandedRadius,
+    ),
+    bottomRight: Radius.circular(expandedRadius),
+  );
+}
+
 class _TelegramTextMessageBubble extends StatelessWidget {
   const _TelegramTextMessageBubble({
     required this.surfaceKey,
     required this.message,
     required this.index,
     required this.isSentByMe,
+    required this.isGroupedWithPrevious,
+    required this.isGroupedWithNext,
     required this.isDarkBackground,
     required this.isHighlighted,
     required this.senderName,
@@ -3093,6 +3240,8 @@ class _TelegramTextMessageBubble extends StatelessWidget {
   final fc.TextMessage message;
   final int index;
   final bool isSentByMe;
+  final bool isGroupedWithPrevious;
+  final bool isGroupedWithNext;
   final bool isDarkBackground;
   final bool isHighlighted;
   final String? senderName;
@@ -3123,11 +3272,10 @@ class _TelegramTextMessageBubble extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.5)
               : AppTheme.textSecondary.withValues(alpha: 0.82));
 
-    final bubbleRadius = BorderRadius.only(
-      topLeft: const Radius.circular(20),
-      topRight: const Radius.circular(20),
-      bottomLeft: Radius.circular(isSentByMe ? 20 : 8),
-      bottomRight: Radius.circular(isSentByMe ? 8 : 20),
+    final bubbleRadius = _buildGroupedBubbleRadius(
+      isSentByMe: isSentByMe,
+      isGroupedWithPrevious: isGroupedWithPrevious,
+      isGroupedWithNext: isGroupedWithNext,
     );
     final replyLabel = replySenderName?.trim().isNotEmpty == true
         ? replySenderName!.trim()
@@ -3227,6 +3375,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
                             isImage: replyPreview!.isImageFeed,
                             showJumpIcon: true,
                             compact: true,
+                            maxLines: 1,
                             onTap: onReplyTap,
                           ),
                         ),
@@ -3298,6 +3447,8 @@ class _FeedCard extends StatelessWidget {
     required this.surfaceKey,
     required this.message,
     required this.isMe,
+    required this.isGroupedWithPrevious,
+    required this.isGroupedWithNext,
     required this.isDarkBackground,
     required this.isHighlighted,
     required this.senderName,
@@ -3311,6 +3462,8 @@ class _FeedCard extends StatelessWidget {
   final GlobalKey surfaceKey;
   final fc.CustomMessage message;
   final bool isMe;
+  final bool isGroupedWithPrevious;
+  final bool isGroupedWithNext;
   final bool isDarkBackground;
   final bool isHighlighted;
   final String? senderName;
@@ -3370,6 +3523,13 @@ class _FeedCard extends StatelessWidget {
     final overlayShadow = Colors.black.withValues(alpha: 0.18);
     final overlayPrimaryText = Colors.white;
     final overlaySecondaryText = Colors.white.withValues(alpha: 0.76);
+    final cardRadius = _buildGroupedBubbleRadius(
+      isSentByMe: isMe,
+      isGroupedWithPrevious: isGroupedWithPrevious,
+      isGroupedWithNext: isGroupedWithNext,
+      expandedRadius: 18,
+      groupedRadius: 9,
+    );
 
     Widget image = Container(
       color: theme.colorScheme.surfaceContainerHighest,
@@ -3444,7 +3604,7 @@ class _FeedCard extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: cardBackground,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: cardRadius,
                 border: Border.all(color: cardBorderColor),
               ),
               child: InkWell(
@@ -3481,6 +3641,7 @@ class _FeedCard extends StatelessWidget {
                           isImage: replyPreview!.isImageFeed,
                           showJumpIcon: true,
                           compact: true,
+                          maxLines: 1,
                           onTap: onReplyTap,
                         ),
                       ),

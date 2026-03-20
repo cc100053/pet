@@ -1,5 +1,48 @@
 # TODO
 
+# Plan (2026-03-20 Fix Chat Latest Scroll Visibility)
+- [x] Trace the entry/jump-to-latest scroll path and identify why the newest message can end up slightly hidden under the composer.
+- [x] Implement a pinned-to-latest follow-up scroll path so live-mode rooms stay anchored when later layout updates change message/composer height.
+- [x] Add regression coverage for both initial room entry and the `Latest` pill path with delayed height-affecting updates.
+- [x] Update memory-bank notes, run `flutter analyze` and `flutter test`, and record the verification below.
+
+# Review (2026-03-20 Fix Chat Latest Scroll Visibility)
+- [x] Implemented and verified.
+- Root cause:
+  - The chat route scrolled to `position.maxScrollExtent` only once when entering the room or tapping `Latest`.
+  - After that first scroll, later height-affecting updates could still land: composer measurement, reply-preview hydration, sender-profile hydration, and reaction summary updates. Those post-scroll layout changes increased the timeline height slightly, leaving the newest message partially hidden behind the composer even though the route had already "jumped to latest."
+- Fix:
+  - Added a live-mode `shouldKeepLatestVisible` check and a follow-up latest-scroll scheduler with frame-based retries, so rooms already pinned near the bottom automatically re-anchor after later height changes.
+  - Applied that bottom-pin behavior to composer height changes plus async profile/reply/reaction hydration paths, which are the main late layout-expansion sources in this route.
+  - Added regression coverage that simulates delayed reply-preview loading after both room entry and `Latest` pill navigation, then asserts the newest message surface remains fully above the composer input.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
+# Plan (2026-03-20 Telegram-Style Chat Polish Pass)
+- [x] Flatten reply preview surfaces in composer and message bubbles so replies stay legible without consuming as much vertical space.
+- [x] Make grouped message runs read more clearly by tightening inter-bubble spacing and varying grouped bubble corners for first/middle/last positions.
+- [x] Replace the generic jump-to-latest FAB with a more semantic chat pill that communicates both direction and pending new-message count.
+- [x] Add/update widget coverage for the new reply-preview density, grouped bubble presentation, and jump-to-latest affordance.
+- [x] Update memory-bank notes, run `flutter analyze` and `flutter test`, and record the verification below.
+
+# Review (2026-03-20 Telegram-Style Chat Polish Pass)
+- [x] Implemented and verified.
+- Root change:
+  - `ChatReplyPreviewPanel` now uses denser compact spacing/typography, and both bubble reply strips plus the composer reply strip now clamp preview text to one line. The composer also removes the extra divider row and folds the cancel affordance into the preview row, which keeps reply state visible without pushing the input down as much.
+  - Grouped message runs now apply tighter outer spacing in `ChatMessageEnvelope` and dynamic Telegram-style corners in both text bubbles and feed cards, so consecutive messages from the same sender visually read as one stack instead of separate detached cards.
+  - The old floating jump button is now a labeled `Latest` pill with the existing pending-count badge, which makes the action feel like chat navigation instead of a generic FAB while preserving the reset-to-latest behavior.
+  - Added widget coverage for the flatter reply preview panel, the new jump-to-latest pill, and tighter grouped-message spacing while keeping prior bounded-window/history tests green.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter test test/features/chat/chat_reply_preview_panel_test.dart`
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-20 Fix Chat Room Auto Refresh on New Messages)
 - [x] Trace `ChatRoomViewV2` realtime message updates, history-mode buffering, and foreground notification handling to find why newly arrived messages can fail to appear while the room is open.
 - [x] Implement the smallest fix that restores automatic visible refresh for newly arrived chat messages without regressing bounded-window/history behavior.

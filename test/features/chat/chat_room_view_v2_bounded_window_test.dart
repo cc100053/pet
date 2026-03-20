@@ -119,6 +119,7 @@ void main() {
       clientCreatedAt: createdAt,
       labels: const <Map<String, dynamic>>[],
       localImagePath: null,
+      replyToMessageId: null,
     );
   }
 
@@ -145,6 +146,7 @@ void main() {
     required String senderId,
     required String body,
     required DateTime createdAt,
+    String? replyToMessageId,
   }) {
     return ChatMessage(
       id: id,
@@ -159,6 +161,7 @@ void main() {
       clientCreatedAt: createdAt,
       labels: const <Map<String, dynamic>>[],
       localImagePath: null,
+      replyToMessageId: replyToMessageId,
     );
   }
 
@@ -167,6 +170,7 @@ void main() {
     required String senderId,
     required String caption,
     required DateTime createdAt,
+    String? replyToMessageId,
   }) {
     return ChatMessage(
       id: id,
@@ -181,6 +185,7 @@ void main() {
       clientCreatedAt: createdAt,
       labels: const <Map<String, dynamic>>[],
       localImagePath: null,
+      replyToMessageId: replyToMessageId,
     );
   }
 
@@ -249,6 +254,71 @@ void main() {
     expect(repository.fetchCalls, hasLength(1));
     expect(repository.lastPersistedMessages.length, 20);
   });
+
+  testWidgets(
+    'room open keeps newest message fully visible after delayed reply preview expands it',
+    (tester) async {
+      final replyPreviewCompleter = Completer<Map<String, ChatReplyPreview>>();
+      addTearDown(() {
+        if (!replyPreviewCompleter.isCompleted) {
+          replyPreviewCompleter.complete(<String, ChatReplyPreview>{
+            'm10': ChatReplyPreview(
+              id: 'm10',
+              senderId: 'someone-else',
+              type: 'text',
+              body: 'earlier replied message',
+              imageUrl: null,
+              caption: null,
+            ),
+          });
+        }
+      });
+
+      final messages = List<ChatMessage>.generate(
+        40,
+        (index) => message(index + 1),
+      );
+      messages[39] = textMessage(
+        id: 'm40',
+        senderId: 'other',
+        body: 'latest reply message',
+        createdAt: DateTime.utc(2026, 3, 19).add(const Duration(minutes: 40)),
+        replyToMessageId: 'm10',
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: messages.reversed.toList(),
+        canonicalMessages: messages,
+      );
+      final runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+        fetchReplyPreviews: (_) => replyPreviewCompleter.future,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      replyPreviewCompleter.complete(<String, ChatReplyPreview>{
+        'm10': ChatReplyPreview(
+          id: 'm10',
+          senderId: 'someone-else',
+          type: 'text',
+          body: 'earlier replied message',
+          imageUrl: null,
+          caption: null,
+        ),
+      });
+      await tester.pumpAndSettle();
+
+      final latestMessageBottom = tester
+          .getBottomLeft(find.byKey(const ValueKey('chatMessageSurface_m40')))
+          .dy;
+      final composerTop = tester
+          .getTopLeft(find.byKey(const ValueKey('chatComposerTextField')))
+          .dy;
+
+      expect(latestMessageBottom, lessThanOrEqualTo(composerTop + 1));
+    },
+  );
 
   testWidgets('scrolling near top loads older messages automatically', (
     tester,
@@ -379,8 +449,13 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('1'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('chatJumpToLatestButton')),
+        findsOneWidget,
+      );
+      expect(find.text('Latest'), findsOneWidget);
 
-      await tester.tap(find.byType(FloatingActionButton));
+      await tester.tap(find.byKey(const ValueKey('chatJumpToLatestButton')));
       await tester.pumpAndSettle();
 
       expect(find.text('message 61'), findsOneWidget);
@@ -388,6 +463,84 @@ void main() {
         find.byKey(const ValueKey('chatScrollToLatestPendingCount')),
         findsNothing,
       );
+    },
+  );
+
+  testWidgets(
+    'latest button keeps newest message visible after delayed reply preview expands it',
+    (tester) async {
+      final replyPreviewCompleter = Completer<Map<String, ChatReplyPreview>>();
+      addTearDown(() {
+        if (!replyPreviewCompleter.isCompleted) {
+          replyPreviewCompleter.complete(<String, ChatReplyPreview>{
+            'm10': ChatReplyPreview(
+              id: 'm10',
+              senderId: 'someone-else',
+              type: 'text',
+              body: 'earlier replied message',
+              imageUrl: null,
+              caption: null,
+            ),
+          });
+        }
+      });
+
+      final messages = List<ChatMessage>.generate(
+        60,
+        (index) => message(index + 1),
+      );
+      messages[59] = textMessage(
+        id: 'm60',
+        senderId: 'other',
+        body: 'latest delayed reply',
+        createdAt: DateTime.utc(2026, 3, 19).add(const Duration(minutes: 60)),
+        replyToMessageId: 'm10',
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: messages.reversed.toList(),
+        canonicalMessages: messages,
+      );
+      final runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+        fetchReplyPreviews: (_) => replyPreviewCompleter.future,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, 2400),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('chatJumpToLatestButton')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('chatJumpToLatestButton')));
+      await tester.pump();
+
+      replyPreviewCompleter.complete(<String, ChatReplyPreview>{
+        'm10': ChatReplyPreview(
+          id: 'm10',
+          senderId: 'someone-else',
+          type: 'text',
+          body: 'earlier replied message',
+          imageUrl: null,
+          caption: null,
+        ),
+      });
+      await tester.pumpAndSettle();
+
+      final latestMessageBottom = tester
+          .getBottomLeft(find.byKey(const ValueKey('chatMessageSurface_m60')))
+          .dy;
+      final composerTop = tester
+          .getTopLeft(find.byKey(const ValueKey('chatComposerTextField')))
+          .dy;
+
+      expect(latestMessageBottom, lessThanOrEqualTo(composerTop + 1));
     },
   );
 
@@ -497,6 +650,64 @@ void main() {
     expect(find.text('after timeout'), findsOneWidget);
     expect(find.text('Other'), findsNWidgets(2));
   });
+
+  testWidgets(
+    'grouped text messages stack with tighter spacing than split runs',
+    (tester) async {
+      final firstCreatedAt = DateTime.utc(2026, 3, 20, 14, 0);
+      final secondCreatedAt = firstCreatedAt.add(const Duration(minutes: 1));
+      final thirdCreatedAt = firstCreatedAt.add(const Duration(minutes: 8));
+      final messages = <ChatMessage>[
+        textMessage(
+          id: 'group-spacing-1',
+          senderId: 'other',
+          body: 'first grouped',
+          createdAt: firstCreatedAt,
+        ),
+        textMessage(
+          id: 'group-spacing-2',
+          senderId: 'other',
+          body: 'second grouped',
+          createdAt: secondCreatedAt,
+        ),
+        textMessage(
+          id: 'group-spacing-3',
+          senderId: 'other',
+          body: 'after split',
+          createdAt: thirdCreatedAt,
+        ),
+      ];
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: messages.reversed.toList(),
+        canonicalMessages: messages,
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      final firstBubble = find.byKey(
+        const ValueKey('chatMessageSurface_group-spacing-1'),
+      );
+      final secondBubble = find.byKey(
+        const ValueKey('chatMessageSurface_group-spacing-2'),
+      );
+      final thirdBubble = find.byKey(
+        const ValueKey('chatMessageSurface_group-spacing-3'),
+      );
+
+      final groupedGap =
+          tester.getTopLeft(secondBubble).dy -
+          tester.getBottomLeft(firstBubble).dy;
+      final separatedGap =
+          tester.getTopLeft(thirdBubble).dy -
+          tester.getBottomLeft(secondBubble).dy;
+
+      expect(groupedGap, lessThan(separatedGap));
+    },
+  );
 
   testWidgets('system messages stay horizontally centered', (tester) async {
     final repository = _FakeChatMessageRepository(

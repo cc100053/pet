@@ -108,6 +108,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatLoadOlderMessages => '加载更早的消息';
 
   @override
+  String get chatJumpToLatest => '最新';
+
+  @override
   String get chatMessageHint => '消息';
 
   @override
@@ -1527,6 +1530,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatLoadOlderMessages => '載入更早的訊息';
+
+  @override
+  String get chatJumpToLatest => '最新';
 
   @override
   String get chatMessageHint => '訊息';

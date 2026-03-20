@@ -76,6 +76,7 @@
     }
   },
   "chatLoadOlderMessages": "Load older messages",
+  "chatJumpToLatest": "Latest",
   "chatMessageHint": "Message",
   "chatCopyAction": "Copy",
   "chatMessageCopied": "Message copied.",

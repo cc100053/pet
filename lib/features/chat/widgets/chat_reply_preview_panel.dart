@@ -12,7 +12,7 @@ class ChatReplyPreviewPanel extends StatelessWidget {
     this.iconColor,
     this.isImage = false,
     this.onTap,
-    this.padding = const EdgeInsets.fromLTRB(10, 8, 10, 8),
+    this.padding = const EdgeInsets.fromLTRB(10, 7, 10, 7),
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
     this.maxLines = 2,
     this.showJumpIcon = false,
@@ -36,6 +36,11 @@ class ChatReplyPreviewPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final indicatorHeight = compact ? 24.0 : 30.0;
+    final senderFontSize = compact ? 11.5 : 12.5;
+    final previewFontSize = compact ? 11.5 : 12.5;
+    final iconSize = compact ? 14.0 : 16.0;
+
     final panel = Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -47,13 +52,13 @@ class ChatReplyPreviewPanel extends StatelessWidget {
         children: [
           Container(
             width: 3,
-            height: compact ? 28 : 32,
+            height: indicatorHeight,
             decoration: BoxDecoration(
               color: accentColor,
               borderRadius: BorderRadius.circular(999),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: compact ? 6 : 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,19 +69,20 @@ class ChatReplyPreviewPanel extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: compact ? 12 : 12.5,
+                    fontSize: senderFontSize,
                     fontWeight: FontWeight.w700,
                     color: senderColor,
+                    height: 1.08,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: compact ? 1 : 2),
                 Text(
                   previewText,
                   maxLines: maxLines,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: compact ? 12 : 12.5,
-                    height: 1.2,
+                    fontSize: previewFontSize,
+                    height: 1.14,
                     color: previewTextColor,
                   ),
                 ),
@@ -84,10 +90,10 @@ class ChatReplyPreviewPanel extends StatelessWidget {
             ),
           ),
           if (isImage || showJumpIcon) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: compact ? 6 : 8),
             Icon(
               showJumpIcon ? Icons.arrow_upward_rounded : Icons.image_rounded,
-              size: compact ? 15 : 16,
+              size: iconSize,
               color: iconColor ?? previewTextColor,
             ),
           ],

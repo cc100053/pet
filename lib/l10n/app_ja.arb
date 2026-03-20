@@ -76,6 +76,7 @@
     }
   },
   "chatLoadOlderMessages": "過去のメッセージを読み込む",
+  "chatJumpToLatest": "最新",
   "chatMessageHint": "メッセージ",
   "chatCopyAction": "コピー",
   "chatMessageCopied": "メッセージをコピーしました。",

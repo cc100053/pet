@@ -108,6 +108,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatLoadOlderMessages => 'Load older messages';
 
   @override
+  String get chatJumpToLatest => 'Latest';
+
+  @override
   String get chatMessageHint => 'Message';
 
   @override
