@@ -17,6 +17,25 @@ import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/upload_limits.dart';
 
+@visibleForTesting
+void dispatchFeedCaptureCallback({
+  required String callbackName,
+  required void Function() callback,
+}) {
+  try {
+    callback();
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'feed_capture_view',
+        context: ErrorDescription('while running $callbackName'),
+      ),
+    );
+  }
+}
+
 class FeedCaptureView extends StatefulWidget {
   const FeedCaptureView({
     super.key,
@@ -172,8 +191,20 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         clientCreatedAt: clientCreatedAt,
         labels: labelsPayload,
       );
-      widget.onOptimisticMessage?.call(optimistic);
-      widget.onSendStarted?.call(optimistic);
+      final onOptimisticMessage = widget.onOptimisticMessage;
+      if (onOptimisticMessage != null) {
+        dispatchFeedCaptureCallback(
+          callbackName: 'FeedCaptureView.onOptimisticMessage',
+          callback: () => onOptimisticMessage(optimistic),
+        );
+      }
+      final onSendStarted = widget.onSendStarted;
+      if (onSendStarted != null) {
+        dispatchFeedCaptureCallback(
+          callbackName: 'FeedCaptureView.onSendStarted',
+          callback: () => onSendStarted(optimistic),
+        );
+      }
 
       unawaited(
         _sendFeedInBackground(
@@ -519,13 +550,25 @@ class _FeedCaptureViewState extends State<FeedCaptureView> {
         parameters: {'result': 'success'},
       );
 
-      widget.onUploadCompleted?.call(reward);
+      final onUploadCompleted = widget.onUploadCompleted;
+      if (onUploadCompleted != null) {
+        dispatchFeedCaptureCallback(
+          callbackName: 'FeedCaptureView.onUploadCompleted',
+          callback: () => onUploadCompleted(reward),
+        );
+      }
     } catch (error) {
       AnalyticsService.instance.logEvent(
         'feed_send',
         parameters: {'result': 'failure'},
       );
-      widget.onUploadFailed?.call(tempId, error);
+      final onUploadFailed = widget.onUploadFailed;
+      if (onUploadFailed != null) {
+        dispatchFeedCaptureCallback(
+          callbackName: 'FeedCaptureView.onUploadFailed',
+          callback: () => onUploadFailed(tempId, error),
+        );
+      }
     }
   }
 

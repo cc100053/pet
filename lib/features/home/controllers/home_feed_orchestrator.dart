@@ -165,6 +165,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    if (!mounted) {
+      return;
+    }
     _armOverfedBubbleForFeedEvent();
     _prunePendingOptimisticFeeds();
     _setStateForFeedOrchestrator(() {
@@ -222,6 +225,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
+    if (!mounted) {
+      return;
+    }
     _setStateForFeedOrchestrator(() {
       _feedRewardPendingCount = max(0, _feedRewardPendingCount - 1);
     });
@@ -503,6 +509,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   void _handleFeedUploadFailed(String tempId, Object error) {
+    if (!mounted) {
+      return;
+    }
     _setStateForFeedOrchestrator(() {
       _feedRewardPendingCount = max(0, _feedRewardPendingCount - 1);
     });
@@ -542,9 +551,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         _latestFeedOptimisticPrevSenderId = null;
         _latestFeedOptimisticPrevCaption = null;
       });
-    }
-    if (!mounted) {
-      return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

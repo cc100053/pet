@@ -27,6 +27,7 @@ Implemented:
   - `lib/features/home/providers/home_currency_provider.dart`: Riverpod currency snapshot for Home (coins, diamonds, coin reward amount/event id).
   - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
   - Feed uploads now precompute client-side WebP compression right after image pick and reuse it on send; profile selection early-exits on target/cap-safe size to keep reward feedback responsive.
+  - Feed camera callback dispatch is now fail-safe: optimistic/upload callbacks are reported through `FlutterError` if they throw, but they no longer block the route from popping back to Pet Home.
   - On successful `feed_validate` response, Home applies `coins_awarded` immediately in local HUD state, then runs a background profile reconciliation fetch.
   - Home HUD now shows a localized reward-pending indicator during feed reward resolution (server-authoritative coin update remains unchanged).
   - `lib/features/chat/`: Chat stream with text, feed cards, and system events.

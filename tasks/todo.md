@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-03-21 Investigate Intermittent Feed Camera Stuck After Send)
+- [x] Trace the send path from `FeedCaptureView` back to Pet Home and confirm where a synchronous exception can block `Navigator.pop()`.
+- [x] Harden the feed send callbacks so optimistic/upload callback failures do not strand the camera route, and add lifecycle guards on the Home feed handlers.
+- [x] Add focused regression coverage, update memory-bank notes, run `flutter analyze` and `flutter test`, and record the verification below.
+
+# Review (2026-03-21 Investigate Intermittent Feed Camera Stuck After Send)
+- [x] Implemented and verified.
+- Root cause:
+  - `FeedCaptureView` called its parent `onOptimisticMessage` callback synchronously before `Navigator.pop()`. If the parent callback threw, `_sendFeed()` stayed on the feed page and surfaced a send error instead of returning to Pet Home.
+  - The Home feed handlers (`_handleOptimisticFeed`, `_handleFeedUploadCompleted`, `_handleFeedUploadFailed`) mutated Home state through `_setStateForFeedOrchestrator()` without an upfront `mounted` guard, which left them vulnerable to lifecycle races if Home had been torn down while the feed route was still active.
+  - Because this path depends on route timing and widget lifecycle, it matches the user-reported symptom of an intermittent, hard-to-reproduce failure rather than a deterministic navigation bug.
+- Fix:
+  - Added `dispatchFeedCaptureCallback()` in `FeedCaptureView` so optimistic/upload callbacks are fail-safe: exceptions are reported through `FlutterError.reportError`, but they no longer block the camera route from popping.
+  - Added `mounted` guards at the start of the Home feed callbacks so stale Home states do not call `_setStateForFeedOrchestrator()` after teardown.
+  - Added a regression test that verifies the new callback wrapper still executes callbacks and swallows thrown exceptions instead of propagating them.
+- Verification:
+  - `flutter test test/features/feed/feed_capture_view_callback_safety_test.dart`
+  - `flutter test`
+  - `flutter analyze` (reports 4 pre-existing warnings in `home_game_status_bar.dart` and `store_view.dart`, unrelated to this change)
+
 # Plan (2026-03-20 Fix Chat Latest Scroll Visibility)
 - [x] Trace the entry/jump-to-latest scroll path and identify why the newest message can end up slightly hidden under the composer.
 - [x] Implement a pinned-to-latest follow-up scroll path so live-mode rooms stay anchored when later layout updates change message/composer height.
