@@ -3679,19 +3679,14 @@ class _FeedCard extends StatelessWidget {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    SvgPicture.asset(
-                                      'assets/icon/icon-park--candy.svg',
+                                    Image.asset(
+                                      'assets/icon/store/candy.png',
                                       width: 14,
                                       height: 14,
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
-                                        BlendMode.srcIn,
-                                      ),
                                     ),
                                     const SizedBox(width: 5),
                                     Text(
-                                      '+$coinsAwarded',
-                                      style: theme.textTheme.labelMedium
+                                      '+$coinsAwarded',                                      style: theme.textTheme.labelMedium
                                           ?.copyWith(
                                             color: overlayPrimaryText,
                                             fontWeight: FontWeight.w700,

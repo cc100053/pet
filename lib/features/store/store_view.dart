@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,6 +30,13 @@ part 'widgets/store_departed_pet_selector.dart';
 part 'widgets/store_item_cards.dart';
 
 const Color _diamondColor = Color(0xFF4C7DFF);
+const Color _candyColor = Color(0xFFFF8A65);
+
+const List<Color> _storeBackgroundGradient = [
+  Color(0xFFE0F7FF), // Light Blue
+  Color(0xFFF3E5F5), // Soft Lavender
+  Color(0xFFFFF3E0), // Soft Peach/Pink
+];
 
 enum _StoreCurrency { candy, diamonds }
 
@@ -309,54 +317,27 @@ class _StoreViewState extends State<StoreView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: AppStatusBarStyles.light,
+      value: AppStatusBarStyles.dark,
       child: Scaffold(
-        appBar: AppBar(
-          systemOverlayStyle: AppStatusBarStyles.light,
-          title: Text(l10n.storeTitle),
-          actions: [
-            if (_subscriptionItems.isNotEmpty)
-              IconButton(
-                onPressed: _iapLoading ? null : _restorePurchases,
-                icon: const Icon(Icons.restore),
-                tooltip: l10n.storeRestoreTooltip,
-              ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _CurrencyBalanceChip(
-                      amount: _diamonds,
-                      icon: Icon(
-                        Icons.diamond_rounded,
-                        size: 16,
-                        color: _diamondColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    _CurrencyBalanceChip(
-                      amount: _coins,
-                      icon: SvgPicture.asset(
-                        'assets/icon/icon-park--candy.svg',
-                        width: 16,
-                        height: 16,
-                        colorFilter: ColorFilter.mode(
-                          Colors.amber.shade700,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: _storeBackgroundGradient,
+              stops: [0.0, 0.5, 1.0],
             ),
-          ],
-        ),
-        body: RefreshIndicator(
-          onRefresh: _loadStore,
-          child: _buildBody(context, l10n),
+          ),
+          child: Stack(
+            children: [
+              const _StoreBackgroundStars(),
+              RefreshIndicator(
+                displacement: 100,
+                onRefresh: _loadStore,
+                child: _buildBody(context, l10n),
+              ),
+            ],
+          ),
         ),
         bottomNavigationBar: AdMobIds.isSupported && !_hasProAdFreeAccess
             ? const AdMobBannerSlot()
@@ -367,127 +348,226 @@ class _StoreViewState extends State<StoreView> {
 
   Widget _buildBody(BuildContext context, AppLocalizations l10n) {
     if (_loading) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 160),
-          Center(child: CircularProgressIndicator()),
+      return CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(l10n),
+          const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          ),
         ],
       );
     }
 
     if (_error != null) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          Text(
-            _error!,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: _loadStore,
-            child: Text(l10n.commonTryAgain),
+      return CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(l10n),
+          SliverPadding(
+            padding: const EdgeInsets.all(24),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: _loadStore,
+                    child: Text(l10n.commonTryAgain),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       );
     }
 
     if (_items.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [Text(l10n.storeEmpty, textAlign: TextAlign.center)],
+      return CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(l10n),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(l10n.storeEmpty, textAlign: TextAlign.center),
+            ),
+          ),
+        ],
       );
     }
 
-    return ListView(
+    return CustomScrollView(
       controller: _storeScrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      children: [
-        if (_furnitureItems.isNotEmpty || _themeItems.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _furnitureItems.isEmpty
-                        ? null
-                        : () => _jumpToSection(
-                            _furnitureSectionKey,
-                            fallbackFraction: 0.55,
-                          ),
-                    icon: const Icon(Icons.chair_rounded, size: 18),
-                    label: Text(l10n.storeTabFurniture),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _themeItems.isEmpty
-                        ? null
-                        : () => _jumpToSection(
-                            _themeSectionKey,
-                            fallbackFraction: 1,
-                          ),
-                    icon: const Icon(Icons.palette_rounded, size: 18),
-                    label: Text(l10n.storeTabThemes),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        if (_subscriptionItems.isNotEmpty) ...[
-          _SectionHeader(title: l10n.storeSectionSubscription),
-          if (_iapError != null)
-            Padding(
+      slivers: [
+        _buildSliverAppBar(l10n),
+        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+        if (_iapError != null)
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 _iapError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
               ),
             ),
-          for (final item in _subscriptionItems) _buildIapCard(item, l10n),
-        ],
-        if (_iapDiamondPackItems.isNotEmpty) ...[
-          _SectionHeader(title: l10n.storeSectionDiamondPacks),
-          for (final item in _iapDiamondPackItems) _buildIapCard(item, l10n),
-        ],
-        if (_premiumUtilityItems.isNotEmpty) ...[
-          _SectionHeader(title: l10n.storeSectionItems),
-          for (final item in _premiumUtilityItems)
-            _buildStoreItemCard(item, l10n),
-        ],
-        if (_furnitureItems.isNotEmpty) ...[
-          KeyedSubtree(
-            key: _furnitureSectionKey,
-            child: _SectionHeader(title: l10n.storeTabFurniture),
           ),
-          for (final item in _furnitureItems) _buildStoreItemCard(item, l10n),
-        ],
-        if (_themeItems.isNotEmpty) ...[
-          KeyedSubtree(
-            key: _themeSectionKey,
-            child: _SectionHeader(title: l10n.storeTabThemes),
-          ),
-          for (final item in _themeItems) _buildStoreItemCard(item, l10n),
-        ],
-        if (_subscriptionItems.isNotEmpty && _privacyPolicyUri != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
-            child: StoreLegalLinksRow(
-              privacyPolicyUri: _privacyPolicyUri!,
-              termsOfUseUri: _termsOfUseUri,
-              privacyPolicyLabel: l10n.storePrivacyPolicy,
-              termsOfUseLabel: l10n.storeTermsOfUse,
-              separatorLabel: l10n.storeLegalSeparator,
-              onLaunchFailed: _handleLegalLinkOpenFailed,
+        if (_subscriptionItems.isNotEmpty)
+          SliverToBoxAdapter(
+            child: _StoreFeaturedBanner(
+              items: _subscriptionItems,
+              onPurchase: _purchaseIapItem,
+              findPackage: _findPackageByProductId,
+              findStoreProduct: _findStoreProductByProductId,
             ),
           ),
+        
+        SliverToBoxAdapter(
+          child: _StoreCategoryRow(
+            onFurnitureTap: _furnitureItems.isEmpty ? null : () => _jumpToSection(_furnitureSectionKey, fallbackFraction: 0.55),
+            onThemeTap: _themeItems.isEmpty ? null : () => _jumpToSection(_themeSectionKey, fallbackFraction: 1),
+          ),
+        ),
+
+        if (_iapDiamondPackItems.isNotEmpty) ...[
+          SliverToBoxAdapter(child: _SectionHeader(title: l10n.storeSectionDiamondPacks)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.95,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildGridItemCard(_iapDiamondPackItems[index], l10n),
+                childCount: _iapDiamondPackItems.length,
+              ),
+            ),
+          ),
+        ],
+        if (_premiumUtilityItems.isNotEmpty) ...[
+          SliverToBoxAdapter(child: _SectionHeader(title: l10n.storeSectionItems)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.95,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildGridItemCard(_premiumUtilityItems[index], l10n),
+                childCount: _premiumUtilityItems.length,
+              ),
+            ),
+          ),
+        ],
+        if (_furnitureItems.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: KeyedSubtree(
+              key: _furnitureSectionKey,
+              child: _SectionHeader(title: l10n.storeTabFurniture),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.95,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildGridItemCard(_furnitureItems[index], l10n),
+                childCount: _furnitureItems.length,
+              ),
+            ),
+          ),
+        ],
+        if (_themeItems.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: KeyedSubtree(
+              key: _themeSectionKey,
+              child: _SectionHeader(title: l10n.storeTabThemes),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.95,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildGridItemCard(_themeItems[index], l10n),
+                childCount: _themeItems.length,
+              ),
+            ),
+          ),
+        ],
+        if (_subscriptionItems.isNotEmpty && _privacyPolicyUri != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
+              child: StoreLegalLinksRow(
+                privacyPolicyUri: _privacyPolicyUri!,
+                termsOfUseUri: _termsOfUseUri,
+                privacyPolicyLabel: l10n.storePrivacyPolicy,
+                termsOfUseLabel: l10n.storeTermsOfUse,
+                separatorLabel: l10n.storeLegalSeparator,
+                onLaunchFailed: _handleLegalLinkOpenFailed,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSliverAppBar(AppLocalizations l10n) {
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: false,
+      title: Text(
+        l10n.storeTitle,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+      ),
+      actions: [
+        if (_subscriptionItems.isNotEmpty)
+          IconButton(
+            onPressed: _iapLoading ? null : _restorePurchases,
+            icon: const Icon(Icons.restore, size: 20),
+            tooltip: l10n.storeRestoreTooltip,
+          ),
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _StoreCurrencyChip(
+                amount: _diamonds,
+                icon: Image.asset('assets/icon/store/diamond.png', width: 22, height: 22),
+              ),
+              const SizedBox(width: 8),
+              _StoreCurrencyChip(
+                amount: _coins,
+                icon: Image.asset('assets/icon/store/candy.png', width: 22, height: 22),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -547,95 +627,507 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-    );
-  }
-}
-
-class _CurrencyBuyButton extends StatelessWidget {
-  const _CurrencyBuyButton({
-    required this.amount,
-    required this.icon,
-    required this.color,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  final int amount;
-  final Widget icon;
-  final Color color;
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 34,
-      child: FilledButton.icon(
-        onPressed: enabled ? onPressed : null,
-        icon: icon,
-        label: Text(
-          '$amount',
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        ),
-        style: FilledButton.styleFrom(
-          backgroundColor: enabled ? color : Colors.grey.shade300,
-          foregroundColor: enabled ? Colors.white : Colors.black54,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          minimumSize: const Size(0, 34),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: _StoreStrokeText(
+        title,
+        fontSize: 16,
+        color: Colors.white,
+        strokeColor: Colors.black.withValues(alpha: 0.7),
+        strokeWidth: 3.0,
       ),
     );
   }
 }
 
-class _CurrencyBalanceChip extends StatelessWidget {
-  const _CurrencyBalanceChip({required this.amount, required this.icon});
-
-  final int amount;
-  final Widget icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      labelPadding: const EdgeInsets.only(left: 2, right: 2),
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [icon, const SizedBox(width: 4), Text('$amount')],
-      ),
-    );
-  }
-}
-
-class _CurrencyDeltaLabel extends StatelessWidget {
-  const _CurrencyDeltaLabel({
-    required this.amount,
-    required this.icon,
+class _StoreStrokeText extends StatelessWidget {
+  const _StoreStrokeText(
+    this.text, {
+    required this.fontSize,
     required this.color,
+    this.strokeColor = Colors.white,
+    this.strokeWidth = 4.0,
   });
 
-  final int amount;
-  final IconData icon;
+  final String text;
+  final double fontSize;
   final Color color;
+  final Color strokeColor;
+  final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Stack(
       children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
         Text(
-          '+$amount',
-          style: TextStyle(
+          text,
+          style: GoogleFonts.mPlusRounded1c(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w900,
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = strokeWidth
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
+              ..color = strokeColor,
+          ),
+        ),
+        Text(
+          text,
+          style: GoogleFonts.mPlusRounded1c(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w900,
             color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StoreFeaturedBanner extends StatefulWidget {
+  const _StoreFeaturedBanner({
+    super.key,
+    required this.items,
+    required this.onPurchase,
+    required this.findPackage,
+    required this.findStoreProduct,
+  });
+
+  final List<StoreItem> items;
+  final void Function(StoreItem) onPurchase;
+  final Package? Function(String) findPackage;
+  final StoreProduct? Function(String) findStoreProduct;
+
+  @override
+  State<_StoreFeaturedBanner> createState() => _StoreFeaturedBannerState();
+}
+
+class _StoreFeaturedBannerState extends State<_StoreFeaturedBanner> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        SizedBox(
+          height: 200, // Increased height to match the image's larger banner
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) => setState(() => _currentPage = index),
+            itemCount: widget.items.length,
+            itemBuilder: (context, index) {
+              final item = widget.items[index];
+              final productId = item.iapProductId;
+              final package = productId != null ? widget.findPackage(productId) : null;
+              final storeProduct = productId != null ? widget.findStoreProduct(productId) : null;
+              final priceString = item.localizedIapPrice(package, storeProduct, l10n);
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE0F7FF), Color(0xFFCE93D8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Sparkle decorations
+                    Positioned(
+                      top: 40,
+                      left: 120,
+                      child: Icon(Icons.circle, size: 8, color: Colors.white.withValues(alpha: 0.5)),
+                    ),
+                    Positioned(
+                      bottom: 40,
+                      left: 140,
+                      child: Icon(Icons.circle, size: 12, color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                    
+                    // Large Item Emoji/Illustration on the left
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      bottom: 10,
+                      child: Center(
+                        child: Text(
+                          item.emoji ?? '⭐',
+                          style: const TextStyle(fontSize: 100),
+                        ),
+                      ),
+                    ),
+
+                    // Content on the right
+                    Positioned(
+                      right: 16,
+                      top: 12, // Reduced top padding
+                      bottom: 12, // Reduced bottom padding
+                      left: 140,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // "Pro" Label - Gradient with Outline
+                          ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ).createShader(bounds),
+                            child: _StoreStrokeText(
+                              'Pro',
+                              fontSize: 28,
+                              color: Colors.white, // This fill is overridden by ShaderMask
+                              strokeColor: const Color(0xFF5D4037), // Dark brown outline
+                              strokeWidth: 3.5,
+                            ),
+                          ),
+                          // Main Title (Outline) - Remove "Pro"
+                          _StoreStrokeText(
+                            item.localizedName(l10n).replaceAll('Pro', '').trim(),
+                            fontSize: 22,
+                            color: Colors.white,
+                            strokeColor: const Color(0xFF5C6BC0).withValues(alpha: 0.8),
+                            strokeWidth: 3.5,
+                          ),
+                          const SizedBox(height: 2),
+                          // Description - Plain dark text, no outline
+                          Expanded(
+                            child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              child: Text(
+                                (item.localizedDescription(l10n) ?? '')
+                                    .replaceAll('Pro', '')
+                                    .trim(),
+                                style: GoogleFonts.mPlusRounded1c(
+                                  color: const Color(0xFF303F9F), // Deep Indigo
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6), // Reduced spacing
+                          // Large Price Button
+                          GestureDetector(
+                            onTap: () => widget.onPurchase(item),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFFFFD180), // Lighter top
+                                    Color(0xFFFFB74D), // Middle
+                                    Color(0xFFFB8C00), // Darker bottom
+                                  ],
+                                  stops: [0.0, 0.5, 1.0],
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  width: 2.5, // Thicker white border for texture
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFE65100).withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: _StoreStrokeText(
+                                  '$priceString ${l10n.storeSubscribe}',
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  strokeColor: const Color(0xFFBF360C).withValues(alpha: 0.4),
+                                  strokeWidth: 2.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Premium Tag at Top Right
+                    Positioned(
+                      top: -10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD54F),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'プレミアム', // "Premium" in Japanese as per image
+                          style: GoogleFonts.mPlusRounded1c(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        if (widget.items.length > 1)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              widget.items.length,
+              (index) => Container(
+                width: 6,
+                height: 6,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _currentPage == index ? const Color(0xFF90CAF9) : Colors.black12,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _StoreBackgroundStars extends StatelessWidget {
+  const _StoreBackgroundStars();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          // Large Stars
+          _Star(top: 80, left: 20, size: 32, opacity: 0.2),
+          _Star(top: 220, right: 30, size: 40, opacity: 0.15),
+          _Star(bottom: 150, left: 40, size: 28, opacity: 0.2),
+          _Star(top: 400, right: 100, size: 36, opacity: 0.1),
+          
+          // Small Stars
+          _Star(top: 150, left: 80, size: 14, opacity: 0.2),
+          _Star(bottom: 250, right: 50, size: 16, opacity: 0.2),
+          
+          // Colorful Dots
+          _Dot(top: 120, right: 80, size: 12, color: const Color(0xFFFFCDD2)), // Pink
+          _Dot(top: 300, left: 100, size: 10, color: const Color(0xFFE1BEE7)), // Purple
+          _Dot(bottom: 200, left: 150, size: 14, color: const Color(0xFFB3E5FC)), // Blue
+          _Dot(top: 500, right: 40, size: 8, color: const Color(0xFFF9FBE7)), // Yellow
+        ],
+      ),
+    );
+  }
+}
+
+class _Star extends StatelessWidget {
+  const _Star({this.top, this.left, this.right, this.bottom, required this.size, required this.opacity});
+
+  final double? top;
+  final double? left;
+  final double? right;
+  final double? bottom;
+  final double size;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: top,
+      left: left,
+      right: right,
+      bottom: bottom,
+      child: Opacity(
+        opacity: opacity,
+        child: Icon(Icons.star_rounded, size: size, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot({this.top, this.left, this.right, this.bottom, required this.size, required this.color});
+
+  final double? top;
+  final double? left;
+  final double? right;
+  final double? bottom;
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: top,
+      left: left,
+      right: right,
+      bottom: bottom,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.4),
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+}
+
+class _StoreCategoryRow extends StatelessWidget {
+  const _StoreCategoryRow({this.onFurnitureTap, this.onThemeTap});
+
+  final VoidCallback? onFurnitureTap;
+  final VoidCallback? onThemeTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _CategoryItem(
+            icon: Image.asset('assets/icon/store/sofa.png', width: 36, height: 36),
+            label: l10n.storeTabFurniture,
+            color: const Color(0xFFFFCDD2),
+            onTap: onFurnitureTap,
+          ),
+          _CategoryItem(
+            icon: Image.asset('assets/icon/store/house.png', width: 36, height: 36),
+            label: l10n.storeTabThemes,
+            color: const Color(0xFFE1BEE7),
+            onTap: onThemeTap,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryItem extends StatelessWidget {
+  const _CategoryItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.onTap,
+  });
+
+  final Widget icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(child: icon),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.mPlusRounded1c(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StoreCurrencyChip extends StatelessWidget {
+  const _StoreCurrencyChip({required this.amount, required this.icon});
+
+  final int amount;
+  final Widget icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon,
+          const SizedBox(width: 6),
+          Text(
+            '$amount',
+            style: GoogleFonts.mPlusRounded1c(
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

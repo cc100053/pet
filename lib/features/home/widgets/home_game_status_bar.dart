@@ -891,10 +891,10 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.diamond_rounded,
-                                    size: iconSize,
-                                    color: _diamondColor,
+                                  Image.asset(
+                                    'assets/icon/store/diamond.png',
+                                    width: iconSize,
+                                    height: iconSize,
                                   ),
                                   Gap(4 * scale),
                                   Text(
@@ -928,15 +928,10 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                                         children: [
                                           Transform.scale(
                                             scale: _bounceAnimation.value,
-                                            child: SvgPicture.asset(
-                                              'assets/icon/icon-park--candy.svg',
+                                            child: Image.asset(
+                                              'assets/icon/store/candy.png',
                                               width: iconSize,
                                               height: iconSize,
-                                              colorFilter:
-                                                  const ColorFilter.mode(
-                                                    AppTheme.secondaryColor,
-                                                    BlendMode.srcIn,
-                                                  ),
                                             ),
                                           ),
                                           Gap(4 * scale),
