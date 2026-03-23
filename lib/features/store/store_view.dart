@@ -28,9 +28,6 @@ part 'services/store_purchase_handler.dart';
 part 'widgets/store_departed_pet_selector.dart';
 part 'widgets/store_item_cards.dart';
 
-const Color _diamondColor = Color(0xFF4C7DFF);
-const Color _candyColor = Color(0xFFFF8A65);
-
 const List<Color> _storeBackgroundGradient = [
   Color(0xFFE0F7FF), // Light Blue
   Color(0xFFF3E5F5), // Soft Lavender
@@ -59,6 +56,7 @@ class StoreView extends StatefulWidget {
 
 class _StoreViewState extends State<StoreView> {
   final RevenueCatService _revenueCatService = RevenueCatService();
+  static const Duration _storeNoticeDuration = Duration(milliseconds: 2200);
   bool _loading = true;
   bool _purchasing = false;
   String? _error;
@@ -81,6 +79,8 @@ class _StoreViewState extends State<StoreView> {
   late List<DepartedPetInfo> _departedPets;
   Uri? _privacyPolicyUri;
   late final Uri _termsOfUseUri;
+  Timer? _storeNoticeTimer;
+  _StoreNoticeData? _storeNotice;
 
   bool get _hasProAdFreeAccess =>
       widget.isProUser || _activeEntitlements.isNotEmpty;
@@ -103,8 +103,42 @@ class _StoreViewState extends State<StoreView> {
 
   @override
   void dispose() {
+    _storeNoticeTimer?.cancel();
     _storeScrollController.dispose();
     super.dispose();
+  }
+
+  void _showStoreNotice({
+    required String message,
+    required _StoreCurrency currency,
+    required int requiredAmount,
+  }) {
+    final currentAmount = currency == _StoreCurrency.candy ? _coins : _diamonds;
+    _storeNoticeTimer?.cancel();
+    _setStoreState(() {
+      _storeNotice = _StoreNoticeData(
+        key: UniqueKey(),
+        message: message,
+        currency: currency,
+        currentAmount: currentAmount,
+        requiredAmount: requiredAmount,
+      );
+    });
+    _storeNoticeTimer = Timer(_storeNoticeDuration, () {
+      if (!mounted) {
+        return;
+      }
+      _setStoreState(() {
+        _storeNotice = null;
+      });
+    });
+  }
+
+  void _dismissStoreNotice() {
+    _storeNoticeTimer?.cancel();
+    _setStoreState(() {
+      _storeNotice = null;
+    });
   }
 
   void _initializeLegalUris() {
@@ -336,6 +370,39 @@ class _StoreViewState extends State<StoreView> {
                 displacement: 100,
                 onRefresh: _loadStore,
                 child: _buildBody(context, l10n),
+              ),
+              Positioned(
+                top: MediaQuery.paddingOf(context).top + 16,
+                left: 16,
+                right: 16,
+                child: IgnorePointer(
+                  ignoring: _storeNotice == null,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutBack,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final offsetAnimation = Tween<Offset>(
+                        begin: const Offset(0, -0.18),
+                        end: Offset.zero,
+                      ).animate(animation);
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _storeNotice == null
+                        ? const SizedBox.shrink()
+                        : _StoreFloatingNotice(
+                            key: _storeNotice!.key,
+                            notice: _storeNotice!,
+                            onDismiss: _dismissStoreNotice,
+                          ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -673,6 +740,209 @@ class _StoreViewState extends State<StoreView> {
   }
 }
 
+class _StoreNoticeData {
+  const _StoreNoticeData({
+    required this.key,
+    required this.message,
+    required this.currency,
+    required this.currentAmount,
+    required this.requiredAmount,
+  });
+
+  final Key key;
+  final String message;
+  final _StoreCurrency currency;
+  final int currentAmount;
+  final int requiredAmount;
+}
+
+class _StoreFloatingNotice extends StatelessWidget {
+  const _StoreFloatingNotice({
+    super.key,
+    required this.notice,
+    required this.onDismiss,
+  });
+
+  final _StoreNoticeData notice;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isCandy = notice.currency == _StoreCurrency.candy;
+    final Color accent = isCandy
+        ? const Color(0xFFFF8A65)
+        : const Color(0xFF4C7DFF);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onDismiss,
+            borderRadius: BorderRadius.circular(26),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  top: 5,
+                  left: 0,
+                  right: 0,
+                  bottom: -5,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.98),
+                        const Color(0xFFFFF7EA),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              accent.withValues(alpha: 0.22),
+                              accent.withValues(alpha: 0.38),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.5),
+                            width: 2,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(11),
+                          child: Image.asset(
+                            isCandy
+                                ? 'assets/icon/store/candy.png'
+                                : 'assets/icon/store/diamond.png',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _StoreStrokeText(
+                              notice.message,
+                              fontSize: 16,
+                              color: accent,
+                              strokeColor: Colors.white,
+                              strokeWidth: 3,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${notice.currentAmount}',
+                                    style: GoogleFonts.mPlusRounded1c(
+                                      color: const Color(0xFF5A4A42),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                    ),
+                                    child: Text(
+                                      '/',
+                                      style: GoogleFonts.mPlusRounded1c(
+                                        color: const Color(0xFF9E8B80),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${notice.requiredAmount}',
+                                    style: GoogleFonts.mPlusRounded1c(
+                                      color: accent,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: -8,
+                  left: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: Text(
+                      '!',
+                      style: GoogleFonts.mPlusRounded1c(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title});
 
@@ -819,12 +1089,9 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                   ? l10n.storeSubscriptionActive
                   : null;
               final actionLabel = isSubscribed
-                  ? l10n.storeSubscriptionActive
+                  ? l10n.commonOwned
                   : l10n.storeSubscribe;
               final description = item.localizedDescription(l10n);
-              final actionTextColor = isSubscribed
-                  ? Colors.grey.shade500
-                  : Colors.white;
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -899,7 +1166,7 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                               end: Alignment.bottomCenter,
                             ).createShader(bounds),
                             child: _StoreStrokeText(
-                              'Pro',
+                              l10n.storeTabPremium,
                               fontSize: 26,
                               color: Colors.white,
                               strokeColor: const Color(0xFF5D4037),
@@ -909,7 +1176,7 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                             ),
                           ),
                           _StoreStrokeText(
-                            item.localizedName(l10n).replaceFirst('Pro ', '').replaceFirst('Pro', '').trim(),
+                            item.localizedName(l10n),
                             fontSize: 26,
                             color: Colors.white,
                             strokeColor: const Color(0xFF1A237E),
@@ -935,6 +1202,18 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                                         height: 1.2,
                                       ),
                                     ),
+                                  if (activeStatusText != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      activeStatusText,
+                                      style: GoogleFonts.mPlusRounded1c(
+                                        color: const Color(0xFF303F9F),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w900,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 4),
                                   Text(
                                     '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
@@ -954,78 +1233,59 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                           const SizedBox(height: 6),
                           Opacity(
                             opacity: canBuy || isSubscribed ? 1 : 0.65,
-                            child: GestureDetector(
-                              onTap: canBuy
+                            child: _StoreRaisedButtonShell(
+                              onPressed: canBuy
                                   ? () => widget.onPurchase(item)
                                   : null,
-                              child: Stack(
-                                children: [
-                                  // Bottom Shadow (3D effect)
-                                  if (!isSubscribed && canBuy)
-                                    Positioned.fill(
-                                      top: 4,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE65100),
-                                          borderRadius:
-                                              BorderRadius.circular(24),
-                                        ),
-                                      ),
-                                    ),
-                                  AnimatedContainer(
-                                    duration: const Duration(milliseconds: 150),
-                                    width: double.infinity,
-                                    margin: EdgeInsets.only(
-                                      bottom:
-                                          !isSubscribed && canBuy ? 4.0 : 0.0,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: isSubscribed || !canBuy
-                                          ? null
-                                          : const LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                Color(0xFFFFD180),
-                                                Color(0xFFFB8C00),
-                                              ],
-                                            ),
-                                      color: isSubscribed || !canBuy
-                                          ? Colors.white.withValues(alpha: 0.88)
-                                          : null,
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          if (!isSubscribed) ...[
-                                            _StoreStrokeText(
-                                              priceString,
-                                              fontSize: 20,
-                                              color: Colors.white,
-                                              strokeColor: const Color(0xFFD54900),
-                                              strokeWidth: 4.5,
-                                            ),
-                                            const SizedBox(width: 8),
+                              depth: !isSubscribed && canBuy ? 4 : 0,
+                              borderRadius: BorderRadius.circular(24),
+                              shadowColor: const Color(0xFFE65100),
+                              faceBuilder: (context, isPressed) => Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: isSubscribed || !canBuy
+                                      ? null
+                                      : const LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Color(0xFFFFD180),
+                                            Color(0xFFFB8C00),
                                           ],
-                                          _StoreStrokeText(
-                                            actionLabel,
-                                            fontSize: 20,
-                                            color: Colors.white,
-                                            strokeColor: const Color(0xFFD54900),
-                                            strokeWidth: 4.5,
-                                          ),
-                                        ],
+                                        ),
+                                  color: isSubscribed || !canBuy
+                                      ? Colors.white.withValues(alpha: 0.88)
+                                      : null,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Center(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (!isSubscribed) ...[
+                                        _StoreStrokeText(
+                                          priceString,
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          strokeColor: const Color(0xFFD54900),
+                                          strokeWidth: 4.5,
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      _StoreStrokeText(
+                                        actionLabel,
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        strokeColor: const Color(0xFFD54900),
+                                        strokeWidth: 4.5,
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -1103,7 +1363,9 @@ class _StoreBackgroundStars extends StatelessWidget {
             top: -100,
             left: -100,
             child: _Glow(
-              color: const Color(0xFFB3E5FC).withValues(alpha: 0.5), // Light Blue
+              color: const Color(
+                0xFFB3E5FC,
+              ).withValues(alpha: 0.5), // Light Blue
               size: 400,
             ),
           ),
@@ -1111,7 +1373,9 @@ class _StoreBackgroundStars extends StatelessWidget {
             top: -50,
             right: -100,
             child: _Glow(
-              color: const Color(0xFFE1BEE7).withValues(alpha: 0.5), // Light Purple
+              color: const Color(
+                0xFFE1BEE7,
+              ).withValues(alpha: 0.5), // Light Purple
               size: 350,
             ),
           ),
@@ -1127,7 +1391,9 @@ class _StoreBackgroundStars extends StatelessWidget {
             bottom: 200,
             right: -100,
             child: _Glow(
-              color: const Color(0xFFFFCDD2).withValues(alpha: 0.4), // Soft Red/Pink
+              color: const Color(
+                0xFFFFCDD2,
+              ).withValues(alpha: 0.4), // Soft Red/Pink
               size: 450,
             ),
           ),
@@ -1194,12 +1460,7 @@ class _Glow extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0),
-          ],
-        ),
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
       ),
     );
   }
@@ -1332,11 +1593,7 @@ class _CategoryItem extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          SizedBox(
-            width: 60,
-            height: 55,
-            child: Center(child: icon),
-          ),
+          SizedBox(width: 60, height: 55, child: Center(child: icon)),
           const SizedBox(height: 0),
           _StoreStrokeText(
             label,

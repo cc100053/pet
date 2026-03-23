@@ -1,54 +1,73 @@
 part of '../store_view.dart';
 
-extension _StoreItemCards on _StoreViewState {
-  Future<void> _openThemePreview(StoreItem item) async {
-    await showStoreThemePreviewDialog(context: context, item: item);
-  }
+class StoreGridItemCard extends StatelessWidget {
+  const StoreGridItemCard({
+    super.key,
+    required this.item,
+    required this.isOwned,
+    required this.isIap,
+    required this.priceString,
+    required this.canAffordCoins,
+    required this.canAffordDiamonds,
+    required this.canBuyIap,
+    required this.hasDepartedPets,
+    required this.onOpenThemePreview,
+    required this.onBuyIap,
+    required this.onBuyCoins,
+    required this.onBuyDiamonds,
+    required this.onHandleLetter,
+  });
 
-  bool _isItemOwned(StoreItem item) {
-    if (item.type != 'cosmetic') {
-      return false;
-    }
-    if (item.isDefaultBackground) {
-      return true;
-    }
-    if (item.isBackground) {
-      return _roomBackgroundOwned.contains(item.id);
-    }
-    return (_inventory[item.id] ?? 0) > 0;
-  }
+  final StoreItem item;
+  final bool isOwned;
+  final bool isIap;
+  final String priceString;
+  final bool canAffordCoins;
+  final bool canAffordDiamonds;
+  final bool canBuyIap;
+  final bool hasDepartedPets;
+  final VoidCallback onOpenThemePreview;
+  final VoidCallback onBuyIap;
+  final VoidCallback onBuyCoins;
+  final VoidCallback onBuyDiamonds;
+  final VoidCallback onHandleLetter;
 
-  Widget _buildGridItemCard(StoreItem item, AppLocalizations l10n) {
-    final isOwned = _isItemOwned(item);
-    final isIap = item.isIap;
-    final productId = item.iapProductId;
-    final package = productId == null
-        ? null
-        : _findPackageByProductId(productId);
-    final storeProduct = productId == null
-        ? null
-        : _findStoreProductByProductId(productId);
-    final priceString = item.localizedIapPrice(package, storeProduct, l10n);
+  VoidCallback? _resolveBuyAction() {
+    if (isOwned) {
+      return null;
+    }
+    if (isIap) {
+      return canBuyIap ? onBuyIap : null;
+    }
+
     final isLetter = item.isRecoveryLetter;
-    final canAffordCoins = _canAfford(item, _StoreCurrency.candy);
-    final canAffordDiamonds = _canAfford(item, _StoreCurrency.diamonds);
-    final canBuyCoins =
-        !isOwned &&
-        canAffordCoins &&
-        item.priceCoins != null &&
-        (!isLetter || _hasDepartedPets);
-    final canBuyDiamonds =
-        !isOwned &&
-        canAffordDiamonds &&
-        item.priceDiamonds != null &&
-        (!isLetter || _hasDepartedPets);
-    final canBuyIap =
-        _iapConfigured &&
-        !_purchasing &&
-        (package != null || storeProduct != null);
+    if (isLetter && !hasDepartedPets) {
+      return null;
+    }
 
+    if (item.priceCoins != null) {
+      if (isLetter && canAffordCoins) {
+        return onHandleLetter;
+      }
+      return onBuyCoins;
+    }
+
+    if (item.priceDiamonds != null) {
+      if (isLetter && canAffordDiamonds) {
+        return onHandleLetter;
+      }
+      return onBuyDiamonds;
+    }
+
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final itemEmoji =
-        item.emoji ?? (item.isBackground ? '🖼️' : (isLetter ? '💌' : '🎁'));
+        item.emoji ??
+        (item.isBackground ? '🖼️' : (item.isRecoveryLetter ? '💌' : '🎁'));
 
     final int colorIndex = item.id.hashCode.abs() % 3;
     final List<List<Color>> gradientPairs = [
@@ -57,6 +76,7 @@ extension _StoreItemCards on _StoreViewState {
       [const Color(0xFFF3E5F5), const Color(0xFFFFE0B2)],
     ];
     final List<Color> bgGradient = gradientPairs[colorIndex];
+    final onBuy = _resolveBuyAction();
 
     return Container(
       decoration: BoxDecoration(
@@ -77,7 +97,9 @@ extension _StoreItemCards on _StoreViewState {
               margin: const EdgeInsets.all(6),
               width: double.infinity,
               decoration: item.isBackground
-                  ? RoomBackgrounds.resolve(item.backgroundKey).previewDecoration.copyWith(
+                  ? RoomBackgrounds.resolve(
+                      item.backgroundKey,
+                    ).previewDecoration.copyWith(
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
                         topRight: Radius.circular(20),
@@ -123,7 +145,7 @@ extension _StoreItemCards on _StoreViewState {
                             right: 4,
                             child: _GridPreviewAction(
                               tooltip: l10n.storeThemePreviewAction,
-                              onPressed: () => _openThemePreview(item),
+                              onPressed: onOpenThemePreview,
                             ),
                           ),
                       ],
@@ -152,7 +174,7 @@ extension _StoreItemCards on _StoreViewState {
                         width: 24,
                         height: 24,
                       ),
-                      fillColor: const Color(0xFFFFB1C6), // Custom Soft Pink
+                      fillColor: const Color(0xFFFFB1C6),
                       strokeColor: Colors.black,
                     ),
                   if (item.priceCoins != null && item.priceDiamonds != null)
@@ -165,40 +187,70 @@ extension _StoreItemCards on _StoreViewState {
                         width: 24,
                         height: 24,
                       ),
-                      fillColor: const Color(0xFF91DBF9), // Custom Light Blue
+                      fillColor: const Color(0xFF91DBF9),
                       strokeColor: Colors.black,
                     ),
                 ],
                 const Spacer(),
-                _GridBuyAction(
-                  onPressed: isOwned
-                      ? null
-                      : (isIap
-                            ? (canBuyIap ? () => _purchaseIapItem(item) : null)
-                            : (canBuyCoins
-                                  ? () {
-                                      if (isLetter) {
-                                        _handleLetterPurchase(item);
-                                      } else {
-                                        _purchaseItem(item);
-                                      }
-                                    }
-                                  : (canBuyDiamonds
-                                        ? () {
-                                            if (isLetter) {
-                                              _handleLetterPurchase(item);
-                                            } else {
-                                              _purchaseDiamondItem(item);
-                                            }
-                                          }
-                                        : null))),
-                  isOwned: isOwned,
-                ),
+                _GridBuyAction(onPressed: onBuy, isOwned: isOwned),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+extension _StoreItemCards on _StoreViewState {
+  Future<void> _openThemePreview(StoreItem item) async {
+    await showStoreThemePreviewDialog(context: context, item: item);
+  }
+
+  bool _isItemOwned(StoreItem item) {
+    if (item.type != 'cosmetic') {
+      return false;
+    }
+    if (item.isDefaultBackground) {
+      return true;
+    }
+    if (item.isBackground) {
+      return _roomBackgroundOwned.contains(item.id);
+    }
+    return (_inventory[item.id] ?? 0) > 0;
+  }
+
+  Widget _buildGridItemCard(StoreItem item, AppLocalizations l10n) {
+    final isOwned = _isItemOwned(item);
+    final isIap = item.isIap;
+    final productId = item.iapProductId;
+    final package = productId == null
+        ? null
+        : _findPackageByProductId(productId);
+    final storeProduct = productId == null
+        ? null
+        : _findStoreProductByProductId(productId);
+    final priceString = item.localizedIapPrice(package, storeProduct, l10n);
+    final canAffordCoins = _canAfford(item, _StoreCurrency.candy);
+    final canAffordDiamonds = _canAfford(item, _StoreCurrency.diamonds);
+    final canBuyIap =
+        _iapConfigured &&
+        !_purchasing &&
+        (package != null || storeProduct != null);
+    return StoreGridItemCard(
+      item: item,
+      isOwned: isOwned,
+      isIap: isIap,
+      priceString: priceString,
+      canAffordCoins: canAffordCoins,
+      canAffordDiamonds: canAffordDiamonds,
+      canBuyIap: canBuyIap,
+      hasDepartedPets: _hasDepartedPets,
+      onOpenThemePreview: () => _openThemePreview(item),
+      onBuyIap: () => _purchaseIapItem(item),
+      onBuyCoins: () => _purchaseItem(item),
+      onBuyDiamonds: () => _purchaseDiamondItem(item),
+      onHandleLetter: () => _handleLetterPurchase(item),
     );
   }
 }
@@ -280,6 +332,75 @@ class _GridCurrencyPrice extends StatelessWidget {
   }
 }
 
+class _StoreRaisedButtonShell extends StatefulWidget {
+  const _StoreRaisedButtonShell({
+    required this.onPressed,
+    required this.borderRadius,
+    required this.shadowColor,
+    required this.faceBuilder,
+    required this.depth,
+  });
+
+  final VoidCallback? onPressed;
+  final BorderRadius borderRadius;
+  final Color shadowColor;
+  final Widget Function(BuildContext context, bool isPressed) faceBuilder;
+  final double depth;
+
+  @override
+  State<_StoreRaisedButtonShell> createState() =>
+      _StoreRaisedButtonShellState();
+}
+
+class _StoreRaisedButtonShellState extends State<_StoreRaisedButtonShell> {
+  bool _isPressed = false;
+
+  void _setPressed(bool value) {
+    if (_isPressed == value || widget.onPressed == null) {
+      return;
+    }
+    setState(() {
+      _isPressed = value;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isEnabled = widget.onPressed != null;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onPressed,
+      onTapDown: isEnabled ? (_) => _setPressed(true) : null,
+      onTapUp: isEnabled ? (_) => _setPressed(false) : null,
+      onTapCancel: isEnabled ? () => _setPressed(false) : null,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            top: widget.depth,
+            child: Container(
+              decoration: BoxDecoration(
+                color: widget.shadowColor,
+                borderRadius: widget.borderRadius,
+              ),
+            ),
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 110),
+            curve: Curves.easeOutCubic,
+            margin: EdgeInsets.only(bottom: _isPressed ? 0 : widget.depth),
+            child: AnimatedScale(
+              scale: _isPressed ? 0.98 : 1.0,
+              duration: const Duration(milliseconds: 110),
+              curve: Curves.easeOutCubic,
+              child: widget.faceBuilder(context, _isPressed),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _GridBuyAction extends StatelessWidget {
   const _GridBuyAction({this.onPressed, required this.isOwned});
 
@@ -289,47 +410,31 @@ class _GridBuyAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return GestureDetector(
-      onTap: onPressed,
-      child: Stack(
-        children: [
-          // Bottom Shadow (3D effect)
-          Positioned.fill(
-            top: 3,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isOwned ? Colors.grey.shade400 : const Color(0xFFE65100),
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.only(bottom: 3.0),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: isOwned
-                  ? null
-                  : const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFFFFD180),
-                        Color(0xFFFB8C00),
-                      ],
-                    ),
-              color: isOwned ? Colors.grey.shade200 : null,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: _StoreStrokeText(
-              isOwned ? l10n.commonOwned : l10n.commonBuy,
-              fontSize: 16,
-              color: Colors.white,
-              strokeColor: isOwned ? Colors.grey.shade500 : const Color(0xFFD54900),
-              strokeWidth: 3.5,
-            ),
-          ),
-        ],
+    return _StoreRaisedButtonShell(
+      onPressed: onPressed,
+      depth: 3,
+      borderRadius: BorderRadius.circular(20),
+      shadowColor: isOwned ? Colors.grey.shade400 : const Color(0xFFE65100),
+      faceBuilder: (context, isPressed) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: isOwned
+              ? null
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
+                ),
+          color: isOwned ? Colors.grey.shade200 : null,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: _StoreStrokeText(
+          isOwned ? l10n.commonOwned : l10n.commonBuy,
+          fontSize: 16,
+          color: Colors.white,
+          strokeColor: isOwned ? Colors.grey.shade500 : const Color(0xFFD54900),
+          strokeWidth: 3.5,
+        ),
       ),
     );
   }

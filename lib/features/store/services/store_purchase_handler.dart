@@ -138,14 +138,12 @@ extension _StorePurchaseHandler on _StoreViewState {
     if (canAfford) {
       return true;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          currency == _StoreCurrency.candy
-              ? l10n.storeNotEnoughCoins
-              : l10n.storeNotEnoughDiamonds,
-        ),
-      ),
+    _showStoreNotice(
+      message: currency == _StoreCurrency.candy
+          ? l10n.storeNotEnoughCoins
+          : l10n.storeNotEnoughDiamonds,
+      currency: currency,
+      requiredAmount: price,
     );
     return false;
   }

@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-03-23 Add Store Insufficient Funds Feedback)
+- [x] Keep non-IAP store grid buy taps active when the user lacks enough candy or diamonds so the existing localized snackbar feedback can surface.
+- [x] Add focused widget coverage for coin-shortage, diamond-shortage, and owned-item tap behavior in the store grid card.
+- [x] Update memory-bank/progress notes if needed, run `flutter analyze` and `flutter test`, and record the verification below.
+
+# Review (2026-03-23 Add Store Insufficient Funds Feedback)
+- [x] Implemented and verified.
+- Root change:
+  - Extracted a reusable `StoreGridItemCard` widget so the single-buy grid-card routing is testable in isolation while preserving the existing store card visuals.
+  - Non-IAP `Buy` taps now stay active for insufficient-balance states and route into the existing `_purchaseItem(...)` / `_purchaseDiamondItem(...)` guards, but the old bottom snackbar was replaced with a themed floating store notice that shows the localized insufficient-funds copy plus the current/required balance in a game-style card.
+  - Added a shared raised-button shell so the normal store purchase CTAs press in with the same 3D interaction feel as the subscription banner CTA instead of staying visually static on tap.
+  - Owned items, unavailable IAP items, and recovery-letter cards without a valid departed-pet target remain non-interactive.
+  - Cleaned pre-existing unused store declarations so `flutter analyze` returns clean again, and restored the featured subscription banner's localized premium/title/status-owned behavior so the full suite stays green.
+- Verification:
+  - `flutter test test/features/store/store_grid_item_card_test.dart`
+  - `flutter test test/features/store/store_featured_banner_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-21 Fix Store Rebuild Regressions)
 - [x] Restore the featured subscription banner state handling so active subscribers see the correct localized status/renewal messaging and a disabled owned CTA.
 - [x] Remove the hard-coded banner copy and restore a full theme preview path for background items while keeping the new single buy action.
@@ -407,3 +427,9 @@
   - `flutter analyze`
   - `flutter test`
   - Both passed; `test/feed_flow_integration_test.dart` remained skipped without the required Supabase env vars, as expected.
+
+# Plan (2026-03-23 Store Pro Banner UI Polish)
+- [ ] Update the featured Pro banner title so long localized text scales down to fit the available width instead of truncating with ellipsis.
+- [ ] Remove the inner scrolling dependency from the banner body so the Pro description stays readable within the card on English and other locales.
+- [ ] Tighten the English Pro description copy if the current sentence is still too long for the available mobile space.
+- [ ] Update memory-bank notes, then run `flutter analyze` and `flutter test`.

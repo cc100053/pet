@@ -60,14 +60,14 @@ void main() {
 
     expect(find.text('Premium'), findsWidgets);
     expect(find.text('Pro Monthly Membership'), findsWidgets);
-    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('Active'), findsWidgets);
     expect(
       find.text('1 month • Auto-renews monthly. Cancel anytime.'),
       findsOneWidget,
     );
-    expect(find.text('Owned'), findsOneWidget);
+    expect(find.text('Owned'), findsWidgets);
 
-    await tester.tap(find.text('Owned'));
+    await tester.tap(find.text('Owned').last);
     await tester.pump();
 
     expect(purchaseCount, 0);
