@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-03-23 Harden Intermittent Chat Send Crash Path)
+- [x] Inspect the active chat send flow for intermittent crash candidates around async lifecycle, composer state, and route teardown.
+- [x] Harden the most plausible send-time race(s) in `ChatRoomViewV2` with minimal behavioral change.
+- [x] Re-run targeted/full verification, update memory-bank notes, and record the investigation outcome below.
+
+# Review (2026-03-23 Harden Intermittent Chat Send Crash Path)
+- [x] Implemented and verified.
+- Investigation:
+  - The active send path in `ChatRoomViewV2._handleSendMessage(...)` performs multiple async steps after the user taps send: latest-window reconciliation, optimistic insert, Supabase insert, optimistic removal, and best-effort refresh.
+  - Before this fix, the route only flipped `_sending = true` after awaiting `_ensureLatestWindowForCompose()`, leaving a short re-entrancy window for a second tap/submit to enter a parallel send path.
+  - On send failure, the `catch` branch restored `_composerController.text` and selection before re-checking `mounted`, so a late failure that arrived after the route/controller had been disposed could hit a `TextEditingController used after being disposed` style crash instead of a normal error snackbar.
+- Fix:
+  - `_handleSendMessage(...)` now exits immediately when `_sending` is already true and marks the route as sending before awaiting any pre-send async work.
+  - The failure-recovery path now checks `mounted` before mutating the composer controller or reply state.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-23 Fix Memory Photo Infinity Cache Size Crash)
 - [x] Trace the Memory photo crash path and confirm which `CachedNetworkImageView` call site can feed `Infinity` or `NaN` into cache-size rounding.
 - [x] Harden shared cache-size resolution so explicit non-finite dimensions fall back to layout constraints instead of crashing.

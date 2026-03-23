@@ -590,6 +590,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew105Bullet3 => '';
 
   @override
+  String get whatsNew106Title => '상점 개편 및 안정성 최적화';
+
+  @override
+  String get whatsNew106Bullet1 => '상점 페이지 디자인 대규모 개편';
+
+  @override
+  String get whatsNew106Bullet2 => '앱 안정성 및 성능 향상';
+
+  @override
+  String get whatsNew106Bullet3 => '기타 알려진 문제점 수정';
+
+  @override
   String get languageChineseSimplified => '중국어(간체)';
 
   @override

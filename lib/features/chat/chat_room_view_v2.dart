@@ -1007,7 +1007,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
   Future<void> _handleSendMessage(String rawText) async {
     final text = rawText.trim();
-    if (text.isEmpty) {
+    if (text.isEmpty || _sending) {
       return;
     }
 
@@ -1026,21 +1026,19 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return;
     }
 
-    await _ensureLatestWindowForCompose();
-    if (!mounted) {
-      return;
-    }
-
     final replyTargetId = _replyTargetMessageId;
     final replyTarget = replyTargetId == null
         ? null
         : _messagesById[replyTargetId];
 
-    if (mounted) {
-      setState(() {
-        _sending = true;
-        _replyTargetMessageId = null;
-      });
+    setState(() {
+      _sending = true;
+      _replyTargetMessageId = null;
+    });
+
+    await _ensureLatestWindowForCompose();
+    if (!mounted) {
+      return;
     }
 
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
@@ -1107,22 +1105,20 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       );
     } catch (error) {
       await _removeMessageById(tempId, animated: false);
+      if (!mounted) {
+        return;
+      }
       _composerController.text = text;
       _composerController.selection = TextSelection.collapsed(
         offset: _composerController.text.length,
       );
-      if (mounted) {
-        setState(() {
-          _replyTargetMessageId = replyTarget?.id;
-        });
-      }
+      setState(() {
+        _replyTargetMessageId = replyTarget?.id;
+      });
       AnalyticsService.instance.logEvent(
         'message_send',
         parameters: {'result': 'failure', 'ui': 'flutter_chat_ui_spike'},
       );
-      if (!mounted) {
-        return;
-      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -3686,7 +3682,8 @@ class _FeedCard extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 5),
                                     Text(
-                                      '+$coinsAwarded',                                      style: theme.textTheme.labelMedium
+                                      '+$coinsAwarded',
+                                      style: theme.textTheme.labelMedium
                                           ?.copyWith(
                                             color: overlayPrimaryText,
                                             fontWeight: FontWeight.w700,

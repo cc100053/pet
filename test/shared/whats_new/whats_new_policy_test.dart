@@ -73,11 +73,11 @@ void main() {
 
     test('does not show when the upgraded version has no local entry', () {
       final decision = _evaluate(
-        currentVersion: '1.0.6',
-        previousVersion: '1.0.5',
-        previousReleaseSignature: '1.0.5+1',
-        currentReleaseSignature: '1.0.6+1',
-        entry: AppWhatsNewCatalog.entryForVersion('1.0.6'),
+        currentVersion: '1.0.7',
+        previousVersion: '1.0.6',
+        previousReleaseSignature: '1.0.6+1',
+        currentReleaseSignature: '1.0.7+1',
+        entry: AppWhatsNewCatalog.entryForVersion('1.0.7'),
       );
 
       expect(decision.shouldShow, isFalse);

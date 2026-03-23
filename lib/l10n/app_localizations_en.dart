@@ -605,6 +605,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew105Bullet3 => '';
 
   @override
+  String get whatsNew106Title => 'Major Store Update & Stability';
+
+  @override
+  String get whatsNew106Bullet1 => 'Major store redesign and visual update';
+
+  @override
+  String get whatsNew106Bullet2 => 'Improved app stability and performance';
+
+  @override
+  String get whatsNew106Bullet3 => 'Fixed several minor known issues';
+
+  @override
   String get languageChineseSimplified => 'Simplified Chinese';
 
   @override

@@ -1135,6 +1135,30 @@ abstract class AppLocalizations {
   /// **''**
   String get whatsNew105Bullet3;
 
+  /// No description provided for @whatsNew106Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Major Store Update & Stability'**
+  String get whatsNew106Title;
+
+  /// No description provided for @whatsNew106Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Major store redesign and visual update'**
+  String get whatsNew106Bullet1;
+
+  /// No description provided for @whatsNew106Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved app stability and performance'**
+  String get whatsNew106Bullet2;
+
+  /// No description provided for @whatsNew106Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed several minor known issues'**
+  String get whatsNew106Bullet3;
+
   /// No description provided for @languageChineseSimplified.
   ///
   /// In en, this message translates to:

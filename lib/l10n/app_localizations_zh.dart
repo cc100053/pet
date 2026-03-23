@@ -582,6 +582,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew105Bullet3 => '成功喂食后恢复的饥饿值提升了，从 +20 提高到 +25。';
 
   @override
+  String get whatsNew106Title => 'Major Store Update & Stability';
+
+  @override
+  String get whatsNew106Bullet1 => 'Major store redesign and visual update';
+
+  @override
+  String get whatsNew106Bullet2 => 'Improved app stability and performance';
+
+  @override
+  String get whatsNew106Bullet3 => 'Fixed several minor known issues';
+
+  @override
   String get languageChineseSimplified => '简体中文';
 
   @override
@@ -2004,6 +2016,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew105Bullet3 => '';
+
+  @override
+  String get whatsNew106Title => '商店頁面大更新與穩定性優化';
+
+  @override
+  String get whatsNew106Bullet1 => '商店頁面全新改版與設計';
+
+  @override
+  String get whatsNew106Bullet2 => '提升應用程式穩定性與效能';
+
+  @override
+  String get whatsNew106Bullet3 => '修復部分已知的小問題';
 
   @override
   String get languageChineseSimplified => '簡體中文';

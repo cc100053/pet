@@ -584,6 +584,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew105Bullet3 => '';
 
   @override
+  String get whatsNew106Title => 'ショップのリニューアルと安定性の向上';
+
+  @override
+  String get whatsNew106Bullet1 => 'ショップページのデザインを一新';
+
+  @override
+  String get whatsNew106Bullet2 => 'アプリの安定性とパフォーマンスを向上';
+
+  @override
+  String get whatsNew106Bullet3 => '軽微な不具合の修正';
+
+  @override
   String get languageChineseSimplified => '簡体字中国語';
 
   @override
