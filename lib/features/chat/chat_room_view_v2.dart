@@ -2255,12 +2255,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
               ),
             ),
             Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: _handleBackdropTapUp,
-              ),
-            ),
-            Positioned.fill(
               child: ChatBackSwipePopLayer(
                 excludedRegionKey: _composerInteractionRegionKey,
                 onPop: () => Navigator.of(context).maybePop(),
@@ -2270,18 +2264,17 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                   composerKey: _composerSurfaceKey,
                   protectedRegionKey: _composerInputRegionKey,
                   child: Chat(
-
-                      currentUserId: _currentUserId,
-                      resolveUser: _resolveUser,
-                      chatController: _chatController,
-                      decoration: null,
-                      backgroundColor: Colors.transparent,
-                      theme: _chatTheme(context),
-                      onMessageSend: _sending ? null : _handleSendMessage,
-                      onAttachmentTap: (_sending || widget.isRoomLocked)
-                          ? null
-                          : _openFeedCamera,
-                      builders: fc.Builders(
+                    currentUserId: _currentUserId,
+                    resolveUser: _resolveUser,
+                    chatController: _chatController,
+                    decoration: null,
+                    backgroundColor: Colors.transparent,
+                    theme: _chatTheme(context),
+                    onMessageSend: _sending ? null : _handleSendMessage,
+                    onAttachmentTap: (_sending || widget.isRoomLocked)
+                        ? null
+                        : _openFeedCamera,
+                    builders: fc.Builders(
                         textMessageBuilder:
                             (
                               context,
@@ -2471,22 +2464,26 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                         chatAnimatedListBuilder: (context, itemBuilder) {
                           final uiMessages = _toUiMessages(_messages).reversed.toList();
                           if (uiMessages.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                ),
-                                child: Text(
-                                  l10n.chatEmptyState,
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color: widget.isDarkBackground
-                                            ? Colors.white.withValues(
-                                                alpha: 0.84,
-                                              )
-                                            : AppTheme.textSecondary,
-                                      ),
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _handleBackdropTapUp(TapUpDetails(kind: PointerDeviceKind.touch)),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: Text(
+                                    l10n.chatEmptyState,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodyMedium
+                                        ?.copyWith(
+                                          color: widget.isDarkBackground
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.84,
+                                                )
+                                              : AppTheme.textSecondary,
+                                        ),
+                                  ),
                                 ),
                               ),
                             );
@@ -2500,6 +2497,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                             bottomPadding: listBottomPadding,
                             onMessageLongPress: (message, details) =>
                                 _handleDeterministicMessageLongPress(message),
+                            onBackgroundTap: () => _handleBackdropTapUp(TapUpDetails(kind: PointerDeviceKind.touch)),
                           );
                         },
                         emptyChatListBuilder: (context) =>

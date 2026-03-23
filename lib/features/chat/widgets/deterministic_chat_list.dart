@@ -61,6 +61,7 @@ class DeterministicChatList extends StatelessWidget {
     required this.bottomPadding,
     this.observerController,
     this.onMessageLongPress,
+    this.onBackgroundTap,
   });
 
   final fc.ChatItem itemBuilder;
@@ -70,6 +71,7 @@ class DeterministicChatList extends StatelessWidget {
   final double bottomPadding;
   final ListObserverController? observerController;
   final DeterministicChatListItemLongPressCallback? onMessageLongPress;
+  final VoidCallback? onBackgroundTap;
 
   @override
   Widget build(BuildContext context) {
@@ -114,15 +116,19 @@ class DeterministicChatList extends StatelessWidget {
       builder: (context, constraints) {
         return ListViewObserver(
           controller: observerController,
-          child: ListView.builder(
-            controller: scrollController,
-            physics: physics,
-            reverse: true, // Key to anchoring at the bottom
-            cacheExtent: 2500, // Pre-render items to prevent jitter on load-more
-            padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-            keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
-            itemCount: items.length,
-            itemBuilder: (context, index) => items[index],
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onBackgroundTap,
+            child: ListView.builder(
+              controller: scrollController,
+              physics: physics,
+              reverse: true, // Key to anchoring at the bottom
+              cacheExtent: 2500, // Pre-render items to prevent jitter on load-more
+              padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
+              keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
+              itemCount: items.length,
+              itemBuilder: (context, index) => items[index],
+            ),
           ),
         );
       },
