@@ -72,7 +72,9 @@ extension _ShopPurchaseHandler on _ShopViewState {
       _departedPets.removeWhere((pet) => pet.petId == selectedPet.petId);
     });
     if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop(selectedPet.roomId);
+      Navigator.of(
+        context,
+      ).pop(ShopRouteResult.returnedRoom(selectedPet.roomId));
     }
   }
 
@@ -111,21 +113,21 @@ extension _ShopPurchaseHandler on _ShopViewState {
     });
   }
 
-  bool _canAfford(ShopItem item, _ShopCurrency currency) {
-    final price = currency == _ShopCurrency.candy
+  bool _canAfford(ShopItem item, ShopCurrency currency) {
+    final price = currency == ShopCurrency.candy
         ? item.priceCoins
         : item.priceDiamonds;
     if (price == null) {
       return false;
     }
-    return currency == _ShopCurrency.candy
+    return currency == ShopCurrency.candy
         ? _coins >= price
         : _diamonds >= price;
   }
 
-  bool _ensureCurrencyPurchasable(ShopItem item, _ShopCurrency currency) {
+  bool _ensureCurrencyPurchasable(ShopItem item, ShopCurrency currency) {
     final l10n = AppLocalizations.of(context)!;
-    final price = currency == _ShopCurrency.candy
+    final price = currency == ShopCurrency.candy
         ? item.priceCoins
         : item.priceDiamonds;
     if (price == null) {
@@ -138,8 +140,8 @@ extension _ShopPurchaseHandler on _ShopViewState {
     if (canAfford) {
       return true;
     }
-    _showStoreNotice(
-      message: currency == _ShopCurrency.candy
+    _showShortageStoreNotice(
+      title: currency == ShopCurrency.candy
           ? l10n.storeNotEnoughCoins
           : l10n.storeNotEnoughDiamonds,
       currency: currency,
@@ -152,7 +154,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
     if (_purchasing) {
       return false;
     }
-    if (!_ensureCurrencyPurchasable(item, _ShopCurrency.candy)) {
+    if (!_ensureCurrencyPurchasable(item, ShopCurrency.candy)) {
       return false;
     }
 
@@ -243,14 +245,9 @@ extension _ShopPurchaseHandler on _ShopViewState {
       if (!mounted) {
         return false;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.storePurchaseSuccess(
-              item.localizedName(AppLocalizations.of(context)!),
-            ),
-          ),
-        ),
+      _showPurchaseSuccessNotice(
+        item: item,
+        showReturnToRoomAction: item.isFurniture || item.isBackground,
       );
       AnalyticsService.instance.logEvent(
         'purchase_coins',
@@ -288,7 +285,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
     if (_purchasing) {
       return false;
     }
-    if (!_ensureCurrencyPurchasable(item, _ShopCurrency.diamonds)) {
+    if (!_ensureCurrencyPurchasable(item, ShopCurrency.diamonds)) {
       return false;
     }
 
@@ -383,14 +380,9 @@ extension _ShopPurchaseHandler on _ShopViewState {
       if (!mounted) {
         return false;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.storePurchaseSuccess(
-              item.localizedName(AppLocalizations.of(context)!),
-            ),
-          ),
-        ),
+      _showPurchaseSuccessNotice(
+        item: item,
+        showReturnToRoomAction: item.isFurniture || item.isBackground,
       );
       AnalyticsService.instance.logEvent(
         'purchase_diamonds',

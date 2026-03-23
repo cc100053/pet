@@ -189,14 +189,9 @@ extension _ShopIapService on _ShopViewState {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.storePurchaseSuccess(
-              item.localizedName(AppLocalizations.of(context)!),
-            ),
-          ),
-        ),
+      _showPurchaseSuccessNotice(
+        item: item,
+        showReturnToRoomAction: item.isFurniture || item.isBackground,
       );
       AnalyticsService.instance.logEvent(
         'purchase_iap',

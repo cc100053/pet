@@ -1973,6 +1973,18 @@ abstract class AppLocalizations {
   /// **'Purchased {name}.'**
   String storePurchaseSuccess(Object name);
 
+  /// No description provided for @shopReturnToRoomCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to room'**
+  String get shopReturnToRoomCta;
+
+  /// No description provided for @shopReturnToRoomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to your pet room to start decorating.'**
+  String get shopReturnToRoomHint;
+
   /// No description provided for @storeRestoreFailed.
   ///
   /// In en, this message translates to:
@@ -2354,6 +2366,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Room Inventory'**
   String get roomInventoryTitle;
+
+  /// No description provided for @roomDecorHintTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decorate your room'**
+  String get roomDecorHintTitle;
+
+  /// No description provided for @roomDecorHintBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap {buttonLabel} to enter room edit mode, then place furniture or apply a background.'**
+  String roomDecorHintBody(Object buttonLabel);
 
   /// No description provided for @inventoryTabFurniture.
   ///

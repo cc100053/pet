@@ -604,6 +604,8 @@
       "name": {}
     }
   },
+  "shopReturnToRoomCta": "Return to room",
+  "shopReturnToRoomHint": "Return to your pet room to start decorating.",
   "storeRestoreFailed": "Restore failed: {error}",
   "@storeRestoreFailed": {
     "placeholders": {
@@ -684,6 +686,13 @@
   "furnitureInventoryEmpty": "No furniture yet. Buy some in the shop.",
   "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.",
   "roomInventoryTitle": "Room Inventory",
+  "roomDecorHintTitle": "Decorate your room",
+  "roomDecorHintBody": "Tap {buttonLabel} to enter room edit mode, then place furniture or apply a background.",
+  "@roomDecorHintBody": {
+    "placeholders": {
+      "buttonLabel": {}
+    }
+  },
   "inventoryTabFurniture": "Furniture",
   "backgroundGalleryTab": "Background Gallery",
   "backgroundInventoryEmpty": "No backgrounds yet. Pick one up in the shop.",

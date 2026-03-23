@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-03-23 Shop Success Floating Cards + Room Decor Guidance)
+- [x] Generalize Shop floating notices so purchase success uses the same floating-card system as shortage feedback, including optional return-to-room CTA for furniture/background purchases.
+- [x] Replace bare Shop route returns with a typed result and wire Home to consume the returned room/decor-hint intent.
+- [x] Add the transient Pet Home room-decor guidance bubble near the inventory/backpack control and dismiss it when inventory opens or the user closes it.
+- [x] Add/update localization and widget coverage, then run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-03-23 Shop Success Floating Cards + Room Decor Guidance)
+- [x] Implemented and verified.
+- Scope:
+  - Generalized the Shop floating notice model so purchase success now uses the same in-shop floating card system as shortage feedback, with optional copy and CTA support.
+  - Added a typed `ShopRouteResult` so room-scoped cosmetic purchases can return Home with an explicit `showRoomDecorHint` intent instead of overloading a bare room-id string.
+  - Wired Pet Home to surface a one-shot room-decor guidance bubble next to the inventory/backpack control after the user returns from a furniture/background purchase, and dismiss that hint when inventory opens or the user closes it.
+  - Added localized copy plus focused widget coverage for the new success notice, route-result factories, Home guidance bubble, and restored featured-banner premium/status badges required by the existing suite.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-23 Investigate AdMob app-ads.txt Authorization)
 - [x] Confirm the repo contains the expected `app-ads.txt` content and identify where it is hosted from.
 - [x] Verify the live hosted `app-ads.txt` response and headers on the public site.

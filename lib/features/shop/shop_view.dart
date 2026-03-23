@@ -35,7 +35,65 @@ const List<Color> _storeBackgroundGradient = [
   Color(0xFFFFF3E0), // Soft Peach/Pink
 ];
 
-enum _ShopCurrency { candy, diamonds }
+enum ShopCurrency { candy, diamonds }
+
+enum ShopNoticeKind { shortage, success }
+
+class ShopRouteResult {
+  const ShopRouteResult({required this.roomId, this.showRoomDecorHint = false});
+
+  final String roomId;
+  final bool showRoomDecorHint;
+
+  factory ShopRouteResult.returnedRoom(String roomId) {
+    return ShopRouteResult(roomId: roomId);
+  }
+
+  factory ShopRouteResult.roomDecor(String roomId) {
+    return ShopRouteResult(roomId: roomId, showRoomDecorHint: true);
+  }
+}
+
+class ShopNoticeAction {
+  const ShopNoticeAction({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+}
+
+class ShopNoticeData {
+  ShopNoticeData.shortage({
+    required this.key,
+    required this.title,
+    required this.currency,
+    required this.currentAmount,
+    required this.requiredAmount,
+    this.onDismiss,
+  }) : kind = ShopNoticeKind.shortage,
+       message = null,
+       primaryAction = null;
+
+  ShopNoticeData.success({
+    required this.key,
+    required this.title,
+    this.message,
+    this.primaryAction,
+    this.onDismiss,
+  }) : kind = ShopNoticeKind.success,
+       currency = null,
+       currentAmount = null,
+       requiredAmount = null;
+
+  final Key key;
+  final ShopNoticeKind kind;
+  final String title;
+  final String? message;
+  final ShopCurrency? currency;
+  final int? currentAmount;
+  final int? requiredAmount;
+  final ShopNoticeAction? primaryAction;
+  final VoidCallback? onDismiss;
+}
 
 class ShopView extends StatefulWidget {
   const ShopView({
@@ -57,7 +115,12 @@ class ShopView extends StatefulWidget {
 
 class _ShopViewState extends State<ShopView> {
   final RevenueCatService _revenueCatService = RevenueCatService();
-  static const Duration _storeNoticeDuration = Duration(milliseconds: 2200);
+  static const Duration _storeShortageNoticeDuration = Duration(
+    milliseconds: 2200,
+  );
+  static const Duration _storeSuccessNoticeDuration = Duration(
+    milliseconds: 2200,
+  );
   bool _loading = true;
   bool _purchasing = false;
   String? _error;
@@ -81,7 +144,7 @@ class _ShopViewState extends State<ShopView> {
   Uri? _privacyPolicyUri;
   late final Uri _termsOfUseUri;
   Timer? _storeNoticeTimer;
-  _ShopNoticeData? _storeNotice;
+  ShopNoticeData? _storeNotice;
 
   bool get _hasProAdFreeAccess =>
       widget.isProUser || _activeEntitlements.isNotEmpty;
@@ -109,23 +172,15 @@ class _ShopViewState extends State<ShopView> {
     super.dispose();
   }
 
-  void _showStoreNotice({
-    required String message,
-    required _ShopCurrency currency,
-    required int requiredAmount,
-  }) {
-    final currentAmount = currency == _ShopCurrency.candy ? _coins : _diamonds;
+  void _showStoreNotice(ShopNoticeData notice, {Duration? duration}) {
     _storeNoticeTimer?.cancel();
     _setStoreState(() {
-      _storeNotice = _ShopNoticeData(
-        key: UniqueKey(),
-        message: message,
-        currency: currency,
-        currentAmount: currentAmount,
-        requiredAmount: requiredAmount,
-      );
+      _storeNotice = notice;
     });
-    _storeNoticeTimer = Timer(_storeNoticeDuration, () {
+    if (duration == null) {
+      return;
+    }
+    _storeNoticeTimer = Timer(duration, () {
       if (!mounted) {
         return;
       }
@@ -133,6 +188,51 @@ class _ShopViewState extends State<ShopView> {
         _storeNotice = null;
       });
     });
+  }
+
+  void _showShortageStoreNotice({
+    required String title,
+    required ShopCurrency currency,
+    required int requiredAmount,
+  }) {
+    final currentAmount = currency == ShopCurrency.candy ? _coins : _diamonds;
+    _showStoreNotice(
+      ShopNoticeData.shortage(
+        key: UniqueKey(),
+        title: title,
+        currency: currency,
+        currentAmount: currentAmount,
+        requiredAmount: requiredAmount,
+        onDismiss: _dismissStoreNotice,
+      ),
+      duration: _storeShortageNoticeDuration,
+    );
+  }
+
+  void _showPurchaseSuccessNotice({
+    required ShopItem item,
+    required bool showReturnToRoomAction,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final roomId = widget.roomId;
+    final canReturnToRoom = showReturnToRoomAction && roomId != null;
+    _showStoreNotice(
+      ShopNoticeData.success(
+        key: UniqueKey(),
+        title: l10n.storePurchaseSuccess(item.localizedName(l10n)),
+        message: canReturnToRoom ? l10n.shopReturnToRoomHint : null,
+        primaryAction: canReturnToRoom
+            ? ShopNoticeAction(
+                label: l10n.shopReturnToRoomCta,
+                onPressed: () {
+                  Navigator.of(context).pop(ShopRouteResult.roomDecor(roomId));
+                },
+              )
+            : null,
+        onDismiss: _dismissStoreNotice,
+      ),
+      duration: canReturnToRoom ? null : _storeSuccessNoticeDuration,
+    );
   }
 
   void _dismissStoreNotice() {
@@ -397,10 +497,9 @@ class _ShopViewState extends State<ShopView> {
                     },
                     child: _storeNotice == null
                         ? const SizedBox.shrink()
-                        : _ShopFloatingNotice(
+                        : ShopFloatingNoticeCard(
                             key: _storeNotice!.key,
                             notice: _storeNotice!,
-                            onDismiss: _dismissStoreNotice,
                           ),
                   ),
                 ),
@@ -742,126 +841,124 @@ class _ShopViewState extends State<ShopView> {
   }
 }
 
-class _ShopNoticeData {
-  const _ShopNoticeData({
-    required this.key,
-    required this.message,
-    required this.currency,
-    required this.currentAmount,
-    required this.requiredAmount,
-  });
+class ShopFloatingNoticeCard extends StatelessWidget {
+  const ShopFloatingNoticeCard({super.key, required this.notice});
 
-  final Key key;
-  final String message;
-  final _ShopCurrency currency;
-  final int currentAmount;
-  final int requiredAmount;
-}
-
-class _ShopFloatingNotice extends StatelessWidget {
-  const _ShopFloatingNotice({
-    super.key,
-    required this.notice,
-    required this.onDismiss,
-  });
-
-  final _ShopNoticeData notice;
-  final VoidCallback onDismiss;
+  final ShopNoticeData notice;
 
   @override
   Widget build(BuildContext context) {
-    final bool isCandy = notice.currency == _ShopCurrency.candy;
-    final Color accent = isCandy
-        ? const Color(0xFFFF8A65)
-        : const Color(0xFF4C7DFF);
+    final isShortage = notice.kind == ShopNoticeKind.shortage;
+    final isCandy = notice.currency == ShopCurrency.candy;
+    final accent = switch (notice.kind) {
+      ShopNoticeKind.shortage =>
+        isCandy ? const Color(0xFFFF8A65) : const Color(0xFF4C7DFF),
+      ShopNoticeKind.success => const Color(0xFF3DA66B),
+    };
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
-            onTap: onDismiss,
-            borderRadius: BorderRadius.circular(26),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  top: 5,
-                  left: 0,
-                  right: 0,
-                  bottom: -5,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(28),
-                    ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                top: 5,
+                left: 0,
+                right: 0,
+                bottom: -5,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(28),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.white.withValues(alpha: 0.98),
-                        const Color(0xFFFFF7EA),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.98),
+                      const Color(0xFFFFF7EA),
                     ],
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 54,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              accent.withValues(alpha: 0.22),
-                              accent.withValues(alpha: 0.38),
-                            ],
-                          ),
-                          border: Border.all(
-                            color: accent.withValues(alpha: 0.5),
-                            width: 2,
-                          ),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            accent.withValues(alpha: 0.22),
+                            accent.withValues(alpha: 0.38),
+                          ],
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(11),
-                          child: Image.asset(
-                            isCandy
-                                ? 'assets/shop/icon/candy.png'
-                                : 'assets/shop/icon/diamond.png',
-                          ),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.5),
+                          width: 2,
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _ShopStrokeText(
-                              notice.message,
-                              fontSize: 16,
-                              color: accent,
-                              strokeColor: Colors.white,
-                              strokeWidth: 3,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                      child: isShortage
+                          ? Padding(
+                              padding: const EdgeInsets.all(11),
+                              child: Image.asset(
+                                isCandy
+                                    ? 'assets/shop/icon/candy.png'
+                                    : 'assets/shop/icon/diamond.png',
+                              ),
+                            )
+                          : Icon(Icons.check_rounded, size: 30, color: accent),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _ShopStrokeText(
+                            notice.title,
+                            fontSize: 16,
+                            color: accent,
+                            strokeColor: Colors.white,
+                            strokeWidth: 3,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (notice.message != null &&
+                              notice.message!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              notice.message!,
+                              style: GoogleFonts.mPlusRounded1c(
+                                color: const Color(0xFF5A4A42),
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                height: 1.3,
+                              ),
                             ),
+                          ],
+                          if (isShortage &&
+                              notice.currentAmount != null &&
+                              notice.requiredAmount != null) ...[
                             const SizedBox(height: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -908,36 +1005,72 @@ class _ShopFloatingNotice extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (notice.primaryAction != null) ...[
+                            const SizedBox(height: 10),
+                            FilledButton.tonal(
+                              onPressed: notice.primaryAction!.onPressed,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: accent.withValues(alpha: 0.14),
+                                foregroundColor: accent,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                textStyle: GoogleFonts.mPlusRounded1c(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              child: Text(notice.primaryAction!.label),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (notice.onDismiss != null) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: notice.onDismiss,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(
+                          width: 28,
+                          height: 28,
+                        ),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: accent.withValues(alpha: 0.85),
                         ),
                       ),
                     ],
+                  ],
+                ),
+              ),
+              Positioned(
+                top: -8,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Text(
+                    isShortage ? '!' : 'OK',
+                    style: GoogleFonts.mPlusRounded1c(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-                Positioned(
-                  top: -8,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: accent,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: Text(
-                      '!',
-                      style: GoogleFonts.mPlusRounded1c(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1163,7 +1296,10 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
               final parallaxOffset = _scrollOffset * 0.15;
 
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
@@ -1175,10 +1311,7 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 4,
-                  ),
+                  border: Border.all(color: Colors.white, width: 4),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF303F9F).withValues(alpha: 0.1),
@@ -1212,6 +1345,28 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                         ),
                       ),
 
+                      Positioned(
+                        top: 18,
+                        right: 24,
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          alignment: WrapAlignment.end,
+                          children: [
+                            _ShopBannerPill(
+                              label: l10n.storeTabPremium.toUpperCase(),
+                              textColor: const Color(0xFFFB8C00),
+                              borderColor: const Color(0xFFFB8C00),
+                            ),
+                            if (isSubscribed)
+                              _ShopBannerPill(
+                                label: l10n.storeSubscriptionActive,
+                                textColor: const Color(0xFF2E7D32),
+                                borderColor: const Color(0xFF66BB6A),
+                              ),
+                          ],
+                        ),
+                      ),
                       // Main Content Area
                       Positioned(
                         right: 16,
@@ -1236,7 +1391,6 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                               ),
                             ),
                             const SizedBox(height: 8), // Reduced spacing
-                            
                             // Visual Benefits List
                             Expanded(
                               child: Column(
@@ -1244,7 +1398,8 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                 children: [
                                   _BenefitItem(
                                     icon: Icons.meeting_room_rounded,
-                                    text: l10n.storePremiumBenefitUnlimitedRooms,
+                                    text:
+                                        l10n.storePremiumBenefitUnlimitedRooms,
                                   ),
                                   _BenefitItem(
                                     icon: Icons.block_rounded,
@@ -1252,7 +1407,8 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                   ),
                                   _BenefitItem(
                                     icon: Icons.star_rounded,
-                                    text: l10n.storePremiumBenefitExclusiveItems,
+                                    text:
+                                        l10n.storePremiumBenefitExclusiveItems,
                                   ),
                                 ],
                               ),
@@ -1292,14 +1448,17 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                   child: Center(
                                     child: Wrap(
                                       alignment: WrapAlignment.center,
-                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
                                       children: [
                                         if (!isSubscribed) ...[
                                           _ShopStrokeText(
                                             priceString,
                                             fontSize: 16,
                                             color: Colors.white,
-                                            strokeColor: const Color(0xFFD54900),
+                                            strokeColor: const Color(
+                                              0xFFD54900,
+                                            ),
                                             strokeWidth: 3,
                                           ),
                                           const SizedBox(width: 8),
@@ -1322,7 +1481,9 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                               child: Text(
                                 '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
                                 style: GoogleFonts.mPlusRounded1c(
-                                  color: const Color(0xFF303F9F).withValues(alpha: 0.7),
+                                  color: const Color(
+                                    0xFF303F9F,
+                                  ).withValues(alpha: 0.7),
                                   fontSize: 8,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -1406,6 +1567,40 @@ class _BenefitItem extends StatelessWidget {
   }
 }
 
+class _ShopBannerPill extends StatelessWidget {
+  const _ShopBannerPill({
+    required this.label,
+    required this.textColor,
+    required this.borderColor,
+  });
+
+  final String label;
+  final Color textColor;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor, width: 1.5),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.mPlusRounded1c(
+          color: textColor,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.4,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
 class _StarryBackgroundPainter extends CustomPainter {
   _StarryBackgroundPainter({required this.scrollOffset});
   final double scrollOffset;
@@ -1413,24 +1608,29 @@ class _StarryBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final random = math.Random(42);
-    
+
     // Draw soft bubbles/circles
     for (var i = 0; i < 15; i++) {
       final bubblePaint = Paint()
-        ..color = Colors.white.withValues(alpha: random.nextDouble() * 0.15 + 0.05);
-      
+        ..color = Colors.white.withValues(
+          alpha: random.nextDouble() * 0.15 + 0.05,
+        );
+
       final radius = 10.0 + random.nextDouble() * 30.0;
       final x = random.nextDouble() * size.width;
-      final y = (random.nextDouble() * size.height + scrollOffset * 0.5) % size.height;
-      
+      final y =
+          (random.nextDouble() * size.height + scrollOffset * 0.5) %
+          size.height;
+
       canvas.drawCircle(Offset(x, y), radius, bubblePaint);
     }
-    
+
     // Add some tiny sparkles
     final sparklePaint = Paint()..color = Colors.white.withValues(alpha: 0.4);
     for (var i = 0; i < 20; i++) {
       final x = random.nextDouble() * size.width;
-      final y = (random.nextDouble() * size.height + scrollOffset) % size.height;
+      final y =
+          (random.nextDouble() * size.height + scrollOffset) % size.height;
       canvas.drawCircle(Offset(x, y), 1.5, sparklePaint);
     }
   }

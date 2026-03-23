@@ -160,6 +160,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   int? _petExp;
   int _coins = 1234;
   int _diamonds = 0;
+  bool _showRoomDecorHint = false;
+  String? _roomDecorHintRoomId;
   bool _isDebugAdmin = false;
   bool _debugProPlan = false;
   bool _debugAlwaysShowOnboarding = false;
@@ -2335,8 +2337,39 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
+  void _queueRoomDecorHint(String roomId) {
+    if (!mounted) {
+      _showRoomDecorHint = true;
+      _roomDecorHintRoomId = roomId;
+      return;
+    }
+    setState(() {
+      _showRoomDecorHint = true;
+      _roomDecorHintRoomId = roomId;
+    });
+  }
+
+  void _dismissRoomDecorHint() {
+    if (!mounted) {
+      _showRoomDecorHint = false;
+      _roomDecorHintRoomId = null;
+      return;
+    }
+    if (!_showRoomDecorHint && _roomDecorHintRoomId == null) {
+      return;
+    }
+    setState(() {
+      _showRoomDecorHint = false;
+      _roomDecorHintRoomId = null;
+    });
+  }
+
+  bool _shouldShowRoomDecorHintFor(String roomId) {
+    return _showRoomDecorHint && _roomDecorHintRoomId == roomId;
+  }
+
   Future<void> _openStoreWithDepartures() async {
-    final returnedRoomId = await Navigator.of(context).push<String>(
+    final result = await Navigator.of(context).push<ShopRouteResult>(
       MaterialPageRoute(
         builder: (_) => ShopView(
           roomId: _roomId,
@@ -2349,6 +2382,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!mounted) {
       return;
     }
+    final returnedRoomId = result?.roomId;
     if (returnedRoomId != null && returnedRoomId.isNotEmpty) {
       if (_showRoomSelection) {
         setState(() {
@@ -2357,6 +2391,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       if (_roomId != returnedRoomId) {
         _switchRoom(returnedRoomId, showEntryLoading: true);
+      }
+      if (result?.showRoomDecorHint == true) {
+        _queueRoomDecorHint(returnedRoomId);
       }
     }
     await _refreshProPlanStatus();
@@ -3033,6 +3070,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (roomId == null) {
       return;
     }
+    _dismissRoomDecorHint();
     setState(() => _furnitureMode = true);
     _furnitureWiggleController.repeat(reverse: true);
     unawaited(_loadFurnitureInventory());
@@ -4261,6 +4299,14 @@ class _HomeViewState extends ConsumerState<HomeView>
                       inviteLoading: _inviteCodeLoading,
                       onInventoryTap: _openFurnitureInventory,
                       inventoryLabel: l10n.roomInventoryCta,
+                      showInventoryGuidance: _shouldShowRoomDecorHintFor(
+                        activeRoomId,
+                      ),
+                      inventoryGuidanceTitle: l10n.roomDecorHintTitle,
+                      inventoryGuidanceBody: l10n.roomDecorHintBody(
+                        l10n.roomInventoryCta,
+                      ),
+                      onInventoryGuidanceDismiss: _dismissRoomDecorHint,
                     );
                   },
                 ),
@@ -4549,8 +4595,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                     ),
                     ListTile(
                       title: Text(l10n.drawerDebugAddDiamonds),
-                      onTap:
-                          () => _debugUpdateProfileBalances(diamondDelta: 100),
+                      onTap: () =>
+                          _debugUpdateProfileBalances(diamondDelta: 100),
                     ),
                     SwitchListTile(
                       contentPadding: const EdgeInsets.only(left: 16, right: 8),

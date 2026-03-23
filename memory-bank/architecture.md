@@ -26,6 +26,7 @@ Implemented:
   - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).
   - `lib/features/home/providers/home_currency_provider.dart`: Riverpod currency snapshot for Home (coins, diamonds, coin reward amount/event id).
+  - `lib/features/home/widgets/home_game_status_bar.dart`: Pet Home status bar now supports an in-place room-decor guidance bubble beside the inventory/backpack chip, allowing Home to teach users how to enter room edit mode immediately after returning from a Shop furniture/background purchase.
 - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
   - Feed uploads now precompute client-side WebP compression right after image pick and reuse it on send; profile selection early-exits on target/cap-safe size to keep reward feedback responsive.
   - Feed camera callback dispatch is now fail-safe: optimistic/upload callbacks are reported through `FlutterError` if they throw, but they no longer block the route from popping back to Pet Home.
@@ -44,6 +45,7 @@ Implemented:
     - `lib/features/chat/widgets/chat_message_envelope.dart`: Shared chat row wrapper that owns sent/received alignment, the fixed received-avatar slot, and the reaction-bar attachment point used by the active chat route.
   - `lib/features/shop/`: In-app Shop surface for cosmetics, consumables, backgrounds, furniture, and RevenueCat-backed purchases.
     - The former `store` feature module has been renamed to `shop` across feature-owned files, types, imports, tests, and `assets/shop/icon/*` references, while external compatibility-sensitive contracts such as `store_purchase` message kinds and App Store/legal URLs intentionally retain their existing names.
+    - Shop purchase feedback now uses a shared floating notice model for both insufficient-funds and purchase-success states. Successful room-scoped cosmetic purchases can attach a `Return to room` CTA and pop back to Home with a typed `ShopRouteResult` that requests the follow-up room-decor hint.
     - Legacy `ChatRoomView` / `ChatMessageList` / `ChatMessageTile` files were removed after the V2 rollout, so there is no longer a parallel legacy chat-room stack in the repo.
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.

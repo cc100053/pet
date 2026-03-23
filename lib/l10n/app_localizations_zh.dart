@@ -1064,6 +1064,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get shopReturnToRoomCta => '返回房间';
+
+  @override
+  String get shopReturnToRoomHint => '回到宠物房间后就可以开始布置。';
+
+  @override
   String storeRestoreFailed(Object error) {
     return '復原失敗：$error';
   }
@@ -1261,6 +1267,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get roomInventoryTitle => '房间背包';
+
+  @override
+  String get roomDecorHintTitle => '开始布置房间';
+
+  @override
+  String roomDecorHintBody(Object buttonLabel) {
+    return '点一下 $buttonLabel 进入房间修改模式，然后摆放家具或套用背景。';
+  }
 
   @override
   String get inventoryTabFurniture => '家具';
@@ -2524,6 +2538,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
+  String get shopReturnToRoomCta => '返回房間';
+
+  @override
+  String get shopReturnToRoomHint => '回到寵物房間後就可以開始佈置。';
+
+  @override
   String storeRestoreFailed(Object error) {
     return '復原失敗：$error';
   }
@@ -2721,6 +2741,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomInventoryTitle => '房間背包';
+
+  @override
+  String get roomDecorHintTitle => '開始佈置房間';
+
+  @override
+  String roomDecorHintBody(Object buttonLabel) {
+    return '點一下 $buttonLabel 進入房間修改模式，然後擺放家具或套用背景。';
+  }
 
   @override
   String get inventoryTabFurniture => '家具';

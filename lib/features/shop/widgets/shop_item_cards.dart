@@ -240,8 +240,8 @@ extension _ShopItemCards on _ShopViewState {
         ? null
         : _findStoreProductByProductId(productId);
     final priceString = item.localizedIapPrice(package, storeProduct, l10n);
-    final canAffordCoins = _canAfford(item, _ShopCurrency.candy);
-    final canAffordDiamonds = _canAfford(item, _ShopCurrency.diamonds);
+    final canAffordCoins = _canAfford(item, ShopCurrency.candy);
+    final canAffordDiamonds = _canAfford(item, ShopCurrency.diamonds);
     final canBuyIap =
         _iapConfigured &&
         !_purchasing &&

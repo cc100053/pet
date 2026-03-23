@@ -1067,6 +1067,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get shopReturnToRoomCta => 'ルームに戻る';
+
+  @override
+  String get shopReturnToRoomHint => 'ペットルームに戻って模様替えを始めましょう。';
+
+  @override
   String storeRestoreFailed(Object error) {
     return '復元に失敗しました: $error';
   }
@@ -1267,6 +1273,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomInventoryTitle => 'ルーム在庫';
+
+  @override
+  String get roomDecorHintTitle => 'ルームを飾ろう';
+
+  @override
+  String roomDecorHintBody(Object buttonLabel) {
+    return '$buttonLabel をタップしてルーム編集モードに入り、家具を置いたり背景を適用したりしましょう。';
+  }
 
   @override
   String get inventoryTabFurniture => '家具';

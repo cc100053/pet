@@ -595,6 +595,8 @@
       "name": {}
     }
   },
+  "shopReturnToRoomCta": "返回房间",
+  "shopReturnToRoomHint": "回到宠物房间后就可以开始布置。",
   "storeRestoreFailed": "復原失敗：{error}",
   "@storeRestoreFailed": {
     "placeholders": {
@@ -675,6 +677,13 @@
   "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
   "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。",
   "roomInventoryTitle": "房间背包",
+  "roomDecorHintTitle": "开始布置房间",
+  "roomDecorHintBody": "点一下 {buttonLabel} 进入房间修改模式，然后摆放家具或套用背景。",
+  "@roomDecorHintBody": {
+    "placeholders": {
+      "buttonLabel": {}
+    }
+  },
   "inventoryTabFurniture": "家具",
   "backgroundGalleryTab": "背景圖庫",
   "backgroundInventoryEmpty": "還沒有背景，去商店看看吧。",

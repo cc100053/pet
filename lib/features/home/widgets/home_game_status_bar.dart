@@ -32,6 +32,10 @@ class HomeGameStatusBar extends StatelessWidget {
     this.inviteLoading = false,
     this.onInventoryTap,
     this.inventoryLabel,
+    this.showInventoryGuidance = false,
+    this.inventoryGuidanceTitle,
+    this.inventoryGuidanceBody,
+    this.onInventoryGuidanceDismiss,
   });
 
   final Widget petAvatar;
@@ -50,6 +54,10 @@ class HomeGameStatusBar extends StatelessWidget {
   final bool inviteLoading;
   final VoidCallback? onInventoryTap;
   final String? inventoryLabel;
+  final bool showInventoryGuidance;
+  final String? inventoryGuidanceTitle;
+  final String? inventoryGuidanceBody;
+  final VoidCallback? onInventoryGuidanceDismiss;
 
   /// When set, triggers the coin reward animation showing "+X" and bounce.
   /// Treated as a one-shot trigger; it can be cleared on the next frame.
@@ -83,6 +91,10 @@ class HomeGameStatusBar extends StatelessWidget {
               inviteLoading: inviteLoading,
               onInventoryTap: onInventoryTap,
               inventoryLabel: inventoryLabel,
+              showInventoryGuidance: showInventoryGuidance,
+              inventoryGuidanceTitle: inventoryGuidanceTitle,
+              inventoryGuidanceBody: inventoryGuidanceBody,
+              onInventoryGuidanceDismiss: onInventoryGuidanceDismiss,
             ),
           ),
           Gap(8 * scale),
@@ -116,6 +128,10 @@ class _LeftCluster extends StatelessWidget {
     required this.inviteLoading,
     this.onInventoryTap,
     this.inventoryLabel,
+    required this.showInventoryGuidance,
+    this.inventoryGuidanceTitle,
+    this.inventoryGuidanceBody,
+    this.onInventoryGuidanceDismiss,
   });
 
   final Widget petAvatar;
@@ -129,6 +145,10 @@ class _LeftCluster extends StatelessWidget {
   final bool inviteLoading;
   final VoidCallback? onInventoryTap;
   final String? inventoryLabel;
+  final bool showInventoryGuidance;
+  final String? inventoryGuidanceTitle;
+  final String? inventoryGuidanceBody;
+  final VoidCallback? onInventoryGuidanceDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -249,6 +269,16 @@ class _LeftCluster extends StatelessWidget {
                       ],
                     ),
                   ],
+                  if (showInventoryGuidance &&
+                      inventoryGuidanceTitle != null &&
+                      inventoryGuidanceBody != null) ...[
+                    Gap(8 * scale),
+                    _InventoryGuidanceBubble(
+                      title: inventoryGuidanceTitle!,
+                      body: inventoryGuidanceBody!,
+                      onDismiss: onInventoryGuidanceDismiss,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -344,6 +374,96 @@ class _ActionChip extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InventoryGuidanceBubble extends StatelessWidget {
+  const _InventoryGuidanceBubble({
+    required this.title,
+    required this.body,
+    this.onDismiss,
+  });
+
+  final String title;
+  final String body;
+  final VoidCallback? onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    return Container(
+      constraints: BoxConstraints(maxWidth: 220 * scale),
+      padding: EdgeInsets.fromLTRB(
+        12 * scale,
+        10 * scale,
+        8 * scale,
+        10 * scale,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E6).withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF2A53A), width: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 16 * scale,
+            color: const Color(0xFF9A5D00),
+          ),
+          Gap(8 * scale),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 11.5 * scale,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF7A4600),
+                    height: 1.1,
+                  ),
+                ),
+                Gap(4 * scale),
+                Text(
+                  body,
+                  style: TextStyle(
+                    fontSize: 10.5 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF6F563B),
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onDismiss != null)
+            IconButton(
+              onPressed: onDismiss,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints.tightFor(
+                width: 20 * scale,
+                height: 20 * scale,
+              ),
+              icon: Icon(
+                Icons.close_rounded,
+                size: 15 * scale,
+                color: const Color(0xFF9A5D00),
+              ),
+            ),
+        ],
       ),
     );
   }
