@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatMessage;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
@@ -99,7 +100,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     with WidgetsBindingObserver {
   static const int _pageSize = 20;
   static const int _maxVisibleMessages = 80;
-  static const double _viewportAnchorMinVisibleHeight = 1;
   static const Duration _replyJumpDuration = Duration(milliseconds: 360);
   static const Curve _replyJumpCurve = Curves.easeInOutCubic;
 
@@ -107,6 +107,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       ChatMessageActionService.instance;
   final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
   final ScrollController _chatScrollController = ScrollController();
+  late final ListObserverController _observerController;
+  late final ChatScrollObserver _chatObserver;
   final TextEditingController _composerController = TextEditingController();
   final FocusNode _composerFocusNode = FocusNode();
   final GlobalKey _composerSurfaceKey = GlobalKey();
@@ -171,20 +173,25 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   }
 
   double _resolvedComposerBottomInset(MediaQueryData media) {
-    if (media.viewInsets.bottom > media.padding.bottom) {
-      return 0;
+    if (media.viewInsets.bottom > 0) {
+      // When keyboard is open, push composer up by keyboard height + extra gap
+      return media.viewInsets.bottom + 10;
     }
     return media.padding.bottom + 8;
   }
 
   double _resolvedListBottomPadding(MediaQueryData media) {
-    final listBottomInset = _resolvedComposerBottomInset(media) + 8;
-    return listBottomInset + _composerHeight + 8;
+    // The list needs to end where the composer starts
+    return _resolvedComposerBottomInset(media) + _composerHeight + 8;
   }
 
   @override
   void initState() {
     super.initState();
+    _observerController = ListObserverController(
+      controller: _chatScrollController,
+    );
+    _chatObserver = ChatScrollObserver(_observerController);
     WidgetsBinding.instance.addObserver(this);
     _memberCount = widget.memberCount;
     _chatScrollController.addListener(_handleChatScroll);
@@ -471,14 +478,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return;
     }
 
-    final viewportAnchor = _captureViewportAnchor();
-    final previousMaxExtent = _chatScrollController.hasClients
-        ? _chatScrollController.position.maxScrollExtent
-        : null;
-    final previousOffset = _chatScrollController.hasClients
-        ? _chatScrollController.position.pixels
-        : null;
-
     if (mounted) {
       setState(() {
         _loadingMore = true;
@@ -505,11 +504,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       unawaited(_ensureReplyPreviewsForMessages(_messages));
       unawaited(_ensureReactionSummariesForMessages(_messages));
       unawaited(_captureMemorySnapshot(source: 'chat_load_more_window_shift'));
-      _schedulePreserveViewport(
-        anchor: viewportAnchor,
-        previousMaxExtent: previousMaxExtent,
-        previousOffset: previousOffset,
-      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -575,6 +569,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return;
     }
     _rebuildMessageIndex();
+    _chatObserver.standby();
     await _chatController.setMessages(
       _toUiMessages(_messages),
       animated: animated,
@@ -1903,20 +1898,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return;
     }
     final shouldKeepLatestVisible = _shouldKeepLatestVisible();
-    final anchor = shouldKeepLatestVisible ? null : _captureViewportAnchor();
+    _chatObserver.standby();
     setState(() => _composerHeight = height);
     if (shouldKeepLatestVisible) {
       _scheduleViewportSync(
         stickToLatest: true,
-        animated: false,
-        followUpFrames: 2,
-      );
-      return;
-    }
-    if (anchor != null) {
-      _scheduleViewportSync(
-        stickToLatest: false,
-        anchor: anchor,
         animated: false,
         followUpFrames: 2,
       );
@@ -1935,139 +1921,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     return position.pixels <= tolerance;
   }
 
-  _ViewportAnchor? _captureViewportAnchor() {
-    if (!mounted || !_chatScrollController.hasClients) {
-      return null;
-    }
-
-    final media = MediaQuery.of(context);
-    final viewportTop = _resolvedListTopPadding(media);
-    final viewportBottom = _resolvedVisibleContentBottom(media);
-    if (viewportBottom <= viewportTop) {
-      return null;
-    }
-
-    final viewportCenter = (viewportTop + viewportBottom) / 2;
-    _ViewportAnchor? bestAnchor;
-    var bestScore = double.infinity;
-
-    for (final message in _messages) {
-      final rect = _messageGlobalRect(message.id);
-      if (rect == null) {
-        continue;
-      }
-      final visibleTop = rect.top < viewportTop ? viewportTop : rect.top;
-      final visibleBottom = rect.bottom > viewportBottom
-          ? viewportBottom
-          : rect.bottom;
-      final visibleHeight = visibleBottom - visibleTop;
-      if (visibleHeight >= _viewportAnchorMinVisibleHeight) {
-        final visibleMidpoint = (visibleTop + visibleBottom) / 2;
-        final score = (visibleMidpoint - viewportCenter).abs();
-        if (score < bestScore) {
-          bestScore = score;
-          final anchorGlobalY = viewportCenter.clamp(visibleTop, visibleBottom);
-          bestAnchor = _ViewportAnchor(
-            messageId: message.id,
-            globalY: anchorGlobalY,
-            messageLocalY: anchorGlobalY - rect.top,
-          );
-        }
-      }
-    }
-    return bestAnchor;
-  }
-
-  Rect? _messageGlobalRect(String messageId) {
-    final renderObject = _messageAnchorKeys[messageId]?.currentContext
-        ?.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.attached) {
-      return null;
-    }
-    final topLeft = renderObject.localToGlobal(Offset.zero);
-    return topLeft & renderObject.size;
-  }
-
-  bool _restoreViewportAnchor(_ViewportAnchor anchor) {
-    if (!_chatScrollController.hasClients) {
-      return false;
-    }
-    final rect = _messageGlobalRect(anchor.messageId);
-    if (rect == null) {
-      return false;
-    }
-    final resolvedMessageLocalY = anchor.messageLocalY.clamp(0.0, rect.height);
-    final delta = (rect.top + resolvedMessageLocalY) - anchor.globalY;
-    if (delta.abs() <= 0.5) {
-      return true;
-    }
-    final position = _chatScrollController.position;
-    final target = (position.pixels + delta).clamp(
-      position.minScrollExtent,
-      position.maxScrollExtent,
-    );
-    if ((position.pixels - target).abs() <= 0.5) {
-      return true;
-    }
-    _chatScrollController.jumpTo(target);
-    return true;
-  }
-
-  bool _isViewportAnchorAligned(_ViewportAnchor anchor) {
-    final rect = _messageGlobalRect(anchor.messageId);
-    if (rect == null) {
-      return false;
-    }
-    final resolvedMessageLocalY = anchor.messageLocalY.clamp(0.0, rect.height);
-    return ((rect.top + resolvedMessageLocalY) - anchor.globalY).abs() <= 0.5;
-  }
-
-  void _schedulePreserveViewport({
-    required _ViewportAnchor? anchor,
-    required double? previousMaxExtent,
-    required double? previousOffset,
-  }) {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || !_chatScrollController.hasClients) {
-        return;
-      }
-      if (anchor != null) {
-        for (var attempt = 0; attempt < 3; attempt += 1) {
-          _restoreViewportAnchor(anchor);
-          await WidgetsBinding.instance.endOfFrame;
-          if (!mounted || !_chatScrollController.hasClients) {
-            return;
-          }
-        }
-        if (_isViewportAnchorAligned(anchor)) {
-          return;
-        }
-      }
-      // In reverse: true mode, we don't need manual scroll extent compensation
-      // because the anchor is at the bottom (0.0). Adding items at the 
-      // maxScrollExtent (older messages) doesn't shift the current pixels 
-      // relative to the bottom.
-      
-      if (anchor == null) {
-        return;
-      }
-      for (var attempt = 0; attempt < 3; attempt += 1) {
-        _restoreViewportAnchor(anchor);
-        await WidgetsBinding.instance.endOfFrame;
-        if (!mounted || !_chatScrollController.hasClients) {
-          return;
-        }
-        if (_isViewportAnchorAligned(anchor)) {
-          return;
-        }
-      }
-    });
-  }
-
   void _scheduleViewportSync({
     required bool stickToLatest,
     required bool animated,
-    _ViewportAnchor? anchor,
+    dynamic anchor,
     int followUpFrames = 0,
   }) {
     if (stickToLatest &&
@@ -2160,16 +2017,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
   Future<void> _runViewportSyncStep({
     required bool stickToLatest,
-    required _ViewportAnchor? anchor,
+    required dynamic anchor,
     required bool animated,
   }) async {
     if (!_chatScrollController.hasClients || !mounted) {
       return;
     }
     if (!stickToLatest) {
-      if (anchor != null) {
-        _restoreViewportAnchor(anchor);
-      }
       return;
     }
     await _scrollLatestMessageToVisibleBottom(animated: animated);
@@ -2183,18 +2037,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     }
     final origin = renderObject.localToGlobal(Offset.zero);
     return origin & renderObject.size;
-  }
-
-  double _resolvedVisibleContentBottom(MediaQueryData media) {
-    const bottomGap = 8.0;
-    final composerRect = _globalRectForKey(_composerInteractionRegionKey);
-    if (composerRect != null) {
-      return composerRect.top - bottomGap;
-    }
-    return media.size.height -
-        media.viewInsets.bottom -
-        media.padding.bottom -
-        bottomGap;
   }
 
   Future<void> _scrollLatestMessageToVisibleBottom({
@@ -2346,7 +2188,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       value: overlayStyle,
       child: Scaffold(
         backgroundColor: scaffoldBackground,
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -2647,6 +2489,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                             itemBuilder: itemBuilder,
                             messages: uiMessages,
                             scrollController: _chatScrollController,
+                            observerController: _observerController,
                             topPadding: listTopPadding,
                             bottomPadding: listBottomPadding,
                             onMessageLongPress: (message, details) =>
@@ -2815,18 +2658,6 @@ class _FetchedMessagePage {
 
   final List<ChatMessage> messages;
   final bool hasMoreOlder;
-}
-
-class _ViewportAnchor {
-  const _ViewportAnchor({
-    required this.messageId,
-    required this.globalY,
-    required this.messageLocalY,
-  });
-
-  final String messageId;
-  final double globalY;
-  final double messageLocalY;
 }
 
 class _ChatHistoryLoadingOverlay extends StatelessWidget {

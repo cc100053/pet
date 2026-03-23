@@ -1246,7 +1246,7 @@ packages:
     source: hosted
     version: "0.28.0"
   scrollview_observer:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: scrollview_observer
       sha256: "6e40ced415145c449a691d892157a3b854b751f024aed20d9aebda04c21444a3"

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:intl/intl.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
 
 import 'chat_keyboard_dismiss_shell.dart';
 
@@ -58,6 +59,7 @@ class DeterministicChatList extends StatelessWidget {
     required this.scrollController,
     required this.topPadding,
     required this.bottomPadding,
+    this.observerController,
     this.onMessageLongPress,
   });
 
@@ -66,13 +68,15 @@ class DeterministicChatList extends StatelessWidget {
   final ScrollController scrollController;
   final double topPadding;
   final double bottomPadding;
+  final ListObserverController? observerController;
   final DeterministicChatListItemLongPressCallback? onMessageLongPress;
 
   @override
   Widget build(BuildContext context) {
-    final physics = const RangeMaintainingScrollPhysics().applyTo(
-      ScrollConfiguration.of(context).getScrollPhysics(context),
-    );
+    // RangeMaintainingScrollPhysics can sometimes overcompensate and cause jumps 
+    // in a reverse: true list when elements are added to the maxScrollExtent.
+    // Using the default physics allows the native bottom-anchoring to work smoothly.
+    final physics = ScrollConfiguration.of(context).getScrollPhysics(context);
 
     // Group messages with date separators
     final List<Widget> items = [];
@@ -81,6 +85,7 @@ class DeterministicChatList extends StatelessWidget {
       
       items.add(
         _DeterministicChatListItem(
+          key: ValueKey('chatItem_${message.id}'),
           message: message,
           onLongPress: onMessageLongPress,
           child: itemBuilder(
@@ -93,20 +98,32 @@ class DeterministicChatList extends StatelessWidget {
       );
 
       if (_shouldShowDateSeparatorAfter(index)) {
-        items.add(_DateSeparator(date: _separatorTimeFor(message)));
+        final time = _separatorTimeFor(message);
+        if (time != null) {
+          items.add(
+            _DateSeparator(
+              key: ValueKey('dateSeparator_${time.toIso8601String()}'),
+              date: time,
+            ),
+          );
+        }
       }
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return ListView.builder(
-          controller: scrollController,
-          physics: physics,
-          reverse: true, // Key to anchoring at the bottom
-          padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-          keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
-          itemCount: items.length,
-          itemBuilder: (context, index) => items[index],
+        return ListViewObserver(
+          controller: observerController,
+          child: ListView.builder(
+            controller: scrollController,
+            physics: physics,
+            reverse: true, // Key to anchoring at the bottom
+            cacheExtent: 2500, // Pre-render items to prevent jitter on load-more
+            padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
+            keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
+            itemCount: items.length,
+            itemBuilder: (context, index) => items[index],
+          ),
         );
       },
     );
@@ -137,6 +154,7 @@ class DeterministicChatList extends StatelessWidget {
 
 class _DeterministicChatListItem extends StatelessWidget {
   const _DeterministicChatListItem({
+    super.key,
     required this.message,
     required this.child,
     this.onLongPress,
@@ -160,7 +178,7 @@ class _DeterministicChatListItem extends StatelessWidget {
 }
 
 class _DateSeparator extends StatelessWidget {
-  const _DateSeparator({required this.date});
+  const _DateSeparator({super.key, required this.date});
 
   final DateTime? date;
 
