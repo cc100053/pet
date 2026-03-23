@@ -128,7 +128,7 @@ class CachedNetworkImageView extends StatelessWidget {
     required double? explicit,
     required double maxConstraint,
   }) {
-    if (explicit != null && explicit > 0) {
+    if (explicit != null && explicit.isFinite && explicit > 0) {
       return explicit;
     }
     if (maxConstraint.isFinite && maxConstraint > 0) {

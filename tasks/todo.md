@@ -1,5 +1,26 @@
 # TODO
 
+# Plan (2026-03-23 Fix Memory Photo Infinity Cache Size Crash)
+- [x] Trace the Memory photo crash path and confirm which `CachedNetworkImageView` call site can feed `Infinity` or `NaN` into cache-size rounding.
+- [x] Harden shared cache-size resolution so explicit non-finite dimensions fall back to layout constraints instead of crashing.
+- [x] Add focused regression coverage, update memory-bank notes, run `flutter analyze` and `flutter test`, and record the verification below.
+
+# Review (2026-03-23 Fix Memory Photo Infinity Cache Size Crash)
+- [x] Implemented and verified.
+- Root cause:
+  - `Memory` day-sheet photos pass `width: double.infinity` into `CachedNetworkImageView` so the image can fill the available sheet width.
+  - `_resolveDimension(...)` accepted any explicit size greater than zero, including `double.infinity`, and `_resolveCacheSize(...)` later called `.round()` on that non-finite value.
+  - That produced the Crashlytics `Unsupported operation: Infinity or NaN toInt` failure in `CachedNetworkImageView._resolveCacheSize`.
+- Fix:
+  - Treat explicit dimensions as valid only when they are finite and positive.
+  - When callers pass `double.infinity`, fall back to the finite layout constraint from `LayoutBuilder`, preserving the intended full-width layout without crashing the cache-size calculation.
+  - Added a widget regression that covers the `width: double.infinity` path and asserts no exception is thrown.
+- Verification:
+  - `flutter test test/shared/ui/cached_network_image_view_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-23 Add Store Insufficient Funds Feedback)
 - [x] Keep non-IAP store grid buy taps active when the user lacks enough candy or diamonds so the existing localized snackbar feedback can surface.
 - [x] Add focused widget coverage for coin-shortage, diamond-shortage, and owned-item tap behavior in the store grid card.

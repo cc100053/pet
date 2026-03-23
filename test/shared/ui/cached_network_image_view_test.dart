@@ -71,6 +71,36 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('ignores infinite explicit width when resolving cache size', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 180,
+            child: CachedNetworkImageView(
+              imageUrl: 'https://example.com/image.jpg',
+              width: double.infinity,
+              height: 200,
+              cacheManager: _NotFoundCacheManager(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.memCacheWidth, 360);
+    expect(image.memCacheHeight, 400);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _NotFoundCacheManager implements BaseCacheManager {
