@@ -370,6 +370,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugTools => '디버그 도구';
 
   @override
+  String get drawerDebugCategorySimulation => '시뮬레이션 및 테스트';
+
+  @override
+  String get drawerDebugCategoryUser => '사용자 및 플랜';
+
+  @override
+  String get drawerDebugCategoryPet => '펫 상태';
+
+  @override
+  String get drawerDebugCategoryMemory => '메모리 진단';
+
+  @override
+  String get drawerDebugCategorySystem => '업데이트 및 시스템';
+
+  @override
   String get drawerFreePlan => '무료 플랜';
 
   @override

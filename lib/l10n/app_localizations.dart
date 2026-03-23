@@ -727,6 +727,36 @@ abstract class AppLocalizations {
   /// **'Debug Tools'**
   String get drawerDebugTools;
 
+  /// No description provided for @drawerDebugCategorySimulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Simulation & Testing'**
+  String get drawerDebugCategorySimulation;
+
+  /// No description provided for @drawerDebugCategoryUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User & Plan'**
+  String get drawerDebugCategoryUser;
+
+  /// No description provided for @drawerDebugCategoryPet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet Status'**
+  String get drawerDebugCategoryPet;
+
+  /// No description provided for @drawerDebugCategoryMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory Diagnostics'**
+  String get drawerDebugCategoryMemory;
+
+  /// No description provided for @drawerDebugCategorySystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Update & System'**
+  String get drawerDebugCategorySystem;
+
   /// No description provided for @drawerFreePlan.
   ///
   /// In en, this message translates to:

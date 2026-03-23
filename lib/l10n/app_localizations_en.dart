@@ -378,6 +378,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTools => 'Debug Tools';
 
   @override
+  String get drawerDebugCategorySimulation => 'Simulation & Testing';
+
+  @override
+  String get drawerDebugCategoryUser => 'User & Plan';
+
+  @override
+  String get drawerDebugCategoryPet => 'Pet Status';
+
+  @override
+  String get drawerDebugCategoryMemory => 'Memory Diagnostics';
+
+  @override
+  String get drawerDebugCategorySystem => 'Update & System';
+
+  @override
   String get drawerFreePlan => 'Free Plan';
 
   @override

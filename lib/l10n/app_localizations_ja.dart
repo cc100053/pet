@@ -364,6 +364,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTools => 'デバッグツール';
 
   @override
+  String get drawerDebugCategorySimulation => 'シミュレーションとテスト';
+
+  @override
+  String get drawerDebugCategoryUser => 'ユーザーとプラン';
+
+  @override
+  String get drawerDebugCategoryPet => 'ペットのステータス';
+
+  @override
+  String get drawerDebugCategoryMemory => 'メモリ診断';
+
+  @override
+  String get drawerDebugCategorySystem => 'システムと更新';
+
+  @override
   String get drawerFreePlan => '無料プラン';
 
   @override

@@ -362,6 +362,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTools => '除錯工具';
 
   @override
+  String get drawerDebugCategorySimulation => 'Simulation & Testing';
+
+  @override
+  String get drawerDebugCategoryUser => 'User & Plan';
+
+  @override
+  String get drawerDebugCategoryPet => 'Pet Status';
+
+  @override
+  String get drawerDebugCategoryMemory => 'Memory Diagnostics';
+
+  @override
+  String get drawerDebugCategorySystem => 'Update & System';
+
+  @override
   String get drawerFreePlan => '免費方案';
 
   @override
@@ -1796,6 +1811,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugTools => '除錯工具';
+
+  @override
+  String get drawerDebugCategorySimulation => '模擬與測試';
+
+  @override
+  String get drawerDebugCategoryUser => '用戶與計畫';
+
+  @override
+  String get drawerDebugCategoryPet => '寵物狀態';
+
+  @override
+  String get drawerDebugCategoryMemory => '記憶體診斷';
+
+  @override
+  String get drawerDebugCategorySystem => '更新與系統';
 
   @override
   String get drawerFreePlan => '免費方案';
