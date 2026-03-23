@@ -52,6 +52,7 @@ void main() {
           onPurchase: (_) => purchaseCount++,
           findPackage: (_) => null,
           findStoreProduct: (_) => null,
+          isProUser: false,
           activeEntitlements: const {'Petmonthly'},
           iapConfigured: true,
           isPurchasing: false,
@@ -60,7 +61,6 @@ void main() {
       ),
     );
 
-    expect(find.text('PREMIUM'), findsWidgets);
     expect(find.text('Pro Monthly Membership'), findsWidgets);
     expect(find.text('Active'), findsWidgets);
     expect(
@@ -90,6 +90,7 @@ void main() {
           onPurchase: (_) {},
           findPackage: (_) => null,
           findStoreProduct: (_) => null,
+          isProUser: false,
           activeEntitlements: const {},
           iapConfigured: true,
           isPurchasing: false,
@@ -98,9 +99,43 @@ void main() {
       ),
     );
 
-    expect(find.text('プレミアム'), findsWidgets);
     expect(find.text('Pro 月額メンバーシップ'), findsWidgets);
-    expect(find.text('PREMIUM'), findsNothing);
+    expect(find.text('Active'), findsNothing);
     scrollController.dispose();
   });
+
+  testWidgets(
+    'treats debug pro access as subscribed even without entitlement',
+    (tester) async {
+      final item = buildSubscriptionItem();
+      var purchaseCount = 0;
+      final scrollController = ScrollController();
+
+      await tester.pumpWidget(
+        buildApp(
+          locale: const Locale('en'),
+          child: ShopFeaturedBanner(
+            items: [item],
+            onPurchase: (_) => purchaseCount++,
+            findPackage: (_) => null,
+            findStoreProduct: (_) => null,
+            isProUser: true,
+            activeEntitlements: const {},
+            iapConfigured: true,
+            isPurchasing: false,
+            scrollController: scrollController,
+          ),
+        ),
+      );
+
+      expect(find.text('Active'), findsWidgets);
+      expect(find.text('Owned'), findsWidgets);
+
+      await tester.tap(find.text('Owned').last);
+      await tester.pump();
+
+      expect(purchaseCount, 0);
+      scrollController.dispose();
+    },
+  );
 }

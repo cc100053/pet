@@ -1,5 +1,62 @@
 # TODO
 
+# Plan (2026-03-24 Investigate Debug Pro Override Not Reflected In Shop)
+- [x] Trace the Debug Tools Pro toggle path and identify which local state/provider it changes.
+- [x] Inspect the Shop membership active-state / CTA-disable logic and compare it against the debug override source of truth.
+- [x] Document the exact mismatch causing Shop to still show a subscribable Pro membership after the debug override is enabled.
+
+# Review (2026-03-24 Investigate Debug Pro Override Not Reflected In Shop)
+- [x] Investigated and documented.
+- Debug Tools toggles `_debugProPlan` in `HomeView`, persists it through `AppSettingsRepository.debugProPlanEnabled`, and exposes the merged access flag through `_hasProPlanAccess = (_isDebugAdmin && _debugProPlan) || _revenueCatProPlan`.
+- When Home opens Shop, it correctly passes that merged result as `ShopView(isProUser: _hasProPlanAccess)`; the handoff point is not the bug.
+- Inside `ShopView`, the debug/merged access flag is only used by `_hasProAdFreeAccess` for hiding ads. The subscription banner is built with `activeEntitlements: _activeEntitlements` only, so the banner ignores `widget.isProUser`.
+- `ShopFeaturedBanner` then derives `isSubscribed` solely from `widget.activeEntitlements.contains(entitlementId)`, which means debug Pro access never flips the `Active` pill and never disables the purchase CTA.
+- Existing widget coverage only tests the entitlement-backed subscribed case, so this debug-override path currently has no regression test.
+
+# Plan (2026-03-24 Fix Debug Pro Override In Shop Banner)
+- [x] Thread the merged Pro-access flag into the Shop subscription banner so debug Pro access and real entitlements share the same subscribed-state check.
+- [x] Add a widget regression that covers `isProUser == true` with no active RevenueCat entitlement.
+- [x] Re-run verification and document the result.
+
+# Review (2026-03-24 Fix Debug Pro Override In Shop Banner)
+- [x] Implemented.
+- Fix:
+  - `ShopView` now passes `widget.isProUser` into `ShopFeaturedBanner`.
+  - `ShopFeaturedBanner` now treats a subscription as active when either debug/merged Pro access is already true or the matching RevenueCat entitlement is active.
+  - Added a focused widget regression covering the debug override path, and aligned the existing banner test expectations with the current UI that no longer renders the old `PREMIUM` / `プレミアム` pill.
+- Verification:
+  - `flutter test test/features/shop/shop_featured_banner_test.dart` ✅
+  - `flutter analyze` ✅
+  - `flutter test` ❌
+  - Full-suite `flutter test` still reports existing repo-wide failures (`Some tests failed` with `-14` outstanding in the current workspace run). This task did not triage those unrelated failures further.
+
+# Plan (2026-03-24 Review Crashlytics Fatal for 1.0.5)
+- [x] Confirm the active Firebase project/app and identify the newest fatal Crashlytics issue affecting `com.cc100053.pet` version `1.0.5`.
+- [x] Fetch the selected issue details, sample events, and impact breakdowns needed to understand the crash path.
+- [x] Map the failure path back to the current repo, determine whether the bug is still present, and document whether action is needed now.
+
+# Review (2026-03-24 Review Crashlytics Fatal for 1.0.5)
+- [x] Investigated and documented.
+- Crashlytics MCP returned `404` for the Android app ID, so the available fatal data came from the iOS app ID in the same Firebase project. Both Firebase apps use the same bundle/package identifier `com.cc100053.pet`, so the issue still matches the user's report, but the usable evidence is from iOS Crashlytics.
+- Newest `1.0.5`-only fatal issue:
+  - Issue `4ae440d82840d916b0f9ef97ad713b34`
+  - Title: `package:pet/shared/ui/cached_network_image_view.dart - CachedNetworkImageView._resolveCacheSize`
+  - Subtitle: `FlutterError - Unsupported operation: Infinity or NaN toInt`
+  - First seen: 2026-03-24 01:33 JST (`2026-03-23T16:33:48Z`)
+  - Impact in the last 7 days: 3 fatal events, 1 impacted user, all on `1.0.5 (2)`, all on `iPhone 16 Plus / iOS 26.2.1`
+- Root cause:
+  - `CachedNetworkImageView._resolveDimension(...)` previously accepted any explicit positive dimension, including `double.infinity`.
+  - The Memory calendar day-sheet passes `width: double.infinity` into `CachedNetworkImageView`, so `_resolveCacheSize(...)` later called `.round()` on a non-finite value and threw the fatal.
+  - The crashing caller is the Memory bottom sheet in `lib/features/gallery/memory_calendar_view.dart` and the fixed guard now lives in `lib/shared/ui/cached_network_image_view.dart`.
+- Current repo status:
+  - `main` already contains the fix in commit `188f873` (`fix(images): guard non-finite cache dimensions`).
+  - The current code in `lib/shared/ui/cached_network_image_view.dart` only accepts explicit dimensions when `explicit.isFinite && explicit > 0`, which prevents the crash path.
+  - Regression coverage exists in `test/shared/ui/cached_network_image_view_test.dart` for the `width: double.infinity` case.
+- Action needed now:
+  - No new code fix is needed in the repo for this issue.
+  - Product/release action may still be needed if users are still on `1.0.5 (2)`, because the crash was emitted by that shipped build and the source fix is now in the newer `1.0.6+1` repo state.
+  - Recommended next step is to confirm the fixed build has shipped or ship it if it has not, then monitor whether issue `4ae440d82840d916b0f9ef97ad713b34` stops receiving fresh events from versions newer than `1.0.5 (2)`.
+
 # Plan (2026-03-23 Refine Chat Latest Jump + Scroll Surface)
 - [x] Verify why the current chat viewport still feels like the whole background moves during history/latest scrolling and identify the exact padding/viewport behavior to tighten.
 - [x] Adjust the active chat route so scroll transitions move only message content while preserving the user's visible reading anchor, including when already at the latest messages.

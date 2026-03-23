@@ -291,9 +291,9 @@ class _InventoryActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
-    final chip = _InventoryGuidanceHighlight(
+    return _InventoryGuidanceHighlight(
       enabled: showGuidance,
+      onDismiss: onGuidanceDismiss,
       child: _ActionChip(
         label: label,
         onTap: onTap,
@@ -302,20 +302,190 @@ class _InventoryActionChip extends StatelessWidget {
         minWidth: 36,
       ),
     );
+  }
+}
 
-    if (!showGuidance ||
-        guidanceTitle == null ||
-        guidanceTitle!.trim().isEmpty) {
-      return chip;
+class _InventoryGuidanceHighlight extends StatefulWidget {
+  const _InventoryGuidanceHighlight({
+    required this.enabled,
+    required this.child,
+    this.onDismiss,
+  });
+
+  final bool enabled;
+  final Widget child;
+  final VoidCallback? onDismiss;
+
+  @override
+  State<_InventoryGuidanceHighlight> createState() =>
+      _InventoryGuidanceHighlightState();
+}
+
+class _InventoryGuidanceHighlightState
+    extends State<_InventoryGuidanceHighlight>
+    with TickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2000),
+  );
+
+  // Controller for global entry/exit fade
+  late final AnimationController _visibilityController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 500),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _syncAnimation();
+  }
+
+  @override
+  void didUpdateWidget(covariant _InventoryGuidanceHighlight oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.enabled != widget.enabled) {
+      _syncAnimation();
     }
+  }
 
-    return _InventoryGuidanceOverlay(
-      title: guidanceTitle!,
-      onDismiss: onGuidanceDismiss,
-      titleOffset: Offset(8 * scale, -34 * scale),
-      child: chip,
+  void _syncAnimation() {
+    if (widget.enabled) {
+      _controller.repeat();
+      _visibilityController.forward();
+      // Auto-dismiss after 10 seconds
+      Future.delayed(const Duration(seconds: 10), () {
+        if (mounted && widget.enabled) {
+          widget.onDismiss?.call();
+        }
+      });
+    } else {
+      // Fade out first, then stop the loop
+      _visibilityController.reverse().then((_) {
+        if (mounted && !widget.enabled) {
+          _controller.stop();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _visibilityController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_controller, _visibilityController]),
+      child: widget.child,
+      builder: (context, child) {
+        final visibility = _visibilityController.value;
+        if (visibility <= 0 && !widget.enabled) {
+          return child!;
+        }
+
+        // Button Pulse Effect (intensity scales with visibility)
+        final pulse = 1.0 + (sin(_controller.value * 2 * pi) * 0.08 * visibility);
+
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            // Magic Trail / Sparkles
+            Positioned(
+              right: 0,
+              top: 0,
+              child: IgnorePointer(
+                child: SizedBox(
+                  width: 250,
+                  height: 150,
+                  child: CustomPaint(
+                    painter: _InventoryMagicTrailPainter(
+                      progress: _controller.value,
+                      visibility: visibility,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // The Button itself with Pulse
+            Transform.scale(scale: pulse, child: child!),
+            // Ripple/Glow effect around the button
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _InventorySweepPainter(
+                    progress: _controller.value,
+                    visibility: visibility,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
+}
+
+class _InventoryMagicTrailPainter extends CustomPainter {
+  _InventoryMagicTrailPainter({required this.progress, required this.visibility});
+  final double progress;
+  final double visibility;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    const target = Offset(230, 75);
+    const start = Offset(20, 100);
+
+    for (int i = 0; i < 8; i++) {
+      final particleDelay = i * 0.12;
+      double t = (progress - particleDelay) % 1.0;
+      if (t < 0) continue;
+
+      final cp1 = Offset(start.dx + 60, start.dy - 120);
+      final cp2 = Offset(target.dx - 40, target.dy - 100);
+
+      final pos = _calculateBezier(t, start, cp1, cp2, target);
+      final opacity = (1.0 - t).clamp(0.0, 1.0) * visibility;
+      final sizeMult = (1.0 - t * 0.4);
+
+      // Core Golden Glow
+      paint.color = const Color(0xFFFFD86C).withValues(alpha: opacity * 0.9);
+      canvas.drawCircle(pos, 4.5 * sizeMult, paint);
+
+      // Bright White Center
+      paint.color = Colors.white.withValues(alpha: opacity);
+      canvas.drawCircle(pos, 2.0 * sizeMult, paint);
+
+      if (t > 0.2 && t < 0.8) {
+        final rand = Random((i + t * 10).toInt());
+        paint.color = Colors.white.withValues(alpha: opacity * 0.5);
+        canvas.drawCircle(
+          pos + Offset(rand.nextDouble() * 10 - 5, rand.nextDouble() * 10 - 5),
+          1.0,
+          paint,
+        );
+      }
+    }
+  }
+
+  Offset _calculateBezier(double t, Offset p0, Offset p1, Offset p2, Offset p3) {
+    final u = 1 - t;
+    return p0 * (u * u * u) +
+        p1 * (3 * u * u * t) +
+        p2 * (3 * u * t * t) +
+        p3 * (t * t * t);
+  }
+
+  @override
+  bool shouldRepaint(covariant _InventoryMagicTrailPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.visibility != visibility;
 }
 
 class _ActionChip extends StatelessWidget {
@@ -408,188 +578,11 @@ class _ActionChip extends StatelessWidget {
   }
 }
 
-class _InventoryGuidanceOverlay extends StatefulWidget {
-  const _InventoryGuidanceOverlay({
-    required this.title,
-    required this.child,
-    this.titleOffset = Offset.zero,
-    this.onDismiss,
-  });
-
-  final String title;
-  final Widget child;
-  final Offset titleOffset;
-  final VoidCallback? onDismiss;
-
-  @override
-  State<_InventoryGuidanceOverlay> createState() =>
-      _InventoryGuidanceOverlayState();
-}
-
-class _InventoryGuidanceOverlayState extends State<_InventoryGuidanceOverlay> {
-  static const Duration _autoDismissDelay = Duration(seconds: 5);
-  Timer? _dismissTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _scheduleDismiss();
-  }
-
-  @override
-  void didUpdateWidget(covariant _InventoryGuidanceOverlay oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.title != widget.title) {
-      _scheduleDismiss();
-    }
-  }
-
-  @override
-  void dispose() {
-    _dismissTimer?.cancel();
-    super.dispose();
-  }
-
-  void _scheduleDismiss() {
-    _dismissTimer?.cancel();
-    if (widget.onDismiss == null) {
-      return;
-    }
-    _dismissTimer = Timer(_autoDismissDelay, widget.onDismiss!);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        widget.child,
-        Positioned(
-          key: const ValueKey('inventory-guidance-title'),
-          right: widget.titleOffset.dx,
-          top: widget.titleOffset.dy,
-          child: IgnorePointer(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8E6).withValues(alpha: 0.97),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: const Color(0xFFF2A53A), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFE8A83A).withValues(alpha: 0.26),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12 * scale,
-                  vertical: 6 * scale,
-                ),
-                child: Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 11.5 * scale,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF7A4600),
-                    height: 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _InventoryGuidanceHighlight extends StatefulWidget {
-  const _InventoryGuidanceHighlight({
-    required this.enabled,
-    required this.child,
-  });
-
-  final bool enabled;
-  final Widget child;
-
-  @override
-  State<_InventoryGuidanceHighlight> createState() =>
-      _InventoryGuidanceHighlightState();
-}
-
-class _InventoryGuidanceHighlightState
-    extends State<_InventoryGuidanceHighlight>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1700),
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _syncAnimation();
-  }
-
-  @override
-  void didUpdateWidget(covariant _InventoryGuidanceHighlight oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.enabled != widget.enabled) {
-      _syncAnimation();
-    }
-  }
-
-  void _syncAnimation() {
-    if (widget.enabled) {
-      _controller.repeat();
-      return;
-    }
-    _controller.stop();
-    _controller.value = 0;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.enabled) {
-      return widget.child;
-    }
-    return AnimatedBuilder(
-      animation: _controller,
-      child: widget.child,
-      builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  key: const ValueKey('inventory-guidance-highlight'),
-                  painter: _InventorySweepPainter(progress: _controller.value),
-                ),
-              ),
-            ),
-            child!,
-          ],
-        );
-      },
-    );
-  }
-}
-
 class _InventorySweepPainter extends CustomPainter {
-  const _InventorySweepPainter({required this.progress});
+  const _InventorySweepPainter({required this.progress, required this.visibility});
 
   final double progress;
+  final double visibility;
 
   @override
   void paint(Canvas canvas, Size size) {

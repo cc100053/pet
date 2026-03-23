@@ -624,6 +624,7 @@ class _ShopViewState extends State<ShopView> {
               onPurchase: _purchaseIapItem,
               findPackage: _findPackageByProductId,
               findStoreProduct: _findStoreProductByProductId,
+              isProUser: widget.isProUser,
               activeEntitlements: _activeEntitlements,
               iapConfigured: _iapConfigured,
               isPurchasing: _purchasing,
@@ -1239,6 +1240,7 @@ class ShopFeaturedBanner extends StatefulWidget {
     required this.onPurchase,
     required this.findPackage,
     required this.findStoreProduct,
+    required this.isProUser,
     required this.activeEntitlements,
     required this.iapConfigured,
     required this.isPurchasing,
@@ -1249,6 +1251,7 @@ class ShopFeaturedBanner extends StatefulWidget {
   final void Function(ShopItem) onPurchase;
   final Package? Function(String) findPackage;
   final StoreProduct? Function(String) findStoreProduct;
+  final bool isProUser;
   final Set<String> activeEntitlements;
   final bool iapConfigured;
   final bool isPurchasing;
@@ -1320,8 +1323,9 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
               final entitlementId = item.rcEntitlementId;
               final isSubscribed =
                   item.iapType == 'subscription' &&
-                  entitlementId != null &&
-                  widget.activeEntitlements.contains(entitlementId);
+                  (widget.isProUser ||
+                      (entitlementId != null &&
+                          widget.activeEntitlements.contains(entitlementId)));
               final canBuy =
                   widget.iapConfigured &&
                   !widget.isPurchasing &&
@@ -1334,208 +1338,256 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
               // Parallax logic
               final parallaxOffset = _scrollOffset * 0.15;
 
-              return Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFA5F2FF), // Light Dream Blue
-                      Color(0xFFD1C4E9), // Light Lavender
-                      Color(0xFFF3E5F5), // Soft Purple
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF303F9F).withValues(alpha: 0.1),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: Stack(
-                    children: [
-                      // Soft bubbles background
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _StarryBackgroundPainter(
-                            scrollOffset: _scrollOffset * 0.08,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFA5F2FF), // Light Dream Blue
+                          Color(0xFFD1C4E9), // Light Lavender
+                          Color(0xFFF3E5F5), // Soft Purple
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF303F9F).withValues(alpha: 0.1),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Stack(
+                        children: [
+                          // Soft bubbles background
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: _StarryBackgroundPainter(
+                                scrollOffset: _scrollOffset * 0.08,
+                              ),
+                            ),
+                          ),
+
+                          // Cat Illustration (Moved back inside, balanced position)
+                          Positioned(
+                            left: -10,
+                            bottom: -10 - parallaxOffset,
+                            top: 10 - parallaxOffset,
+                            width: 160,
+                            child: Image.asset(
+                              'assets/shop/shop_cat.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+
+                          // Main Content Area
+                          Positioned(
+                            right: 16,
+                            top: 6, // Reduced top padding
+                            bottom: 8,
+                            left: 140,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ShaderMask(
+                                  shaderCallback:
+                                      (bounds) => const LinearGradient(
+                                        colors: [
+                                          Color(0xFFFFD180),
+                                          Color(0xFFFB8C00),
+                                        ],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ).createShader(bounds),
+                                  child: _ShopAdaptiveStrokeTitle(
+                                    text: item.localizedName(l10n),
+                                    fontSize: 26,
+                                    color: Colors.white,
+                                    strokeColor: Colors.black, // Black outline
+                                    strokeWidth: 4, // Thick black stroke
+                                  ),
+                                ),
+                                const SizedBox(height: 8), // Reduced spacing
+                                // Visual Benefits List
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _BenefitItem(
+                                        icon: Icons.meeting_room_rounded,
+                                        text:
+                                            l10n.storePremiumBenefitUnlimitedRooms,
+                                      ),
+                                      _BenefitItem(
+                                        icon: Icons.block_rounded,
+                                        text: l10n.storePremiumBenefitNoAds,
+                                      ),
+                                      _BenefitItem(
+                                        icon: Icons.star_rounded,
+                                        text:
+                                            l10n.storePremiumBenefitExclusiveItems,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // CTA Area
+                                Opacity(
+                                  opacity: canBuy || isSubscribed ? 1 : 0.65,
+                                  child: _ShopRaisedButtonShell(
+                                    onPressed: canBuy
+                                        ? () => widget.onPurchase(item)
+                                        : null,
+                                    depth: !isSubscribed && canBuy ? 4 : 0,
+                                    borderRadius: BorderRadius.circular(20),
+                                    shadowColor: const Color(0xFFE65100),
+                                    faceBuilder: (context, isPressed) =>
+                                        Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: isSubscribed || !canBuy
+                                                ? null
+                                                : const LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Color(0xFFFFD180),
+                                                    Color(0xFFFB8C00),
+                                                  ],
+                                                ),
+                                            color: isSubscribed || !canBuy
+                                                ? Colors.white.withValues(
+                                                  alpha: 0.95,
+                                                )
+                                                : null,
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              children: [
+                                                if (!isSubscribed) ...[
+                                                  _ShopStrokeText(
+                                                    priceString,
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                    strokeColor: const Color(
+                                                      0xFFD54900,
+                                                    ),
+                                                    strokeWidth: 3,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                ],
+                                                _ShopStrokeText(
+                                                  actionLabel,
+                                                  fontSize: 16,
+                                                  color: Colors.white,
+                                                  strokeColor: const Color(
+                                                    0xFFD54900,
+                                                  ),
+                                                  strokeWidth: 3,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Center(
+                                  child: Text(
+                                    '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
+                                    style: GoogleFonts.mPlusRounded1c(
+                                      color: const Color(
+                                        0xFF303F9F,
+                                      ).withValues(alpha: 0.7),
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Floating Active Badge (Design Choice 1: 3D Sticker style)
+                  if (isSubscribed)
+                    Positioned(
+                      top: 4, // Overlap the top margin
+                      right: 12,
+                      child: Transform.rotate(
+                        angle: 0.08, // Subtle tilt for sticker feel
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                l10n.storeSubscriptionActive.toUpperCase(),
+                                style: GoogleFonts.mPlusRounded1c(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                  height: 1,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-
-                      // Cat Illustration (Moved back inside, balanced position)
-                      Positioned(
-                        left: -10,
-                        bottom: -10 - parallaxOffset,
-                        top: 10 - parallaxOffset,
-                        width: 160,
-                        child: Image.asset(
-                          'assets/shop/shop_cat.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-
-                      Positioned(
-                        top: 18,
-                        right: 24,
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          alignment: WrapAlignment.end,
-                          children: [
-                            _ShopBannerPill(
-                              label: l10n.storeTabPremium.toUpperCase(),
-                              textColor: const Color(0xFFFB8C00),
-                              borderColor: const Color(0xFFFB8C00),
-                            ),
-                            if (isSubscribed)
-                              _ShopBannerPill(
-                                label: l10n.storeSubscriptionActive,
-                                textColor: const Color(0xFF2E7D32),
-                                borderColor: const Color(0xFF66BB6A),
-                              ),
-                          ],
-                        ),
-                      ),
-                      // Main Content Area
-                      Positioned(
-                        right: 16,
-                        top: 6, // Reduced top padding
-                        bottom: 8,
-                        left: 140,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ).createShader(bounds),
-                              child: _ShopAdaptiveStrokeTitle(
-                                text: item.localizedName(l10n),
-                                fontSize: 26,
-                                color: Colors.white,
-                                strokeColor: Colors.black, // Black outline
-                                strokeWidth: 4, // Thick black stroke
-                              ),
-                            ),
-                            const SizedBox(height: 8), // Reduced spacing
-                            // Visual Benefits List
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _BenefitItem(
-                                    icon: Icons.meeting_room_rounded,
-                                    text:
-                                        l10n.storePremiumBenefitUnlimitedRooms,
-                                  ),
-                                  _BenefitItem(
-                                    icon: Icons.block_rounded,
-                                    text: l10n.storePremiumBenefitNoAds,
-                                  ),
-                                  _BenefitItem(
-                                    icon: Icons.star_rounded,
-                                    text:
-                                        l10n.storePremiumBenefitExclusiveItems,
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // CTA Area
-                            Opacity(
-                              opacity: canBuy || isSubscribed ? 1 : 0.65,
-                              child: _ShopRaisedButtonShell(
-                                onPressed: canBuy
-                                    ? () => widget.onPurchase(item)
-                                    : null,
-                                depth: !isSubscribed && canBuy ? 4 : 0,
-                                borderRadius: BorderRadius.circular(20),
-                                shadowColor: const Color(0xFFE65100),
-                                faceBuilder: (context, isPressed) => Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: isSubscribed || !canBuy
-                                        ? null
-                                        : const LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Color(0xFFFFD180),
-                                              Color(0xFFFB8C00),
-                                            ],
-                                          ),
-                                    color: isSubscribed || !canBuy
-                                        ? Colors.white.withValues(alpha: 0.95)
-                                        : null,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Center(
-                                    child: Wrap(
-                                      alignment: WrapAlignment.center,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        if (!isSubscribed) ...[
-                                          _ShopStrokeText(
-                                            priceString,
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                            strokeColor: const Color(
-                                              0xFFD54900,
-                                            ),
-                                            strokeWidth: 3,
-                                          ),
-                                          const SizedBox(width: 8),
-                                        ],
-                                        _ShopStrokeText(
-                                          actionLabel,
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                          strokeColor: const Color(0xFFD54900),
-                                          strokeWidth: 3,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Center(
-                              child: Text(
-                                '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
-                                style: GoogleFonts.mPlusRounded1c(
-                                  color: const Color(
-                                    0xFF303F9F,
-                                  ).withValues(alpha: 0.7),
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               );
             },
           ),
@@ -1601,40 +1653,6 @@ class _BenefitItem extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ShopBannerPill extends StatelessWidget {
-  const _ShopBannerPill({
-    required this.label,
-    required this.textColor,
-    required this.borderColor,
-  });
-
-  final String label;
-  final Color textColor;
-  final Color borderColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.mPlusRounded1c(
-          color: textColor,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.4,
-          height: 1,
-        ),
       ),
     );
   }
