@@ -21,6 +21,7 @@ void main() {
             key: const ValueKey('success-notice'),
             title: 'Purchased Sofa.',
             message: 'Return to your pet room to start decorating.',
+            visual: const Text('🛋️'),
             primaryAction: ShopNoticeAction(
               label: 'Return to room',
               onPressed: () => tapped = true,
@@ -35,6 +36,7 @@ void main() {
       find.text('Return to your pet room to start decorating.'),
       findsOneWidget,
     );
+    expect(find.text('🛋️'), findsOneWidget);
     expect(find.text('Return to room'), findsOneWidget);
     expect(find.byType(SnackBar), findsNothing);
 
@@ -53,12 +55,14 @@ void main() {
           notice: ShopNoticeData.success(
             key: const ValueKey('plain-success-notice'),
             title: 'Purchased Candy Pack.',
+            visual: const Text('🍬'),
           ),
         ),
       ),
     );
 
     expect(find.text('Purchased Candy Pack.'), findsNWidgets(2));
+    expect(find.text('🍬'), findsOneWidget);
     expect(find.byType(FilledButton), findsNothing);
   });
 

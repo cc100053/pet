@@ -1275,7 +1275,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomInventoryTitle => 'ルーム在庫';
 
   @override
-  String get roomDecorHintTitle => 'ルームを飾ろう';
+  String get roomDecorHintTitle => '部屋を飾ろう';
 
   @override
   String roomDecorHintBody(Object buttonLabel) {

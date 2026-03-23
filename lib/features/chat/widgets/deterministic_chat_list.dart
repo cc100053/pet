@@ -13,7 +13,9 @@ bool shouldShowChatScrollToLatestButton({
   required double maxScrollExtent,
   double threshold = 300,
 }) {
-  return (maxScrollExtent - pixels) > threshold;
+  // In a reversed list, 0 is the newest (bottom).
+  // If we've scrolled away from 0 by more than the threshold, show the button.
+  return pixels > threshold;
 }
 
 bool isSameLocalChatDay(DateTime a, DateTime b) {
@@ -68,63 +70,64 @@ class DeterministicChatList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final physics = const RangeMaintainingScrollPhysics().applyTo(
+      ScrollConfiguration.of(context).getScrollPhysics(context),
+    );
+
+    // Group messages with date separators
+    final List<Widget> items = [];
+    for (var index = 0; index < messages.length; index += 1) {
+      final message = messages[index];
+      
+      items.add(
+        _DeterministicChatListItem(
+          message: message,
+          onLongPress: onMessageLongPress,
+          child: itemBuilder(
+            context,
+            message,
+            index,
+            const AlwaysStoppedAnimation<double>(1),
+          ),
+        ),
+      );
+
+      if (_shouldShowDateSeparatorAfter(index)) {
+        items.add(_DateSeparator(date: _separatorTimeFor(message)));
+      }
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final content = Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var index = 0; index < messages.length; index += 1) ...[
-              if (_shouldShowDateSeparatorBefore(index))
-                _DateSeparator(date: _separatorTimeFor(messages[index])),
-              _DeterministicChatListItem(
-                message: messages[index],
-                onLongPress: onMessageLongPress,
-                child: itemBuilder(
-                  context,
-                  messages[index],
-                  index,
-                  const AlwaysStoppedAnimation<double>(1),
-                ),
-              ),
-            ],
-          ],
-        );
-
-        return SingleChildScrollView(
+        return ListView.builder(
           controller: scrollController,
+          physics: physics,
+          reverse: true, // Key to anchoring at the bottom
+          padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
           keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - topPadding - bottomPadding)
-                  .clamp(0, double.infinity),
-            ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [content],
-              ),
-            ),
-          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) => items[index],
         );
       },
     );
   }
 
-  bool _shouldShowDateSeparatorBefore(int index) {
+  bool _shouldShowDateSeparatorAfter(int index) {
     final currentTime = _separatorTimeFor(messages[index]);
     if (currentTime == null) {
       return false;
     }
-    if (index == 0) {
+    // In a reversed list, "after" an item actually means "above" it in time.
+    // If it's the last item in the list (index == messages.length - 1), 
+    // it's the oldest message, so it definitely needs a separator.
+    if (index == messages.length - 1) {
       return true;
     }
-    final previousTime = _separatorTimeFor(messages[index - 1]);
-    if (previousTime == null) {
+    final nextTime = _separatorTimeFor(messages[index + 1]);
+    if (nextTime == null) {
       return true;
     }
-    return !isSameLocalChatDay(previousTime, currentTime);
+    return !isSameLocalChatDay(nextTime, currentTime);
   }
 
   DateTime? _separatorTimeFor(fc.Message message) {

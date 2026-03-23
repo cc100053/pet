@@ -79,3 +79,10 @@
 ## 2026-03-21
 - When reviewing a regression list and the user narrows the requested fixes, immediately rescope the implementation to the explicitly accepted items instead of restoring every previous behavior by default.
 - For store/economy UX, treat the purchase interaction model itself as product intent: if the user explicitly wants a single buy action, keep that constraint and fix surrounding regressions without reintroducing multi-button currency choice.
+
+## 2026-03-23
+- For chat keyboard/scroll fixes, do not rely only on synthetic inset-only widget tests. Reproduce the real interaction path too: focus the composer, open the keyboard, and verify viewport preservation from the actual user gesture flow.
+- For explicit “jump to latest” UX, avoid combining an immediate animated scroll with mandatory post-frame correction jumps. Let layout settle first, animate once to the final target, and defer minor latest corrections until that animation has finished.
+- In bounded-window chat histories, do not collapse the visible dataset to the newest page before starting a `Latest` animation. That shrinks scroll extent first and produces the exact down-then-up jitter users notice. Transition through a merged window, then trim to the latest page after the animation settles.
+- When preserving reading position through keyboard/composer size changes, do not anchor to a message's top edge. Preserve a concrete point inside the message at the viewport reading line, or the background will resize while the perceived content focus drifts.
+- For post-action Home coaching on a dense HUD, default to a floating title-only hint anchored to the target control instead of an inline help card; inline guidance that pushes surrounding UI reads as layout breakage immediately.

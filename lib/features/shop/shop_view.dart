@@ -71,13 +71,15 @@ class ShopNoticeData {
     this.onDismiss,
   }) : kind = ShopNoticeKind.shortage,
        message = null,
-       primaryAction = null;
+       primaryAction = null,
+       visual = null;
 
   ShopNoticeData.success({
     required this.key,
     required this.title,
     this.message,
     this.primaryAction,
+    this.visual,
     this.onDismiss,
   }) : kind = ShopNoticeKind.success,
        currency = null,
@@ -92,6 +94,7 @@ class ShopNoticeData {
   final int? currentAmount;
   final int? requiredAmount;
   final ShopNoticeAction? primaryAction;
+  final Widget? visual;
   final VoidCallback? onDismiss;
 }
 
@@ -221,6 +224,7 @@ class _ShopViewState extends State<ShopView> {
         key: UniqueKey(),
         title: l10n.storePurchaseSuccess(item.localizedName(l10n)),
         message: canReturnToRoom ? l10n.shopReturnToRoomHint : null,
+        visual: _buildPurchaseSuccessVisual(item),
         primaryAction: canReturnToRoom
             ? ShopNoticeAction(
                 label: l10n.shopReturnToRoomCta,
@@ -233,6 +237,30 @@ class _ShopViewState extends State<ShopView> {
       ),
       duration: canReturnToRoom ? null : _storeSuccessNoticeDuration,
     );
+  }
+
+  Widget _buildPurchaseSuccessVisual(ShopItem item) {
+    if (item.isBackground) {
+      return _ShopNoticeBackgroundVisual(backgroundKey: item.backgroundKey);
+    }
+    final emoji = item.emoji?.trim();
+    if (emoji != null && emoji.isNotEmpty) {
+      return Text(
+        emoji,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 28, height: 1),
+      );
+    }
+    if (item.isDiamondIap || item.diamondAmount != null) {
+      return Image.asset(
+        'assets/shop/icon/diamond_300.png',
+        fit: BoxFit.contain,
+      );
+    }
+    if (item.coinAmount != null) {
+      return Image.asset('assets/shop/icon/candy.png', fit: BoxFit.contain);
+    }
+    return const Icon(Icons.shopping_bag_rounded, size: 28);
   }
 
   void _dismissStoreNotice() {
@@ -918,16 +946,27 @@ class ShopFloatingNoticeCard extends StatelessWidget {
                           width: 2,
                         ),
                       ),
-                      child: isShortage
-                          ? Padding(
-                              padding: const EdgeInsets.all(11),
-                              child: Image.asset(
-                                isCandy
-                                    ? 'assets/shop/icon/candy.png'
-                                    : 'assets/shop/icon/diamond.png',
-                              ),
-                            )
-                          : Icon(Icons.check_rounded, size: 30, color: accent),
+                      child: ClipOval(
+                        child: Padding(
+                          padding: EdgeInsets.all(isShortage ? 11 : 8),
+                          child: isShortage
+                              ? Image.asset(
+                                  isCandy
+                                      ? 'assets/shop/icon/candy.png'
+                                      : 'assets/shop/icon/diamond.png',
+                                )
+                              : DefaultTextStyle(
+                                  style: TextStyle(color: accent),
+                                  child:
+                                      notice.visual ??
+                                      Icon(
+                                        Icons.check_rounded,
+                                        size: 30,
+                                        color: accent,
+                                      ),
+                                ),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -1820,6 +1859,20 @@ class _Dot extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       ),
+    );
+  }
+}
+
+class _ShopNoticeBackgroundVisual extends StatelessWidget {
+  const _ShopNoticeBackgroundVisual({required this.backgroundKey});
+
+  final String? backgroundKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: RoomBackgrounds.resolve(backgroundKey).previewDecoration,
+      child: const SizedBox.expand(),
     );
   }
 }

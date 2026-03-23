@@ -686,7 +686,7 @@
   "furnitureInventoryEmpty": "まだ家具がありません。ショップで購入してください。",
   "furnitureInventoryHint": "家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。",
   "roomInventoryTitle": "ルーム在庫",
-  "roomDecorHintTitle": "ルームを飾ろう",
+  "roomDecorHintTitle": "部屋を飾ろう",
   "roomDecorHintBody": "{buttonLabel} をタップしてルーム編集モードに入り、家具を置いたり背景を適用したりしましょう。",
   "@roomDecorHintBody": {
     "placeholders": {

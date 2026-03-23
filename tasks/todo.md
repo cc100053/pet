@@ -1,5 +1,75 @@
 # TODO
 
+# Plan (2026-03-23 Refine Chat Latest Jump + Scroll Surface)
+- [x] Verify why the current chat viewport still feels like the whole background moves during history/latest scrolling and identify the exact padding/viewport behavior to tighten.
+- [x] Adjust the active chat route so scroll transitions move only message content while preserving the user's visible reading anchor, including when already at the latest messages.
+- [x] Fix the `Latest` pill so tapping it while the keyboard is open keeps the composer focused instead of collapsing the keyboard, and add regression coverage.
+- [x] Update memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-23 Refine Chat Latest Jump + Scroll Surface)
+- [x] Implemented and verified.
+- Root change:
+  - Tightened the `Latest` interaction so it no longer counts as a tap-outside of the composer. The pill now lives inside a `TextFieldTapRegion`, is marked `canRequestFocus: false`, and is excluded from the backdrop unfocus handler, so keyboard-open taps jump straight to latest without collapsing the keyboard.
+  - Reworked keyboard-open room behavior so the whole interactive chat surface moves upward with the keyboard while the background stays behind it, instead of locking historical reading to one fixed viewport anchor. This makes the currently viewed message lift upward together with the composer no matter where the user is in the timeline.
+  - Stopped restoring a history-mode anchor on keyboard metric changes, since that was canceling the intended upward push and making non-latest positions feel stationary while only latest-mode visibly moved.
+  - Added widget regressions that cover keyboard-open `Latest` focus retention, composer upward movement, and history-mode upward push while keeping the viewed message visible above the composer.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-23 Refine Shop Success Icon + Room Decor Hint UI)
+- [x] Update Shop success floating notices so the leading icon uses the purchased item's own visual instead of a generic success checkmark.
+- [x] Refine the Pet Home room-decor guidance into a floating title-only overlay that does not shift layout, auto-dismisses after 5 seconds, and adds a looping highlight around the inventory/decor action.
+- [x] Update localization/tests/docs as needed, then run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-03-23 Refine Shop Success Icon + Room Decor Hint UI)
+- [x] Implemented and verified.
+- Scope:
+  - Shop success floating cards now render the purchased item's own visual payload: furniture keeps its emoji/item icon, backgrounds show a room-preview tile, and pack-style items fall back to their matching candy/diamond art instead of the old generic success check.
+  - Pet Home room-decor guidance now stays as a floating title-only chip anchored above the inventory/decor action, so the status bar layout no longer shifts when the hint appears.
+  - The decor action now gets a looping sweep/glow border while the hint is active, and the guidance dismisses automatically after 5 seconds or immediately when inventory opens.
+  - Updated localized `roomDecorHintTitle` copy plus focused widget tests for the success-card icon payload, the floating decor hint, the highlight affordance, and the 5-second auto-dismiss path.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-23 Refine Chat History Keyboard Anchor + Latest Transition)
+- [x] Reproduce the remaining chat regressions in code/tests and identify why history-mode keyboard open still fails to preserve the actually viewed content while `Latest` still jitters.
+- [x] Upgrade viewport preservation to anchor the visible reading point instead of a message top edge, and preserve that anchor across composer-height changes as well as keyboard metric changes.
+- [x] Replace the `Latest` reset path with a transition window that avoids extent shrink before the explicit bottom animation completes, then add a monotonic-scroll regression and re-run verification.
+
+# Review (2026-03-23 Refine Chat History Keyboard Anchor + Latest Transition)
+- [x] Implemented and verified.
+- Root change:
+  - History-mode viewport preservation now stores an actual reading anchor inside the chosen message surface (`messageLocalY + globalY`) instead of pinning the message's top edge, so keyboard/composer height changes preserve the line the user was reading rather than leaving the content visually behind while only the background resizes.
+  - Composer-height changes in history mode now reuse the same anchor-preservation path instead of only handling live-mode latest pinning.
+  - `Latest` no longer resets straight to the newest 20-message window before animating. The route now transitions through a merged live window, runs one bottom animation, and only then collapses back to the newest page, removing the previous extent-shrink down-then-up jitter.
+  - Added a stronger regression that samples scroll offsets frame-by-frame during `Latest` with keyboard-open delayed reply-preview expansion and asserts the motion stays monotonic instead of oscillating.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-23 Stabilize Chat Keyboard + Latest Scroll)
+- [x] Convert the active chat route to a viewport-driven keyboard layout so the keyboard resizes the visible area instead of being simulated through manual keyboard insets.
+- [x] Replace max-scroll latest jumps with composer-aware latest alignment and coalesce the route's bottom-lock sync triggers.
+- [x] Preserve the current reading viewport across keyboard open/close when the user is not pinned to latest, while keeping live-mode rooms pinned above the composer.
+- [x] Add focused widget coverage for keyboard-open viewport preservation and latest-entry/latest-button stability, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-23 Stabilize Chat Keyboard + Latest Scroll)
+- [x] Implemented and verified.
+- Root change:
+  - `ChatRoomViewV2` now lets the scaffold/body resize with the keyboard and stops feeding runtime keyboard height into manual composer/list/jump-pill positioning. The composer/list bottom spacing now only uses safe-area spacing plus measured composer height.
+  - The route replaced raw `maxScrollExtent` latest jumps with a viewport-aware sync path that aligns the newest message against the actual visible bottom above the composer, using the measured composer interaction region as the occlusion boundary.
+  - Keyboard metric changes now capture the current viewport anchor when the user is browsing history and restore that anchor after layout settles, while live-mode / explicit latest flows stay pinned to the newest message instead.
+  - Added widget coverage for keyboard-open room entry, keyboard-open `Latest`, and mid-history keyboard-open anchor preservation on top of the existing bounded-window suite.
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-23 Shop Success Floating Cards + Room Decor Guidance)
 - [x] Generalize Shop floating notices so purchase success uses the same floating-card system as shortage feedback, including optional return-to-room CTA for furniture/background purchases.
 - [x] Replace bare Shop route returns with a typed result and wire Home to consume the returned room/decor-hint intent.

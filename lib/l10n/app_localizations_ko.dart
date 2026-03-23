@@ -1282,7 +1282,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomInventoryTitle => '방 인벤토리';
 
   @override
-  String get roomDecorHintTitle => '방 꾸미기 시작';
+  String get roomDecorHintTitle => '방 꾸미기';
 
   @override
   String roomDecorHintBody(Object buttonLabel) {

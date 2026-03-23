@@ -34,7 +34,6 @@ class HomeGameStatusBar extends StatelessWidget {
     this.inventoryLabel,
     this.showInventoryGuidance = false,
     this.inventoryGuidanceTitle,
-    this.inventoryGuidanceBody,
     this.onInventoryGuidanceDismiss,
   });
 
@@ -56,7 +55,6 @@ class HomeGameStatusBar extends StatelessWidget {
   final String? inventoryLabel;
   final bool showInventoryGuidance;
   final String? inventoryGuidanceTitle;
-  final String? inventoryGuidanceBody;
   final VoidCallback? onInventoryGuidanceDismiss;
 
   /// When set, triggers the coin reward animation showing "+X" and bounce.
@@ -93,7 +91,6 @@ class HomeGameStatusBar extends StatelessWidget {
               inventoryLabel: inventoryLabel,
               showInventoryGuidance: showInventoryGuidance,
               inventoryGuidanceTitle: inventoryGuidanceTitle,
-              inventoryGuidanceBody: inventoryGuidanceBody,
               onInventoryGuidanceDismiss: onInventoryGuidanceDismiss,
             ),
           ),
@@ -130,7 +127,6 @@ class _LeftCluster extends StatelessWidget {
     this.inventoryLabel,
     required this.showInventoryGuidance,
     this.inventoryGuidanceTitle,
-    this.inventoryGuidanceBody,
     this.onInventoryGuidanceDismiss,
   });
 
@@ -147,7 +143,6 @@ class _LeftCluster extends StatelessWidget {
   final String? inventoryLabel;
   final bool showInventoryGuidance;
   final String? inventoryGuidanceTitle;
-  final String? inventoryGuidanceBody;
   final VoidCallback? onInventoryGuidanceDismiss;
 
   @override
@@ -259,24 +254,14 @@ class _LeftCluster extends StatelessWidget {
                             minWidth: 60,
                           ),
                         if (inventoryLabel != null && onInventoryTap != null)
-                          _ActionChip(
+                          _InventoryActionChip(
                             label: inventoryLabel!,
                             onTap: onInventoryTap!,
-                            icon: Icons.inventory_2_outlined,
-                            iconOnly: true,
-                            minWidth: 36,
+                            showGuidance: showInventoryGuidance,
+                            guidanceTitle: inventoryGuidanceTitle,
+                            onGuidanceDismiss: onInventoryGuidanceDismiss,
                           ),
                       ],
-                    ),
-                  ],
-                  if (showInventoryGuidance &&
-                      inventoryGuidanceTitle != null &&
-                      inventoryGuidanceBody != null) ...[
-                    Gap(8 * scale),
-                    _InventoryGuidanceBubble(
-                      title: inventoryGuidanceTitle!,
-                      body: inventoryGuidanceBody!,
-                      onDismiss: onInventoryGuidanceDismiss,
                     ),
                   ],
                 ],
@@ -285,6 +270,50 @@ class _LeftCluster extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _InventoryActionChip extends StatelessWidget {
+  const _InventoryActionChip({
+    required this.label,
+    required this.onTap,
+    required this.showGuidance,
+    this.guidanceTitle,
+    this.onGuidanceDismiss,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool showGuidance;
+  final String? guidanceTitle;
+  final VoidCallback? onGuidanceDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    final chip = _InventoryGuidanceHighlight(
+      enabled: showGuidance,
+      child: _ActionChip(
+        label: label,
+        onTap: onTap,
+        icon: Icons.inventory_2_outlined,
+        iconOnly: true,
+        minWidth: 36,
+      ),
+    );
+
+    if (!showGuidance ||
+        guidanceTitle == null ||
+        guidanceTitle!.trim().isEmpty) {
+      return chip;
+    }
+
+    return _InventoryGuidanceOverlay(
+      title: guidanceTitle!,
+      onDismiss: onGuidanceDismiss,
+      titleOffset: Offset(8 * scale, -34 * scale),
+      child: chip,
     );
   }
 }
@@ -379,93 +408,231 @@ class _ActionChip extends StatelessWidget {
   }
 }
 
-class _InventoryGuidanceBubble extends StatelessWidget {
-  const _InventoryGuidanceBubble({
+class _InventoryGuidanceOverlay extends StatefulWidget {
+  const _InventoryGuidanceOverlay({
     required this.title,
-    required this.body,
+    required this.child,
+    this.titleOffset = Offset.zero,
     this.onDismiss,
   });
 
   final String title;
-  final String body;
+  final Widget child;
+  final Offset titleOffset;
   final VoidCallback? onDismiss;
+
+  @override
+  State<_InventoryGuidanceOverlay> createState() =>
+      _InventoryGuidanceOverlayState();
+}
+
+class _InventoryGuidanceOverlayState extends State<_InventoryGuidanceOverlay> {
+  static const Duration _autoDismissDelay = Duration(seconds: 5);
+  Timer? _dismissTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleDismiss();
+  }
+
+  @override
+  void didUpdateWidget(covariant _InventoryGuidanceOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.title != widget.title) {
+      _scheduleDismiss();
+    }
+  }
+
+  @override
+  void dispose() {
+    _dismissTimer?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleDismiss() {
+    _dismissTimer?.cancel();
+    if (widget.onDismiss == null) {
+      return;
+    }
+    _dismissTimer = Timer(_autoDismissDelay, widget.onDismiss!);
+  }
 
   @override
   Widget build(BuildContext context) {
     final scale = homeUiScale(MediaQuery.sizeOf(context).width);
-    return Container(
-      constraints: BoxConstraints(maxWidth: 220 * scale),
-      padding: EdgeInsets.fromLTRB(
-        12 * scale,
-        10 * scale,
-        8 * scale,
-        10 * scale,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E6).withValues(alpha: 0.97),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF2A53A), width: 1.4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.inventory_2_outlined,
-            size: 16 * scale,
-            color: const Color(0xFF9A5D00),
-          ),
-          Gap(8 * scale),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        widget.child,
+        Positioned(
+          key: const ValueKey('inventory-guidance-title'),
+          right: widget.titleOffset.dx,
+          top: widget.titleOffset.dy,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF8E6).withValues(alpha: 0.97),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: const Color(0xFFF2A53A), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFE8A83A).withValues(alpha: 0.26),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12 * scale,
+                  vertical: 6 * scale,
+                ),
+                child: Text(
+                  widget.title,
                   style: TextStyle(
                     fontSize: 11.5 * scale,
                     fontWeight: FontWeight.w900,
                     color: const Color(0xFF7A4600),
-                    height: 1.1,
+                    height: 1,
                   ),
                 ),
-                Gap(4 * scale),
-                Text(
-                  body,
-                  style: TextStyle(
-                    fontSize: 10.5 * scale,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF6F563B),
-                    height: 1.25,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-          if (onDismiss != null)
-            IconButton(
-              onPressed: onDismiss,
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints.tightFor(
-                width: 20 * scale,
-                height: 20 * scale,
-              ),
-              icon: Icon(
-                Icons.close_rounded,
-                size: 15 * scale,
-                color: const Color(0xFF9A5D00),
+        ),
+      ],
+    );
+  }
+}
+
+class _InventoryGuidanceHighlight extends StatefulWidget {
+  const _InventoryGuidanceHighlight({
+    required this.enabled,
+    required this.child,
+  });
+
+  final bool enabled;
+  final Widget child;
+
+  @override
+  State<_InventoryGuidanceHighlight> createState() =>
+      _InventoryGuidanceHighlightState();
+}
+
+class _InventoryGuidanceHighlightState
+    extends State<_InventoryGuidanceHighlight>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1700),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _syncAnimation();
+  }
+
+  @override
+  void didUpdateWidget(covariant _InventoryGuidanceHighlight oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.enabled != widget.enabled) {
+      _syncAnimation();
+    }
+  }
+
+  void _syncAnimation() {
+    if (widget.enabled) {
+      _controller.repeat();
+      return;
+    }
+    _controller.stop();
+    _controller.value = 0;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.enabled) {
+      return widget.child;
+    }
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  key: const ValueKey('inventory-guidance-highlight'),
+                  painter: _InventorySweepPainter(progress: _controller.value),
+                ),
               ),
             ),
-        ],
-      ),
+            child!,
+          ],
+        );
+      },
     );
+  }
+}
+
+class _InventorySweepPainter extends CustomPainter {
+  const _InventorySweepPainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(
+      rect.deflate(1.8),
+      const Radius.circular(999),
+    );
+    final basePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..color = const Color(0xFFF6C557).withValues(alpha: 0.34);
+    canvas.drawRRect(rrect, basePaint);
+
+    final sweepPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.6
+      ..shader = SweepGradient(
+        transform: GradientRotation(progress * 2 * pi),
+        colors: [
+          Colors.transparent,
+          const Color(0xFFFFD86C).withValues(alpha: 0.15),
+          const Color(0xFFFFD86C),
+          Colors.white,
+          const Color(0xFFFFD86C),
+          Colors.transparent,
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.08, 0.14, 0.18, 0.22, 0.32, 1.0],
+      ).createShader(rect)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.4);
+    canvas.drawRRect(rrect, sweepPaint);
+
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..color = const Color(0xFFFFD86C).withValues(alpha: 0.09);
+    canvas.drawRRect(rrect.inflate(1.8), glowPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _InventorySweepPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 

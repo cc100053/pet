@@ -679,7 +679,7 @@
   "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
   "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。",
   "roomInventoryTitle": "房間背包",
-  "roomDecorHintTitle": "開始佈置房間",
+  "roomDecorHintTitle": "裝飾房間",
   "roomDecorHintBody": "點一下 {buttonLabel} 進入房間修改模式，然後擺放家具或套用背景。",
   "@roomDecorHintBody": {
     "placeholders": {

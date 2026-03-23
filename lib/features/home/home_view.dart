@@ -4303,9 +4303,6 @@ class _HomeViewState extends ConsumerState<HomeView>
                         activeRoomId,
                       ),
                       inventoryGuidanceTitle: l10n.roomDecorHintTitle,
-                      inventoryGuidanceBody: l10n.roomDecorHintBody(
-                        l10n.roomInventoryCta,
-                      ),
                       onInventoryGuidanceDismiss: _dismissRoomDecorHint,
                     );
                   },

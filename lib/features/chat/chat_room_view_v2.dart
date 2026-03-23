@@ -112,6 +112,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   final GlobalKey _composerSurfaceKey = GlobalKey();
   final GlobalKey _composerInputRegionKey = GlobalKey();
   final GlobalKey _composerInteractionRegionKey = GlobalKey();
+  final GlobalKey _jumpToLatestPillKey = GlobalKey();
   final ChatWindowState _window = ChatWindowState(
     pageSize: _pageSize,
     maxVisibleMessages: _maxVisibleMessages,
@@ -138,7 +139,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   String? _historyGroupingBoundaryMessageId;
   int? _memberCount;
   double _composerHeight = 0;
-  int _latestScrollRequestId = 0;
+  double _lastKnownViewInsetBottom = 0;
+  int _viewportSyncRequestId = 0;
+  bool _isAnimatingExplicitLatest = false;
+  bool _needsLatestCorrectionAfterAnimation = false;
 
   ChatMessageRepository get _repository =>
       widget.repository ?? ChatMessageRepository.instance;
@@ -166,15 +170,15 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     return media.padding.top + _resolvedTopBarHeight(media) + 12;
   }
 
-  double _resolvedKeyboardAwareBottomInset(MediaQueryData media) {
-    return resolveChatKeyboardBottomInset(
-      keyboardInset: media.viewInsets.bottom,
-      safeAreaInset: media.padding.bottom,
-    );
+  double _resolvedComposerBottomInset(MediaQueryData media) {
+    if (media.viewInsets.bottom > media.padding.bottom) {
+      return 0;
+    }
+    return media.padding.bottom + 8;
   }
 
   double _resolvedListBottomPadding(MediaQueryData media) {
-    final listBottomInset = _resolvedKeyboardAwareBottomInset(media) + 8;
+    final listBottomInset = _resolvedComposerBottomInset(media) + 8;
     return listBottomInset + _composerHeight + 8;
   }
 
@@ -218,6 +222,58 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     // Reconcile the latest server page after backgrounded periods where the
     // realtime channel may not have delivered foreground updates yet.
     unawaited(_refreshLatest());
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    if (!mounted) {
+      return;
+    }
+    final view = View.maybeOf(context);
+    if (view == null) {
+      return;
+    }
+    final nextInsetBottom = view.viewInsets.bottom / view.devicePixelRatio;
+    if ((nextInsetBottom - _lastKnownViewInsetBottom).abs() <= 0.5) {
+      return;
+    }
+    _lastKnownViewInsetBottom = nextInsetBottom;
+    
+    // With reverse: true, we generally don't need manual viewport sync on 
+    // keyboard metrics changes. We only ensure the latest message is 
+    // visible if we were already at the bottom.
+    if (_shouldKeepLatestVisible()) {
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: false,
+        followUpFrames: 2,
+      );
+    }
+  }
+
+  bool _globalPointInsideKey(GlobalKey key, Offset globalPosition) {
+    final rect = _globalRectForKey(key);
+    return rect?.contains(globalPosition) ?? false;
+  }
+
+  void _handleBackdropTapUp(TapUpDetails details) {
+    if (_globalPointInsideKey(_jumpToLatestPillKey, details.globalPosition)) {
+      return;
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void _restoreComposerFocusAfterLatestJump() {
+    if (!mounted || _composerFocusNode.hasFocus) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _composerFocusNode.hasFocus) {
+        return;
+      }
+      _composerFocusNode.requestFocus();
+    });
   }
 
   int get _imageMessageCount =>
@@ -331,7 +387,16 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       _historyGroupingBoundaryMessageId = null;
       _window.hydrateCache(messages);
       await _applyWindowToChat(animated: false);
-      _scheduleScrollToLatest(animated: false);
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: false,
+        // followUpFrames is intentionally 0 here: _loadInitial fires
+        // immediately after and will schedule its own viewport sync with
+        // followUpFrames: 1. Keeping this at 0 prevents the two syncs from
+        // competing across frame boundaries, which causes the visible
+        // up/down jump when entering a room with cached data.
+        followUpFrames: 0,
+      );
       if (!mounted) {
         return;
       }
@@ -371,7 +436,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       _historyGroupingBoundaryMessageId = null;
       _window.replaceWithLatest(page.messages, hasMoreOlder: page.hasMoreOlder);
       await _applyWindowToChat(animated: false);
-      _scheduleScrollToLatest(animated: false);
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: false,
+        followUpFrames: 1,
+      );
       if (!mounted) {
         return;
       }
@@ -603,7 +672,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       if (hasNewProfiles) {
         setState(() {});
         if (shouldKeepLatestVisible) {
-          _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+          _scheduleViewportSync(
+            stickToLatest: true,
+            animated: false,
+            followUpFrames: 2,
+          );
         }
       }
     } catch (_) {
@@ -680,7 +753,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       unawaited(_persistCache());
       setState(() {});
       if (shouldKeepLatestVisible) {
-        _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+        _scheduleViewportSync(
+          stickToLatest: true,
+          animated: false,
+          followUpFrames: 2,
+        );
       }
     } catch (_) {
       // Best-effort reply preview loading.
@@ -754,7 +831,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (mounted) {
       setState(() {});
       if (shouldKeepLatestVisible) {
-        _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+        _scheduleViewportSync(
+          stickToLatest: true,
+          animated: false,
+          followUpFrames: 2,
+        );
       }
     }
   }
@@ -963,7 +1044,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     unawaited(_ensureReactionSummariesForMessages([message]));
     unawaited(_persistCache());
     if (scrollToLatest) {
-      _scheduleScrollToLatest(animated: animated);
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: animated,
+        followUpFrames: animated ? 1 : 0,
+      );
     }
     if (mounted) {
       setState(() {});
@@ -1296,15 +1381,78 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (!mounted) {
       return;
     }
-    _scheduleScrollToLatest(animated: false);
+    _scheduleViewportSync(stickToLatest: true, animated: false);
   }
 
   Future<void> _handleJumpToLatestPressed() async {
-    await _refreshLatest(resetWindow: true);
-    if (!mounted) {
-      return;
+    // If the composer is focused (keyboard is open), we want to keep it
+    // focused through the jump so the keyboard does not close mid-animation.
+    final composerWasFocused = _composerFocusNode.hasFocus;
+    _isAnimatingExplicitLatest = true;
+    _needsLatestCorrectionAfterAnimation = false;
+    try {
+      final page = await _fetchMessagePage();
+      if (!mounted) {
+        _isAnimatingExplicitLatest = false;
+        return;
+      }
+      _historyGroupingBoundaryMessageId = null;
+      _window.transitionToLatest(
+        page.messages,
+        hasMoreOlder: page.hasMoreOlder,
+      );
+      await _applyWindowToChat(animated: false);
+      unawaited(_ensureProfilesForMessages(_messages));
+      unawaited(_ensureReplyPreviewsForMessages(_messages));
+      unawaited(_ensureReactionSummariesForMessages(_messages));
+      if (!mounted) {
+        _isAnimatingExplicitLatest = false;
+        return;
+      }
+      // Re-request focus if the composer was focused before tapping the
+      // button. Some gesture paths (translucent GestureDetector unfocus)
+      // can dismiss the keyboard as a side-effect of the pill tap.
+      if (composerWasFocused && !_composerFocusNode.hasFocus) {
+        _restoreComposerFocusAfterLatestJump();
+      }
+      setState(() => _error = null);
+      _scheduleExplicitLatestAnimation(
+        reuseExistingLock: true,
+        onSettled: () async {
+          _historyGroupingBoundaryMessageId = null;
+          _window.replaceWithLatest(
+            page.messages,
+            hasMoreOlder: page.hasMoreOlder,
+          );
+          await _applyWindowToChat(animated: false);
+          unawaited(_persistCache());
+          unawaited(_captureMemorySnapshot(source: 'chat_latest_window_reset'));
+          if (!mounted) {
+            return;
+          }
+          if (composerWasFocused) {
+            _restoreComposerFocusAfterLatestJump();
+          }
+          _scheduleViewportSync(
+            stickToLatest: true,
+            animated: false,
+            followUpFrames: 1,
+          );
+        },
+      );
+    } catch (error) {
+      if (!mounted) {
+        _isAnimatingExplicitLatest = false;
+        return;
+      }
+      _isAnimatingExplicitLatest = false;
+      _needsLatestCorrectionAfterAnimation = false;
+      setState(() {
+        _error = AppLocalizations.of(
+          context,
+        )!.chatRefreshFailed(userFacingError(context, error));
+      });
     }
-    _scheduleScrollToLatest(animated: true);
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
@@ -1741,7 +1889,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (_loadingMore || _loading || !_hasMore) {
       return;
     }
-    if (position.pixels <= 120) {
+    // In a reversed list, older messages are at the maxScrollExtent.
+    if (position.pixels >= position.maxScrollExtent - 120) {
       unawaited(_loadMore());
     }
   }
@@ -1754,9 +1903,23 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return;
     }
     final shouldKeepLatestVisible = _shouldKeepLatestVisible();
+    final anchor = shouldKeepLatestVisible ? null : _captureViewportAnchor();
     setState(() => _composerHeight = height);
     if (shouldKeepLatestVisible) {
-      _scheduleScrollToLatest(animated: false, followUpFrames: 2);
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: false,
+        followUpFrames: 2,
+      );
+      return;
+    }
+    if (anchor != null) {
+      _scheduleViewportSync(
+        stickToLatest: false,
+        anchor: anchor,
+        animated: false,
+        followUpFrames: 2,
+      );
     }
   }
 
@@ -1768,7 +1931,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return true;
     }
     final position = _chatScrollController.position;
-    return (position.maxScrollExtent - position.pixels) <= tolerance;
+    // In a reversed list, 0 is the bottom (latest).
+    return position.pixels <= tolerance;
   }
 
   _ViewportAnchor? _captureViewportAnchor() {
@@ -1778,11 +1942,14 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
     final media = MediaQuery.of(context);
     final viewportTop = _resolvedListTopPadding(media);
-    final viewportBottom =
-        media.size.height - _resolvedListBottomPadding(media);
+    final viewportBottom = _resolvedVisibleContentBottom(media);
     if (viewportBottom <= viewportTop) {
       return null;
     }
+
+    final viewportCenter = (viewportTop + viewportBottom) / 2;
+    _ViewportAnchor? bestAnchor;
+    var bestScore = double.infinity;
 
     for (final message in _messages) {
       final rect = _messageGlobalRect(message.id);
@@ -1795,10 +1962,20 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
           : rect.bottom;
       final visibleHeight = visibleBottom - visibleTop;
       if (visibleHeight >= _viewportAnchorMinVisibleHeight) {
-        return _ViewportAnchor(messageId: message.id, globalTop: rect.top);
+        final visibleMidpoint = (visibleTop + visibleBottom) / 2;
+        final score = (visibleMidpoint - viewportCenter).abs();
+        if (score < bestScore) {
+          bestScore = score;
+          final anchorGlobalY = viewportCenter.clamp(visibleTop, visibleBottom);
+          bestAnchor = _ViewportAnchor(
+            messageId: message.id,
+            globalY: anchorGlobalY,
+            messageLocalY: anchorGlobalY - rect.top,
+          );
+        }
       }
     }
-    return null;
+    return bestAnchor;
   }
 
   Rect? _messageGlobalRect(String messageId) {
@@ -1819,7 +1996,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (rect == null) {
       return false;
     }
-    final delta = rect.top - anchor.globalTop;
+    final resolvedMessageLocalY = anchor.messageLocalY.clamp(0.0, rect.height);
+    final delta = (rect.top + resolvedMessageLocalY) - anchor.globalY;
     if (delta.abs() <= 0.5) {
       return true;
     }
@@ -1840,7 +2018,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (rect == null) {
       return false;
     }
-    return (rect.top - anchor.globalTop).abs() <= 0.5;
+    final resolvedMessageLocalY = anchor.messageLocalY.clamp(0.0, rect.height);
+    return ((rect.top + resolvedMessageLocalY) - anchor.globalY).abs() <= 0.5;
   }
 
   void _schedulePreserveViewport({
@@ -1864,12 +2043,12 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
           return;
         }
       }
-      _restoreViewportFromScrollExtent(
-        previousMaxExtent: previousMaxExtent,
-        previousOffset: previousOffset,
-      );
-      await WidgetsBinding.instance.endOfFrame;
-      if (!mounted || !_chatScrollController.hasClients || anchor == null) {
+      // In reverse: true mode, we don't need manual scroll extent compensation
+      // because the anchor is at the bottom (0.0). Adding items at the 
+      // maxScrollExtent (older messages) doesn't shift the current pixels 
+      // relative to the bottom.
+      
+      if (anchor == null) {
         return;
       }
       for (var attempt = 0; attempt < 3; attempt += 1) {
@@ -1885,57 +2064,147 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     });
   }
 
-  void _restoreViewportFromScrollExtent({
-    required double? previousMaxExtent,
-    required double? previousOffset,
-  }) {
-    if (!_chatScrollController.hasClients ||
-        previousMaxExtent == null ||
-        previousOffset == null) {
-      return;
-    }
-    final position = _chatScrollController.position;
-    final delta = position.maxScrollExtent - previousMaxExtent;
-    if (delta.abs() <= 0.5) {
-      return;
-    }
-    final target = (previousOffset + delta).clamp(
-      position.minScrollExtent,
-      position.maxScrollExtent,
-    );
-    _chatScrollController.jumpTo(target);
-  }
-
-  void _scheduleScrollToLatest({
+  void _scheduleViewportSync({
+    required bool stickToLatest,
     required bool animated,
+    _ViewportAnchor? anchor,
     int followUpFrames = 0,
   }) {
-    final requestId = ++_latestScrollRequestId;
+    if (stickToLatest &&
+        !animated &&
+        anchor == null &&
+        _isAnimatingExplicitLatest) {
+      _needsLatestCorrectionAfterAnimation = true;
+      return;
+    }
+    final requestId = ++_viewportSyncRequestId;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted ||
           !_chatScrollController.hasClients ||
-          requestId != _latestScrollRequestId) {
+          requestId != _viewportSyncRequestId) {
         return;
       }
-      await _scrollToLatest(animated: animated);
+      await _runViewportSyncStep(
+        stickToLatest: stickToLatest,
+        anchor: anchor,
+        animated: animated,
+      );
       for (var frame = 0; frame < followUpFrames; frame += 1) {
         await WidgetsBinding.instance.endOfFrame;
         if (!mounted ||
             !_chatScrollController.hasClients ||
-            requestId != _latestScrollRequestId) {
+            requestId != _viewportSyncRequestId) {
           return;
         }
-        await _scrollToLatest(animated: false);
+        await _runViewportSyncStep(
+          stickToLatest: stickToLatest,
+          anchor: anchor,
+          animated: false,
+        );
       }
     });
   }
 
-  Future<void> _scrollToLatest({required bool animated}) async {
+  void _scheduleExplicitLatestAnimation({
+    int settleFrames = 2,
+    bool reuseExistingLock = false,
+    Future<void> Function()? onSettled,
+  }) {
+    final requestId = ++_viewportSyncRequestId;
+    if (!reuseExistingLock) {
+      _isAnimatingExplicitLatest = true;
+      _needsLatestCorrectionAfterAnimation = false;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      for (var frame = 0; frame < settleFrames; frame += 1) {
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted ||
+            !_chatScrollController.hasClients ||
+            requestId != _viewportSyncRequestId) {
+          _isAnimatingExplicitLatest = false;
+          return;
+        }
+      }
+      await _scrollLatestMessageToVisibleBottom(animated: true);
+      if (!mounted || requestId != _viewportSyncRequestId) {
+        _isAnimatingExplicitLatest = false;
+        return;
+      }
+      _isAnimatingExplicitLatest = false;
+      if (_needsLatestCorrectionAfterAnimation) {
+        _needsLatestCorrectionAfterAnimation = false;
+        _scheduleViewportSync(
+          stickToLatest: true,
+          animated: false,
+          followUpFrames: 1,
+        );
+        return;
+      }
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted ||
+          !_chatScrollController.hasClients ||
+          requestId != _viewportSyncRequestId) {
+        return;
+      }
+      await _scrollLatestMessageToVisibleBottom(animated: false);
+      if (!mounted ||
+          !_chatScrollController.hasClients ||
+          requestId != _viewportSyncRequestId) {
+        return;
+      }
+      if (onSettled != null) {
+        await onSettled();
+      }
+    });
+  }
+
+  Future<void> _runViewportSyncStep({
+    required bool stickToLatest,
+    required _ViewportAnchor? anchor,
+    required bool animated,
+  }) async {
+    if (!_chatScrollController.hasClients || !mounted) {
+      return;
+    }
+    if (!stickToLatest) {
+      if (anchor != null) {
+        _restoreViewportAnchor(anchor);
+      }
+      return;
+    }
+    await _scrollLatestMessageToVisibleBottom(animated: animated);
+  }
+
+  Rect? _globalRectForKey(GlobalKey key) {
+    final context = key.currentContext;
+    final renderObject = context?.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) {
+      return null;
+    }
+    final origin = renderObject.localToGlobal(Offset.zero);
+    return origin & renderObject.size;
+  }
+
+  double _resolvedVisibleContentBottom(MediaQueryData media) {
+    const bottomGap = 8.0;
+    final composerRect = _globalRectForKey(_composerInteractionRegionKey);
+    if (composerRect != null) {
+      return composerRect.top - bottomGap;
+    }
+    return media.size.height -
+        media.viewInsets.bottom -
+        media.padding.bottom -
+        bottomGap;
+  }
+
+  Future<void> _scrollLatestMessageToVisibleBottom({
+    required bool animated,
+  }) async {
     if (!_chatScrollController.hasClients) {
       return;
     }
     final position = _chatScrollController.position;
-    final target = position.maxScrollExtent;
+    final target = 0.0; // In a reversed list, 0 is the newest message.
     if ((position.pixels - target).abs() <= 1) {
       return;
     }
@@ -2054,10 +2323,11 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final media = MediaQuery.of(context);
+    _lastKnownViewInsetBottom = media.viewInsets.bottom;
     final uiScale = appUiScale(media.size.width);
     final topBarHeight = _resolvedTopBarHeight(media);
     final listTopPadding = _resolvedListTopPadding(media);
-    final keyboardAwareBottomInset = _resolvedKeyboardAwareBottomInset(media);
+    final composerBottomInset = _resolvedComposerBottomInset(media);
     final listBottomPadding = _resolvedListBottomPadding(media);
     final scaffoldBackground =
         widget.backgroundDecoration?.color ??
@@ -2076,7 +2346,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       value: overlayStyle,
       child: Scaffold(
         backgroundColor: scaffoldBackground,
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
@@ -2134,12 +2404,19 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         body: Stack(
           children: [
             Positioned.fill(
+              child: DecoratedBox(
+                decoration:
+                    widget.backgroundDecoration ??
+                    BoxDecoration(color: scaffoldBackground),
+              ),
+            ),
+            Positioned.fill(
               child: ChatBackSwipePopLayer(
                 excludedRegionKey: _composerInteractionRegionKey,
                 onPop: () => Navigator.of(context).maybePop(),
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  onTapUp: _handleBackdropTapUp,
                   child: ChatKeyboardSweepDismissLayer(
                     focusNode: _composerFocusNode,
                     keyboardInset: media.viewInsets.bottom,
@@ -2149,8 +2426,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                       currentUserId: _currentUserId,
                       resolveUser: _resolveUser,
                       chatController: _chatController,
-                      decoration: widget.backgroundDecoration,
-                      backgroundColor: scaffoldBackground,
+                      decoration: null,
+                      backgroundColor: Colors.transparent,
                       theme: _chatTheme(context),
                       onMessageSend: _sending ? null : _handleSendMessage,
                       onAttachmentTap: (_sending || widget.isRoomLocked)
@@ -2208,6 +2485,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                           surfaceKey: _composerSurfaceKey,
                           inputRegionKey: _composerInputRegionKey,
                           interactionRegionKey: _composerInteractionRegionKey,
+                          keyboardInset: media.viewInsets.bottom,
+                          bottomInset: composerBottomInset,
                           hintText: l10n.chatMessageHint,
                           isDarkBackground: widget.isDarkBackground,
                           onHeightChanged: _handleComposerHeightChanged,
@@ -2342,7 +2621,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                               return content;
                             },
                         chatAnimatedListBuilder: (context, itemBuilder) {
-                          final uiMessages = _toUiMessages(_messages);
+                          final uiMessages = _toUiMessages(_messages).reversed.toList();
                           if (uiMessages.isEmpty) {
                             return Center(
                               child: Padding(
@@ -2407,8 +2686,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
             if (_shouldShowJumpToLatestButton)
               Positioned(
                 right: 16,
-                bottom: keyboardAwareBottomInset + _composerHeight + 16,
+                bottom: composerBottomInset + _composerHeight + 16,
                 child: _JumpToLatestPill(
+                  key: _jumpToLatestPillKey,
                   label: l10n.chatJumpToLatest,
                   pendingCount: _pendingLiveMessageCount,
                   isDarkBackground: widget.isDarkBackground,
@@ -2538,10 +2818,15 @@ class _FetchedMessagePage {
 }
 
 class _ViewportAnchor {
-  const _ViewportAnchor({required this.messageId, required this.globalTop});
+  const _ViewportAnchor({
+    required this.messageId,
+    required this.globalY,
+    required this.messageLocalY,
+  });
 
   final String messageId;
-  final double globalTop;
+  final double globalY;
+  final double messageLocalY;
 }
 
 class _ChatHistoryLoadingOverlay extends StatelessWidget {
@@ -2612,6 +2897,7 @@ class _ChatHistoryLoadingOverlay extends StatelessWidget {
 
 class _JumpToLatestPill extends StatelessWidget {
   const _JumpToLatestPill({
+    super.key,
     required this.label,
     required this.pendingCount,
     required this.isDarkBackground,
@@ -2638,59 +2924,62 @@ class _JumpToLatestPill extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        key: const ValueKey('chatJumpToLatestButton'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Ink(
-          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: borderColor),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_downward_rounded, size: 18, color: iconColor),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                key: const ValueKey('chatJumpToLatestLabel'),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (pendingCount > 0) ...[
-                const SizedBox(width: 8),
-                Container(
-                  key: const ValueKey('chatScrollToLatestPendingCount'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    pendingCount > 99 ? '99+' : '$pendingCount',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+      child: TextFieldTapRegion(
+        child: InkWell(
+          key: const ValueKey('chatJumpToLatestButton'),
+          onTap: onTap,
+          canRequestFocus: false,
+          borderRadius: BorderRadius.circular(999),
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.14),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
               ],
-            ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.arrow_downward_rounded, size: 18, color: iconColor),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  key: const ValueKey('chatJumpToLatestLabel'),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (pendingCount > 0) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    key: const ValueKey('chatScrollToLatestPendingCount'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      pendingCount > 99 ? '99+' : '$pendingCount',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -2705,6 +2994,8 @@ class _TelegramComposer extends StatefulWidget {
     required this.surfaceKey,
     required this.inputRegionKey,
     required this.interactionRegionKey,
+    required this.keyboardInset,
+    required this.bottomInset,
     required this.hintText,
     required this.isDarkBackground,
     required this.onHeightChanged,
@@ -2720,6 +3011,8 @@ class _TelegramComposer extends StatefulWidget {
   final GlobalKey surfaceKey;
   final GlobalKey inputRegionKey;
   final GlobalKey interactionRegionKey;
+  final double keyboardInset;
+  final double bottomInset;
   final String hintText;
   final bool isDarkBackground;
   final ValueChanged<double> onHeightChanged;
@@ -2811,14 +3104,6 @@ class _TelegramComposerState extends State<_TelegramComposer> {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final keyboardInset = media.viewInsets.bottom;
-    final keyboardAwareBottomInset = resolveChatKeyboardBottomInset(
-      keyboardInset: keyboardInset,
-      safeAreaInset: media.padding.bottom,
-    );
-    final composerBottomInset = keyboardAwareBottomInset + 8;
-
     final isDark = widget.isDarkBackground;
     final canSend = _hasText && widget.onSend != null;
     final inputColor = isDark
@@ -2843,10 +3128,10 @@ class _TelegramComposerState extends State<_TelegramComposer> {
     return Positioned(
       left: 12,
       right: 12,
-      bottom: composerBottomInset,
+      bottom: widget.bottomInset,
       child: ChatComposerDismissShell(
         focusNode: widget.focusNode,
-        keyboardInset: keyboardInset,
+        keyboardInset: widget.keyboardInset,
         contentKey: widget.interactionRegionKey,
         handleKey: const ValueKey('chatComposerDismissHandle'),
         child: Padding(

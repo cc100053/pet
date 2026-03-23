@@ -23,9 +23,7 @@ void main() {
           onInventoryTap: onInventoryTap,
           inventoryLabel: 'Inventory',
           showInventoryGuidance: showHint,
-          inventoryGuidanceTitle: 'Decorate your room',
-          inventoryGuidanceBody:
-              'Tap Inventory to enter room edit mode, then place furniture or apply a background.',
+          inventoryGuidanceTitle: 'Decorate room',
           onInventoryGuidanceDismiss: onDismissHint,
         ),
       ),
@@ -39,14 +37,12 @@ void main() {
       buildHarness(showHint: true, onInventoryTap: () {}, onDismissHint: () {}),
     );
 
-    expect(find.text('Decorate your room'), findsOneWidget);
+    expect(find.text('Decorate room'), findsOneWidget);
+    expect(find.byTooltip('Inventory'), findsOneWidget);
     expect(
-      find.text(
-        'Tap Inventory to enter room edit mode, then place furniture or apply a background.',
-      ),
+      find.byKey(const ValueKey('inventory-guidance-highlight')),
       findsOneWidget,
     );
-    expect(find.byTooltip('Inventory'), findsOneWidget);
   });
 
   testWidgets('opening inventory dismisses the room decor guidance', (
@@ -74,11 +70,48 @@ void main() {
       ),
     );
 
-    expect(find.text('Decorate your room'), findsOneWidget);
+    expect(find.text('Decorate room'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Inventory'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Decorate your room'), findsNothing);
+    expect(find.text('Decorate room'), findsNothing);
+  });
+
+  testWidgets('room decor guidance auto dismisses after five seconds', (
+    tester,
+  ) async {
+    var showHint = true;
+
+    await tester.pumpWidget(
+      StatefulBuilder(
+        builder: (context, setState) {
+          return buildHarness(
+            showHint: showHint,
+            onInventoryTap: () {
+              setState(() {
+                showHint = false;
+              });
+            },
+            onDismissHint: () {
+              setState(() {
+                showHint = false;
+              });
+            },
+          );
+        },
+      ),
+    );
+
+    expect(find.text('Decorate room'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Decorate room'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('inventory-guidance-highlight')),
+      findsNothing,
+    );
   });
 }

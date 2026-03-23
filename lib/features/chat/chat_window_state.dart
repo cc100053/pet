@@ -50,6 +50,17 @@ class ChatWindowState {
     _setVisibleMessages(_trimKeepLatest(merged, maxVisibleMessages));
   }
 
+  void transitionToLatest(
+    List<ChatMessage> messages, {
+    required bool hasMoreOlder,
+  }) {
+    _mode = ChatWindowMode.live;
+    _hasMoreOlder = hasMoreOlder;
+    _pendingLiveMessageIds.clear();
+    final merged = _mergeSortedUnique(_visibleMessages, messages);
+    _setVisibleMessages(_trimKeepLatest(merged, maxVisibleMessages));
+  }
+
   void prependOlderPage(
     List<ChatMessage> messages, {
     required bool hasMoreOlder,

@@ -1269,7 +1269,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInventoryTitle => '房间背包';
 
   @override
-  String get roomDecorHintTitle => '开始布置房间';
+  String get roomDecorHintTitle => '装饰房间';
 
   @override
   String roomDecorHintBody(Object buttonLabel) {
@@ -2743,7 +2743,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomInventoryTitle => '房間背包';
 
   @override
-  String get roomDecorHintTitle => '開始佈置房間';
+  String get roomDecorHintTitle => '裝飾房間';
 
   @override
   String roomDecorHintBody(Object buttonLabel) {

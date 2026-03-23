@@ -210,6 +210,50 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> setKeyboardInset(WidgetTester tester, double bottomInset) async {
+    tester.view.viewInsets = FakeViewPadding(bottom: bottomInset);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> focusComposerAndOpenKeyboard(WidgetTester tester) async {
+    final composerFinder = find.byKey(const ValueKey('chatComposerTextField'));
+    await tester.tap(composerFinder);
+    await tester.pump();
+    await tester.showKeyboard(composerFinder);
+    await setKeyboardInset(tester, 320);
+  }
+
+  ScrollController timelineController(WidgetTester tester) {
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView).first,
+    );
+    return scrollView.controller!;
+  }
+
+  double composerTop(WidgetTester tester) {
+    return tester
+        .getTopLeft(find.byKey(const ValueKey('chatComposerTextField')))
+        .dy;
+  }
+
+  double composerBottom(WidgetTester tester) {
+    return tester
+        .getBottomLeft(find.byKey(const ValueKey('chatComposerTextField')))
+        .dy;
+  }
+
+  bool composerHasFocus(WidgetTester tester) {
+    final editable = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byKey(const ValueKey('chatComposerTextField')),
+        matching: find.byType(EditableText),
+      ),
+    );
+    return editable.focusNode.hasFocus;
+  }
+
   setUp(() {
     ProfileCacheService.instance.clear();
     ProfileCacheService.instance.prime(
@@ -320,6 +364,38 @@ void main() {
     },
   );
 
+  testWidgets(
+    'room open keeps newest message fully visible when keyboard is already open',
+    (tester) async {
+      addTearDown(tester.view.resetViewInsets);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+
+      final messages = List<ChatMessage>.generate(
+        40,
+        (index) => message(index + 1),
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: messages.reversed.toList(),
+        canonicalMessages: messages,
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      final latestMessageBottom = tester
+          .getBottomLeft(find.byKey(const ValueKey('chatMessageSurface_m40')))
+          .dy;
+      final composerTop = tester
+          .getTopLeft(find.byKey(const ValueKey('chatComposerTextField')))
+          .dy;
+
+      expect(latestMessageBottom, lessThanOrEqualTo(composerTop + 1));
+    },
+  );
+
   testWidgets('scrolling near top loads older messages automatically', (
     tester,
   ) async {
@@ -408,6 +484,76 @@ void main() {
       expect(afterDy, closeTo(beforeDy, 8));
     },
   );
+
+  testWidgets(
+    'opening the keyboard while browsing history pushes the viewed message upward and keeps it visible',
+    (tester) async {
+      addTearDown(tester.view.resetViewInsets);
+
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: List<ChatMessage>.generate(
+          60,
+          (index) => message(60 - index),
+        ),
+        canonicalMessages: List<ChatMessage>.generate(
+          60,
+          (index) => message(index + 1),
+        ),
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, 2400),
+      );
+      await tester.pumpAndSettle();
+
+      final anchorFinder = find.byKey(const ValueKey('chatMessageSurface_m42'));
+      expect(anchorFinder, findsOneWidget);
+      final beforeDy = tester.getCenter(anchorFinder).dy;
+
+      await focusComposerAndOpenKeyboard(tester);
+
+      final afterDy = tester.getCenter(anchorFinder).dy;
+      expect(afterDy, lessThan(beforeDy - 40));
+      expect(
+        tester.getBottomLeft(anchorFinder).dy,
+        lessThanOrEqualTo(composerTop(tester) + 1),
+      );
+    },
+  );
+
+  testWidgets('opening the keyboard moves the composer upward', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetViewInsets);
+
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: List<ChatMessage>.generate(
+        40,
+        (index) => message(40 - index),
+      ),
+      canonicalMessages: List<ChatMessage>.generate(
+        40,
+        (index) => message(index + 1),
+      ),
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+    final beforeBottom = composerBottom(tester);
+    await focusComposerAndOpenKeyboard(tester);
+
+    expect(composerBottom(tester), lessThan(beforeBottom - 40));
+  });
 
   testWidgets(
     'history mode buffers live messages and jump button resets to latest',
@@ -543,6 +689,142 @@ void main() {
       expect(latestMessageBottom, lessThanOrEqualTo(composerTop + 1));
     },
   );
+
+  testWidgets(
+    'latest button keeps newest message visible with keyboard open after delayed reply preview expands it',
+    (tester) async {
+      addTearDown(tester.view.resetViewInsets);
+
+      final replyPreviewCompleter = Completer<Map<String, ChatReplyPreview>>();
+      addTearDown(() {
+        if (!replyPreviewCompleter.isCompleted) {
+          replyPreviewCompleter.complete(<String, ChatReplyPreview>{
+            'm10': ChatReplyPreview(
+              id: 'm10',
+              senderId: 'someone-else',
+              type: 'text',
+              body: 'earlier replied message',
+              imageUrl: null,
+              caption: null,
+            ),
+          });
+        }
+      });
+
+      final messages = List<ChatMessage>.generate(
+        60,
+        (index) => message(index + 1),
+      );
+      messages[59] = textMessage(
+        id: 'm60',
+        senderId: 'other',
+        body: 'latest delayed keyboard reply',
+        createdAt: DateTime.utc(2026, 3, 19).add(const Duration(minutes: 60)),
+        replyToMessageId: 'm10',
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: messages.reversed.toList(),
+        canonicalMessages: messages,
+      );
+      final runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+        fetchReplyPreviews: (_) => replyPreviewCompleter.future,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, 2400),
+      );
+      await tester.pumpAndSettle();
+
+      await setKeyboardInset(tester, 320);
+
+      expect(
+        find.byKey(const ValueKey('chatJumpToLatestButton')),
+        findsOneWidget,
+      );
+      final offsets = <double>[timelineController(tester).position.pixels];
+      await tester.tap(find.byKey(const ValueKey('chatJumpToLatestButton')));
+      await tester.pump();
+      offsets.add(timelineController(tester).position.pixels);
+
+      for (var frame = 0; frame < 3; frame += 1) {
+        await tester.pump(const Duration(milliseconds: 16));
+        offsets.add(timelineController(tester).position.pixels);
+      }
+
+      replyPreviewCompleter.complete(<String, ChatReplyPreview>{
+        'm10': ChatReplyPreview(
+          id: 'm10',
+          senderId: 'someone-else',
+          type: 'text',
+          body: 'earlier replied message',
+          imageUrl: null,
+          caption: null,
+        ),
+      });
+      for (var frame = 0; frame < 24; frame += 1) {
+        await tester.pump(const Duration(milliseconds: 16));
+        offsets.add(timelineController(tester).position.pixels);
+      }
+      await tester.pumpAndSettle();
+      offsets.add(timelineController(tester).position.pixels);
+
+      for (var index = 1; index < offsets.length; index += 1) {
+        expect(offsets[index], greaterThanOrEqualTo(offsets[index - 1] - 1));
+      }
+
+      final latestMessageBottom = tester
+          .getBottomLeft(find.byKey(const ValueKey('chatMessageSurface_m60')))
+          .dy;
+      final composerTop = tester
+          .getTopLeft(find.byKey(const ValueKey('chatComposerTextField')))
+          .dy;
+
+      expect(latestMessageBottom, lessThanOrEqualTo(composerTop + 1));
+    },
+  );
+
+  testWidgets('latest button keeps composer focus while keyboard is open', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetViewInsets);
+
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: List<ChatMessage>.generate(
+        60,
+        (index) => message(60 - index),
+      ),
+      canonicalMessages: List<ChatMessage>.generate(
+        60,
+        (index) => message(index + 1),
+      ),
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, 2400),
+    );
+    await tester.pumpAndSettle();
+
+    await focusComposerAndOpenKeyboard(tester);
+    expect(composerHasFocus(tester), isTrue);
+
+    await tester.tap(find.byKey(const ValueKey('chatJumpToLatestButton')));
+    await tester.pumpAndSettle();
+
+    expect(composerHasFocus(tester), isTrue);
+    expect(find.byKey(const ValueKey('chatMessageSurface_m60')), findsOneWidget);
+  });
 
   testWidgets(
     'resuming the app refreshes latest messages after a backgrounded gap',

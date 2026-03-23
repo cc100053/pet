@@ -2370,7 +2370,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomDecorHintTitle.
   ///
   /// In en, this message translates to:
-  /// **'Decorate your room'**
+  /// **'Decorate room'**
   String get roomDecorHintTitle;
 
   /// No description provided for @roomDecorHintBody.
