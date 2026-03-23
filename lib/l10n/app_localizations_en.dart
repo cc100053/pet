@@ -620,10 +620,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew105Bullet3 => '';
 
   @override
-  String get whatsNew106Title => 'Major Store Update & Stability';
+  String get whatsNew106Title => 'Major Shop Update & Stability';
 
   @override
-  String get whatsNew106Bullet1 => 'Major store redesign and visual update';
+  String get whatsNew106Bullet1 => 'Major shop redesign and visual update';
 
   @override
   String get whatsNew106Bullet2 => 'Improved app stability and performance';
@@ -1047,7 +1047,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeEmpty => 'Store is empty for now.';
+  String get shopEmpty => 'Shop is empty for now.';
 
   @override
   String get storeIapNotConfigured => 'IAP not configured.';
@@ -1058,8 +1058,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String storeLoadFailed(Object error) {
-    return 'Failed to load store: $error';
+  String shopLoadFailed(Object error) {
+    return 'Failed to load shop: $error';
   }
 
   @override
@@ -1101,19 +1101,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeRestoreTooltip => 'Restore purchases';
 
   @override
-  String get storeSectionCoinPacks => 'Candy Packs';
+  String get shopSectionCoinPacks => 'Candy Packs';
 
   @override
-  String get storeSectionCoinStore => 'Candy Store';
+  String get shopSectionCoinShop => 'Candy Shop';
 
   @override
-  String get storeSectionDiamondPacks => 'Diamond Packs';
+  String get shopSectionDiamondPacks => 'Diamond Packs';
 
   @override
-  String get storeSectionDiamondStore => 'Diamond Store';
+  String get shopSectionDiamondShop => 'Diamond Shop';
 
   @override
-  String get storeSectionSubscription => 'Subscription';
+  String get shopSectionSubscription => 'Subscription';
 
   @override
   String get storeTabPremium => 'Premium';
@@ -1213,7 +1213,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescFurnitureRibbon => 'Decor ribbon.';
 
   @override
-  String get storeSignInPrompt => 'Please sign in to access the store.';
+  String get shopSignInPrompt => 'Please sign in to access the shop.';
 
   @override
   String get storeSubscribe => 'Subscribe';
@@ -1261,7 +1261,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please accept the Terms of Use and Privacy Policy before signing in.';
 
   @override
-  String get storeTitle => 'Store';
+  String get shopTitle => 'Shop';
 
   @override
   String get storeTypeConsumable => 'Consumable';
@@ -1281,7 +1281,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureInventoryEmpty =>
-      'No furniture yet. Buy some in the store.';
+      'No furniture yet. Buy some in the shop.';
 
   @override
   String get furnitureInventoryHint =>
@@ -1298,7 +1298,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backgroundInventoryEmpty =>
-      'No backgrounds yet. Pick one up in the store.';
+      'No backgrounds yet. Pick one up in the shop.';
 
   @override
   String get backgroundInventoryHint =>
@@ -1316,10 +1316,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeSectionBackgrounds => 'Backgrounds';
+  String get shopSectionBackgrounds => 'Backgrounds';
 
   @override
-  String get storeSectionItems => 'Items';
+  String get shopSectionItems => 'Items';
 
   @override
   String get storeBackgroundRoomRequired =>
@@ -1402,10 +1402,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petDepartureGuideMessage =>
-      'Visit the Store and buy a Letter to invite your pet back.';
+      'Visit the Shop and buy a Letter to invite your pet back.';
 
   @override
-  String get petDepartureGuideGoStore => 'Go to Store';
+  String get petDepartureGuideGoShop => 'Go to Shop';
 
   @override
   String get petDepartureLetterUnavailableTitle => 'Letter unavailable';

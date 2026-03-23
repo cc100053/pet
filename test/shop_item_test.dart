@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet/features/store/models/store_item.dart';
+import 'package:pet/features/shop/models/shop_item.dart';
 import 'package:pet/l10n/app_localizations_en.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
@@ -9,7 +9,7 @@ void main() {
   test(
     'uses package localized price string even when catalog currency is JPY',
     () {
-      final item = _buildStoreItem(priceJpy: 300, catalogCurrencyCode: 'JPY');
+      final item = _buildShopItem(priceJpy: 300, catalogCurrencyCode: 'JPY');
       final package = Package(
         'monthly',
         PackageType.monthly,
@@ -30,7 +30,7 @@ void main() {
   test(
     'uses direct localized store price for non-JPY storefront currencies',
     () {
-      final item = _buildStoreItem(priceJpy: 300, catalogCurrencyCode: 'JPY');
+      final item = _buildShopItem(priceJpy: 300, catalogCurrencyCode: 'JPY');
 
       final price = item.localizedIapPrice(
         null,
@@ -45,7 +45,7 @@ void main() {
   test(
     'falls back to catalog JPY price only when store price is unavailable',
     () {
-      final item = _buildStoreItem(priceJpy: 300, catalogCurrencyCode: 'JPY');
+      final item = _buildShopItem(priceJpy: 300, catalogCurrencyCode: 'JPY');
 
       final price = item.localizedIapPrice(null, null, l10n);
 
@@ -56,7 +56,7 @@ void main() {
   test(
     'returns unavailable when no store price and no JPY fallback is available',
     () {
-      final item = _buildStoreItem(priceJpy: null, catalogCurrencyCode: 'USD');
+      final item = _buildShopItem(priceJpy: null, catalogCurrencyCode: 'USD');
 
       final price = item.localizedIapPrice(null, null, l10n);
 
@@ -65,11 +65,11 @@ void main() {
   );
 }
 
-StoreItem _buildStoreItem({
+ShopItem _buildShopItem({
   required int? priceJpy,
   required String? catalogCurrencyCode,
 }) {
-  return StoreItem(
+  return ShopItem(
     id: '1',
     sku: 'iap_diamond_pack_small',
     type: 'consumable',

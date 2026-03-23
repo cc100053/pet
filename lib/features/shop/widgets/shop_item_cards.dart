@@ -1,7 +1,7 @@
-part of '../store_view.dart';
+part of '../shop_view.dart';
 
-class StoreGridItemCard extends StatelessWidget {
-  const StoreGridItemCard({
+class ShopGridItemCard extends StatelessWidget {
+  const ShopGridItemCard({
     super.key,
     required this.item,
     required this.isOwned,
@@ -18,7 +18,7 @@ class StoreGridItemCard extends StatelessWidget {
     required this.onHandleLetter,
   });
 
-  final StoreItem item;
+  final ShopItem item;
   final bool isOwned;
   final bool isIap;
   final String priceString;
@@ -121,7 +121,7 @@ class StoreGridItemCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: _StoreAdaptiveStrokeTitle(
+                    child: _ShopAdaptiveStrokeTitle(
                       text: item.localizedName(l10n),
                       fontSize: 20,
                       color: Colors.white,
@@ -172,7 +172,7 @@ class StoreGridItemCard extends StatelessWidget {
                     _GridCurrencyPrice(
                       label: '${item.priceCoins}',
                       icon: Image.asset(
-                        'assets/icon/store/candy.png',
+                        'assets/shop/icon/candy.png',
                         width: 24,
                         height: 24,
                       ),
@@ -185,7 +185,7 @@ class StoreGridItemCard extends StatelessWidget {
                     _GridCurrencyPrice(
                       label: '${item.priceDiamonds}',
                       icon: Image.asset(
-                        'assets/icon/store/diamond.png',
+                        'assets/shop/icon/diamond.png',
                         width: 24,
                         height: 24,
                       ),
@@ -204,12 +204,12 @@ class StoreGridItemCard extends StatelessWidget {
   }
 }
 
-extension _StoreItemCards on _StoreViewState {
-  Future<void> _openThemePreview(StoreItem item) async {
+extension _ShopItemCards on _ShopViewState {
+  Future<void> _openThemePreview(ShopItem item) async {
     await showStoreThemePreviewDialog(context: context, item: item);
   }
 
-  bool _isItemOwned(StoreItem item) {
+  bool _isItemOwned(ShopItem item) {
     if (item.type != 'cosmetic') {
       return false;
     }
@@ -222,7 +222,7 @@ extension _StoreItemCards on _StoreViewState {
     return (_inventory[item.id] ?? 0) > 0;
   }
 
-  Widget _buildGridItemCard(StoreItem item, AppLocalizations l10n) {
+  Widget _buildGridItemCard(ShopItem item, AppLocalizations l10n) {
     final isOwned = _isItemOwned(item);
     final isIap = item.isIap;
     final productId = item.iapProductId;
@@ -233,13 +233,13 @@ extension _StoreItemCards on _StoreViewState {
         ? null
         : _findStoreProductByProductId(productId);
     final priceString = item.localizedIapPrice(package, storeProduct, l10n);
-    final canAffordCoins = _canAfford(item, _StoreCurrency.candy);
-    final canAffordDiamonds = _canAfford(item, _StoreCurrency.diamonds);
+    final canAffordCoins = _canAfford(item, _ShopCurrency.candy);
+    final canAffordDiamonds = _canAfford(item, _ShopCurrency.diamonds);
     final canBuyIap =
         _iapConfigured &&
         !_purchasing &&
         (package != null || storeProduct != null);
-    return StoreGridItemCard(
+    return ShopGridItemCard(
       item: item,
       isOwned: isOwned,
       isIap: isIap,
@@ -259,7 +259,7 @@ extension _StoreItemCards on _StoreViewState {
 
 Future<void> showStoreThemePreviewDialog({
   required BuildContext context,
-  required StoreItem item,
+  required ShopItem item,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final bg = RoomBackgrounds.resolve(item.backgroundKey);
@@ -322,7 +322,7 @@ class _GridCurrencyPrice extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[icon!, const SizedBox(width: 3)],
-        _StoreStrokeText(
+        _ShopStrokeText(
           label,
           fontSize: 16,
           color: fillColor,
@@ -334,8 +334,8 @@ class _GridCurrencyPrice extends StatelessWidget {
   }
 }
 
-class _StoreRaisedButtonShell extends StatefulWidget {
-  const _StoreRaisedButtonShell({
+class _ShopRaisedButtonShell extends StatefulWidget {
+  const _ShopRaisedButtonShell({
     required this.onPressed,
     required this.borderRadius,
     required this.shadowColor,
@@ -350,11 +350,10 @@ class _StoreRaisedButtonShell extends StatefulWidget {
   final double depth;
 
   @override
-  State<_StoreRaisedButtonShell> createState() =>
-      _StoreRaisedButtonShellState();
+  State<_ShopRaisedButtonShell> createState() => _ShopRaisedButtonShellState();
 }
 
-class _StoreRaisedButtonShellState extends State<_StoreRaisedButtonShell> {
+class _ShopRaisedButtonShellState extends State<_ShopRaisedButtonShell> {
   bool _isPressed = false;
 
   void _setPressed(bool value) {
@@ -412,7 +411,7 @@ class _GridBuyAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return _StoreRaisedButtonShell(
+    return _ShopRaisedButtonShell(
       onPressed: onPressed,
       depth: 3,
       borderRadius: BorderRadius.circular(20),
@@ -430,7 +429,7 @@ class _GridBuyAction extends StatelessWidget {
           color: isOwned ? Colors.grey.shade200 : null,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: _StoreStrokeText(
+        child: _ShopStrokeText(
           isOwned ? l10n.commonOwned : l10n.commonBuy,
           fontSize: 16,
           color: Colors.white,

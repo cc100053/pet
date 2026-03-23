@@ -1,6 +1,6 @@
 import 'package:pet/l10n/app_localizations.dart';
 
-String localizedStoreItemNameForSku(String sku, AppLocalizations l10n) {
+String localizedShopItemNameForSku(String sku, AppLocalizations l10n) {
   switch (sku) {
     case 'subscription_premium_monthly':
       return l10n.storeItemNameProMonthly;

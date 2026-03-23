@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:pet/l10n/app_localizations.dart';
 
-import '../../store/store_item_localization.dart';
+import '../../shop/shop_item_localization.dart';
 import '../chat_message.dart';
 
 class PetChatMessageAdapter {
@@ -296,7 +296,7 @@ class PetChatMessageAdapter {
       final normalizedUser = userName.isEmpty
           ? l10n.chatSystemUpdate
           : userName;
-      final itemName = localizedStoreItemNameForSku(itemSku, l10n);
+      final itemName = localizedShopItemNameForSku(itemSku, l10n);
       return l10n.chatBoughtStoreItemMessage(normalizedUser, itemName, petName);
     } catch (_) {
       return null;

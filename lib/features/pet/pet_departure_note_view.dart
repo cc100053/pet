@@ -228,7 +228,7 @@ class PetDepartureNoteView extends StatelessWidget {
                                                       ),
                                                       Tooltip(
                                                         message: l10n
-                                                            .petDepartureGuideGoStore,
+                                                            .petDepartureGuideGoShop,
                                                         child: SizedBox(
                                                           width: 64,
                                                           height: 44,

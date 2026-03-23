@@ -1027,7 +1027,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get storeEmpty => '지금은 스토어가 비어 있습니다.';
+  String get shopEmpty => '지금은 샵이 비어 있습니다.';
 
   @override
   String get storeIapNotConfigured => 'IAP가 설정되지 않았습니다.';
@@ -1038,8 +1038,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String storeLoadFailed(Object error) {
-    return '스토어 불러오기 실패: $error';
+  String shopLoadFailed(Object error) {
+    return '샵 불러오기 실패: $error';
   }
 
   @override
@@ -1081,19 +1081,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeRestoreTooltip => '구매 복원';
 
   @override
-  String get storeSectionCoinPacks => '캔디 팩';
+  String get shopSectionCoinPacks => '캔디 팩';
 
   @override
-  String get storeSectionCoinStore => '캔디 상점';
+  String get shopSectionCoinShop => '캔디 샵';
 
   @override
-  String get storeSectionDiamondPacks => '다이아몬드 팩';
+  String get shopSectionDiamondPacks => '다이아몬드 팩';
 
   @override
-  String get storeSectionDiamondStore => '다이아몬드 상점';
+  String get shopSectionDiamondShop => '다이아몬드 샵';
 
   @override
-  String get storeSectionSubscription => '구독';
+  String get shopSectionSubscription => '구독';
 
   @override
   String get storeTabPremium => '프리미엄';
@@ -1192,7 +1192,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurnitureRibbon => '장식 리본.';
 
   @override
-  String get storeSignInPrompt => '스토어를 이용하려면 로그인해 주세요.';
+  String get shopSignInPrompt => '샵을 이용하려면 로그인해 주세요.';
 
   @override
   String get storeSubscribe => '구독하기';
@@ -1239,7 +1239,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '로그인 전에 이용약관과 개인정보 처리방침에 동의해 주세요.';
 
   @override
-  String get storeTitle => '스토어';
+  String get shopTitle => '샵';
 
   @override
   String get storeTypeConsumable => '소모품';
@@ -1257,7 +1257,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get furnitureInventorySubtitle => '이 방의 가구와 배경을 관리하세요.';
 
   @override
-  String get furnitureInventoryEmpty => '아직 가구가 없습니다. 스토어에서 구매해 보세요.';
+  String get furnitureInventoryEmpty => '아직 가구가 없습니다. 샵에서 구매해 보세요.';
 
   @override
   String get furnitureInventoryHint =>
@@ -1273,7 +1273,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backgroundGalleryTab => '배경 갤러리';
 
   @override
-  String get backgroundInventoryEmpty => '아직 배경이 없습니다. 스토어에서 획득해 보세요.';
+  String get backgroundInventoryEmpty => '아직 배경이 없습니다. 샵에서 획득해 보세요.';
 
   @override
   String get backgroundInventoryHint => '배경을 탭하면 방의 모든 사용자에게 적용됩니다.';
@@ -1290,10 +1290,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get storeSectionBackgrounds => '배경';
+  String get shopSectionBackgrounds => '배경';
 
   @override
-  String get storeSectionItems => '아이템';
+  String get shopSectionItems => '아이템';
 
   @override
   String get storeBackgroundRoomRequired => '배경을 구매하기 전에 방을 선택해 주세요.';
@@ -1374,10 +1374,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get petDepartureGuideTitle => '펫이 보낸 편지';
 
   @override
-  String get petDepartureGuideMessage => '스토어에서 편지를 구매해 펫을 다시 초대하세요.';
+  String get petDepartureGuideMessage => '샵에서 편지를 구매해 펫을 다시 초대하세요.';
 
   @override
-  String get petDepartureGuideGoStore => '스토어로 이동';
+  String get petDepartureGuideGoShop => '샵으로 이동';
 
   @override
   String get petDepartureLetterUnavailableTitle => '편지를 사용할 수 없음';

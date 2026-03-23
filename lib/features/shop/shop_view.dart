@@ -20,13 +20,13 @@ import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../home/room_backgrounds.dart';
 import '../pet/pet_departure.dart';
-import 'models/store_item.dart';
-import 'widgets/store_legal_links_row.dart';
+import 'models/shop_item.dart';
+import 'widgets/shop_legal_links_row.dart';
 
-part 'services/store_iap_service.dart';
-part 'services/store_purchase_handler.dart';
-part 'widgets/store_departed_pet_selector.dart';
-part 'widgets/store_item_cards.dart';
+part 'services/shop_iap_service.dart';
+part 'services/shop_purchase_handler.dart';
+part 'widgets/shop_departed_pet_selector.dart';
+part 'widgets/shop_item_cards.dart';
 
 const List<Color> _storeBackgroundGradient = [
   Color(0xFFE0F7FF), // Light Blue
@@ -34,10 +34,10 @@ const List<Color> _storeBackgroundGradient = [
   Color(0xFFFFF3E0), // Soft Peach/Pink
 ];
 
-enum _StoreCurrency { candy, diamonds }
+enum _ShopCurrency { candy, diamonds }
 
-class StoreView extends StatefulWidget {
-  const StoreView({
+class ShopView extends StatefulWidget {
+  const ShopView({
     super.key,
     this.roomId,
     this.isProUser = false,
@@ -51,10 +51,10 @@ class StoreView extends StatefulWidget {
   final Future<bool> Function(DepartedPetInfo pet)? onReturnPet;
 
   @override
-  State<StoreView> createState() => _StoreViewState();
+  State<ShopView> createState() => _ShopViewState();
 }
 
-class _StoreViewState extends State<StoreView> {
+class _ShopViewState extends State<ShopView> {
   final RevenueCatService _revenueCatService = RevenueCatService();
   static const Duration _storeNoticeDuration = Duration(milliseconds: 2200);
   bool _loading = true;
@@ -62,7 +62,7 @@ class _StoreViewState extends State<StoreView> {
   String? _error;
   int _coins = 0;
   int _diamonds = 0;
-  List<StoreItem> _items = [];
+  List<ShopItem> _items = [];
   final Map<String, int> _inventory = {};
   final Set<String> _roomBackgroundOwned = {};
   bool _iapConfigured = false;
@@ -80,7 +80,7 @@ class _StoreViewState extends State<StoreView> {
   Uri? _privacyPolicyUri;
   late final Uri _termsOfUseUri;
   Timer? _storeNoticeTimer;
-  _StoreNoticeData? _storeNotice;
+  _ShopNoticeData? _storeNotice;
 
   bool get _hasProAdFreeAccess =>
       widget.isProUser || _activeEntitlements.isNotEmpty;
@@ -110,13 +110,13 @@ class _StoreViewState extends State<StoreView> {
 
   void _showStoreNotice({
     required String message,
-    required _StoreCurrency currency,
+    required _ShopCurrency currency,
     required int requiredAmount,
   }) {
-    final currentAmount = currency == _StoreCurrency.candy ? _coins : _diamonds;
+    final currentAmount = currency == _ShopCurrency.candy ? _coins : _diamonds;
     _storeNoticeTimer?.cancel();
     _setStoreState(() {
-      _storeNotice = _StoreNoticeData(
+      _storeNotice = _ShopNoticeData(
         key: UniqueKey(),
         message: message,
         currency: currency,
@@ -176,7 +176,7 @@ class _StoreViewState extends State<StoreView> {
     if (user == null) {
       setState(() {
         _loading = false;
-        _error = AppLocalizations.of(context)!.storeSignInPrompt;
+        _error = AppLocalizations.of(context)!.shopSignInPrompt;
       });
       return;
     }
@@ -218,7 +218,7 @@ class _StoreViewState extends State<StoreView> {
       }
 
       final items = (itemsResponse as List<dynamic>)
-          .map((row) => StoreItem.fromJson(row as Map<String, dynamic>))
+          .map((row) => ShopItem.fromJson(row as Map<String, dynamic>))
           .toList();
 
       final inventory = <String, int>{};
@@ -283,7 +283,7 @@ class _StoreViewState extends State<StoreView> {
       setState(() {
         _error = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(userFacingError(context, error));
+        )!.shopLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -294,20 +294,20 @@ class _StoreViewState extends State<StoreView> {
     }
   }
 
-  List<StoreItem> get _iapItems => _items
+  List<ShopItem> get _iapItems => _items
       .where((item) => item.isIap)
       .where((item) => item.iapType == 'subscription' || item.isDiamondIap)
       .toList(growable: false);
 
-  List<StoreItem> get _subscriptionItems => _iapItems
+  List<ShopItem> get _subscriptionItems => _iapItems
       .where((item) => item.iapType == 'subscription')
       .toList(growable: false);
 
-  List<StoreItem> get _iapConsumableItems => _iapItems
+  List<ShopItem> get _iapConsumableItems => _iapItems
       .where((item) => item.iapType != 'subscription')
       .toList(growable: false);
 
-  List<StoreItem> get _iapDiamondPackItems {
+  List<ShopItem> get _iapDiamondPackItems {
     final items = _iapConsumableItems
         .where((item) => item.isDiamondIap)
         .toList();
@@ -317,24 +317,24 @@ class _StoreViewState extends State<StoreView> {
     return items;
   }
 
-  List<StoreItem> get _storeItems {
+  List<ShopItem> get _storeItems {
     final items = _items.where((item) => !item.isIap).toList();
     items.sort((a, b) => _itemSortPrice(a).compareTo(_itemSortPrice(b)));
     return items;
   }
 
-  List<StoreItem> get _themeItems => _storeItems
+  List<ShopItem> get _themeItems => _storeItems
       .where((item) => item.isBackground && !item.isDefaultBackground)
       .toList(growable: false);
 
-  List<StoreItem> get _furnitureItems =>
+  List<ShopItem> get _furnitureItems =>
       _storeItems.where((item) => item.isFurniture).toList(growable: false);
 
-  List<StoreItem> get _premiumUtilityItems => _storeItems
+  List<ShopItem> get _premiumUtilityItems => _storeItems
       .where((item) => !item.isBackground && !item.isFurniture)
       .toList(growable: false);
 
-  int _itemSortPrice(StoreItem item) {
+  int _itemSortPrice(ShopItem item) {
     final coin = item.priceCoins;
     final diamond = item.priceDiamonds;
     if (coin == null && diamond == null) {
@@ -365,7 +365,7 @@ class _StoreViewState extends State<StoreView> {
           ),
           child: Stack(
             children: [
-              const _StoreBackgroundStars(),
+              const _ShopBackgroundStars(),
               RefreshIndicator(
                 displacement: 100,
                 onRefresh: _loadStore,
@@ -396,7 +396,7 @@ class _StoreViewState extends State<StoreView> {
                     },
                     child: _storeNotice == null
                         ? const SizedBox.shrink()
-                        : _StoreFloatingNotice(
+                        : _ShopFloatingNotice(
                             key: _storeNotice!.key,
                             notice: _storeNotice!,
                             onDismiss: _dismissStoreNotice,
@@ -462,7 +462,7 @@ class _StoreViewState extends State<StoreView> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(l10n.storeEmpty, textAlign: TextAlign.center),
+              child: Text(l10n.shopEmpty, textAlign: TextAlign.center),
             ),
           ),
         ],
@@ -491,7 +491,7 @@ class _StoreViewState extends State<StoreView> {
           ),
         if (_subscriptionItems.isNotEmpty)
           SliverToBoxAdapter(
-            child: StoreFeaturedBanner(
+            child: ShopFeaturedBanner(
               items: _subscriptionItems,
               onPurchase: _purchaseIapItem,
               findPackage: _findPackageByProductId,
@@ -503,7 +503,7 @@ class _StoreViewState extends State<StoreView> {
           ),
 
         SliverToBoxAdapter(
-          child: _StoreCategoryRow(
+          child: _ShopCategoryRow(
             onFurnitureTap: _furnitureItems.isEmpty
                 ? null
                 : () => _jumpToSection(
@@ -520,7 +520,7 @@ class _StoreViewState extends State<StoreView> {
           SliverToBoxAdapter(
             child: KeyedSubtree(
               key: _specialPacksSectionKey,
-              child: _SectionHeader(title: l10n.storeSectionDiamondPacks),
+              child: _SectionHeader(title: l10n.shopSectionDiamondPacks),
             ),
           ),
           SliverPadding(
@@ -544,7 +544,7 @@ class _StoreViewState extends State<StoreView> {
           SliverToBoxAdapter(
             child: KeyedSubtree(
               key: _consumablesSectionKey,
-              child: _SectionHeader(title: l10n.storeSectionItems),
+              child: _SectionHeader(title: l10n.shopSectionItems),
             ),
           ),
           SliverPadding(
@@ -616,7 +616,7 @@ class _StoreViewState extends State<StoreView> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
-              child: StoreLegalLinksRow(
+              child: ShopLegalLinksRow(
                 privacyPolicyUri: _privacyPolicyUri!,
                 termsOfUseUri: _termsOfUseUri,
                 privacyPolicyLabel: l10n.storePrivacyPolicy,
@@ -646,8 +646,8 @@ class _StoreViewState extends State<StoreView> {
           color: Color(0xFF5C6BC0),
         ),
       ),
-      title: _StoreStrokeText(
-        l10n.storeTitle,
+      title: _ShopStrokeText(
+        l10n.shopTitle,
         fontSize: 24,
         color: Colors.white,
         strokeColor: const Color(0xFF1A237E),
@@ -669,19 +669,19 @@ class _StoreViewState extends State<StoreView> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _StoreCurrencyChip(
+              _ShopCurrencyChip(
                 amount: _diamonds,
                 icon: Image.asset(
-                  'assets/icon/store/diamond.png',
+                  'assets/shop/icon/diamond.png',
                   width: 24,
                   height: 24,
                 ),
               ),
               const SizedBox(width: 6),
-              _StoreCurrencyChip(
+              _ShopCurrencyChip(
                 amount: _coins,
                 icon: Image.asset(
-                  'assets/icon/store/candy.png',
+                  'assets/shop/icon/candy.png',
                   width: 24,
                   height: 24,
                 ),
@@ -740,8 +740,8 @@ class _StoreViewState extends State<StoreView> {
   }
 }
 
-class _StoreNoticeData {
-  const _StoreNoticeData({
+class _ShopNoticeData {
+  const _ShopNoticeData({
     required this.key,
     required this.message,
     required this.currency,
@@ -751,24 +751,24 @@ class _StoreNoticeData {
 
   final Key key;
   final String message;
-  final _StoreCurrency currency;
+  final _ShopCurrency currency;
   final int currentAmount;
   final int requiredAmount;
 }
 
-class _StoreFloatingNotice extends StatelessWidget {
-  const _StoreFloatingNotice({
+class _ShopFloatingNotice extends StatelessWidget {
+  const _ShopFloatingNotice({
     super.key,
     required this.notice,
     required this.onDismiss,
   });
 
-  final _StoreNoticeData notice;
+  final _ShopNoticeData notice;
   final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
-    final bool isCandy = notice.currency == _StoreCurrency.candy;
+    final bool isCandy = notice.currency == _ShopCurrency.candy;
     final Color accent = isCandy
         ? const Color(0xFFFF8A65)
         : const Color(0xFF4C7DFF);
@@ -841,8 +841,8 @@ class _StoreFloatingNotice extends StatelessWidget {
                           padding: const EdgeInsets.all(11),
                           child: Image.asset(
                             isCandy
-                                ? 'assets/icon/store/candy.png'
-                                : 'assets/icon/store/diamond.png',
+                                ? 'assets/shop/icon/candy.png'
+                                : 'assets/shop/icon/diamond.png',
                           ),
                         ),
                       ),
@@ -851,7 +851,7 @@ class _StoreFloatingNotice extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _StoreStrokeText(
+                            _ShopStrokeText(
                               notice.message,
                               fontSize: 16,
                               color: accent,
@@ -952,7 +952,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: _StoreStrokeText(
+      child: _ShopStrokeText(
         title,
         fontSize: 16,
         color: Colors.white,
@@ -963,8 +963,8 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _StoreStrokeText extends StatelessWidget {
-  const _StoreStrokeText(
+class _ShopStrokeText extends StatelessWidget {
+  const _ShopStrokeText(
     this.text, {
     required this.fontSize,
     required this.color,
@@ -1016,8 +1016,8 @@ class _StoreStrokeText extends StatelessWidget {
   }
 }
 
-class _StoreAdaptiveStrokeTitle extends StatelessWidget {
-  const _StoreAdaptiveStrokeTitle({
+class _ShopAdaptiveStrokeTitle extends StatelessWidget {
+  const _ShopAdaptiveStrokeTitle({
     required this.text,
     required this.fontSize,
     required this.color,
@@ -1045,7 +1045,7 @@ class _StoreAdaptiveStrokeTitle extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           alignment: alignment,
-          child: _StoreStrokeText(
+          child: _ShopStrokeText(
             text,
             fontSize: fontSize,
             color: color,
@@ -1058,8 +1058,8 @@ class _StoreAdaptiveStrokeTitle extends StatelessWidget {
   }
 }
 
-class StoreFeaturedBanner extends StatefulWidget {
-  const StoreFeaturedBanner({
+class ShopFeaturedBanner extends StatefulWidget {
+  const ShopFeaturedBanner({
     super.key,
     required this.items,
     required this.onPurchase,
@@ -1070,8 +1070,8 @@ class StoreFeaturedBanner extends StatefulWidget {
     required this.isPurchasing,
   });
 
-  final List<StoreItem> items;
-  final void Function(StoreItem) onPurchase;
+  final List<ShopItem> items;
+  final void Function(ShopItem) onPurchase;
   final Package? Function(String) findPackage;
   final StoreProduct? Function(String) findStoreProduct;
   final Set<String> activeEntitlements;
@@ -1079,10 +1079,10 @@ class StoreFeaturedBanner extends StatefulWidget {
   final bool isPurchasing;
 
   @override
-  State<StoreFeaturedBanner> createState() => _StoreFeaturedBannerState();
+  State<ShopFeaturedBanner> createState() => _ShopFeaturedBannerState();
 }
 
-class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
+class _ShopFeaturedBannerState extends State<ShopFeaturedBanner> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -1098,7 +1098,7 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
     return Column(
       children: [
         SizedBox(
-          height: 220, // Increased height to fix layout overflow
+          height: 240, // Increased height for better layout
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) => setState(() => _currentPage = index),
@@ -1164,130 +1164,119 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                     // Sparkle decorations
                     Positioned(
                       top: 40,
-                      left: 120,
+                      left: 100,
                       child: Icon(
                         Icons.circle,
                         size: 8,
                         color: Colors.white.withValues(alpha: 0.5),
                       ),
                     ),
-                    Positioned(
-                      bottom: 40,
-                      left: 140,
-                      child: Icon(
-                        Icons.circle,
-                        size: 12,
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                    ),
 
-                    // Large Item Emoji/Illustration on the left
+                    // Item Emoji on the left (shrunk to give text more room)
                     Positioned(
-                      left: 10,
-                      top: 10,
-                      bottom: 10,
+                      left: 15,
+                      top: 0,
+                      bottom: 0,
                       child: Center(
                         child: Text(
                           item.emoji ?? '⭐',
-                          style: const TextStyle(fontSize: 100),
+                          style: const TextStyle(fontSize: 80),
                         ),
                       ),
                     ),
+
+                    // Main Content Area (shifted left to 110)
                     Positioned(
-                      right: 16,
-                      top: 2,
-                      bottom: 12,
-                      left: 140,
+                      right: 20,
+                      top: 14,
+                      bottom: 14,
+                      left: 110,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ).createShader(bounds),
-                            child: _StoreAdaptiveStrokeTitle(
-                              text: l10n.storeTabPremium,
-                              fontSize: 26,
-                              color: Colors.white,
-                              strokeColor: const Color(0xFF5D4037),
+                          // Premium Badge aligned above Title
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFD54F),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              l10n.storeTabPremium,
+                              style: GoogleFonts.mPlusRounded1c(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
-                          _StoreAdaptiveStrokeTitle(
+                          const SizedBox(height: 4),
+                          _ShopAdaptiveStrokeTitle(
                             text: item.localizedName(l10n),
-                            fontSize: 26,
+                            fontSize: 22,
                             color: Colors.white,
                             strokeColor: const Color(0xFF1A237E),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 6),
                           Expanded(
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final isCompactBody =
-                                    constraints.maxHeight < 90;
-                                final bodyFontSize = isCompactBody
-                                    ? 13.0
-                                    : 14.0;
-                                final descriptionMaxLines =
-                                    isCompactBody || activeStatusText != null
-                                    ? 1
-                                    : 2;
-                                final renewalMaxLines = isCompactBody ? 1 : 2;
-
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (description != null &&
-                                        description.isNotEmpty)
-                                      Text(
-                                        description,
-                                        style: GoogleFonts.mPlusRounded1c(
-                                          color: const Color(0xFF303F9F),
-                                          fontSize: bodyFontSize,
-                                          fontWeight: FontWeight.w900,
-                                          height: 1.15,
-                                        ),
-                                        maxLines: descriptionMaxLines,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    if (activeStatusText != null) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        activeStatusText,
-                                        style: GoogleFonts.mPlusRounded1c(
-                                          color: const Color(0xFF303F9F),
-                                          fontSize: bodyFontSize,
-                                          fontWeight: FontWeight.w900,
-                                          height: 1.15,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                    const Spacer(),
-                                    Text(
-                                      '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
-                                      style: GoogleFonts.mPlusRounded1c(
-                                        color: const Color(
-                                          0xFF303F9F,
-                                        ).withValues(alpha: 0.7),
-                                        fontSize: bodyFontSize,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.15,
-                                      ),
-                                      maxLines: renewalMaxLines,
-                                      overflow: TextOverflow.ellipsis,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (description != null &&
+                                    description.isNotEmpty)
+                                  Text(
+                                    description,
+                                    style: GoogleFonts.mPlusRounded1c(
+                                      color: const Color(0xFF303F9F),
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.2,
                                     ),
-                                  ],
-                                );
-                              },
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                if (activeStatusText != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    activeStatusText,
+                                    style: GoogleFonts.mPlusRounded1c(
+                                      color: const Color(0xFF303F9F),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                    maxLines: 1,
+                                  ),
+                                ],
+                                const Spacer(),
+                                Text(
+                                  '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
+                                  style: GoogleFonts.mPlusRounded1c(
+                                    color: const Color(
+                                      0xFF303F9F,
+                                    ).withValues(alpha: 0.6),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Opacity(
                             opacity: canBuy || isSubscribed ? 1 : 0.65,
-                            child: _StoreRaisedButtonShell(
+                            child: _ShopRaisedButtonShell(
                               onPressed: canBuy
                                   ? () => widget.onPurchase(item)
                                   : null,
@@ -1297,7 +1286,7 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                               faceBuilder: (context, isPressed) => Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 3,
+                                  vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
                                   gradient: isSubscribed || !canBuy
@@ -1321,21 +1310,21 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       if (!isSubscribed) ...[
-                                        _StoreStrokeText(
+                                        _ShopStrokeText(
                                           priceString,
-                                          fontSize: 20,
+                                          fontSize: 18,
                                           color: Colors.white,
                                           strokeColor: const Color(0xFFD54900),
-                                          strokeWidth: 4.5,
+                                          strokeWidth: 4,
                                         ),
                                         const SizedBox(width: 8),
                                       ],
-                                      _StoreStrokeText(
+                                      _ShopStrokeText(
                                         actionLabel,
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         color: Colors.white,
                                         strokeColor: const Color(0xFFD54900),
-                                        strokeWidth: 4.5,
+                                        strokeWidth: 4,
                                       ),
                                     ],
                                   ),
@@ -1344,35 +1333,6 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    Positioned(
-                      top: -10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFD54F),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          l10n.storeTabPremium,
-                          style: GoogleFonts.mPlusRounded1c(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -1404,8 +1364,8 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
   }
 }
 
-class _StoreBackgroundStars extends StatelessWidget {
-  const _StoreBackgroundStars();
+class _ShopBackgroundStars extends StatelessWidget {
+  const _ShopBackgroundStars();
 
   @override
   Widget build(BuildContext context) {
@@ -1588,8 +1548,8 @@ class _Dot extends StatelessWidget {
   }
 }
 
-class _StoreCategoryRow extends StatelessWidget {
-  const _StoreCategoryRow({this.onFurnitureTap, this.onThemeTap});
+class _ShopCategoryRow extends StatelessWidget {
+  const _ShopCategoryRow({this.onFurnitureTap, this.onThemeTap});
 
   final VoidCallback? onFurnitureTap;
   final VoidCallback? onThemeTap;
@@ -1604,7 +1564,7 @@ class _StoreCategoryRow extends StatelessWidget {
         children: [
           _CategoryItem(
             icon: Image.asset(
-              'assets/icon/store/sofa.png',
+              'assets/shop/icon/sofa.png',
               width: 50,
               height: 50,
             ),
@@ -1614,7 +1574,7 @@ class _StoreCategoryRow extends StatelessWidget {
           ),
           _CategoryItem(
             icon: Image.asset(
-              'assets/icon/store/house.png',
+              'assets/shop/icon/house.png',
               width: 50,
               height: 50,
             ),
@@ -1649,7 +1609,7 @@ class _CategoryItem extends StatelessWidget {
         children: [
           SizedBox(width: 60, height: 55, child: Center(child: icon)),
           const SizedBox(height: 0),
-          _StoreStrokeText(
+          _ShopStrokeText(
             label,
             fontSize: 16,
             color: Colors.white,
@@ -1662,8 +1622,8 @@ class _CategoryItem extends StatelessWidget {
   }
 }
 
-class _StoreCurrencyChip extends StatelessWidget {
-  const _StoreCurrencyChip({required this.amount, required this.icon});
+class _ShopCurrencyChip extends StatelessWidget {
+  const _ShopCurrencyChip({required this.amount, required this.icon});
 
   final int amount;
   final Widget icon;

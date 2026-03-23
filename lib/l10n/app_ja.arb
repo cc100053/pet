@@ -567,7 +567,7 @@
       "amount": {}
     }
   },
-  "storeEmpty": "現在ストアは空です。",
+  "shopEmpty": "現在ショップは空です。",
   "storeIapNotConfigured": "IAP が設定されていません。",
   "storeIapUnavailable": "IAP を利用できません: {error}",
   "@storeIapUnavailable": {
@@ -575,7 +575,7 @@
       "error": {}
     }
   },
-  "storeLoadFailed": "ストアの読み込みに失敗しました: {error}",
+  "shopLoadFailed": "ショップの読み込みに失敗しました: {error}",
   "@storeLoadFailed": {
     "placeholders": {
       "error": {}
@@ -611,11 +611,11 @@
     }
   },
   "storeRestoreTooltip": "購入を復元",
-  "storeSectionCoinPacks": "キャンディパック",
-  "storeSectionCoinStore": "キャンディストア",
-  "storeSectionDiamondPacks": "ダイヤパック",
-  "storeSectionDiamondStore": "ダイヤストア",
-  "storeSectionSubscription": "サブスクリプション",
+  "shopSectionCoinPacks": "キャンディパック",
+  "shopSectionCoinShop": "キャンディショップ",
+  "shopSectionDiamondPacks": "ダイヤパック",
+  "shopSectionDiamondShop": "ダイヤショップ",
+  "shopSectionSubscription": "サブスクリプション",
   "storeTabPremium": "プレミアム",
   "storeTabFurniture": "家具",
   "storeTabThemes": "テーマ",
@@ -652,7 +652,7 @@
   "storeItemDescFurnitureBath": "ミニバス。",
   "storeItemNameFurnitureRibbon": "リボン",
   "storeItemDescFurnitureRibbon": "飾りリボン。",
-  "storeSignInPrompt": "ストアを利用するにはサインインしてください。",
+  "shopSignInPrompt": "ショップを利用するにはサインインしてください。",
   "storeSubscribe": "購読する",
   "storeSubscriptionActive": "有効",
   "storeSubscriptionDurationMonthly": "1か月",
@@ -672,18 +672,18 @@
   "storeLegalOpenFailed": "法的リンクを開けませんでした。",
   "signInSafetyAgreementLabel": "利用規約とプライバシーポリシーに同意し、不適切なコンテンツや迷惑行為に対して一切の許容がないことを確認します。",
   "signInSafetyAgreementRequired": "サインインする前に利用規約とプライバシーポリシーに同意してください。",
-  "storeTitle": "ストア",
+  "shopTitle": "ショップ",
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "コスメ",
   "storeTypeSubscription": "サブスクリプション",
   "furnitureInventoryTitle": "ルーム在庫",
   "furnitureInventorySubtitle": "このルームの家具と背景を管理します。",
-  "furnitureInventoryEmpty": "まだ家具がありません。ストアで購入してください。",
+  "furnitureInventoryEmpty": "まだ家具がありません。ショップで購入してください。",
   "furnitureInventoryHint": "家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。",
   "roomInventoryTitle": "ルーム在庫",
   "inventoryTabFurniture": "家具",
   "backgroundGalleryTab": "背景ギャラリー",
-  "backgroundInventoryEmpty": "背景がまだありません。ストアで入手できます。",
+  "backgroundInventoryEmpty": "背景がまだありません。ショップで入手できます。",
   "backgroundInventoryHint": "背景をタップするとルーム全員に適用されます。",
   "backgroundApply": "適用",
   "backgroundAppliedLabel": "適用中",
@@ -693,8 +693,8 @@
       "error": {}
     }
   },
-  "storeSectionBackgrounds": "背景",
-  "storeSectionItems": "アイテム",
+  "shopSectionBackgrounds": "背景",
+  "shopSectionItems": "アイテム",
   "storeBackgroundRoomRequired": "背景を購入する前にルームを選択してください。",
   "storeBuyWithCandies": "{price} キャンディで購入",
   "@storeBuyWithCandies": {
@@ -756,8 +756,8 @@
   ,
   "petDepartureNoteMessage": "どうしてこんな扱いをするの…",
   "petDepartureGuideTitle": "ペットからの手紙",
-  "petDepartureGuideMessage": "ストアで「手紙」を買って、ペットを呼び戻してください。",
-  "petDepartureGuideGoStore": "ストアへ",
+  "petDepartureGuideMessage": "ショップで「手紙」を買って、ペットを呼び戻してください。",
+  "petDepartureGuideGoShop": "ショップへ",
   "petDepartureLetterUnavailableTitle": "手紙は使えません",
   "petDepartureLetterUnavailableMessage": "今は帰ってきてほしいペットがいません。",
   "petDepartureLetterSelectTitle": "ペットを選ぶ",

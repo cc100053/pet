@@ -53,8 +53,8 @@ import '../pet/pet_departure.dart';
 import '../pet/pet_departure_note_view.dart';
 import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
-import '../store/models/store_item.dart';
-import '../store/store_view.dart';
+import '../shop/models/shop_item.dart';
+import '../shop/shop_view.dart';
 import 'home_gallery_feed_utils.dart';
 import 'home_unread_rules.dart';
 import 'providers/home_currency_provider.dart';
@@ -236,7 +236,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _furnitureError;
   String? _selectedFurnitureItemId;
   int _furnitureInstanceSeed = 0;
-  final Map<String, StoreItem> _furnitureCatalog = {};
+  final Map<String, ShopItem> _furnitureCatalog = {};
   final Map<String, int> _furnitureInventory = {};
   final Map<String, List<_PlacedFurniture>> _placedFurnitureByRoom = {};
 
@@ -244,7 +244,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _backgroundLoading = false;
   String? _backgroundError;
   String? _backgroundApplyingItemId;
-  final Map<String, List<StoreItem>> _ownedBackgroundsByRoom = {};
+  final Map<String, List<ShopItem>> _ownedBackgroundsByRoom = {};
   final Map<String, String?> _activeBackgroundByRoom = {};
   RealtimeChannel? _backgroundStateChannel;
   RealtimeChannel? _backgroundInventoryChannel;
@@ -2338,7 +2338,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _openStoreWithDepartures() async {
     final returnedRoomId = await Navigator.of(context).push<String>(
       MaterialPageRoute(
-        builder: (_) => StoreView(
+        builder: (_) => ShopView(
           roomId: _roomId,
           isProUser: _hasProPlanAccess,
           departedPets: _departedPetsForCurrentRoom(),
@@ -2772,7 +2772,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       setState(() {
-        _furnitureError = AppLocalizations.of(context)!.storeSignInPrompt;
+        _furnitureError = AppLocalizations.of(context)!.shopSignInPrompt;
       });
       return;
     }
@@ -2797,7 +2797,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       final items = (itemsResponse as List<dynamic>)
-          .map((row) => StoreItem.fromJson(row as Map<String, dynamic>))
+          .map((row) => ShopItem.fromJson(row as Map<String, dynamic>))
           .where((item) => item.isFurniture)
           .toList(growable: false);
 
@@ -2825,7 +2825,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _furnitureError = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(userFacingError(context, error));
+        )!.shopLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -2878,7 +2878,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _furnitureError = AppLocalizations.of(
             context,
-          )!.storeLoadFailed(userFacingError(context, error));
+          )!.shopLoadFailed(userFacingError(context, error));
         });
       }
     }
@@ -3061,14 +3061,14 @@ class _HomeViewState extends ConsumerState<HomeView>
           .select('item_id,items(*)')
           .eq('room_id', roomId);
 
-      final items = <StoreItem>[];
+      final items = <ShopItem>[];
       for (final row in response as List<dynamic>) {
         final record = row as Map<String, dynamic>;
         final itemData = record['items'] as Map<String, dynamic>?;
         if (itemData == null) {
           continue;
         }
-        final item = StoreItem.fromJson(itemData);
+        final item = ShopItem.fromJson(itemData);
         if (item.isBackground) {
           items.add(item);
         }
@@ -3087,7 +3087,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _backgroundError = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(userFacingError(context, error));
+        )!.shopLoadFailed(userFacingError(context, error));
       });
     } finally {
       if (mounted) {
@@ -3120,7 +3120,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _backgroundError = AppLocalizations.of(
           context,
-        )!.storeLoadFailed(userFacingError(context, error));
+        )!.shopLoadFailed(userFacingError(context, error));
       });
     }
   }
@@ -3191,7 +3191,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     inventoryChannel.subscribe();
   }
 
-  List<StoreItem> _ownedBackgroundsForRoom(String roomId) {
+  List<ShopItem> _ownedBackgroundsForRoom(String roomId) {
     return _ownedBackgroundsByRoom[roomId] ?? const [];
   }
 
@@ -3239,7 +3239,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (items == null) {
       return RoomBackgrounds.resolve(null);
     }
-    StoreItem? activeItem;
+    ShopItem? activeItem;
     for (final item in items) {
       if (item.id == activeItemId) {
         activeItem = item;
@@ -3435,7 +3435,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _furnitureError = AppLocalizations.of(
             context,
-          )!.storeLoadFailed(userFacingError(context, error));
+          )!.shopLoadFailed(userFacingError(context, error));
         });
       }
       final roomId = _roomId;
@@ -3468,7 +3468,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _furnitureError = AppLocalizations.of(
             context,
-          )!.storeLoadFailed(userFacingError(context, error));
+          )!.shopLoadFailed(userFacingError(context, error));
         });
       }
       unawaited(_loadRoomFurniture(roomId));
@@ -3605,7 +3605,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           ),
           const SizedBox(width: 6),
           Tooltip(
-            message: l10n.storeTitle,
+            message: l10n.shopTitle,
             child: SizedBox(
               width: 34,
               height: 34,

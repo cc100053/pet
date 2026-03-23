@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class StoreLegalLinksRow extends StatelessWidget {
-  const StoreLegalLinksRow({
+class ShopLegalLinksRow extends StatelessWidget {
+  const ShopLegalLinksRow({
     super.key,
     required this.privacyPolicyUri,
     required this.termsOfUseUri,

@@ -3676,7 +3676,7 @@ class _FeedCard extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Image.asset(
-                                      'assets/icon/store/candy.png',
+                                      'assets/shop/icon/candy.png',
                                       width: 14,
                                       height: 14,
                                     ),

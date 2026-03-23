@@ -1,6 +1,6 @@
-part of '../store_view.dart';
+part of '../shop_view.dart';
 
-extension _StoreDepartedPetSelector on _StoreViewState {
+extension _ShopDepartedPetSelector on _ShopViewState {
   Future<void> _showNoDepartedPetsDialog(AppLocalizations l10n) async {
     await showAppDialog<void>(
       context: context,

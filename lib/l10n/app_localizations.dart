@@ -1168,13 +1168,13 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew106Title.
   ///
   /// In en, this message translates to:
-  /// **'Major Store Update & Stability'**
+  /// **'Major Shop Update & Stability'**
   String get whatsNew106Title;
 
   /// No description provided for @whatsNew106Bullet1.
   ///
   /// In en, this message translates to:
-  /// **'Major store redesign and visual update'**
+  /// **'Major shop redesign and visual update'**
   String get whatsNew106Bullet1;
 
   /// No description provided for @whatsNew106Bullet2.
@@ -1901,11 +1901,11 @@ abstract class AppLocalizations {
   /// **'Diamonds +{amount}'**
   String storeDiamondsReward(Object amount);
 
-  /// No description provided for @storeEmpty.
+  /// No description provided for @shopEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Store is empty for now.'**
-  String get storeEmpty;
+  /// **'Shop is empty for now.'**
+  String get shopEmpty;
 
   /// No description provided for @storeIapNotConfigured.
   ///
@@ -1919,11 +1919,11 @@ abstract class AppLocalizations {
   /// **'IAP unavailable: {error}'**
   String storeIapUnavailable(Object error);
 
-  /// No description provided for @storeLoadFailed.
+  /// No description provided for @shopLoadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load store: {error}'**
-  String storeLoadFailed(Object error);
+  /// **'Failed to load shop: {error}'**
+  String shopLoadFailed(Object error);
 
   /// No description provided for @storeNotEnoughCoins.
   ///
@@ -1985,35 +1985,35 @@ abstract class AppLocalizations {
   /// **'Restore purchases'**
   String get storeRestoreTooltip;
 
-  /// No description provided for @storeSectionCoinPacks.
+  /// No description provided for @shopSectionCoinPacks.
   ///
   /// In en, this message translates to:
   /// **'Candy Packs'**
-  String get storeSectionCoinPacks;
+  String get shopSectionCoinPacks;
 
-  /// No description provided for @storeSectionCoinStore.
+  /// No description provided for @shopSectionCoinShop.
   ///
   /// In en, this message translates to:
-  /// **'Candy Store'**
-  String get storeSectionCoinStore;
+  /// **'Candy Shop'**
+  String get shopSectionCoinShop;
 
-  /// No description provided for @storeSectionDiamondPacks.
+  /// No description provided for @shopSectionDiamondPacks.
   ///
   /// In en, this message translates to:
   /// **'Diamond Packs'**
-  String get storeSectionDiamondPacks;
+  String get shopSectionDiamondPacks;
 
-  /// No description provided for @storeSectionDiamondStore.
+  /// No description provided for @shopSectionDiamondShop.
   ///
   /// In en, this message translates to:
-  /// **'Diamond Store'**
-  String get storeSectionDiamondStore;
+  /// **'Diamond Shop'**
+  String get shopSectionDiamondShop;
 
-  /// No description provided for @storeSectionSubscription.
+  /// No description provided for @shopSectionSubscription.
   ///
   /// In en, this message translates to:
   /// **'Subscription'**
-  String get storeSectionSubscription;
+  String get shopSectionSubscription;
 
   /// No description provided for @storeTabPremium.
   ///
@@ -2201,11 +2201,11 @@ abstract class AppLocalizations {
   /// **'Decor ribbon.'**
   String get storeItemDescFurnitureRibbon;
 
-  /// No description provided for @storeSignInPrompt.
+  /// No description provided for @shopSignInPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Please sign in to access the store.'**
-  String get storeSignInPrompt;
+  /// **'Please sign in to access the shop.'**
+  String get shopSignInPrompt;
 
   /// No description provided for @storeSubscribe.
   ///
@@ -2283,11 +2283,11 @@ abstract class AppLocalizations {
   /// **'Please accept the Terms of Use and Privacy Policy before signing in.'**
   String get signInSafetyAgreementRequired;
 
-  /// No description provided for @storeTitle.
+  /// No description provided for @shopTitle.
   ///
   /// In en, this message translates to:
-  /// **'Store'**
-  String get storeTitle;
+  /// **'Shop'**
+  String get shopTitle;
 
   /// No description provided for @storeTypeConsumable.
   ///
@@ -2322,7 +2322,7 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No furniture yet. Buy some in the store.'**
+  /// **'No furniture yet. Buy some in the shop.'**
   String get furnitureInventoryEmpty;
 
   /// No description provided for @furnitureInventoryHint.
@@ -2352,7 +2352,7 @@ abstract class AppLocalizations {
   /// No description provided for @backgroundInventoryEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No backgrounds yet. Pick one up in the store.'**
+  /// **'No backgrounds yet. Pick one up in the shop.'**
   String get backgroundInventoryEmpty;
 
   /// No description provided for @backgroundInventoryHint.
@@ -2379,17 +2379,17 @@ abstract class AppLocalizations {
   /// **'Failed to apply background: {error}'**
   String backgroundApplyFailed(Object error);
 
-  /// No description provided for @storeSectionBackgrounds.
+  /// No description provided for @shopSectionBackgrounds.
   ///
   /// In en, this message translates to:
   /// **'Backgrounds'**
-  String get storeSectionBackgrounds;
+  String get shopSectionBackgrounds;
 
-  /// No description provided for @storeSectionItems.
+  /// No description provided for @shopSectionItems.
   ///
   /// In en, this message translates to:
   /// **'Items'**
-  String get storeSectionItems;
+  String get shopSectionItems;
 
   /// No description provided for @storeBackgroundRoomRequired.
   ///
@@ -2532,14 +2532,14 @@ abstract class AppLocalizations {
   /// No description provided for @petDepartureGuideMessage.
   ///
   /// In en, this message translates to:
-  /// **'Visit the Store and buy a Letter to invite your pet back.'**
+  /// **'Visit the Shop and buy a Letter to invite your pet back.'**
   String get petDepartureGuideMessage;
 
-  /// No description provided for @petDepartureGuideGoStore.
+  /// No description provided for @petDepartureGuideGoShop.
   ///
   /// In en, this message translates to:
-  /// **'Go to Store'**
-  String get petDepartureGuideGoStore;
+  /// **'Go to Shop'**
+  String get petDepartureGuideGoShop;
 
   /// No description provided for @petDepartureLetterUnavailableTitle.
   ///

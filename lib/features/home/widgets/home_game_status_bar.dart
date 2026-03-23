@@ -889,7 +889,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Image.asset(
-                                    'assets/icon/store/diamond.png',
+                                    'assets/shop/icon/diamond.png',
                                     width: iconSize,
                                     height: iconSize,
                                   ),
@@ -926,7 +926,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                                           Transform.scale(
                                             scale: _bounceAnimation.value,
                                             child: Image.asset(
-                                              'assets/icon/store/candy.png',
+                                              'assets/shop/icon/candy.png',
                                               width: iconSize,
                                               height: iconSize,
                                             ),

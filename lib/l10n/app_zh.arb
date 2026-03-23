@@ -558,7 +558,7 @@
       "amount": {}
     }
   },
-  "storeEmpty": "商店目前沒有商品。",
+  "shopEmpty": "商店目前沒有商品。",
   "storeIapNotConfigured": "尚未設定 IAP。",
   "storeIapUnavailable": "IAP 无法使用：{error}",
   "@storeIapUnavailable": {
@@ -566,7 +566,7 @@
       "error": {}
     }
   },
-  "storeLoadFailed": "加载商店失敗：{error}",
+  "shopLoadFailed": "加载商店失敗：{error}",
   "@storeLoadFailed": {
     "placeholders": {
       "error": {}
@@ -602,11 +602,11 @@
     }
   },
   "storeRestoreTooltip": "恢復購買",
-  "storeSectionCoinPacks": "糖果包",
-  "storeSectionCoinStore": "糖果商店",
-  "storeSectionDiamondPacks": "鑽石包",
-  "storeSectionDiamondStore": "鑽石商店",
-  "storeSectionSubscription": "訂閱",
+  "shopSectionCoinPacks": "糖果包",
+  "shopSectionCoinShop": "糖果商店",
+  "shopSectionDiamondPacks": "鑽石包",
+  "shopSectionDiamondShop": "鑽石商店",
+  "shopSectionSubscription": "訂閱",
   "storeTabPremium": "高級",
   "storeTabFurniture": "家具",
   "storeTabThemes": "主題",
@@ -643,7 +643,7 @@
   "storeItemDescFurnitureBath": "迷你浴缸。",
   "storeItemNameFurnitureRibbon": "緞帶",
   "storeItemDescFurnitureRibbon": "裝飾緞帶。",
-  "storeSignInPrompt": "请先登录才能使用商店。",
+  "shopSignInPrompt": "请先登录才能使用商店。",
   "storeSubscribe": "訂閱",
   "storeSubscriptionActive": "已啟用",
   "storeSubscriptionDurationMonthly": "1 個月",
@@ -663,7 +663,7 @@
   "storeLegalOpenFailed": "无法打开法律連結。",
   "signInSafetyAgreementLabel": "我同意使用條款與隱私政策，並確認對不當內容或濫用行為採取零容忍。",
   "signInSafetyAgreementRequired": "登入前请先同意使用條款與隱私政策。",
-  "storeTitle": "商店",
+  "shopTitle": "商店",
   "storeTypeConsumable": "消耗品",
   "storeTypeCosmetic": "外觀",
   "storeTypeSubscription": "訂閱",
@@ -684,8 +684,8 @@
       "error": {}
     }
   },
-  "storeSectionBackgrounds": "背景",
-  "storeSectionItems": "商品",
+  "shopSectionBackgrounds": "背景",
+  "shopSectionItems": "商品",
   "storeBackgroundRoomRequired": "購買背景前请先选择房间。",
   "storeBuyWithCandies": "用 {price} 糖果購買",
   "@storeBuyWithCandies": {
@@ -748,7 +748,7 @@
   "petDepartureNoteMessage": "為什麼要這樣對我...",
   "petDepartureGuideTitle": "來自宠物的信",
   "petDepartureGuideMessage": "前往商店購買「信」來把你的宠物叫回來。",
-  "petDepartureGuideGoStore": "前往商店",
+  "petDepartureGuideGoShop": "前往商店",
   "petDepartureLetterUnavailableTitle": "无法使用信",
   "petDepartureLetterUnavailableMessage": "目前沒有离开的宠物。",
   "petDepartureLetterSelectTitle": "选择宠物",

@@ -26,12 +26,12 @@ Implemented:
   - `lib/features/home/providers/home_rooms_provider.dart`: Riverpod state for Home rooms list + current room + selected room in room selection.
   - `lib/features/home/providers/home_pet_state_provider.dart`: Riverpod pet-state snapshot for Home (pet id, current state payload, ready/departed flags).
   - `lib/features/home/providers/home_currency_provider.dart`: Riverpod currency snapshot for Home (coins, diamonds, coin reward amount/event id).
-  - `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
+- `lib/features/feed/`: Camera capture, ML Kit labeling, and feed upload flow.
   - Feed uploads now precompute client-side WebP compression right after image pick and reuse it on send; profile selection early-exits on target/cap-safe size to keep reward feedback responsive.
   - Feed camera callback dispatch is now fail-safe: optimistic/upload callbacks are reported through `FlutterError` if they throw, but they no longer block the route from popping back to Pet Home.
   - On successful `feed_validate` response, Home applies `coins_awarded` immediately in local HUD state, then runs a background profile reconciliation fetch.
   - Home HUD now shows a localized reward-pending indicator during feed reward resolution (server-authoritative coin update remains unchanged).
-  - `lib/features/chat/`: Chat stream with text, feed cards, and system events.
+- `lib/features/chat/`: Chat stream with text, feed cards, and system events.
     - `lib/features/chat/chat_room_view_v2.dart`: Sole chat-room route used by Home. It keeps Supabase fetch/realtime/cache/moderation/feed-send logic in app code while owning a deterministic timeline, the custom composer shell, reply-jump behavior, reactions, reply previews, keyboard-dismiss/back-swipe interactions, and the bright/dark status-bar overlay handoff for the in-chat top bar. Chat entry now hydrates only the latest 20 cached/server messages, auto-loads 20 older messages near the top, keeps a bounded 80-message in-memory window, buffers realtime inserts while the user is browsing history, uses a non-layout-affecting top overlay for older-history loading feedback, preserves the viewport against the first visible message while prepending older pages, and uses the floating jump button as a true reset back to the newest live window. The text-send path now marks `_sending` before any pre-send async reconciliation and only restores composer draft state while mounted, reducing intermittent send-time lifecycle races around route teardown and rapid repeat submits.
       - The active route now also refreshes its latest server page on app resume, covering backgrounded periods where a push notification arrived but the realtime channel did not visibly deliver the insert before the user returned to the room.
     - `lib/features/chat/widgets/deterministic_chat_list.dart`: Shared deterministic timeline wrapper for the active chat route. It preserves manual keyboard-dismiss behavior, forwards long-press hooks, owns the restored localized day-separator rendering for the message timeline, and no longer injects load-more UI that changes timeline height during older-history fetches.
@@ -42,6 +42,8 @@ Implemented:
     - The jump-to-latest affordance is now a labeled pill (`Latest`) with the existing pending-message badge instead of a generic floating action button, keeping the same reset-to-latest behavior while reading more like native chat navigation. Live-mode rooms also keep bottom anchoring sticky across later composer-measurement and async reply/profile/reaction height changes, so entering the route or tapping `Latest` no longer leaves the newest message slightly hidden under the composer after follow-up layout expansion.
     - `lib/features/chat/adapters/pet_chat_message_adapter.dart`: Maps app `ChatMessage` domain rows into `flutter_chat_core` message types consumed by the active V2 route.
     - `lib/features/chat/widgets/chat_message_envelope.dart`: Shared chat row wrapper that owns sent/received alignment, the fixed received-avatar slot, and the reaction-bar attachment point used by the active chat route.
+  - `lib/features/shop/`: In-app Shop surface for cosmetics, consumables, backgrounds, furniture, and RevenueCat-backed purchases.
+    - The former `store` feature module has been renamed to `shop` across feature-owned files, types, imports, tests, and `assets/shop/icon/*` references, while external compatibility-sensitive contracts such as `store_purchase` message kinds and App Store/legal URLs intentionally retain their existing names.
     - Legacy `ChatRoomView` / `ChatMessageList` / `ChatMessageTile` files were removed after the V2 rollout, so there is no longer a parallel legacy chat-room stack in the repo.
   - `lib/features/profile/`: Profile screen (nickname, avatar presets/upload, account deletion).
   - `lib/features/gallery/memory_calendar_view.dart`: Memory calendar view UI.
@@ -103,7 +105,7 @@ Planned:
 - `lib/features/rooms/`: Room creation, invite codes, multi-room limits.
 - `lib/features/pet/`: Pet state machine (hunger, mood, hygiene, sleep), night mode protection, growth, and expanded leveling UX.
 - `lib/features/gallery/`: Calendar view for image memories.
-- `lib/features/store/`: Cosmetics, subscription, consumables.
+- `lib/features/shop/`: Cosmetics, subscription, consumables.
 - `lib/shared/`: UI components, theme, utilities.
 
 ## Backend (Supabase)

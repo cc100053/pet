@@ -1,6 +1,6 @@
-part of '../store_view.dart';
+part of '../shop_view.dart';
 
-extension _StoreIapService on _StoreViewState {
+extension _ShopIapService on _ShopViewState {
   Future<void> _loadIap(String appUserId) async {
     _setStoreState(() {
       _iapLoading = true;
@@ -143,7 +143,7 @@ extension _StoreIapService on _StoreViewState {
     return null;
   }
 
-  Future<void> _purchaseIapItem(StoreItem item) async {
+  Future<void> _purchaseIapItem(ShopItem item) async {
     if (_purchasing) {
       return;
     }
@@ -236,7 +236,7 @@ extension _StoreIapService on _StoreViewState {
     }
   }
 
-  Future<void> _grantIapCoins(StoreItem item, PurchaseResult result) async {
+  Future<void> _grantIapCoins(ShopItem item, PurchaseResult result) async {
     final coinAmount = item.coinAmount;
     if (coinAmount == null || coinAmount <= 0) {
       throw StateError('Missing coin amount for IAP item.');
@@ -275,7 +275,7 @@ extension _StoreIapService on _StoreViewState {
     }
   }
 
-  Future<void> _grantIapDiamonds(StoreItem item, PurchaseResult result) async {
+  Future<void> _grantIapDiamonds(ShopItem item, PurchaseResult result) async {
     final diamondAmount = item.diamondAmount;
     if (diamondAmount == null || diamondAmount <= 0) {
       throw StateError('Missing diamond amount for IAP item.');

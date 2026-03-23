@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet/features/store/widgets/store_legal_links_row.dart';
+import 'package:pet/features/shop/widgets/shop_legal_links_row.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 class _FakeUrlLauncherPlatform extends UrlLauncherPlatform {
@@ -69,7 +69,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StoreLegalLinksRow(
+          body: ShopLegalLinksRow(
             privacyPolicyUri: privacyUri,
             termsOfUseUri: termsUri,
             privacyPolicyLabel: privacyLabel,

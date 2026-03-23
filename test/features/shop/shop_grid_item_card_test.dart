@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet/features/store/models/store_item.dart';
-import 'package:pet/features/store/store_view.dart';
+import 'package:pet/features/shop/models/shop_item.dart';
+import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 void main() {
-  StoreItem buildItem({
+  ShopItem buildItem({
     required String id,
     required String sku,
     int? priceCoins,
     int? priceDiamonds,
   }) {
-    return StoreItem(
+    return ShopItem(
       id: id,
       sku: sku,
       type: 'consumable',
@@ -70,7 +70,7 @@ void main() {
     await tester.pumpWidget(
       buildHarness(
         locale: const Locale('en'),
-        child: (context, l10n) => StoreGridItemCard(
+        child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: false,
           isIap: false,
@@ -110,7 +110,7 @@ void main() {
     await tester.pumpWidget(
       buildHarness(
         locale: const Locale('en'),
-        child: (context, l10n) => StoreGridItemCard(
+        child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: false,
           isIap: false,
@@ -145,7 +145,7 @@ void main() {
     await tester.pumpWidget(
       buildHarness(
         locale: const Locale('en'),
-        child: (context, l10n) => StoreGridItemCard(
+        child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: true,
           isIap: false,

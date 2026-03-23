@@ -1021,7 +1021,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeEmpty => '現在ストアは空です。';
+  String get shopEmpty => '現在ショップは空です。';
 
   @override
   String get storeIapNotConfigured => 'IAP が設定されていません。';
@@ -1032,8 +1032,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String storeLoadFailed(Object error) {
-    return 'ストアの読み込みに失敗しました: $error';
+  String shopLoadFailed(Object error) {
+    return 'ショップの読み込みに失敗しました: $error';
   }
 
   @override
@@ -1075,19 +1075,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeRestoreTooltip => '購入を復元';
 
   @override
-  String get storeSectionCoinPacks => 'キャンディパック';
+  String get shopSectionCoinPacks => 'キャンディパック';
 
   @override
-  String get storeSectionCoinStore => 'キャンディストア';
+  String get shopSectionCoinShop => 'キャンディショップ';
 
   @override
-  String get storeSectionDiamondPacks => 'ダイヤパック';
+  String get shopSectionDiamondPacks => 'ダイヤパック';
 
   @override
-  String get storeSectionDiamondStore => 'ダイヤストア';
+  String get shopSectionDiamondShop => 'ダイヤショップ';
 
   @override
-  String get storeSectionSubscription => 'サブスクリプション';
+  String get shopSectionSubscription => 'サブスクリプション';
 
   @override
   String get storeTabPremium => 'プレミアム';
@@ -1185,7 +1185,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescFurnitureRibbon => '飾りリボン。';
 
   @override
-  String get storeSignInPrompt => 'ストアを利用するにはサインインしてください。';
+  String get shopSignInPrompt => 'ショップを利用するにはサインインしてください。';
 
   @override
   String get storeSubscribe => '購読する';
@@ -1232,7 +1232,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'サインインする前に利用規約とプライバシーポリシーに同意してください。';
 
   @override
-  String get storeTitle => 'ストア';
+  String get shopTitle => 'ショップ';
 
   @override
   String get storeTypeConsumable => '消耗品';
@@ -1250,7 +1250,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get furnitureInventorySubtitle => 'このルームの家具と背景を管理します。';
 
   @override
-  String get furnitureInventoryEmpty => 'まだ家具がありません。ストアで購入してください。';
+  String get furnitureInventoryEmpty => 'まだ家具がありません。ショップで購入してください。';
 
   @override
   String get furnitureInventoryHint =>
@@ -1266,7 +1266,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backgroundGalleryTab => '背景ギャラリー';
 
   @override
-  String get backgroundInventoryEmpty => '背景がまだありません。ストアで入手できます。';
+  String get backgroundInventoryEmpty => '背景がまだありません。ショップで入手できます。';
 
   @override
   String get backgroundInventoryHint => '背景をタップするとルーム全員に適用されます。';
@@ -1283,10 +1283,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeSectionBackgrounds => '背景';
+  String get shopSectionBackgrounds => '背景';
 
   @override
-  String get storeSectionItems => 'アイテム';
+  String get shopSectionItems => 'アイテム';
 
   @override
   String get storeBackgroundRoomRequired => '背景を購入する前にルームを選択してください。';
@@ -1367,10 +1367,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petDepartureGuideTitle => 'ペットからの手紙';
 
   @override
-  String get petDepartureGuideMessage => 'ストアで「手紙」を買って、ペットを呼び戻してください。';
+  String get petDepartureGuideMessage => 'ショップで「手紙」を買って、ペットを呼び戻してください。';
 
   @override
-  String get petDepartureGuideGoStore => 'ストアへ';
+  String get petDepartureGuideGoShop => 'ショップへ';
 
   @override
   String get petDepartureLetterUnavailableTitle => '手紙は使えません';

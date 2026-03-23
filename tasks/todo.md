@@ -1,5 +1,35 @@
 # TODO
 
+# Plan (2026-03-23 Move Shop Icons Into assets/shop/icon)
+- [x] Move the Shop-specific icon assets from `assets/icon/shop/` into `assets/shop/icon/` and update the declared asset bundle path.
+- [x] Rewrite all app code that loads Shop icons so it points at the new `assets/shop/icon/*` paths.
+- [x] Run verification, update memory-bank notes, and record the asset move outcome below.
+
+# Review (2026-03-23 Move Shop Icons Into assets/shop/icon)
+- [x] Implemented and verified.
+- Scope:
+  - Moved the Shop icon files into `assets/shop/icon/` and removed the old empty `assets/icon/shop/` folder.
+  - Updated `pubspec.yaml` and all in-app image asset references to use the new Shop icon path.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-23 Rename Store Feature To Shop)
+- [x] Inventory every Store-related feature file, class, import, asset, and localization touchpoint that needs renaming while preserving external compatibility contracts like App Store URLs and `store_purchase`.
+- [x] Rename the Store feature folders/files/types/assets to Shop and update in-app Shop copy/localization references across the app.
+- [x] Regenerate localizations, run verification, update memory-bank notes, and record the rename outcome below.
+
+# Review (2026-03-23 Rename Store Feature To Shop)
+- [x] Implemented and verified.
+- Scope:
+  - Renamed the app feature module from Store to Shop across feature files, tests, imports, assets, and feature-owned widget/class names.
+  - Updated in-app localization keys/copy so the user-facing section now presents as Shop instead of Store.
+  - Preserved external/backward-compatible contracts such as Apple `App Store` integrations, config keys like `store_url`, review fallback behavior, and message payload kinds like `store_purchase`.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-23 Harden Intermittent Chat Send Crash Path)
 - [x] Inspect the active chat send flow for intermittent crash candidates around async lifecycle, composer state, and route teardown.
 - [x] Harden the most plausible send-time race(s) in `ChatRoomViewV2` with minimal behavioral change.

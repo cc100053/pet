@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../room_backgrounds.dart';
-import '../../store/models/store_item.dart';
+import '../../shop/models/shop_item.dart';
 
 class HomeRoomInventoryPanel extends StatefulWidget {
   const HomeRoomInventoryPanel({
@@ -24,13 +24,13 @@ class HomeRoomInventoryPanel extends StatefulWidget {
     required this.onBackgroundApply,
   });
 
-  final Map<String, StoreItem> furnitureCatalog;
+  final Map<String, ShopItem> furnitureCatalog;
   final Map<String, int> furnitureInventory;
   final String? selectedFurnitureItemId;
   final int Function(String itemId) availableFurnitureCount;
   final bool furnitureLoading;
   final String? furnitureErrorText;
-  final List<StoreItem> backgroundItems;
+  final List<ShopItem> backgroundItems;
   final String? activeBackgroundId;
   final bool backgroundLoading;
   final String? backgroundErrorText;
@@ -158,7 +158,7 @@ class _FurnitureTab extends StatelessWidget {
     required this.onItemTap,
   });
 
-  final List<StoreItem> items;
+  final List<ShopItem> items;
   final String? selectedItemId;
   final int Function(String itemId) availableCount;
   final bool loading;
@@ -215,7 +215,7 @@ class _BackgroundTab extends StatelessWidget {
     required this.onApply,
   });
 
-  final List<StoreItem> items;
+  final List<ShopItem> items;
   final String? activeBackgroundId;
   final String? applyingBackgroundId;
   final bool loading;
@@ -272,7 +272,7 @@ class _FurnitureInventoryItem extends StatelessWidget {
     required this.onTap,
   });
 
-  final StoreItem item;
+  final ShopItem item;
   final int available;
   final bool isSelected;
   final VoidCallback onTap;
@@ -343,7 +343,7 @@ class _BackgroundInventoryItem extends StatelessWidget {
     required this.onTap,
   });
 
-  final StoreItem item;
+  final ShopItem item;
   final RoomBackgroundDefinition definition;
   final bool isActive;
   final bool isApplying;

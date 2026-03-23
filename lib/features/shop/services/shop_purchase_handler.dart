@@ -1,6 +1,6 @@
-part of '../store_view.dart';
+part of '../shop_view.dart';
 
-extension _StorePurchaseHandler on _StoreViewState {
+extension _ShopPurchaseHandler on _ShopViewState {
   bool get _hasDepartedPets => _departedPets.isNotEmpty;
 
   DepartedPetInfo? _currentRoomDepartedPet() {
@@ -18,7 +18,7 @@ extension _StorePurchaseHandler on _StoreViewState {
     return null;
   }
 
-  Future<void> _handleLetterPurchase(StoreItem item) async {
+  Future<void> _handleLetterPurchase(ShopItem item) async {
     final l10n = AppLocalizations.of(context)!;
     if (_purchasing) {
       return;
@@ -111,21 +111,21 @@ extension _StorePurchaseHandler on _StoreViewState {
     });
   }
 
-  bool _canAfford(StoreItem item, _StoreCurrency currency) {
-    final price = currency == _StoreCurrency.candy
+  bool _canAfford(ShopItem item, _ShopCurrency currency) {
+    final price = currency == _ShopCurrency.candy
         ? item.priceCoins
         : item.priceDiamonds;
     if (price == null) {
       return false;
     }
-    return currency == _StoreCurrency.candy
+    return currency == _ShopCurrency.candy
         ? _coins >= price
         : _diamonds >= price;
   }
 
-  bool _ensureCurrencyPurchasable(StoreItem item, _StoreCurrency currency) {
+  bool _ensureCurrencyPurchasable(ShopItem item, _ShopCurrency currency) {
     final l10n = AppLocalizations.of(context)!;
-    final price = currency == _StoreCurrency.candy
+    final price = currency == _ShopCurrency.candy
         ? item.priceCoins
         : item.priceDiamonds;
     if (price == null) {
@@ -139,7 +139,7 @@ extension _StorePurchaseHandler on _StoreViewState {
       return true;
     }
     _showStoreNotice(
-      message: currency == _StoreCurrency.candy
+      message: currency == _ShopCurrency.candy
           ? l10n.storeNotEnoughCoins
           : l10n.storeNotEnoughDiamonds,
       currency: currency,
@@ -148,11 +148,11 @@ extension _StorePurchaseHandler on _StoreViewState {
     return false;
   }
 
-  Future<bool> _purchaseItem(StoreItem item) async {
+  Future<bool> _purchaseItem(ShopItem item) async {
     if (_purchasing) {
       return false;
     }
-    if (!_ensureCurrencyPurchasable(item, _StoreCurrency.candy)) {
+    if (!_ensureCurrencyPurchasable(item, _ShopCurrency.candy)) {
       return false;
     }
 
@@ -284,11 +284,11 @@ extension _StorePurchaseHandler on _StoreViewState {
     }
   }
 
-  Future<bool> _purchaseDiamondItem(StoreItem item) async {
+  Future<bool> _purchaseDiamondItem(ShopItem item) async {
     if (_purchasing) {
       return false;
     }
-    if (!_ensureCurrencyPurchasable(item, _StoreCurrency.diamonds)) {
+    if (!_ensureCurrencyPurchasable(item, _ShopCurrency.diamonds)) {
       return false;
     }
 
@@ -424,7 +424,7 @@ extension _StorePurchaseHandler on _StoreViewState {
     }
   }
 
-  Future<bool> _purchaseBackgroundWithCoins(StoreItem item) async {
+  Future<bool> _purchaseBackgroundWithCoins(ShopItem item) async {
     final roomId = widget.roomId;
     if (roomId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -468,7 +468,7 @@ extension _StorePurchaseHandler on _StoreViewState {
     return true;
   }
 
-  Future<bool> _purchaseBackgroundWithDiamonds(StoreItem item) async {
+  Future<bool> _purchaseBackgroundWithDiamonds(ShopItem item) async {
     final roomId = widget.roomId;
     if (roomId == null) {
       ScaffoldMessenger.of(context).showSnackBar(

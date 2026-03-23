@@ -1,10 +1,10 @@
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
-import '../store_item_localization.dart';
+import '../shop_item_localization.dart';
 
-class StoreItem {
-  StoreItem({
+class ShopItem {
+  ShopItem({
     required this.id,
     required this.sku,
     required this.type,
@@ -102,7 +102,7 @@ class StoreItem {
       (catalogCurrencyCode ?? '').trim().toUpperCase() == 'JPY';
 
   String localizedName(AppLocalizations l10n) {
-    final localized = localizedStoreItemNameForSku(sku, l10n);
+    final localized = localizedShopItemNameForSku(sku, l10n);
     return localized == sku ? name : localized;
   }
 
@@ -139,7 +139,7 @@ class StoreItem {
     }
   }
 
-  factory StoreItem.fromJson(Map<String, dynamic> json) {
+  factory ShopItem.fromJson(Map<String, dynamic> json) {
     final metadata = (json['metadata'] as Map?)?.cast<String, dynamic>() ?? {};
     final priceJpyRaw = metadata['price_jpy'];
     final description = metadata['description'] as String?;
@@ -181,7 +181,7 @@ class StoreItem {
       diamondAmount = int.tryParse(diamondAmountRaw);
     }
 
-    return StoreItem(
+    return ShopItem(
       id: json['id'] as String,
       sku: json['sku'] as String,
       type: json['type'] as String? ?? 'consumable',
@@ -203,5 +203,3 @@ class StoreItem {
     );
   }
 }
-
-typedef ShopItem = StoreItem;

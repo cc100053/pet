@@ -597,10 +597,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew105Bullet3 => '成功喂食后恢复的饥饿值提升了，从 +20 提高到 +25。';
 
   @override
-  String get whatsNew106Title => 'Major Store Update & Stability';
+  String get whatsNew106Title => 'Major Shop Update & Stability';
 
   @override
-  String get whatsNew106Bullet1 => 'Major store redesign and visual update';
+  String get whatsNew106Bullet1 => 'Major shop redesign and visual update';
 
   @override
   String get whatsNew106Bullet2 => 'Improved app stability and performance';
@@ -1018,7 +1018,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get storeEmpty => '商店目前沒有商品。';
+  String get shopEmpty => '商店目前沒有商品。';
 
   @override
   String get storeIapNotConfigured => '尚未設定 IAP。';
@@ -1029,7 +1029,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String storeLoadFailed(Object error) {
+  String shopLoadFailed(Object error) {
     return '加载商店失敗：$error';
   }
 
@@ -1072,19 +1072,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeRestoreTooltip => '恢復購買';
 
   @override
-  String get storeSectionCoinPacks => '糖果包';
+  String get shopSectionCoinPacks => '糖果包';
 
   @override
-  String get storeSectionCoinStore => '糖果商店';
+  String get shopSectionCoinShop => '糖果商店';
 
   @override
-  String get storeSectionDiamondPacks => '鑽石包';
+  String get shopSectionDiamondPacks => '鑽石包';
 
   @override
-  String get storeSectionDiamondStore => '鑽石商店';
+  String get shopSectionDiamondShop => '鑽石商店';
 
   @override
-  String get storeSectionSubscription => '訂閱';
+  String get shopSectionSubscription => '訂閱';
 
   @override
   String get storeTabPremium => '高級';
@@ -1182,7 +1182,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
 
   @override
-  String get storeSignInPrompt => '请先登录才能使用商店。';
+  String get shopSignInPrompt => '请先登录才能使用商店。';
 
   @override
   String get storeSubscribe => '訂閱';
@@ -1227,7 +1227,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signInSafetyAgreementRequired => '登入前请先同意使用條款與隱私政策。';
 
   @override
-  String get storeTitle => '商店';
+  String get shopTitle => '商店';
 
   @override
   String get storeTypeConsumable => '消耗品';
@@ -1277,10 +1277,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get storeSectionBackgrounds => '背景';
+  String get shopSectionBackgrounds => '背景';
 
   @override
-  String get storeSectionItems => '商品';
+  String get shopSectionItems => '商品';
 
   @override
   String get storeBackgroundRoomRequired => '購買背景前请先选择房间。';
@@ -1363,7 +1363,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petDepartureGuideMessage => '前往商店購買「信」來把你的宠物叫回來。';
 
   @override
-  String get petDepartureGuideGoStore => '前往商店';
+  String get petDepartureGuideGoShop => '前往商店';
 
   @override
   String get petDepartureLetterUnavailableTitle => '无法使用信';
@@ -2469,7 +2469,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get storeEmpty => '商店目前沒有商品。';
+  String get shopEmpty => '商店目前沒有商品。';
 
   @override
   String get storeIapNotConfigured => '尚未設定 IAP。';
@@ -2480,7 +2480,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String storeLoadFailed(Object error) {
+  String shopLoadFailed(Object error) {
     return '載入商店失敗：$error';
   }
 
@@ -2523,19 +2523,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeRestoreTooltip => '恢復購買';
 
   @override
-  String get storeSectionCoinPacks => '糖果包';
+  String get shopSectionCoinPacks => '糖果包';
 
   @override
-  String get storeSectionCoinStore => '糖果商店';
+  String get shopSectionCoinShop => '糖果商店';
 
   @override
-  String get storeSectionDiamondPacks => '鑽石包';
+  String get shopSectionDiamondPacks => '鑽石包';
 
   @override
-  String get storeSectionDiamondStore => '鑽石商店';
+  String get shopSectionDiamondShop => '鑽石商店';
 
   @override
-  String get storeSectionSubscription => '訂閱';
+  String get shopSectionSubscription => '訂閱';
 
   @override
   String get storeTabPremium => '高級';
@@ -2633,7 +2633,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
 
   @override
-  String get storeSignInPrompt => '請先登入才能使用商店。';
+  String get shopSignInPrompt => '請先登入才能使用商店。';
 
   @override
   String get storeSubscribe => '訂閱';
@@ -2678,7 +2678,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get signInSafetyAgreementRequired => '登入前請先同意使用條款與隱私權政策。';
 
   @override
-  String get storeTitle => '商店';
+  String get shopTitle => '商店';
 
   @override
   String get storeTypeConsumable => '消耗品';
@@ -2728,10 +2728,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get storeSectionBackgrounds => '背景';
+  String get shopSectionBackgrounds => '背景';
 
   @override
-  String get storeSectionItems => '商品';
+  String get shopSectionItems => '商品';
 
   @override
   String get storeBackgroundRoomRequired => '購買背景前請先選擇房間。';
@@ -2814,7 +2814,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get petDepartureGuideMessage => '前往商店購買「信」來把你的寵物叫回來。';
 
   @override
-  String get petDepartureGuideGoStore => '前往商店';
+  String get petDepartureGuideGoShop => '前往商店';
 
   @override
   String get petDepartureLetterUnavailableTitle => '無法使用信';

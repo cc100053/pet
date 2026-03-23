@@ -321,8 +321,8 @@
   "whatsNew105Bullet1": "Security enhancements for better stability.",
   "whatsNew105Bullet2": "Minor bug fixes and improvements.",
   "whatsNew105Bullet3": "",
-  "whatsNew106Title": "Major Store Update & Stability",
-  "whatsNew106Bullet1": "Major store redesign and visual update",
+  "whatsNew106Title": "Major Shop Update & Stability",
+  "whatsNew106Bullet1": "Major shop redesign and visual update",
   "whatsNew106Bullet2": "Improved app stability and performance",
   "whatsNew106Bullet3": "Fixed several minor known issues",
   "languageChineseSimplified": "Simplified Chinese",
@@ -567,7 +567,7 @@
       "amount": {}
     }
   },
-  "storeEmpty": "Store is empty for now.",
+  "shopEmpty": "Shop is empty for now.",
   "storeIapNotConfigured": "IAP not configured.",
   "storeIapUnavailable": "IAP unavailable: {error}",
   "@storeIapUnavailable": {
@@ -575,7 +575,7 @@
       "error": {}
     }
   },
-  "storeLoadFailed": "Failed to load store: {error}",
+  "shopLoadFailed": "Failed to load shop: {error}",
   "@storeLoadFailed": {
     "placeholders": {
       "error": {}
@@ -611,11 +611,11 @@
     }
   },
   "storeRestoreTooltip": "Restore purchases",
-  "storeSectionCoinPacks": "Candy Packs",
-  "storeSectionCoinStore": "Candy Store",
-  "storeSectionDiamondPacks": "Diamond Packs",
-  "storeSectionDiamondStore": "Diamond Store",
-  "storeSectionSubscription": "Subscription",
+  "shopSectionCoinPacks": "Candy Packs",
+  "shopSectionCoinShop": "Candy Shop",
+  "shopSectionDiamondPacks": "Diamond Packs",
+  "shopSectionDiamondShop": "Diamond Shop",
+  "shopSectionSubscription": "Subscription",
   "storeTabPremium": "Premium",
   "storeTabFurniture": "Furniture",
   "storeTabThemes": "Themes",
@@ -652,7 +652,7 @@
   "storeItemDescFurnitureBath": "Mini bath.",
   "storeItemNameFurnitureRibbon": "Ribbon",
   "storeItemDescFurnitureRibbon": "Decor ribbon.",
-  "storeSignInPrompt": "Please sign in to access the store.",
+  "shopSignInPrompt": "Please sign in to access the shop.",
   "storeSubscribe": "Subscribe",
   "storeSubscriptionActive": "Active",
   "storeSubscriptionDurationMonthly": "1 month",
@@ -672,18 +672,18 @@
   "storeLegalOpenFailed": "Could not open the legal link.",
   "signInSafetyAgreementLabel": "I agree to the Terms of Use and Privacy Policy, including zero tolerance for objectionable content or abusive users.",
   "signInSafetyAgreementRequired": "Please accept the Terms of Use and Privacy Policy before signing in.",
-  "storeTitle": "Store",
+  "shopTitle": "Shop",
   "storeTypeConsumable": "Consumable",
   "storeTypeCosmetic": "Cosmetic",
   "storeTypeSubscription": "Subscription",
   "furnitureInventoryTitle": "Room Inventory",
   "furnitureInventorySubtitle": "Manage furniture and backgrounds for this room.",
-  "furnitureInventoryEmpty": "No furniture yet. Buy some in the store.",
+  "furnitureInventoryEmpty": "No furniture yet. Buy some in the shop.",
   "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.",
   "roomInventoryTitle": "Room Inventory",
   "inventoryTabFurniture": "Furniture",
   "backgroundGalleryTab": "Background Gallery",
-  "backgroundInventoryEmpty": "No backgrounds yet. Pick one up in the store.",
+  "backgroundInventoryEmpty": "No backgrounds yet. Pick one up in the shop.",
   "backgroundInventoryHint": "Tap a background to apply it for everyone in the room.",
   "backgroundApply": "Apply",
   "backgroundAppliedLabel": "Applied",
@@ -693,8 +693,8 @@
       "error": {}
     }
   },
-  "storeSectionBackgrounds": "Backgrounds",
-  "storeSectionItems": "Items",
+  "shopSectionBackgrounds": "Backgrounds",
+  "shopSectionItems": "Items",
   "storeBackgroundRoomRequired": "Choose a room before purchasing a background.",
   "storeBuyWithCandies": "Buy {price} Candy",
   "@storeBuyWithCandies": {
@@ -756,8 +756,8 @@
   ,
   "petDepartureNoteMessage": "Why treat me like this...",
   "petDepartureGuideTitle": "Letter from your pet",
-  "petDepartureGuideMessage": "Visit the Store and buy a Letter to invite your pet back.",
-  "petDepartureGuideGoStore": "Go to Store",
+  "petDepartureGuideMessage": "Visit the Shop and buy a Letter to invite your pet back.",
+  "petDepartureGuideGoShop": "Go to Shop",
   "petDepartureLetterUnavailableTitle": "Letter unavailable",
   "petDepartureLetterUnavailableMessage": "No pets have left yet.",
   "petDepartureLetterSelectTitle": "Choose a pet",

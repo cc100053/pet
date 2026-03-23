@@ -116,7 +116,7 @@ flutter:
     - assets/pet/cat/
     - assets/pet/fish/
     - assets/icon/
-    - assets/icon/store/
+    - assets/shop/icon/
     - assets/sound/
 
   fonts:

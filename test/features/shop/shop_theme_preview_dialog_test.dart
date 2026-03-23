@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet/features/store/models/store_item.dart';
-import 'package:pet/features/store/store_view.dart';
+import 'package:pet/features/shop/models/shop_item.dart';
+import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 void main() {
-  StoreItem buildBackgroundItem() {
-    return StoreItem(
+  ShopItem buildBackgroundItem() {
+    return ShopItem(
       id: 'bg-1',
       sku: 'background_test1',
       type: 'cosmetic',

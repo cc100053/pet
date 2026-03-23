@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet/features/store/models/store_item.dart';
-import 'package:pet/features/store/store_view.dart';
+import 'package:pet/features/shop/models/shop_item.dart';
+import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 void main() {
-  StoreItem buildSubscriptionItem() {
-    return StoreItem(
+  ShopItem buildSubscriptionItem() {
+    return ShopItem(
       id: 'sub-1',
       sku: 'subscription_premium_monthly',
       type: 'subscription',
@@ -46,7 +46,7 @@ void main() {
     await tester.pumpWidget(
       buildApp(
         locale: const Locale('en'),
-        child: StoreFeaturedBanner(
+        child: ShopFeaturedBanner(
           items: [item],
           onPurchase: (_) => purchaseCount++,
           findPackage: (_) => null,
@@ -81,7 +81,7 @@ void main() {
     await tester.pumpWidget(
       buildApp(
         locale: const Locale('ja'),
-        child: StoreFeaturedBanner(
+        child: ShopFeaturedBanner(
           items: [item],
           onPurchase: (_) {},
           findPackage: (_) => null,
