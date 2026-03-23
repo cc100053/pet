@@ -173,11 +173,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   }
 
   double _resolvedComposerBottomInset(MediaQueryData media) {
-    if (media.viewInsets.bottom > 0) {
-      // When keyboard is open, push composer up by keyboard height + extra gap
-      return media.viewInsets.bottom + 10;
-    }
-    return media.padding.bottom + 8;
+    // Use max() to ensure a smooth transition and prevent the 'sink and bounce' effect.
+    // The inset should never be less than the safe area padding + default gap.
+    // When the keyboard is up, it will stay at least 10px above the keyboard.
+    return (media.viewInsets.bottom + 10).clamp(
+      media.padding.bottom + 8,
+      double.infinity,
+    );
   }
 
   double _resolvedListBottomPadding(MediaQueryData media) {
