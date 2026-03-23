@@ -1016,6 +1016,48 @@ class _StoreStrokeText extends StatelessWidget {
   }
 }
 
+class _StoreAdaptiveStrokeTitle extends StatelessWidget {
+  const _StoreAdaptiveStrokeTitle({
+    required this.text,
+    required this.fontSize,
+    required this.color,
+    required this.strokeColor,
+    this.strokeWidth = 4.5,
+    this.height = 32,
+    this.alignment = Alignment.centerLeft,
+  });
+
+  final String text;
+  final double fontSize;
+  final Color color;
+  final Color strokeColor;
+  final double strokeWidth;
+  final double height;
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: Align(
+        alignment: alignment,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: alignment,
+          child: _StoreStrokeText(
+            text,
+            fontSize: fontSize,
+            color: color,
+            strokeColor: strokeColor,
+            strokeWidth: strokeWidth,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class StoreFeaturedBanner extends StatefulWidget {
   const StoreFeaturedBanner({
     super.key,
@@ -1165,69 +1207,81 @@ class _StoreFeaturedBannerState extends State<StoreFeaturedBanner> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                             ).createShader(bounds),
-                            child: _StoreStrokeText(
-                              l10n.storeTabPremium,
+                            child: _StoreAdaptiveStrokeTitle(
+                              text: l10n.storeTabPremium,
                               fontSize: 26,
                               color: Colors.white,
                               strokeColor: const Color(0xFF5D4037),
-                              strokeWidth: 4.5,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          _StoreStrokeText(
-                            item.localizedName(l10n),
+                          _StoreAdaptiveStrokeTitle(
+                            text: item.localizedName(l10n),
                             fontSize: 26,
                             color: Colors.white,
                             strokeColor: const Color(0xFF1A237E),
-                            strokeWidth: 4.5,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Expanded(
-                            child: SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (description != null &&
-                                      description.isNotEmpty)
-                                    Text(
-                                      description,
-                                      style: GoogleFonts.mPlusRounded1c(
-                                        color: const Color(0xFF303F9F),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.2,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isCompactBody =
+                                    constraints.maxHeight < 90;
+                                final bodyFontSize = isCompactBody
+                                    ? 13.0
+                                    : 14.0;
+                                final descriptionMaxLines =
+                                    isCompactBody || activeStatusText != null
+                                    ? 1
+                                    : 2;
+                                final renewalMaxLines = isCompactBody ? 1 : 2;
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (description != null &&
+                                        description.isNotEmpty)
+                                      Text(
+                                        description,
+                                        style: GoogleFonts.mPlusRounded1c(
+                                          color: const Color(0xFF303F9F),
+                                          fontSize: bodyFontSize,
+                                          fontWeight: FontWeight.w900,
+                                          height: 1.15,
+                                        ),
+                                        maxLines: descriptionMaxLines,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                  if (activeStatusText != null) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      activeStatusText,
-                                      style: GoogleFonts.mPlusRounded1c(
-                                        color: const Color(0xFF303F9F),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.2,
+                                    if (activeStatusText != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        activeStatusText,
+                                        style: GoogleFonts.mPlusRounded1c(
+                                          color: const Color(0xFF303F9F),
+                                          fontSize: bodyFontSize,
+                                          fontWeight: FontWeight.w900,
+                                          height: 1.15,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
+                                    ],
+                                    const Spacer(),
+                                    Text(
+                                      '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
+                                      style: GoogleFonts.mPlusRounded1c(
+                                        color: const Color(
+                                          0xFF303F9F,
+                                        ).withValues(alpha: 0.7),
+                                        fontSize: bodyFontSize,
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.15,
+                                      ),
+                                      maxLines: renewalMaxLines,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
-                                    style: GoogleFonts.mPlusRounded1c(
-                                      color: const Color(
-                                        0xFF303F9F,
-                                      ).withValues(alpha: 0.7),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(height: 6),

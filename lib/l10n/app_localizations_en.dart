@@ -1110,7 +1110,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeItemDescProMonthly =>
-      'Unlock unlimited rooms and remove all ads to enjoy a seamless experience.';
+      'Unlimited rooms and no ads for a smoother pet home.';
 
   @override
   String get storeItemNameDiamondPack300 => '300 Diamond Pack';

@@ -19,6 +19,7 @@ Implemented:
   - Shared light-theme `AppBar` chrome now defaults to `AppStatusBarStyles.light`, keeping dark status-bar content on all standard white/cream app surfaces. Home and chat continue to override overlay style per active room background.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
+  - `lib/features/home/room_selection_view.dart`: Room Selection header title now uses adaptive scale-down fitting, so localized `Room Selection` copy stays fully readable in the top bar instead of truncating on narrower widths.
   - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1 coach card, dual spotlight focus resolution for the existing create-room CTA and header invite-code action, skip/persistence, debug force-show override, and legacy `open_room` state migration to `invite_friend`.
   - `lib/features/home/home_unread_rules.dart`: Shared unread decision helper used to keep Home realtime badge increments aligned with the intended self-message behavior.
   - `lib/features/home/providers/home_unread_counts_provider.dart`: Riverpod unread-count state for Home/Room Selection badges and app-icon badge sync.
@@ -52,7 +53,7 @@ Implemented:
   - `lib/features/store/models/store_item.dart`: Store domain model with localized naming/pricing helpers.
   - `lib/features/store/services/store_iap_service.dart`: Extracted Store IAP loading/purchase/restore logic.
   - `lib/features/store/services/store_purchase_handler.dart`: Extracted Store candy/diamond purchase handlers.
-  - Store featured subscription banner now reflects active RevenueCat entitlements again, uses localized premium/status/renewal copy instead of hard-coded strings, and disables its CTA for already-entitled users.
+  - Store featured subscription banner now reflects active RevenueCat entitlements again, uses localized premium/status/renewal copy instead of hard-coded strings, disables its CTA for already-entitled users, auto-scales long banner titles to fit, and keeps the description visible without requiring an inner scroll on compact layouts. Store grid item cards now use the same adaptive title fitting so long localized product names stay readable there too.
   - Background item cards regained a dedicated preview affordance that reopens the full room-theme preview dialog while keeping the newer single-buy card layout.
   - Active live IAP catalog is now intentionally limited to the monthly subscription and diamond pack. The retired `iap_coin_pack_small` row remains inactive for historical continuity, but its obsolete `Petcoins120` product metadata is stripped by forward-only migration so backend/App Store catalog checks no longer consider it a valid product binding.
   - Successful room furniture/background purchases now emit a structured room `system` chat message from the purchase RPC with the exact purchased item SKU/name context, and the purchase handler best-effort invokes `notify_friend` so those purchase events also send push notifications to the other active room members.

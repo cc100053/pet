@@ -167,10 +167,15 @@ class RoomSelectionView extends StatelessWidget {
                                   uiScale,
                             ),
                             Expanded(
-                              child: Text(
-                                l10n.roomSelectionTitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: _AdaptiveHeaderTitle(
+                                text: l10n.roomSelectionTitle,
+                                height:
+                                    responsive.pick(
+                                      compact: 30,
+                                      regular: 34,
+                                      expanded: 36,
+                                    ) *
+                                    uiScale,
                                 style:
                                     (responsive.isCompact
                                             ? theme.textTheme.titleLarge
@@ -972,6 +977,34 @@ class RoomSelectionView extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AdaptiveHeaderTitle extends StatelessWidget {
+  const _AdaptiveHeaderTitle({
+    required this.text,
+    required this.style,
+    this.height = 36,
+  });
+
+  final String text;
+  final TextStyle? style;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(text, style: style, maxLines: 1),
         ),
       ),
     );

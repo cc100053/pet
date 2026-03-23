@@ -429,7 +429,47 @@
   - Both passed; `test/feed_flow_integration_test.dart` remained skipped without the required Supabase env vars, as expected.
 
 # Plan (2026-03-23 Store Pro Banner UI Polish)
-- [ ] Update the featured Pro banner title so long localized text scales down to fit the available width instead of truncating with ellipsis.
-- [ ] Remove the inner scrolling dependency from the banner body so the Pro description stays readable within the card on English and other locales.
-- [ ] Tighten the English Pro description copy if the current sentence is still too long for the available mobile space.
-- [ ] Update memory-bank notes, then run `flutter analyze` and `flutter test`.
+- [x] Update the featured Pro banner title so long localized text scales down to fit the available width instead of truncating with ellipsis.
+- [x] Remove the inner scrolling dependency from the banner body so the Pro description stays readable within the card on English and other locales.
+- [x] Tighten the English Pro description copy if the current sentence is still too long for the available mobile space.
+- [x] Update memory-bank notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-23 Store Pro Banner UI Polish)
+- [x] Implemented and verified.
+- Root change:
+  - Added `_StoreAdaptiveStrokeTitle` so the Pro banner's premium label and localized product name now scale down to fit the available width instead of truncating with ellipsis.
+  - Reworked the banner body to use a height-aware compact mode rather than an inner `SingleChildScrollView`, which keeps the description/status/renewal copy visible within the fixed banner card even when the subscribed-state status line is present.
+  - Shortened the English Pro description to `Unlimited rooms and no ads for a smoother pet home.` so the compact mobile layout reads cleanly without relying on overflow-prone wrapping.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test test/features/store/store_featured_banner_test.dart`
+  - `flutter test`
+
+# Plan (2026-03-23 Store Grid Card Adaptive Titles)
+- [x] Reuse the adaptive stroke-title treatment for store grid card titles so long localized item names scale down instead of clipping visually.
+- [x] Update memory-bank notes for the broader store title-fitting behavior.
+- [x] Run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-23 Store Grid Card Adaptive Titles)
+- [x] Implemented and verified.
+- Root change:
+  - Reused `_StoreAdaptiveStrokeTitle` for the store grid card title row, so localized item names now scale down inside the card header instead of relying on fixed-size stroke text.
+  - Kept the card-specific title treatment visually tighter by using the existing smaller stroke width with a shorter 24px title slot, so the card layout stays compact while still fitting longer names.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-23 Room Selection Adaptive Title)
+- [x] Replace the fixed `ellipsis` header title in Room Selection with an adaptive scale-down title that preserves the current visual style.
+- [x] Update memory-bank notes for the expanded adaptive-title usage.
+- [x] Run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-23 Room Selection Adaptive Title)
+- [x] Implemented and verified.
+- Root change:
+  - Added a small `_AdaptiveHeaderTitle` wrapper in `room_selection_view.dart` so the Home `Room Selection` header now uses `FittedBox(BoxFit.scaleDown)` inside the existing `Expanded` slot instead of a one-line `ellipsis` text.
+  - Kept the current visual hierarchy intact by preserving the same responsive `titleLarge` / `headlineSmall` styling, only changing how the title fits within the available width.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`

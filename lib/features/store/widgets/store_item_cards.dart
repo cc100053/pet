@@ -121,12 +121,14 @@ class StoreGridItemCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: _StoreStrokeText(
-                      item.localizedName(l10n),
+                    child: _StoreAdaptiveStrokeTitle(
+                      text: item.localizedName(l10n),
                       fontSize: 20,
                       color: Colors.white,
                       strokeColor: const Color(0xFF1A237E),
                       strokeWidth: 3.5,
+                      height: 24,
+                      alignment: Alignment.center,
                     ),
                   ),
                   Expanded(
