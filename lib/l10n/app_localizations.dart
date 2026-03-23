@@ -2057,6 +2057,24 @@ abstract class AppLocalizations {
   /// **'Unlimited rooms and no ads for a smoother pet home.'**
   String get storeItemDescProMonthly;
 
+  /// No description provided for @storePremiumBenefitUnlimitedRooms.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited rooms'**
+  String get storePremiumBenefitUnlimitedRooms;
+
+  /// No description provided for @storePremiumBenefitNoAds.
+  ///
+  /// In en, this message translates to:
+  /// **'No more ads'**
+  String get storePremiumBenefitNoAds;
+
+  /// No description provided for @storePremiumBenefitExclusiveItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclusive items'**
+  String get storePremiumBenefitExclusiveItems;
+
   /// No description provided for @storeItemNameDiamondPack300.
   ///
   /// In en, this message translates to:

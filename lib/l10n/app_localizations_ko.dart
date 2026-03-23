@@ -1120,6 +1120,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '광고 제거, 무제한 방 생성. 더욱 자유롭고 즐거운 펫 라이프를 즐겨보세요.';
 
   @override
+  String get storePremiumBenefitUnlimitedRooms => '방 생성 무제한';
+
+  @override
+  String get storePremiumBenefitNoAds => '광고 없는 쾌적함';
+
+  @override
+  String get storePremiumBenefitExclusiveItems => '전용 아이템 잠금해제';
+
+  @override
   String get storeItemNameDiamondPack300 => '다이아몬드 300 팩';
 
   @override

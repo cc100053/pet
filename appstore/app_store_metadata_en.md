@@ -4,6 +4,7 @@
 
 - **Name (30)**: PetTomo: Shared Pet & Diary
 - **Subtitle (30)**: Raise, Feed & Bond Together
+- **Marketing URL**: https://pet-app-702be.web.app/
 - **Privacy Policy URL**: https://pet-app-702be.web.app/privacy_policy.html
 
 ## App Store Version Information

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -499,6 +500,7 @@ class _ShopViewState extends State<ShopView> {
               activeEntitlements: _activeEntitlements,
               iapConfigured: _iapConfigured,
               isPurchasing: _purchasing,
+              scrollController: _storeScrollController,
             ),
           ),
 
@@ -1068,6 +1070,7 @@ class ShopFeaturedBanner extends StatefulWidget {
     required this.activeEntitlements,
     required this.iapConfigured,
     required this.isPurchasing,
+    required this.scrollController,
   });
 
   final List<ShopItem> items;
@@ -1077,18 +1080,43 @@ class ShopFeaturedBanner extends StatefulWidget {
   final Set<String> activeEntitlements;
   final bool iapConfigured;
   final bool isPurchasing;
+  final ScrollController scrollController;
 
   @override
   State<ShopFeaturedBanner> createState() => _ShopFeaturedBannerState();
 }
 
-class _ShopFeaturedBannerState extends State<ShopFeaturedBanner> {
-  final PageController _pageController = PageController();
+class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
+    with SingleTickerProviderStateMixin {
+  late final PageController _pageController;
+  late final AnimationController _floatController;
   int _currentPage = 0;
+  double _scrollOffset = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _floatController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    ); // Controller kept but not repeating for static display
+
+    widget.scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!mounted) return;
+    setState(() {
+      _scrollOffset = widget.scrollController.offset;
+    });
+  }
 
   @override
   void dispose() {
+    widget.scrollController.removeListener(_onScroll);
     _pageController.dispose();
+    _floatController.dispose();
     super.dispose();
   }
 
@@ -1098,7 +1126,7 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner> {
     return Column(
       children: [
         SizedBox(
-          height: 240, // Increased height for better layout
+          height: 240,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) => setState(() => _currentPage = index),
@@ -1127,215 +1155,186 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner> {
                   !widget.isPurchasing &&
                   !isSubscribed &&
                   (package != null || storeProduct != null);
-              final activeStatusText = isSubscribed
-                  ? l10n.storeSubscriptionActive
-                  : null;
               final actionLabel = isSubscribed
                   ? l10n.commonOwned
                   : l10n.storeSubscribe;
-              final description = item.localizedDescription(l10n);
+
+              // Parallax logic
+              final parallaxOffset = _scrollOffset * 0.15;
 
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFFD593F3),
-                      Color(0xFFA3AEF8),
-                      Color(0xFF72E4EF),
-                      Color(0xFF7CBEFA),
+                      Color(0xFFA5F2FF), // Light Dream Blue
+                      Color(0xFFD1C4E9), // Light Lavender
+                      Color(0xFFF3E5F5), // Soft Purple
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 4,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
+                      color: const Color(0xFF303F9F).withValues(alpha: 0.1),
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // Sparkle decorations
-                    Positioned(
-                      top: 40,
-                      left: 100,
-                      child: Icon(
-                        Icons.circle,
-                        size: 8,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-
-                    // Item Emoji on the left (shrunk to give text more room)
-                    Positioned(
-                      left: 15,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: Text(
-                          item.emoji ?? '⭐',
-                          style: const TextStyle(fontSize: 80),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Stack(
+                    children: [
+                      // Soft bubbles background
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _StarryBackgroundPainter(
+                            scrollOffset: _scrollOffset * 0.08,
+                          ),
                         ),
                       ),
-                    ),
 
-                    // Main Content Area (shifted left to 110)
-                    Positioned(
-                      right: 20,
-                      top: 14,
-                      bottom: 14,
-                      left: 110,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Premium Badge aligned above Title
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFD54F),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              l10n.storeTabPremium,
-                              style: GoogleFonts.mPlusRounded1c(
+                      // Cat Illustration (Moved back inside, balanced position)
+                      Positioned(
+                        left: -10,
+                        bottom: -10 - parallaxOffset,
+                        top: 10 - parallaxOffset,
+                        width: 160,
+                        child: Image.asset(
+                          'assets/shop/shop_cat.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+
+                      // Main Content Area
+                      Positioned(
+                        right: 16,
+                        top: 6, // Reduced top padding
+                        bottom: 8,
+                        left: 140,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ).createShader(bounds),
+                              child: _ShopAdaptiveStrokeTitle(
+                                text: item.localizedName(l10n),
+                                fontSize: 26,
                                 color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
+                                strokeColor: Colors.black, // Black outline
+                                strokeWidth: 4, // Thick black stroke
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          _ShopAdaptiveStrokeTitle(
-                            text: item.localizedName(l10n),
-                            fontSize: 22,
-                            color: Colors.white,
-                            strokeColor: const Color(0xFF1A237E),
-                          ),
-                          const SizedBox(height: 6),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (description != null &&
-                                    description.isNotEmpty)
-                                  Text(
-                                    description,
-                                    style: GoogleFonts.mPlusRounded1c(
-                                      color: const Color(0xFF303F9F),
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.w900,
-                                      height: 1.2,
-                                    ),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 8), // Reduced spacing
+                            
+                            // Visual Benefits List
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _BenefitItem(
+                                    icon: Icons.meeting_room_rounded,
+                                    text: l10n.storePremiumBenefitUnlimitedRooms,
                                   ),
-                                if (activeStatusText != null) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    activeStatusText,
-                                    style: GoogleFonts.mPlusRounded1c(
-                                      color: const Color(0xFF303F9F),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                    maxLines: 1,
+                                  _BenefitItem(
+                                    icon: Icons.block_rounded,
+                                    text: l10n.storePremiumBenefitNoAds,
+                                  ),
+                                  _BenefitItem(
+                                    icon: Icons.star_rounded,
+                                    text: l10n.storePremiumBenefitExclusiveItems,
                                   ),
                                 ],
-                                const Spacer(),
-                                Text(
-                                  '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
-                                  style: GoogleFonts.mPlusRounded1c(
-                                    color: const Color(
-                                      0xFF303F9F,
-                                    ).withValues(alpha: 0.6),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Opacity(
-                            opacity: canBuy || isSubscribed ? 1 : 0.65,
-                            child: _ShopRaisedButtonShell(
-                              onPressed: canBuy
-                                  ? () => widget.onPurchase(item)
-                                  : null,
-                              depth: !isSubscribed && canBuy ? 4 : 0,
-                              borderRadius: BorderRadius.circular(24),
-                              shadowColor: const Color(0xFFE65100),
-                              faceBuilder: (context, isPressed) => Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: isSubscribed || !canBuy
-                                      ? null
-                                      : const LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            Color(0xFFFFD180),
-                                            Color(0xFFFB8C00),
-                                          ],
-                                        ),
-                                  color: isSubscribed || !canBuy
-                                      ? Colors.white.withValues(alpha: 0.88)
-                                      : null,
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Center(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (!isSubscribed) ...[
+
+                            // CTA Area
+                            Opacity(
+                              opacity: canBuy || isSubscribed ? 1 : 0.65,
+                              child: _ShopRaisedButtonShell(
+                                onPressed: canBuy
+                                    ? () => widget.onPurchase(item)
+                                    : null,
+                                depth: !isSubscribed && canBuy ? 4 : 0,
+                                borderRadius: BorderRadius.circular(20),
+                                shadowColor: const Color(0xFFE65100),
+                                faceBuilder: (context, isPressed) => Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: isSubscribed || !canBuy
+                                        ? null
+                                        : const LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Color(0xFFFFD180),
+                                              Color(0xFFFB8C00),
+                                            ],
+                                          ),
+                                    color: isSubscribed || !canBuy
+                                        ? Colors.white.withValues(alpha: 0.95)
+                                        : null,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Center(
+                                    child: Wrap(
+                                      alignment: WrapAlignment.center,
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      children: [
+                                        if (!isSubscribed) ...[
+                                          _ShopStrokeText(
+                                            priceString,
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            strokeColor: const Color(0xFFD54900),
+                                            strokeWidth: 3,
+                                          ),
+                                          const SizedBox(width: 8),
+                                        ],
                                         _ShopStrokeText(
-                                          priceString,
-                                          fontSize: 18,
+                                          actionLabel,
+                                          fontSize: 16,
                                           color: Colors.white,
                                           strokeColor: const Color(0xFFD54900),
-                                          strokeWidth: 4,
+                                          strokeWidth: 3,
                                         ),
-                                        const SizedBox(width: 8),
                                       ],
-                                      _ShopStrokeText(
-                                        actionLabel,
-                                        fontSize: 18,
-                                        color: Colors.white,
-                                        strokeColor: const Color(0xFFD54900),
-                                        strokeWidth: 4,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            Center(
+                              child: Text(
+                                '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
+                                style: GoogleFonts.mPlusRounded1c(
+                                  color: const Color(0xFF303F9F).withValues(alpha: 0.7),
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -1362,6 +1361,83 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner> {
       ],
     );
   }
+}
+
+class _BenefitItem extends StatelessWidget {
+  const _BenefitItem({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6), // Reduced bottom padding
+      child: Row(
+        children: [
+          // Icon with white circular background for maximum clarity
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 14,
+              color: const Color(0xFF303F9F), // Deep Indigo icon
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.mPlusRounded1c(
+                color: const Color(0xFF303F9F).withValues(alpha: 0.9),
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StarryBackgroundPainter extends CustomPainter {
+  _StarryBackgroundPainter({required this.scrollOffset});
+  final double scrollOffset;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = math.Random(42);
+    
+    // Draw soft bubbles/circles
+    for (var i = 0; i < 15; i++) {
+      final bubblePaint = Paint()
+        ..color = Colors.white.withValues(alpha: random.nextDouble() * 0.15 + 0.05);
+      
+      final radius = 10.0 + random.nextDouble() * 30.0;
+      final x = random.nextDouble() * size.width;
+      final y = (random.nextDouble() * size.height + scrollOffset * 0.5) % size.height;
+      
+      canvas.drawCircle(Offset(x, y), radius, bubblePaint);
+    }
+    
+    // Add some tiny sparkles
+    final sparklePaint = Paint()..color = Colors.white.withValues(alpha: 0.4);
+    for (var i = 0; i < 20; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = (random.nextDouble() * size.height + scrollOffset) % size.height;
+      canvas.drawCircle(Offset(x, y), 1.5, sparklePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StarryBackgroundPainter oldDelegate) =>
+      oldDelegate.scrollOffset != scrollOffset;
 }
 
 class _ShopBackgroundStars extends StatelessWidget {

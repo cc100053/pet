@@ -7,6 +7,7 @@
 ## App Information
 - **Name (30)**: PetTomo：情侶與好友的共同養成
 - **Subtitle (30)**: 用照片餵食，紀錄甜蜜日常
+- **Marketing URL**: https://pet-app-702be.web.app/
 - **Privacy Policy URL**: https://pet-app-702be.web.app/privacy_policy_zh_TW.html
 
 ## App Store Version Information

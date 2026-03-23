@@ -71,6 +71,19 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Confirm the ASC update via `asc localizations list`.
 6. **Preserve History:** Never delete older bundled version entries or ARB keys.
 
+## Static Metadata URL Rules
+- **Marketing URL**: Always use `https://pet-app-702be.web.app/`.
+- **Support URL**: Refer to the localized URLs in `README.md`:
+  - English (en-US): `https://pet-app-702be.web.app/support.html`
+  - Japanese (ja): `https://pet-app-702be.web.app/support_ja.html`
+  - Korean (ko): `https://pet-app-702be.web.app/support_ko.html`
+  - Traditional Chinese (zh-Hant): `https://pet-app-702be.web.app/support_zh_TW.html`
+- **Privacy Policy URL**:
+  - English (en-US): `https://pet-app-702be.web.app/privacy_policy.html`
+  - Japanese (ja): `https://pet-app-702be.web.app/privacy_policy_ja.html`
+  - Korean (ko): `https://pet-app-702be.web.app/privacy_policy_ko.html`
+  - Traditional Chinese (zh-Hant): `https://pet-app-702be.web.app/privacy_policy_zh_TW.html`
+
 ## ASC CLI Workflow
 Do not guess subcommands from memory. **Always refer to `asc-metadata-sync` and `asc-cli-usage` for detailed flags and formatting rules.**
 

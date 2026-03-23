@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-03-23 Investigate AdMob app-ads.txt Authorization)
+- [x] Confirm the repo contains the expected `app-ads.txt` content and identify where it is hosted from.
+- [x] Verify the live hosted `app-ads.txt` response and headers on the public site.
+- [x] Cross-check repo/App Store metadata for the developer website domain that AdMob is expected to crawl, then document the likely mismatch/risk.
+
+# Review (2026-03-23 Investigate AdMob app-ads.txt Authorization)
+- [x] Investigated and documented.
+- Findings:
+  - The repo already ships [html/app-ads.txt](/Users/fatboy/pet/html/app-ads.txt) with the exact AdMob line: `google.com, pub-5585639540156039, DIRECT, f08c47fec0942fa0`.
+  - Firebase Hosting is configured to publish the `html/` folder via [firebase.json](/Users/fatboy/pet/firebase.json), so the expected public URL is `https://pet-app-702be.web.app/app-ads.txt`.
+  - Live verification on 2026-03-23 confirmed `https://pet-app-702be.web.app/app-ads.txt` returns `HTTP/2 200`, `content-type: text/plain; charset=utf-8`, and the correct file contents.
+  - Repo/App Store metadata consistently references `pet-app-702be.web.app` for privacy/support URLs, but the checked App Store localization snapshot in [locs.json](/Users/fatboy/pet/locs.json) only shows `marketingUrl` on the Japanese localization and not on the English, Korean, or Traditional Chinese localizations.
+  - Inference: the low AdMob authorization rate is more likely a store-listing website association problem than a file-hosting problem. If the developer website / marketing URL is missing or inconsistent for some storefront/localization paths, AdMob may only be able to validate a subset of requests.
+- Verification:
+  - `curl -I -sS https://pet-app-702be.web.app/app-ads.txt`
+  - `curl -sS https://pet-app-702be.web.app/app-ads.txt`
+
 # Plan (2026-03-23 Move Shop Icons Into assets/shop/icon)
 - [x] Move the Shop-specific icon assets from `assets/icon/shop/` into `assets/shop/icon/` and update the declared asset bundle path.
 - [x] Rewrite all app code that loads Shop icons so it points at the new `assets/shop/icon/*` paths.

@@ -136,10 +136,17 @@ class ShopGridItemCard extends StatelessWidget {
                       children: [
                         if (!item.isBackground)
                           Center(
-                            child: Text(
-                              itemEmoji,
-                              style: const TextStyle(fontSize: 56),
-                            ),
+                            child: item.isDiamondIap
+                                ? Image.asset(
+                                    'assets/shop/icon/diamond_300.png',
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.contain,
+                                  )
+                                : Text(
+                                    itemEmoji,
+                                    style: const TextStyle(fontSize: 56),
+                                  ),
                           ),
                         if (item.isBackground)
                           Positioned(

@@ -1110,6 +1110,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescProMonthly => '广告全面移除、房间数量无上限。享受最完美的共育体验！';
 
   @override
+  String get storePremiumBenefitUnlimitedRooms => '房间数量无上限';
+
+  @override
+  String get storePremiumBenefitNoAds => '广告全面移除';
+
+  @override
+  String get storePremiumBenefitExclusiveItems => '解锁专属商品';
+
+  @override
   String get storeItemNameDiamondPack300 => '300 鑽石禮包';
 
   @override
@@ -2559,6 +2568,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescProMonthly => '廣告全面移除、房間數量無上限。享受最完美的共育體驗！';
+
+  @override
+  String get storePremiumBenefitUnlimitedRooms => '房間數量無上限';
+
+  @override
+  String get storePremiumBenefitNoAds => '廣告全面移除';
+
+  @override
+  String get storePremiumBenefitExclusiveItems => '解鎖專屬商品';
 
   @override
   String get storeItemNameDiamondPack300 => '300 鑽石包';

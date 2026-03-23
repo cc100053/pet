@@ -1140,6 +1140,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unlimited rooms and no ads for a smoother pet home.';
 
   @override
+  String get storePremiumBenefitUnlimitedRooms => 'Unlimited rooms';
+
+  @override
+  String get storePremiumBenefitNoAds => 'No more ads';
+
+  @override
+  String get storePremiumBenefitExclusiveItems => 'Exclusive items';
+
+  @override
   String get storeItemNameDiamondPack300 => '300 Diamond Pack';
 
   @override

@@ -42,6 +42,7 @@ void main() {
   ) async {
     final item = buildSubscriptionItem();
     var purchaseCount = 0;
+    final scrollController = ScrollController();
 
     await tester.pumpWidget(
       buildApp(
@@ -54,11 +55,12 @@ void main() {
           activeEntitlements: const {'Petmonthly'},
           iapConfigured: true,
           isPurchasing: false,
+          scrollController: scrollController,
         ),
       ),
     );
 
-    expect(find.text('Premium'), findsWidgets);
+    expect(find.text('PREMIUM'), findsWidgets);
     expect(find.text('Pro Monthly Membership'), findsWidgets);
     expect(find.text('Active'), findsWidgets);
     expect(
@@ -71,12 +73,14 @@ void main() {
     await tester.pump();
 
     expect(purchaseCount, 0);
+    scrollController.dispose();
   });
 
   testWidgets('uses localized premium tag without stripping the title', (
     tester,
   ) async {
     final item = buildSubscriptionItem();
+    final scrollController = ScrollController();
 
     await tester.pumpWidget(
       buildApp(
@@ -89,12 +93,14 @@ void main() {
           activeEntitlements: const {},
           iapConfigured: true,
           isPurchasing: false,
+          scrollController: scrollController,
         ),
       ),
     );
 
     expect(find.text('プレミアム'), findsWidgets);
     expect(find.text('Pro 月額メンバーシップ'), findsWidgets);
-    expect(find.text('Premium'), findsNothing);
+    expect(find.text('PREMIUM'), findsNothing);
+    scrollController.dispose();
   });
 }

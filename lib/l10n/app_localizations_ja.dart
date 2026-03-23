@@ -1113,6 +1113,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescProMonthly => '広告なし、ルーム作成が無制限に。快適なペットライフを楽しもう。';
 
   @override
+  String get storePremiumBenefitUnlimitedRooms => 'ルーム作成が無制限';
+
+  @override
+  String get storePremiumBenefitNoAds => '広告なしで快適に';
+
+  @override
+  String get storePremiumBenefitExclusiveItems => '限定アイテムの解放';
+
+  @override
   String get storeItemNameDiamondPack300 => '300ダイヤパック';
 
   @override
