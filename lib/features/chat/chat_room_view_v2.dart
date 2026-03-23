@@ -2255,18 +2255,22 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
               ),
             ),
             Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapUp: _handleBackdropTapUp,
+              ),
+            ),
+            Positioned.fill(
               child: ChatBackSwipePopLayer(
                 excludedRegionKey: _composerInteractionRegionKey,
                 onPop: () => Navigator.of(context).maybePop(),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTapUp: _handleBackdropTapUp,
-                  child: ChatKeyboardSweepDismissLayer(
-                    focusNode: _composerFocusNode,
-                    keyboardInset: media.viewInsets.bottom,
-                    composerKey: _composerSurfaceKey,
-                    protectedRegionKey: _composerInputRegionKey,
-                    child: Chat(
+                child: ChatKeyboardSweepDismissLayer(
+                  focusNode: _composerFocusNode,
+                  keyboardInset: media.viewInsets.bottom,
+                  composerKey: _composerSurfaceKey,
+                  protectedRegionKey: _composerInputRegionKey,
+                  child: Chat(
+
                       currentUserId: _currentUserId,
                       resolveUser: _resolveUser,
                       chatController: _chatController,
@@ -2506,7 +2510,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                   ),
                 ),
               ),
-            ),
             Positioned(
               top: media.padding.top + topBarHeight + 6,
               left: 0,
@@ -3080,7 +3083,6 @@ class _TelegramComposerState extends State<_TelegramComposer> {
                                 controller: widget.controller,
                                 focusNode: widget.focusNode,
                                 key: const ValueKey('chatComposerTextField'),
-                                onTapOutside: dismissKeyboardOnTapOutside,
                                 keyboardType: TextInputType.multiline,
                                 textInputAction: TextInputAction.newline,
                                 minLines: 1,
@@ -3273,10 +3275,13 @@ class _SystemPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark =
         Theme.of(context).colorScheme.surface.computeLuminance() < 0.2;
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {},
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: isDark
               ? const Color(0xFF232A34).withValues(alpha: 0.72)
@@ -3297,7 +3302,7 @@ class _SystemPill extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),);
   }
 }
 
@@ -3402,15 +3407,18 @@ class _TelegramTextMessageBubble extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.06)
               : const Color(0xFFF1F5F8));
 
-    return _MessageHighlightFrame(
-      isHighlighted: isHighlighted,
-      isDarkBackground: isDarkBackground,
-      borderRadius: BorderRadius.circular(22),
-      child: Container(
-        key: ValueKey<String>('chatMessageSurface_${message.id}'),
-        child: KeyedSubtree(
-          key: surfaceKey,
-          child: SimpleTextMessage(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {},
+      child: _MessageHighlightFrame(
+        isHighlighted: isHighlighted,
+        isDarkBackground: isDarkBackground,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          key: ValueKey<String>('chatMessageSurface_${message.id}'),
+          child: KeyedSubtree(
+            key: surfaceKey,
+            child: SimpleTextMessage(
             message: message,
             index: index,
             padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
@@ -3501,7 +3509,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),);
   }
 }
 
@@ -3704,15 +3712,18 @@ class _FeedCard extends StatelessWidget {
       );
     }
 
-    return _MessageHighlightFrame(
-      isHighlighted: isHighlighted,
-      isDarkBackground: isDarkBackground,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        key: ValueKey<String>('chatMessageSurface_${message.id}'),
-        child: KeyedSubtree(
-          key: surfaceKey,
-          child: ConstrainedBox(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {},
+      child: _MessageHighlightFrame(
+        isHighlighted: isHighlighted,
+        isDarkBackground: isDarkBackground,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          key: ValueKey<String>('chatMessageSurface_${message.id}'),
+          child: KeyedSubtree(
+            key: surfaceKey,
+            child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 280),
             child: Container(
               clipBehavior: Clip.antiAlias,
@@ -3876,7 +3887,7 @@ class _FeedCard extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),);
   }
 }
 
