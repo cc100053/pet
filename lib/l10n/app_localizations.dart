@@ -2000,7 +2000,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeItemDescProMonthly.
   ///
   /// In en, this message translates to:
-  /// **'Monthly Pro subscription with no ads, unlimited rooms, and auto-renewal.'**
+  /// **'Unlock unlimited rooms and remove all ads to enjoy a seamless experience.'**
   String get storeItemDescProMonthly;
 
   /// No description provided for @storeItemNameDiamondPack300.

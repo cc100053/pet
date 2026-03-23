@@ -1083,8 +1083,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemNameProMonthly => 'Pro 月額メンバーシップ';
 
   @override
-  String get storeItemDescProMonthly =>
-      '月額の Pro サブスクリプション。広告なし、ルーム無制限、毎月自動更新です。';
+  String get storeItemDescProMonthly => '広告なし、ルーム作成が無制限に。快適なペットライフを楽しもう。';
 
   @override
   String get storeItemNameDiamondPack300 => '300ダイヤパック';

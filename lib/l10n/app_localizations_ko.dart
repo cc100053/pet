@@ -1089,7 +1089,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemNameProMonthly => '프로 월간 멤버십';
 
   @override
-  String get storeItemDescProMonthly => '광고 없음, 무제한 방, 자동 갱신이 포함된 월간 프로 구독입니다.';
+  String get storeItemDescProMonthly =>
+      '광고 제거, 무제한 방 생성. 더욱 자유롭고 즐거운 펫 라이프를 즐겨보세요.';
 
   @override
   String get storeItemNameDiamondPack300 => '다이아몬드 300 팩';

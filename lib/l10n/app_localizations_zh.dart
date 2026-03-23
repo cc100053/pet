@@ -1080,7 +1080,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemNameProMonthly => 'Pro 月度會員';
 
   @override
-  String get storeItemDescProMonthly => 'Pro 每月訂閱，享有無廣告、房间無上限，且每月自動續訂。';
+  String get storeItemDescProMonthly => '广告全面移除、房间数量无上限。享受最完美的共育体验！';
 
   @override
   String get storeItemNameDiamondPack300 => '300 鑽石禮包';
@@ -2504,7 +2504,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemNameProMonthly => 'Pro 月訂閱';
 
   @override
-  String get storeItemDescProMonthly => 'Pro 每月訂閱，享有無廣告、房間無上限，且每月自動續訂。';
+  String get storeItemDescProMonthly => '廣告全面移除、房間數量無上限。享受最完美的共育體驗！';
 
   @override
   String get storeItemNameDiamondPack300 => '300 鑽石包';

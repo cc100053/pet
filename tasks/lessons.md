@@ -75,3 +75,7 @@
 
 ## 2026-03-19
 - When the user asks to adjust chat avatar "height" or "high/low" only, do not reinterpret that as changing the avatar’s anchor semantics in the message-group layout; preserve whether the icon belongs to the last message and limit the change to vertical offset/alignment within that existing anchor rule.
+
+## 2026-03-21
+- When reviewing a regression list and the user narrows the requested fixes, immediately rescope the implementation to the explicitly accepted items instead of restoring every previous behavior by default.
+- For store/economy UX, treat the purchase interaction model itself as product intent: if the user explicitly wants a single buy action, keep that constraint and fix surrounding regressions without reintroducing multi-button currency choice.

@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-03-21 Fix Store Rebuild Regressions)
+- [x] Restore the featured subscription banner state handling so active subscribers see the correct localized status/renewal messaging and a disabled owned CTA.
+- [x] Remove the hard-coded banner copy and restore a full theme preview path for background items while keeping the new single buy action.
+- [x] Add focused regression coverage for the restored store behaviors, update memory-bank notes, run `flutter analyze` and `flutter test`, and record the verification below.
+
+# Review (2026-03-21 Fix Store Rebuild Regressions)
+- [x] Implemented and verified.
+- Root change:
+  - `StoreFeaturedBanner` now receives the active entitlement set and current purchase/loading flags from `StoreView`, recomputes the subscription CTA state per item, restores localized premium/status/renewal copy, and disables the CTA with an owned label for already-entitled users instead of always firing a purchase callback.
+  - Removed the banner’s hard-coded `'Pro'` / `'プレミアム'` strings and stopped mutating localized title/description strings with `replaceAll(...)`; the banner now renders the existing localized store keys directly.
+  - Restored background preview access by adding a dedicated preview affordance to background cards and reintroducing the full room-theme preview dialog through a reusable `showStoreThemePreviewDialog(...)` helper, while preserving the new single-buy card action.
+  - Added widget coverage for the banner’s active-state/localization behavior and for the restored theme preview dialog. Also cleaned the unused imports/constants from the rebuild so `flutter analyze` is fully clean again.
+- Verification:
+  - `flutter test test/features/store/store_featured_banner_test.dart test/features/store/store_theme_preview_dialog_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+  - All passed; `test/feed_flow_integration_test.dart` remained skipped without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`, as expected.
+
 # Plan (2026-03-21 Investigate Intermittent Feed Camera Stuck After Send)
 - [x] Trace the send path from `FeedCaptureView` back to Pet Home and confirm where a synchronous exception can block `Navigator.pop()`.
 - [x] Harden the feed send callbacks so optimistic/upload callback failures do not strand the camera route, and add lifecycle guards on the Home feed handlers.

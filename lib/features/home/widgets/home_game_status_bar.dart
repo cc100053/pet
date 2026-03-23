@@ -2,15 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
 import '../../../services/audio/app_sfx.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/ui/pet_name_text_style.dart';
 import 'home_responsive.dart';
-
-const Color _diamondColor = Color(0xFF4C7DFF);
 
 class HomeGameStatusBar extends StatelessWidget {
   const HomeGameStatusBar({

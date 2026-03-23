@@ -1110,7 +1110,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeItemDescProMonthly =>
-      'Monthly Pro subscription with no ads, unlimited rooms, and auto-renewal.';
+      'Unlock unlimited rooms and remove all ads to enjoy a seamless experience.';
 
   @override
   String get storeItemNameDiamondPack300 => '300 Diamond Pack';
