@@ -1432,10 +1432,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petDepartureGuideGoShop => 'Go to Shop';
 
   @override
-  String get petDepartureLetterUnavailableTitle => 'Letter unavailable';
+  String get petDepartureLetterUnavailableTitle => 'Your pet is still at home';
 
   @override
-  String get petDepartureLetterUnavailableMessage => 'No pets have left yet.';
+  String get petDepartureLetterUnavailableMessage =>
+      'Your pet hasn\'t run away, so you don\'t need this letter right now.';
 
   @override
   String get petDepartureLetterSelectTitle => 'Choose a pet';

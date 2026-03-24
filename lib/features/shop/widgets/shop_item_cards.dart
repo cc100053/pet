@@ -42,7 +42,7 @@ class ShopGridItemCard extends StatelessWidget {
 
     final isLetter = item.isRecoveryLetter;
     if (isLetter && !hasDepartedPets) {
-      return null;
+      return onHandleLetter;
     }
 
     if (item.priceCoins != null) {

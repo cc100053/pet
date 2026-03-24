@@ -1389,10 +1389,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petDepartureGuideGoShop => '前往商店';
 
   @override
-  String get petDepartureLetterUnavailableTitle => '无法使用信';
+  String get petDepartureLetterUnavailableTitle => '宠物还在喔';
 
   @override
-  String get petDepartureLetterUnavailableMessage => '目前沒有离开的宠物。';
+  String get petDepartureLetterUnavailableMessage => '宠物并没有离家出走，现在不需要用到这封信喔。';
 
   @override
   String get petDepartureLetterSelectTitle => '选择宠物';
@@ -2863,10 +2863,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get petDepartureGuideGoShop => '前往商店';
 
   @override
-  String get petDepartureLetterUnavailableTitle => '無法使用信';
+  String get petDepartureLetterUnavailableTitle => '寵物還在喔';
 
   @override
-  String get petDepartureLetterUnavailableMessage => '目前沒有離開的寵物。';
+  String get petDepartureLetterUnavailableMessage => '寵物並沒有離家出走，現在不需要用到這封信喔。';
 
   @override
   String get petDepartureLetterSelectTitle => '選擇寵物';

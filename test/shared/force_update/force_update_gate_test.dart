@@ -7,6 +7,11 @@ import 'package:pet/shared/force_update/force_update_debug_tool.dart';
 import 'package:pet/shared/force_update/force_update_gate.dart';
 import 'package:pet/shared/whats_new/whats_new_service.dart';
 
+const _whatsNewVersionLabel = 'Version 1.0.5';
+const _whatsNewEntryTitle = 'Stability & Security Update';
+const _whatsNewSectionLabel = "What's new";
+const _whatsNewContinueLabel = 'Continue';
+
 void main() {
   testWidgets('hard update blocks the What\'s New dialog', (tester) async {
     final settings = _FakeWhatsNewSettingsStore(
@@ -33,7 +38,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update required'), findsAtLeastNWidgets(1));
-    expect(find.text('Version update'), findsNothing);
+    expect(find.text(_whatsNewEntryTitle), findsNothing);
     expect(settings.lastShownWhatsNewVersion, isNull);
   });
 
@@ -64,25 +69,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update available'), findsOneWidget);
-    expect(find.text('Version update'), findsNothing);
+    expect(find.text(_whatsNewEntryTitle), findsNothing);
 
     await tester.tap(find.text('Later'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Version update'), findsAtLeastNWidgets(1));
-    expect(find.text('Version 1.0.5'), findsOneWidget);
-    final versionCardTopLeft = tester.getTopLeft(find.text('Version 1.0.5'));
-    final titleTopLeft = tester.getTopLeft(find.text('Version update').first);
-    expect(versionCardTopLeft.dx, lessThan(titleTopLeft.dx));
+    expect(find.text(_whatsNewEntryTitle), findsOneWidget);
+    expect(find.text(_whatsNewVersionLabel), findsOneWidget);
+    expect(find.text(_whatsNewSectionLabel), findsOneWidget);
+    final versionCardTopLeft = tester.getTopLeft(
+      find.text(_whatsNewVersionLabel),
+    );
+    final titleTopLeft = tester.getTopLeft(find.text(_whatsNewEntryTitle));
+    expect(versionCardTopLeft.dy, lessThan(titleTopLeft.dy));
     expect(settings.lastShownWhatsNewVersion, isNull);
     expect(settings.lastLaunchedAppVersion, '1.0.4');
     expect(settings.lastLaunchedAppReleaseSignature, '1.0.4+9');
 
-    await tester.ensureVisible(find.text('Continue'));
-    await tester.tap(find.text('Continue'));
+    await tester.ensureVisible(find.text(_whatsNewContinueLabel));
+    await tester.tap(find.text(_whatsNewContinueLabel));
     await tester.pumpAndSettle();
 
-    expect(find.text('Version update'), findsNothing);
+    expect(find.text(_whatsNewEntryTitle), findsNothing);
     expect(settings.lastShownWhatsNewVersion, '1.0.5');
     expect(settings.lastLaunchedAppVersion, '1.0.5');
     expect(settings.lastLaunchedAppReleaseSignature, '1.0.5+1');
@@ -116,10 +124,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Version update'), findsAtLeastNWidgets(1));
+    expect(find.text(_whatsNewEntryTitle), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Continue'));
-    await tester.tap(find.text('Continue'));
+    await tester.ensureVisible(find.text(_whatsNewContinueLabel));
+    await tester.tap(find.text(_whatsNewContinueLabel));
     await tester.pumpAndSettle();
 
     expect(settings.lastShownWhatsNewVersion, '1.0.5');
@@ -168,15 +176,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Version update'), findsNothing);
+    expect(find.text(_whatsNewEntryTitle), findsNothing);
 
     ForceUpdateDebugTool.instance.showWhatsNewPrompt();
     await tester.pumpAndSettle();
 
-    expect(find.text('Version update'), findsAtLeastNWidgets(1));
+    expect(find.text(_whatsNewEntryTitle), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Continue'));
-    await tester.tap(find.text('Continue'));
+    await tester.ensureVisible(find.text(_whatsNewContinueLabel));
+    await tester.tap(find.text(_whatsNewContinueLabel));
     await tester.pumpAndSettle();
 
     expect(settings.lastShownWhatsNewVersion, '1.0.5');
@@ -208,11 +216,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Version update'), findsAtLeastNWidgets(1));
+      expect(find.text(_whatsNewEntryTitle), findsOneWidget);
       expect(settings.lastLaunchedAppReleaseSignature, '1.0.5+1');
 
-      await tester.ensureVisible(find.text('Continue'));
-      await tester.tap(find.text('Continue'));
+      await tester.ensureVisible(find.text(_whatsNewContinueLabel));
+      await tester.tap(find.text(_whatsNewContinueLabel));
       await tester.pumpAndSettle();
 
       expect(settings.lastShownWhatsNewVersion, '1.0.5');
@@ -245,11 +253,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Version update'), findsAtLeastNWidgets(1));
+      expect(find.text(_whatsNewEntryTitle), findsOneWidget);
       expect(settings.lastLaunchedAppVersion, isNull);
 
-      await tester.ensureVisible(find.text('Continue'));
-      await tester.tap(find.text('Continue'));
+      await tester.ensureVisible(find.text(_whatsNewContinueLabel));
+      await tester.tap(find.text(_whatsNewContinueLabel));
       await tester.pumpAndSettle();
 
       expect(settings.lastShownWhatsNewVersion, '1.0.5');

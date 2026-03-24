@@ -1403,10 +1403,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get petDepartureGuideGoShop => '샵으로 이동';
 
   @override
-  String get petDepartureLetterUnavailableTitle => '편지를 사용할 수 없음';
+  String get petDepartureLetterUnavailableTitle => '펫이 아직 집에 있어요';
 
   @override
-  String get petDepartureLetterUnavailableMessage => '아직 떠난 펫이 없습니다.';
+  String get petDepartureLetterUnavailableMessage =>
+      '펫이 가출하지 않았어요. 지금은 편지가 필요하지 않습니다.';
 
   @override
   String get petDepartureLetterSelectTitle => '펫 선택';

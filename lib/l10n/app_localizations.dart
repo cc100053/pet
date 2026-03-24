@@ -2586,13 +2586,13 @@ abstract class AppLocalizations {
   /// No description provided for @petDepartureLetterUnavailableTitle.
   ///
   /// In en, this message translates to:
-  /// **'Letter unavailable'**
+  /// **'Your pet is still at home'**
   String get petDepartureLetterUnavailableTitle;
 
   /// No description provided for @petDepartureLetterUnavailableMessage.
   ///
   /// In en, this message translates to:
-  /// **'No pets have left yet.'**
+  /// **'Your pet hasn\'t run away, so you don\'t need this letter right now.'**
   String get petDepartureLetterUnavailableMessage;
 
   /// No description provided for @petDepartureLetterSelectTitle.

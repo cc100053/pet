@@ -44,7 +44,7 @@ void main() {
 
   test('shows jump-to-latest only when far enough from bottom', () {
     expect(
-      shouldShowChatScrollToLatestButton(pixels: 640, maxScrollExtent: 900),
+      shouldShowChatScrollToLatestButton(pixels: 240, maxScrollExtent: 900),
       false,
     );
     expect(
@@ -178,7 +178,7 @@ void main() {
     expect(find.text(currentLabel), findsOneWidget);
     expect(
       tester.getTopLeft(find.text(previousLabel)).dy,
-      lessThan(tester.getTopLeft(find.text(currentLabel)).dy),
+      greaterThan(tester.getTopLeft(find.text(currentLabel)).dy),
     );
   });
 

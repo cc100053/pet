@@ -193,16 +193,17 @@ class _ChatKeyboardSweepDismissLayerState
       return;
     }
     final protectedRect = _globalRectForKey(widget.protectedRegionKey);
-    
+
     _activePointer = event.pointer;
     _dragStartGlobalPosition = event.position;
     _startedInsideComposer = composerRect.contains(event.position);
     _startedInsideProtectedRegion =
         protectedRect?.contains(event.position) ?? false;
-    
+
     final distAbove = composerRect.top - event.position.dy;
-    _startedWithinSweepRange = distAbove >= 0 && distAbove <= widget.sweepDistanceLimit;
-    
+    _startedWithinSweepRange =
+        distAbove >= 0 && distAbove <= widget.sweepDistanceLimit;
+
     _enteredComposer = _startedInsideComposer && !_startedInsideProtectedRegion;
     _composerEntryGlobalPosition = _enteredComposer ? event.position : null;
     _dismissedDuringGesture = false;
@@ -231,6 +232,9 @@ class _ChatKeyboardSweepDismissLayerState
         protectedRect?.contains(event.position) ?? false;
 
     if (!_enteredComposer && currentInsideComposer) {
+      if (currentInsideProtected) {
+        return;
+      }
       if (_startedWithinSweepRange) {
         _enteredComposer = true;
         _composerEntryGlobalPosition = event.position;
@@ -246,12 +250,6 @@ class _ChatKeyboardSweepDismissLayerState
 
     final entry = _composerEntryGlobalPosition;
     if (entry == null) {
-      return;
-    }
-
-    final canDismissFromCurrentPosition = !currentInsideProtected;
-
-    if (!canDismissFromCurrentPosition) {
       return;
     }
 

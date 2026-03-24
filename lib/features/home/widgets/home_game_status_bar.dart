@@ -293,6 +293,7 @@ class _InventoryActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return _InventoryGuidanceHighlight(
       enabled: showGuidance,
+      guidanceTitle: guidanceTitle,
       onDismiss: onGuidanceDismiss,
       child: _ActionChip(
         label: label,
@@ -309,11 +310,13 @@ class _InventoryGuidanceHighlight extends StatefulWidget {
   const _InventoryGuidanceHighlight({
     required this.enabled,
     required this.child,
+    this.guidanceTitle,
     this.onDismiss,
   });
 
   final bool enabled;
   final Widget child;
+  final String? guidanceTitle;
   final VoidCallback? onDismiss;
 
   @override
@@ -334,6 +337,7 @@ class _InventoryGuidanceHighlightState
     vsync: this,
     duration: const Duration(milliseconds: 500),
   );
+  Timer? _autoDismissTimer;
 
   @override
   void initState() {
@@ -350,11 +354,11 @@ class _InventoryGuidanceHighlightState
   }
 
   void _syncAnimation() {
+    _autoDismissTimer?.cancel();
     if (widget.enabled) {
       _controller.repeat();
       _visibilityController.forward();
-      // Auto-dismiss after 10 seconds
-      Future.delayed(const Duration(seconds: 10), () {
+      _autoDismissTimer = Timer(const Duration(seconds: 5), () {
         if (mounted && widget.enabled) {
           widget.onDismiss?.call();
         }
@@ -371,6 +375,7 @@ class _InventoryGuidanceHighlightState
 
   @override
   void dispose() {
+    _autoDismissTimer?.cancel();
     _controller.dispose();
     _visibilityController.dispose();
     super.dispose();
@@ -378,6 +383,9 @@ class _InventoryGuidanceHighlightState
 
   @override
   Widget build(BuildContext context) {
+    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
+    final guidanceTitle = widget.guidanceTitle?.trim();
+    final hasGuidanceTitle = guidanceTitle != null && guidanceTitle.isNotEmpty;
     return AnimatedBuilder(
       animation: Listenable.merge([_controller, _visibilityController]),
       child: widget.child,
@@ -388,12 +396,50 @@ class _InventoryGuidanceHighlightState
         }
 
         // Button Pulse Effect (intensity scales with visibility)
-        final pulse = 1.0 + (sin(_controller.value * 2 * pi) * 0.08 * visibility);
+        final pulse =
+            1.0 + (sin(_controller.value * 2 * pi) * 0.08 * visibility);
 
         return Stack(
+          key: const ValueKey('inventory-guidance-highlight'),
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
+            if (hasGuidanceTitle)
+              Positioned(
+                top: -34 * scale,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: visibility,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10 * scale,
+                        vertical: 5 * scale,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.96),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.black87, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        guidanceTitle,
+                        style: TextStyle(
+                          fontSize: 10.5 * scale,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             // Magic Trail / Sparkles
             Positioned(
               right: 0,
@@ -432,7 +478,10 @@ class _InventoryGuidanceHighlightState
 }
 
 class _InventoryMagicTrailPainter extends CustomPainter {
-  _InventoryMagicTrailPainter({required this.progress, required this.visibility});
+  _InventoryMagicTrailPainter({
+    required this.progress,
+    required this.visibility,
+  });
   final double progress;
   final double visibility;
 
@@ -475,7 +524,13 @@ class _InventoryMagicTrailPainter extends CustomPainter {
     }
   }
 
-  Offset _calculateBezier(double t, Offset p0, Offset p1, Offset p2, Offset p3) {
+  Offset _calculateBezier(
+    double t,
+    Offset p0,
+    Offset p1,
+    Offset p2,
+    Offset p3,
+  ) {
     final u = 1 - t;
     return p0 * (u * u * u) +
         p1 * (3 * u * u * t) +
@@ -579,7 +634,10 @@ class _ActionChip extends StatelessWidget {
 }
 
 class _InventorySweepPainter extends CustomPainter {
-  const _InventorySweepPainter({required this.progress, required this.visibility});
+  const _InventorySweepPainter({
+    required this.progress,
+    required this.visibility,
+  });
 
   final double progress;
   final double visibility;

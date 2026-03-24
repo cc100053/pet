@@ -85,15 +85,12 @@ void main() {
       await focusComposer(tester);
       expect(composerHasFocus(tester), isTrue);
 
-      final timelineCenter = tester.getCenter(find.byKey(timelineKey));
-      final composerRect = tester.getRect(find.byKey(composerFieldKey));
+      final handleRect = tester.getRect(find.byKey(composerHandleKey));
       final gesture = await tester.startGesture(
-        Offset(timelineCenter.dx, timelineCenter.dy - 120),
+        Offset(handleRect.center.dx, handleRect.top - 24),
       );
       await tester.pump();
-      await gesture.moveTo(
-        Offset(composerRect.center.dx, composerRect.top + 6),
-      );
+      await gesture.moveTo(handleRect.center);
       await tester.pump();
       await gesture.moveBy(const Offset(0, 36));
       await tester.pump();
@@ -111,15 +108,12 @@ void main() {
       await focusComposer(tester);
       expect(composerHasFocus(tester), isTrue);
 
-      final timelineCenter = tester.getCenter(find.byKey(timelineKey));
-      final composerRect = tester.getRect(find.byKey(composerFieldKey));
+      final handleRect = tester.getRect(find.byKey(composerHandleKey));
       final gesture = await tester.startGesture(
-        Offset(timelineCenter.dx, timelineCenter.dy - 120),
+        Offset(handleRect.center.dx, handleRect.top - 24),
       );
       await tester.pump();
-      await gesture.moveTo(
-        Offset(composerRect.center.dx, composerRect.top + 6),
-      );
+      await gesture.moveTo(handleRect.center);
       await tester.pump();
       await gesture.moveBy(const Offset(0, 12));
       await tester.pump();

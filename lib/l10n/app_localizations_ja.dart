@@ -1396,10 +1396,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petDepartureGuideGoShop => 'ショップへ';
 
   @override
-  String get petDepartureLetterUnavailableTitle => '手紙は使えません';
+  String get petDepartureLetterUnavailableTitle => 'ペットはまだお家にいます';
 
   @override
-  String get petDepartureLetterUnavailableMessage => '今は帰ってきてほしいペットがいません。';
+  String get petDepartureLetterUnavailableMessage =>
+      'ペットは家出していません。今は手紙は必要ありませんよ。';
 
   @override
   String get petDepartureLetterSelectTitle => 'ペットを選ぶ';

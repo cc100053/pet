@@ -169,4 +169,44 @@ void main() {
     expect(buyCount, 0);
     expect(find.byType(SnackBar), findsNothing);
   });
+
+  testWidgets('Return Letter is interactive even when no departed pets', (
+    tester,
+  ) async {
+    final item = buildItem(
+      id: 'letter-1',
+      sku: 'return_letter',
+      priceCoins: 100,
+    );
+
+    var handledLetter = false;
+
+    await tester.pumpWidget(
+      buildHarness(
+        locale: const Locale('en'),
+        child: (context, l10n) => ShopGridItemCard(
+          item: item,
+          isOwned: false,
+          isIap: false,
+          priceString: '',
+          canAffordCoins: true,
+          canAffordDiamonds: false,
+          canBuyIap: false,
+          hasDepartedPets: false, // NO departed pets
+          onOpenThemePreview: () {},
+          onBuyIap: () {},
+          onBuyCoins: () {},
+          onBuyDiamonds: () {},
+          onHandleLetter: () {
+            handledLetter = true;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Buy').last);
+    await tester.pump();
+
+    expect(handledLetter, true);
+  });
 }
