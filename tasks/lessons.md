@@ -86,3 +86,6 @@
 - In bounded-window chat histories, do not collapse the visible dataset to the newest page before starting a `Latest` animation. That shrinks scroll extent first and produces the exact down-then-up jitter users notice. Transition through a merged window, then trim to the latest page after the animation settles.
 - When preserving reading position through keyboard/composer size changes, do not anchor to a message's top edge. Preserve a concrete point inside the message at the viewport reading line, or the background will resize while the perceived content focus drifts.
 - For post-action Home coaching on a dense HUD, default to a floating title-only hint anchored to the target control instead of an inline help card; inline guidance that pushes surrounding UI reads as layout breakage immediately.
+
+## 2026-03-24
+- When a user pushes back on a chat-order review, separate the UX choice (`reverse` list to keep newest at bottom) from the actual invariant bug. The high-signal question is whether every layer shares the same canonical message/index contract, not whether `reverse` exists at all.

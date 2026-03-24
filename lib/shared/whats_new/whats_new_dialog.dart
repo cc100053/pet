@@ -69,28 +69,8 @@ class WhatsNewDialog extends StatelessWidget {
                         children: [
                           Center(child: _HeroIcon(accent: accent)),
                           const SizedBox(height: 18),
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: _VersionCard(version: version),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 92,
-                                ),
-                                child: Text(
-                                  l10n.whatsNewDialogTitle,
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                ),
-                              ),
-                            ],
+                          Center(
+                            child: _VersionCard(version: version),
                           ),
                           const SizedBox(height: 8),
                           Text(

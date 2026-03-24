@@ -226,10 +226,10 @@ void main() {
   }
 
   ScrollController timelineController(WidgetTester tester) {
-    final scrollView = tester.widget<SingleChildScrollView>(
-      find.byType(SingleChildScrollView).first,
+    final listView = tester.widget<ListView>(
+      find.byKey(const ValueKey('chatTimelineList')),
     );
-    return scrollView.controller!;
+    return listView.controller!;
   }
 
   double composerTop(WidgetTester tester) {
@@ -293,10 +293,11 @@ void main() {
     await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
     expect(find.text('message 40'), findsOneWidget);
-    expect(find.text('message 21'), findsOneWidget);
     expect(find.text('message 20'), findsNothing);
     expect(repository.fetchCalls, hasLength(1));
     expect(repository.lastPersistedMessages.length, 20);
+    expect(repository.lastPersistedMessages.first.id, 'm21');
+    expect(repository.lastPersistedMessages.last.id, 'm40');
   });
 
   testWidgets(
@@ -417,7 +418,7 @@ void main() {
     await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
     await tester.drag(
-      find.byType(SingleChildScrollView),
+      find.byKey(const ValueKey('chatTimelineList')),
       const Offset(0, 2400),
     );
     await tester.pumpAndSettle();
@@ -455,7 +456,7 @@ void main() {
       await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
       await tester.drag(
-        find.byType(SingleChildScrollView),
+        find.byKey(const ValueKey('chatTimelineList')),
         const Offset(0, 2400),
       );
       await tester.pump();
@@ -466,7 +467,7 @@ void main() {
       expect(overlayFinder, findsOneWidget);
       expect(
         find.descendant(
-          of: find.byType(SingleChildScrollView),
+          of: find.byKey(const ValueKey('chatTimelineList')),
           matching: overlayFinder,
         ),
         findsNothing,
@@ -508,7 +509,7 @@ void main() {
       await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
       await tester.drag(
-        find.byType(SingleChildScrollView),
+        find.byKey(const ValueKey('chatTimelineList')),
         const Offset(0, 2400),
       );
       await tester.pumpAndSettle();
@@ -528,9 +529,7 @@ void main() {
     },
   );
 
-  testWidgets('opening the keyboard moves the composer upward', (
-    tester,
-  ) async {
+  testWidgets('opening the keyboard moves the composer upward', (tester) async {
     addTearDown(tester.view.resetViewInsets);
 
     final repository = _FakeChatMessageRepository(
@@ -579,7 +578,7 @@ void main() {
 
       await pumpChatRoom(tester, repository: repository, runtime: runtime);
       await tester.drag(
-        find.byType(SingleChildScrollView),
+        find.byKey(const ValueKey('chatTimelineList')),
         const Offset(0, 2400),
       );
       await tester.pumpAndSettle();
@@ -655,7 +654,7 @@ void main() {
       await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
       await tester.drag(
-        find.byType(SingleChildScrollView),
+        find.byKey(const ValueKey('chatTimelineList')),
         const Offset(0, 2400),
       );
       await tester.pumpAndSettle();
@@ -735,7 +734,7 @@ void main() {
       await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
       await tester.drag(
-        find.byType(SingleChildScrollView),
+        find.byKey(const ValueKey('chatTimelineList')),
         const Offset(0, 2400),
       );
       await tester.pumpAndSettle();
@@ -774,7 +773,7 @@ void main() {
       offsets.add(timelineController(tester).position.pixels);
 
       for (var index = 1; index < offsets.length; index += 1) {
-        expect(offsets[index], greaterThanOrEqualTo(offsets[index - 1] - 1));
+        expect(offsets[index], lessThanOrEqualTo(offsets[index - 1] + 1));
       }
 
       final latestMessageBottom = tester
@@ -811,7 +810,7 @@ void main() {
     await pumpChatRoom(tester, repository: repository, runtime: runtime);
 
     await tester.drag(
-      find.byType(SingleChildScrollView),
+      find.byKey(const ValueKey('chatTimelineList')),
       const Offset(0, 2400),
     );
     await tester.pumpAndSettle();
@@ -823,7 +822,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(composerHasFocus(tester), isTrue);
-    expect(find.byKey(const ValueKey('chatMessageSurface_m60')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('chatMessageSurface_m60')),
+      findsOneWidget,
+    );
   });
 
   testWidgets(

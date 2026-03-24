@@ -5,6 +5,12 @@ import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 void main() {
+  String activeBadgeText(WidgetTester tester) {
+    return AppLocalizations.of(
+      tester.element(find.byType(ShopFeaturedBanner)),
+    )!.storeSubscriptionActive.toUpperCase();
+  }
+
   ShopItem buildSubscriptionItem() {
     return ShopItem(
       id: 'sub-1',
@@ -62,7 +68,7 @@ void main() {
     );
 
     expect(find.text('Pro Monthly Membership'), findsWidgets);
-    expect(find.text('Active'), findsWidgets);
+    expect(find.text(activeBadgeText(tester)), findsWidgets);
     expect(
       find.text('1 month • Auto-renews monthly. Cancel anytime.'),
       findsOneWidget,
@@ -100,7 +106,7 @@ void main() {
     );
 
     expect(find.text('Pro 月額メンバーシップ'), findsWidgets);
-    expect(find.text('Active'), findsNothing);
+    expect(find.text(activeBadgeText(tester)), findsNothing);
     scrollController.dispose();
   });
 
@@ -128,7 +134,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Active'), findsWidgets);
+      expect(find.text(activeBadgeText(tester)), findsWidgets);
       expect(find.text('Owned'), findsWidgets);
 
       await tester.tap(find.text('Owned').last);

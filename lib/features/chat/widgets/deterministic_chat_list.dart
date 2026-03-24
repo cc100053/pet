@@ -75,16 +75,21 @@ class DeterministicChatList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // RangeMaintainingScrollPhysics can sometimes overcompensate and cause jumps 
+    // RangeMaintainingScrollPhysics can sometimes overcompensate and cause jumps
     // in a reverse: true list when elements are added to the maxScrollExtent.
     // Using the default physics allows the native bottom-anchoring to work smoothly.
     final physics = ScrollConfiguration.of(context).getScrollPhysics(context);
 
-    // Group messages with date separators
+    // Group messages with date separators. `messages` are expected in
+    // descending visual order (newest -> oldest) so the reversed ListView can
+    // keep the newest content anchored at the bottom. When we forward a
+    // message into flutter_chat_ui's itemBuilder, we must translate the visual
+    // index back to the canonical ascending index used by ChatController.
     final List<Widget> items = [];
     for (var index = 0; index < messages.length; index += 1) {
       final message = messages[index];
-      
+      final canonicalIndex = messages.length - 1 - index;
+
       items.add(
         _DeterministicChatListItem(
           key: ValueKey('chatItem_${message.id}'),
@@ -93,7 +98,7 @@ class DeterministicChatList extends StatelessWidget {
           child: itemBuilder(
             context,
             message,
-            index,
+            canonicalIndex,
             const AlwaysStoppedAnimation<double>(1),
           ),
         ),
@@ -120,10 +125,12 @@ class DeterministicChatList extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: onBackgroundTap,
             child: ListView.builder(
+              key: const ValueKey('chatTimelineList'),
               controller: scrollController,
               physics: physics,
               reverse: true, // Key to anchoring at the bottom
-              cacheExtent: 2500, // Pre-render items to prevent jitter on load-more
+              cacheExtent:
+                  2500, // Pre-render items to prevent jitter on load-more
               padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
               keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
               itemCount: items.length,
@@ -141,7 +148,7 @@ class DeterministicChatList extends StatelessWidget {
       return false;
     }
     // In a reversed list, "after" an item actually means "above" it in time.
-    // If it's the last item in the list (index == messages.length - 1), 
+    // If it's the last item in the list (index == messages.length - 1),
     // it's the oldest message, so it definitely needs a separator.
     if (index == messages.length - 1) {
       return true;

@@ -1,5 +1,42 @@
 # TODO
 
+# Plan (2026-03-24 Review Shop + Chat Refactor)
+- [x] Collect the current Shop/chat-related diffs and identify the files touched by the recent refactor.
+- [x] Review the changed code for stability, security, and functional regressions, prioritizing concrete bugs and missing safeguards.
+- [x] Summarize findings with exact file references and note any important testing gaps or residual risks.
+
+# Review (2026-03-24 Review Shop + Chat Refactor)
+- [x] Reviewed.
+- Scope inspected:
+  - Recent Shop/chat commits on `main`, especially `2859242`, `ce78aa9`, `14c9ebb`, `11c3484`, `7451463`, and `4691aee`.
+  - Current implementations in `lib/features/shop/shop_view.dart`, `lib/features/shop/services/shop_purchase_handler.dart`, `lib/features/chat/chat_room_view_v2.dart`, `lib/features/chat/widgets/deterministic_chat_list.dart`, `lib/features/chat/widgets/chat_keyboard_dismiss_shell.dart`, and related tests.
+- Verification notes:
+  - Initial review run found three concrete issues:
+    - `DeterministicChatList` forwarded descending visual indices into `flutter_chat_ui`, while `ChatController.messages` remained ascending; this broke package grouping assumptions in the bounded-window chat path.
+    - Received-avatar taps in `ChatMessageEnvelope` still bubbled into the list-level backdrop dismiss handler.
+    - `ShopPurchaseHandler` could surface success UI/analytics even when purchase RPCs returned no usable payload.
+  - The focused Shop/chat suites in the committed tree also had stale test contracts after the list/banner refactors (`SingleChildScrollView` selector assumptions and mixed-case `Active` badge assertions).
+
+# Plan (2026-03-24 Fix Shop + Chat Review Findings)
+- [x] Preserve the current reversed chat UX while aligning the custom timeline builder with the canonical ascending message contract expected by `flutter_chat_ui`.
+- [x] Harden the remaining functional edge cases from the review, including avatar tap dismissal and Shop RPC success handling.
+- [x] Update focused regressions/tests to the new stable contracts, then re-run targeted and repo-required verification.
+
+# Review (2026-03-24 Fix Shop + Chat Review Findings)
+- [x] Implemented.
+- Fixes:
+  - `DeterministicChatList` now keeps the existing newest-at-bottom UX but translates visual indices back to the canonical ascending `ChatController` order before calling the package item builder. The timeline also exposes a stable `chatTimelineList` key so bounded-window tests no longer depend on the removed `SingleChildScrollView` implementation detail.
+  - `ChatMessageEnvelope` now absorbs taps on the received avatar itself, so keyboard dismissal remains limited to true blank-space taps.
+  - `ShopPurchaseHandler` now requires a parsed payload from each purchase RPC before updating balances/inventory or showing success UI; empty/malformed purchase responses now fail through the existing error path instead of silently reporting success.
+  - Focused tests were updated to the preserved current UX/contracts: the Shop active badge now asserts against the localized uppercased copy, bounded-window chat tests target the keyed timeline and canonical latest-slice persistence contract, and the keyboard-open latest-jump monotonicity assertion now matches the reversed-list scroll metric direction (`0 == latest`).
+- Verification:
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart` ✅
+  - `flutter test test/features/chat/chat_message_envelope_test.dart` ✅
+  - `flutter test test/features/shop/shop_featured_banner_test.dart` ✅
+  - `flutter analyze` ✅
+  - `flutter test` ❌
+  - Full-suite `flutter test` still reports 6 unrelated repo-wide failures in the current workspace run. The sampled failure surfaced in `test/features/home/widgets/home_game_status_bar_test.dart` (`Decorate room` expectation drift), and this task did not triage the remaining unrelated red tests further.
+
 # Plan (2026-03-24 Investigate Debug Pro Override Not Reflected In Shop)
 - [x] Trace the Debug Tools Pro toggle path and identify which local state/provider it changes.
 - [x] Inspect the Shop membership active-state / CTA-disable logic and compare it against the debug override source of truth.

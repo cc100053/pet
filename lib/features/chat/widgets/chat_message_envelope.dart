@@ -75,13 +75,17 @@ class ChatMessageEnvelope extends StatelessWidget {
           child: Align(
             alignment: Alignment.bottomLeft,
             child: showReceivedAvatar
-                ? Transform.translate(
-                    offset: const Offset(0, receivedAvatarVerticalOffset),
-                    child: UserAvatar(
-                      key: avatarKey,
-                      avatar: avatar,
-                      fallbackText: fallbackText,
-                      size: receivedAvatarSize,
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {},
+                    child: Transform.translate(
+                      offset: const Offset(0, receivedAvatarVerticalOffset),
+                      child: UserAvatar(
+                        key: avatarKey,
+                        avatar: avatar,
+                        fallbackText: fallbackText,
+                        size: receivedAvatarSize,
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),

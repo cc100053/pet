@@ -2691,15 +2691,6 @@ class _ChatHistoryLoadingOverlay extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: isDarkBackground ? 0.22 : 0.1,
-            ),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2770,13 +2761,6 @@ class _JumpToLatestPill extends StatelessWidget {
               color: surfaceColor,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: borderColor),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.14),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

@@ -191,4 +191,44 @@ void main() {
     expect(reactionBarLeft, greaterThan(avatarRight));
     expect(reactionBarLeft, greaterThanOrEqualTo(bubbleColumnLeft));
   });
+
+  testWidgets('received avatar tap does not bubble to backdrop tap handler', (
+    tester,
+  ) async {
+    var backdropTapCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => backdropTapCount += 1,
+            child: Center(
+              child: SizedBox(
+                width: 360,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: ChatMessageEnvelope(
+                    isSentByMe: false,
+                    isDarkBackground: false,
+                    reactions: const <ChatMessageReactionSummary>[],
+                    avatar: 'preset:1',
+                    fallbackText: 'Alex',
+                    showReceivedAvatar: true,
+                    avatarKey: const ValueKey('receivedAvatar'),
+                    child: _bubble(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('receivedAvatar')));
+    await tester.pump();
+
+    expect(backdropTapCount, 0);
+  });
 }
