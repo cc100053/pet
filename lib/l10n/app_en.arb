@@ -688,7 +688,7 @@
   "furnitureInventoryTitle": "Room Inventory",
   "furnitureInventorySubtitle": "Manage furniture and backgrounds for this room.",
   "furnitureInventoryEmpty": "No furniture yet. Buy some in the shop.",
-  "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move, tap placed furniture to resize. Tap empty space to exit.",
+  "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move, pinch placed furniture to resize. Tap empty space to exit.",
   "roomInventoryTitle": "Room Inventory",
   "roomDecorHintTitle": "Decorate room",
   "roomDecorHintBody": "Tap {buttonLabel} to enter room edit mode, then place furniture or apply a background.",

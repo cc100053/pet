@@ -2382,7 +2382,7 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Long-press furniture to edit. Tap an item to place, drag to move, tap placed furniture to resize. Tap empty space to exit.'**
+  /// **'Long-press furniture to edit. Tap an item to place, drag to move, pinch placed furniture to resize. Tap empty space to exit.'**
   String get furnitureInventoryHint;
 
   /// No description provided for @roomInventoryTitle.

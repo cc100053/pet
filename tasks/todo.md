@@ -1,5 +1,75 @@
 # TODO
 
+# Plan (2026-03-26 Replace Furniture +/- Buttons With Pinch Gesture)
+- [x] Inspect the current furniture edit interaction flow and remove the now-obsolete button-based resize path cleanly.
+- [x] Implement gesture-based furniture transforms in edit mode so single-finger drag still works and pinch-to-resize replaces the `+ / -` controls.
+- [x] Update localized furniture edit guidance and project notes, then run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-03-26 Replace Furniture +/- Buttons With Pinch Gesture)
+- [x] Implemented and verified.
+- Scope:
+  - Replaced the selected furniture `+ / -` overlay in `lib/features/home/home_view.dart` with gesture-based transforms: one-finger drag and two-finger pinch now update placed furniture position/scale directly, and the transform persists through the existing Supabase scale/position RPCs when the gesture ends.
+  - Removed the obsolete button-based resize code path and updated all localized furniture edit hints to explain pinch resizing.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-26 Reset Furniture Mode Selection + Raise Max Scale To 2.0)
+- [x] Inspect the current furniture-mode selection state and end-to-end scale-limit enforcement across Flutter and Supabase.
+- [x] Reset transient furniture selection on mode entry so resize controls only appear after tapping a placed furniture item.
+- [x] Raise the persisted furniture scale ceiling from `1.6x` to `2.0x` across Flutter math/constants and Supabase constraints/RPC clamp logic.
+- [x] Update regression coverage and memory-bank/task notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-03-26 Reset Furniture Mode Selection + Raise Max Scale To 2.0)
+- [x] Implemented and verified.
+- Scope:
+  - Updated Home furniture-mode entry to clear stale selected inventory/placed-furniture state before edit mode starts, so resize controls stay hidden until the user taps a specific placed furniture item.
+  - Raised the shared furniture resize ceiling from `1.6x` to `2.0x` in Flutter sizing math and the live Supabase contract (`room_furniture_scale_range` and `update_room_furniture_scale`), keeping client/server persistence aligned.
+  - Updated resize math regression coverage plus memory-bank/task notes to reflect the new selection-reset behavior and `2.0x` max scale.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-26 Fix Furniture Mode Scene Collapse)
+- [x] Trace why entering furniture mode makes the pet field appear empty.
+- [x] Remove the empty overlay child pattern that collapses the pet-field stack when no furniture is selected.
+- [x] Run `flutter analyze` and `flutter test` to verify the scene stays visible in furniture mode.
+
+# Review (2026-03-26 Fix Furniture Mode Scene Collapse)
+- [x] Implemented and verified.
+- Scope:
+  - Fixed `lib/features/home/home_view.dart` so the selected-furniture controls overlay is only inserted into the pet-field `Stack` when a selected furniture item actually exists, preventing the stack from collapsing to zero size on furniture-mode entry.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-26 Fix Furniture Resize Controls Hit Testing)
+- [x] Trace why tapping the selected furniture resize controls exits furniture mode instead of invoking the scale action.
+- [x] Move the interactive resize controls to the Pet Home field overlay layer so the controls stay inside a real hit-testable region while remaining visually anchored to the selected furniture.
+- [x] Run `flutter analyze` and `flutter test` to verify the hit-testing fix.
+
+# Review (2026-03-26 Fix Furniture Resize Controls Hit Testing)
+- [x] Implemented and verified.
+- Scope:
+  - Moved the selected furniture scale controls out of the individual furniture tile widget and into the parent Pet Home field stack in `lib/features/home/home_view.dart`, so the controls are hit-testable even when rendered above the selected furniture.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-03-26 Fix Furniture Resize Controls Overflow Follow-up)
+- [x] Reproduce the new rendering assertion from the resize-controls overlay and identify which constraint path is now unbounded.
+- [x] Replace the unconstrained overlay layout with an explicit-width positioning approach that can extend beyond the furniture tile without overflow or infinite-size assertions.
+- [x] Run `flutter analyze` and `flutter test` to verify the follow-up fix.
+
+# Review (2026-03-26 Fix Furniture Resize Controls Overflow Follow-up)
+- [x] Implemented and verified.
+- Scope:
+  - Replaced the selected-furniture resize-controls overlay in `lib/features/home/home_view.dart` with a fixed-width, negatively offset `Positioned` layout instead of `OverflowBox`, keeping the controls centered above small furniture tiles without relying on unbounded-axis overflow behavior.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-25 Fix Shared Room Furniture Inventory + Add Resizable Furniture)
 - [x] Verify the current Home/Shop furniture inventory and placed-furniture code paths, then lock the exact shared-inventory + resize implementation surface.
 - [x] Add a forward-only Supabase migration that introduces shared room furniture inventory aggregation, room-wide placement validation, persistent `room_furniture.scale`, and a room-member-authorized scale update RPC.
@@ -11,7 +81,7 @@
 - [x] Implemented and verified.
 - Scope:
   - Added Supabase migration `20260325113000_shared_room_furniture_inventory_and_scale.sql`, applied it through Supabase MCP, and updated the live DB contract with `room_furniture.scale`, `get_room_furniture_inventory`, room-wide furniture placement validation, `update_room_furniture_scale`, and additive `room_total_quantity` purchase RPC fields.
-  - Updated Home to load shared room furniture totals via RPC, compute room-wide available counts, parse/persist furniture `scale`, and support edit-mode placed-furniture selection with `- / +` resizing clamped to `0.8x..1.6x`.
+  - Updated Home to load shared room furniture totals via RPC, compute room-wide available counts, parse/persist furniture `scale`, and support edit-mode placed-furniture selection with `- / +` resizing clamped to `0.8x..2.0x`.
   - Updated Shop to load room furniture ownership from the shared inventory RPC and to refresh furniture ownership counts from `room_total_quantity` after purchase.
   - Added focused regression coverage in `test/features/home/home_furniture_math_test.dart` and `test/features/home/widgets/home_room_inventory_panel_test.dart`, and updated memory-bank notes for the new shared furniture behavior.
 - Verification:

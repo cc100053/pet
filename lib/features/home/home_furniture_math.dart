@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 const double roomFurnitureMinScale = 0.8;
-const double roomFurnitureMaxScale = 1.6;
+const double roomFurnitureMaxScale = 2.0;
 const double roomFurnitureScaleStep = 0.1;
 
 int availableRoomFurnitureCount({

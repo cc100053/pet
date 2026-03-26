@@ -182,7 +182,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `owner_user_id` (uuid, fk)
   - `position_x` (numeric, 0-1 normalized)
   - `position_y` (numeric, 0-1 normalized)
-  - `scale` (numeric, 0.8-1.6, default 1.0)
+  - `scale` (numeric, 0.8-2.0, default 1.0)
   - `created_at`, `updated_at`
 
 - `room_backgrounds`
@@ -207,7 +207,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 - `place_room_furniture(p_room_id uuid, p_item_id uuid, p_position_x numeric, p_position_y numeric)`
   - Placement validation is room-wide: compare summed room inventory vs total placed copies in that room.
 - `update_room_furniture_scale(p_id uuid, p_scale numeric)`
-  - Room-member-authorized scale update with server-side clamp to `0.8..1.6`.
+  - Room-member-authorized scale update with server-side clamp to `0.8..2.0`.
 
 - `purchases`
   - `id` (uuid, pk)

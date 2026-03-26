@@ -1288,7 +1288,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 배치된 가구를 탭하면 크기를 조절할 수 있고, 빈 공간을 탭하면 종료됩니다.';
+      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 배치된 가구는 두 손가락으로 확대/축소할 수 있고, 빈 공간을 탭하면 종료됩니다.';
 
   @override
   String get roomInventoryTitle => '방 인벤토리';

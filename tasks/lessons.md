@@ -89,3 +89,10 @@
 
 ## 2026-03-24
 - When a user pushes back on a chat-order review, separate the UX choice (`reverse` list to keep newest at bottom) from the actual invariant bug. The high-signal question is whether every layer shares the same canonical message/index contract, not whether `reverse` exists at all.
+
+## 2026-03-26
+- For overlay controls inside small `Stack` children, do not reach for `OverflowBox` blindly. If the parent axis is unbounded, `OverflowBox` can receive infinite size and crash; prefer explicit overlay width plus negative offset positioning so the child can extend beyond the item without unconstrained layout.
+- When a control is painted outside a small draggable item's bounds with `clipBehavior: Clip.none`, do not assume it remains tappable. Visual overflow does not extend the parent's hit-test region; move interactive overlays to a larger ancestor layer or expand the actual widget bounds.
+- In a `Stack`, even a harmless-looking `SizedBox.shrink()` counts as a non-positioned child and can collapse the stack's layout size. For overlay helpers that may have no content, do not return a zero-size widget into the stack; conditionally omit the child entirely.
+- Entering an edit mode should reset transient selection state unless preserving the previous selection is an explicit product decision; otherwise stale selection UI can appear immediately and read like the whole surface auto-selected itself.
+- When the interaction model changes from explicit controls to gestures, remove the old affordance path entirely and update every localized hint string in the same pass; leaving both behind creates contradictory UX and stale memory/docs.

@@ -1281,7 +1281,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。配置済みの家具をタップするとサイズ変更できます。空白をタップで終了。';
+      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。配置済みの家具は2本指で拡大縮小できます。空白をタップで終了。';
 
   @override
   String get roomInventoryTitle => 'ルーム在庫';

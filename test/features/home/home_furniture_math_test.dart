@@ -17,11 +17,11 @@ void main() {
   test('roomFurnitureSizeForScale uses the clamped scale', () {
     final size = roomFurnitureSizeForScale(
       baseSize: const Size(42, 42),
-      scale: 2.0,
+      scale: 2.4,
     );
 
-    expect(size.width, closeTo(67.2, 0.001));
-    expect(size.height, closeTo(67.2, 0.001));
+    expect(size.width, closeTo(84.0, 0.001));
+    expect(size.height, closeTo(84.0, 0.001));
   });
 
   test(
@@ -67,7 +67,7 @@ void main() {
     );
     final nextSize = roomFurnitureSizeForScale(
       baseSize: const Size(42, 42),
-      scale: 1.6,
+      scale: roomFurnitureMaxScale,
     );
     const fieldSize = Size(120, 120);
     const normalized = Offset(1, 1);

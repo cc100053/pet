@@ -1277,7 +1277,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
-  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點已放置家具可調整大小，點空白退出。';
+  String get furnitureInventoryHint =>
+      '長按家具可編輯，點擊道具放置，拖曳移動，雙指縮放已放置家具可調整大小，點空白退出。';
 
   @override
   String get roomInventoryTitle => '房间背包';
@@ -2763,7 +2764,8 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
-  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點已放置家具可調整大小，點空白退出。';
+  String get furnitureInventoryHint =>
+      '長按家具可編輯，點擊道具放置，拖曳移動，雙指縮放已放置家具可調整大小，點空白退出。';
 
   @override
   String get roomInventoryTitle => '房間背包';

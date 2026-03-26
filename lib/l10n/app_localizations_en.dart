@@ -1315,7 +1315,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      'Long-press furniture to edit. Tap an item to place, drag to move, tap placed furniture to resize. Tap empty space to exit.';
+      'Long-press furniture to edit. Tap an item to place, drag to move, pinch placed furniture to resize. Tap empty space to exit.';
 
   @override
   String get roomInventoryTitle => 'Room Inventory';
