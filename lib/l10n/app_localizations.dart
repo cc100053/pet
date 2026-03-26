@@ -1189,6 +1189,30 @@ abstract class AppLocalizations {
   /// **'Fixed several minor known issues'**
   String get whatsNew106Bullet3;
 
+  /// No description provided for @whatsNew110Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustable Furniture & Stability'**
+  String get whatsNew110Title;
+
+  /// No description provided for @whatsNew110Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'You can now adjust the size of furniture to fit your room perfectly.'**
+  String get whatsNew110Bullet1;
+
+  /// No description provided for @whatsNew110Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved app stability and performance.'**
+  String get whatsNew110Bullet2;
+
+  /// No description provided for @whatsNew110Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed minor bugs for a smoother experience.'**
+  String get whatsNew110Bullet3;
+
   /// No description provided for @languageChineseSimplified.
   ///
   /// In en, this message translates to:
@@ -2358,7 +2382,7 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.'**
+  /// **'Long-press furniture to edit. Tap an item to place, drag to move, tap placed furniture to resize. Tap empty space to exit.'**
   String get furnitureInventoryHint;
 
   /// No description provided for @roomInventoryTitle.

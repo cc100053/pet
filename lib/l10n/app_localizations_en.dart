@@ -632,6 +632,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew106Bullet3 => 'Fixed several minor known issues';
 
   @override
+  String get whatsNew110Title => 'Adjustable Furniture & Stability';
+
+  @override
+  String get whatsNew110Bullet1 =>
+      'You can now adjust the size of furniture to fit your room perfectly.';
+
+  @override
+  String get whatsNew110Bullet2 => 'Improved app stability and performance.';
+
+  @override
+  String get whatsNew110Bullet3 =>
+      'Fixed minor bugs for a smoother experience.';
+
+  @override
   String get languageChineseSimplified => 'Simplified Chinese';
 
   @override
@@ -1301,7 +1315,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      'Long-press furniture to edit. Tap an item to place, drag to move. Tap empty space to exit.';
+      'Long-press furniture to edit. Tap an item to place, drag to move, tap placed furniture to resize. Tap empty space to exit.';
 
   @override
   String get roomInventoryTitle => 'Room Inventory';

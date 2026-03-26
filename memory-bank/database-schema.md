@@ -171,6 +171,9 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `quantity` (int)
   - `updated_at`
   - primary key (`room_id`, `user_id`, `item_id`)
+  - Notes:
+    - Rows remain purchase-attributed per buyer for backward compatibility.
+    - New shared room inventory reads should use RPC aggregation (`get_room_furniture_inventory`) instead of direct per-user filtering.
 
 - `room_furniture`
   - `id` (uuid, pk)
@@ -179,6 +182,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `owner_user_id` (uuid, fk)
   - `position_x` (numeric, 0-1 normalized)
   - `position_y` (numeric, 0-1 normalized)
+  - `scale` (numeric, 0.8-1.6, default 1.0)
   - `created_at`, `updated_at`
 
 - `room_backgrounds`
@@ -193,6 +197,17 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `active_item_id` (uuid, fk)
   - `updated_by` (uuid, fk)
   - `updated_at`
+
+## Furniture RPC Notes
+- `get_room_furniture_inventory(p_room_id uuid)`
+  - Returns room-member-authorized aggregated furniture totals as `{ item_id, total_quantity }`.
+- `purchase_room_furniture_with_coins(p_room_id uuid, p_item_id uuid)`
+- `purchase_room_furniture_with_diamonds(p_room_id uuid, p_item_id uuid)`
+  - Still increment the buyer-attributed `room_item_inventories` row, and now also return `room_total_quantity` for new clients.
+- `place_room_furniture(p_room_id uuid, p_item_id uuid, p_position_x numeric, p_position_y numeric)`
+  - Placement validation is room-wide: compare summed room inventory vs total placed copies in that room.
+- `update_room_furniture_scale(p_id uuid, p_scale numeric)`
+  - Room-member-authorized scale update with server-side clamp to `0.8..1.6`.
 
 - `purchases`
   - `id` (uuid, pk)

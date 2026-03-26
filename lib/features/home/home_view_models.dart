@@ -43,6 +43,7 @@ class _PlacedFurniture {
     required this.ownerUserId,
     required this.emoji,
     required this.normalizedPosition,
+    required this.scale,
     required this.isPending,
   });
 
@@ -51,6 +52,7 @@ class _PlacedFurniture {
   String? ownerUserId;
   String emoji;
   Offset normalizedPosition;
+  double scale;
   bool isPending;
 }
 

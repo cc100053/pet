@@ -617,6 +617,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew106Bullet3 => '기타 알려진 문제점 수정';
 
   @override
+  String get whatsNew110Title => '가구 크기 조절 및 안정성 개선';
+
+  @override
+  String get whatsNew110Bullet1 => '가구 크기를 조절하여 방에 딱 맞게 배치할 수 있습니다.';
+
+  @override
+  String get whatsNew110Bullet2 => '앱 안정성과 성능을 개선했습니다.';
+
+  @override
+  String get whatsNew110Bullet3 => '원활한 이용을 위해 마이너 버그를 수정했습니다.';
+
+  @override
   String get languageChineseSimplified => '중국어(간체)';
 
   @override
@@ -1276,7 +1288,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 빈 공간을 탭하면 종료됩니다.';
+      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 배치된 가구를 탭하면 크기를 조절할 수 있고, 빈 공간을 탭하면 종료됩니다.';
 
   @override
   String get roomInventoryTitle => '방 인벤토리';

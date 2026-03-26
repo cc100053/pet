@@ -331,11 +331,10 @@ class _ShopViewState extends State<ShopView> {
       final roomId = widget.roomId;
       List<dynamic> roomFurnitureInventoryRows = const [];
       if (roomId != null) {
-        roomFurnitureInventoryRows = await Supabase.instance.client
-            .from('room_item_inventories')
-            .select('item_id,quantity')
-            .eq('room_id', roomId)
-            .eq('user_id', user.id);
+        roomFurnitureInventoryRows = await Supabase.instance.client.rpc(
+          'get_room_furniture_inventory',
+          params: {'p_room_id': roomId},
+        );
       }
 
       List<dynamic> roomBackgroundRows = const [];
@@ -365,7 +364,7 @@ class _ShopViewState extends State<ShopView> {
           continue;
         }
         final itemId = row['item_id'] as String?;
-        final quantity = row['quantity'] as int?;
+        final quantity = row['total_quantity'] as int?;
         if (itemId != null && quantity != null) {
           roomFurnitureInventory[itemId] = quantity;
         }
@@ -482,7 +481,7 @@ class _ShopViewState extends State<ShopView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: AppStatusBarStyles.dark,
+      value: AppStatusBarStyles.light,
       child: Scaffold(
         body: Container(
           decoration: const BoxDecoration(
@@ -1401,8 +1400,8 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 ShaderMask(
-                                  shaderCallback:
-                                      (bounds) => const LinearGradient(
+                                  shaderCallback: (bounds) =>
+                                      const LinearGradient(
                                         colors: [
                                           Color(0xFFFFD180),
                                           Color(0xFFFB8C00),
@@ -1427,8 +1426,8 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                     children: [
                                       _BenefitItem(
                                         icon: Icons.meeting_room_rounded,
-                                        text:
-                                            l10n.storePremiumBenefitUnlimitedRooms,
+                                        text: l10n
+                                            .storePremiumBenefitUnlimitedRooms,
                                       ),
                                       _BenefitItem(
                                         icon: Icons.block_rounded,
@@ -1436,8 +1435,8 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                       ),
                                       _BenefitItem(
                                         icon: Icons.star_rounded,
-                                        text:
-                                            l10n.storePremiumBenefitExclusiveItems,
+                                        text: l10n
+                                            .storePremiumBenefitExclusiveItems,
                                       ),
                                     ],
                                   ),
@@ -1463,17 +1462,17 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                             gradient: isSubscribed || !canBuy
                                                 ? null
                                                 : const LinearGradient(
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                  colors: [
-                                                    Color(0xFFFFD180),
-                                                    Color(0xFFFB8C00),
-                                                  ],
-                                                ),
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [
+                                                      Color(0xFFFFD180),
+                                                      Color(0xFFFB8C00),
+                                                    ],
+                                                  ),
                                             color: isSubscribed || !canBuy
                                                 ? Colors.white.withValues(
-                                                  alpha: 0.95,
-                                                )
+                                                    alpha: 0.95,
+                                                  )
                                                 : null,
                                             borderRadius: BorderRadius.circular(
                                               20,

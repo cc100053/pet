@@ -4,7 +4,16 @@ import 'package:pet/shared/whats_new/app_whats_new_entry.dart';
 import 'package:pet/shared/whats_new/whats_new_policy.dart';
 
 void main() {
+  final entry110 = AppWhatsNewCatalog.entryForVersion('1.1.0');
   final entry105 = AppWhatsNewCatalog.entryForVersion('1.0.5');
+
+  group('AppWhatsNewCatalog', () {
+    test('contains 1.1.0 entry', () {
+      expect(entry110, isNotNull);
+      expect(entry110?.version, '1.1.0');
+      expect(entry110?.bulletBuilders.length, 3);
+    });
+  });
 
   group('WhatsNewPolicy.evaluate', () {
     test('does not show on fresh install', () {

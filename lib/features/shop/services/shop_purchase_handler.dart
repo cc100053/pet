@@ -211,13 +211,15 @@ extension _ShopPurchaseHandler on _ShopViewState {
         );
         final remaining = row['remaining_coins'] as int?;
         final newQuantity = row['new_quantity'] as int?;
+        final roomTotalQuantity = row['room_total_quantity'] as int?;
         final messageId = row['message_id'] as String?;
         _setStoreState(() {
           if (remaining != null) {
             _coins = remaining;
           }
-          if (newQuantity != null) {
-            _inventory[item.id] = newQuantity;
+          final resolvedQuantity = roomTotalQuantity ?? newQuantity;
+          if (resolvedQuantity != null) {
+            _inventory[item.id] = resolvedQuantity;
           }
         });
         if (messageId != null && messageId.isNotEmpty) {
@@ -330,13 +332,15 @@ extension _ShopPurchaseHandler on _ShopViewState {
         );
         final remaining = row['remaining_diamonds'] as int?;
         final newQuantity = row['new_quantity'] as int?;
+        final roomTotalQuantity = row['room_total_quantity'] as int?;
         final messageId = row['message_id'] as String?;
         _setStoreState(() {
           if (remaining != null) {
             _diamonds = remaining;
           }
-          if (newQuantity != null) {
-            _inventory[item.id] = newQuantity;
+          final resolvedQuantity = roomTotalQuantity ?? newQuantity;
+          if (resolvedQuantity != null) {
+            _inventory[item.id] = resolvedQuantity;
           }
         });
         if (messageId != null && messageId.isNotEmpty) {

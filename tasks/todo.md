@@ -1,5 +1,24 @@
 # TODO
 
+# Plan (2026-03-25 Fix Shared Room Furniture Inventory + Add Resizable Furniture)
+- [x] Verify the current Home/Shop furniture inventory and placed-furniture code paths, then lock the exact shared-inventory + resize implementation surface.
+- [x] Add a forward-only Supabase migration that introduces shared room furniture inventory aggregation, room-wide placement validation, persistent `room_furniture.scale`, and a room-member-authorized scale update RPC.
+- [x] Update Flutter Home and Shop to consume shared room furniture totals, support edit-mode furniture selection and `- / +` resizing, and keep realtime/reload behavior in sync with the new DB contract.
+- [x] Add focused regression coverage for shared room inventory availability and furniture resize clamping/persistence, then update memory-bank notes and this task log review.
+- [x] Run `flutter analyze` and `flutter test` before wrapping up.
+
+# Review (2026-03-25 Fix Shared Room Furniture Inventory + Add Resizable Furniture)
+- [x] Implemented and verified.
+- Scope:
+  - Added Supabase migration `20260325113000_shared_room_furniture_inventory_and_scale.sql`, applied it through Supabase MCP, and updated the live DB contract with `room_furniture.scale`, `get_room_furniture_inventory`, room-wide furniture placement validation, `update_room_furniture_scale`, and additive `room_total_quantity` purchase RPC fields.
+  - Updated Home to load shared room furniture totals via RPC, compute room-wide available counts, parse/persist furniture `scale`, and support edit-mode placed-furniture selection with `- / +` resizing clamped to `0.8x..1.6x`.
+  - Updated Shop to load room furniture ownership from the shared inventory RPC and to refresh furniture ownership counts from `room_total_quantity` after purchase.
+  - Added focused regression coverage in `test/features/home/home_furniture_math_test.dart` and `test/features/home/widgets/home_room_inventory_panel_test.dart`, and updated memory-bank notes for the new shared furniture behavior.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-24 Review Shop + Chat Refactor)
 - [x] Collect the current Shop/chat-related diffs and identify the files touched by the recent refactor.
 - [x] Review the changed code for stability, security, and functional regressions, prioritizing concrete bugs and missing safeguards.

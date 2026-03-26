@@ -55,6 +55,7 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../shop/models/shop_item.dart';
 import '../shop/shop_view.dart';
+import 'home_furniture_math.dart';
 import 'home_gallery_feed_utils.dart';
 import 'home_unread_rules.dart';
 import 'providers/home_currency_provider.dart';
@@ -122,6 +123,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _roomSelectionRefreshInterval = Duration(seconds: 45);
   static const Duration _overfedFeedEventWindow = Duration(seconds: 45);
   static const _furnitureItemSize = Size(42, 42);
+  static const double _furnitureMinScale = roomFurnitureMinScale;
+  static const double _furnitureMaxScale = roomFurnitureMaxScale;
+  static const double _furnitureScaleStep = roomFurnitureScaleStep;
   static const _poopEmojiSize = Size(28, 28);
   static const int _profileNicknameMaxLength = 20;
   static const int _onboardingAvatarMaxDimension = 512;
@@ -237,6 +241,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _furnitureLoading = false;
   String? _furnitureError;
   String? _selectedFurnitureItemId;
+  String? _selectedPlacedFurnitureId;
   int _furnitureInstanceSeed = 0;
   final Map<String, ShopItem> _furnitureCatalog = {};
   final Map<String, int> _furnitureInventory = {};
@@ -2782,16 +2787,13 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   int _placedCountForItem(String itemId) {
     final placed = _activeFurnitureForRoom();
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    return placed
-        .where((item) => item.itemId == itemId && item.ownerUserId == userId)
-        .length;
+    return placed.where((item) => item.itemId == itemId).length;
   }
 
   int _availableFurnitureCount(String itemId) {
     final owned = _furnitureInventory[itemId] ?? 0;
     final placed = _placedCountForItem(itemId);
-    return max(0, owned - placed);
+    return availableRoomFurnitureCount(totalOwned: owned, placedCount: placed);
   }
 
   Future<void> _loadFurnitureInventory() async {
@@ -2806,8 +2808,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       });
       return;
     }
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
+    if (Supabase.instance.client.auth.currentUser == null) {
       setState(() {
         _furnitureError = AppLocalizations.of(context)!.shopSignInPrompt;
       });
@@ -2824,11 +2825,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           .from('items')
           .select('id,sku,type,name,price_coins,price_usd,metadata,is_active')
           .eq('is_active', true);
-      final inventoryResponse = await Supabase.instance.client
-          .from('room_item_inventories')
-          .select('item_id,quantity')
-          .eq('room_id', roomId)
-          .eq('user_id', userId);
+      final inventoryResponse = await Supabase.instance.client.rpc(
+        'get_room_furniture_inventory',
+        params: {'p_room_id': roomId},
+      );
       if (!mounted) {
         return;
       }
@@ -2841,7 +2841,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       final inventory = <String, int>{};
       for (final row in inventoryResponse as List<dynamic>) {
         final itemId = row['item_id'] as String?;
-        final quantity = row['quantity'] as int?;
+        final quantity = row['total_quantity'] as int?;
         if (itemId != null && quantity != null) {
           inventory[itemId] = quantity;
         }
@@ -2876,7 +2876,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       final response = await Supabase.instance.client
           .from('room_furniture')
           .select(
-            'id,item_id,owner_user_id,position_x,position_y,items(metadata)',
+            'id,item_id,owner_user_id,position_x,position_y,scale,items(metadata)',
           )
           .eq('room_id', roomId);
 
@@ -2891,6 +2891,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         final ownerUserId = record['owner_user_id'] as String?;
         final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
         final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
+        final scale = _parseFurnitureScale(record['scale']);
         final emoji = _resolveFurnitureEmoji(itemId, record);
         placed.add(
           _PlacedFurniture(
@@ -2899,6 +2900,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             ownerUserId: ownerUserId,
             emoji: emoji,
             normalizedPosition: Offset(posX, posY),
+            scale: scale,
             isPending: false,
           ),
         );
@@ -2985,6 +2987,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final ownerUserId = record['owner_user_id'] as String?;
     final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
     final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
+    final scale = _parseFurnitureScale(record['scale']);
     final emoji = _resolveFurnitureEmoji(itemId, record);
     final list = _placedFurnitureByRoom.putIfAbsent(roomId, () => []);
     final index = list.indexWhere((item) => item.id == id);
@@ -2996,6 +2999,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           ..ownerUserId = ownerUserId
           ..emoji = emoji
           ..normalizedPosition = Offset(posX, posY)
+          ..scale = scale
           ..isPending = false;
       });
       return;
@@ -3011,12 +3015,17 @@ class _HomeViewState extends ConsumerState<HomeView>
       );
       if (pendingIndex >= 0) {
         setState(() {
+          final previousId = list[pendingIndex].id;
           list[pendingIndex]
             ..id = id
             ..ownerUserId = ownerUserId
             ..emoji = emoji
             ..normalizedPosition = Offset(posX, posY)
+            ..scale = scale
             ..isPending = false;
+          if (_selectedPlacedFurnitureId == previousId) {
+            _selectedPlacedFurnitureId = id;
+          }
         });
         return;
       }
@@ -3030,6 +3039,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           ownerUserId: ownerUserId,
           emoji: emoji,
           normalizedPosition: Offset(posX, posY),
+          scale: scale,
           isPending: false,
         ),
       );
@@ -3051,6 +3061,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     setState(() {
       list.removeWhere((item) => item.id == id);
+      if (_selectedPlacedFurnitureId == id) {
+        _selectedPlacedFurnitureId = null;
+      }
     });
   }
 
@@ -3063,6 +3076,53 @@ class _HomeViewState extends ConsumerState<HomeView>
     final metadata = (itemData?['metadata'] as Map?)?.cast<String, dynamic>();
     final emoji = metadata?['emoji'] as String?;
     return (emoji != null && emoji.isNotEmpty) ? emoji : '🪑';
+  }
+
+  double _clampFurnitureScale(double scale) {
+    return clampRoomFurnitureScale(scale);
+  }
+
+  double _parseFurnitureScale(dynamic value) {
+    if (value is num) {
+      return _clampFurnitureScale(value.toDouble());
+    }
+    if (value is String) {
+      return _clampFurnitureScale(double.tryParse(value) ?? 1.0);
+    }
+    return 1.0;
+  }
+
+  Size _furnitureSizeForScale(double scale) {
+    return roomFurnitureSizeForScale(
+      baseSize: _furnitureItemSize,
+      scale: scale,
+    );
+  }
+
+  bool _isPlacedFurnitureSelected(_PlacedFurniture item) {
+    return _selectedPlacedFurnitureId == item.id;
+  }
+
+  void _selectPlacedFurniture(_PlacedFurniture item) {
+    setState(() {
+      _selectedPlacedFurnitureId = item.id;
+      _selectedFurnitureItemId = null;
+    });
+  }
+
+  Offset _normalizedAfterFurnitureResize(
+    _PlacedFurniture item,
+    Size fieldSize,
+    double nextScale,
+  ) {
+    final currentSize = _furnitureSizeForScale(item.scale);
+    final nextSize = _furnitureSizeForScale(nextScale);
+    return normalizedPositionAfterFurnitureResize(
+      normalized: item.normalizedPosition,
+      fieldSize: fieldSize,
+      currentSize: currentSize,
+      nextSize: nextSize,
+    );
   }
 
   void _openFurnitureInventory() {
@@ -3083,6 +3143,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
+      _selectedPlacedFurnitureId = null;
     });
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
@@ -3288,6 +3349,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   SystemUiOverlayStyle _currentOverlayStyle() {
+    // Room selection and loading screens use light background themes.
+    if (_showRoomSelection || _loadingRoom || _roomEntryLoading) {
+      return AppStatusBarStyles.light;
+    }
     final isDark = _currentBackgroundDefinition().isDark;
     return AppStatusBarStyles.forBackground(isDark: isDark);
   }
@@ -3326,11 +3391,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       ownerUserId: Supabase.instance.client.auth.currentUser?.id,
       emoji: item.emoji ?? '🪑',
       normalizedPosition: normalized,
+      scale: 1.0,
       isPending: true,
     );
 
     setState(() {
       _activeFurnitureForRoom().add(placed);
+      _selectedPlacedFurnitureId = placed.id;
     });
     unawaited(_persistFurniturePlacement(placed));
   }
@@ -3354,25 +3421,28 @@ class _HomeViewState extends ConsumerState<HomeView>
     DragUpdateDetails details,
     Size fieldSize,
   ) {
+    final itemSize = _furnitureSizeForScale(item.scale);
     final currentTopLeft = _positionFromNormalizedSized(
       item.normalizedPosition,
       fieldSize,
-      _furnitureItemSize,
+      itemSize,
     );
     final desiredTopLeft = currentTopLeft + details.delta;
     final clampedTopLeft = _clampTopLeftSized(
       desiredTopLeft,
       fieldSize,
-      _furnitureItemSize,
+      itemSize,
     );
     // Store normalized coordinates (0..1) so layout stays consistent across sizes.
     final normalized = _normalizedFromTopLeftSized(
       clampedTopLeft,
       fieldSize,
-      _furnitureItemSize,
+      itemSize,
     );
     setState(() {
+      _selectedPlacedFurnitureId = item.id;
       item.normalizedPosition = normalized;
+      _selectedFurnitureItemId = null;
     });
   }
 
@@ -3436,10 +3506,15 @@ class _HomeViewState extends ConsumerState<HomeView>
         final list = _activeFurnitureForRoom();
         final index = list.indexWhere((entry) => entry.id == item.id);
         if (index >= 0) {
+          final previousId = list[index].id;
           list[index]
             ..id = newId ?? list[index].id
             ..ownerUserId = response['owner_user_id'] as String?
+            ..scale = _parseFurnitureScale(response['scale'])
             ..isPending = false;
+          if (_selectedPlacedFurnitureId == previousId) {
+            _selectedPlacedFurnitureId = list[index].id;
+          }
         }
       });
     } catch (error) {
@@ -3490,6 +3565,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     setState(() {
       _activeFurnitureForRoom().removeWhere((entry) => entry.id == item.id);
+      if (_selectedPlacedFurnitureId == item.id) {
+        _selectedPlacedFurnitureId = null;
+      }
     });
 
     if (item.isPending) {
@@ -3510,6 +3588,76 @@ class _HomeViewState extends ConsumerState<HomeView>
         });
       }
       unawaited(_loadRoomFurniture(roomId));
+    }
+  }
+
+  Future<void> _adjustSelectedFurnitureScale(double delta) async {
+    final selectedId = _selectedPlacedFurnitureId;
+    if (selectedId == null) {
+      return;
+    }
+    final fieldSize = _petFieldSize();
+    if (fieldSize == null || fieldSize.isEmpty) {
+      return;
+    }
+    _PlacedFurniture? item;
+    for (final entry in _activeFurnitureForRoom()) {
+      if (entry.id == selectedId) {
+        item = entry;
+        break;
+      }
+    }
+    final targetItem = item;
+    if (targetItem == null || targetItem.isPending) {
+      return;
+    }
+
+    final nextScale = _clampFurnitureScale(targetItem.scale + delta);
+    if ((nextScale - targetItem.scale).abs() < 0.001) {
+      return;
+    }
+
+    final previousScale = targetItem.scale;
+    final previousPosition = targetItem.normalizedPosition;
+    final nextPosition = _normalizedAfterFurnitureResize(
+      targetItem,
+      fieldSize,
+      nextScale,
+    );
+
+    setState(() {
+      targetItem.scale = nextScale;
+      targetItem.normalizedPosition = nextPosition;
+    });
+
+    try {
+      await Supabase.instance.client.rpc(
+        'update_room_furniture_scale',
+        params: {'p_id': targetItem.id, 'p_scale': nextScale},
+      );
+      await Supabase.instance.client.rpc(
+        'update_room_furniture_position',
+        params: {
+          'p_id': targetItem.id,
+          'p_position_x': targetItem.normalizedPosition.dx,
+          'p_position_y': targetItem.normalizedPosition.dy,
+        },
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        targetItem.scale = previousScale;
+        targetItem.normalizedPosition = previousPosition;
+        _furnitureError = AppLocalizations.of(
+          context,
+        )!.shopLoadFailed(userFacingError(context, error));
+      });
+      final roomId = _roomId;
+      if (roomId != null) {
+        unawaited(_loadRoomFurniture(roomId));
+      }
     }
   }
 
@@ -4041,12 +4189,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           left: _positionFromNormalizedSized(
             item.normalizedPosition,
             fieldSize,
-            _furnitureItemSize,
+            _furnitureSizeForScale(item.scale),
           ).dx,
           top: _positionFromNormalizedSized(
             item.normalizedPosition,
             fieldSize,
-            _furnitureItemSize,
+            _furnitureSizeForScale(item.scale),
           ).dy,
           child: _buildFurniturePiece(item, fieldSize),
         ),
@@ -4055,9 +4203,12 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Widget _buildFurniturePiece(_PlacedFurniture item, Size fieldSize) {
     final canEdit = _furnitureMode;
+    final isSelected = _isPlacedFurnitureSelected(item);
+    final itemSize = _furnitureSizeForScale(item.scale);
+    final iconSize = 26 * _clampFurnitureScale(item.scale);
     return GestureDetector(
       onLongPress: _openFurnitureInventory,
-      onTap: canEdit ? () {} : null,
+      onTap: canEdit ? () => _selectPlacedFurniture(item) : null,
       onPanUpdate: canEdit
           ? (details) => _moveFurniture(item, details, fieldSize)
           : null,
@@ -4070,20 +4221,29 @@ class _HomeViewState extends ConsumerState<HomeView>
         },
         child: AnimatedContainer(
           duration: 150.ms,
-          width: _furnitureItemSize.width,
-          height: _furnitureItemSize.height,
+          width: itemSize.width,
+          height: itemSize.height,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: canEdit
                 ? Colors.white.withValues(alpha: 0.7)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            border: canEdit ? Border.all(color: Colors.black12) : null,
+            border: canEdit
+                ? Border.all(
+                    color: isSelected
+                        ? const Color(0xFFFFB74D)
+                        : Colors.black12,
+                    width: isSelected ? 1.8 : 1,
+                  )
+                : null,
             boxShadow: canEdit
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 8,
+                      color:
+                          (isSelected ? const Color(0xFFFFB74D) : Colors.black)
+                              .withValues(alpha: isSelected ? 0.2 : 0.08),
+                      blurRadius: isSelected ? 10 : 8,
                       offset: const Offset(0, 4),
                     ),
                   ]
@@ -4093,9 +4253,16 @@ class _HomeViewState extends ConsumerState<HomeView>
             clipBehavior: Clip.none,
             children: [
               Center(
-                child: Text(item.emoji, style: const TextStyle(fontSize: 26)),
+                child: Text(item.emoji, style: TextStyle(fontSize: iconSize)),
               ),
-              if (canEdit)
+              if (canEdit && isSelected)
+                Positioned(
+                  top: -28,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: _buildFurnitureScaleControls(item)),
+                ),
+              if (canEdit && isSelected)
                 Positioned(
                   top: -6,
                   right: -6,
@@ -4145,6 +4312,73 @@ class _HomeViewState extends ConsumerState<HomeView>
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFurnitureScaleControls(_PlacedFurniture item) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFurnitureScaleButton(
+            icon: Icons.remove_rounded,
+            enabled: item.scale > _furnitureMinScale + 0.001,
+            onTap: () =>
+                unawaited(_adjustSelectedFurnitureScale(-_furnitureScaleStep)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              '${item.scale.toStringAsFixed(1)}x',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          _buildFurnitureScaleButton(
+            icon: Icons.add_rounded,
+            enabled: item.scale < _furnitureMaxScale - 0.001,
+            onTap: () =>
+                unawaited(_adjustSelectedFurnitureScale(_furnitureScaleStep)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFurnitureScaleButton({
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Icon(
+            icon,
+            size: 16,
+            color: enabled ? Colors.black87 : Colors.black26,
+          ),
         ),
       ),
     );
@@ -4368,7 +4602,10 @@ class _HomeViewState extends ConsumerState<HomeView>
                   applyingBackgroundId: _backgroundApplyingItemId,
                   onClose: _closeFurnitureInventory,
                   onFurnitureTap: (itemId) {
-                    setState(() => _selectedFurnitureItemId = itemId);
+                    setState(() {
+                      _selectedFurnitureItemId = itemId;
+                      _selectedPlacedFurnitureId = null;
+                    });
                     _autoPlaceFurnitureFromInventory(itemId);
                   },
                   onBackgroundApply: _applyRoomBackground,

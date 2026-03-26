@@ -609,6 +609,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew106Bullet3 => 'Fixed several minor known issues';
 
   @override
+  String get whatsNew110Title => 'Adjustable Furniture & Stability';
+
+  @override
+  String get whatsNew110Bullet1 =>
+      'You can now adjust the size of furniture to fit your room perfectly.';
+
+  @override
+  String get whatsNew110Bullet2 => 'Improved app stability and performance.';
+
+  @override
+  String get whatsNew110Bullet3 =>
+      'Fixed minor bugs for a smoother experience.';
+
+  @override
   String get languageChineseSimplified => '简体中文';
 
   @override
@@ -1263,7 +1277,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
-  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。';
+  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點已放置家具可調整大小，點空白退出。';
 
   @override
   String get roomInventoryTitle => '房间背包';
@@ -2083,6 +2097,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get whatsNew106Bullet3 => '修復部分已知的小問題';
 
   @override
+  String get whatsNew110Title => '家具尺寸調整與穩定性提升';
+
+  @override
+  String get whatsNew110Bullet1 => '現在可以調整家具大小，讓擺設完美契合您的房間。';
+
+  @override
+  String get whatsNew110Bullet2 => '提升了應用程式的穩定性與效能。';
+
+  @override
+  String get whatsNew110Bullet3 => '修復了部分已知問題，提供更流暢的體驗。';
+
+  @override
   String get languageChineseSimplified => '簡體中文';
 
   @override
@@ -2737,7 +2763,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
-  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點空白退出。';
+  String get furnitureInventoryHint => '長按家具可編輯，點擊道具放置，拖曳移動，點已放置家具可調整大小，點空白退出。';
 
   @override
   String get roomInventoryTitle => '房間背包';

@@ -19,6 +19,8 @@ Implemented:
   - Shared light-theme `AppBar` chrome now defaults to `AppStatusBarStyles.light`, keeping dark status-bar content on all standard white/cream app surfaces. Home and chat continue to override overlay style per active room background.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
+  - Room furniture inventory now behaves as a shared room pool on new clients: Home reads aggregated room totals through the `get_room_furniture_inventory` RPC instead of filtering `room_item_inventories` by the current user, so one member's furniture purchase becomes immediately available to other room members in both Home and Shop.
+  - Furniture edit mode now supports selecting an already placed furniture item and resizing it with `- / +` controls. Size is persisted on `public.room_furniture.scale` with a shared `0.8x..1.6x` clamp, and resize operations also re-clamp the item's normalized position so larger pieces stay inside the room bounds.
   - `lib/features/home/room_selection_view.dart`: Room Selection header title now uses adaptive scale-down fitting, so localized `Room Selection` copy stays fully readable in the top bar instead of truncating on narrower widths.
   - `lib/features/home/flows/home_onboarding_flow.dart`: Basic onboarding flow state + Step 1 coach card, dual spotlight focus resolution for the existing create-room CTA and header invite-code action, skip/persistence, debug force-show override, and legacy `open_room` state migration to `invite_friend`.
   - `lib/features/home/home_unread_rules.dart`: Shared unread decision helper used to keep Home realtime badge increments aligned with the intended self-message behavior.
@@ -43,7 +45,8 @@ Implemented:
     - The jump-to-latest affordance is now a labeled pill (`Latest`) with the existing pending-message badge instead of a generic floating action button, keeping the same reset-to-latest behavior while reading more like native chat navigation. Live-mode rooms also keep bottom anchoring sticky across later composer-measurement, keyboard, and async reply/profile/reaction height changes, so entering the route or tapping `Latest` no longer leaves the newest message slightly hidden under the composer after follow-up layout expansion.
     - `lib/features/chat/adapters/pet_chat_message_adapter.dart`: Maps app `ChatMessage` domain rows into `flutter_chat_core` message types consumed by the active V2 route.
     - `lib/features/chat/widgets/chat_message_envelope.dart`: Shared chat row wrapper that owns sent/received alignment, the fixed received-avatar slot, and the reaction-bar attachment point used by the active chat route.
-  - `lib/features/shop/`: In-app Shop surface for cosmetics, consumables, backgrounds, furniture, and RevenueCat-backed purchases.
+- `lib/features/shop/`: In-app Shop surface for cosmetics, consumables, backgrounds, furniture, and RevenueCat-backed purchases.
+    - Room furniture ownership badges/counts now use shared room totals from `get_room_furniture_inventory`, and furniture purchase success handling updates the displayed room-owned count from the new additive `room_total_quantity` RPC field.
     - The former `store` feature module has been renamed to `shop` across feature-owned files, types, imports, tests, and `assets/shop/icon/*` references, while external compatibility-sensitive contracts such as `store_purchase` message kinds and App Store/legal URLs intentionally retain their existing names.
     - Shop purchase feedback now uses a shared floating notice model for both insufficient-funds and purchase-success states. Successful room-scoped cosmetic purchases can attach a `Return to room` CTA and pop back to Home with a typed `ShopRouteResult` that requests the follow-up room-decor hint.
     - Legacy `ChatRoomView` / `ChatMessageList` / `ChatMessageTile` files were removed after the V2 rollout, so there is no longer a parallel legacy chat-room stack in the repo.
@@ -114,6 +117,9 @@ Planned:
 ## Backend (Supabase)
 - Auth: Apple/Google sign-in only.
 - Postgres: Users, rooms, pets, messages, inventories, config.
+- Furniture inventory semantics:
+  - `room_item_inventories` still stores purchase attribution per buyer for backward compatibility.
+  - Shared room furniture availability is now exposed through `get_room_furniture_inventory`, and `place_room_furniture` validates against room-wide totals rather than buyer-only totals.
 - Realtime: Chat and system events.
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
 - Room invites: `room_invite_codes` supports up to 3 active room codes; members can generate additional codes via RPC while legacy clients continue using `rooms.invite_code` as the current primary code.

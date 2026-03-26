@@ -611,6 +611,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew106Bullet3 => '軽微な不具合の修正';
 
   @override
+  String get whatsNew110Title => '家具のサイズ調整と安定性の向上';
+
+  @override
+  String get whatsNew110Bullet1 => '家具のサイズを調整して、お部屋にぴったり合わせられるようになりました。';
+
+  @override
+  String get whatsNew110Bullet2 => 'アプリの安定性とパフォーマンスを向上させました。';
+
+  @override
+  String get whatsNew110Bullet3 => '軽微な不具合を修正し、よりスムーズな体験を提供します。';
+
+  @override
   String get languageChineseSimplified => '簡体字中国語';
 
   @override
@@ -1269,7 +1281,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。空白をタップで終了。';
+      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。配置済みの家具をタップするとサイズ変更できます。空白をタップで終了。';
 
   @override
   String get roomInventoryTitle => 'ルーム在庫';
