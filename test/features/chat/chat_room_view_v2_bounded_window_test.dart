@@ -1227,6 +1227,74 @@ void main() {
     },
   );
 
+  testWidgets(
+    'selecting a custom emoji through more reactions updates inline chips optimistically',
+    (tester) async {
+      final createdAt = DateTime.utc(2026, 3, 31, 12, 30);
+      final message = textMessage(
+        id: 'reaction-more-target',
+        senderId: 'other',
+        body: 'more emoji',
+        createdAt: createdAt,
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: <ChatMessage>[message],
+        canonicalMessages: <ChatMessage>[message],
+      );
+      final messageActionService = ChatMessageActionService(
+        deleteReaction: ({required messageId, required userId}) async {
+          repository.removeReaction(messageId: messageId, userId: userId);
+        },
+        upsertReaction: (payload) async {
+          repository.setReaction(
+            messageId: payload['message_id'] as String,
+            userId: payload['user_id'] as String,
+            emoji: payload['emoji'] as String,
+          );
+        },
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(
+        tester,
+        repository: repository,
+        runtime: runtime,
+        messageActionService: messageActionService,
+      );
+
+      await tester.longPress(
+        find.byKey(const ValueKey('chatMessageSurface_reaction-more-target')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey('chatMessageActionSheetMoreReactions')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.byKey(const ValueKey('chatEmojiPickerTitle')),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.search), findsNothing);
+
+      await tester.tap(
+        find.byKey(const ValueKey('chatEmojiPickerSuggestion_😀')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.byKey(const ValueKey('chatReactionChip_😀_1')),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('system messages stay horizontally centered', (tester) async {
     final repository = _FakeChatMessageRepository(
       cachedMessages: <ChatMessage>[systemMessage('System update')],

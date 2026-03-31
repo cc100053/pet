@@ -51,6 +51,7 @@ void main() {
           isMine: false,
           isBlocked: false,
           onReactionSelected: (_) async => null,
+          onMoreReactions: () async => null,
         ),
       ),
     );
@@ -80,6 +81,7 @@ void main() {
           isMine: false,
           isBlocked: false,
           onReactionSelected: (_) async => null,
+          onMoreReactions: () async => null,
         ),
       ),
     );
@@ -127,6 +129,7 @@ void main() {
               selectedReactionEmoji: '❤️',
             );
           },
+          onMoreReactions: () async => null,
         ),
       ),
     );
@@ -153,6 +156,7 @@ void main() {
           isMine: true,
           isBlocked: false,
           onReactionSelected: (_) async => null,
+          onMoreReactions: () async => null,
         ),
       ),
     );
@@ -190,6 +194,7 @@ void main() {
           isBlocked: false,
           showMessageActions: false,
           onReactionSelected: (_) async => null,
+          onMoreReactions: () async => null,
         ),
       ),
     );
@@ -202,5 +207,55 @@ void main() {
       find.byKey(const ValueKey('chatReactionSheetCopyAction')),
       findsNothing,
     );
+  });
+
+  testWidgets('more reactions action applies a non-quick emoji update', (
+    tester,
+  ) async {
+    var invoked = false;
+
+    await tester.pumpWidget(
+      _wrap(
+        ChatReactionDetailsSheet(
+          reactionOptions: const <String>['👍', '❤️'],
+          entries: _entries(),
+          selectedReactionEmoji: '👍',
+          initialFilterEmoji: '👍',
+          copyEnabled: false,
+          isMine: false,
+          isBlocked: false,
+          showMessageActions: false,
+          onReactionSelected: (_) async => null,
+          onMoreReactions: () async {
+            invoked = true;
+            return ChatReactionDetailsSheetUpdate(
+              entries: <ChatReactionDetailsSheetEntry>[
+                ChatReactionDetailsSheetEntry(
+                  userId: 'me',
+                  displayName: 'You',
+                  emoji: '😀',
+                  createdAt: DateTime.utc(2026, 3, 31, 12),
+                  isCurrentUser: true,
+                ),
+              ],
+              selectedReactionEmoji: '😀',
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('chatReactionSheetMoreReactions')),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(invoked, isTrue);
+    expect(
+      find.byKey(const ValueKey('chatReactionSheetRow_me_😀')),
+      findsOneWidget,
+    );
+    expect(find.text('1 reaction'), findsOneWidget);
   });
 }

@@ -8,6 +8,8 @@ enum ChatReactionDetailsSheetAction { reply, copy, report, block }
 
 typedef ChatReactionSheetReactionHandler =
     Future<ChatReactionDetailsSheetUpdate?> Function(String emoji);
+typedef ChatReactionSheetMoreReactionsHandler =
+    Future<ChatReactionDetailsSheetUpdate?> Function();
 
 class ChatReactionDetailsSheetUpdate {
   const ChatReactionDetailsSheetUpdate({
@@ -46,6 +48,7 @@ class ChatReactionDetailsSheet extends StatefulWidget {
     required this.copyEnabled,
     required this.isMine,
     required this.isBlocked,
+    required this.onMoreReactions,
     this.initialFilterEmoji,
     this.onReactionSelected,
     this.showMessageActions = true,
@@ -57,6 +60,7 @@ class ChatReactionDetailsSheet extends StatefulWidget {
   final bool copyEnabled;
   final bool isMine;
   final bool isBlocked;
+  final ChatReactionSheetMoreReactionsHandler onMoreReactions;
   final String? initialFilterEmoji;
   final ChatReactionSheetReactionHandler? onReactionSelected;
   final bool showMessageActions;
@@ -154,6 +158,42 @@ class _ChatReactionDetailsSheetState extends State<ChatReactionDetailsSheet> {
           _selectedReactionEmoji = update.selectedReactionEmoji;
           _selectedFilterEmoji = _resolveNextFilterEmoji(
             emoji,
+            _entries,
+            _selectedReactionEmoji,
+          );
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingReaction = false;
+          _pendingEmoji = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleMoreReactionsTap() async {
+    if (_isUpdatingReaction) {
+      return;
+    }
+
+    setState(() {
+      _isUpdatingReaction = true;
+      _pendingEmoji = '__more__';
+    });
+
+    try {
+      final update = await widget.onMoreReactions();
+      if (!mounted) {
+        return;
+      }
+      if (update != null) {
+        setState(() {
+          _entries = List<ChatReactionDetailsSheetEntry>.from(update.entries);
+          _selectedReactionEmoji = update.selectedReactionEmoji;
+          _selectedFilterEmoji = _resolveNextFilterEmoji(
+            _selectedReactionEmoji ?? '',
             _entries,
             _selectedReactionEmoji,
           );
@@ -273,6 +313,34 @@ class _ChatReactionDetailsSheetState extends State<ChatReactionDetailsSheet> {
                           ),
                         );
                       }),
+                      _ReactionFilterChip(
+                        key: const ValueKey('chatReactionSheetMoreReactions'),
+                        selected: false,
+                        enabled: !_isUpdatingReaction,
+                        onTap: _handleMoreReactionsTap,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.chatMoreReactionsAction,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            if (_pendingEmoji == '__more__') ...[
+                              const SizedBox(width: 6),
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

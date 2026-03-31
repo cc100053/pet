@@ -26,6 +26,7 @@ import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_ui_scale.dart';
+import '../../shared/ui/chat_emoji_picker_sheet.dart';
 import '../feed/feed_capture_view.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
@@ -46,7 +47,7 @@ import 'widgets/chat_keyboard_dismiss_shell.dart';
 
 bool canSwipeReplyToMessage(ChatMessage message) => !message.isSystem;
 
-enum _MessageAction { reply, copy, report, block }
+enum _MessageAction { reply, copy, report, block, moreReactions }
 
 class _MessageActionSelection {
   const _MessageActionSelection._({this.action, this.emoji});
@@ -1682,6 +1683,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
           context,
           const _MessageActionSelection.action(_MessageAction.block),
         ),
+        onMoreReactions: () => Navigator.pop(
+          context,
+          const _MessageActionSelection.action(_MessageAction.moreReactions),
+        ),
       ),
     );
 
@@ -1717,6 +1722,16 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         break;
       case _MessageAction.block:
         await _blockUser(senderId);
+        break;
+      case _MessageAction.moreReactions:
+        final selectedEmoji = await showChatEmojiPickerSheet(
+          context,
+          selectedEmoji: myReaction?.emoji,
+        );
+        if (!mounted || selectedEmoji == null || selectedEmoji.isEmpty) {
+          return;
+        }
+        await _toggleReaction(message, selectedEmoji);
         break;
       case null:
         break;
@@ -1762,6 +1777,18 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         isBlocked: false,
         showMessageActions: false,
         onReactionSelected: (emoji) => _toggleReactionFromSheet(message, emoji),
+        onMoreReactions: () async {
+          final selectedEmoji = await showChatEmojiPickerSheet(
+            context,
+            selectedEmoji: _selectedReactionEmoji(
+              _messagesById[message.id] ?? message,
+            ),
+          );
+          if (!mounted || selectedEmoji == null || selectedEmoji.isEmpty) {
+            return null;
+          }
+          return _toggleReactionFromSheet(message, selectedEmoji);
+        },
       ),
     );
     if (!mounted || action == null) {

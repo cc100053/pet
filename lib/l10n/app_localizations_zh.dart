@@ -129,6 +129,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatReplyAction => '回覆';
 
   @override
+  String get chatMoreReactionsAction => '更多';
+
+  @override
+  String get chatAllEmojiAction => '全部表情';
+
+  @override
   String chatReactionCount(int count) {
     return '$count 个表情反应';
   }
@@ -1621,6 +1627,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatReplyAction => '回覆';
+
+  @override
+  String get chatMoreReactionsAction => '更多';
+
+  @override
+  String get chatAllEmojiAction => '全部表情';
 
   @override
   String chatReactionCount(int count) {

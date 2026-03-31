@@ -83,6 +83,8 @@
   "chatNoOlderMessages": "沒有更早的消息。",
   "chatPartnerLabel": "對方",
   "chatReplyAction": "回覆",
+  "chatMoreReactionsAction": "更多",
+  "chatAllEmojiAction": "全部表情",
   "chatReactionCount": "{count} 个表情反应",
   "@chatReactionCount": {
     "placeholders": {

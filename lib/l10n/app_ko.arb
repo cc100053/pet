@@ -83,6 +83,8 @@
   "chatNoOlderMessages": "이전 메시지가 없습니다.",
   "chatPartnerLabel": "파트너",
   "chatReplyAction": "답장",
+  "chatMoreReactionsAction": "더보기",
+  "chatAllEmojiAction": "모든 이모지",
   "chatReactionCount": "{count}개의 리액션",
   "@chatReactionCount": {
     "placeholders": {

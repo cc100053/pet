@@ -33,6 +33,7 @@ void main() {
           onCopy: () {},
           onReport: () {},
           onBlock: () {},
+          onMoreReactions: () {},
         ),
       ),
     );
@@ -57,6 +58,7 @@ void main() {
           onCopy: () {},
           onReport: () {},
           onBlock: () {},
+          onMoreReactions: () {},
         ),
       ),
     );
@@ -83,6 +85,7 @@ void main() {
           onCopy: () {},
           onReport: () {},
           onBlock: () {},
+          onMoreReactions: () {},
         ),
       ),
     );
@@ -91,5 +94,35 @@ void main() {
     await tester.pump();
 
     expect(selectedEmoji, '❤️');
+  });
+
+  testWidgets('more reactions action invokes callback', (tester) async {
+    var invoked = false;
+
+    await tester.pumpWidget(
+      _wrap(
+        ChatMessageActionSheet(
+          reactionOptions: const <String>['👍', '❤️'],
+          selectedReaction: null,
+          copyEnabled: true,
+          isMine: false,
+          isBlocked: false,
+          onReactionSelected: (_) {},
+          onReply: () {},
+          onCopy: () {},
+          onReport: () {},
+          onBlock: () {},
+          onMoreReactions: () => invoked = true,
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('chatMessageActionSheetMoreReactions')),
+    );
+    await tester.pump();
+
+    expect(invoked, isTrue);
+    expect(find.text('More'), findsOneWidget);
   });
 }

@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-03-31 Expand Chat Emoji Picker)
+- [x] Inspect the current quick-reaction-only chat/photo picker surfaces and lock the shared full-picker integration points.
+- [x] Add a shared full emoji picker surface plus `More` wiring for chat long-press, reaction details, and fullscreen photo viewer.
+- [x] Update localized CTA copy, focused regression coverage, and memory-bank notes for the expanded reaction flow.
+- [x] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-03-31 Expand Chat Emoji Picker)
+- [x] Implemented and verified.
+- Scope:
+  - Added `emoji_picker_flutter` plus a new shared `showChatEmojiPickerSheet(...)` bottom sheet so every chat/photo reaction flow can open the same full emoji picker with search, categories, recents, and a few top suggestion chips.
+  - Updated `ChatMessageActionSheet` to keep the existing 6 quick reactions while adding a `More` CTA, and rewired `ChatRoomViewV2` so the long-press path closes the quick sheet and then opens the full picker before sending the chosen emoji through the existing `_toggleReaction(...)` / `ChatMessageActionService.toggleReaction(...)` flow.
+  - Updated `ChatReactionDetailsSheet` to add an in-sheet `More` action that opens the shared picker above the details surface, then refreshes the filtered reaction list in place after a custom emoji is selected.
+  - Replaced the fullscreen photo viewer’s old quick-only reaction sheet with the same shared picker, added new localization keys for `More`, `All emoji`, and the emoji-search hint across all shipped locales, and documented the new behavior in the memory bank.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-31 WhatsApp-Style Chat Reactions Refresh)
 - [x] Inspect the active chat reaction flow, existing reaction data contracts, and test seams so the new details sheet can replace the legacy action sheet cleanly.
 - [x] Add the reaction detail model/repository read path plus the new WhatsApp-style reaction details bottom sheet UI.

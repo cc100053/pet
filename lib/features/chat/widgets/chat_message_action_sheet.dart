@@ -16,6 +16,7 @@ class ChatMessageActionSheet extends StatelessWidget {
     required this.onCopy,
     required this.onReport,
     required this.onBlock,
+    required this.onMoreReactions,
   });
 
   final List<String> reactionOptions;
@@ -28,6 +29,7 @@ class ChatMessageActionSheet extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onReport;
   final VoidCallback onBlock;
+  final VoidCallback onMoreReactions;
 
   @override
   Widget build(BuildContext context) {
@@ -42,34 +44,76 @@ class ChatMessageActionSheet extends StatelessWidget {
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: reactionOptions.map((emoji) {
-                final isSelected = selectedReaction == emoji;
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(999),
-                    onTap: () => onReactionSelected(emoji),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.primaryColor.withValues(alpha: 0.14)
-                            : Theme.of(context).colorScheme.surfaceContainerLow,
+              children:
+                  reactionOptions.map((emoji) {
+                    final isSelected = selectedReaction == emoji;
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppTheme.primaryColor.withValues(alpha: 0.36)
-                              : Colors.black.withValues(alpha: 0.05),
+                        onTap: () => onReactionSelected(emoji),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.primaryColor.withValues(alpha: 0.14)
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppTheme.primaryColor.withValues(
+                                      alpha: 0.36,
+                                    )
+                                  : Colors.black.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 20),
+                          ),
                         ),
                       ),
-                      child: Text(emoji, style: const TextStyle(fontSize: 20)),
+                    );
+                  }).toList()..add(
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: const ValueKey(
+                          'chatMessageActionSheetMoreReactions',
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                        onTap: onMoreReactions,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: Colors.black.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          child: Text(
+                            l10n.chatMoreReactionsAction,
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
             ),
           ),
           ListTile(

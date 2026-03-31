@@ -129,6 +129,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatReplyAction => '返信';
 
   @override
+  String get chatMoreReactionsAction => 'もっと見る';
+
+  @override
+  String get chatAllEmojiAction => 'すべての絵文字';
+
+  @override
   String chatReactionCount(int count) {
     return '$count件のリアクション';
   }

@@ -129,6 +129,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatReplyAction => 'Reply';
 
   @override
+  String get chatMoreReactionsAction => 'More';
+
+  @override
+  String get chatAllEmojiAction => 'All emoji';
+
+  @override
   String chatReactionCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

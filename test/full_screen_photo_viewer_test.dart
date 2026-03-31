@@ -209,7 +209,9 @@ void main() {
     expect(find.text('Sent'), findsOneWidget);
   });
 
-  testWidgets('opens emoji picker and forwards selected emoji', (tester) async {
+  testWidgets('opens full emoji picker and forwards selected emoji', (
+    tester,
+  ) async {
     String? selectedEmoji;
 
     await _pumpViewer(
@@ -231,13 +233,18 @@ void main() {
       find.byKey(const ValueKey<String>('photo-viewer-emoji-button')),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text('❤️'));
+    expect(find.byKey(const ValueKey('chatEmojiPickerTitle')), findsOneWidget);
+    expect(find.byIcon(Icons.search), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('chatEmojiPickerSuggestion_😀')),
+    );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(selectedEmoji, '❤️');
+    expect(selectedEmoji, '😀');
   });
 }
 

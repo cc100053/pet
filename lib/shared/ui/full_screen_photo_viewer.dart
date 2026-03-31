@@ -10,7 +10,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-import '../../features/chat/chat_reaction_options.dart';
+import 'chat_emoji_picker_sheet.dart';
 import 'photo_viewer_item.dart';
 import 'status_bar_style.dart';
 
@@ -451,12 +451,9 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
       return;
     }
     final l10n = AppLocalizations.of(context)!;
-    final selectedEmoji = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      builder: (context) =>
-          _ReactionPickerSheet(selectedReactionEmoji: _currentReactionEmoji),
+    final selectedEmoji = await showChatEmojiPickerSheet(
+      context,
+      selectedEmoji: _currentReactionEmoji,
     );
     if (!mounted || selectedEmoji == null || selectedEmoji.isEmpty) {
       return;
@@ -1173,57 +1170,6 @@ class _ReplyComposerSheet extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReactionPickerSheet extends StatelessWidget {
-  const _ReactionPickerSheet({required this.selectedReactionEmoji});
-
-  final String? selectedReactionEmoji;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-      child: Material(
-        color: const Color(0xFF131313),
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: kChatQuickReactionOptions
-                .map((emoji) {
-                  final isSelected = selectedReactionEmoji == emoji;
-                  return InkWell(
-                    onTap: () => Navigator.of(context).pop(emoji),
-                    borderRadius: BorderRadius.circular(999),
-                    child: Ink(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.white.withValues(alpha: 0.16)
-                            : Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: isSelected
-                              ? Colors.white.withValues(alpha: 0.36)
-                              : Colors.white.withValues(alpha: 0.10),
-                        ),
-                      ),
-                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
-                    ),
-                  );
-                })
-                .toList(growable: false),
           ),
         ),
       ),

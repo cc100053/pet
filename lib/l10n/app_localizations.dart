@@ -301,6 +301,18 @@ abstract class AppLocalizations {
   /// **'Reply'**
   String get chatReplyAction;
 
+  /// No description provided for @chatMoreReactionsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get chatMoreReactionsAction;
+
+  /// No description provided for @chatAllEmojiAction.
+  ///
+  /// In en, this message translates to:
+  /// **'All emoji'**
+  String get chatAllEmojiAction;
+
   /// No description provided for @chatReactionCount.
   ///
   /// In en, this message translates to:

@@ -83,6 +83,8 @@
   "chatNoOlderMessages": "No older messages.",
   "chatPartnerLabel": "Partner",
   "chatReplyAction": "Reply",
+  "chatMoreReactionsAction": "More",
+  "chatAllEmojiAction": "All emoji",
   "chatReactionCount": "{count, plural, =1{1 reaction} other{{count} reactions}}",
   "@chatReactionCount": {
     "placeholders": {
