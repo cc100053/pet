@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-03-31 WhatsApp-Style Chat Reactions Refresh)
+- [x] Inspect the active chat reaction flow, existing reaction data contracts, and test seams so the new details sheet can replace the legacy action sheet cleanly.
+- [x] Add the reaction detail model/repository read path plus the new WhatsApp-style reaction details bottom sheet UI.
+- [x] Rewire `ChatRoomViewV2` so long-press and reaction-chip taps open the new sheet, keep quick reaction toggles working, and preserve reply/copy/report/block actions.
+- [x] Add/update focused regression coverage, update the relevant memory-bank notes, and run `flutter analyze` plus `flutter test`.
+
+# Review (2026-03-31 WhatsApp-Style Chat Reactions Refresh)
+- [x] Implemented and verified.
+- Scope:
+  - Added `ChatMessageReactionDetail` plus a new `fetchReactionDetails(...)` repository path so chat can read per-user reaction rows without changing the existing write contract or schema.
+  - Added a new `ChatReactionDetailsSheet` that shows a WhatsApp-style emoji filter bar plus reaction member list, while restoring the original `ChatMessageActionSheet` as the separate long-press surface.
+  - Updated `ChatRoomViewV2` so long-press uses the legacy quick-action sheet, existing inline reaction chips open the dedicated reaction-details sheet pre-filtered to the tapped emoji, and in-sheet emoji taps mutate reactions while keeping the inline bubble chips in sync.
+  - Added focused widget/repository/chat-route regression coverage and updated `memory-bank/database-schema.md`, `memory-bank/architecture.md`, and `memory-bank/progress.md` for the new reaction details flow.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-26 Replace Furniture +/- Buttons With Pinch Gesture)
 - [x] Inspect the current furniture edit interaction flow and remove the now-obsolete button-based resize path cleanly.
 - [x] Implement gesture-based furniture transforms in edit mode so single-finger drag still works and pinch-to-resize replaces the `+ / -` controls.

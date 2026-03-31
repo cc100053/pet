@@ -75,4 +75,40 @@ void main() {
       'm21',
     ]);
   });
+
+  test(
+    'fetchReactionDetails maps rows and keeps newest reactions first',
+    () async {
+      final repository = ChatMessageRepository(
+        box: box,
+        reactionDetailsRowsLoader:
+            ({required roomId, required messageId}) async =>
+                <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'message_id': messageId,
+                    'user_id': 'user-older',
+                    'emoji': '👍',
+                    'created_at': '2026-03-31T10:00:00Z',
+                  },
+                  <String, dynamic>{
+                    'message_id': messageId,
+                    'user_id': 'user-newer',
+                    'emoji': '❤️',
+                    'created_at': '2026-03-31T10:01:00Z',
+                  },
+                ],
+      );
+
+      final details = await repository.fetchReactionDetails(
+        roomId: 'room-1',
+        messageId: 'message-1',
+      );
+
+      expect(details, hasLength(2));
+      expect(details.first.userId, 'user-newer');
+      expect(details.first.emoji, '❤️');
+      expect(details.last.userId, 'user-older');
+      expect(details.last.emoji, '👍');
+    },
+  );
 }

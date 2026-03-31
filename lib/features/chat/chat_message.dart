@@ -198,6 +198,39 @@ class ChatMessageReactionSummary {
   }
 }
 
+class ChatMessageReactionDetail {
+  const ChatMessageReactionDetail({
+    required this.messageId,
+    required this.userId,
+    required this.emoji,
+    required this.createdAt,
+  });
+
+  final String messageId;
+  final String userId;
+  final String emoji;
+  final DateTime createdAt;
+
+  factory ChatMessageReactionDetail.fromJson(Map<String, dynamic> json) {
+    return ChatMessageReactionDetail(
+      messageId: (json['message_id'] as String? ?? '').trim(),
+      userId: (json['user_id'] as String? ?? '').trim(),
+      emoji: (json['emoji'] as String? ?? '').trim(),
+      createdAt: _parseDetailDate(json['created_at']),
+    );
+  }
+
+  static DateTime _parseDetailDate(dynamic value) {
+    if (value is DateTime) {
+      return value;
+    }
+    if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
+    }
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+}
+
 class ChatReplyPreview {
   ChatReplyPreview({
     required this.id,

@@ -129,6 +129,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatReplyAction => 'Reply';
 
   @override
+  String chatReactionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reactions',
+      one: '1 reaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String chatReplyingTo(Object name) {
     return 'Replying to $name';
   }

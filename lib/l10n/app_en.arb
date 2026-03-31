@@ -83,6 +83,14 @@
   "chatNoOlderMessages": "No older messages.",
   "chatPartnerLabel": "Partner",
   "chatReplyAction": "Reply",
+  "chatReactionCount": "{count, plural, =1{1 reaction} other{{count} reactions}}",
+  "@chatReactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "chatReplyingTo": "Replying to {name}",
   "@chatReplyingTo": {
     "placeholders": {

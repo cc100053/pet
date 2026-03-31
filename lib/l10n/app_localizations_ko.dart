@@ -129,6 +129,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatReplyAction => '답장';
 
   @override
+  String chatReactionCount(int count) {
+    return '$count개의 리액션';
+  }
+
+  @override
   String chatReplyingTo(Object name) {
     return '$name에게 답장';
   }

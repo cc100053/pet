@@ -6,6 +6,7 @@ import 'package:pet/features/chat/chat_message.dart';
 import 'package:pet/features/chat/chat_room_view_runtime.dart';
 import 'package:pet/features/chat/chat_room_view_v2.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/services/chat/chat_message_action_service.dart';
 import 'package:pet/services/chat/chat_message_repository.dart';
 import 'package:pet/services/profile/profile_cache_service.dart';
 
@@ -21,13 +22,21 @@ class _FakeChatMessageRepository extends ChatMessageRepository {
   _FakeChatMessageRepository({
     required List<ChatMessage> cachedMessages,
     required List<ChatMessage> canonicalMessages,
+    Map<String, List<ChatMessageReactionDetail>> reactionDetailsByMessageId =
+        const <String, List<ChatMessageReactionDetail>>{},
     this.loadMoreGate,
   }) : _cachedMessages = List<ChatMessage>.from(cachedMessages),
        _canonicalMessages = List<ChatMessage>.from(canonicalMessages),
+       _reactionDetailsByMessageId = {
+         for (final entry in reactionDetailsByMessageId.entries)
+           entry.key: List<ChatMessageReactionDetail>.from(entry.value),
+       },
        super();
 
   final List<ChatMessage> _cachedMessages;
   final List<ChatMessage> _canonicalMessages;
+  final Map<String, List<ChatMessageReactionDetail>>
+  _reactionDetailsByMessageId;
   final Completer<void>? loadMoreGate;
   final List<_FetchCall> fetchCalls = <_FetchCall>[];
   List<ChatMessage> lastPersistedMessages = const <ChatMessage>[];
@@ -94,12 +103,88 @@ class _FakeChatMessageRepository extends ChatMessageRepository {
     required List<String> messageIds,
     required String currentUserId,
   }) async {
-    return const <String, List<ChatMessageReactionSummary>>{};
+    final result = <String, List<ChatMessageReactionSummary>>{};
+    for (final messageId in messageIds) {
+      final details = _reactionDetailsByMessageId[messageId];
+      if (details == null || details.isEmpty) {
+        continue;
+      }
+      final counts = <String, int>{};
+      String? myEmoji;
+      for (final detail in details) {
+        counts.update(detail.emoji, (value) => value + 1, ifAbsent: () => 1);
+        if (detail.userId == currentUserId) {
+          myEmoji = detail.emoji;
+        }
+      }
+      final summaries =
+          counts.entries
+              .map(
+                (entry) => ChatMessageReactionSummary(
+                  emoji: entry.key,
+                  count: entry.value,
+                  reactedByMe: entry.key == myEmoji,
+                ),
+              )
+              .toList()
+            ..sort((a, b) {
+              final countCompare = b.count.compareTo(a.count);
+              if (countCompare != 0) {
+                return countCompare;
+              }
+              return a.emoji.compareTo(b.emoji);
+            });
+      result[messageId] = summaries;
+    }
+    return result;
+  }
+
+  @override
+  Future<List<ChatMessageReactionDetail>> fetchReactionDetails({
+    required String roomId,
+    required String messageId,
+  }) async {
+    return List<ChatMessageReactionDetail>.from(
+      _reactionDetailsByMessageId[messageId] ??
+          const <ChatMessageReactionDetail>[],
+    )..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   void appendCanonical(ChatMessage message) {
     _canonicalMessages.add(message);
     _cachedMessages.insert(0, message);
+  }
+
+  void setReaction({
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) {
+    final next = List<ChatMessageReactionDetail>.from(
+      _reactionDetailsByMessageId[messageId] ??
+          const <ChatMessageReactionDetail>[],
+    )..removeWhere((detail) => detail.userId == userId);
+    next.add(
+      ChatMessageReactionDetail(
+        messageId: messageId,
+        userId: userId,
+        emoji: emoji,
+        createdAt: DateTime.utc(2026, 3, 31, 12, next.length),
+      ),
+    );
+    _reactionDetailsByMessageId[messageId] = next;
+  }
+
+  void removeReaction({required String messageId, required String userId}) {
+    final next = List<ChatMessageReactionDetail>.from(
+      _reactionDetailsByMessageId[messageId] ??
+          const <ChatMessageReactionDetail>[],
+    )..removeWhere((detail) => detail.userId == userId);
+    if (next.isEmpty) {
+      _reactionDetailsByMessageId.remove(messageId);
+      return;
+    }
+    _reactionDetailsByMessageId[messageId] = next;
   }
 }
 
@@ -193,6 +278,7 @@ void main() {
     WidgetTester tester, {
     required _FakeChatMessageRepository repository,
     required ChatRoomViewRuntime runtime,
+    ChatMessageActionService? messageActionService,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -204,6 +290,7 @@ void main() {
           memberCount: 2,
           repository: repository,
           runtime: runtime,
+          messageActionService: messageActionService,
         ),
       ),
     );
@@ -990,6 +1077,153 @@ void main() {
           tester.getBottomLeft(secondBubble).dy;
 
       expect(groupedGap, lessThan(separatedGap));
+    },
+  );
+
+  testWidgets('long press opens legacy message action sheet', (tester) async {
+    final createdAt = DateTime.utc(2026, 3, 31, 10);
+    final message = textMessage(
+      id: 'reaction-target',
+      senderId: 'other',
+      body: 'hold me',
+      createdAt: createdAt,
+    );
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message],
+      canonicalMessages: <ChatMessage>[message],
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    await tester.longPress(
+      find.byKey(const ValueKey('chatMessageSurface_reaction-target')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Reply'), findsOneWidget);
+    expect(find.text('Copy'), findsOneWidget);
+    expect(find.text('Report message'), findsOneWidget);
+    expect(find.text('Block user'), findsOneWidget);
+    expect(find.text('0 reactions'), findsNothing);
+  });
+
+  testWidgets(
+    'tapping a reaction chip opens the details sheet for that emoji',
+    (tester) async {
+      final createdAt = DateTime.utc(2026, 3, 31, 11);
+      final message = textMessage(
+        id: 'reaction-chip-target',
+        senderId: 'other',
+        body: 'tap chip',
+        createdAt: createdAt,
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: <ChatMessage>[message],
+        canonicalMessages: <ChatMessage>[message],
+        reactionDetailsByMessageId: <String, List<ChatMessageReactionDetail>>{
+          'reaction-chip-target': <ChatMessageReactionDetail>[
+            ChatMessageReactionDetail(
+              messageId: 'reaction-chip-target',
+              userId: 'me',
+              emoji: '👍',
+              createdAt: DateTime.utc(2026, 3, 31, 11, 3),
+            ),
+            ChatMessageReactionDetail(
+              messageId: 'reaction-chip-target',
+              userId: 'other',
+              emoji: '👍',
+              createdAt: DateTime.utc(2026, 3, 31, 11, 2),
+            ),
+            ChatMessageReactionDetail(
+              messageId: 'reaction-chip-target',
+              userId: 'someone-else',
+              emoji: '❤️',
+              createdAt: DateTime.utc(2026, 3, 31, 11, 1),
+            ),
+          ],
+        },
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      await tester.tap(find.byKey(const ValueKey('chatReactionChip_👍_2')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3 reactions'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('chatReactionSheetRow_me_👍')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('chatReactionSheetRow_other_👍')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('chatReactionSheetRow_someone-else_❤️')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'selecting an emoji in the long-press action sheet updates inline reaction chips optimistically',
+    (tester) async {
+      final createdAt = DateTime.utc(2026, 3, 31, 12);
+      final message = textMessage(
+        id: 'reaction-update-target',
+        senderId: 'other',
+        body: 'react to me',
+        createdAt: createdAt,
+      );
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: <ChatMessage>[message],
+        canonicalMessages: <ChatMessage>[message],
+      );
+      final messageActionService = ChatMessageActionService(
+        deleteReaction: ({required messageId, required userId}) async {
+          repository.removeReaction(messageId: messageId, userId: userId);
+        },
+        upsertReaction: (payload) async {
+          repository.setReaction(
+            messageId: payload['message_id'] as String,
+            userId: payload['user_id'] as String,
+            emoji: payload['emoji'] as String,
+          );
+        },
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(
+        tester,
+        repository: repository,
+        runtime: runtime,
+        messageActionService: messageActionService,
+      );
+
+      await tester.longPress(
+        find.byKey(const ValueKey('chatMessageSurface_reaction-update-target')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('❤️'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('chatReactionChip_❤️_1')),
+        findsOneWidget,
+      );
     },
   );
 

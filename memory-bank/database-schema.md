@@ -97,6 +97,17 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `coins_awarded` (int), `mood_delta` (int)
   - `created_at`, `client_created_at`
 
+- `message_reactions`
+  - `message_id` (uuid, fk -> `messages.id`, part of pk)
+  - `room_id` (uuid, fk -> `rooms.id`)
+  - `user_id` (uuid, fk -> `auth.users`, part of pk)
+  - `emoji` (text, 1..16 chars)
+  - `created_at`, `updated_at`
+  - primary key (`message_id`, `user_id`)
+  - Notes:
+    - One reaction per user per message; changing emoji overwrites the prior row.
+    - Realtime-enabled so chat routes can refresh reaction summaries/details after inserts, updates, and deletes.
+
 ## Gameplay Support Tables
 - `label_mappings`
   - `id` (uuid, pk)

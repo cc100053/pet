@@ -83,6 +83,14 @@
   "chatNoOlderMessages": "이전 메시지가 없습니다.",
   "chatPartnerLabel": "파트너",
   "chatReplyAction": "답장",
+  "chatReactionCount": "{count}개의 리액션",
+  "@chatReactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "chatReplyingTo": "{name}에게 답장",
   "@chatReplyingTo": {
     "placeholders": {

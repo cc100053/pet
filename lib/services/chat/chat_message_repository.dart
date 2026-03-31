@@ -3,10 +3,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/chat/chat_message.dart';
 
+typedef ChatReactionDetailsRowsLoader =
+    Future<List<Map<String, dynamic>>> Function({
+      required String roomId,
+      required String messageId,
+    });
+
 class ChatMessageRepository {
-  ChatMessageRepository({SupabaseClient? client, Box<dynamic>? box})
-    : _client = client,
-      _box = box;
+  ChatMessageRepository({
+    SupabaseClient? client,
+    Box<dynamic>? box,
+    ChatReactionDetailsRowsLoader? reactionDetailsRowsLoader,
+  }) : _client = client,
+       _box = box,
+       _reactionDetailsRowsLoader = reactionDetailsRowsLoader;
 
   static final ChatMessageRepository instance = ChatMessageRepository(
     client: Supabase.instance.client,
@@ -17,6 +27,7 @@ class ChatMessageRepository {
 
   final SupabaseClient? _client;
   Box<dynamic>? _box;
+  final ChatReactionDetailsRowsLoader? _reactionDetailsRowsLoader;
 
   bool get isReady => _box != null;
 
@@ -173,6 +184,69 @@ class ChatMessageRepository {
             });
       return MapEntry(messageId, summaries);
     });
+  }
+
+  Future<List<ChatMessageReactionDetail>> fetchReactionDetails({
+    required String roomId,
+    required String messageId,
+  }) async {
+    if (messageId.trim().isEmpty) {
+      return const <ChatMessageReactionDetail>[];
+    }
+
+    final reactionDetailsRowsLoader = _reactionDetailsRowsLoader;
+    final rows = reactionDetailsRowsLoader != null
+        ? await reactionDetailsRowsLoader(roomId: roomId, messageId: messageId)
+        : await _defaultFetchReactionDetailRows(
+            roomId: roomId,
+            messageId: messageId,
+          );
+
+    final details =
+        rows
+            .map(ChatMessageReactionDetail.fromJson)
+            .where(
+              (detail) =>
+                  detail.messageId.isNotEmpty &&
+                  detail.userId.isNotEmpty &&
+                  detail.emoji.isNotEmpty,
+            )
+            .toList()
+          ..sort((a, b) {
+            final createdCompare = b.createdAt.compareTo(a.createdAt);
+            if (createdCompare != 0) {
+              return createdCompare;
+            }
+            final emojiCompare = a.emoji.compareTo(b.emoji);
+            if (emojiCompare != 0) {
+              return emojiCompare;
+            }
+            return a.userId.compareTo(b.userId);
+          });
+    return details;
+  }
+
+  Future<List<Map<String, dynamic>>> _defaultFetchReactionDetailRows({
+    required String roomId,
+    required String messageId,
+  }) async {
+    final client = _client;
+    if (client == null) {
+      throw StateError('ChatMessageRepository client is not configured.');
+    }
+
+    final response = await client
+        .from('message_reactions')
+        .select('message_id,user_id,emoji,created_at')
+        .eq('room_id', roomId)
+        .eq('message_id', messageId)
+        .order('created_at', ascending: false)
+        .order('emoji', ascending: true)
+        .order('user_id', ascending: true);
+    return (response as List<dynamic>)
+        .whereType<Map>()
+        .map((row) => Map<String, dynamic>.from(row))
+        .toList(growable: false);
   }
 }
 

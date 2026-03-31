@@ -83,6 +83,14 @@
   "chatNoOlderMessages": "これ以上のメッセージはありません。",
   "chatPartnerLabel": "相手",
   "chatReplyAction": "返信",
+  "chatReactionCount": "{count}件のリアクション",
+  "@chatReactionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "chatReplyingTo": "{name} に返信",
   "@chatReplyingTo": {
     "placeholders": {

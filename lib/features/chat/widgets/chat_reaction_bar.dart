@@ -45,6 +45,9 @@ class ChatReactionBar extends StatelessWidget {
       children: reactions.map((reaction) {
         final isActive = reaction.reactedByMe;
         final chip = Container(
+          key: ValueKey<String>(
+            'chatReactionChip_${reaction.emoji}_${reaction.count}',
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: isActive ? activeSurfaceColor : surfaceColor,

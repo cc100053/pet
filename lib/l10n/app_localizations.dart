@@ -301,6 +301,12 @@ abstract class AppLocalizations {
   /// **'Reply'**
   String get chatReplyAction;
 
+  /// No description provided for @chatReactionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 reaction} other{{count} reactions}}'**
+  String chatReactionCount(int count);
+
   /// No description provided for @chatReplyingTo.
   ///
   /// In en, this message translates to:
