@@ -18,11 +18,33 @@ Widget _wrap(Widget child) {
   );
 }
 
+const _anchor = ChatMessageActionSheetAnchor(
+  messageRect: Rect.fromLTWH(24, 180, 180, 56),
+  touchPosition: Offset(40, 200),
+  alignment: ChatMessageActionSheetAlignment.left,
+  safePadding: EdgeInsets.zero,
+);
+
+Widget _preview() {
+  return Container(
+    height: 56,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    alignment: Alignment.centerLeft,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: const Text('Preview message'),
+  );
+}
+
 void main() {
   testWidgets('own-message sheet hides moderation actions', (tester) async {
     await tester.pumpWidget(
       _wrap(
         ChatMessageActionSheet(
+          anchor: _anchor,
+          preview: _preview(),
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: '👍',
           copyEnabled: true,
@@ -38,6 +60,18 @@ void main() {
       ),
     );
 
+    expect(
+      find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('chatMessageActionSheetReactionRail')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('chatMessageActionSheetOptionsCard')),
+      findsOneWidget,
+    );
     expect(find.text('Reply'), findsOneWidget);
     expect(find.text('Copy'), findsOneWidget);
     expect(find.text('Report message'), findsNothing);
@@ -48,6 +82,8 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         ChatMessageActionSheet(
+          anchor: _anchor,
+          preview: _preview(),
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: null,
           copyEnabled: false,
@@ -75,6 +111,8 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         ChatMessageActionSheet(
+          anchor: _anchor,
+          preview: _preview(),
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: null,
           copyEnabled: true,
@@ -102,6 +140,8 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         ChatMessageActionSheet(
+          anchor: _anchor,
+          preview: _preview(),
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: null,
           copyEnabled: true,

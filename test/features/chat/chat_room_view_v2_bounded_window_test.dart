@@ -1104,6 +1104,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(
+      find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+      findsOneWidget,
+    );
+    expect(find.byType(BottomSheet), findsNothing);
     expect(find.text('Reply'), findsOneWidget);
     expect(find.text('Copy'), findsOneWidget);
     expect(find.text('Report message'), findsOneWidget);
@@ -1216,6 +1221,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(
+        find.byKey(const ValueKey('chatMessageActionSheetReactionRail')),
+        findsOneWidget,
+      );
       await tester.tap(find.text('❤️'));
       await tester.pump();
       await tester.pumpAndSettle();
@@ -1270,6 +1279,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(
+        find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+        findsOneWidget,
+      );
       await tester.tap(
         find.byKey(const ValueKey('chatMessageActionSheetMoreReactions')),
       );

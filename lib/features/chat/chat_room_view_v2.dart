@@ -61,6 +61,20 @@ class _MessageActionSelection {
   final String? emoji;
 }
 
+class _MessagePreviewPresentation {
+  const _MessagePreviewPresentation({
+    required this.isSentByMe,
+    required this.isGroupedWithPrevious,
+    required this.isGroupedWithNext,
+    required this.showSenderName,
+  });
+
+  final bool isSentByMe;
+  final bool isGroupedWithPrevious;
+  final bool isGroupedWithNext;
+  final bool showSenderName;
+}
+
 class ChatRoomViewV2 extends StatefulWidget {
   const ChatRoomViewV2({
     super.key,
@@ -1641,7 +1655,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     }
   }
 
-  Future<void> _showMessageActions(ChatMessage message) async {
+  Future<void> _showMessageActions(
+    ChatMessage message, {
+    LongPressStartDetails? details,
+  }) async {
     final senderId = message.senderId;
     if (_currentUserId == '__anonymous__' || senderId == null) {
       return;
@@ -1657,37 +1674,64 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         break;
       }
     }
-    final action = await showModalBottomSheet<_MessageActionSelection>(
+    final anchor = _buildMessageActionSheetAnchor(
+      message,
+      details: details,
+      isMine: isMine,
+    );
+    final preview = _buildMessageActionPreview(message);
+    final action = await showGeneralDialog<_MessageActionSelection>(
       context: context,
-      builder: (context) => ChatMessageActionSheet(
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      pageBuilder: (dialogContext, _, _) => ChatMessageActionSheet(
+        anchor: anchor,
+        preview: preview,
         reactionOptions: kChatQuickReactionOptions,
         selectedReaction: myReaction?.emoji,
         copyEnabled: copyText != null,
         isMine: isMine,
         isBlocked: isBlocked,
-        onReactionSelected: (emoji) =>
-            Navigator.pop(context, _MessageActionSelection.reaction(emoji)),
+        onReactionSelected: (emoji) => Navigator.pop(
+          dialogContext,
+          _MessageActionSelection.reaction(emoji),
+        ),
         onReply: () => Navigator.pop(
-          context,
+          dialogContext,
           const _MessageActionSelection.action(_MessageAction.reply),
         ),
         onCopy: () => Navigator.pop(
-          context,
+          dialogContext,
           const _MessageActionSelection.action(_MessageAction.copy),
         ),
         onReport: () => Navigator.pop(
-          context,
+          dialogContext,
           const _MessageActionSelection.action(_MessageAction.report),
         ),
         onBlock: () => Navigator.pop(
-          context,
+          dialogContext,
           const _MessageActionSelection.action(_MessageAction.block),
         ),
         onMoreReactions: () => Navigator.pop(
-          context,
+          dialogContext,
           const _MessageActionSelection.action(_MessageAction.moreReactions),
         ),
       ),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.98, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
     );
 
     if (!mounted || action == null) {
@@ -2255,14 +2299,166 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     );
   }
 
-  void _handleDeterministicMessageLongPress(fc.Message message) {
+  bool _canGroupPreviewMessages(ChatMessage a, ChatMessage b) {
+    if (a.isSystem || b.isSystem) {
+      return false;
+    }
+    final aSender = a.senderId?.trim();
+    final bSender = b.senderId?.trim();
+    if (aSender == null ||
+        aSender.isEmpty ||
+        bSender == null ||
+        bSender.isEmpty) {
+      return false;
+    }
+    return aSender == bSender && isSameLocalChatDay(a.createdAt, b.createdAt);
+  }
+
+  _MessagePreviewPresentation _previewPresentationForMessage(
+    ChatMessage message,
+  ) {
+    final ascendingMessages = _toAscendingMessages(_messages);
+    final index = ascendingMessages.indexWhere(
+      (entry) => entry.id == message.id,
+    );
+    final isSentByMe = message.senderId == _currentUserId;
+    if (index == -1) {
+      return _MessagePreviewPresentation(
+        isSentByMe: isSentByMe,
+        isGroupedWithPrevious: false,
+        isGroupedWithNext: false,
+        showSenderName: true,
+      );
+    }
+    final previous = index > 0 ? ascendingMessages[index - 1] : null;
+    final next = index < ascendingMessages.length - 1
+        ? ascendingMessages[index + 1]
+        : null;
+    final isGroupedWithPrevious =
+        previous != null && _canGroupPreviewMessages(previous, message);
+    final isGroupedWithNext =
+        next != null && _canGroupPreviewMessages(message, next);
+    return _MessagePreviewPresentation(
+      isSentByMe: isSentByMe,
+      isGroupedWithPrevious: isGroupedWithPrevious,
+      isGroupedWithNext: isGroupedWithNext,
+      showSenderName:
+          isSentByMe ||
+          message.id == _historyGroupingBoundaryMessageId ||
+          !isGroupedWithPrevious,
+    );
+  }
+
+  ChatMessageActionSheetAnchor _buildMessageActionSheetAnchor(
+    ChatMessage message, {
+    LongPressStartDetails? details,
+    required bool isMine,
+  }) {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final overlayContext = navigator.overlay?.context ?? context;
+    final overlayBox = overlayContext.findRenderObject() as RenderBox?;
+    final media = MediaQuery.of(overlayContext);
+    final fallbackTouch = details?.globalPosition ?? Offset.zero;
+    if (overlayBox == null || !overlayBox.hasSize) {
+      return ChatMessageActionSheetAnchor(
+        messageRect: const Rect.fromLTWH(12, 120, 220, 48),
+        touchPosition: fallbackTouch,
+        alignment: isMine
+            ? ChatMessageActionSheetAlignment.right
+            : ChatMessageActionSheetAlignment.left,
+        safePadding: media.padding,
+      );
+    }
+
+    final messageRender =
+        _messageAnchorKey(message.id).currentContext?.findRenderObject()
+            as RenderBox?;
+    final localTouch = details != null
+        ? overlayBox.globalToLocal(details.globalPosition)
+        : Offset(overlayBox.size.width / 2, overlayBox.size.height / 2);
+    final rect =
+        (messageRender != null &&
+            messageRender.attached &&
+            messageRender.hasSize)
+        ? (() {
+            final topLeft = messageRender.localToGlobal(
+              Offset.zero,
+              ancestor: overlayBox,
+            );
+            return topLeft & messageRender.size;
+          })()
+        : Rect.fromLTWH(
+            localTouch.dx - 110,
+            localTouch.dy - 24,
+            220,
+            48,
+          ).intersect(Offset.zero & overlayBox.size);
+    return ChatMessageActionSheetAnchor(
+      messageRect: rect,
+      touchPosition: localTouch,
+      alignment: isMine
+          ? ChatMessageActionSheetAlignment.right
+          : ChatMessageActionSheetAlignment.left,
+      safePadding: media.padding,
+    );
+  }
+
+  Widget _buildMessageActionPreview(ChatMessage message) {
+    final l10n = AppLocalizations.of(context)!;
+    final presentation = _previewPresentationForMessage(message);
+    final resolvedReplyPreview = _resolvedReplyPreview(message);
+    final replyTap = message.replyToMessageId == null
+        ? null
+        : () => _jumpToReplySource(message);
+    final previewMessage = PetChatMessageAdapter.toUiMessage(message, l10n);
+
+    if (previewMessage is fc.CustomMessage) {
+      return _FeedCard(
+        surfaceKey: GlobalKey(
+          debugLabel: 'message-action-preview-${message.id}',
+        ),
+        message: previewMessage,
+        isMe: presentation.isSentByMe,
+        isGroupedWithPrevious: presentation.isGroupedWithPrevious,
+        isGroupedWithNext: presentation.isGroupedWithNext,
+        isDarkBackground: widget.isDarkBackground,
+        isHighlighted: false,
+        senderName: _displayNameForSenderId(message.senderId),
+        showSenderName: presentation.showSenderName,
+        replyPreview: resolvedReplyPreview,
+        replySenderName: _displayNameForSenderId(
+          resolvedReplyPreview?.senderId,
+        ),
+        onReplyTap: replyTap,
+        onTapImage: () {},
+      );
+    }
+
+    return _MessageActionTextPreviewBubble(
+      message: message,
+      isSentByMe: presentation.isSentByMe,
+      isGroupedWithPrevious: presentation.isGroupedWithPrevious,
+      isGroupedWithNext: presentation.isGroupedWithNext,
+      isDarkBackground: widget.isDarkBackground,
+      senderName: _displayNameForSenderId(message.senderId),
+      showSenderName: presentation.showSenderName,
+      replyPreview: resolvedReplyPreview,
+      replySenderName: _displayNameForSenderId(resolvedReplyPreview?.senderId),
+      onReplyTap: replyTap,
+    );
+  }
+
+  void _handleDeterministicMessageLongPress(
+    fc.Message message,
+    LongPressStartDetails details,
+  ) {
     final domainMessage = _messagesById[message.id];
     if (domainMessage == null ||
         domainMessage.isSystem ||
         domainMessage.senderId == null) {
       return;
     }
-    unawaited(_showMessageActions(domainMessage));
+    unawaited(_showMessageActions(domainMessage, details: details));
   }
 
   double? _replyTargetCenterOffset(GlobalKey targetKey) {
@@ -2691,8 +2887,8 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                           observerController: _observerController,
                           topPadding: listTopPadding,
                           bottomPadding: listBottomPadding,
-                          onMessageLongPress: (message, details) =>
-                              _handleDeterministicMessageLongPress(message),
+                          onMessageLongPress:
+                              _handleDeterministicMessageLongPress,
                           onBackgroundTap: () => _handleBackdropTapUp(
                             TapUpDetails(kind: PointerDeviceKind.touch),
                           ),
@@ -3694,6 +3890,160 @@ class _TelegramTextMessageBubble extends StatelessWidget {
               showStatus: false,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageActionTextPreviewBubble extends StatelessWidget {
+  const _MessageActionTextPreviewBubble({
+    required this.message,
+    required this.isSentByMe,
+    required this.isGroupedWithPrevious,
+    required this.isGroupedWithNext,
+    required this.isDarkBackground,
+    required this.senderName,
+    required this.showSenderName,
+    required this.replyPreview,
+    required this.replySenderName,
+    required this.onReplyTap,
+  });
+
+  final ChatMessage message;
+  final bool isSentByMe;
+  final bool isGroupedWithPrevious;
+  final bool isGroupedWithNext;
+  final bool isDarkBackground;
+  final String? senderName;
+  final bool showSenderName;
+  final ChatReplyPreview? replyPreview;
+  final String? replySenderName;
+  final VoidCallback? onReplyTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final sentBackgroundColor = isDarkBackground
+        ? const Color(0xFF4E7E76)
+        : const Color(0xFFDDF3EA);
+    final receivedBackgroundColor = isDarkBackground
+        ? const Color(0xFF2A313D)
+        : Colors.white;
+    final sentTextColor = isDarkBackground
+        ? Colors.white
+        : const Color(0xFF1E3B34);
+    final receivedTextColor = isDarkBackground
+        ? Colors.white
+        : AppTheme.textPrimary;
+    final timeColor = isSentByMe
+        ? (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.72)
+              : const Color(0xFF4B7B6D))
+        : (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.5)
+              : AppTheme.textSecondary.withValues(alpha: 0.82));
+    final bubbleRadius = _buildGroupedBubbleRadius(
+      isSentByMe: isSentByMe,
+      isGroupedWithPrevious: isGroupedWithPrevious,
+      isGroupedWithNext: isGroupedWithNext,
+    );
+    final replyLabel = replySenderName?.trim().isNotEmpty == true
+        ? replySenderName!.trim()
+        : AppLocalizations.of(context)!.chatPartnerLabel;
+    final replyPreviewBackground = isSentByMe
+        ? (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.white.withValues(alpha: 0.7))
+        : (isDarkBackground
+              ? Colors.white.withValues(alpha: 0.06)
+              : const Color(0xFFF1F5F8));
+    final bodyText = (message.body ?? '').trim();
+    final bubbleTime = _formatBubbleTime(context, message.createdAt);
+
+    return _MessageHighlightFrame(
+      isHighlighted: false,
+      isDarkBackground: isDarkBackground,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSentByMe ? sentBackgroundColor : receivedBackgroundColor,
+          borderRadius: bubbleRadius,
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!isSentByMe &&
+                showSenderName &&
+                senderName?.trim().isNotEmpty == true)
+              Padding(
+                padding: EdgeInsets.only(bottom: replyPreview == null ? 4 : 6),
+                child: Text(
+                  senderName!.trim(),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ),
+            if (replyPreview != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ChatReplyPreviewPanel(
+                  senderName: replyLabel,
+                  previewText: PetChatMessageAdapter.previewTextForReply(
+                    replyPreview!,
+                    AppLocalizations.of(context)!,
+                  ),
+                  accentColor: AppTheme.primaryColor,
+                  senderColor: isSentByMe
+                      ? (isDarkBackground
+                            ? const Color(0xFFA2E0CF)
+                            : const Color(0xFF4B8F7B))
+                      : AppTheme.primaryColor,
+                  previewTextColor: isDarkBackground
+                      ? Colors.white.withValues(alpha: 0.68)
+                      : AppTheme.textSecondary,
+                  backgroundColor: replyPreviewBackground,
+                  iconColor: isDarkBackground
+                      ? Colors.white.withValues(alpha: 0.58)
+                      : AppTheme.textSecondary.withValues(alpha: 0.8),
+                  isImage: replyPreview!.isImageFeed,
+                  showJumpIcon: true,
+                  compact: true,
+                  maxLines: 1,
+                  onTap: onReplyTap,
+                ),
+              ),
+            Text(
+              bodyText.isNotEmpty
+                  ? bodyText
+                  : AppLocalizations.of(context)!.chatMessageHint,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isSentByMe ? sentTextColor : receivedTextColor,
+                fontSize: 16,
+                height: 1.36,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            if (bubbleTime != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    bubbleTime,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: timeColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

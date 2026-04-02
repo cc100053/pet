@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-01 Telegram-Style Chat Long-Press Overlay)
+- [x] Inspect the active chat long-press route, message bubble renderers, and test seams to keep all action logic unchanged while replacing only the presentation layer.
+- [x] Implement a custom full-screen Telegram-style long-press overlay with blurred backdrop, anchored message preview, emoji rail, and frosted options card.
+- [x] Update focused widget/chat-route regressions plus task/memory notes, then run `flutter analyze` and `flutter test`.
+
+# Review (2026-04-01 Telegram-Style Chat Long-Press Overlay)
+- [x] Implemented and verified.
+- Scope:
+  - Replaced the chat long-press bottom sheet with a custom transparent overlay route in `lib/features/chat/chat_room_view_v2.dart`, keeping the original action dispatch and reaction toggling logic unchanged.
+  - Added a Telegram-style UI in `lib/features/chat/widgets/chat_message_action_sheet.dart` with a blurred/dimmed backdrop, anchored message preview, frosted emoji rail, and frosted options card while preserving the same quick reactions, `More`, `Reply`, `Copy`, `Report`, and `Block` behaviors.
+  - Added an overlay-safe text-preview renderer for long-press message previews so the new route can reuse the current bubble visual language without depending on the in-chat `flutter_chat_ui` provider tree, and kept feed/image previews on the existing card renderer.
+  - Updated focused widget and chat-route regression coverage for the new overlay keys/structure and preserved optimistic quick-reaction + custom-emoji flows.
+- Verification:
+  - `flutter test test/features/chat/chat_message_action_sheet_test.dart`
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart --plain-name "long press opens legacy message action sheet"`
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart --plain-name "selecting an emoji in the long-press action sheet updates inline reaction chips optimistically"`
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart --plain-name "selecting a custom emoji through more reactions updates inline chips optimistically"`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-03-31 Expand Chat Emoji Picker)
 - [x] Inspect the current quick-reaction-only chat/photo picker surfaces and lock the shared full-picker integration points.
 - [x] Add a shared full emoji picker surface plus `More` wiring for chat long-press, reaction details, and fullscreen photo viewer.
