@@ -1,5 +1,19 @@
 # TODO
 
+# Plan (2026-04-03 Create Shared Item Rollout Skill)
+- [x] Read the repo skill format and collect the current shared-item compatibility rules from code, migrations, and memory-bank notes.
+- [x] Create a repo-local skill that documents the mixed-version rollout workflow for shared backgrounds, furniture, and pets.
+- [x] Update task/memory notes and verify the new skill file is present in the repo.
+
+# Review (2026-04-03 Create Shared Item Rollout Skill)
+- [x] Implemented.
+- Scope:
+  - Added `.codex/skills/shared-item-rollout/SKILL.md` as a repo-local skill for future mixed-version shared-item updates.
+  - Captured the long-term rollout rules for shop-backed decor and pets: version-gated visibility, old-client fallback rendering, shared update prompting, Supabase migration expectations, notification payload sync, and verification steps.
+  - Kept the skill concise and repo-specific so future agents can directly reuse the established workflow instead of rediscovering it from recent diffs.
+- Verification:
+  - Confirmed the skill file exists in `.codex/skills/shared-item-rollout/SKILL.md`
+
 # Plan (2026-04-03 Add Tiger Pet Shared Compatibility)
 - [x] Inspect the current pet selection/render/notification flow and identify every surface that can encounter an unsupported shared pet type.
 - [x] Add a reusable version-gated tiger pet definition plus old-client fallback behavior across pet selection, home room rendering, room list cards, and update prompting.
