@@ -1174,6 +1174,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescBackgroundMoonlight => '寧靜银河房间背景。';
 
   @override
+  String get storeItemNameBackgroundSageFrame => '鼠尾草花边背景';
+
+  @override
+  String get storeItemDescBackgroundSageFrame => '柔和纸感房间背景，搭配俏皮的鼠尾草色花边。';
+
+  @override
+  String get storeItemNameBackgroundLilacFrame => '丁香花边背景';
+
+  @override
+  String get storeItemDescBackgroundLilacFrame => '柔和纸感房间背景，搭配轻柔的丁香色花边。';
+
+  @override
+  String get storeItemNameBackgroundBubbleSky => '泡泡天空背景';
+
+  @override
+  String get storeItemDescBackgroundBubbleSky => '明亮蓝天里漂浮着白云与虹彩泡泡的房间背景。';
+
+  @override
+  String get storeItemNameBackgroundStarlitDream => '星梦背景';
+
+  @override
+  String get storeItemDescBackgroundStarlitDream => '粉彩行星、云朵与流星交织的梦幻夜空背景。';
+
+  @override
   String get storeItemNameFurnitureSofa => '沙發';
 
   @override
@@ -2670,6 +2694,30 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescBackgroundMoonlight => '寧靜銀河房間背景。';
+
+  @override
+  String get storeItemNameBackgroundSageFrame => '鼠尾草花邊背景';
+
+  @override
+  String get storeItemDescBackgroundSageFrame => '柔和紙感房間背景，搭配俏皮的鼠尾草色花邊。';
+
+  @override
+  String get storeItemNameBackgroundLilacFrame => '丁香花邊背景';
+
+  @override
+  String get storeItemDescBackgroundLilacFrame => '柔和紙感房間背景，搭配輕柔的丁香色花邊。';
+
+  @override
+  String get storeItemNameBackgroundBubbleSky => '泡泡天空背景';
+
+  @override
+  String get storeItemDescBackgroundBubbleSky => '明亮藍天裡漂浮著白雲與虹彩泡泡的房間背景。';
+
+  @override
+  String get storeItemNameBackgroundStarlitDream => '星夢背景';
+
+  @override
+  String get storeItemDescBackgroundStarlitDream => '粉彩行星、雲朵與流星交織的夢幻夜空背景。';
 
   @override
   String get storeItemNameFurnitureSofa => '沙發';

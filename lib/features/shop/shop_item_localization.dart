@@ -12,6 +12,14 @@ String localizedShopItemNameForSku(String sku, AppLocalizations l10n) {
       return l10n.storeItemNameBackgroundDefault;
     case 'background_test1':
       return l10n.storeItemNameBackgroundMoonlight;
+    case 'background_sage_frame':
+      return l10n.storeItemNameBackgroundSageFrame;
+    case 'background_lilac_frame':
+      return l10n.storeItemNameBackgroundLilacFrame;
+    case 'background_bubble_sky':
+      return l10n.storeItemNameBackgroundBubbleSky;
+    case 'background_starlit_dream':
+      return l10n.storeItemNameBackgroundStarlitDream;
     case 'furniture_emoji_sofa':
       return l10n.storeItemNameFurnitureSofa;
     case 'furniture_emoji_plant':

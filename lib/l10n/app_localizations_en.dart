@@ -1212,6 +1212,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescBackgroundMoonlight => 'A calm galaxy room backdrop.';
 
   @override
+  String get storeItemNameBackgroundSageFrame => 'Sage Frame Background';
+
+  @override
+  String get storeItemDescBackgroundSageFrame =>
+      'A soft paper-textured room with a playful sage border.';
+
+  @override
+  String get storeItemNameBackgroundLilacFrame => 'Lilac Frame Background';
+
+  @override
+  String get storeItemDescBackgroundLilacFrame =>
+      'A soft paper-textured room with a gentle lilac border.';
+
+  @override
+  String get storeItemNameBackgroundBubbleSky => 'Bubble Sky Background';
+
+  @override
+  String get storeItemDescBackgroundBubbleSky =>
+      'A bright blue sky filled with clouds and iridescent bubbles.';
+
+  @override
+  String get storeItemNameBackgroundStarlitDream => 'Starlit Dream Background';
+
+  @override
+  String get storeItemDescBackgroundStarlitDream =>
+      'A dreamy night sky with pastel planets, clouds, and shooting stars.';
+
+  @override
   String get storeItemNameFurnitureSofa => 'Sofa';
 
   @override

@@ -1,5 +1,10 @@
 # TODO
 
+# Plan (2026-04-03 Add New Background Catalog)
+- [ ] Inspect the existing room-background rendering/catalog flow and confirm where Shop/Home/background notifications derive their background metadata.
+- [ ] Add the four new background assets to the Flutter background registry plus localized shop naming/description paths so they render correctly in Home, Shop, and inventory surfaces.
+- [ ] Add the matching Supabase store catalog rows for the new free/paid backgrounds, then run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
 # Plan (2026-04-01 Telegram-Style Chat Long-Press Overlay)
 - [x] Inspect the active chat long-press route, message bubble renderers, and test seams to keep all action logic unchanged while replacing only the presentation layer.
 - [x] Implement a custom full-screen Telegram-style long-press overlay with blurred backdrop, anchored message preview, emoji rail, and frosted options card.

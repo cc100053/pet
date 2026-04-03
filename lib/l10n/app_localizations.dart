@@ -2177,6 +2177,54 @@ abstract class AppLocalizations {
   /// **'A calm galaxy room backdrop.'**
   String get storeItemDescBackgroundMoonlight;
 
+  /// No description provided for @storeItemNameBackgroundSageFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Sage Frame Background'**
+  String get storeItemNameBackgroundSageFrame;
+
+  /// No description provided for @storeItemDescBackgroundSageFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'A soft paper-textured room with a playful sage border.'**
+  String get storeItemDescBackgroundSageFrame;
+
+  /// No description provided for @storeItemNameBackgroundLilacFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Lilac Frame Background'**
+  String get storeItemNameBackgroundLilacFrame;
+
+  /// No description provided for @storeItemDescBackgroundLilacFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'A soft paper-textured room with a gentle lilac border.'**
+  String get storeItemDescBackgroundLilacFrame;
+
+  /// No description provided for @storeItemNameBackgroundBubbleSky.
+  ///
+  /// In en, this message translates to:
+  /// **'Bubble Sky Background'**
+  String get storeItemNameBackgroundBubbleSky;
+
+  /// No description provided for @storeItemDescBackgroundBubbleSky.
+  ///
+  /// In en, this message translates to:
+  /// **'A bright blue sky filled with clouds and iridescent bubbles.'**
+  String get storeItemDescBackgroundBubbleSky;
+
+  /// No description provided for @storeItemNameBackgroundStarlitDream.
+  ///
+  /// In en, this message translates to:
+  /// **'Starlit Dream Background'**
+  String get storeItemNameBackgroundStarlitDream;
+
+  /// No description provided for @storeItemDescBackgroundStarlitDream.
+  ///
+  /// In en, this message translates to:
+  /// **'A dreamy night sky with pastel planets, clouds, and shooting stars.'**
+  String get storeItemDescBackgroundStarlitDream;
+
   /// No description provided for @storeItemNameFurnitureSofa.
   ///
   /// In en, this message translates to:

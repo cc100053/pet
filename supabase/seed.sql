@@ -140,6 +140,46 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     true
   ),
   (
+    'background_sage_frame',
+    'cosmetic',
+    'Sage Frame Background',
+    0,
+    0,
+    null,
+    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"sage_frame","description":"A soft paper-textured room with a playful sage border."}'::jsonb,
+    true
+  ),
+  (
+    'background_lilac_frame',
+    'cosmetic',
+    'Lilac Frame Background',
+    0,
+    0,
+    null,
+    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"lilac_frame","description":"A soft paper-textured room with a gentle lilac border."}'::jsonb,
+    true
+  ),
+  (
+    'background_bubble_sky',
+    'cosmetic',
+    'Bubble Sky Background',
+    200,
+    200,
+    null,
+    '{"price_jpy":200,"currency":"JPY","category":"background","background_key":"bubble_sky","description":"A bright blue sky filled with clouds and iridescent bubbles."}'::jsonb,
+    true
+  ),
+  (
+    'background_starlit_dream',
+    'cosmetic',
+    'Starlit Dream Background',
+    200,
+    200,
+    null,
+    '{"price_jpy":200,"currency":"JPY","category":"background","background_key":"starlit_dream","description":"A dreamy night sky with pastel planets, clouds, and shooting stars."}'::jsonb,
+    true
+  ),
+  (
     'cosmetic_room_cozy',
     'cosmetic',
     'Cozy Room Wallpaper',

@@ -118,6 +118,14 @@ class ShopItem {
         return l10n.storeItemDescBackgroundDefault;
       case 'background_test1':
         return l10n.storeItemDescBackgroundMoonlight;
+      case 'background_sage_frame':
+        return l10n.storeItemDescBackgroundSageFrame;
+      case 'background_lilac_frame':
+        return l10n.storeItemDescBackgroundLilacFrame;
+      case 'background_bubble_sky':
+        return l10n.storeItemDescBackgroundBubbleSky;
+      case 'background_starlit_dream':
+        return l10n.storeItemDescBackgroundStarlitDream;
       case 'furniture_emoji_sofa':
         return l10n.storeItemDescFurnitureSofa;
       case 'furniture_emoji_plant':

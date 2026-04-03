@@ -1175,6 +1175,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescBackgroundMoonlight => '銀河の静かな部屋背景。';
 
   @override
+  String get storeItemNameBackgroundSageFrame => 'セージフレーム背景';
+
+  @override
+  String get storeItemDescBackgroundSageFrame =>
+      'やわらかな紙の質感に、遊び心のあるセージ色のふちを合わせた背景。';
+
+  @override
+  String get storeItemNameBackgroundLilacFrame => 'ライラックフレーム背景';
+
+  @override
+  String get storeItemDescBackgroundLilacFrame =>
+      'やわらかな紙の質感に、やさしいライラック色のふちを合わせた背景。';
+
+  @override
+  String get storeItemNameBackgroundBubbleSky => 'バブルスカイ背景';
+
+  @override
+  String get storeItemDescBackgroundBubbleSky => '雲ときらめくシャボン玉が浮かぶ、明るい青空の背景。';
+
+  @override
+  String get storeItemNameBackgroundStarlitDream => 'スターリットドリーム背景';
+
+  @override
+  String get storeItemDescBackgroundStarlitDream =>
+      'パステルの惑星と雲、流れ星が広がる夢みたいな夜空の背景。';
+
+  @override
   String get storeItemNameFurnitureSofa => 'ソファ';
 
   @override

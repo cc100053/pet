@@ -1182,6 +1182,34 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescBackgroundMoonlight => '고요한 은하 방 배경입니다.';
 
   @override
+  String get storeItemNameBackgroundSageFrame => '세이지 프레임 배경';
+
+  @override
+  String get storeItemDescBackgroundSageFrame =>
+      '부드러운 종이 질감 위에 경쾌한 세이지 테두리를 더한 배경입니다.';
+
+  @override
+  String get storeItemNameBackgroundLilacFrame => '라일락 프레임 배경';
+
+  @override
+  String get storeItemDescBackgroundLilacFrame =>
+      '부드러운 종이 질감 위에 은은한 라일락 테두리를 더한 배경입니다.';
+
+  @override
+  String get storeItemNameBackgroundBubbleSky => '버블 스카이 배경';
+
+  @override
+  String get storeItemDescBackgroundBubbleSky =>
+      '구름과 오로라빛 비눗방울이 떠 있는 밝은 하늘 배경입니다.';
+
+  @override
+  String get storeItemNameBackgroundStarlitDream => '별빛 드림 배경';
+
+  @override
+  String get storeItemDescBackgroundStarlitDream =>
+      '파스텔 행성, 구름, 별똥별이 펼쳐진 몽환적인 밤하늘 배경입니다.';
+
+  @override
   String get storeItemNameFurnitureSofa => '소파';
 
   @override
