@@ -628,16 +628,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew106Bullet3 => '기타 알려진 문제점 수정';
 
   @override
-  String get whatsNew110Title => '가구 크기 조절 및 안정성 개선';
+  String get whatsNew110Title => '새로운 호랑이 펫 & 가구 크기 조절';
 
   @override
-  String get whatsNew110Bullet1 => '가구 크기를 조절하여 방에 딱 맞게 배치할 수 있습니다.';
+  String get whatsNew110Bullet1 => '새로운 \'호랑이\' 펫이 추가되었습니다! 지금 바로 만나보세요.';
 
   @override
-  String get whatsNew110Bullet2 => '앱 안정성과 성능을 개선했습니다.';
+  String get whatsNew110Bullet2 => '상점에 아름다운 새 배경 테마들이 추가되었습니다.';
 
   @override
-  String get whatsNew110Bullet3 => '원활한 이용을 위해 마이너 버그를 수정했습니다.';
+  String get whatsNew110Bullet3 => '편집 모드에서 두 손가락으로 가구 크기를 자유롭게 조절하세요.';
 
   @override
   String get languageChineseSimplified => '중국어(간체)';
@@ -1333,6 +1333,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomInventoryTitle => '방 인벤토리';
 
   @override
+  String get roomDecorCompatibilityTitle => '최신 방 아이템을 보려면 업데이트하세요';
+
+  @override
+  String get roomDecorCompatibilityMessage =>
+      '이 방에는 더 새로운 펫, 가구 또는 배경이 사용되고 있습니다. 앱을 업데이트하면 대체 표시 대신 최신 공유 아이템을 볼 수 있습니다.';
+
+  @override
   String get roomDecorHintTitle => '방 꾸미기';
 
   @override
@@ -1427,6 +1434,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get petTypeFishTagline => '유영을 좋아하는 톡톡 튀는 수영 친구.';
+
+  @override
+  String get petTypeTigerName => '호랑이';
+
+  @override
+  String get petTypeTigerTagline => '줄무늬 자신감으로 당당히 걷는 작은 탐험가.';
 
   @override
   String get roomLeaveConfirm => '방 나가기';

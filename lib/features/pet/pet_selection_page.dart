@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
+import '../../services/settings/app_settings_repository.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
@@ -73,12 +77,49 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
   String? _submitError;
   bool _submitting = false;
   bool _didRefreshStatusBar = false;
+  String? _currentAppVersion =
+      AppSettingsRepository.instance.lastLaunchedAppVersion;
 
   @override
   void initState() {
     super.initState();
     _selectedPetId = widget.initialSelectionId;
+    if (!PetCatalog.supportsIdOnAppVersion(
+      _selectedPetId,
+      _currentAppVersion,
+    )) {
+      _selectedPetId = null;
+    }
     _petNameController = TextEditingController();
+    unawaited(_ensureCurrentAppVersion());
+  }
+
+  Future<String?> _ensureCurrentAppVersion() async {
+    final cached = _currentAppVersion?.trim();
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final version = info.version.trim();
+      final resolved = version.isEmpty ? null : version;
+      if (!mounted) {
+        _currentAppVersion = resolved;
+        return resolved;
+      }
+      setState(() {
+        _currentAppVersion = resolved;
+        if (!PetCatalog.supportsIdOnAppVersion(
+          _selectedPetId,
+          _currentAppVersion,
+        )) {
+          _selectedPetId = null;
+        }
+      });
+      return resolved;
+    } catch (_) {
+      return _currentAppVersion;
+    }
   }
 
   @override
@@ -104,7 +145,10 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
       return;
     }
     final selection = PetSelectionResult(
-      pet: PetCatalog.byId(selectedPetId),
+      pet: PetCatalog.byIdForAppVersion(
+        selectedPetId,
+        appVersion: _currentAppVersion,
+      ),
       petName: petName,
     );
     final submitHandler = widget.onSubmitSelection;
@@ -168,7 +212,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final pets = PetCatalog.pets;
+    final pets = PetCatalog.visiblePetsForAppVersion(_currentAppVersion);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppStatusBarStyles.light,
@@ -286,8 +330,9 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                         )
                                       : Text(
                                           l10n.petSelectionSelected(
-                                            PetCatalog.byId(
+                                            PetCatalog.byIdForAppVersion(
                                               _selectedPetId,
+                                              appVersion: _currentAppVersion,
                                             ).name(l10n),
                                           ),
                                           key: const ValueKey(

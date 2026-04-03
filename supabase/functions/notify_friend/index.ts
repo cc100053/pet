@@ -21,7 +21,7 @@ const FCM_PRIVATE_KEY = (Deno.env.get("FCM_PRIVATE_KEY") ?? "").replace(
   /\\n/g,
   "\n",
 );
-type PetType = "cat" | "fish" | "ghost";
+type PetType = "cat" | "fish" | "ghost" | "tiger";
 
 const PET_AVATAR_URL_BY_TYPE: Record<PetType, string> = {
   cat:
@@ -30,11 +30,14 @@ const PET_AVATAR_URL_BY_TYPE: Record<PetType, string> = {
     "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/fish_stay.gif",
   ghost:
     "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/ghost_stay.gif",
+  tiger:
+    "https://pub-0c7a891a023a468a8ee757419f88af8d.r2.dev/pets/avatars/ghost_stay.gif",
 };
 const PET_AVATAR_ASSET_BY_TYPE: Record<PetType, string> = {
   cat: "assets/pet/cat/cat_stay.gif",
   fish: "assets/pet/fish/fish_stay.gif",
   ghost: "assets/pet/ghost/ghost_stay.gif",
+  tiger: "assets/pet/tiger/tiger_stay.gif",
 };
 const DEFAULT_PET_TYPE: PetType = "ghost";
 const DEFAULT_PET_AVATAR_URL = PET_AVATAR_URL_BY_TYPE[DEFAULT_PET_TYPE];
@@ -354,7 +357,12 @@ function fillTemplate(
 
 function normalizePetType(value: string | null | undefined): PetType {
   const normalized = value?.trim().toLowerCase();
-  if (normalized === "cat" || normalized === "fish" || normalized === "ghost") {
+  if (
+    normalized === "cat" ||
+    normalized === "fish" ||
+    normalized === "ghost" ||
+    normalized === "tiger"
+  ) {
     return normalized;
   }
   return DEFAULT_PET_TYPE;

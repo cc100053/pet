@@ -335,10 +335,10 @@
   "whatsNew106Bullet1": "상점 페이지 디자인 대규모 개편",
   "whatsNew106Bullet2": "앱 안정성 및 성능 향상",
   "whatsNew106Bullet3": "기타 알려진 문제점 수정",
-  "whatsNew110Title": "가구 크기 조절 및 안정성 개선",
-  "whatsNew110Bullet1": "가구 크기를 조절하여 방에 딱 맞게 배치할 수 있습니다.",
-  "whatsNew110Bullet2": "앱 안정성과 성능을 개선했습니다.",
-  "whatsNew110Bullet3": "원활한 이용을 위해 마이너 버그를 수정했습니다.",
+  "whatsNew110Title": "새로운 호랑이 펫 & 가구 크기 조절",
+  "whatsNew110Bullet1": "새로운 '호랑이' 펫이 추가되었습니다! 지금 바로 만나보세요.",
+  "whatsNew110Bullet2": "상점에 아름다운 새 배경 테마들이 추가되었습니다.",
+  "whatsNew110Bullet3": "편집 모드에서 두 손가락으로 가구 크기를 자유롭게 조절하세요.",
   "languageChineseSimplified": "중국어(간체)",
   "languageChineseTraditional": "중국어(번체)",
   "languageEnglish": "영어",
@@ -705,6 +705,8 @@
   "furnitureInventoryEmpty": "아직 가구가 없습니다. 샵에서 구매해 보세요.",
   "furnitureInventoryHint": "가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 배치된 가구는 두 손가락으로 확대/축소할 수 있고, 빈 공간을 탭하면 종료됩니다.",
   "roomInventoryTitle": "방 인벤토리",
+  "roomDecorCompatibilityTitle": "최신 방 아이템을 보려면 업데이트하세요",
+  "roomDecorCompatibilityMessage": "이 방에는 더 새로운 펫, 가구 또는 배경이 사용되고 있습니다. 앱을 업데이트하면 대체 표시 대신 최신 공유 아이템을 볼 수 있습니다.",
   "roomDecorHintTitle": "방 꾸미기",
   "roomDecorHintBody": "{buttonLabel}을 눌러 방 수정 모드로 들어간 뒤 가구를 놓거나 배경을 적용하세요.",
   "@roomDecorHintBody": {
@@ -765,6 +767,8 @@
   "petTypeCatTagline": "따뜻한 골골송의 호기심 많은 점프왕.",
   "petTypeFishName": "물고기",
   "petTypeFishTagline": "유영을 좋아하는 톡톡 튀는 수영 친구.",
+  "petTypeTigerName": "호랑이",
+  "petTypeTigerTagline": "줄무늬 자신감으로 당당히 걷는 작은 탐험가.",
   "@roomLeaveMessage": {
     "description": "Confirmation message when leaving a room.",
     "placeholders": {

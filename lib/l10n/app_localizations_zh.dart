@@ -620,18 +620,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew106Bullet3 => 'Fixed several minor known issues';
 
   @override
-  String get whatsNew110Title => 'Adjustable Furniture & Stability';
+  String get whatsNew110Title => 'New Tiger Pet & Furniture Resize';
 
   @override
   String get whatsNew110Bullet1 =>
-      'You can now adjust the size of furniture to fit your room perfectly.';
+      'Meet the new Tiger pet and choose it for your room!';
 
   @override
-  String get whatsNew110Bullet2 => 'Improved app stability and performance.';
+  String get whatsNew110Bullet2 =>
+      'Beautiful new backgrounds are now available in the Shop.';
 
   @override
   String get whatsNew110Bullet3 =>
-      'Fixed minor bugs for a smoother experience.';
+      'Pinch to resize furniture in edit mode for the perfect layout.';
 
   @override
   String get languageChineseSimplified => '简体中文';
@@ -1319,6 +1320,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInventoryTitle => '房间背包';
 
   @override
+  String get roomDecorCompatibilityTitle => '更新后即可查看最新房间物品';
+
+  @override
+  String get roomDecorCompatibilityMessage =>
+      '这个房间正在使用较新的宠物、家具或背景。更新 App 后，就可以看到最新共享物品，而不是备用显示。';
+
+  @override
   String get roomDecorHintTitle => '装饰房间';
 
   @override
@@ -1413,6 +1421,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get petTypeFishTagline => '愛滑行的泡泡游泳家。';
+
+  @override
+  String get petTypeTigerName => '小老虎';
+
+  @override
+  String get petTypeTigerTagline => '帶著條紋氣勢大步前進的小探險家。';
 
   @override
   String get roomLeaveConfirm => '离开房间';
@@ -2144,16 +2158,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get whatsNew106Bullet3 => '修復部分已知的小問題';
 
   @override
-  String get whatsNew110Title => '家具尺寸調整與穩定性提升';
+  String get whatsNew110Title => '老虎寵物登場與家具縮放';
 
   @override
-  String get whatsNew110Bullet1 => '現在可以調整家具大小，讓擺設完美契合您的房間。';
+  String get whatsNew110Bullet1 => '全新「老虎」寵物加入！快來領養你們的新夥伴。';
 
   @override
-  String get whatsNew110Bullet2 => '提升了應用程式的穩定性與效能。';
+  String get whatsNew110Bullet2 => '商店新增多款精美背景，快來佈置你們的家。';
 
   @override
-  String get whatsNew110Bullet3 => '修復了部分已知問題，提供更流暢的體驗。';
+  String get whatsNew110Bullet3 => '編輯模式支援雙指縮放家具，打造理想佈局。';
 
   @override
   String get languageChineseSimplified => '簡體中文';
@@ -2841,6 +2855,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomInventoryTitle => '房間背包';
 
   @override
+  String get roomDecorCompatibilityTitle => '更新後即可查看最新房間物品';
+
+  @override
+  String get roomDecorCompatibilityMessage =>
+      '這個房間正在使用較新的寵物、家具或背景。更新 App 後，就可以看到最新共享物品，而不是替代顯示。';
+
+  @override
   String get roomDecorHintTitle => '裝飾房間';
 
   @override
@@ -2935,6 +2956,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get petTypeFishTagline => '愛滑行的泡泡游泳家。';
+
+  @override
+  String get petTypeTigerName => '小老虎';
+
+  @override
+  String get petTypeTigerTagline => '帶著條紋氣勢大步前進的小探險家。';
 
   @override
   String get roomLeaveConfirm => '離開房間';

@@ -28,10 +28,7 @@ class RoomBackgrounds {
       key: defaultKey,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFFFFF9E5),
-            Color(0xFFFFECE5),
-          ],
+          colors: [Color(0xFFFFF9E5), Color(0xFFFFECE5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -41,20 +38,14 @@ class RoomBackgrounds {
       key: testKey,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFFDBF4FF),
-            Color(0xFFDCCBFF),
-          ],
+          colors: [Color(0xFFDBF4FF), Color(0xFFDCCBFF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       previewDecoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFFDBF4FF),
-            Color(0xFFDCCBFF),
-          ],
+          colors: [Color(0xFFDBF4FF), Color(0xFFDCCBFF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -109,6 +100,13 @@ class RoomBackgrounds {
       isDark: true,
     ),
   };
+
+  static bool supportsKey(String? key) {
+    if (key == null || key.isEmpty) {
+      return true;
+    }
+    return definitions.containsKey(key);
+  }
 
   static RoomBackgroundDefinition resolve(String? key) {
     return definitions[key] ?? definitions[defaultKey]!;

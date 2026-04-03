@@ -1210,25 +1210,25 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew110Title.
   ///
   /// In en, this message translates to:
-  /// **'Adjustable Furniture & Stability'**
+  /// **'New Tiger Pet & Furniture Resize'**
   String get whatsNew110Title;
 
   /// No description provided for @whatsNew110Bullet1.
   ///
   /// In en, this message translates to:
-  /// **'You can now adjust the size of furniture to fit your room perfectly.'**
+  /// **'Meet the new Tiger pet and choose it for your room!'**
   String get whatsNew110Bullet1;
 
   /// No description provided for @whatsNew110Bullet2.
   ///
   /// In en, this message translates to:
-  /// **'Improved app stability and performance.'**
+  /// **'Beautiful new backgrounds are now available in the Shop.'**
   String get whatsNew110Bullet2;
 
   /// No description provided for @whatsNew110Bullet3.
   ///
   /// In en, this message translates to:
-  /// **'Fixed minor bugs for a smoother experience.'**
+  /// **'Pinch to resize furniture in edit mode for the perfect layout.'**
   String get whatsNew110Bullet3;
 
   /// No description provided for @languageChineseSimplified.
@@ -2457,6 +2457,18 @@ abstract class AppLocalizations {
   /// **'Room Inventory'**
   String get roomInventoryTitle;
 
+  /// No description provided for @roomDecorCompatibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update to see the latest room items'**
+  String get roomDecorCompatibilityTitle;
+
+  /// No description provided for @roomDecorCompatibilityMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This room is using a newer pet, furniture, or background. Update the app to see the latest shared items instead of fallback visuals.'**
+  String get roomDecorCompatibilityMessage;
+
   /// No description provided for @roomDecorHintTitle.
   ///
   /// In en, this message translates to:
@@ -2624,6 +2636,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A bubbly swimmer who loves to glide.'**
   String get petTypeFishTagline;
+
+  /// No description provided for @petTypeTigerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiger'**
+  String get petTypeTigerName;
+
+  /// No description provided for @petTypeTigerTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A striped prowler with a bold little swagger.'**
+  String get petTypeTigerTagline;
 
   /// No description provided for @roomLeaveConfirm.
   ///

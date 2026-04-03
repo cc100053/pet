@@ -1,4 +1,5 @@
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/shared/force_update/update_policy.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../shop_item_localization.dart';
@@ -23,6 +24,10 @@ class ShopItem {
     required this.category,
     required this.emoji,
     this.backgroundKey,
+    this.minAppVersion,
+    this.visibilityMode,
+    this.fallbackBehavior,
+    this.fallbackBackgroundKey,
   });
 
   final String id;
@@ -43,6 +48,10 @@ class ShopItem {
   final String? category;
   final String? emoji;
   final String? backgroundKey;
+  final String? minAppVersion;
+  final String? visibilityMode;
+  final String? fallbackBehavior;
+  final String? fallbackBackgroundKey;
 
   bool get isIap => iapProductId != null && iapProductId!.isNotEmpty;
   bool get isBackground => category == 'background';
@@ -52,6 +61,22 @@ class ShopItem {
   bool get isFurniture => category == 'furniture';
   bool get isUtility => category == 'utility';
   bool get isDefaultBackground => sku == 'background_default';
+  bool get isVersionGated =>
+      (visibilityMode ?? '').trim().toLowerCase() == 'version_gated';
+
+  bool isSupportedOnAppVersion(String? appVersion) {
+    final requiredVersion = minAppVersion?.trim();
+    if (requiredVersion == null || requiredVersion.isEmpty) {
+      return true;
+    }
+    final currentVersion = appVersion?.trim();
+    if (currentVersion == null || currentVersion.isEmpty) {
+      return false;
+    }
+    return AppUpdatePolicy.compareVersions(currentVersion, requiredVersion) >=
+        0;
+  }
+
   bool get isRecoveryLetter {
     final skuLower = sku.toLowerCase();
     final categoryLower = (category ?? '').toLowerCase();
@@ -161,6 +186,11 @@ class ShopItem {
     final category = metadata['category'] as String?;
     final emoji = metadata['emoji'] as String?;
     final backgroundKey = metadata['background_key'] as String?;
+    final minAppVersion = metadata['min_app_version'] as String?;
+    final visibilityMode = metadata['visibility_mode'] as String?;
+    final fallbackBehavior = metadata['fallback_behavior'] as String?;
+    final fallbackBackgroundKey =
+        metadata['fallback_background_key'] as String?;
 
     int? priceJpy;
     if (priceJpyRaw is int) {
@@ -208,6 +238,10 @@ class ShopItem {
       category: category,
       emoji: emoji,
       backgroundKey: backgroundKey,
+      minAppVersion: minAppVersion,
+      visibilityMode: visibilityMode,
+      fallbackBehavior: fallbackBehavior,
+      fallbackBackgroundKey: fallbackBackgroundKey,
     );
   }
 }

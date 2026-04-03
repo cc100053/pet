@@ -134,8 +134,8 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
         val explicitAsset = data["pet_avatar_asset"]?.takeIf { it.isNotBlank() }
         val fallbackAsset = petAvatarAssetByType[petType]
 
-        return primaryUrl?.let(::downloadBitmap)
-            ?: explicitAsset?.let(::loadBitmapFromFlutterAsset)
+        return explicitAsset?.let(::loadBitmapFromFlutterAsset)
+            ?: primaryUrl?.let(::downloadBitmap)
             ?: fallbackAsset?.let(::loadBitmapFromFlutterAsset)
             ?: fallbackUrl?.let(::downloadBitmap)
     }
@@ -224,6 +224,7 @@ class PetTomoFirebaseMessagingService : FirebaseMessagingService() {
             "cat" to "assets/pet/cat/cat_stay.gif",
             "fish" to "assets/pet/fish/fish_stay.gif",
             "ghost" to "assets/pet/ghost/ghost_stay.gif",
+            "tiger" to "assets/pet/tiger/tiger_stay.gif",
         )
     }
 }

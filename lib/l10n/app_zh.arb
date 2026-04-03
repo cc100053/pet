@@ -695,6 +695,8 @@
   "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
   "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，雙指縮放已放置家具可調整大小，點空白退出。",
   "roomInventoryTitle": "房间背包",
+  "roomDecorCompatibilityTitle": "更新后即可查看最新房间物品",
+  "roomDecorCompatibilityMessage": "这个房间正在使用较新的宠物、家具或背景。更新 App 后，就可以看到最新共享物品，而不是备用显示。",
   "roomDecorHintTitle": "装饰房间",
   "roomDecorHintBody": "点一下 {buttonLabel} 进入房间修改模式，然后摆放家具或套用背景。",
   "@roomDecorHintBody": {
@@ -755,6 +757,8 @@
   "petTypeCatTagline": "好奇又愛撒嬌的小獵手。",
   "petTypeFishName": "小魚",
   "petTypeFishTagline": "愛滑行的泡泡游泳家。",
+  "petTypeTigerName": "小老虎",
+  "petTypeTigerTagline": "帶著條紋氣勢大步前進的小探險家。",
   "roomLeaveTitle": "要离开房间嗎？",
   "roomLeaveMessage": "你將离开 {name}，並失去聊天室與宠物的存取權。",
   "@roomLeaveMessage": {

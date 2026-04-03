@@ -230,7 +230,10 @@ extension _HomeRoomManager on _HomeViewState {
       orElse: () => null,
     );
     final roomPetType = roomSnapshot?['pet_type'] as String?;
-    final nextPetType = petType ?? roomPetType ?? PetCatalog.defaultPetId;
+    final nextPetType = PetCatalog.resolveIdForAppVersion(
+      petType ?? roomPetType,
+      appVersion: _currentAppVersion,
+    );
     final likelyDeparted = _isRoomLikelyDeparted(roomId);
     _setStateForRoomManager(() {
       _roomId = roomId;
@@ -764,8 +767,9 @@ extension _HomeRoomManager on _HomeViewState {
           hunger = first['hunger'] as num?;
         }
       }
-      final petType = PetCatalog.resolveId(
+      final petType = PetCatalog.resolveIdForAppVersion(
         PetCatalog.typeFromColorDna(row['color_dna']),
+        appVersion: _currentAppVersion,
       );
       summaries[roomId] = _RoomPetSummary(
         petType: petType,

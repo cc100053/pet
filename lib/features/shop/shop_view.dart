@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +16,7 @@ import '../../services/auth/session_utils.dart';
 import '../../services/env.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/iap/revenuecat_service.dart';
+import '../../services/settings/app_settings_repository.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -148,6 +150,8 @@ class _ShopViewState extends State<ShopView> {
   late final Uri _termsOfUseUri;
   Timer? _storeNoticeTimer;
   ShopNoticeData? _storeNotice;
+  String? _currentAppVersion =
+      AppSettingsRepository.instance.lastLaunchedAppVersion;
 
   bool get _hasProAdFreeAccess =>
       widget.isProUser || _activeEntitlements.isNotEmpty;
@@ -295,6 +299,28 @@ class _ShopViewState extends State<ShopView> {
     );
   }
 
+  Future<String?> _ensureCurrentAppVersion() async {
+    final cached = _currentAppVersion?.trim();
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final version = info.version.trim();
+      final resolved = version.isEmpty ? null : version;
+      if (!mounted) {
+        _currentAppVersion = resolved;
+        return resolved;
+      }
+      setState(() {
+        _currentAppVersion = resolved;
+      });
+      return resolved;
+    } catch (_) {
+      return _currentAppVersion;
+    }
+  }
+
   Future<void> _loadStore() async {
     setState(() {
       _loading = true;
@@ -311,17 +337,23 @@ class _ShopViewState extends State<ShopView> {
     }
 
     try {
+      final appVersion = await _ensureCurrentAppVersion();
       final profile = await Supabase.instance.client
           .from('profiles')
           .select('coins,diamonds')
           .eq('user_id', user.id)
           .maybeSingle();
 
-      final itemsResponse = await Supabase.instance.client
-          .from('items')
-          .select('id,sku,type,name,price_coins,price_diamonds,metadata')
-          .eq('is_active', true)
-          .order('price_coins', ascending: true);
+      final itemsResponse = appVersion == null || appVersion.isEmpty
+          ? await Supabase.instance.client
+                .from('items')
+                .select('id,sku,type,name,price_coins,price_diamonds,metadata')
+                .eq('is_active', true)
+                .order('price_coins', ascending: true)
+          : await Supabase.instance.client.rpc(
+              'get_visible_shop_items',
+              params: {'p_app_version': appVersion},
+            );
 
       final inventoryResponse = await Supabase.instance.client
           .from('inventories')

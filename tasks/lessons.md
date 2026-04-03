@@ -1,5 +1,8 @@
 # Lessons
 
+## 2026-04-03
+- When product compatibility rules are defined for shared room content, apply them to every shared visual state type, not just shop-backed decor. Pets need the same version-gated visibility, old-client fallback, and update-prompt path as backgrounds and furniture.
+
 ## 2026-02-23
 - When tightening image-size policy, always profile send latency on real upload path (pick -> compress -> invoke -> reward), not just final byte size.
 - Prefer precomputing expensive transforms (compression) before user-confirmed send so reward/UI feedback stays responsive.
@@ -97,3 +100,6 @@
 - Entering an edit mode should reset transient selection state unless preserving the previous selection is an explicit product decision; otherwise stale selection UI can appear immediately and read like the whole surface auto-selected itself.
 - When the interaction model changes from explicit controls to gestures, remove the old affordance path entirely and update every localized hint string in the same pass; leaving both behind creates contradictory UX and stale memory/docs.
 - When a user asks for a new details surface to be separate from an existing long-press sheet, do not merge them into one “improved” modal even if the functionality overlaps. Preserve the original surface and add the new one on its own trigger path.
+
+## 2026-04-03
+- For new shared room decor (backgrounds/furniture), do not activate the catalog rows globally by default. Treat them as mixed-version compatibility work: gate Shop visibility by app version, add client-side fallback rendering for unsupported shared state, and prompt unsupported clients to update when the room is using newer decor.

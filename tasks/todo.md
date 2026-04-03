@@ -1,9 +1,40 @@
 # TODO
 
+# Plan (2026-04-03 Add Tiger Pet Shared Compatibility)
+- [x] Inspect the current pet selection/render/notification flow and identify every surface that can encounter an unsupported shared pet type.
+- [x] Add a reusable version-gated tiger pet definition plus old-client fallback behavior across pet selection, home room rendering, room list cards, and update prompting.
+- [x] Wire tiger assets/localization/notification avatar mappings, update task/memory notes, and run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-03 Add Tiger Pet Shared Compatibility)
+- [x] Implemented and verified.
+- Scope:
+  - Added a version-gated tiger pet definition to `PetCatalog` (`min_app_version = 1.1.0`) so the same shared-item compatibility policy used by backgrounds/furniture now also applies to pets.
+  - Updated `PetSelectionPage`, `HomeView`, `HomeRoomManager`, and `RoomSelectionView` so unsupported shared pet types automatically fall back to the default pet on older app versions while compatibility-aware clients continue showing tiger normally.
+  - Expanded the existing room compatibility prompt copy to cover pets, added tiger localization/assets, and updated notification avatar payload handling so newer clients prefer the bundled tiger asset while older clients still degrade safely to ghost/default visuals.
+  - Added focused regression coverage for version-gated pet visibility and room-list fallback rendering.
+- Verification:
+  - `dart format lib/features/pet/pet_catalog.dart lib/features/pet/pet_selection_page.dart lib/features/home/home_view.dart lib/features/home/controllers/home_room_manager.dart lib/features/home/room_selection_view.dart test/features/pet/pet_catalog_test.dart test/room_selection_unread_indicator_test.dart`
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-03 Add New Background Catalog)
-- [ ] Inspect the existing room-background rendering/catalog flow and confirm where Shop/Home/background notifications derive their background metadata.
-- [ ] Add the four new background assets to the Flutter background registry plus localized shop naming/description paths so they render correctly in Home, Shop, and inventory surfaces.
-- [ ] Add the matching Supabase store catalog rows for the new free/paid backgrounds, then run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+- [x] Inspect the existing room-background rendering/catalog flow and confirm where Shop/Home/background notifications derive their background metadata.
+- [x] Add the four new background assets to the Flutter background registry plus localized shop naming/description paths so they render correctly in Home, Shop, and inventory surfaces.
+- [x] Replace the one-off activation plan with a long-term version-gated compatibility flow for shared decor, then run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-03 Add New Background Catalog + Shared Decor Compatibility)
+- [x] Implemented and verified.
+- Scope:
+  - Added the four new room background definitions plus localized shop/notification naming for the new free and paid backgrounds.
+  - Introduced generic shop-item compatibility metadata parsing (`min_app_version`, `visibility_mode`, fallback metadata) and a reusable Supabase RPC path `get_visible_shop_items(p_app_version)` so new app versions can see gated catalog items while old versions keep the legacy `is_active` view.
+  - Converted the new backgrounds to version-gated catalog rows (`is_active = false` + metadata gate) and applied the two Supabase migrations live through MCP.
+  - Updated Home to hide unsupported placed furniture, fall back unsupported active backgrounds to the default room background, and show a one-shot update prompt when the current room contains newer shared decor than the client supports.
+- Verification:
+  - `dart format lib/features/shop/models/shop_item.dart lib/features/home/room_backgrounds.dart lib/features/shop/shop_view.dart lib/features/home/home_view.dart test/features/home/room_backgrounds_test.dart test/features/shop/shop_item_compatibility_test.dart`
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
 
 # Plan (2026-04-01 Telegram-Style Chat Long-Press Overlay)
 - [x] Inspect the active chat long-press route, message bubble renderers, and test seams to keep all action logic unchanged while replacing only the presentation layer.

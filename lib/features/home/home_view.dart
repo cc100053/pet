@@ -12,10 +12,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/analytics/analytics_service.dart';
+import '../../services/app_config/app_config_service.dart';
 import '../../services/app_badge_service.dart';
 import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
@@ -305,6 +308,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _basicOnboardingReady = false;
   bool _debugForceOnboardingHidden = false;
   bool _onboardingProfileSaving = false;
+  String? _currentAppVersion =
+      AppSettingsRepository.instance.lastLaunchedAppVersion;
+  final Map<String, String> _unsupportedPetTypesByRoom = {};
+  final Map<String, Set<String>> _unsupportedBackgroundItemIdsByRoom = {};
+  final Map<String, int> _unsupportedPlacedFurnitureCountByRoom = {};
+  final Set<String> _shownDecorCompatibilityPromptKeys = <String>{};
+  bool _decorCompatibilityPromptShowing = false;
 
   @override
   void initState() {
@@ -329,6 +339,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _processPendingNotificationIntent();
     });
     _pendingNotificationIntent ??= _fcmService.takePendingNotificationIntent();
+    unawaited(_ensureCurrentAppVersion());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !_profileEnsured) {
@@ -469,8 +480,33 @@ class _HomeViewState extends ConsumerState<HomeView>
     await _rewardedAdsService.preload(RewardedAdPlacement.doubleCoins);
   }
 
+  Future<String?> _ensureCurrentAppVersion() async {
+    final cached = _currentAppVersion?.trim();
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final version = info.version.trim();
+      final resolved = version.isEmpty ? null : version;
+      if (!mounted) {
+        _currentAppVersion = resolved;
+        return resolved;
+      }
+      setState(() {
+        _currentAppVersion = resolved;
+      });
+      return resolved;
+    } catch (_) {
+      return _currentAppVersion;
+    }
+  }
+
   void _updatePetType(String? petType) {
-    final resolved = PetCatalog.resolveId(petType);
+    final resolved = PetCatalog.resolveIdForAppVersion(
+      petType,
+      appVersion: _currentAppVersion,
+    );
     if (!mounted) {
       _petType = resolved;
       return;
@@ -481,7 +517,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     setState(() {
       _petType = resolved;
     });
-    _precachePetAssets(PetCatalog.byId(resolved));
+    _precachePetAssets(
+      PetCatalog.byIdForAppVersion(resolved, appVersion: _currentAppVersion),
+    );
   }
 
   // --- Logic Methods ---
@@ -2248,14 +2286,20 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   String _resolvePetTypeForRoom(String roomId) {
     if (roomId == _roomId) {
-      return PetCatalog.resolveId(_petType);
+      return PetCatalog.resolveIdForAppVersion(
+        _petType,
+        appVersion: _currentAppVersion,
+      );
     }
     for (final room in _myRooms) {
       if (room['id'] != roomId) {
         continue;
       }
       final type = room['pet_type'] as String?;
-      return PetCatalog.resolveId(type);
+      return PetCatalog.resolveIdForAppVersion(
+        type,
+        appVersion: _currentAppVersion,
+      );
     }
     return PetCatalog.defaultPetId;
   }
@@ -2587,12 +2631,27 @@ class _HomeViewState extends ConsumerState<HomeView>
       final level = row['level'] as int?;
       final exp = row['exp'] as int?;
       final petType = PetCatalog.typeFromColorDna(row['color_dna']);
-      final resolvedPetType = PetCatalog.resolveId(petType);
+      final supportsPetType = PetCatalog.supportsIdOnAppVersion(
+        petType,
+        _currentAppVersion,
+      );
+      final resolvedPetType = PetCatalog.resolveIdForAppVersion(
+        petType,
+        appVersion: _currentAppVersion,
+      );
+      final resolvedRoomId = expectedRoomId;
       if (!mounted) {
         _petName = name;
         _petLevel = level;
         _petExp = exp;
         _petType = resolvedPetType;
+        if (resolvedRoomId != null) {
+          if (supportsPetType) {
+            _unsupportedPetTypesByRoom.remove(resolvedRoomId);
+          } else if (petType != null && petType.isNotEmpty) {
+            _unsupportedPetTypesByRoom[resolvedRoomId] = petType;
+          }
+        }
         return;
       }
       if (expectedRoomId != null && _roomId != expectedRoomId) {
@@ -2607,6 +2666,13 @@ class _HomeViewState extends ConsumerState<HomeView>
         _petLevel = level;
         _petExp = exp;
         _petType = resolvedPetType;
+        if (resolvedRoomId != null) {
+          if (supportsPetType) {
+            _unsupportedPetTypesByRoom.remove(resolvedRoomId);
+          } else if (petType != null && petType.isNotEmpty) {
+            _unsupportedPetTypesByRoom[resolvedRoomId] = petType;
+          }
+        }
         final activeRoomId = _roomId;
         if (activeRoomId != null) {
           _myRooms = _myRooms
@@ -2618,7 +2684,15 @@ class _HomeViewState extends ConsumerState<HomeView>
               .toList();
         }
       });
-      _precachePetAssets(PetCatalog.byId(resolvedPetType));
+      _precachePetAssets(
+        PetCatalog.byIdForAppVersion(
+          resolvedPetType,
+          appVersion: _currentAppVersion,
+        ),
+      );
+      if (!supportsPetType && resolvedRoomId != null) {
+        await _maybePromptForUnsupportedRoomDecor(resolvedRoomId);
+      }
     } catch (_) {
       // Best-effort.
     }
@@ -2823,10 +2897,18 @@ class _HomeViewState extends ConsumerState<HomeView>
     });
 
     try {
-      final itemsResponse = await Supabase.instance.client
-          .from('items')
-          .select('id,sku,type,name,price_coins,price_usd,metadata,is_active')
-          .eq('is_active', true);
+      final appVersion = await _ensureCurrentAppVersion();
+      final itemsResponse = appVersion == null || appVersion.isEmpty
+          ? await Supabase.instance.client
+                .from('items')
+                .select(
+                  'id,sku,type,name,price_coins,price_diamonds,metadata,is_active',
+                )
+                .eq('is_active', true)
+          : await Supabase.instance.client.rpc(
+              'get_visible_shop_items',
+              params: {'p_app_version': appVersion},
+            );
       final inventoryResponse = await Supabase.instance.client.rpc(
         'get_room_furniture_inventory',
         params: {'p_room_id': roomId},
@@ -2875,19 +2957,26 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _loadRoomFurniture(String roomId) async {
     try {
+      await _ensureCurrentAppVersion();
       final response = await Supabase.instance.client
           .from('room_furniture')
           .select(
-            'id,item_id,owner_user_id,position_x,position_y,scale,items(metadata)',
+            'id,item_id,owner_user_id,position_x,position_y,scale,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
           )
           .eq('room_id', roomId);
 
       final placed = <_PlacedFurniture>[];
+      var unsupportedCount = 0;
       for (final row in response as List<dynamic>) {
         final record = row as Map<String, dynamic>;
         final id = record['id'] as String?;
         final itemId = record['item_id'] as String?;
         if (id == null || itemId == null) {
+          continue;
+        }
+        final itemData = record['items'] as Map<String, dynamic>?;
+        if (!_supportsPlacedFurniture(itemData)) {
+          unsupportedCount++;
           continue;
         }
         final ownerUserId = record['owner_user_id'] as String?;
@@ -2913,7 +3002,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       setState(() {
         _placedFurnitureByRoom[roomId] = placed;
+        _unsupportedPlacedFurnitureCountByRoom[roomId] = unsupportedCount;
       });
+      unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -2945,7 +3036,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         column: 'room_id',
         value: roomId,
       ),
-      callback: (payload) => _applyFurnitureRecord(payload.newRecord),
+      callback: (_) => unawaited(_loadRoomFurniture(roomId)),
     );
 
     channel.onPostgresChanges(
@@ -2957,7 +3048,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         column: 'room_id',
         value: roomId,
       ),
-      callback: (payload) => _applyFurnitureRecord(payload.newRecord),
+      callback: (_) => unawaited(_loadRoomFurniture(roomId)),
     );
 
     channel.onPostgresChanges(
@@ -2969,104 +3060,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         column: 'room_id',
         value: roomId,
       ),
-      callback: (payload) => _removeFurnitureRecord(payload.oldRecord),
+      callback: (_) => unawaited(_loadRoomFurniture(roomId)),
     );
 
     channel.subscribe();
-  }
-
-  void _applyFurnitureRecord(Map<String, dynamic> record) {
-    if (!mounted || record.isEmpty) {
-      return;
-    }
-    final roomId = record['room_id'] as String?;
-    final id = record['id'] as String?;
-    final itemId = record['item_id'] as String?;
-    if (roomId == null || id == null || itemId == null) {
-      return;
-    }
-
-    final ownerUserId = record['owner_user_id'] as String?;
-    final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
-    final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
-    final scale = _parseFurnitureScale(record['scale']);
-    final emoji = _resolveFurnitureEmoji(itemId, record);
-    final list = _placedFurnitureByRoom.putIfAbsent(roomId, () => []);
-    final index = list.indexWhere((item) => item.id == id);
-
-    if (index >= 0) {
-      setState(() {
-        list[index]
-          ..itemId = itemId
-          ..ownerUserId = ownerUserId
-          ..emoji = emoji
-          ..normalizedPosition = Offset(posX, posY)
-          ..scale = scale
-          ..isPending = false;
-      });
-      return;
-    }
-
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null && ownerUserId == userId) {
-      final pendingIndex = list.indexWhere(
-        (item) =>
-            item.isPending &&
-            item.itemId == itemId &&
-            (item.normalizedPosition - Offset(posX, posY)).distance < 0.02,
-      );
-      if (pendingIndex >= 0) {
-        setState(() {
-          final previousId = list[pendingIndex].id;
-          list[pendingIndex]
-            ..id = id
-            ..ownerUserId = ownerUserId
-            ..emoji = emoji
-            ..normalizedPosition = Offset(posX, posY)
-            ..scale = scale
-            ..isPending = false;
-          if (_selectedPlacedFurnitureId == previousId) {
-            _selectedPlacedFurnitureId = id;
-          }
-        });
-        return;
-      }
-    }
-
-    setState(() {
-      list.add(
-        _PlacedFurniture(
-          id: id,
-          itemId: itemId,
-          ownerUserId: ownerUserId,
-          emoji: emoji,
-          normalizedPosition: Offset(posX, posY),
-          scale: scale,
-          isPending: false,
-        ),
-      );
-    });
-  }
-
-  void _removeFurnitureRecord(Map<String, dynamic> record) {
-    if (!mounted || record.isEmpty) {
-      return;
-    }
-    final roomId = record['room_id'] as String?;
-    final id = record['id'] as String?;
-    if (roomId == null || id == null) {
-      return;
-    }
-    final list = _placedFurnitureByRoom[roomId];
-    if (list == null) {
-      return;
-    }
-    setState(() {
-      list.removeWhere((item) => item.id == id);
-      if (_selectedPlacedFurnitureId == id) {
-        _selectedPlacedFurnitureId = null;
-      }
-    });
   }
 
   String _resolveFurnitureEmoji(String itemId, Map<String, dynamic> record) {
@@ -3148,12 +3145,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     setState(() => _backgroundLoading = true);
     try {
+      await _ensureCurrentAppVersion();
       final response = await Supabase.instance.client
           .from('room_backgrounds')
           .select('item_id,items(*)')
           .eq('room_id', roomId);
 
       final items = <ShopItem>[];
+      final unsupportedIds = <String>{};
       for (final row in response as List<dynamic>) {
         final record = row as Map<String, dynamic>;
         final itemData = record['items'] as Map<String, dynamic>?;
@@ -3161,8 +3160,13 @@ class _HomeViewState extends ConsumerState<HomeView>
           continue;
         }
         final item = ShopItem.fromJson(itemData);
-        if (item.isBackground) {
+        if (item.isBackground && _supportsBackgroundItem(item)) {
           items.add(item);
+        } else if (item.isBackground) {
+          final itemId = record['item_id'] as String?;
+          if (itemId != null) {
+            unsupportedIds.add(itemId);
+          }
         }
       }
 
@@ -3171,7 +3175,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       setState(() {
         _ownedBackgroundsByRoom[roomId] = items;
+        _unsupportedBackgroundItemIdsByRoom[roomId] = unsupportedIds;
       });
+      unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
     } catch (error) {
       if (!mounted) {
         return;
@@ -3205,6 +3211,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _activeBackgroundByRoom[roomId] = activeItemId;
       });
+      unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
     } catch (error) {
       if (!mounted) {
         return;
@@ -3339,6 +3346,106 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
     }
     return RoomBackgrounds.resolve(activeItem?.backgroundKey);
+  }
+
+  bool _supportsBackgroundItem(ShopItem item) {
+    if (!item.isSupportedOnAppVersion(_currentAppVersion)) {
+      return false;
+    }
+    return RoomBackgrounds.supportsKey(item.backgroundKey);
+  }
+
+  bool _supportsPlacedFurniture(Map<String, dynamic>? itemData) {
+    if (itemData == null) {
+      return false;
+    }
+    final item = ShopItem.fromJson(itemData);
+    if (!item.isFurniture) {
+      return false;
+    }
+    return item.isSupportedOnAppVersion(_currentAppVersion);
+  }
+
+  Future<void> _maybePromptForUnsupportedRoomDecor(String roomId) async {
+    if (!mounted || _roomId != roomId || _decorCompatibilityPromptShowing) {
+      return;
+    }
+    final hasUnsupportedPet = _unsupportedPetTypesByRoom.containsKey(roomId);
+    final unsupportedBackgroundIds =
+        _unsupportedBackgroundItemIdsByRoom[roomId] ?? const <String>{};
+    final activeBackgroundId = _activeBackgroundByRoom[roomId];
+    final hasUnsupportedBackground =
+        activeBackgroundId != null &&
+        unsupportedBackgroundIds.contains(activeBackgroundId);
+    final hasUnsupportedFurniture =
+        (_unsupportedPlacedFurnitureCountByRoom[roomId] ?? 0) > 0;
+    if (!hasUnsupportedPet &&
+        !hasUnsupportedBackground &&
+        !hasUnsupportedFurniture) {
+      return;
+    }
+    final promptKey =
+        '$roomId:${_currentAppVersion ?? 'unknown'}:${hasUnsupportedPet ? 'pet' : 'no-pet'}:${hasUnsupportedBackground ? 'bg' : 'no-bg'}:${hasUnsupportedFurniture ? 'furniture' : 'no-furniture'}';
+    if (_shownDecorCompatibilityPromptKeys.contains(promptKey)) {
+      return;
+    }
+    _shownDecorCompatibilityPromptKeys.add(promptKey);
+    _decorCompatibilityPromptShowing = true;
+    final config = await AppConfigService().fetchForceUpdateConfig();
+    final storeUrl = config?.storeUrl ?? AppConfigService.iosAppStoreUrl;
+    if (!mounted || _roomId != roomId) {
+      _decorCompatibilityPromptShowing = false;
+      return;
+    }
+    try {
+      await showAppDialog<void>(
+        context: context,
+        builder: (dialogContext) => AppDialog(
+          tone: AppDialogTone.info,
+          title: AppLocalizations.of(
+            dialogContext,
+          )!.roomDecorCompatibilityTitle,
+          message: AppLocalizations.of(
+            dialogContext,
+          )!.roomDecorCompatibilityMessage,
+          actions: [
+            AppDialogAction.secondary(
+              label: AppLocalizations.of(dialogContext)!.commonClose,
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            AppDialogAction.primary(
+              label: AppLocalizations.of(dialogContext)!.forceUpdateAction,
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                unawaited(_launchCompatibilityUpdate(storeUrl));
+              },
+            ),
+          ],
+        ),
+      );
+    } finally {
+      _decorCompatibilityPromptShowing = false;
+    }
+  }
+
+  Future<void> _launchCompatibilityUpdate(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      return;
+    }
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.forceUpdateLinkError),
+          ),
+        );
+      }
+    } catch (_) {}
   }
 
   SystemUiOverlayStyle _currentOverlayStyle() {
@@ -4364,6 +4471,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 ),
                 selectedRoomId: roomSelectionId,
                 userAvatarUrl: _myAvatarUrl,
+                currentAppVersion: _currentAppVersion,
                 highlightCreateRoomCta: _isCreatePetOnboardingStepActive,
                 createRoomCtaKey: _onboardingCreateRoomCtaKey,
                 highlightJoinRoomCta: _isCreatePetOnboardingStepActive,

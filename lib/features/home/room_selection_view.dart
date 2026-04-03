@@ -29,6 +29,7 @@ class RoomSelectionView extends StatelessWidget {
     this.userNameById = const {},
     this.selectedRoomId,
     this.userAvatarUrl,
+    this.currentAppVersion,
     this.topBanner,
     this.highlightCreateRoomCta = false,
     this.createRoomCtaKey,
@@ -49,6 +50,7 @@ class RoomSelectionView extends StatelessWidget {
   final Map<String, String?> userNameById;
   final String? selectedRoomId;
   final String? userAvatarUrl;
+  final String? currentAppVersion;
   final Widget? topBanner;
   final bool highlightCreateRoomCta;
   final Key? createRoomCtaKey;
@@ -463,7 +465,10 @@ class RoomSelectionView extends StatelessWidget {
         : userNameById[latestSenderId];
     final petName = (room['pet_name'] as String?)?.trim();
     final petType = room['pet_type'] as String?;
-    final petDefinition = PetCatalog.byId(petType);
+    final petDefinition = PetCatalog.byIdForAppVersion(
+      petType,
+      appVersion: currentAppVersion,
+    );
     final displayName = petName == null || petName.isEmpty
         ? petDefinition.name(l10n)
         : petName;

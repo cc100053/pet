@@ -4,7 +4,12 @@ import 'package:pet/features/home/room_selection_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 void main() {
-  Widget buildView({required int unreadCount}) {
+  Widget buildView({
+    required int unreadCount,
+    String? currentAppVersion,
+    String petType = 'ghost',
+    String? petName = 'Mochi',
+  }) {
     return MaterialApp(
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -14,8 +19,8 @@ void main() {
           rooms: [
             {
               'id': 'room-1',
-              'pet_name': 'Mochi',
-              'pet_type': 'ghost',
+              'pet_name': petName,
+              'pet_type': petType,
               'pet_health': 0.8,
               'unread_count': unreadCount,
             },
@@ -30,6 +35,7 @@ void main() {
           userNameById: const {},
           selectedRoomId: 'room-1',
           userAvatarUrl: null,
+          currentAppVersion: currentAppVersion,
         ),
       ),
     );
@@ -53,5 +59,21 @@ void main() {
     await tester.pumpWidget(buildView(unreadCount: 0));
 
     expect(find.byKey(const Key('room_unread_indicator_room-1')), findsNothing);
+  });
+
+  testWidgets('falls back unsupported room pets to ghost in room selection', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      buildView(
+        unreadCount: 0,
+        currentAppVersion: '1.0.9',
+        petType: 'tiger',
+        petName: null,
+      ),
+    );
+
+    expect(find.text('Ghost'), findsOneWidget);
+    expect(find.text('Tiger'), findsNothing);
   });
 }

@@ -622,16 +622,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew106Bullet3 => '軽微な不具合の修正';
 
   @override
-  String get whatsNew110Title => '家具のサイズ調整と安定性の向上';
+  String get whatsNew110Title => '新ペット「トラ」登場＆家具のサイズ調整';
 
   @override
-  String get whatsNew110Bullet1 => '家具のサイズを調整して、お部屋にぴったり合わせられるようになりました。';
+  String get whatsNew110Bullet1 => '新しいペット「トラ」が登場！お部屋に迎えてみましょう。';
 
   @override
-  String get whatsNew110Bullet2 => 'アプリの安定性とパフォーマンスを向上させました。';
+  String get whatsNew110Bullet2 => 'ショップに新しい背景が追加されました。';
 
   @override
-  String get whatsNew110Bullet3 => '軽微な不具合を修正し、よりスムーズな体験を提供します。';
+  String get whatsNew110Bullet3 => '2本指ピンチ操作で家具のサイズを自由に調整できます。';
 
   @override
   String get languageChineseSimplified => '簡体字中国語';
@@ -1325,6 +1325,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomInventoryTitle => 'ルーム在庫';
 
   @override
+  String get roomDecorCompatibilityTitle => '最新のルームアイテムを見るにはアップデート';
+
+  @override
+  String get roomDecorCompatibilityMessage =>
+      'このルームでは新しいペットや家具、背景が使われています。アプリを更新すると、代替表示ではなく最新の共有アイテムが見られます。';
+
+  @override
   String get roomDecorHintTitle => '部屋を飾ろう';
 
   @override
@@ -1419,6 +1426,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get petTypeFishTagline => 'ぷくぷく泳ぐ、きらきらスイマー。';
+
+  @override
+  String get petTypeTigerName => 'トラ';
+
+  @override
+  String get petTypeTigerTagline => 'しま模様で堂々と歩く、ちいさな冒険家。';
 
   @override
   String get roomLeaveConfirm => '退出する';

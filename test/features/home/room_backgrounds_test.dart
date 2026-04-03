@@ -27,4 +27,9 @@ void main() {
       isTrue,
     );
   });
+
+  test('supports known keys and rejects unknown keys', () {
+    expect(RoomBackgrounds.supportsKey(RoomBackgrounds.sageFrameKey), isTrue);
+    expect(RoomBackgrounds.supportsKey('future_background'), isFalse);
+  });
 }

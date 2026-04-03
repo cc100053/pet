@@ -649,18 +649,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew106Bullet3 => 'Fixed several minor known issues';
 
   @override
-  String get whatsNew110Title => 'Adjustable Furniture & Stability';
+  String get whatsNew110Title => 'New Tiger Pet & Furniture Resize';
 
   @override
   String get whatsNew110Bullet1 =>
-      'You can now adjust the size of furniture to fit your room perfectly.';
+      'Meet the new Tiger pet and choose it for your room!';
 
   @override
-  String get whatsNew110Bullet2 => 'Improved app stability and performance.';
+  String get whatsNew110Bullet2 =>
+      'Beautiful new backgrounds are now available in the Shop.';
 
   @override
   String get whatsNew110Bullet3 =>
-      'Fixed minor bugs for a smoother experience.';
+      'Pinch to resize furniture in edit mode for the perfect layout.';
 
   @override
   String get languageChineseSimplified => 'Simplified Chinese';
@@ -1366,6 +1367,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomInventoryTitle => 'Room Inventory';
 
   @override
+  String get roomDecorCompatibilityTitle =>
+      'Update to see the latest room items';
+
+  @override
+  String get roomDecorCompatibilityMessage =>
+      'This room is using a newer pet, furniture, or background. Update the app to see the latest shared items instead of fallback visuals.';
+
+  @override
   String get roomDecorHintTitle => 'Decorate room';
 
   @override
@@ -1463,6 +1472,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petTypeFishTagline => 'A bubbly swimmer who loves to glide.';
+
+  @override
+  String get petTypeTigerName => 'Tiger';
+
+  @override
+  String get petTypeTigerTagline =>
+      'A striped prowler with a bold little swagger.';
 
   @override
   String get roomLeaveConfirm => 'Leave room';

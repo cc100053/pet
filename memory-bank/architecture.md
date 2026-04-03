@@ -19,6 +19,7 @@ Implemented:
   - Shared light-theme `AppBar` chrome now defaults to `AppStatusBarStyles.light`, keeping dark status-bar content on all standard white/cream app surfaces. Home and chat continue to override overlay style per active room background.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
 - `lib/features/home/`: Signed-in home shell.
+  - Shared room decor now has a compatibility layer for future catalog drops. Home still reads `room_backgrounds` / `room_background_state` and `room_furniture` from Supabase, but compatibility-aware builds classify each shared decor item against the current app version using `items.metadata.min_app_version` plus local rendering support. Unsupported active backgrounds fall back to the default room background, unsupported placed furniture is skipped entirely, and Home shows a one-shot update prompt that links to the store when the current room uses newer shared decor than the running app can render.
   - Room furniture inventory now behaves as a shared room pool on new clients: Home reads aggregated room totals through the `get_room_furniture_inventory` RPC instead of filtering `room_item_inventories` by the current user, so one member's furniture purchase becomes immediately available to other room members in both Home and Shop.
   - Furniture edit mode now supports selecting an already placed furniture item, dragging it with one finger, and pinch-resizing it with two fingers. Entering furniture mode clears any stale prior selection so transform affordances stay hidden until the user taps or gestures on a placed item. Size is persisted on `public.room_furniture.scale` with a shared `0.8x..2.0x` clamp, and gesture-based resize operations also re-clamp the item's normalized position so larger pieces stay inside the room bounds.
   - `lib/features/home/room_selection_view.dart`: Room Selection header title now uses adaptive scale-down fitting, so localized `Room Selection` copy stays fully readable in the top bar instead of truncating on narrower widths.
@@ -73,6 +74,7 @@ Implemented:
 - `lib/features/ads/`: iOS AdMob rewarded + banner ad UI components and service wiring.
   - `lib/services/ads/admob_startup_service.dart`: ATT-aware lazy AdMob startup gate shared by rewarded/banner placements; denied ATT falls back to non-personalized ad requests instead of blocking ad load.
   - `lib/features/pet/leveling.dart`: Leveling helpers (EXP progress + level cap).
+  - `lib/features/pet/pet_catalog.dart`: Shared pet registry. Pet definitions can now carry a minimum supported app version, so shared pet types (for example tiger) can ship behind the same compatibility policy as decor. Compatibility-aware surfaces (`PetSelectionPage`, Home active-room rendering, and Room Selection cards) resolve unsupported pet types back to the default pet on older app versions instead of rendering unknown shared state directly.
 - `lib/services/iap/revenuecat_service.dart`: RevenueCat setup and purchase helpers.
 - `lib/services/review/review_prompt_service.dart`: Feed-milestone driven Apple in-app review trigger service.
 - `lib/services/crash/crash_reporting_service.dart`: Central Crashlytics wrapper (fatal/non-fatal reporting, custom keys, breadcrumb logging, and navigator route observer).
@@ -115,6 +117,7 @@ Planned:
 - `lib/features/pet/`: Pet state machine (hunger, mood, hygiene, sleep), night mode protection, growth, and expanded leveling UX.
 - `lib/features/gallery/`: Calendar view for image memories.
 - `lib/features/shop/`: Cosmetics, subscription, consumables.
+  - Shop catalog visibility is now version-aware. Compatibility-aware builds fetch `get_visible_shop_items(p_app_version)` so new version-gated items can be shipped in Supabase ahead of a client release without exposing them to old app builds. Legacy clients still rely on the old direct `items.is_active = true` query and therefore never see version-gated rows.
   - Shop floating notices now accept success-specific visuals, so purchase feedback can reuse the purchased item's own emoji/asset/background preview instead of a generic check icon.
 - `lib/shared/`: UI components, theme, utilities.
 
@@ -126,12 +129,17 @@ Planned:
   - Shared room furniture availability is now exposed through `get_room_furniture_inventory`, and `place_room_furniture` validates against room-wide totals rather than buyer-only totals.
 - Realtime: Chat and system events.
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
+- Store catalog visibility:
+  - Public catalog items continue to use `items.is_active = true`.
+  - New gated decor items now use `items.metadata.visibility_mode = 'version_gated'` plus `min_app_version`, and Supabase exposes `get_visible_shop_items(p_app_version)` to return the correct catalog slice for compatibility-aware clients.
+  - `app_version_compare(text, text)` is the shared SQL helper used by catalog gating.
 - Room invites: `room_invite_codes` supports up to 3 active room codes; members can generate additional codes via RPC while legacy clients continue using `rooms.invite_code` as the current primary code.
 - Edge Functions: Feed validation + upload, avatar upload, account deletion, and scheduled hunger-alert dispatch.
 - Webhooks: Trigger friend notifications on feed events.
 - Notifications:
   - Android: custom native `FirebaseMessagingService` (`NotificationCompat.MessagingStyle`) using room thread grouping and composed pet-avatar + app-badge large icon.
     - Tap routing now forwards `room_id`, `message_id`, and `message_kind` into Flutter through `MainActivity` (`pet/notification_taps`) for both cold-start and `onNewIntent` resume flows.
+    - Notification avatar resolution now prefers the explicit bundled asset from the payload before remote URLs, so newly added pet types can render correctly on updated builds while older builds still fall back to their known default avatar assets.
   - iOS: Notification Service Extension (`PetTomoNotificationServiceExtension`) follows an Apple-default reliable style: fast title/body rewrite + room `thread-id` shaping only (no communication-intent donation and no remote media fetch in the extension), prioritizing consistent delivery/appearance across states.
   - Delivery diagnostics: `notify_friend` persists per-token send outcomes to `public.notification_delivery_logs` and returns non-2xx when all token sends fail.
   - Hunger alert dispatch supports server-driven runs via `hunger_tick_dispatch`, which ticks pets and invokes `notify_friend` webhook delivery without requiring any active client session.

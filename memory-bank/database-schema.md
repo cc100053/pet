@@ -167,7 +167,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `type` (text: cosmetic/consumable/subscription)
   - `name` (text)
   - `price_coins` (int), `price_diamonds` (int), `price_usd` (numeric)
-  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`; background items include `category: background` + `background_key`), `is_active` (bool)
+  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`; background items include `category: background` + `background_key`; version-gated decor may also include `visibility_mode`, `min_app_version`, `fallback_behavior`, and `fallback_background_key`), `is_active` (bool)
 
 - `inventories`
   - `user_id` (uuid, fk)
@@ -212,6 +212,10 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
 ## Furniture RPC Notes
 - `get_room_furniture_inventory(p_room_id uuid)`
   - Returns room-member-authorized aggregated furniture totals as `{ item_id, total_quantity }`.
+- `get_visible_shop_items(p_app_version text)`
+  - Returns the catalog slice visible to the requesting app version.
+  - Public items still rely on `is_active = true`.
+  - Version-gated decor items can remain `is_active = false` for old-client safety and become visible through this RPC once `app_version_compare(p_app_version, metadata.min_app_version) >= 0`.
 - `purchase_room_furniture_with_coins(p_room_id uuid, p_item_id uuid)`
 - `purchase_room_furniture_with_diamonds(p_room_id uuid, p_item_id uuid)`
   - Still increment the buyer-attributed `room_item_inventories` row, and now also return `room_total_quantity` for new clients.
