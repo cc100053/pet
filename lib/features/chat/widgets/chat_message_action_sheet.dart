@@ -57,178 +57,246 @@ class ChatMessageActionSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final routeAnimation = ModalRoute.of(context)?.animation;
+    final animation = CurvedAnimation(
+      parent: routeAnimation ?? const AlwaysStoppedAnimation<double>(1),
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInOutCubicEmphasized,
+    );
+    final backdropAnimation = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.0, 1.0, curve: Curves.easeOutQuart),
+      reverseCurve: const Interval(0.0, 1.0, curve: Curves.easeInOutCubic),
+    );
+    final railAnimation = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.12, 0.9, curve: Curves.easeOutQuart),
+      reverseCurve: const Interval(0.0, 0.78, curve: Curves.easeInOutCubic),
+    );
+    final previewAnimation = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.18, 0.94, curve: Curves.easeOutQuart),
+      reverseCurve: const Interval(0.0, 0.84, curve: Curves.easeInOutCubic),
+    );
+    final cardAnimation = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.24, 1.0, curve: Curves.easeOutQuart),
+      reverseCurve: const Interval(0.0, 0.9, curve: Curves.easeInOutCubic),
+    );
 
-    return Material(
-      color: Colors.transparent,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const outerMargin = 12.0;
-          const railHeightEstimate = 56.0;
-          const railToPreviewGap = 10.0;
-          const previewToActionsGap = 12.0;
-          final size = constraints.biggest;
-          final safeTop = anchor.safePadding.top + outerMargin;
-          final safeBottom = anchor.safePadding.bottom + outerMargin;
-          final previewWidth = anchor.messageRect.width.clamp(
-            140.0,
-            size.width - (outerMargin * 2),
-          );
-          final minimumRailWidth = (reactionOptions.length * 48) + 88.0;
-          final railWidth = math
-              .min(
+    return AnimatedBuilder(
+      animation: Listenable.merge(<Listenable>[
+        backdropAnimation,
+        railAnimation,
+        previewAnimation,
+        cardAnimation,
+      ]),
+      builder: (context, _) {
+        final backdropProgress = backdropAnimation.value.clamp(0.0, 1.0);
+        final railProgress = railAnimation.value.clamp(0.0, 1.0);
+        final previewProgress = previewAnimation.value.clamp(0.0, 1.0);
+        final cardProgress = cardAnimation.value.clamp(0.0, 1.0);
+        final backdropSigma = 16 * backdropProgress;
+        final backdropOpacity = 0.14 * backdropProgress;
+
+        return Material(
+          color: Colors.transparent,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const outerMargin = 12.0;
+              const railHeightEstimate = 56.0;
+              const railToPreviewGap = 10.0;
+              const previewToActionsGap = 12.0;
+              final size = constraints.biggest;
+              final safeTop = anchor.safePadding.top + outerMargin;
+              final safeBottom = anchor.safePadding.bottom + outerMargin;
+              final previewWidth = anchor.messageRect.width.clamp(
+                140.0,
                 size.width - (outerMargin * 2),
-                math.max(previewWidth + 24, minimumRailWidth),
-              )
-              .toDouble();
-          final actionCardWidth = math
-              .min(size.width - (outerMargin * 2), math.max(previewWidth, 220))
-              .toDouble();
-          final previewLeft = _anchoredLeft(
-            containerWidth: previewWidth,
-            viewportWidth: size.width,
-            outerMargin: outerMargin,
-          );
-          final railLeft = _anchoredLeft(
-            containerWidth: railWidth,
-            viewportWidth: size.width,
-            outerMargin: outerMargin,
-          );
-          final actionCardLeft = _anchoredLeft(
-            containerWidth: actionCardWidth,
-            viewportWidth: size.width,
-            outerMargin: outerMargin,
-          );
-          final actionCount = 2 + (isMine ? 0 : 2);
-          final estimatedActionHeight = 20 + (actionCount * 56);
-          final estimatedTotalHeight =
-              railHeightEstimate +
-              railToPreviewGap +
-              anchor.messageRect.height +
-              previewToActionsGap +
-              estimatedActionHeight;
-          final top =
-              (anchor.messageRect.top - railHeightEstimate - railToPreviewGap)
-                  .clamp(
-                    safeTop,
-                    math.max(
-                      safeTop,
-                      size.height - safeBottom - estimatedTotalHeight,
-                    ),
+              );
+              final minimumRailWidth = (reactionOptions.length * 48) + 88.0;
+              final railWidth = math
+                  .min(
+                    size.width - (outerMargin * 2),
+                    math.max(previewWidth + 24, minimumRailWidth),
                   )
                   .toDouble();
-          final previewTop = top + railHeightEstimate + railToPreviewGap;
-          final actionTop =
-              previewTop + anchor.messageRect.height + previewToActionsGap;
-
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  key: const ValueKey('chatMessageActionOverlayBackdrop'),
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).pop(),
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      key: const ValueKey('chatMessageActionOverlayBlur'),
-                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.14),
+              final actionCardWidth = math
+                  .min(
+                    size.width - (outerMargin * 2),
+                    math.max(previewWidth, 220),
+                  )
+                  .toDouble();
+              final previewLeft = _anchoredLeft(
+                containerWidth: previewWidth,
+                viewportWidth: size.width,
+                outerMargin: outerMargin,
+              );
+              final railLeft = _anchoredLeft(
+                containerWidth: railWidth,
+                viewportWidth: size.width,
+                outerMargin: outerMargin,
+              );
+              final actionCardLeft = _anchoredLeft(
+                containerWidth: actionCardWidth,
+                viewportWidth: size.width,
+                outerMargin: outerMargin,
+              );
+              final actionCount = 2 + (isMine ? 0 : 2);
+              final estimatedActionHeight = 20 + (actionCount * 56);
+              final estimatedTotalHeight =
+                  railHeightEstimate +
+                  railToPreviewGap +
+                  anchor.messageRect.height +
+                  previewToActionsGap +
+                  estimatedActionHeight;
+              final top =
+                  (anchor.messageRect.top -
+                          railHeightEstimate -
+                          railToPreviewGap)
+                      .clamp(
+                        safeTop,
+                        math.max(
+                          safeTop,
+                          size.height - safeBottom - estimatedTotalHeight,
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: railLeft,
-                top: top,
-                width: railWidth,
-                child: _GlassCapsule(
-                  key: const ValueKey('chatMessageActionSheetReactionRail'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  borderRadius: BorderRadius.circular(999),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (final emoji in reactionOptions)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: _ReactionChip(
-                              emoji: emoji,
-                              isSelected: selectedReaction == emoji,
-                              onTap: () => onReactionSelected(emoji),
+                      )
+                      .toDouble();
+              final previewTop = top + railHeightEstimate + railToPreviewGap;
+              final actionTop =
+                  previewTop + anchor.messageRect.height + previewToActionsGap;
+
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: GestureDetector(
+                      key: const ValueKey('chatMessageActionOverlayBackdrop'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).pop(),
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          key: const ValueKey('chatMessageActionOverlayBlur'),
+                          filter: ImageFilter.blur(
+                            sigmaX: backdropSigma,
+                            sigmaY: backdropSigma,
+                          ),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(
+                                alpha: backdropOpacity,
+                              ),
                             ),
                           ),
-                        _MoreReactionsChip(
-                          onTap: onMoreReactions,
-                          label: l10n.chatMoreReactionsAction,
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Positioned(
-                left: previewLeft,
-                top: previewTop,
-                width: previewWidth,
-                child: IgnorePointer(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: anchor.messageRect.height,
-                    ),
-                    child: KeyedSubtree(
-                      key: const ValueKey('chatMessageActionSheetPreview'),
-                      child: preview,
+                  Positioned(
+                    left: railLeft,
+                    top: top - ((1 - railProgress) * 6),
+                    width: railWidth,
+                    child: Opacity(
+                      opacity: railProgress,
+                      child: _GlassCapsule(
+                        key: const ValueKey(
+                          'chatMessageActionSheetReactionRail',
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              for (final emoji in reactionOptions)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 4),
+                                  child: _ReactionChip(
+                                    emoji: emoji,
+                                    isSelected: selectedReaction == emoji,
+                                    onTap: () => onReactionSelected(emoji),
+                                  ),
+                                ),
+                              _MoreReactionsChip(
+                                onTap: onMoreReactions,
+                                label: l10n.chatMoreReactionsAction,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Positioned(
-                left: actionCardLeft,
-                top: actionTop,
-                width: actionCardWidth,
-                child: _GlassActionCard(
-                  key: const ValueKey('chatMessageActionSheetOptionsCard'),
-                  children: [
-                    _ActionRow(
-                      icon: Icons.reply_rounded,
-                      label: l10n.chatReplyAction,
-                      onTap: onReply,
-                    ),
-                    _ActionRow(
-                      icon: Icons.content_copy_rounded,
-                      label: l10n.chatCopyAction,
-                      enabled: copyEnabled,
-                      onTap: copyEnabled ? onCopy : null,
-                    ),
-                    if (!isMine)
-                      _ActionRow(
-                        icon: Icons.report_gmailerrorred_outlined,
-                        label: l10n.chatReportMessageTitle,
-                        onTap: onReport,
+                  Positioned(
+                    left: previewLeft,
+                    top: previewTop - ((1 - previewProgress) * 3),
+                    width: previewWidth,
+                    child: Opacity(
+                      opacity: previewProgress,
+                      child: IgnorePointer(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: anchor.messageRect.height,
+                          ),
+                          child: KeyedSubtree(
+                            key: const ValueKey(
+                              'chatMessageActionSheetPreview',
+                            ),
+                            child: preview,
+                          ),
+                        ),
                       ),
-                    if (!isMine)
-                      _ActionRow(
-                        icon: Icons.block_rounded,
-                        label: isBlocked
-                            ? l10n.chatUserAlreadyBlocked
-                            : l10n.chatBlockUser,
-                        enabled: !isBlocked,
-                        onTap: isBlocked ? null : onBlock,
+                    ),
+                  ),
+                  Positioned(
+                    left: actionCardLeft,
+                    top: actionTop + ((1 - cardProgress) * 6),
+                    width: actionCardWidth,
+                    child: Opacity(
+                      opacity: cardProgress,
+                      child: _GlassActionCard(
+                        key: const ValueKey(
+                          'chatMessageActionSheetOptionsCard',
+                        ),
+                        children: [
+                          _ActionRow(
+                            icon: Icons.reply_rounded,
+                            label: l10n.chatReplyAction,
+                            onTap: onReply,
+                          ),
+                          _ActionRow(
+                            icon: Icons.content_copy_rounded,
+                            label: l10n.chatCopyAction,
+                            enabled: copyEnabled,
+                            onTap: copyEnabled ? onCopy : null,
+                          ),
+                          if (!isMine)
+                            _ActionRow(
+                              icon: Icons.report_gmailerrorred_outlined,
+                              label: l10n.chatReportMessageTitle,
+                              onTap: onReport,
+                            ),
+                          if (!isMine)
+                            _ActionRow(
+                              icon: Icons.block_rounded,
+                              label: isBlocked
+                                  ? l10n.chatUserAlreadyBlocked
+                                  : l10n.chatBlockUser,
+                              enabled: !isBlocked,
+                              onTap: isBlocked ? null : onBlock,
+                            ),
+                        ],
                       ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

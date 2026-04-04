@@ -1685,6 +1685,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 320),
       pageBuilder: (dialogContext, _, _) => ChatMessageActionSheet(
         anchor: anchor,
         preview: preview,
@@ -1719,18 +1720,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         ),
       ),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
-        );
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.98, end: 1).animate(curved),
-            child: child,
-          ),
-        );
+        return child;
       },
     );
 
