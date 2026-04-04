@@ -146,7 +146,7 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     0,
     0,
     null,
-    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"sage_frame","description":"A soft paper-textured room with a playful sage border.","visibility_mode":"version_gated","min_app_version":"1.1.0","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
+    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"sage_frame","description":"A soft paper-textured room with a playful sage border.","visibility_mode":"version_gated","min_app_version":"1.1.0","shop_visibility":"hidden","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
     false
   ),
   (
@@ -156,27 +156,27 @@ insert into items (sku, type, name, price_coins, price_diamonds, price_usd, meta
     0,
     0,
     null,
-    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"lilac_frame","description":"A soft paper-textured room with a gentle lilac border.","visibility_mode":"version_gated","min_app_version":"1.1.0","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
+    '{"price_jpy":0,"currency":"JPY","category":"background","background_key":"lilac_frame","description":"A soft paper-textured room with a gentle lilac border.","visibility_mode":"version_gated","min_app_version":"1.1.0","shop_visibility":"hidden","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
     false
   ),
   (
     'background_bubble_sky',
     'cosmetic',
     'Bubble Sky Background',
-    200,
-    200,
+    250,
     null,
-    '{"price_jpy":200,"currency":"JPY","category":"background","background_key":"bubble_sky","description":"A bright blue sky filled with clouds and iridescent bubbles.","visibility_mode":"version_gated","min_app_version":"1.1.0","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
+    null,
+    '{"price_jpy":250,"currency":"JPY","category":"background","background_key":"bubble_sky","description":"A bright blue sky filled with clouds and iridescent bubbles.","visibility_mode":"version_gated","min_app_version":"1.1.0","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
     false
   ),
   (
     'background_starlit_dream',
     'cosmetic',
     'Starlit Dream Background',
-    200,
-    200,
+    220,
     null,
-    '{"price_jpy":200,"currency":"JPY","category":"background","background_key":"starlit_dream","description":"A dreamy night sky with pastel planets, clouds, and shooting stars.","visibility_mode":"version_gated","min_app_version":"1.1.0","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
+    null,
+    '{"price_jpy":220,"currency":"JPY","category":"background","background_key":"starlit_dream","description":"A dreamy night sky with pastel planets, clouds, and shooting stars.","visibility_mode":"version_gated","min_app_version":"1.1.0","fallback_behavior":"default_background","fallback_background_key":"default"}'::jsonb,
     false
   ),
   (

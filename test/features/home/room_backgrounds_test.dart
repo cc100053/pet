@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:pet/features/home/room_backgrounds.dart';
 
 void main() {
@@ -26,6 +27,18 @@ void main() {
       RoomBackgrounds.resolve(RoomBackgrounds.starlitDreamKey).isDark,
       isTrue,
     );
+  });
+
+  test('uses the corrected asset paths for the new background images', () {
+    final sage = RoomBackgrounds.resolve(RoomBackgrounds.sageFrameKey);
+    final bubble = RoomBackgrounds.resolve(RoomBackgrounds.bubbleSkyKey);
+
+    final sageImage = (sage.decoration.image!.image as AssetImage).assetName;
+    final bubbleImage =
+        (bubble.decoration.image!.image as AssetImage).assetName;
+
+    expect(sageImage, 'assets/bg/free/background-free-01.jpg');
+    expect(bubbleImage, 'assets/bg/paid/background-paid-01.jpg');
   });
 
   test('supports known keys and rejects unknown keys', () {

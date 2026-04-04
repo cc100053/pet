@@ -118,6 +118,7 @@ Planned:
 - `lib/features/gallery/`: Calendar view for image memories.
 - `lib/features/shop/`: Cosmetics, subscription, consumables.
   - Shop catalog visibility is now version-aware. Compatibility-aware builds fetch `get_visible_shop_items(p_app_version)` so new version-gated items can be shipped in Supabase ahead of a client release without exposing them to old app builds. Legacy clients still rely on the old direct `items.is_active = true` query and therefore never see version-gated rows.
+  - The two free rollout-only room backgrounds (`sage_frame`, `lilac_frame`) are hidden from the user-facing Shop via `items.metadata.shop_visibility = 'hidden'`, while the two paid backgrounds remain normal background catalog entries and render through the same `RoomBackgrounds` preview component used by Shop cards, preview dialogs, Home inventory, and success notices.
   - Shop floating notices now accept success-specific visuals, so purchase feedback can reuse the purchased item's own emoji/asset/background preview instead of a generic check icon.
 - `lib/shared/`: UI components, theme, utilities.
 
@@ -132,6 +133,7 @@ Planned:
 - Store catalog visibility:
   - Public catalog items continue to use `items.is_active = true`.
   - New gated decor items now use `items.metadata.visibility_mode = 'version_gated'` plus `min_app_version`, and Supabase exposes `get_visible_shop_items(p_app_version)` to return the correct catalog slice for compatibility-aware clients.
+  - Rollout-only decor that should exist in room ownership but not in the Shop UI now uses `items.metadata.shop_visibility = 'hidden'`; current examples are the free compatibility backgrounds that are auto-granted to rooms.
   - `app_version_compare(text, text)` is the shared SQL helper used by catalog gating.
 - Room invites: `room_invite_codes` supports up to 3 active room codes; members can generate additional codes via RPC while legacy clients continue using `rooms.invite_code` as the current primary code.
 - Edge Functions: Feed validation + upload, avatar upload, account deletion, and scheduled hunger-alert dispatch.

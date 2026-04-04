@@ -26,6 +26,7 @@ class ShopItem {
     this.backgroundKey,
     this.minAppVersion,
     this.visibilityMode,
+    this.shopVisibility,
     this.fallbackBehavior,
     this.fallbackBackgroundKey,
   });
@@ -50,6 +51,7 @@ class ShopItem {
   final String? backgroundKey;
   final String? minAppVersion;
   final String? visibilityMode;
+  final String? shopVisibility;
   final String? fallbackBehavior;
   final String? fallbackBackgroundKey;
 
@@ -63,6 +65,8 @@ class ShopItem {
   bool get isDefaultBackground => sku == 'background_default';
   bool get isVersionGated =>
       (visibilityMode ?? '').trim().toLowerCase() == 'version_gated';
+  bool get isHiddenFromShop =>
+      (shopVisibility ?? '').trim().toLowerCase() == 'hidden';
 
   bool isSupportedOnAppVersion(String? appVersion) {
     final requiredVersion = minAppVersion?.trim();
@@ -188,6 +192,7 @@ class ShopItem {
     final backgroundKey = metadata['background_key'] as String?;
     final minAppVersion = metadata['min_app_version'] as String?;
     final visibilityMode = metadata['visibility_mode'] as String?;
+    final shopVisibility = metadata['shop_visibility'] as String?;
     final fallbackBehavior = metadata['fallback_behavior'] as String?;
     final fallbackBackgroundKey =
         metadata['fallback_background_key'] as String?;
@@ -240,6 +245,7 @@ class ShopItem {
       backgroundKey: backgroundKey,
       minAppVersion: minAppVersion,
       visibilityMode: visibilityMode,
+      shopVisibility: shopVisibility,
       fallbackBehavior: fallbackBehavior,
       fallbackBackgroundKey: fallbackBackgroundKey,
     );

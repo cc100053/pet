@@ -15,6 +15,12 @@ class RoomBackgroundDefinition {
 }
 
 class RoomBackgrounds {
+  static const String _sageFrameAsset = 'assets/bg/free/background-free-01.jpg';
+  static const String _lilacFrameAsset =
+      'assets/bg/free/background-free-02.jpg';
+  static const String _bubbleSkyAsset = 'assets/bg/paid/background-paid-01.jpg';
+  static const String _starlitDreamAsset =
+      'assets/bg/paid/background-paid-02.jpg';
   static const String defaultKey = 'default';
   static const String testKey = 'test';
   static const String test1Key = 'test1';
@@ -66,7 +72,7 @@ class RoomBackgrounds {
       key: sageFrameKey,
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('assets/bg/free/backgound-free-01.jpg'),
+          image: AssetImage(_sageFrameAsset),
           fit: BoxFit.cover,
         ),
       ),
@@ -75,7 +81,7 @@ class RoomBackgrounds {
       key: lilacFrameKey,
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('assets/bg/free/backgound-free-02.jpg'),
+          image: AssetImage(_lilacFrameAsset),
           fit: BoxFit.cover,
         ),
       ),
@@ -84,7 +90,7 @@ class RoomBackgrounds {
       key: bubbleSkyKey,
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('assets/bg/paid/backgounr-Paid-01.jpg'),
+          image: AssetImage(_bubbleSkyAsset),
           fit: BoxFit.cover,
         ),
       ),
@@ -93,7 +99,7 @@ class RoomBackgrounds {
       key: starlitDreamKey,
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('assets/bg/paid/backgound-Paid-02.jpg'),
+          image: AssetImage(_starlitDreamAsset),
           fit: BoxFit.cover,
         ),
       ),

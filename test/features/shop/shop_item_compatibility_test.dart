@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/shop/models/shop_item.dart';
 
 void main() {
-  ShopItem buildItem({String? minAppVersion}) {
+  ShopItem buildItem({String? minAppVersion, String? shopVisibility}) {
     return ShopItem(
       id: 'item-1',
       sku: 'background_sage_frame',
@@ -24,6 +24,7 @@ void main() {
       backgroundKey: 'sage_frame',
       minAppVersion: minAppVersion,
       visibilityMode: minAppVersion == null ? 'public' : 'version_gated',
+      shopVisibility: shopVisibility,
       fallbackBehavior: 'default_background',
       fallbackBackgroundKey: 'default',
     );
@@ -43,5 +44,56 @@ void main() {
     expect(item.isSupportedOnAppVersion('1.0.9'), isFalse);
     expect(item.isSupportedOnAppVersion('1.1.0'), isTrue);
     expect(item.isSupportedOnAppVersion('1.2.0'), isTrue);
+  });
+
+  test('can mark shared items as hidden from the shop catalog surface', () {
+    final item = buildItem(shopVisibility: 'hidden');
+
+    expect(item.isHiddenFromShop, isTrue);
+  });
+
+  test('parses hidden free rollout backgrounds from metadata', () {
+    final item = ShopItem.fromJson({
+      'id': 'item-free-1',
+      'sku': 'background_sage_frame',
+      'type': 'cosmetic',
+      'name': 'Sage Frame Background',
+      'price_coins': 0,
+      'price_diamonds': 0,
+      'metadata': {
+        'currency': 'JPY',
+        'category': 'background',
+        'background_key': 'sage_frame',
+        'shop_visibility': 'hidden',
+        'visibility_mode': 'version_gated',
+        'min_app_version': '1.1.0',
+      },
+    });
+
+    expect(item.isBackground, isTrue);
+    expect(item.isHiddenFromShop, isTrue);
+    expect(item.backgroundKey, 'sage_frame');
+  });
+
+  test('parses paid backgrounds as coin-only catalog items', () {
+    final item = ShopItem.fromJson({
+      'id': 'item-paid-1',
+      'sku': 'background_starlit_dream',
+      'type': 'cosmetic',
+      'name': 'Starlit Dream Background',
+      'price_coins': 220,
+      'price_diamonds': null,
+      'metadata': {
+        'currency': 'JPY',
+        'price_jpy': 220,
+        'category': 'background',
+        'background_key': 'starlit_dream',
+      },
+    });
+
+    expect(item.isBackground, isTrue);
+    expect(item.priceCoins, 220);
+    expect(item.priceDiamonds, isNull);
+    expect(item.backgroundKey, 'starlit_dream');
   });
 }

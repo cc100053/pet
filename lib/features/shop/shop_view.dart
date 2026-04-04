@@ -478,7 +478,9 @@ class _ShopViewState extends State<ShopView> {
   }
 
   List<ShopItem> get _storeItems {
-    final items = _items.where((item) => !item.isIap).toList();
+    final items = _items
+        .where((item) => !item.isIap && !item.isHiddenFromShop)
+        .toList();
     items.sort((a, b) => _itemSortPrice(a).compareTo(_itemSortPrice(b)));
     return items;
   }

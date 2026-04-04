@@ -1,5 +1,11 @@
 # Lessons
 
+## 2026-04-04
+- When a rollout includes free compatibility-only backgrounds, hide them from the Shop catalog explicitly instead of relying on `0` pricing; otherwise they surface as user-facing store items even though they are meant to be silently granted.
+- After renaming asset files to fix typos, verify both the registry file and every preview surface that resolves those assets. Background bugs can look like “preview component broken” when the real issue is a stale asset path feeding the shared preview widget.
+- When Flutter assets live inside nested subfolders, do not assume declaring the parent directory in `pubspec.yaml` is enough. Verify the generated `build/flutter_assets` output; if nested files are missing, list each subdirectory explicitly in `pubspec.yaml`.
+- When extending a store rollout from active items to version-gated items, update every enforcement layer together: catalog RPC, purchase RPCs, and any table RLS policies they write through. Fixing only one layer just moves the failure from validation to authorization.
+
 ## 2026-04-03
 - When product compatibility rules are defined for shared room content, apply them to every shared visual state type, not just shop-backed decor. Pets need the same version-gated visibility, old-client fallback, and update-prompt path as backgrounds and furniture.
 

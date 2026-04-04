@@ -167,7 +167,7 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - `type` (text: cosmetic/consumable/subscription)
   - `name` (text)
   - `price_coins` (int), `price_diamonds` (int), `price_usd` (numeric)
-  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`; background items include `category: background` + `background_key`; version-gated decor may also include `visibility_mode`, `min_app_version`, `fallback_behavior`, and `fallback_background_key`), `is_active` (bool)
+  - `metadata` (jsonb; optional IAP fields like `iap_product_id`, `iap_type`, `rc_entitlement_id`; background items include `category: background` + `background_key`; version-gated decor may also include `visibility_mode`, `min_app_version`, `shop_visibility`, `fallback_behavior`, and `fallback_background_key`; `shop_visibility = hidden` keeps rollout-only decor out of the user-facing Shop while still allowing ownership seeding), `is_active` (bool)
 
 - `inventories`
   - `user_id` (uuid, fk)

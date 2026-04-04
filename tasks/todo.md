@@ -1,5 +1,74 @@
 # TODO
 
+# Plan (2026-04-04 Update Shared Item Rollout Skill)
+- [x] Review the existing shared-item rollout skill and map the newly discovered background rollout failures to its workflow/guardrails.
+- [x] Update the skill so future shared decor rollouts cover nested Flutter asset folders, purchase RPC alignment, and RLS alignment.
+- [x] Run the required repo verification and document the skill update.
+
+# Review (2026-04-04 Update Shared Item Rollout Skill)
+- [x] Implemented and verified.
+- Scope:
+  - Updated `.codex/skills/shared-item-rollout/SKILL.md` to include the new rollout metadata `shop_visibility`, the distinction between visible/purchasable/seed-only decor, and the current background rollout migrations that enforce those rules.
+  - Added explicit guardrails for nested Flutter asset folders and for the 3 enforcement layers that must stay aligned on decor rollouts: catalog visibility, purchase RPC predicates, and table RLS policies.
+  - Expanded the verification section so future decor rollouts check `flutter build bundle` output/`AssetManifest.bin` and inspect live Supabase RPC/policy definitions when the rollout changes purchase predicates.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-04 Fix Background Shop Visibility + Asset Paths)
+- [x] Re-check the interrupted background rollout changes, including memory-bank context, current diffs, and the live/background shop data contract.
+- [x] Fix the shop/background implementation so free backgrounds stay out of the shop catalog, paid background previews render with the corrected asset paths, and the requested candy prices are enforced.
+- [x] Update task/memory notes as needed and run the required verification (`flutter analyze`, `flutter test`).
+
+# Review (2026-04-04 Fix Background Shop Visibility + Asset Paths)
+- [x] Implemented and verified.
+- Scope:
+  - Confirmed the interrupted background rollout changes were already in the worktree, then verified the live Supabase catalog state directly: free rollout backgrounds are hidden, Bubble Sky is `250` candies, and Starlit Dream is `220` candies.
+  - Kept the corrected asset filenames wired through `lib/features/home/room_backgrounds.dart`, which is the shared background registry used by Shop card previews, theme preview dialog, success notice visuals, and Home background rendering.
+  - Preserved the Shop-side free-background filter through `ShopItem.shopVisibility` + `ShopView._storeItems`, and added focused regression coverage for corrected background asset paths plus hidden/coin-only background metadata parsing.
+  - Traced the remaining runtime crash to Flutter asset bundling instead of the preview widget: `pubspec.yaml` only declared `assets/bg/`, so generated bundles excluded `assets/bg/free/` and `assets/bg/paid/`. Added those nested directories explicitly and confirmed the rebuilt `AssetManifest.bin` now includes all four JPGs.
+  - Updated task/memory notes to document the new `shop_visibility = hidden` rollout contract for free compatibility backgrounds.
+- Verification:
+  - `flutter build bundle`
+  - `flutter test test/features/home/room_backgrounds_test.dart`
+  - `flutter test test/features/shop/shop_item_compatibility_test.dart`
+  - `flutter test test/features/shop/shop_theme_preview_dialog_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-04 Fix Version-Gated Background Purchase RPC)
+- [x] Inspect the live background purchase RPC contract against the new version-gated paid background rows and confirm the exact predicate mismatch.
+- [x] Apply a minimal Supabase migration so paid version-gated backgrounds remain purchasable while hidden free rollout backgrounds stay blocked from purchase.
+- [x] Re-verify the live RPC definitions plus required repo checks, then document the root cause and fix.
+
+# Review (2026-04-04 Fix Version-Gated Background Purchase RPC)
+- [x] Implemented and verified.
+- Scope:
+  - Confirmed the live paid background rows were correct (`category = background`, prices intact), but both purchase RPCs still required `items.is_active = true`, which excluded the new version-gated paid backgrounds and caused `item_not_background`.
+  - Added `supabase/migrations/20260404103000_fix_version_gated_background_purchase.sql` and applied the same change live through Supabase MCP. The background purchase RPCs now accept non-hidden version-gated backgrounds in addition to legacy active backgrounds.
+  - Kept the hidden free rollout backgrounds blocked from purchase by requiring `coalesce(metadata->>'shop_visibility', '') <> 'hidden'` inside both RPCs.
+- Verification:
+  - Live `pg_get_functiondef(...)` confirms the updated RPC predicate is deployed.
+  - Live item checks confirm `background_bubble_sky` / `background_starlit_dream` now satisfy the RPC predicate while `background_sage_frame` / `background_lilac_frame` remain excluded.
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-04 Fix Room Background Purchase RLS)
+- [x] Inspect the live `room_backgrounds` insert policy and confirm why the updated purchase RPC is still blocked.
+- [x] Apply the minimal Supabase policy fix so version-gated paid backgrounds can be inserted while hidden free backgrounds remain excluded.
+- [x] Re-verify the live RLS policy plus required local checks, then document the root cause and fix.
+
+# Review (2026-04-04 Fix Room Background Purchase RLS)
+- [x] Implemented and verified.
+- Scope:
+  - Confirmed the updated purchase RPCs were correct, but the live `room_backgrounds_insert` RLS policy still required `items.is_active = true`, so inserts for version-gated paid backgrounds failed with a 42501 RLS violation.
+  - Added `supabase/migrations/20260404104500_fix_room_backgrounds_insert_policy.sql` and applied it live through Supabase MCP.
+  - The new insert policy now matches the updated purchase RPC contract: room member only, `acquired_by = auth.uid()`, category must be `background`, hidden rollout backgrounds stay excluded, and either `is_active = true` or `visibility_mode = version_gated` is accepted.
+- Verification:
+  - Live `pg_policies` output confirms the deployed `room_backgrounds_insert` policy now includes the version-gated + non-hidden predicate.
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-03 Create Shared Item Rollout Skill)
 - [x] Read the repo skill format and collect the current shared-item compatibility rules from code, migrations, and memory-bank notes.
 - [x] Create a repo-local skill that documents the mixed-version rollout workflow for shared backgrounds, furniture, and pets.
