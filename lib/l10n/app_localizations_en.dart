@@ -661,7 +661,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew110Bullet3 =>
-      'Pinch to resize furniture in edit mode for the perfect layout.';
+      'Tap a placed furniture item and use the bottom size controls for a precise layout.';
 
   @override
   String get languageChineseSimplified => 'Simplified Chinese';
@@ -1361,7 +1361,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      'Long-press furniture to edit. Tap an item to place, drag to move, pinch placed furniture to resize. Tap empty space to exit.';
+      'Long-press furniture to edit. Tap an item to place, drag to move, select placed furniture to resize with the bottom controls. Tap empty space to exit.';
+
+  @override
+  String get furnitureScaleLabel => 'Size';
+
+  @override
+  String get furnitureScaleDecrease => 'Make smaller';
+
+  @override
+  String get furnitureScaleIncrease => 'Make larger';
 
   @override
   String get roomInventoryTitle => 'Room Inventory';

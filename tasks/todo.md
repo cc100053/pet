@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-04-04 Replace Furniture Pinch With Bottom Scale Controls)
+- [x] Rework Home furniture edit interactions so placed furniture uses tap-to-select plus single-finger drag, and remove the pinch-resize gesture path.
+- [x] Add a bottom floating furniture scale control bar with step buttons and a slider, wire it to the selected placed furniture, and update the related helper math/localized copy.
+- [x] Add focused regression coverage, update memory/task notes, and run the required verification (`flutter gen-l10n`, `flutter analyze`, `flutter test`).
+
+# Review (2026-04-04 Replace Furniture Pinch With Bottom Scale Controls)
+- [x] Implemented and verified.
+- Scope:
+  - Reworked `HomeView` furniture edit interactions so placed furniture now uses tap-to-select plus single-finger drag, and removed the pinch gesture path entirely.
+  - Added `HomeFurnitureScaleControls`, a bottom floating control bar with large `- / slider / +` controls, stepped `0.1` resizing, and disabled states at the configured min/max bounds.
+  - Kept the existing `room_furniture.scale` persistence contract and room-edge reclamp behavior, while also preserving immediate drag/resize edits performed before a new placement receives its server id.
+  - Updated localized furniture hints / What's New copy to describe the new selection-plus-bottom-controls flow, and documented the interaction change in the memory bank and lessons log.
+  - Added focused regression coverage for stepped scale math and the new control widget.
+- Verification:
+  - `flutter gen-l10n`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-04 Update Shared Item Rollout Skill)
 - [x] Review the existing shared-item rollout skill and map the newly discovered background rollout failures to its workflow/guardrails.
 - [x] Update the skill so future shared decor rollouts cover nested Flutter asset folders, purchase RPC alignment, and RLS alignment.

@@ -71,6 +71,7 @@ import 'room_backgrounds.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_furniture_inventory_overlay.dart';
+import 'widgets/home_furniture_scale_controls.dart';
 import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_main_content.dart';
 import 'widgets/home_room_background.dart';
@@ -242,11 +243,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _furnitureError;
   String? _selectedFurnitureItemId;
   String? _selectedPlacedFurnitureId;
-  String? _activeFurnitureTransformId;
-  Offset? _activeFurnitureTransformStartTopLeft;
-  Offset? _activeFurnitureTransformStartNormalizedPosition;
-  Offset? _activeFurnitureTransformStartLocalFocalPoint;
-  double? _activeFurnitureTransformStartScale;
+  String? _activeFurnitureDragId;
+  Offset? _activeFurnitureDragStartNormalizedPosition;
+  String? _activeFurnitureScaleInteractionItemId;
+  Offset? _activeFurnitureScaleInteractionStartNormalizedPosition;
+  double? _activeFurnitureScaleInteractionStartScale;
   int _furnitureInstanceSeed = 0;
   final Map<String, ShopItem> _furnitureCatalog = {};
   final Map<String, int> _furnitureInventory = {};
@@ -2991,7 +2992,9 @@ class _HomeViewState extends ConsumerState<HomeView>
             ownerUserId: ownerUserId,
             emoji: emoji,
             normalizedPosition: Offset(posX, posY),
+            persistedNormalizedPosition: Offset(posX, posY),
             scale: scale,
+            persistedScale: scale,
             isPending: false,
           ),
         );
@@ -3119,7 +3122,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       _furnitureMode = true;
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
-      _clearFurnitureTransformGesture();
+      _clearFurnitureDragGesture();
+      _clearFurnitureScaleInteraction();
     });
     _furnitureWiggleController.repeat(reverse: true);
     unawaited(_loadFurnitureInventory());
@@ -3133,7 +3137,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
-      _clearFurnitureTransformGesture();
+      _clearFurnitureDragGesture();
+      _clearFurnitureScaleInteraction();
     });
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
@@ -3491,7 +3496,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       ownerUserId: Supabase.instance.client.auth.currentUser?.id,
       emoji: item.emoji ?? '🪑',
       normalizedPosition: normalized,
+      persistedNormalizedPosition: normalized,
       scale: 1.0,
+      persistedScale: 1.0,
       isPending: true,
     );
 
@@ -3516,97 +3523,180 @@ class _HomeViewState extends ConsumerState<HomeView>
     _placeFurnitureAt(center, fieldSize);
   }
 
-  void _clearFurnitureTransformGesture() {
-    _activeFurnitureTransformId = null;
-    _activeFurnitureTransformStartTopLeft = null;
-    _activeFurnitureTransformStartNormalizedPosition = null;
-    _activeFurnitureTransformStartLocalFocalPoint = null;
-    _activeFurnitureTransformStartScale = null;
+  _PlacedFurniture? _selectedPlacedFurniture() {
+    final selectedId = _selectedPlacedFurnitureId;
+    if (selectedId == null) {
+      return null;
+    }
+    for (final item in _activeFurnitureForRoom()) {
+      if (item.id == selectedId) {
+        return item;
+      }
+    }
+    return null;
   }
 
-  void _startFurnitureTransformGesture(
+  void _clearFurnitureDragGesture() {
+    _activeFurnitureDragId = null;
+    _activeFurnitureDragStartNormalizedPosition = null;
+  }
+
+  void _handleFurnitureDragStart(_PlacedFurniture item) {
+    setState(() {
+      _selectedPlacedFurnitureId = item.id;
+      _selectedFurnitureItemId = null;
+      _activeFurnitureDragId = item.id;
+      _activeFurnitureDragStartNormalizedPosition = item.normalizedPosition;
+    });
+  }
+
+  void _handleFurnitureDragUpdate(
     _PlacedFurniture item,
-    ScaleStartDetails details,
+    DragUpdateDetails details,
     Size fieldSize,
   ) {
+    if (_activeFurnitureDragId != item.id) {
+      return;
+    }
     final itemSize = _furnitureSizeForScale(item.scale);
-    final topLeft = _positionFromNormalizedSized(
+    final currentTopLeft = _positionFromNormalizedSized(
       item.normalizedPosition,
       fieldSize,
       itemSize,
     );
-    setState(() {
-      _selectedPlacedFurnitureId = item.id;
-      _selectedFurnitureItemId = null;
-      _activeFurnitureTransformId = item.id;
-      _activeFurnitureTransformStartTopLeft = topLeft;
-      _activeFurnitureTransformStartNormalizedPosition =
-          item.normalizedPosition;
-      _activeFurnitureTransformStartLocalFocalPoint = details.localFocalPoint;
-      _activeFurnitureTransformStartScale = item.scale;
-    });
-  }
-
-  void _updateFurnitureTransformGesture(
-    _PlacedFurniture item,
-    ScaleUpdateDetails details,
-    Size fieldSize,
-  ) {
-    if (_activeFurnitureTransformId != item.id) {
-      return;
-    }
-    final startTopLeft = _activeFurnitureTransformStartTopLeft;
-    final startLocalFocalPoint = _activeFurnitureTransformStartLocalFocalPoint;
-    final startScale = _activeFurnitureTransformStartScale;
-    if (startTopLeft == null ||
-        startLocalFocalPoint == null ||
-        startScale == null) {
-      return;
-    }
-
-    final nextScale = _clampFurnitureScale(startScale * details.scale);
-    final nextSize = _furnitureSizeForScale(nextScale);
-    final desiredTopLeft =
-        startTopLeft + (details.localFocalPoint - startLocalFocalPoint);
     final clampedTopLeft = _clampTopLeftSized(
-      desiredTopLeft,
+      currentTopLeft + details.delta,
       fieldSize,
-      nextSize,
+      itemSize,
     );
     final normalized = _normalizedFromTopLeftSized(
       clampedTopLeft,
       fieldSize,
-      nextSize,
+      itemSize,
     );
 
     setState(() {
       _selectedPlacedFurnitureId = item.id;
       _selectedFurnitureItemId = null;
-      item.scale = nextScale;
       item.normalizedPosition = normalized;
     });
   }
 
-  void _endFurnitureTransformGesture(_PlacedFurniture item) {
-    if (_activeFurnitureTransformId != item.id) {
+  void _handleFurnitureDragEnd(_PlacedFurniture item) {
+    if (_activeFurnitureDragId != item.id) {
       return;
     }
 
-    final startScale = _activeFurnitureTransformStartScale;
-    final startPosition = _activeFurnitureTransformStartNormalizedPosition;
-    _clearFurnitureTransformGesture();
-
-    if (item.isPending || startScale == null || startPosition == null) {
+    final startPosition = _activeFurnitureDragStartNormalizedPosition;
+    _clearFurnitureDragGesture();
+    if (item.isPending || startPosition == null) {
       return;
     }
+    final positionChanged =
+        (item.normalizedPosition - startPosition).distance > 0.001;
+    if (!positionChanged) {
+      return;
+    }
+    unawaited(_persistFurnitureTransform(item));
+  }
 
+  void _handleFurnitureDragCancel() {
+    _clearFurnitureDragGesture();
+  }
+
+  void _beginFurnitureScaleInteraction(_PlacedFurniture item) {
+    _activeFurnitureScaleInteractionItemId = item.id;
+    _activeFurnitureScaleInteractionStartScale = item.scale;
+    _activeFurnitureScaleInteractionStartNormalizedPosition =
+        item.normalizedPosition;
+  }
+
+  void _clearFurnitureScaleInteraction() {
+    _activeFurnitureScaleInteractionItemId = null;
+    _activeFurnitureScaleInteractionStartScale = null;
+    _activeFurnitureScaleInteractionStartNormalizedPosition = null;
+  }
+
+  void _applyFurnitureScale(
+    _PlacedFurniture item,
+    double nextScale, {
+    bool persist = false,
+  }) {
+    final fieldSize = _petFieldSize();
+    if (fieldSize == null) {
+      return;
+    }
+    final currentSize = _furnitureSizeForScale(item.scale);
+    final roundedScale = roundRoomFurnitureScaleToStep(nextScale);
+    final nextSize = _furnitureSizeForScale(roundedScale);
+    final nextNormalized = normalizedPositionAfterFurnitureResize(
+      normalized: item.normalizedPosition,
+      fieldSize: fieldSize,
+      currentSize: currentSize,
+      nextSize: nextSize,
+    );
+    setState(() {
+      _selectedPlacedFurnitureId = item.id;
+      _selectedFurnitureItemId = null;
+      item.scale = roundedScale;
+      item.normalizedPosition = nextNormalized;
+    });
+    if (persist) {
+      unawaited(_persistFurnitureTransform(item));
+    }
+  }
+
+  void _stepSelectedFurnitureScale(int stepDelta) {
+    final item = _selectedPlacedFurniture();
+    if (item == null) {
+      return;
+    }
+    final nextScale = nudgeRoomFurnitureScale(item.scale, stepDelta: stepDelta);
+    if ((nextScale - item.scale).abs() <= 0.001) {
+      return;
+    }
+    _applyFurnitureScale(item, nextScale, persist: true);
+  }
+
+  void _handleFurnitureScaleChangeStart(double _) {
+    final item = _selectedPlacedFurniture();
+    if (item == null) {
+      return;
+    }
+    _beginFurnitureScaleInteraction(item);
+  }
+
+  void _handleFurnitureScaleChanged(double value) {
+    final item = _selectedPlacedFurniture();
+    if (item == null) {
+      return;
+    }
+    if (_activeFurnitureScaleInteractionItemId != item.id) {
+      _beginFurnitureScaleInteraction(item);
+    }
+    _applyFurnitureScale(item, value);
+  }
+
+  void _handleFurnitureScaleChangeEnd(double _) {
+    final item = _selectedPlacedFurniture();
+    final startItemId = _activeFurnitureScaleInteractionItemId;
+    final startScale = _activeFurnitureScaleInteractionStartScale;
+    final startPosition =
+        _activeFurnitureScaleInteractionStartNormalizedPosition;
+    _clearFurnitureScaleInteraction();
+    if (item == null ||
+        item.isPending ||
+        startItemId != item.id ||
+        startScale == null ||
+        startPosition == null) {
+      return;
+    }
     final scaleChanged = (item.scale - startScale).abs() > 0.001;
     final positionChanged =
         (item.normalizedPosition - startPosition).distance > 0.001;
     if (!scaleChanged && !positionChanged) {
       return;
     }
-
     unawaited(_persistFurnitureTransform(item));
   }
 
@@ -3667,13 +3757,27 @@ class _HomeViewState extends ConsumerState<HomeView>
         final index = list.indexWhere((entry) => entry.id == item.id);
         if (index >= 0) {
           final previousId = list[index].id;
+          final localScale = list[index].scale;
+          final localPosition = list[index].normalizedPosition;
+          final persistedPosition = list[index].persistedNormalizedPosition;
+          final persistedScale = _parseFurnitureScale(response['scale']);
+          final needsFollowUpPersist =
+              (localScale - persistedScale).abs() > 0.001 ||
+              (localPosition - persistedPosition).distance > 0.001;
           list[index]
             ..id = newId ?? list[index].id
             ..ownerUserId = response['owner_user_id'] as String?
-            ..scale = _parseFurnitureScale(response['scale'])
+            ..persistedScale = persistedScale
+            ..persistedNormalizedPosition = persistedPosition
             ..isPending = false;
+          list[index].scale = needsFollowUpPersist
+              ? localScale
+              : persistedScale;
           if (_selectedPlacedFurnitureId == previousId) {
             _selectedPlacedFurnitureId = list[index].id;
+          }
+          if (needsFollowUpPersist) {
+            unawaited(_persistFurnitureTransform(list[index]));
           }
         }
       });
@@ -3707,6 +3811,9 @@ class _HomeViewState extends ConsumerState<HomeView>
           'p_position_y': item.normalizedPosition.dy,
         },
       );
+      item
+        ..persistedScale = item.scale
+        ..persistedNormalizedPosition = item.normalizedPosition;
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -4301,17 +4408,15 @@ class _HomeViewState extends ConsumerState<HomeView>
     final itemSize = _furnitureSizeForScale(item.scale);
     final iconSize = 26 * _clampFurnitureScale(item.scale);
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onLongPress: _openFurnitureInventory,
       onTap: canEdit ? () => _selectPlacedFurniture(item) : null,
-      onScaleStart: canEdit
-          ? (details) =>
-                _startFurnitureTransformGesture(item, details, fieldSize)
+      onPanStart: canEdit ? (_) => _handleFurnitureDragStart(item) : null,
+      onPanUpdate: canEdit
+          ? (details) => _handleFurnitureDragUpdate(item, details, fieldSize)
           : null,
-      onScaleUpdate: canEdit
-          ? (details) =>
-                _updateFurnitureTransformGesture(item, details, fieldSize)
-          : null,
-      onScaleEnd: canEdit ? (_) => _endFurnitureTransformGesture(item) : null,
+      onPanEnd: canEdit ? (_) => _handleFurnitureDragEnd(item) : null,
+      onPanCancel: canEdit ? _handleFurnitureDragCancel : null,
       child: AnimatedBuilder(
         animation: _furnitureWiggleController,
         builder: (context, child) {
@@ -4406,6 +4511,33 @@ class _HomeViewState extends ConsumerState<HomeView>
           color: Colors.black87,
         ),
       ),
+    );
+  }
+
+  Widget? _buildFurnitureScaleControlBar() {
+    if (!_furnitureMode) {
+      return null;
+    }
+    final item = _selectedPlacedFurniture();
+    if (item == null) {
+      return null;
+    }
+    final canDecrease = item.scale > roomFurnitureMinScale + 0.001;
+    final canIncrease = item.scale < roomFurnitureMaxScale - 0.001;
+    final l10n = AppLocalizations.of(context)!;
+    return HomeFurnitureScaleControls(
+      label: l10n.furnitureScaleLabel,
+      scale: item.scale,
+      minScale: roomFurnitureMinScale,
+      maxScale: roomFurnitureMaxScale,
+      step: roomFurnitureScaleStep,
+      decreaseLabel: l10n.furnitureScaleDecrease,
+      increaseLabel: l10n.furnitureScaleIncrease,
+      onDecrease: canDecrease ? () => _stepSelectedFurnitureScale(-1) : null,
+      onIncrease: canIncrease ? () => _stepSelectedFurnitureScale(1) : null,
+      onChanged: _handleFurnitureScaleChanged,
+      onChangeStart: _handleFurnitureScaleChangeStart,
+      onChangeEnd: _handleFurnitureScaleChangeEnd,
     );
   }
 
@@ -4602,6 +4734,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   onPlaceholderTap: _openFeedCamera,
                 ),
                 petHomeCard: _buildPetHomeCard(),
+                bottomOverlay: _buildFurnitureScaleControlBar(),
                 bottomNavBar: HomeBottomNavBar(
                   onHome: _onHomeNavPressed,
                   onCalendar: _openCalendar,

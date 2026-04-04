@@ -14,6 +14,17 @@ void main() {
     expect(clampRoomFurnitureScale(2.4), roomFurnitureMaxScale);
   });
 
+  test('roundRoomFurnitureScaleToStep snaps to the configured step range', () {
+    expect(roundRoomFurnitureScaleToStep(0.81), roomFurnitureMinScale);
+    expect(roundRoomFurnitureScaleToStep(1.06), 1.1);
+    expect(roundRoomFurnitureScaleToStep(1.96), roomFurnitureMaxScale);
+  });
+
+  test('nudgeRoomFurnitureScale steps relative to the current scale', () {
+    expect(nudgeRoomFurnitureScale(1.0, stepDelta: -1), closeTo(0.9, 0.001));
+    expect(nudgeRoomFurnitureScale(1.0, stepDelta: 3), closeTo(1.3, 0.001));
+  });
+
   test('roomFurnitureSizeForScale uses the clamped scale', () {
     final size = roomFurnitureSizeForScale(
       baseSize: const Size(42, 42),

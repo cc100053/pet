@@ -1,6 +1,7 @@
 # Lessons
 
 ## 2026-04-04
+- Do not bind a precision multi-touch action directly to a tiny object in the scene. If the target can be smaller than comfortable touch size, move the adjustment onto a large dedicated control surface and keep direct manipulation for single-finger drag/select only.
 - For full-screen blur overlays, do not rely only on route-level child fade/scale. Animate the blur sigma and scrim opacity themselves, or the background still appears to snap abruptly between sharp and blurred states.
 - For chat long-press overlays, “has fade” is not the same as “feels soft.” Tune transition duration, intervals, and travel distance together; slightly longer timing with smaller motion reads calmer than a fast fade plus large offsets.
 - When a rollout includes free compatibility-only backgrounds, hide them from the Shop catalog explicitly instead of relying on `0` pricing; otherwise they surface as user-facing store items even though they are meant to be silently granted.

@@ -637,7 +637,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew110Bullet2 => '상점에 아름다운 새 배경 테마들이 추가되었습니다.';
 
   @override
-  String get whatsNew110Bullet3 => '편집 모드에서 두 손가락으로 가구 크기를 자유롭게 조절하세요.';
+  String get whatsNew110Bullet3 => '배치된 가구를 탭한 뒤 하단 크기 조절 바에서 더 정확하게 조정하세요.';
 
   @override
   String get languageChineseSimplified => '중국어(간체)';
@@ -1327,7 +1327,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 배치된 가구는 두 손가락으로 확대/축소할 수 있고, 빈 공간을 탭하면 종료됩니다.';
+      '가구를 길게 눌러 편집하세요. 아이템을 탭해 배치하고, 드래그해 이동하세요. 배치된 가구를 선택하면 하단 컨트롤로 크기를 조절할 수 있고, 빈 공간을 탭하면 종료됩니다.';
+
+  @override
+  String get furnitureScaleLabel => '크기';
+
+  @override
+  String get furnitureScaleDecrease => '작게';
+
+  @override
+  String get furnitureScaleIncrease => '크게';
 
   @override
   String get roomInventoryTitle => '방 인벤토리';

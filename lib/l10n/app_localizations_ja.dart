@@ -631,7 +631,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew110Bullet2 => 'ショップに新しい背景が追加されました。';
 
   @override
-  String get whatsNew110Bullet3 => '2本指ピンチ操作で家具のサイズを自由に調整できます。';
+  String get whatsNew110Bullet3 => '配置した家具をタップすると、下部のサイズコントロールで細かく調整できます。';
 
   @override
   String get languageChineseSimplified => '簡体字中国語';
@@ -1319,7 +1319,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。配置済みの家具は2本指で拡大縮小できます。空白をタップで終了。';
+      '家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。配置済みの家具を選ぶと下部コントロールでサイズ調整できます。空白をタップで終了。';
+
+  @override
+  String get furnitureScaleLabel => 'サイズ';
+
+  @override
+  String get furnitureScaleDecrease => '小さくする';
+
+  @override
+  String get furnitureScaleIncrease => '大きくする';
 
   @override
   String get roomInventoryTitle => 'ルーム在庫';

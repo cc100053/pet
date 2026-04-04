@@ -1228,7 +1228,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew110Bullet3.
   ///
   /// In en, this message translates to:
-  /// **'Pinch to resize furniture in edit mode for the perfect layout.'**
+  /// **'Tap a placed furniture item and use the bottom size controls for a precise layout.'**
   String get whatsNew110Bullet3;
 
   /// No description provided for @languageChineseSimplified.
@@ -2448,8 +2448,26 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Long-press furniture to edit. Tap an item to place, drag to move, pinch placed furniture to resize. Tap empty space to exit.'**
+  /// **'Long-press furniture to edit. Tap an item to place, drag to move, select placed furniture to resize with the bottom controls. Tap empty space to exit.'**
   String get furnitureInventoryHint;
+
+  /// No description provided for @furnitureScaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get furnitureScaleLabel;
+
+  /// No description provided for @furnitureScaleDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Make smaller'**
+  String get furnitureScaleDecrease;
+
+  /// No description provided for @furnitureScaleIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Make larger'**
+  String get furnitureScaleIncrease;
 
   /// No description provided for @roomInventoryTitle.
   ///

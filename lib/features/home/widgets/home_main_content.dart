@@ -12,6 +12,7 @@ class HomeMainContent extends StatelessWidget {
     required this.photoGallery,
     required this.petHomeCard,
     required this.bottomNavBar,
+    this.bottomOverlay,
   });
 
   final double bottomInset;
@@ -19,6 +20,7 @@ class HomeMainContent extends StatelessWidget {
   final Widget photoGallery;
   final Widget petHomeCard;
   final Widget bottomNavBar;
+  final Widget? bottomOverlay;
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +111,11 @@ class HomeMainContent extends StatelessWidget {
                       },
                     ),
                   ),
+                  if (bottomOverlay != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: navTopGap * uiScale),
+                      child: bottomOverlay,
+                    ),
                   Padding(
                     padding: EdgeInsets.fromLTRB(
                       0,

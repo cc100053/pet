@@ -17,6 +17,24 @@ double clampRoomFurnitureScale(double scale) {
   return scale.clamp(roomFurnitureMinScale, roomFurnitureMaxScale);
 }
 
+double roundRoomFurnitureScaleToStep(double scale) {
+  final clamped = clampRoomFurnitureScale(scale);
+  final offsetSteps =
+      ((clamped - roomFurnitureMinScale) / roomFurnitureScaleStep).round();
+  final rounded =
+      roomFurnitureMinScale + (offsetSteps * roomFurnitureScaleStep);
+  return clampRoomFurnitureScale((rounded * 100).roundToDouble() / 100);
+}
+
+double nudgeRoomFurnitureScale(double scale, {required int stepDelta}) {
+  if (stepDelta == 0) {
+    return roundRoomFurnitureScaleToStep(scale);
+  }
+  return roundRoomFurnitureScaleToStep(
+    scale + (stepDelta * roomFurnitureScaleStep),
+  );
+}
+
 Size roomFurnitureSizeForScale({
   required Size baseSize,
   required double scale,

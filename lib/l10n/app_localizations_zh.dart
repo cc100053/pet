@@ -632,7 +632,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew110Bullet3 =>
-      'Pinch to resize furniture in edit mode for the perfect layout.';
+      'Tap a placed furniture item and use the bottom size controls for a precise layout.';
 
   @override
   String get languageChineseSimplified => '简体中文';
@@ -1314,7 +1314,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '長按家具可編輯，點擊道具放置，拖曳移動，雙指縮放已放置家具可調整大小，點空白退出。';
+      '長按家具可編輯，點擊道具放置，拖曳移動，選取已放置家具後可用底部控制列調整大小，點空白退出。';
+
+  @override
+  String get furnitureScaleLabel => '大小';
+
+  @override
+  String get furnitureScaleDecrease => '缩小';
+
+  @override
+  String get furnitureScaleIncrease => '放大';
 
   @override
   String get roomInventoryTitle => '房间背包';
@@ -2167,7 +2176,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get whatsNew110Bullet2 => '商店新增多款精美背景，快來佈置你們的家。';
 
   @override
-  String get whatsNew110Bullet3 => '編輯模式支援雙指縮放家具，打造理想佈局。';
+  String get whatsNew110Bullet3 => '點選已放置家具後，可用底部尺寸控制列精準調整大小。';
 
   @override
   String get languageChineseSimplified => '簡體中文';
@@ -2849,7 +2858,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get furnitureInventoryHint =>
-      '長按家具可編輯，點擊道具放置，拖曳移動，雙指縮放已放置家具可調整大小，點空白退出。';
+      '長按家具可編輯，點擊道具放置，拖曳移動，選取已放置家具後可用底部控制列調整大小，點空白退出。';
+
+  @override
+  String get furnitureScaleLabel => '大小';
+
+  @override
+  String get furnitureScaleDecrease => '縮小';
+
+  @override
+  String get furnitureScaleIncrease => '放大';
 
   @override
   String get roomInventoryTitle => '房間背包';
