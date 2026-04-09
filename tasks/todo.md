@@ -1,5 +1,44 @@
 # TODO
 
+# Plan (2026-04-09 Refactor Review Sweep)
+- [x] Read the active memory-bank files plus current task notes, then inspect the highest-complexity Flutter surfaces for refactor candidates.
+- [x] Trace concrete code paths in the main hotspots (`home_view`, `chat_room_view_v2`, `shop_view`, `profile_view`, related sheets) and collect line-level evidence.
+- [x] Summarize the highest-value refactor opportunities with clear priority, rationale, and affected files.
+
+# Review (2026-04-09 Refactor Review Sweep)
+- [x] Investigated and documented.
+- Scope:
+  - Reviewed the largest active Flutter surfaces and compared them against existing extraction patterns (providers, controllers, services) to find places where responsibilities are still mixed or duplicated.
+  - Focused on refactors with practical payoff: consistency, lower regression risk, reduced network latency, or simpler state ownership.
+  - Collected concrete line references for repeated app-version/profile bootstrap logic, chat window hydration duplication, shop load serialization, duplicated profile-sheet fetch flows, and Home furniture persistence/state-sync hotspots.
+- Verification:
+  - `rg --files memory-bank`
+  - `find lib test -name '*.dart' -print0 | xargs -0 wc -l | sort -nr | head -n 40`
+  - Targeted `nl -ba` / `rg -n` inspection across the reviewed files
+
+# Plan (2026-04-10 Refactor Home Furniture Persistence + Shared Profile Bootstrap)
+- [x] Inspect the latest furniture RPC definitions and current Home/Profile bootstrap flows before changing either path.
+- [x] Extract a shared profile bootstrap service, switch Home/Profile to the shared path, and add focused service coverage.
+- [x] Add a backward-compatible atomic room-furniture transform migration, update Home to use it with a legacy fallback, and record the change in the memory bank.
+- [ ] Run full verification (`flutter analyze`, `flutter test`) and summarize how to test the changed user flows end to end.
+
+# Plan (2026-04-04 Debug Xcode Archive Signing Failure)
+- [x] Read the repo memory bank plus any iOS/archive notes, then inspect the current Xcode project signing settings for Runner and the notification extension.
+- [x] Compare the current local signing environment against recent successful archives on this machine to separate repo config issues from Apple account / keychain issues.
+- [x] Document the root cause and required recovery actions; avoid repo-side code changes unless the project configuration itself is proven wrong.
+
+# Review (2026-04-04 Debug Xcode Archive Signing Failure)
+- [x] Investigated and verified.
+- Scope:
+  - Confirmed `ios/Runner.xcodeproj/project.pbxproj` is still targeting team `QRLFBRL2J2` with automatic signing semantics for the shipped iOS targets (`com.cc100053.pet` and `com.cc100053.pet.NotificationService`).
+  - Confirmed the failure is not caused by a newly broken project configuration: this same Mac still has successful Runner archives and App Store uploads from `2026-03-19`, including an uploaded `1.0.5 (2)` archive for the same bundle id and team.
+  - Verified the current local signing environment is missing the required key material: `security find-identity -v -p codesigning` returns `0 valid identities found`, and no local provisioning-profile directory is currently present under `~/Library/MobileDevice/Provisioning Profiles`.
+  - Concluded the current archive failure is blocked by 2 external prerequisites shown in Xcode itself: the Apple Developer Program License Agreement for the account/team must be accepted, and a valid signing certificate/private-key pair must be restored or re-created locally for team `QRLFBRL2J2`.
+- Verification:
+  - `security find-identity -v -p codesigning`
+  - `plutil -p ~/Library/Developer/Xcode/Archives/2026-03-19/'Runner 19-3-2026, 10.45.xcarchive'/Info.plist`
+  - `flutter build ios --release` (started and reached the Xcode signing step; no repo-side configuration regression identified before the external signing gate)
+
 # Plan (2026-04-04 Replace Furniture Pinch With Bottom Scale Controls)
 - [x] Rework Home furniture edit interactions so placed furniture uses tap-to-select plus single-finger drag, and remove the pinch-resize gesture path.
 - [x] Add a bottom floating furniture scale control bar with step buttons and a slider, wire it to the selected placed furniture, and update the related helper math/localized copy.

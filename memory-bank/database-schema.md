@@ -218,6 +218,9 @@ This draft is for Supabase (Postgres) and assumes room-scoped access with strict
   - Version-gated decor items can remain `is_active = false` for old-client safety and become visible through this RPC once `app_version_compare(p_app_version, metadata.min_app_version) >= 0`.
 - `purchase_room_furniture_with_coins(p_room_id uuid, p_item_id uuid)`
 - `purchase_room_furniture_with_diamonds(p_room_id uuid, p_item_id uuid)`
+- `update_room_furniture_transform(p_id uuid, p_scale numeric, p_position_x numeric, p_position_y numeric)`
+  - Atomic room-member-authorized furniture transform write that updates scale and position in one transaction/RPC.
+  - Added as a backward-compatible companion to the legacy per-field RPCs so old app versions can keep calling the older functions unchanged.
   - Still increment the buyer-attributed `room_item_inventories` row, and now also return `room_total_quantity` for new clients.
 - `place_room_furniture(p_room_id uuid, p_item_id uuid, p_position_x numeric, p_position_y numeric)`
   - Placement validation is room-wide: compare summed room inventory vs total placed copies in that room.

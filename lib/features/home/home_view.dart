@@ -29,7 +29,7 @@ import '../../services/iap/revenuecat_service.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/ads/rewarded_ads_service.dart';
 import '../../services/profile/profile_cache_service.dart';
-import '../../services/profile/device_timezone_service.dart';
+import '../../services/profile/profile_bootstrap_service.dart';
 import '../../services/review/review_prompt_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 
@@ -747,46 +747,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _ensureProfile() async {
-    final defaultNickname = AppLocalizations.of(
-      context,
-    )!.profileDefaultNickname;
     try {
-      final localTimezone = await DeviceTimezoneService.instance.getTimezone();
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) {
-        return;
-      }
-
-      final profile = await _withNetworkTimeout(
-        Supabase.instance.client
-            .from('profiles')
-            .select('user_id,timezone')
-            .eq('user_id', user.id)
-            .maybeSingle(),
+      await _withNetworkTimeout(
+        ProfileBootstrapService.instance.ensureProfile(
+          defaultNickname: AppLocalizations.of(context)!.profileDefaultNickname,
+          selectClause: 'user_id,timezone',
+        ),
       );
-
-      if (profile == null) {
-        final insertPayload = <String, dynamic>{
-          'user_id': user.id,
-          'nickname': defaultNickname,
-        };
-        if (localTimezone != null) {
-          insertPayload['timezone'] = localTimezone;
-        }
-        await _withNetworkTimeout(
-          Supabase.instance.client.from('profiles').insert(insertPayload),
-        );
-      } else if (localTimezone != null) {
-        final profileTimezone = (profile['timezone'] as String?)?.trim();
-        if (profileTimezone == null || profileTimezone != localTimezone) {
-          await _withNetworkTimeout(
-            Supabase.instance.client
-                .from('profiles')
-                .update({'timezone': localTimezone})
-                .eq('user_id', user.id),
-          );
-        }
-      }
     } catch (_) {
       // Best-effort. Profile creation can be retried on next app open.
     }
@@ -3799,11 +3766,42 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     try {
-      await Supabase.instance.client.rpc(
+      final response = await Supabase.instance.client.rpc(
+        'update_room_furniture_transform',
+        params: {
+          'p_id': item.id,
+          'p_scale': item.scale,
+          'p_position_x': item.normalizedPosition.dx,
+          'p_position_y': item.normalizedPosition.dy,
+        },
+      );
+      _applyPersistedFurnitureTransformResponse(item, response);
+    } catch (error) {
+      if (_shouldFallbackToLegacyFurnitureTransform(error)) {
+        await _persistFurnitureTransformLegacy(item);
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _furnitureError = AppLocalizations.of(
+            context,
+          )!.shopLoadFailed(userFacingError(context, error));
+        });
+      }
+      final roomId = _roomId;
+      if (roomId != null) {
+        unawaited(_loadRoomFurniture(roomId));
+      }
+    }
+  }
+
+  Future<void> _persistFurnitureTransformLegacy(_PlacedFurniture item) async {
+    try {
+      final scaleResponse = await Supabase.instance.client.rpc(
         'update_room_furniture_scale',
         params: {'p_id': item.id, 'p_scale': item.scale},
       );
-      await Supabase.instance.client.rpc(
+      final positionResponse = await Supabase.instance.client.rpc(
         'update_room_furniture_position',
         params: {
           'p_id': item.id,
@@ -3811,9 +3809,11 @@ class _HomeViewState extends ConsumerState<HomeView>
           'p_position_y': item.normalizedPosition.dy,
         },
       );
-      item
-        ..persistedScale = item.scale
-        ..persistedNormalizedPosition = item.normalizedPosition;
+      _applyPersistedFurnitureTransformResponse(
+        item,
+        positionResponse,
+        fallbackResponse: scaleResponse,
+      );
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -3827,6 +3827,77 @@ class _HomeViewState extends ConsumerState<HomeView>
         unawaited(_loadRoomFurniture(roomId));
       }
     }
+  }
+
+  void _applyPersistedFurnitureTransformResponse(
+    _PlacedFurniture item,
+    dynamic response, {
+    dynamic fallbackResponse,
+  }) {
+    final row =
+        _coerceFurnitureTransformResponse(response) ??
+        _coerceFurnitureTransformResponse(fallbackResponse);
+    final nextScale = _parseFurnitureScale(row?['scale'] ?? item.scale);
+    final nextPosition = row == null
+        ? item.normalizedPosition
+        : Offset(
+            (row['position_x'] as num?)?.toDouble() ??
+                item.normalizedPosition.dx,
+            (row['position_y'] as num?)?.toDouble() ??
+                item.normalizedPosition.dy,
+          );
+
+    if (!mounted) {
+      item
+        ..scale = nextScale
+        ..normalizedPosition = nextPosition
+        ..persistedScale = nextScale
+        ..persistedNormalizedPosition = nextPosition;
+      return;
+    }
+
+    setState(() {
+      item
+        ..scale = nextScale
+        ..normalizedPosition = nextPosition
+        ..persistedScale = nextScale
+        ..persistedNormalizedPosition = nextPosition;
+    });
+  }
+
+  Map<String, dynamic>? _coerceFurnitureTransformResponse(dynamic response) {
+    if (response is Map<String, dynamic>) {
+      return response;
+    }
+    if (response is Map) {
+      return response.cast<String, dynamic>();
+    }
+    if (response is List && response.isNotEmpty) {
+      final first = response.first;
+      if (first is Map<String, dynamic>) {
+        return first;
+      }
+      if (first is Map) {
+        return first.cast<String, dynamic>();
+      }
+    }
+    return null;
+  }
+
+  bool _shouldFallbackToLegacyFurnitureTransform(Object error) {
+    if (error is! PostgrestException) {
+      return false;
+    }
+    final summary = [
+      error.message,
+      error.details,
+      error.hint,
+      error.code,
+    ].whereType<String>().join(' ').toLowerCase();
+    return summary.contains('update_room_furniture_transform') &&
+        (summary.contains('does not exist') ||
+            summary.contains('could not find') ||
+            summary.contains('not found in schema cache'));
   }
 
   Future<void> _removeFurniture(_PlacedFurniture item) async {

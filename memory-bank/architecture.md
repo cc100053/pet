@@ -18,6 +18,7 @@ Implemented:
 - `lib/app/`: App bootstrap and theme.
   - Shared light-theme `AppBar` chrome now defaults to `AppStatusBarStyles.light`, keeping dark status-bar content on all standard white/cream app surfaces. Home and chat continue to override overlay style per active room background.
 - `lib/features/auth/`: Auth gate and OAuth sign-in view.
+- `lib/services/profile/profile_bootstrap_service.dart`: Shared profile bootstrap path used by Home and Profile to ensure the signed-in user has a `profiles` row and a synced timezone before downstream UI reads.
 - `lib/features/home/`: Signed-in home shell.
   - Shared room decor now has a compatibility layer for future catalog drops. Home still reads `room_backgrounds` / `room_background_state` and `room_furniture` from Supabase, but compatibility-aware builds classify each shared decor item against the current app version using `items.metadata.min_app_version` plus local rendering support. Unsupported active backgrounds fall back to the default room background, unsupported placed furniture is skipped entirely, and Home shows a one-shot update prompt that links to the store when the current room uses newer shared decor than the running app can render.
   - Room furniture inventory now behaves as a shared room pool on new clients: Home reads aggregated room totals through the `get_room_furniture_inventory` RPC instead of filtering `room_item_inventories` by the current user, so one member's furniture purchase becomes immediately available to other room members in both Home and Shop.
@@ -130,6 +131,7 @@ Planned:
   - Shared room furniture availability is now exposed through `get_room_furniture_inventory`, and `place_room_furniture` validates against room-wide totals rather than buyer-only totals.
 - Realtime: Chat and system events.
 - RPC (Postgres): Create room, join room, apply pet actions, claim rewards, tick pet state.
+- Room furniture transforms now have a backward-compatible atomic RPC path: newer clients call `update_room_furniture_transform(...)` so scale + position persist together in one write, while old clients continue using the legacy per-field RPCs unchanged.
 - Store catalog visibility:
   - Public catalog items continue to use `items.is_active = true`.
   - New gated decor items now use `items.metadata.visibility_mode = 'version_gated'` plus `min_app_version`, and Supabase exposes `get_visible_shop_items(p_app_version)` to return the correct catalog slice for compatibility-aware clients.

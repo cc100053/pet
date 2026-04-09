@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/env.dart';
 import '../../services/iap/revenuecat_service.dart';
-import '../../services/profile/device_timezone_service.dart';
+import '../../services/profile/profile_bootstrap_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/localization/app_locale_controller.dart';
 import '../../shared/theme/app_theme.dart';
@@ -88,11 +88,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     if (_busy) {
       return;
     }
-    setState(() {
-      _profileFuture = _loadProfile(
-        defaultNickname: AppLocalizations.of(context)!.profileDefaultNickname,
-      );
-    });
+    setState(_reloadProfileFuture);
   }
 
   String _feedbackBaseUrlForLanguageTag(String languageTag) {
@@ -125,9 +121,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _profileFuture ??= _loadProfile(
-      defaultNickname: AppLocalizations.of(context)!.profileDefaultNickname,
-    );
+    _profileFuture ??= _createProfileFuture();
   }
 
   @override
@@ -136,60 +130,26 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     super.dispose();
   }
 
+  Future<Map<String, dynamic>?> _createProfileFuture() {
+    return _loadProfile(
+      defaultNickname: AppLocalizations.of(context)!.profileDefaultNickname,
+    );
+  }
+
+  void _reloadProfileFuture() {
+    _profileFuture = _createProfileFuture();
+  }
+
   Future<Map<String, dynamic>?> _loadProfile({
     required String defaultNickname,
   }) async {
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) {
-        return null;
-      }
-      final localTimezone = await DeviceTimezoneService.instance.getTimezone();
-
-      final profile = await _withNetworkTimeout(
-        Supabase.instance.client
-            .from('profiles')
-            .select('user_id,nickname,avatar_url,coins,locale,timezone')
-            .eq('user_id', user.id)
-            .maybeSingle(),
+      return await _withNetworkTimeout(
+        ProfileBootstrapService.instance.ensureProfile(
+          defaultNickname: defaultNickname,
+          selectClause: 'user_id,nickname,avatar_url,coins,locale,timezone',
+        ),
         operation: 'load_profile',
-      );
-
-      if (profile != null) {
-        if (localTimezone != null) {
-          final profileTimezone = (profile['timezone'] as String?)?.trim();
-          if (profileTimezone == null || profileTimezone != localTimezone) {
-            await _withNetworkTimeout(
-              Supabase.instance.client
-                  .from('profiles')
-                  .update({'timezone': localTimezone})
-                  .eq('user_id', user.id),
-              operation: 'sync_timezone',
-            );
-          }
-        }
-        return profile;
-      }
-
-      final insertPayload = <String, dynamic>{
-        'user_id': user.id,
-        'nickname': defaultNickname,
-      };
-      if (localTimezone != null) {
-        insertPayload['timezone'] = localTimezone;
-      }
-      await _withNetworkTimeout(
-        Supabase.instance.client.from('profiles').insert(insertPayload),
-        operation: 'create_profile',
-      );
-
-      return _withNetworkTimeout(
-        Supabase.instance.client
-            .from('profiles')
-            .select('user_id,nickname,avatar_url,coins,locale,timezone')
-            .eq('user_id', user.id)
-            .maybeSingle(),
-        operation: 'reload_profile',
       );
     } catch (error) {
       if (_isLikelyNetworkError(error)) {
@@ -237,11 +197,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)),
     );
 
-    setState(() {
-      _profileFuture = _loadProfile(
-        defaultNickname: AppLocalizations.of(context)!.profileDefaultNickname,
-      );
-    });
+    setState(_reloadProfileFuture);
   }
 
   Future<void> _showNicknamePrompt(String currentNickname) async {
@@ -372,11 +328,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _profileFuture = _loadProfile(
-            defaultNickname: AppLocalizations.of(
-              context,
-            )!.profileDefaultNickname,
-          );
+          _reloadProfileFuture();
         });
       }
     }
@@ -444,11 +396,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _profileFuture = _loadProfile(
-            defaultNickname: AppLocalizations.of(
-              context,
-            )!.profileDefaultNickname,
-          );
+          _reloadProfileFuture();
         });
       }
     }
@@ -476,11 +424,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _profileFuture = _loadProfile(
-            defaultNickname: AppLocalizations.of(
-              context,
-            )!.profileDefaultNickname,
-          );
+          _reloadProfileFuture();
         });
       }
     }
@@ -637,11 +581,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _profileFuture = _loadProfile(
-            defaultNickname: AppLocalizations.of(
-              context,
-            )!.profileDefaultNickname,
-          );
+          _reloadProfileFuture();
         });
       }
     }
