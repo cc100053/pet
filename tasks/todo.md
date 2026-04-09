@@ -20,7 +20,19 @@
 - [x] Inspect the latest furniture RPC definitions and current Home/Profile bootstrap flows before changing either path.
 - [x] Extract a shared profile bootstrap service, switch Home/Profile to the shared path, and add focused service coverage.
 - [x] Add a backward-compatible atomic room-furniture transform migration, update Home to use it with a legacy fallback, and record the change in the memory bank.
-- [ ] Run full verification (`flutter analyze`, `flutter test`) and summarize how to test the changed user flows end to end.
+- [x] Run full verification (`flutter analyze`, `flutter test`) and summarize how to test the changed user flows end to end.
+
+# Review (2026-04-10 Refactor Home Furniture Persistence + Shared Profile Bootstrap)
+- [x] Implemented and verified.
+- Scope:
+  - Added `ProfileBootstrapService` so Home and Profile now share one path for ensuring the signed-in user has a `profiles` row and the latest device timezone.
+  - Switched `HomeView._ensureProfile()` and `ProfileView._loadProfile()` to the shared service, and added focused unit coverage for missing-profile creation and timezone-sync behavior.
+  - Added and applied a backward-compatible Supabase migration for `update_room_furniture_transform(...)`, then updated Home furniture persistence to use the atomic RPC with a legacy fallback to the old per-field RPCs when the new function is unavailable.
+  - Updated the memory bank to document the new shared bootstrap path and the additive furniture-transform RPC contract.
+- Verification:
+  - `flutter test test/services/profile/profile_bootstrap_service_test.dart`
+  - `flutter analyze`
+  - `flutter test`
 
 # Plan (2026-04-04 Debug Xcode Archive Signing Failure)
 - [x] Read the repo memory bank plus any iOS/archive notes, then inspect the current Xcode project signing settings for Runner and the notification extension.

@@ -6,9 +6,9 @@ void main() {
     final service = ProfileBootstrapService(
       timezoneProvider: () async => 'Asia/Tokyo',
       currentUserIdProvider: () => null,
-      loadProfile: (_, __) async => throw UnimplementedError(),
-      updateProfile: (_, __) async => throw UnimplementedError(),
-      insertProfile: (_) async => throw UnimplementedError(),
+      loadProfile: (userId, selectClause) async => throw UnimplementedError(),
+      updateProfile: (userId, payload) async => throw UnimplementedError(),
+      insertProfile: (payload) async => throw UnimplementedError(),
     );
 
     final profile = await service.ensureProfile(defaultNickname: 'Pet');
@@ -29,7 +29,7 @@ void main() {
             ? null
             : Map<String, dynamic>.from(storedProfile!);
       },
-      updateProfile: (_, __) async {},
+      updateProfile: (userId, payload) async {},
       insertProfile: (payload) async {
         inserts.add(Map<String, dynamic>.from(payload));
         storedProfile = <String, dynamic>{
@@ -62,7 +62,7 @@ void main() {
     final service = ProfileBootstrapService(
       timezoneProvider: () async => 'Asia/Tokyo',
       currentUserIdProvider: () => 'user-1',
-      loadProfile: (_, __) async => <String, dynamic>{
+      loadProfile: (userId, selectClause) async => <String, dynamic>{
         'user_id': 'user-1',
         'nickname': 'Pet',
         'timezone': 'UTC',
@@ -70,7 +70,7 @@ void main() {
       updateProfile: (userId, payload) async {
         updates.add(<String, dynamic>{'user_id': userId, ...payload});
       },
-      insertProfile: (_) async => throw UnimplementedError(),
+      insertProfile: (payload) async => throw UnimplementedError(),
     );
 
     final profile = await service.ensureProfile(defaultNickname: 'Pet');
@@ -86,15 +86,15 @@ void main() {
     final service = ProfileBootstrapService(
       timezoneProvider: () async => 'Asia/Tokyo',
       currentUserIdProvider: () => 'user-1',
-      loadProfile: (_, __) async => <String, dynamic>{
+      loadProfile: (userId, selectClause) async => <String, dynamic>{
         'user_id': 'user-1',
         'nickname': 'Pet',
         'timezone': 'Asia/Tokyo',
       },
-      updateProfile: (_, __) async {
+      updateProfile: (userId, payload) async {
         updateCalls += 1;
       },
-      insertProfile: (_) async => throw UnimplementedError(),
+      insertProfile: (payload) async => throw UnimplementedError(),
     );
 
     final profile = await service.ensureProfile(defaultNickname: 'Pet');
