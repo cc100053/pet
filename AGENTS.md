@@ -11,6 +11,11 @@ This file is for agentic coding agents working in this repo.
 - UI should refresh automatically after any action that causes a state transition.
 - Backward-compatibility rule: If a parameter change can affect behavior of old app versions, ask for user approval before implementing/releasing it.
 - Backward-compatibility rule: Before proceeding with such a change, propose alternatives that avoid impacting old versions (e.g., version-gated flags, backward-compatible defaults, new optional params, phased rollout), then wait for approval.
+- Keep active `memory-bank/*.md` files compact and current-state focused; move long historical detail or full snapshots to `memory-bank/archive/` so mandatory reads stay cheap.
+- For repo-specific workflows, read the matching local skill before editing:
+  - Crashlytics triage: `.codex/skills/firebase-crashlytics-triage/SKILL.md`
+  - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
+  - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
 
 # Agent Workflows & Core Principles
 
@@ -102,11 +107,21 @@ This file is for agentic coding agents working in this repo.
 - ARB files live in `lib/l10n/` (see `l10n.yaml`).
 - After editing ARB files, regenerate via build (usually automatic) or run: `flutter gen-l10n`.
 
+### Asset bundle verification
+- When adding nested asset folders or debugging missing Flutter assets, run: `flutter build bundle`
+- Then verify `build/flutter_assets/AssetManifest.bin` and copied files under `build/flutter_assets/assets/...`.
+
 ### Scripts
 - Notify webhook test: `scripts/test_notify_friend.sh` (see env vars in `docs/testing.md`).
+- Firebase Crashlytics MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
 - Apple client secret (Sign in with Apple):
   - Generate: `node scripts/generate_apple_client_secret.mjs --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
   - Never commit `.p8` files or generated secrets.
+
+### App Store Connect metadata
+- List versions: `asc versions list --app 6757725650`
+- Upload localized version metadata from `.strings`: `asc localizations upload --version <VERSION_ID> --locale ja --path .asc/version-localizations/ja.strings`
+- Verify localized metadata: `asc localizations list --version <VERSION_ID> --output table`
 
 ### Build
 - Debug builds are usually done via `flutter run`.
@@ -134,6 +149,25 @@ flutter run
 ### Edge functions
 - Functions live in `supabase/functions/`.
 - If an edge function uses auth quirks, document it in `docs/testing.md` and keep security tradeoffs explicit.
+
+## Repo-specific workflows
+
+### Shared item rollout
+- Use `.codex/skills/shared-item-rollout/SKILL.md` for new shared backgrounds, furniture, or pets.
+- Do not expose new shared items to old app versions by default; add version-gated visibility plus old-client render fallbacks.
+- For shop-backed decor, keep catalog visibility, purchase RPC predicates, and table RLS policies aligned.
+- If notification payloads include item-specific names or assets, update the related Edge Function/native notification handling too.
+
+### Release notes and App Store metadata
+- Use `.codex/skills/release-notes-sync/SKILL.md` when adding bundled What's New entries or syncing App Store Connect release notes.
+- Keep bundled in-app What's New copy separate from ASC `whatsNew` / `promotionalText`; do not upload shortened in-app bullets as ASC release notes.
+- Present localized drafts for approval before applying local release-note files and ASC metadata changes.
+
+### Firebase Crashlytics triage
+- Use `.codex/skills/firebase-crashlytics-triage/SKILL.md` and Firebase MCP for crash/non-fatal investigation.
+- Repo Firebase project: `pet-app-702be`; prefer the iOS app ID unless Android is explicitly requested.
+- Setup and wrapper details live in `docs/firebase_crashlytics_mcp_workflow.md` and `scripts/start_firebase_mcp_crashlytics.sh`.
+- TODO: `docs/firebase_crashlytics_mcp_workflow.md` references `.firebase-mcp.env.example`, but that example file is not present in this checkout; verify or restore it before relying on the copy step.
 
 ## Testing notes
 

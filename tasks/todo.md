@@ -1,5 +1,37 @@
 # TODO
 
+# Plan (2026-04-11 Compact Memory Bank)
+- [x] Read all active memory-bank files and measure which files dominate token usage.
+- [x] Archive current long-form memory-bank snapshots before shortening active files.
+- [x] Rewrite active architecture/schema/progress notes as concise current-state summaries with pointers to archive and source-of-truth files.
+- [x] Update agent guidance so future memory-bank updates stay compact, then run verification.
+
+# Review (2026-04-11 Compact Memory Bank)
+- [x] Implemented and verified.
+- Scope:
+  - Reduced active memory-bank files from 720 lines to 299 lines while keeping the long-form snapshots in `memory-bank/archive/`.
+  - Rewrote `architecture.md`, `database-schema.md`, and `progress.md` as compact current-state summaries with source-of-truth pointers.
+  - Added an `AGENTS.md` rule to keep active memory-bank files compact and archive long historical detail.
+- Verification:
+  - `wc -l memory-bank/*.md memory-bank/archive/*_20260411_pre_compaction.md`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-11 Update AGENTS Workflows)
+- [x] Read the current AGENTS.md, memory-bank files, and task notes required by repo workflow.
+- [x] Verify referenced repo-local workflow docs/skills/scripts before changing AGENTS.md.
+- [x] Patch AGENTS.md with only grounded workflow and command additions, then review the diff.
+
+# Review (2026-04-11 Update AGENTS Workflows)
+- [x] Implemented and verified.
+- Scope:
+  - Added repo-local workflow pointers for Crashlytics triage, release-note/App Store metadata sync, and shared-item rollouts.
+  - Added grounded commands for Flutter asset-bundle verification, Firebase Crashlytics MCP tool listing, and ASC localization upload/list verification.
+  - Added a TODO for the missing `.firebase-mcp.env.example` file referenced by the Crashlytics MCP setup doc.
+- Verification:
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-09 Refactor Review Sweep)
 - [x] Read the active memory-bank files plus current task notes, then inspect the highest-complexity Flutter surfaces for refactor candidates.
 - [x] Trace concrete code paths in the main hotspots (`home_view`, `chat_room_view_v2`, `shop_view`, `profile_view`, related sheets) and collect line-level evidence.
