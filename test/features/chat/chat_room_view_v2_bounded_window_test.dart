@@ -341,6 +341,16 @@ void main() {
     return editable.focusNode.hasFocus;
   }
 
+  String composerText(WidgetTester tester) {
+    final editable = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byKey(const ValueKey('chatComposerTextField')),
+        matching: find.byType(EditableText),
+      ),
+    );
+    return editable.controller.text;
+  }
+
   setUp(() {
     ProfileCacheService.instance.clear();
     ProfileCacheService.instance.prime(
@@ -697,6 +707,67 @@ void main() {
       );
     },
   );
+
+  testWidgets('send failure restores composer text and clears optimistic UI', (
+    tester,
+  ) async {
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: const <ChatMessage>[],
+      canonicalMessages: const <ChatMessage>[],
+    );
+    final messageActionService = ChatMessageActionService(
+      insertText: (_) async => throw StateError('insert_failed'),
+      notifyTextMessage: ({required roomId, required messageId}) async {},
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(
+      tester,
+      repository: repository,
+      runtime: runtime,
+      messageActionService: messageActionService,
+    );
+
+    await tester.enterText(
+      find.byKey(const ValueKey('chatComposerTextField')),
+      'please send',
+    );
+    await tester.tap(find.byKey(const ValueKey('chatComposerSendButton')));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(composerText(tester), 'please send');
+    expect(repository.lastPersistedMessages, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stale runtime messages after dispose are ignored', (
+    tester,
+  ) async {
+    final incomingController = StreamController<ChatMessage>.broadcast();
+    addTearDown(incomingController.close);
+
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message(1)],
+      canonicalMessages: <ChatMessage>[message(1)],
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      incomingMessages: incomingController.stream,
+      loadBlockedUserIds: (_) async => <String>{},
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    incomingController.add(message(2));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'latest button keeps newest message visible after delayed reply preview expands it',
@@ -1105,7 +1176,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+      find.byKey(const ValueKey('chatMessageActionOverlayScrim')),
       findsOneWidget,
     );
     expect(find.byType(BottomSheet), findsNothing);
@@ -1280,7 +1351,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+        find.byKey(const ValueKey('chatMessageActionOverlayScrim')),
         findsOneWidget,
       );
       await tester.tap(

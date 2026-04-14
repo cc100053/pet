@@ -328,7 +328,10 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (!AdMobIds.isSupported || _hasProPlanAccess) {
       return;
     }
-    if (!_shouldOfferFeedDoubleReward(result) ||
+    final messageId = result.messageId?.trim();
+    if (messageId == null ||
+        messageId.isEmpty ||
+        !_shouldOfferFeedDoubleReward(result) ||
         _showingFeedDoubleRewardPrompt) {
       return;
     }
@@ -360,16 +363,23 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       switch (adResult.status) {
         case RewardedAdResultStatus.rewarded:
           try {
-            final rewardResult = await Supabase.instance.client.rpc(
-              'claim_action_reward',
-              params: {'p_action_type': 'ad_reward', 'p_room_id': roomId},
+            final claimPayload = await Supabase.instance.client.rpc(
+              'claim_feed_double_reward',
+              params: {'p_room_id': roomId, 'p_message_id': messageId},
             );
-            final extraReward = _extractRewardAmount(rewardResult);
+            final claim = _FeedDoubleRewardClaim.fromPayload(claimPayload);
             if (!mounted) {
               return;
             }
-            if (extraReward > 0) {
-              _applyCoinRewardFeedback(extraReward);
+            if (claim.extraReward > 0) {
+              _applyCoinRewardFeedback(
+                claim.extraReward,
+                displayAmount: claim.totalReward,
+                displayLabel: l10n.feedAdDoubleRewardClaimed(claim.totalReward),
+              );
+              unawaited(_loadCoinsInternal());
+              unawaited(_refreshLatestRoomPhoto(roomId));
+              unawaited(_refreshLatestFeed(roomId));
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(l10n.storeAdRewardCooldown)),
@@ -413,17 +423,11 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   bool _shouldOfferFeedDoubleReward(FeedUploadResult result) {
-    if (result.coinsAwarded > 0) {
-      return true;
-    }
-    final rewardStatus = result.rewardStatus?.trim().toLowerCase();
-    if (rewardStatus == 'granted') {
-      return true;
-    }
-    if (rewardStatus == 'cooldown') {
+    final messageId = result.messageId?.trim();
+    if (messageId == null || messageId.isEmpty) {
       return false;
     }
-    return !result.cooldownActive;
+    return result.coinsAwarded > 0;
   }
 
   Future<_FeedDoubleRewardPromptAction> _showFeedDoubleRewardToast({
@@ -478,14 +482,19 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     return action ?? _FeedDoubleRewardPromptAction.cancel;
   }
 
-  void _applyCoinRewardFeedback(int amount) {
+  void _applyCoinRewardFeedback(
+    int amount, {
+    int? displayAmount,
+    String? displayLabel,
+  }) {
     if (amount <= 0 || !mounted) {
       return;
     }
     int? rewardEventIdToClear;
     _setStateForFeedOrchestrator(() {
       _coins += amount;
-      _coinReward = amount;
+      _coinReward = displayAmount ?? amount;
+      _coinRewardLabel = displayLabel;
       _coinRewardEventId++;
       rewardEventIdToClear = _coinRewardEventId;
     });
@@ -504,6 +513,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       }
       _setStateForFeedOrchestrator(() {
         _coinReward = null;
+        _coinRewardLabel = null;
       });
     });
   }
@@ -796,5 +806,48 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _petEating = false;
       _petStationaryState = _PetStationaryState.staying;
     });
+  }
+}
+
+class _FeedDoubleRewardClaim {
+  const _FeedDoubleRewardClaim({
+    required this.extraReward,
+    required this.totalReward,
+    required this.alreadyClaimed,
+  });
+
+  final int extraReward;
+  final int totalReward;
+  final bool alreadyClaimed;
+
+  factory _FeedDoubleRewardClaim.fromPayload(dynamic payload) {
+    if (payload is List && payload.isNotEmpty) {
+      return _FeedDoubleRewardClaim.fromPayload(payload.first);
+    }
+    if (payload is Map) {
+      return _FeedDoubleRewardClaim(
+        extraReward: _parseInt(payload['extra_reward']),
+        totalReward: _parseInt(payload['total_reward']),
+        alreadyClaimed: payload['already_claimed'] == true,
+      );
+    }
+    return const _FeedDoubleRewardClaim(
+      extraReward: 0,
+      totalReward: 0,
+      alreadyClaimed: false,
+    );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    if (value is String) {
+      return int.tryParse(value) ?? 0;
+    }
+    return 0;
   }
 }

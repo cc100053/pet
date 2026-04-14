@@ -853,6 +853,12 @@
       "amount": {}
     }
   },
+  "feedAdDoubleRewardClaimed": "x2 キャンディ +{amount}",
+  "@feedAdDoubleRewardClaimed": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "feedAdDoubleRewardFailed": "2倍報酬の受け取りに失敗しました: {error}",
   "@feedAdDoubleRewardFailed": {
     "placeholders": {

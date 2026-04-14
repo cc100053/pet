@@ -101,6 +101,10 @@ class PetChatMessageAdapter {
     return body.isNotEmpty ? body : l10n.chatMessageHint;
   }
 
+  static String feedRewardLabel(int amount, AppLocalizations l10n) {
+    return l10n.chatCoinsAwarded(amount);
+  }
+
   static String localizedSystemText(
     ChatMessage message,
     AppLocalizations l10n,

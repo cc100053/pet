@@ -1604,6 +1604,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String feedAdDoubleRewardClaimed(Object amount) {
+    return 'x2 candy +$amount';
+  }
+
+  @override
   String feedAdDoubleRewardFailed(Object error) {
     return 'Double reward failed: $error';
   }

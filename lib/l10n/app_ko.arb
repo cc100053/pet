@@ -840,6 +840,12 @@
       "amount": {}
     }
   },
+  "feedAdDoubleRewardClaimed": "x2 캔디 +{amount}",
+  "@feedAdDoubleRewardClaimed": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "feedAdDoubleRewardFailed": "2배 보상 지급 실패: {error}",
   "@feedAdDoubleRewardFailed": {
     "placeholders": {

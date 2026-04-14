@@ -34,6 +34,8 @@ class CachedNetworkImageView extends StatelessWidget {
   final Widget? errorWidget;
   final BaseCacheManager? cacheManager;
 
+  static const int _maxCacheSide = 2048;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -113,11 +115,23 @@ class CachedNetworkImageView extends StatelessWidget {
       return null;
     }
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final effectiveScale = scale.clamp(1.0, 4.0);
-    final cacheWidth = (resolvedWidth * devicePixelRatio * effectiveScale)
-        .round();
-    final cacheHeight = (resolvedHeight * devicePixelRatio * effectiveScale)
-        .round();
+    final safeDevicePixelRatio = _positiveFiniteOrNull(devicePixelRatio);
+    final safeScale = _positiveFiniteOrNull(scale);
+    if (safeDevicePixelRatio == null || safeScale == null) {
+      return null;
+    }
+    final effectiveScale = safeScale.clamp(1.0, 4.0).toDouble();
+    final rawCacheWidth = resolvedWidth * safeDevicePixelRatio * effectiveScale;
+    final rawCacheHeight =
+        resolvedHeight * safeDevicePixelRatio * effectiveScale;
+    if (!rawCacheWidth.isFinite ||
+        !rawCacheHeight.isFinite ||
+        rawCacheWidth <= 0 ||
+        rawCacheHeight <= 0) {
+      return null;
+    }
+    final cacheWidth = rawCacheWidth.round().clamp(1, _maxCacheSide).toInt();
+    final cacheHeight = rawCacheHeight.round().clamp(1, _maxCacheSide).toInt();
     if (cacheWidth <= 0 || cacheHeight <= 0) {
       return null;
     }
@@ -135,6 +149,13 @@ class CachedNetworkImageView extends StatelessWidget {
       return maxConstraint;
     }
     return null;
+  }
+
+  double? _positiveFiniteOrNull(double? value) {
+    if (value == null || !value.isFinite || value <= 0) {
+      return null;
+    }
+    return value;
   }
 }
 

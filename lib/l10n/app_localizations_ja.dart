@@ -1553,6 +1553,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String feedAdDoubleRewardClaimed(Object amount) {
+    return 'x2 キャンディ +$amount';
+  }
+
+  @override
   String feedAdDoubleRewardFailed(Object error) {
     return '2倍報酬の受け取りに失敗しました: $error';
   }

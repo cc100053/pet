@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -19,6 +19,7 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/chat/chat_message_action_service.dart';
 import '../../services/chat/chat_message_repository.dart';
+import '../../services/crash/crash_reporting_service.dart';
 import '../../services/performance/memory_diagnostics_service.dart';
 import '../../services/profile/profile_cache_service.dart';
 import '../../services/review/review_prompt_service.dart';
@@ -147,6 +148,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   RealtimeChannel? _channel;
   StreamSubscription<ChatMessage>? _runtimeIncomingSubscription;
   StreamSubscription<String>? _runtimeReactionSubscription;
+  int _realtimeGeneration = 0;
   bool _loading = true;
   bool _loadingMore = false;
   bool _sending = false;
@@ -216,6 +218,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     WidgetsBinding.instance.addObserver(this);
     _memberCount = widget.memberCount;
     _chatScrollController.addListener(_handleChatScroll);
+    unawaited(_setChatCrashContext(lastAction: 'chat_init'));
     unawaited(_captureMemorySnapshot(source: 'chat_init_state'));
     if (_memberCount == null) {
       unawaited(_fetchMemberCount());
@@ -226,11 +229,17 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
   @override
   void dispose() {
+    _realtimeGeneration += 1;
+    unawaited(_setChatCrashContext(lastAction: 'chat_dispose'));
     unawaited(_captureMemorySnapshot(source: 'chat_dispose'));
     WidgetsBinding.instance.removeObserver(this);
-    _channel?.unsubscribe();
+    final channel = _channel;
+    _channel = null;
+    unawaited(_removeRealtimeChannel(channel));
     _runtimeIncomingSubscription?.cancel();
+    _runtimeIncomingSubscription = null;
     _runtimeReactionSubscription?.cancel();
+    _runtimeReactionSubscription = null;
     _chatScrollController.removeListener(_handleChatScroll);
     _chatController.dispose();
     _chatScrollController.dispose();
@@ -258,7 +267,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     if (!mounted) {
       return;
     }
-    final view = View.maybeOf(context);
+    final view = WidgetsBinding.instance.platformDispatcher.implicitView;
     if (view == null) {
       return;
     }
@@ -324,6 +333,58 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       fullscreenProviderType: fullscreenProviderType,
       fullscreenItemCount: fullscreenItemCount,
     );
+  }
+
+  Future<void> _setChatCrashContext({String? lastAction}) {
+    return CrashReportingService.instance.setContext(
+      feature: 'chat_room_view_v2',
+      roomId: widget.roomId,
+      lastAction: lastAction,
+    );
+  }
+
+  Future<void> _chatBreadcrumb(
+    String message, {
+    String? messageId,
+    Object? error,
+  }) {
+    final imageCache = PaintingBinding.instance.imageCache;
+    int activeChannels;
+    try {
+      activeChannels = Supabase.instance.client.getChannels().length;
+    } catch (_) {
+      activeChannels = -1;
+    }
+    return CrashReportingService.instance.breadcrumb(
+      message,
+      data: <String, Object?>{
+        'room_id': widget.roomId,
+        'message_id': messageId,
+        'messages': _messages.length,
+        'image_messages': _imageMessageCount,
+        'optimistic_messages': _optimisticIds.length,
+        'cache_bytes': imageCache.currentSizeBytes,
+        'cache_live': imageCache.liveImageCount,
+        'cache_pending': imageCache.pendingImageCount,
+        'channels': activeChannels,
+        'error_type': error?.runtimeType.toString(),
+      },
+    );
+  }
+
+  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) async {
+    if (channel == null) {
+      return;
+    }
+    try {
+      await Supabase.instance.client.removeChannel(channel);
+    } catch (_) {
+      try {
+        await channel.unsubscribe();
+      } catch (_) {
+        // Best-effort cleanup; route disposal must not fail user flows.
+      }
+    }
   }
 
   Future<void> _initialize() async {
@@ -879,14 +940,23 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   }
 
   void _subscribeToMessages() {
+    final generation = ++_realtimeGeneration;
     if (_runtime?.incomingMessages != null ||
         _runtime?.disableRealtime == true) {
-      _runtimeIncomingSubscription = _runtime?.incomingMessages?.listen(
-        _handleIncomingMessage,
-      );
-      _runtimeReactionSubscription = _runtime?.reactionMessageIds?.listen(
-        _handleReactionRefreshMessageId,
-      );
+      _runtimeIncomingSubscription = _runtime?.incomingMessages?.listen((
+        message,
+      ) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleIncomingMessage(message);
+        }
+      });
+      _runtimeReactionSubscription = _runtime?.reactionMessageIds?.listen((
+        messageId,
+      ) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleReactionRefreshMessageId(messageId);
+        }
+      });
       return;
     }
 
@@ -904,7 +974,24 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         value: widget.roomId,
       ),
       callback: (payload) {
-        _handleIncomingMessage(ChatMessage.fromJson(payload.newRecord));
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleIncomingMessage(ChatMessage.fromJson(payload.newRecord));
+        }
+      },
+    );
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'messages',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: widget.roomId,
+      ),
+      callback: (payload) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleUpdatedMessage(ChatMessage.fromJson(payload.newRecord));
+        }
       },
     );
 
@@ -917,9 +1004,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         column: 'room_id',
         value: widget.roomId,
       ),
-      callback: (payload) => _handleReactionRefreshMessageId(
-        (payload.newRecord['message_id'] as String? ?? '').trim(),
-      ),
+      callback: (payload) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleReactionRefreshMessageId(
+            (payload.newRecord['message_id'] as String? ?? '').trim(),
+          );
+        }
+      },
     );
     channel.onPostgresChanges(
       event: PostgresChangeEvent.update,
@@ -930,9 +1021,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         column: 'room_id',
         value: widget.roomId,
       ),
-      callback: (payload) => _handleReactionRefreshMessageId(
-        (payload.newRecord['message_id'] as String? ?? '').trim(),
-      ),
+      callback: (payload) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleReactionRefreshMessageId(
+            (payload.newRecord['message_id'] as String? ?? '').trim(),
+          );
+        }
+      },
     );
     channel.onPostgresChanges(
       event: PostgresChangeEvent.delete,
@@ -943,11 +1038,19 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         column: 'room_id',
         value: widget.roomId,
       ),
-      callback: (payload) => _handleReactionRefreshMessageId(
-        (payload.oldRecord['message_id'] as String? ?? '').trim(),
-      ),
+      callback: (payload) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleReactionRefreshMessageId(
+            (payload.oldRecord['message_id'] as String? ?? '').trim(),
+          );
+        }
+      },
     );
     channel.subscribe();
+  }
+
+  bool _isRealtimeGenerationActive(int generation) {
+    return mounted && generation == _realtimeGeneration;
   }
 
   Future<Map<String, ChatReplyPreview>> _fetchReplyPreviewMap(
@@ -1009,6 +1112,37 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         scrollToLatest: shouldAutoScroll,
       ),
     );
+  }
+
+  void _handleUpdatedMessage(ChatMessage message) {
+    if (!mounted ||
+        message.type.isEmpty ||
+        !_isVisibleMessage(message) ||
+        !_messagesById.containsKey(message.id)) {
+      return;
+    }
+    unawaited(_replaceMessageFromRealtime(message));
+  }
+
+  Future<void> _replaceMessageFromRealtime(ChatMessage message) async {
+    if (!mounted || !_messagesById.containsKey(message.id)) {
+      return;
+    }
+    final previous = _messagesById[message.id];
+    _window.replaceVisibleMessage(
+      message.copyWith(
+        reactions: previous?.reactions,
+        replyPreview: previous?.replyPreview,
+      ),
+    );
+    await _applyWindowToChat(animated: false);
+    unawaited(_ensureProfilesForMessages([message]));
+    unawaited(_ensureReplyPreviewsForMessages([message]));
+    unawaited(_ensureReactionSummariesForMessages([message]));
+    unawaited(_persistCache());
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   String? _findMatchingOptimisticMessageId(ChatMessage incoming) {
@@ -1137,40 +1271,50 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       _replyTargetMessageId = null;
     });
 
-    await _ensureLatestWindowForCompose();
-    if (!mounted) {
-      return;
-    }
-
-    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    final optimisticMessage = ChatMessage(
-      id: tempId,
-      roomId: widget.roomId,
-      senderId: userId,
-      type: 'text',
-      body: text,
-      imageUrl: null,
-      caption: null,
-      coinsAwarded: 0,
-      createdAt: DateTime.now().toUtc(),
-      clientCreatedAt: DateTime.now().toUtc(),
-      labels: const <Map<String, dynamic>>[],
-      localImagePath: null,
-      replyToMessageId: replyTarget?.id,
-      replyPreview: replyTarget == null
-          ? null
-          : ChatReplyPreview.fromMessage(replyTarget),
-    );
-
-    await _insertMessage(
-      optimisticMessage,
-      animated: true,
-      isOptimistic: true,
-      scrollToLatest: true,
-    );
-
+    String? tempId;
     try {
-      String? insertedMessageId;
+      unawaited(_setChatCrashContext(lastAction: 'chat_send_start'));
+      unawaited(_chatBreadcrumb('chat_send_start'));
+      await _ensureLatestWindowForCompose();
+      if (!mounted) {
+        return;
+      }
+
+      tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+      final now = DateTime.now().toUtc();
+      final optimisticMessage = ChatMessage(
+        id: tempId,
+        roomId: widget.roomId,
+        senderId: userId,
+        type: 'text',
+        body: text,
+        imageUrl: null,
+        caption: null,
+        coinsAwarded: 0,
+        createdAt: now,
+        clientCreatedAt: now,
+        labels: const <Map<String, dynamic>>[],
+        localImagePath: null,
+        replyToMessageId: replyTarget?.id,
+        replyPreview: replyTarget == null
+            ? null
+            : ChatReplyPreview.fromMessage(replyTarget),
+      );
+
+      await _insertMessage(
+        optimisticMessage,
+        animated: true,
+        isOptimistic: true,
+        scrollToLatest: true,
+      );
+      unawaited(
+        _chatBreadcrumb(
+          'chat_send_optimistic_inserted',
+          messageId: optimisticMessage.id,
+        ),
+      );
+
+      final String insertedMessageId;
       if (replyTarget != null) {
         insertedMessageId = await _messageActionService.sendTextReply(
           roomId: widget.roomId,
@@ -1179,33 +1323,40 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
           userId: userId,
         );
       } else {
-        final insertedMessage = await Supabase.instance.client
-            .from('messages')
-            .insert({
-              'room_id': widget.roomId,
-              'sender_id': userId,
-              'type': 'text',
-              'body': text,
-              'client_created_at': DateTime.now().toUtc().toIso8601String(),
-            })
-            .select('id')
-            .single();
-        insertedMessageId = insertedMessage['id'] as String?;
+        insertedMessageId = await _messageActionService.sendTextMessage(
+          roomId: widget.roomId,
+          text: text,
+          userId: userId,
+        );
       }
-      if (replyTarget == null && insertedMessageId != null) {
+      unawaited(
+        _chatBreadcrumb('chat_send_db_success', messageId: insertedMessageId),
+      );
+      if (replyTarget == null) {
         unawaited(_notifyTextMessage(insertedMessageId));
       }
       if (!mounted) {
         return;
       }
       await _removeMessageById(tempId, animated: false);
+      tempId = null;
       unawaited(_refreshLatest());
+      unawaited(
+        _chatBreadcrumb(
+          'chat_send_refresh_requested',
+          messageId: insertedMessageId,
+        ),
+      );
       AnalyticsService.instance.logEvent(
         'message_send',
         parameters: {'result': 'success', 'ui': 'flutter_chat_ui_spike'},
       );
     } catch (error) {
-      await _removeMessageById(tempId, animated: false);
+      unawaited(_setChatCrashContext(lastAction: 'chat_send_failed'));
+      unawaited(_chatBreadcrumb('chat_send_failed', error: error));
+      if (tempId != null) {
+        await _removeMessageById(tempId, animated: false);
+      }
       if (!mounted) {
         return;
       }
@@ -1680,6 +1831,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       isMine: isMine,
     );
     final preview = _buildMessageActionPreview(message);
+    unawaited(_setChatCrashContext(lastAction: 'chat_action_sheet_open'));
+    unawaited(
+      _captureMemorySnapshot(
+        source: 'chat_action_sheet_open',
+        note: message.isImageFeed ? 'image_message' : 'text_message',
+      ),
+    );
     final action = await showGeneralDialog<_MessageActionSelection>(
       context: context,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -1722,6 +1880,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return child;
       },
+    );
+    unawaited(_setChatCrashContext(lastAction: 'chat_action_sheet_closed'));
+    unawaited(
+      _captureMemorySnapshot(
+        source: 'chat_action_sheet_closed',
+        note: action == null ? 'dismissed' : 'selected',
+      ),
     );
 
     if (!mounted || action == null) {
@@ -1792,6 +1957,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
       return;
     }
 
+    unawaited(_setChatCrashContext(lastAction: 'chat_reaction_sheet_open'));
+    unawaited(
+      _captureMemorySnapshot(
+        source: 'chat_reaction_sheet_open',
+        note: message.isImageFeed ? 'image_message' : 'text_message',
+      ),
+    );
     final action = await showModalBottomSheet<ChatReactionDetailsSheetAction>(
       context: context,
       isScrollControlled: true,
@@ -1823,6 +1995,13 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
           }
           return _toggleReactionFromSheet(message, selectedEmoji);
         },
+      ),
+    );
+    unawaited(_setChatCrashContext(lastAction: 'chat_reaction_sheet_closed'));
+    unawaited(
+      _captureMemorySnapshot(
+        source: 'chat_reaction_sheet_closed',
+        note: action == null ? 'dismissed' : 'selected',
       ),
     );
     if (!mounted || action == null) {
@@ -3581,6 +3760,7 @@ class _ComposerSendButton extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
+            key: const ValueKey('chatComposerSendButton'),
             onTap: onTap,
             borderRadius: BorderRadius.circular(24),
             child: AnimatedContainer(
@@ -4079,9 +4259,9 @@ class _MessageHighlightFrame extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: highlightShadow,
-                  blurRadius: 18,
-                  spreadRadius: 0.5,
-                  offset: const Offset(0, 6),
+                  blurRadius: 8,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 3),
                 ),
               ]
             : const <BoxShadow>[],
@@ -4217,24 +4397,21 @@ class _FeedCard extends StatelessWidget {
     }) {
       return ClipRRect(
         borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: overlaySurface,
-              borderRadius: borderRadius,
-              border: Border.all(color: overlayBorder),
-              boxShadow: [
-                BoxShadow(
-                  color: overlayShadow,
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: child,
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: overlaySurface,
+            borderRadius: borderRadius,
+            border: Border.all(color: overlayBorder),
+            boxShadow: [
+              BoxShadow(
+                color: overlayShadow.withValues(alpha: 0.10),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
+          child: child,
         ),
       );
     }
@@ -4317,7 +4494,7 @@ class _FeedCard extends StatelessWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            image,
+                            RepaintBoundary(child: image),
                             if (coinsAwarded > 0)
                               Positioned(
                                 top: 12,
@@ -4338,7 +4515,10 @@ class _FeedCard extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 5),
                                       Text(
-                                        '+$coinsAwarded',
+                                        PetChatMessageAdapter.feedRewardLabel(
+                                          coinsAwarded,
+                                          AppLocalizations.of(context)!,
+                                        ),
                                         style: theme.textTheme.labelMedium
                                             ?.copyWith(
                                               color: overlayPrimaryText,
@@ -4701,33 +4881,30 @@ class _GlassPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          color: useDarkSurface
+              ? Colors.black.withValues(alpha: 0.78)
+              : Colors.white.withValues(alpha: 0.82),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
             color: useDarkSurface
-                ? Colors.black.withValues(alpha: 0.72)
-                : Colors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: useDarkSurface
-                  ? Colors.white.withValues(alpha: 0.24)
-                  : Colors.white.withValues(alpha: 0.6),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(
-                  alpha: useDarkSurface ? 0.18 : 0.08,
-                ),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
+                ? Colors.white.withValues(alpha: 0.22)
+                : Colors.white.withValues(alpha: 0.6),
+            width: 1,
           ),
-          child: child,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(
+                alpha: useDarkSurface ? 0.10 : 0.05,
+              ),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
+        child: child,
       ),
     );
   }

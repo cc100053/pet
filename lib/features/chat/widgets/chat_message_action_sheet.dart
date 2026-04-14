@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -96,7 +95,6 @@ class ChatMessageActionSheet extends StatelessWidget {
         final railProgress = railAnimation.value.clamp(0.0, 1.0);
         final previewProgress = previewAnimation.value.clamp(0.0, 1.0);
         final cardProgress = cardAnimation.value.clamp(0.0, 1.0);
-        final backdropSigma = 16 * backdropProgress;
         final backdropOpacity = 0.14 * backdropProgress;
 
         return Material(
@@ -173,19 +171,11 @@ class ChatMessageActionSheet extends StatelessWidget {
                       key: const ValueKey('chatMessageActionOverlayBackdrop'),
                       behavior: HitTestBehavior.opaque,
                       onTap: () => Navigator.of(context).pop(),
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          key: const ValueKey('chatMessageActionOverlayBlur'),
-                          filter: ImageFilter.blur(
-                            sigmaX: backdropSigma,
-                            sigmaY: backdropSigma,
-                          ),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(
-                                alpha: backdropOpacity,
-                              ),
-                            ),
+                      child: DecoratedBox(
+                        key: const ValueKey('chatMessageActionOverlayScrim'),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(
+                            alpha: backdropOpacity,
                           ),
                         ),
                       ),
@@ -333,23 +323,20 @@ class _GlassCapsule extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: borderRadius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.84),
-            borderRadius: borderRadius,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.68)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Padding(padding: padding, child: child),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.92),
+          borderRadius: borderRadius,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.68)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
+        child: Padding(padding: padding, child: child),
       ),
     );
   }
@@ -364,25 +351,22 @@ class _GlassActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.84),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.68)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.68)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(mainAxisSize: MainAxisSize.min, children: children),
         ),
       ),
     );

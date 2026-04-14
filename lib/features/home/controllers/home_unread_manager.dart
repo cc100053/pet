@@ -6,8 +6,8 @@ extension _HomeUnreadManager on _HomeViewState {
     final existing = _messageChannels.keys.toList(growable: false);
     for (final roomId in existing) {
       if (!target.contains(roomId)) {
-        _messageChannels[roomId]?.unsubscribe();
-        _messageChannels.remove(roomId);
+        final channel = _messageChannels.remove(roomId);
+        unawaited(_removeRealtimeChannel(channel));
       }
     }
 
@@ -25,7 +25,12 @@ extension _HomeUnreadManager on _HomeViewState {
           column: 'room_id',
           value: roomId,
         ),
-        callback: (payload) => _handleMessageInsert(payload.newRecord),
+        callback: (payload) {
+          if (_messageChannels[roomId] != channel) {
+            return;
+          }
+          _handleMessageInsert(payload.newRecord);
+        },
       );
       channel.subscribe();
       _messageChannels[roomId] = channel;

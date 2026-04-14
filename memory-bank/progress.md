@@ -26,13 +26,25 @@ remain in `memory-bank/archive/progress_archive.md`.
 - Chat uses the V2 route only, with bounded message windows, separate long-press
   and reaction-details surfaces, shared emoji picker without search, and
   keyboard/latest-position regressions covered by tests.
+- Chat crash hardening now records `chat_room_view_v2` Crashlytics context,
+  cleans up realtime channels with `removeChannel(...)`, guards stale callbacks,
+  restores composer state on send failures, and avoids invalid image cache sizes.
 - Shop purchase feedback uses floating notices; room decor purchases can return
   to Home and trigger the room-decor guidance hint.
+- Feed ad double rewards now use the additive `claim_feed_double_reward(...)`
+  RPC so the extra reward is tied to a specific feed message. The Home HUD shows
+  an x2 total-reward animation, and Chat feed-photo badges update from
+  `messages.coins_awarded`.
 - Crashlytics triage and release-note sync have repo-local skills:
   `.codex/skills/firebase-crashlytics-triage/SKILL.md` and
   `.codex/skills/release-notes-sync/SKILL.md`.
 
 ## Latest Completed Work
+- Hardened chat rendering/send/realtime diagnostics against recent Crashlytics
+  crash patterns while preserving existing chat, reaction, image, and room-switch
+  behavior.
+- Added feed double-reward clarity: a live Supabase RPC, Home reward feedback,
+  Chat message-update handling, localized candy labels, and focused tests.
 - Updated `AGENTS.md` with newly discovered repo workflows and commands:
   local skills, asset bundle verification, Firebase Crashlytics MCP wrapper, and
   ASC localization commands. Verified with `flutter analyze` and `flutter test`.

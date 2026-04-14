@@ -67,6 +67,23 @@ void main() {
       expect(state.visibleMessages.last.id, 'm41');
     });
 
+    test('replaceVisibleMessage updates an existing feed reward amount', () {
+      final state = ChatWindowState(pageSize: 20, maxVisibleMessages: 20);
+      final original = message(1).copyWith(
+        type: 'image_feed',
+        imageUrl: 'https://example.com/feed.jpg',
+        body: null,
+        coinsAwarded: 10,
+      );
+
+      state.replaceWithLatest([original], hasMoreOlder: false);
+      state.replaceVisibleMessage(original.copyWith(coinsAwarded: 20));
+
+      expect(state.visibleMessages, hasLength(1));
+      expect(state.visibleMessages.single.id, original.id);
+      expect(state.visibleMessages.single.coinsAwarded, 20);
+    });
+
     test(
       'history mode buffers pending live messages and reset clears them',
       () {

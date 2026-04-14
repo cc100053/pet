@@ -44,10 +44,10 @@ ParsedAvatarUrl parseAvatarUrlWithAlignment(String avatarUrl) {
       final x = double.tryParse(parts[0]);
       final y = double.tryParse(parts[1]);
       final scale = double.tryParse(parts[2]);
-      if (x != null && y != null && scale != null) {
+      if (_allFinite(x, y) && scale != null && scale.isFinite) {
         return ParsedAvatarUrl(
           imageUrl: baseUrl,
-          alignment: Alignment(x.clamp(-1.0, 1.0), y.clamp(-1.0, 1.0)),
+          alignment: Alignment(x!.clamp(-1.0, 1.0), y!.clamp(-1.0, 1.0)),
           scale: scale.clamp(1.0, _avatarMaxScale),
           scaleMode: AvatarScaleMode.relativeZoom,
         );
@@ -62,10 +62,10 @@ ParsedAvatarUrl parseAvatarUrlWithAlignment(String avatarUrl) {
       final x = double.tryParse(parts[0]);
       final y = double.tryParse(parts[1]);
       final scale = double.tryParse(parts[2]);
-      if (x != null && y != null && scale != null) {
+      if (_allFinite(x, y) && scale != null && scale.isFinite) {
         return ParsedAvatarUrl(
           imageUrl: baseUrl,
-          alignment: Alignment(x.clamp(-1.0, 1.0), y.clamp(-1.0, 1.0)),
+          alignment: Alignment(x!.clamp(-1.0, 1.0), y!.clamp(-1.0, 1.0)),
           scale: scale.clamp(_avatarMinScale, _avatarMaxScale),
           scaleMode: AvatarScaleMode.legacyAbsolute,
         );
@@ -79,10 +79,10 @@ ParsedAvatarUrl parseAvatarUrlWithAlignment(String avatarUrl) {
     if (parts.length == 2) {
       final x = double.tryParse(parts[0]);
       final y = double.tryParse(parts[1]);
-      if (x != null && y != null) {
+      if (_allFinite(x, y)) {
         return ParsedAvatarUrl(
           imageUrl: baseUrl,
-          alignment: Alignment(x.clamp(-1.0, 1.0), y.clamp(-1.0, 1.0)),
+          alignment: Alignment(x!.clamp(-1.0, 1.0), y!.clamp(-1.0, 1.0)),
           scale: 1,
           scaleMode: AvatarScaleMode.legacyAbsolute,
         );
@@ -96,6 +96,13 @@ ParsedAvatarUrl parseAvatarUrlWithAlignment(String avatarUrl) {
     scale: 1,
     scaleMode: AvatarScaleMode.relativeZoom,
   );
+}
+
+bool _allFinite(double? first, double? second) {
+  if (first == null || second == null || !first.isFinite || !second.isFinite) {
+    return false;
+  }
+  return true;
 }
 
 String buildAvatarUrlWithFraming(

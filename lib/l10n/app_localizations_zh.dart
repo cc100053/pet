@@ -78,7 +78,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatCoinsAwarded(Object count) {
-    return '+$count 糖果';
+    return '糖果 +$count';
   }
 
   @override
@@ -1546,6 +1546,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String feedAdDoubleRewardClaimed(Object amount) {
+    return 'x2 糖果 +$amount';
+  }
+
+  @override
   String feedAdDoubleRewardFailed(Object error) {
     return '翻倍奖励领取失敗：$error';
   }
@@ -1625,7 +1630,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String chatCoinsAwarded(Object count) {
-    return '+$count 糖果';
+    return '糖果 +$count';
   }
 
   @override
@@ -3087,6 +3092,11 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String feedAdDoubleRewardMessage(Object amount) {
     return '看廣告再拿 +$amount 糖果？';
+  }
+
+  @override
+  String feedAdDoubleRewardClaimed(Object amount) {
+    return 'x2 糖果 +$amount';
   }
 
   @override

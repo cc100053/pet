@@ -1561,6 +1561,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String feedAdDoubleRewardClaimed(Object amount) {
+    return 'x2 캔디 +$amount';
+  }
+
+  @override
   String feedAdDoubleRewardFailed(Object error) {
     return '2배 보상 지급 실패: $error';
   }

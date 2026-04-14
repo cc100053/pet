@@ -42,4 +42,43 @@ void main() {
     expect(parsed.scale, closeTo(1.7, 0.0001));
     expect(parsed.scaleMode, AvatarScaleMode.relativeZoom);
   });
+
+  test('parseAvatarUrlWithAlignment ignores NaN avatar_view fragment', () {
+    final parsed = parseAvatarUrlWithAlignment(
+      'https://example.com/a.webp#avatar_view=NaN,0.200,2.500',
+    );
+
+    expect(parsed.imageUrl, 'https://example.com/a.webp');
+    expect(parsed.alignment, Alignment.center);
+    expect(parsed.scale, 1);
+    expect(parsed.scaleMode, AvatarScaleMode.relativeZoom);
+  });
+
+  test(
+    'parseAvatarUrlWithAlignment ignores infinite avatar_view_v2 fragment',
+    () {
+      final parsed = parseAvatarUrlWithAlignment(
+        'https://example.com/a.webp#avatar_view_v2=0.000,Infinity,1.700',
+      );
+
+      expect(parsed.imageUrl, 'https://example.com/a.webp');
+      expect(parsed.alignment, Alignment.center);
+      expect(parsed.scale, 1);
+      expect(parsed.scaleMode, AvatarScaleMode.relativeZoom);
+    },
+  );
+
+  test(
+    'parseAvatarUrlWithAlignment ignores infinite avatar_align fragment',
+    () {
+      final parsed = parseAvatarUrlWithAlignment(
+        'https://example.com/a.webp#avatar_align=-Infinity,0.200',
+      );
+
+      expect(parsed.imageUrl, 'https://example.com/a.webp');
+      expect(parsed.alignment, Alignment.center);
+      expect(parsed.scale, 1);
+      expect(parsed.scaleMode, AvatarScaleMode.relativeZoom);
+    },
+  );
 }

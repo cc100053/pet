@@ -10,13 +10,20 @@ class CrashReportingService {
 
   static final CrashReportingService instance = CrashReportingService._();
 
-  final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
-
   String _route = 'unknown';
   String _feature = 'app';
   String _roomId = 'none';
   String _lastAction = 'app_start';
   String _networkState = 'unknown';
+
+  FirebaseCrashlytics? get _crashlyticsOrNull {
+    try {
+      return FirebaseCrashlytics.instance;
+    } catch (_) {
+      // Firebase may be unavailable in widget tests or very early startup.
+      return null;
+    }
+  }
 
   Future<void> initialize() async {
     String appVersion = 'unknown';
@@ -46,7 +53,11 @@ class CrashReportingService {
     final normalized = (userId == null || userId.isEmpty)
         ? 'signed_out'
         : userId;
-    await _crashlytics.setUserIdentifier(normalized);
+    final crashlytics = _crashlyticsOrNull;
+    if (crashlytics == null) {
+      return;
+    }
+    await crashlytics.setUserIdentifier(normalized);
     await _setCustomKey(
       'auth_state',
       normalized == 'signed_out' ? 'signed_out' : 'signed_in',
@@ -109,7 +120,7 @@ class CrashReportingService {
     final payload = data == null || data.isEmpty
         ? normalized
         : _formatLog(normalized, data);
-    _crashlytics.log(_truncate(payload));
+    _crashlyticsOrNull?.log(_truncate(payload));
   }
 
   Future<void> setCustomKeys(Map<String, Object?> values) async {
@@ -143,7 +154,11 @@ class CrashReportingService {
         'error_type': error.runtimeType.toString(),
       },
     );
-    await _crashlytics.recordError(
+    final crashlytics = _crashlyticsOrNull;
+    if (crashlytics == null) {
+      return;
+    }
+    await crashlytics.recordError(
       error,
       stackTrace,
       fatal: effectiveFatal,
@@ -164,13 +179,17 @@ class CrashReportingService {
       'captured_flutter_fatal_error',
       data: {'source': normalizedSource},
     );
-    await _crashlytics.recordFlutterFatalError(details);
+    final crashlytics = _crashlyticsOrNull;
+    if (crashlytics == null) {
+      return;
+    }
+    await crashlytics.recordFlutterFatalError(details);
   }
 
   Future<void> triggerTestCrash() async {
     await setContext(lastAction: 'debug_test_crash');
     await breadcrumb('debug_test_crash_triggered');
-    _crashlytics.crash();
+    _crashlyticsOrNull?.crash();
   }
 
   String _formatLog(String message, Map<String, Object?> data) {
@@ -193,7 +212,7 @@ class CrashReportingService {
   }
 
   Future<void> _setCustomKey(String key, Object value) async {
-    await _crashlytics.setCustomKey(key, _truncate(value.toString()));
+    await _crashlyticsOrNull?.setCustomKey(key, _truncate(value.toString()));
   }
 
   String _truncate(String value, {int maxLength = 1024}) {

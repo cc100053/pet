@@ -45,7 +45,7 @@
     }
   },
   "chatBlockUser": "封鎖用戶",
-  "chatCoinsAwarded": "+{count} 糖果",
+  "chatCoinsAwarded": "糖果 +{count}",
   "@chatCoinsAwarded": {
     "placeholders": {
       "count": {}
@@ -842,6 +842,12 @@
   "feedAdDoubleRewardTitle": "要把餵食獎勵加倍嗎？",
   "feedAdDoubleRewardMessage": "看廣告再拿 +{amount} 糖果？",
   "@feedAdDoubleRewardMessage": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "feedAdDoubleRewardClaimed": "x2 糖果 +{amount}",
+  "@feedAdDoubleRewardClaimed": {
     "placeholders": {
       "amount": {}
     }

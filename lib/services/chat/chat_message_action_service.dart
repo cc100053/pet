@@ -4,6 +4,8 @@ import '../../services/auth/session_utils.dart';
 
 typedef ChatReplyInsertFn =
     Future<Map<String, dynamic>> Function(Map<String, dynamic> payload);
+typedef ChatTextInsertFn =
+    Future<Map<String, dynamic>> Function(Map<String, dynamic> payload);
 typedef ChatReactionDeleteFn =
     Future<void> Function({required String messageId, required String userId});
 typedef ChatReactionUpsertFn =
@@ -15,12 +17,14 @@ typedef ChatAccessTokenProvider = Future<String?> Function();
 class ChatMessageActionService {
   ChatMessageActionService({
     SupabaseClient? client,
+    ChatTextInsertFn? insertText,
     ChatReplyInsertFn? insertReply,
     ChatReactionDeleteFn? deleteReaction,
     ChatReactionUpsertFn? upsertReaction,
     ChatNotifyFn? notifyTextMessage,
     ChatAccessTokenProvider? accessTokenProvider,
   }) : _client = client,
+       _insertText = insertText,
        _insertReply = insertReply,
        _deleteReaction = deleteReaction,
        _upsertReaction = upsertReaction,
@@ -30,6 +34,7 @@ class ChatMessageActionService {
   static final ChatMessageActionService instance = ChatMessageActionService();
 
   final SupabaseClient? _client;
+  final ChatTextInsertFn? _insertText;
   final ChatReplyInsertFn? _insertReply;
   final ChatReactionDeleteFn? _deleteReaction;
   final ChatReactionUpsertFn? _upsertReaction;
@@ -37,6 +42,38 @@ class ChatMessageActionService {
   final ChatAccessTokenProvider? _accessTokenProvider;
 
   SupabaseClient get _resolvedClient => _client ?? Supabase.instance.client;
+
+  Future<String> sendTextMessage({
+    required String roomId,
+    required String text,
+    String? userId,
+  }) async {
+    final trimmedText = text.trim();
+    if (trimmedText.isEmpty) {
+      throw ArgumentError.value(text, 'text', 'Message text cannot be empty.');
+    }
+
+    final resolvedUserId = userId ?? _resolvedClient.auth.currentUser?.id;
+    if (resolvedUserId == null || resolvedUserId.isEmpty) {
+      throw StateError('auth_reauth_required');
+    }
+
+    final payload = <String, dynamic>{
+      'room_id': roomId,
+      'sender_id': resolvedUserId,
+      'type': 'text',
+      'body': trimmedText,
+      'client_created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+
+    final inserted =
+        await (_insertText?.call(payload) ?? _defaultInsertText(payload));
+    final messageId = (inserted['id'] as String? ?? '').trim();
+    if (messageId.isEmpty) {
+      throw StateError('message_insert_missing_id');
+    }
+    return messageId;
+  }
 
   Future<String> sendTextReply({
     required String roomId,
@@ -113,6 +150,17 @@ class ChatMessageActionService {
           'user_id': resolvedUserId,
           'emoji': trimmedEmoji,
         }));
+  }
+
+  Future<Map<String, dynamic>> _defaultInsertText(
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await _resolvedClient
+        .from('messages')
+        .insert(payload)
+        .select('id')
+        .single();
+    return Map<String, dynamic>.from(response);
   }
 
   Future<Map<String, dynamic>> _defaultInsertReply(

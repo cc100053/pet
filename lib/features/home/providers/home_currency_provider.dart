@@ -6,12 +6,14 @@ class HomeCurrencySnapshot {
     required this.diamonds,
     required this.coinReward,
     required this.coinRewardEventId,
+    this.coinRewardLabel,
   });
 
   final int coins;
   final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final String? coinRewardLabel;
 }
 
 class HomeCurrencyNotifier extends Notifier<HomeCurrencySnapshot> {
@@ -22,6 +24,7 @@ class HomeCurrencyNotifier extends Notifier<HomeCurrencySnapshot> {
       diamonds: 0,
       coinReward: null,
       coinRewardEventId: 0,
+      coinRewardLabel: null,
     );
   }
 
@@ -30,12 +33,14 @@ class HomeCurrencyNotifier extends Notifier<HomeCurrencySnapshot> {
     required int diamonds,
     required int? coinReward,
     required int coinRewardEventId,
+    String? coinRewardLabel,
   }) {
     state = HomeCurrencySnapshot(
       coins: coins,
       diamonds: diamonds,
       coinReward: coinReward,
       coinRewardEventId: coinRewardEventId,
+      coinRewardLabel: coinRewardLabel,
     );
   }
 }

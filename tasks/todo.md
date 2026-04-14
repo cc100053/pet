@@ -1,5 +1,73 @@
 # TODO
 
+# Plan (2026-04-14 Chat Crash Hardening)
+- [x] Harden chat send path so optimistic UI, latest-window refresh, DB insert,
+  and post-send refresh all recover without uncaught exceptions.
+- [x] Clean up chat/Home realtime channels through `removeChannel(...)` and
+  ignore stale callbacks after chat route disposal.
+- [x] Harden shared cached image sizing and avatar fragment parsing against
+  NaN/Infinity while capping cache decode dimensions.
+- [x] Reduce chat render stress around image cards, highlights, and action
+  sheets without changing visible behavior or interaction flow.
+- [x] Add focused regression tests, update memory notes, and run
+  `flutter analyze` plus `flutter test`.
+
+# Review (2026-04-14 Chat Crash Hardening)
+- [x] Implemented and verified.
+- Scope:
+  - Wrapped chat text send in one recoverable path covering latest-window prep,
+    optimistic insertion, DB send, notification trigger, refresh, composer
+    restore, and `_sending` cleanup.
+  - Added chat Crashlytics context/breadcrumbs around route lifecycle, send
+    phases, fullscreen/action/reaction surfaces, plus memory snapshots.
+  - Replaced chat/Home realtime `unsubscribe()` cleanup with best-effort
+    `removeChannel(...)`, cleared local channel references first, and ignored
+    stale callbacks after route disposal or room switches.
+  - Hardened `CachedNetworkImageView` cache-size resolution and avatar framing
+    fragments against NaN/Infinity, with cache dimensions capped at 2048px per
+    side.
+  - Reduced chat Impeller pressure by removing BackdropFilter blur from action
+    sheets/glass pills, reducing highlight shadows, and isolating feed-card
+    image repaint work.
+  - Made CrashReportingService no-op safely when Firebase is unavailable, so
+    diagnostics cannot crash widget tests or early startup.
+- Verification:
+  - `dart format ...`
+  - `flutter test test/shared/ui/cached_network_image_view_test.dart`
+  - `flutter test test/avatar_display_position_test.dart`
+  - `flutter test test/features/chat/chat_message_action_sheet_test.dart`
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter test test/services/chat/chat_message_action_service_test.dart`
+  - `flutter test test/services/crash/crash_reporting_service_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-13 Feed Double Reward Clarity)
+- [x] Verify current Supabase target and inspect live reward/message function shape before applying an additive RPC migration.
+- [x] Add `claim_feed_double_reward(p_room_id, p_message_id)` locally and live via Supabase MCP without changing existing `claim_action_reward(...)`.
+- [x] Update Home feed double-reward flow so ad claims are tied to the feed message, show x2 total reward feedback, and refresh affected state.
+- [x] Update Home currency reward UI, Chat feed badge copy, and Chat V2 realtime handling for message reward updates.
+- [x] Add focused tests for reward metadata, badge text, status-bar double reward feedback, and chat message reward updates.
+- [x] Run localization/code formatting plus required verification (`flutter gen-l10n`, `flutter analyze`, `flutter test`) and document results.
+
+# Review (2026-04-13 Feed Double Reward Clarity)
+- [x] Implemented and verified.
+- Scope:
+  - Added and live-applied additive Supabase RPC `claim_feed_double_reward(p_room_id, p_message_id)` with row locking, ledger metadata dedupe, and message reward sync.
+  - Switched Home feed double-reward claims to the new RPC so ad rewards are tied to a feed photo; the HUD now shows an x2 total-reward label while only adding the extra candy locally.
+  - Updated Chat feed-photo reward labels to include localized candy text and added `messages` update realtime handling so reward badges update in place and cache correctly.
+  - Added localized double-reward claimed copy across en/zh/ja/ko and adjusted zh feed reward badge order to `糖果 +{count}`.
+- Verification:
+  - Supabase MCP target confirmed as `ilxzpszgirhwxpeocygs`; live migration applied and verified.
+  - Rollback smoke check confirmed a `20` reward doubles to `40`, profile coins increase by `20`, a second claim adds nothing, and no smoke rows remain.
+  - `flutter gen-l10n`
+  - `dart format ...`
+  - `flutter test test/pet_chat_message_adapter_test.dart`
+  - `flutter test test/features/chat/chat_window_state_test.dart`
+  - `flutter test test/features/home/widgets/home_game_status_bar_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-11 Compact Memory Bank)
 - [x] Read all active memory-bank files and measure which files dominate token usage.
 - [x] Archive current long-form memory-bank snapshots before shortening active files.

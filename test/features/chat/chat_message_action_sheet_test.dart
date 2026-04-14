@@ -61,7 +61,7 @@ void main() {
     );
 
     expect(
-      find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+      find.byKey(const ValueKey('chatMessageActionOverlayScrim')),
       findsOneWidget,
     );
     expect(

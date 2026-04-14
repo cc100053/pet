@@ -2859,6 +2859,12 @@ abstract class AppLocalizations {
   /// **'Watch an ad for +{amount} extra candies?'**
   String feedAdDoubleRewardMessage(Object amount);
 
+  /// No description provided for @feedAdDoubleRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'x2 candy +{amount}'**
+  String feedAdDoubleRewardClaimed(Object amount);
+
   /// No description provided for @feedAdDoubleRewardFailed.
   ///
   /// In en, this message translates to:

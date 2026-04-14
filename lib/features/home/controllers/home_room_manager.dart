@@ -265,17 +265,27 @@ extension _HomeRoomManager on _HomeViewState {
     _overfedBubbleTimer?.cancel();
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
-    _petStateChannel?.unsubscribe();
+    final previousPetStateChannel = _petStateChannel;
     _petStateChannel = null;
+    unawaited(_removeRealtimeChannel(previousPetStateChannel));
     _petSubscriptionPetId = null;
-    _furnitureChannel?.unsubscribe();
+    final previousFurnitureChannel = _furnitureChannel;
     _furnitureChannel = null;
+    unawaited(_removeRealtimeChannel(previousFurnitureChannel));
     _furnitureSubscriptionRoomId = null;
-    _backgroundStateChannel?.unsubscribe();
+    final previousBackgroundStateChannel = _backgroundStateChannel;
     _backgroundStateChannel = null;
-    _backgroundInventoryChannel?.unsubscribe();
+    unawaited(_removeRealtimeChannel(previousBackgroundStateChannel));
+    final previousBackgroundInventoryChannel = _backgroundInventoryChannel;
     _backgroundInventoryChannel = null;
+    unawaited(_removeRealtimeChannel(previousBackgroundInventoryChannel));
     _backgroundSubscriptionRoomId = null;
+    unawaited(
+      _captureHomeMemorySnapshot(
+        source: 'home_room_switch_channels_removed',
+        roomId: roomId,
+      ),
+    );
     if (showEntryLoading) {
       unawaited(
         _loadRoomEntryCore(

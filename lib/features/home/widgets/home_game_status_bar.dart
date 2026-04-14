@@ -24,6 +24,7 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.onStoreTap,
     this.coinReward,
     this.coinRewardEventId = 0,
+    this.coinRewardLabel,
     this.showRewardPending = false,
     this.rewardPendingLabel,
     this.onPetNameTap,
@@ -64,6 +65,7 @@ class HomeGameStatusBar extends StatelessWidget {
   /// Monotonic event id that guarantees re-triggering even when reward amount
   /// repeats (e.g., +10 multiple times).
   final int coinRewardEventId;
+  final String? coinRewardLabel;
   final bool showRewardPending;
   final String? rewardPendingLabel;
 
@@ -102,6 +104,7 @@ class HomeGameStatusBar extends StatelessWidget {
             diamonds: diamonds,
             coinReward: coinReward,
             coinRewardEventId: coinRewardEventId,
+            coinRewardLabel: coinRewardLabel,
             showRewardPending: showRewardPending,
             rewardPendingLabel: rewardPendingLabel,
             onStoreTap: onStoreTap,
@@ -809,6 +812,7 @@ class _RightCluster extends StatelessWidget {
     required this.diamonds,
     this.coinReward,
     this.coinRewardEventId = 0,
+    this.coinRewardLabel,
     this.showRewardPending = false,
     this.rewardPendingLabel,
     required this.onStoreTap,
@@ -820,6 +824,7 @@ class _RightCluster extends StatelessWidget {
   final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final String? coinRewardLabel;
   final bool showRewardPending;
   final String? rewardPendingLabel;
   final VoidCallback onStoreTap;
@@ -859,6 +864,7 @@ class _RightCluster extends StatelessWidget {
                   diamonds: diamonds,
                   coinReward: coinReward,
                   coinRewardEventId: coinRewardEventId,
+                  coinRewardLabel: coinRewardLabel,
                   showRewardPending: showRewardPending,
                   rewardPendingLabel: rewardPendingLabel,
                   onStoreTap: onStoreTap,
@@ -1059,6 +1065,7 @@ class _CombinedCurrencyPill extends StatefulWidget {
     this.coinReward,
     this.showRewardPending = false,
     this.rewardPendingLabel,
+    this.coinRewardLabel,
     this.expandToWidth = false,
   });
 
@@ -1066,6 +1073,7 @@ class _CombinedCurrencyPill extends StatefulWidget {
   final int diamonds;
   final int? coinReward;
   final int coinRewardEventId;
+  final String? coinRewardLabel;
   final bool showRewardPending;
   final String? rewardPendingLabel;
   final VoidCallback onStoreTap;
@@ -1084,6 +1092,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
   late Animation<Offset> _floatOffset;
 
   int? _displayReward;
+  String? _displayRewardLabel;
   late final AnimationStatusListener _floatStatusListener;
 
   @override
@@ -1134,6 +1143,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
       }
       setState(() {
         _displayReward = null;
+        _displayRewardLabel = null;
       });
     };
     _floatController.addStatusListener(_floatStatusListener);
@@ -1154,6 +1164,7 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
 
     setState(() {
       _displayReward = reward;
+      _displayRewardLabel = widget.coinRewardLabel;
     });
     unawaited(AppSfx.playCandyGain());
     _triggerAnimation();
@@ -1314,7 +1325,11 @@ class _CombinedCurrencyPillState extends State<_CombinedCurrencyPill>
                                                   ],
                                                 ),
                                                 child: Text(
-                                                  '+$_displayReward',
+                                                  _displayRewardLabel ??
+                                                      '+$_displayReward',
+                                                  key: const ValueKey(
+                                                    'home-currency-reward-label',
+                                                  ),
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w900,
                                                     fontSize: 14 * scale,

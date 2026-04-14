@@ -179,6 +179,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _onboardingProfileAvatarUrl;
   String? _onboardingProfileError;
   int? _coinReward; // Triggers coin animation when set
+  String? _coinRewardLabel;
   int _coinRewardEventId = 0;
   int _feedRewardPendingCount = 0;
   bool _coinsLoadInFlight = false;
@@ -402,13 +403,21 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _petStateChannel?.unsubscribe();
-    _furnitureChannel?.unsubscribe();
-    _backgroundStateChannel?.unsubscribe();
-    _backgroundInventoryChannel?.unsubscribe();
+    final petStateChannel = _petStateChannel;
+    final furnitureChannel = _furnitureChannel;
+    final backgroundStateChannel = _backgroundStateChannel;
+    final backgroundInventoryChannel = _backgroundInventoryChannel;
+    _petStateChannel = null;
+    _furnitureChannel = null;
+    _backgroundStateChannel = null;
+    _backgroundInventoryChannel = null;
+    unawaited(_removeRealtimeChannel(petStateChannel));
+    unawaited(_removeRealtimeChannel(furnitureChannel));
+    unawaited(_removeRealtimeChannel(backgroundStateChannel));
+    unawaited(_removeRealtimeChannel(backgroundInventoryChannel));
     _overfedBubbleTimer?.cancel();
     for (final channel in _messageChannels.values) {
-      channel.unsubscribe();
+      unawaited(_removeRealtimeChannel(channel));
     }
     _messageChannels.clear();
     _wanderTimer?.cancel();
@@ -421,6 +430,21 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petMoveController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
+  }
+
+  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) async {
+    if (channel == null) {
+      return;
+    }
+    try {
+      await Supabase.instance.client.removeChannel(channel);
+    } catch (_) {
+      try {
+        await channel.unsubscribe();
+      } catch (_) {
+        // Best-effort cleanup; widget disposal must not fail user flows.
+      }
+    }
   }
 
   @override
@@ -807,12 +831,14 @@ class _HomeViewState extends ConsumerState<HomeView>
         // reward event (including cooldown/no-op cases).
         if (expectedReward != null) {
           _coinReward = null;
+          _coinRewardLabel = null;
         }
 
         // Trigger animation for reward-expected loads only when the balance
         // actually increased (cooldown/no-op stays quiet).
         if (expectedReward != null && newValue > oldValue) {
           _coinReward = newValue - oldValue;
+          _coinRewardLabel = null;
           _coinRewardEventId++;
           rewardEventIdToClear = _coinRewardEventId;
         }
@@ -833,6 +859,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           }
           setState(() {
             _coinReward = null;
+            _coinRewardLabel = null;
           });
           _syncCurrencyProvider();
         });
@@ -1450,6 +1477,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           diamonds: _diamonds,
           coinReward: _coinReward,
           coinRewardEventId: _coinRewardEventId,
+          coinRewardLabel: _coinRewardLabel,
         );
   }
 
@@ -1886,14 +1914,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    _petStateChannel?.unsubscribe();
+    final previousChannel = _petStateChannel;
+    _petStateChannel = null;
+    unawaited(_removeRealtimeChannel(previousChannel));
     _petSubscriptionPetId = petId;
 
     final channel = Supabase.instance.client.channel('pet_state_$petId');
     _petStateChannel = channel;
 
     void handleUpdate(Map<String, dynamic> record) {
-      if (!mounted) {
+      if (!mounted || _petSubscriptionPetId != petId) {
         return;
       }
       if (record.isEmpty) {
@@ -2991,7 +3021,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    _furnitureChannel?.unsubscribe();
+    final previousChannel = _furnitureChannel;
+    _furnitureChannel = null;
+    unawaited(_removeRealtimeChannel(previousChannel));
     _furnitureSubscriptionRoomId = roomId;
 
     final channel = Supabase.instance.client.channel('room_furniture_$roomId');
@@ -3201,8 +3233,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    _backgroundStateChannel?.unsubscribe();
-    _backgroundInventoryChannel?.unsubscribe();
+    final previousStateChannel = _backgroundStateChannel;
+    final previousInventoryChannel = _backgroundInventoryChannel;
+    _backgroundStateChannel = null;
+    _backgroundInventoryChannel = null;
+    unawaited(_removeRealtimeChannel(previousStateChannel));
+    unawaited(_removeRealtimeChannel(previousInventoryChannel));
     _backgroundSubscriptionRoomId = roomId;
 
     final stateChannel = Supabase.instance.client.channel(
@@ -4752,6 +4788,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                       diamonds: currency.diamonds,
                       coinReward: currency.coinReward,
                       coinRewardEventId: currency.coinRewardEventId,
+                      coinRewardLabel: currency.coinRewardLabel,
                       showRewardPending: _feedRewardPendingCount > 0,
                       rewardPendingLabel: l10n.feedRewardPending,
                       onPetTap: () => Scaffold.of(context).openDrawer(),

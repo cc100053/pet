@@ -101,6 +101,96 @@ void main() {
     expect(image.memCacheHeight, 400);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('skips cache sizing when scale is NaN', (tester) async {
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 120,
+            height: 80,
+            child: CachedNetworkImageView(
+              imageUrl: 'https://example.com/image.jpg',
+              scale: double.nan,
+              cacheManager: _NotFoundCacheManager(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.memCacheWidth, isNull);
+    expect(image.memCacheHeight, isNull);
+    expect(image.maxWidthDiskCache, isNull);
+    expect(image.maxHeightDiskCache, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('skips cache sizing when scale is infinite', (tester) async {
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 120,
+            height: 80,
+            child: CachedNetworkImageView(
+              imageUrl: 'https://example.com/image.jpg',
+              scale: double.infinity,
+              cacheManager: _NotFoundCacheManager(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.memCacheWidth, isNull);
+    expect(image.memCacheHeight, isNull);
+    expect(image.maxWidthDiskCache, isNull);
+    expect(image.maxHeightDiskCache, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('caps oversized cache dimensions per side', (tester) async {
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 1200,
+            height: 900,
+            child: CachedNetworkImageView(
+              imageUrl: 'https://example.com/image.jpg',
+              scale: 4,
+              cacheManager: _NotFoundCacheManager(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.memCacheWidth, 2048);
+    expect(image.memCacheHeight, 2048);
+    expect(image.maxWidthDiskCache, 2048);
+    expect(image.maxHeightDiskCache, 2048);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _NotFoundCacheManager implements BaseCacheManager {

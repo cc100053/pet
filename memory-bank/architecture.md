@@ -24,7 +24,7 @@ and live Supabase state. Do not rely on older memory-bank wording as canonical.
   message windows, realtime/cache refresh, deterministic timeline rendering,
   reply/reaction flows, keyboard behavior, and photo/chat actions.
 - `lib/features/feed/`: camera capture, ML Kit labeling, client-side WebP
-  preparation, `feed_validate` invocation, and reward feedback.
+  preparation, `feed_validate` invocation, and reward/double-reward feedback.
 - `lib/features/shop/`: in-app Shop for backgrounds, furniture, consumables,
   RevenueCat products, floating purchase notices, and room-decor return flow.
 - `lib/features/profile/`: profile editing, avatar presets/upload, account deletion.
@@ -53,6 +53,8 @@ and live Supabase state. Do not rely on older memory-bank wording as canonical.
 - Chat opens with only the latest 20 messages, loads older pages in chunks of 20,
   keeps an 80-message visible cap, buffers realtime while browsing history, and
   stores only the newest 20 canonical messages per room in Hive.
+- Chat listens to `messages` updates so feed-photo reward badge changes, such as
+  ad-driven double rewards, update in-place and refresh the latest cache.
 - Chat reactions use separate surfaces: long-press quick actions and reaction-chip
   details. The shared emoji picker intentionally has no search mode.
 - Shared image display uses `CachedNetworkImageView` cache bounds from rendered

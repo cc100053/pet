@@ -43,7 +43,7 @@ void main() {
         body: null,
         imageUrl: 'https://example.com/cat.jpg',
         caption: 'Fresh snack',
-        coinsAwarded: 12,
+        coinsAwarded: 40,
         createdAt: DateTime.utc(2026, 3, 10, 13),
         clientCreatedAt: DateTime.utc(2026, 3, 10, 13),
         labels: const [],
@@ -71,7 +71,14 @@ void main() {
         mapped.metadata?[PetChatMessageAdapter.localImagePathKey],
         '/tmp/cat.jpg',
       );
-      expect(mapped.metadata?[PetChatMessageAdapter.coinsAwardedKey], 12);
+      expect(mapped.metadata?[PetChatMessageAdapter.coinsAwardedKey], 40);
+    });
+
+    test('formats feed reward labels with localized candy text', () {
+      final zh = lookupAppLocalizations(const Locale('zh'));
+
+      expect(PetChatMessageAdapter.feedRewardLabel(20, l10n), '+20 candy');
+      expect(PetChatMessageAdapter.feedRewardLabel(20, zh), '糖果 +20');
     });
 
     test('localizes supported system messages', () {

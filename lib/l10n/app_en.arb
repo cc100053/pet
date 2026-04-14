@@ -853,6 +853,12 @@
       "amount": {}
     }
   },
+  "feedAdDoubleRewardClaimed": "x2 candy +{amount}",
+  "@feedAdDoubleRewardClaimed": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "feedAdDoubleRewardFailed": "Double reward failed: {error}",
   "@feedAdDoubleRewardFailed": {
     "placeholders": {

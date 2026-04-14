@@ -7,6 +7,9 @@ void main() {
     required bool showHint,
     required VoidCallback onInventoryTap,
     required VoidCallback onDismissHint,
+    int? coinReward,
+    int coinRewardEventId = 0,
+    String? coinRewardLabel,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -18,6 +21,9 @@ void main() {
           healthValue: 0.7,
           coins: 120,
           diamonds: 8,
+          coinReward: coinReward,
+          coinRewardEventId: coinRewardEventId,
+          coinRewardLabel: coinRewardLabel,
           onPetTap: () {},
           onStoreTap: () {},
           onInventoryTap: onInventoryTap,
@@ -113,5 +119,33 @@ void main() {
       find.byKey(const ValueKey('inventory-guidance-highlight')),
       findsNothing,
     );
+  });
+
+  testWidgets('shows double reward label in the currency pill', (tester) async {
+    await tester.pumpWidget(
+      buildHarness(
+        showHint: false,
+        onInventoryTap: () {},
+        onDismissHint: () {},
+      ),
+    );
+
+    await tester.pumpWidget(
+      buildHarness(
+        showHint: false,
+        onInventoryTap: () {},
+        onDismissHint: () {},
+        coinReward: 20,
+        coinRewardEventId: 1,
+        coinRewardLabel: 'x2 candy +20',
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('home-currency-reward-label')),
+      findsOneWidget,
+    );
+    expect(find.text('x2 candy +20'), findsOneWidget);
   });
 }

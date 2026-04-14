@@ -62,7 +62,8 @@ Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
   `create_room_invite_code`, `list_room_invite_codes`,
   `revoke_room_invite_code`, `leave_room`, `regenerate_invite_code`
 - Pet/gameplay: `apply_pet_action`, `claim_action_reward`, `tick_pet_state`,
-  `tick_pet_state_as_system`, `refresh_pet_hunger_tick_schedule`
+  `claim_feed_double_reward`, `tick_pet_state`, `tick_pet_state_as_system`,
+  `refresh_pet_hunger_tick_schedule`
 - Shop/economy: `get_visible_shop_items`, `purchase_item_with_coins`,
   `purchase_item_with_diamonds`, `purchase_room_furniture_with_coins`,
   `purchase_room_furniture_with_diamonds`,
@@ -89,6 +90,11 @@ Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
 ## Edge Function Data Notes
 - `feed_validate` writes feed messages/rewards and enforces a 10MB decoded-image
   cap plus strict image MIME allow-list before R2 upload.
+- `claim_feed_double_reward(p_room_id, p_message_id)` is additive for newer
+  clients: it locks the caller-owned feed message, grants an `ad_reward` equal
+  to the current feed reward, stores the feed message id in `coin_ledger`
+  metadata for dedupe, and updates `messages.coins_awarded` to the doubled
+  total.
 - `notify_friend` canonicalizes webhook payload content from DB, constrains
   recipients to active room members, and supports client-authenticated
   `store_purchase` pushes.
