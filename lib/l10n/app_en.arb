@@ -309,6 +309,11 @@
     }
   },
   "feedRewardPending": "Reward pending...",
+  "crashRecoveryAction": "Got it",
+  "crashRecoveryMessage": "The game seems to have stopped unexpectedly. Please close the app and open it again. If the problem continues, try again later.",
+  "crashRecoveryPetCaption": "Your pet is resting here with you.",
+  "crashRecoveryPetSemanticLabel": "Resting pet",
+  "crashRecoveryTitle": "Game error",
   "forceUpdateAction": "Update now",
   "forceUpdateLinkError": "Unable to open store link.",
   "forceUpdateMessage": "A newer version is required to continue. Please update now.",

@@ -32,6 +32,8 @@ remain in `memory-bank/archive/progress_archive.md`.
 - Chat crash hardening now records `chat_room_view_v2` Crashlytics context,
   cleans up realtime channels with `removeChannel(...)`, guards stale callbacks,
   restores composer state on send failures, and avoids invalid image cache sizes.
+- App crash fallback now uses a dedicated pet-themed recovery screen with restart
+  guidance; it no longer reuses force-update copy or opens the App Store.
 - Chat text sends replace optimistic temp rows with confirmed server rows in one
   timeline update, avoiding the previous latest-view shrink/expand jitter after
   successful sends.
@@ -62,6 +64,9 @@ remain in `memory-bank/archive/progress_archive.md`.
   `.codex/skills/release-notes-sync/SKILL.md`.
 
 ## Latest Completed Work
+- Replaced the crash fallback "update required" screen with localized recovery
+  copy, a default ghost pet GIF visual, and an acknowledgement action that clears
+  the overlay while leaving true hard/soft update flows unchanged.
 - Root-caused a local iOS `PlatformException(recreating_view)` stack to embedded
   AdMob banner `UiKitView` creation after debug platform-view id reuse, verified
   it was not present as a current live Crashlytics cluster, and gated banner

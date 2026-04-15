@@ -581,6 +581,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedRewardPending => 'Reward pending...';
 
   @override
+  String get crashRecoveryAction => 'Got it';
+
+  @override
+  String get crashRecoveryMessage =>
+      'The game seems to have stopped unexpectedly. Please close the app and open it again. If the problem continues, try again later.';
+
+  @override
+  String get crashRecoveryPetCaption => 'Your pet is resting here with you.';
+
+  @override
+  String get crashRecoveryPetSemanticLabel => 'Resting pet';
+
+  @override
+  String get crashRecoveryTitle => 'Game error';
+
+  @override
   String get forceUpdateAction => 'Update now';
 
   @override

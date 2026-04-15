@@ -309,6 +309,11 @@
     }
   },
   "feedRewardPending": "보상 계산 중...",
+  "crashRecoveryAction": "확인",
+  "crashRecoveryMessage": "게임이 방금 예상치 못하게 중단된 것 같아요. 앱을 닫았다가 다시 열어 시도해 주세요. 문제가 계속되면 잠시 후 다시 시도해 주세요.",
+  "crashRecoveryPetCaption": "펫이 여기서 함께 쉬고 있어요.",
+  "crashRecoveryPetSemanticLabel": "쉬고 있는 펫",
+  "crashRecoveryTitle": "게임 오류가 발생했어요",
   "forceUpdateAction": "지금 업데이트",
   "forceUpdateLinkError": "스토어 링크를 열 수 없습니다.",
   "forceUpdateMessage": "계속하려면 새 버전이 필요합니다. 지금 업데이트해 주세요.",

@@ -563,6 +563,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get feedRewardPending => '보상 계산 중...';
 
   @override
+  String get crashRecoveryAction => '확인';
+
+  @override
+  String get crashRecoveryMessage =>
+      '게임이 방금 예상치 못하게 중단된 것 같아요. 앱을 닫았다가 다시 열어 시도해 주세요. 문제가 계속되면 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get crashRecoveryPetCaption => '펫이 여기서 함께 쉬고 있어요.';
+
+  @override
+  String get crashRecoveryPetSemanticLabel => '쉬고 있는 펫';
+
+  @override
+  String get crashRecoveryTitle => '게임 오류가 발생했어요';
+
+  @override
   String get forceUpdateAction => '지금 업데이트';
 
   @override

@@ -557,6 +557,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get feedRewardPending => '報酬を計算中...';
 
   @override
+  String get crashRecoveryAction => 'わかりました';
+
+  @override
+  String get crashRecoveryMessage =>
+      'ゲームが予期せず中断したようです。Appを閉じてからもう一度開いてお試しください。問題が続く場合は、しばらくしてから再度お試しください。';
+
+  @override
+  String get crashRecoveryPetCaption => 'ペットがここで一緒に休んでいます。';
+
+  @override
+  String get crashRecoveryPetSemanticLabel => '休んでいるペット';
+
+  @override
+  String get crashRecoveryTitle => 'ゲームでエラーが発生しました';
+
+  @override
   String get forceUpdateAction => '今すぐ更新';
 
   @override

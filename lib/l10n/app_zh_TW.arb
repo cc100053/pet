@@ -302,6 +302,11 @@
     }
   },
   "feedRewardPending": "獎勵計算中...",
+  "crashRecoveryAction": "知道了",
+  "crashRecoveryMessage": "遊戲剛才似乎異常中斷，請關閉 App 後重新開啟再試一次。若問題持續，請稍後再試。",
+  "crashRecoveryPetCaption": "小寵物先陪你休息一下。",
+  "crashRecoveryPetSemanticLabel": "正在休息的小寵物",
+  "crashRecoveryTitle": "遊戲發生錯誤",
   "forceUpdateAction": "立即更新",
   "forceUpdateLinkError": "無法開啟商店連結。",
   "forceUpdateMessage": "需要更新到新版本才能繼續使用，請立即更新。",

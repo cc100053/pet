@@ -309,6 +309,11 @@
     }
   },
   "feedRewardPending": "報酬を計算中...",
+  "crashRecoveryAction": "わかりました",
+  "crashRecoveryMessage": "ゲームが予期せず中断したようです。Appを閉じてからもう一度開いてお試しください。問題が続く場合は、しばらくしてから再度お試しください。",
+  "crashRecoveryPetCaption": "ペットがここで一緒に休んでいます。",
+  "crashRecoveryPetSemanticLabel": "休んでいるペット",
+  "crashRecoveryTitle": "ゲームでエラーが発生しました",
   "forceUpdateAction": "今すぐ更新",
   "forceUpdateLinkError": "ストアリンクを開けません。",
   "forceUpdateMessage": "続行するには新しいバージョンが必要です。今すぐ更新してください。",

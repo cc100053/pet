@@ -1,5 +1,28 @@
 # TODO
 
+# Plan (2026-04-15 Crash Recovery Prompt UX)
+- [x] Replace the crash fallback screen copy so it no longer claims an update is available.
+- [x] Redesign the crash fallback as a PicPet-style recovery screen with a pet GIF and clear restart guidance.
+- [x] Keep the normal hard/soft force-update flow unchanged.
+- [x] Add localized crash-recovery strings and focused widget coverage.
+- [x] Run `dart format`, `flutter gen-l10n`, `flutter analyze`, and `flutter test`; record results.
+
+# Review (2026-04-15 Crash Recovery Prompt UX)
+- [x] Implemented and verified.
+- Scope:
+  - Replaced the crash fallback's force-update copy/action with dedicated crash recovery localization.
+  - Removed App Store launch behavior from `CrashUpdateGuard`; true hard/soft force-update paths remain in `ForceUpdateGate`.
+  - Added a PicPet-style full-screen recovery surface using the default ghost pet GIF, warm game styling, restart guidance, and a "Got it" acknowledgement that clears the overlay.
+  - Added localized recovery copy for en, ja, ko, zh, and zh_TW.
+  - Added widget coverage confirming zh_TW crash copy appears and update copy does not.
+- Verification:
+  - `flutter gen-l10n`
+  - `dart format lib/shared/force_update/crash_update_guard.dart test/shared/force_update/crash_update_guard_test.dart`
+  - `flutter test test/shared/force_update/crash_update_guard_test.dart`
+  - `flutter test test/shared/force_update/force_update_gate_test.dart test/shared/force_update/crash_update_guard_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-15 iOS Platform View Recreate Crash)
 - [x] Identify every Flutter surface that creates an iOS platform view and map it to the reported `UiKitView` stack.
 - [x] Reproduce or reason from lifecycle/key ownership to find why Flutter attempts to create an already-created view id.

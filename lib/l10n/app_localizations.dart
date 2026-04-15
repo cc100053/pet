@@ -1081,6 +1081,36 @@ abstract class AppLocalizations {
   /// **'Reward pending...'**
   String get feedRewardPending;
 
+  /// No description provided for @crashRecoveryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get crashRecoveryAction;
+
+  /// No description provided for @crashRecoveryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The game seems to have stopped unexpectedly. Please close the app and open it again. If the problem continues, try again later.'**
+  String get crashRecoveryMessage;
+
+  /// No description provided for @crashRecoveryPetCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet is resting here with you.'**
+  String get crashRecoveryPetCaption;
+
+  /// No description provided for @crashRecoveryPetSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting pet'**
+  String get crashRecoveryPetSemanticLabel;
+
+  /// No description provided for @crashRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Game error'**
+  String get crashRecoveryTitle;
+
   /// No description provided for @forceUpdateAction.
   ///
   /// In en, this message translates to:

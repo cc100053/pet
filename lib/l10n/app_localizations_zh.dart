@@ -555,6 +555,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get feedRewardPending => '獎勵計算中...';
 
   @override
+  String get crashRecoveryAction => '知道了';
+
+  @override
+  String get crashRecoveryMessage =>
+      '游戏刚才似乎异常中断，请关闭 App 后重新打开再试一次。如果问题持续，请稍后再试。';
+
+  @override
+  String get crashRecoveryPetCaption => '小宠物先陪你休息一下。';
+
+  @override
+  String get crashRecoveryPetSemanticLabel => '正在休息的小宠物';
+
+  @override
+  String get crashRecoveryTitle => '游戏发生错误';
+
+  @override
   String get forceUpdateAction => '立即更新';
 
   @override
@@ -2153,6 +2169,22 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get feedRewardPending => '獎勵計算中...';
+
+  @override
+  String get crashRecoveryAction => '知道了';
+
+  @override
+  String get crashRecoveryMessage =>
+      '遊戲剛才似乎異常中斷，請關閉 App 後重新開啟再試一次。若問題持續，請稍後再試。';
+
+  @override
+  String get crashRecoveryPetCaption => '小寵物先陪你休息一下。';
+
+  @override
+  String get crashRecoveryPetSemanticLabel => '正在休息的小寵物';
+
+  @override
+  String get crashRecoveryTitle => '遊戲發生錯誤';
 
   @override
   String get forceUpdateAction => '立即更新';
