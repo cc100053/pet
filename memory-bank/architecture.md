@@ -45,6 +45,8 @@ and live Supabase state. Do not rely on older memory-bank wording as canonical.
   - unsupported placed furniture is hidden
   - unsupported shared pet types fall back to `PetCatalog.defaultPetId`
   - affected clients reuse the one-shot room compatibility update prompt
+- Shop/home furniture rendering supports metadata-driven PNG assets with emoji
+  fallback for older placeholder furniture.
 - Furniture inventory is room-shared on new clients via
   `get_room_furniture_inventory`; `room_item_inventories` still records buyer
   attribution for backward compatibility.

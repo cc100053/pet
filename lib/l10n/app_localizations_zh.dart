@@ -1157,6 +1157,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescDiamondPack300 => '一次購買，立即獲得 300 鑽石。';
 
   @override
+  String get storeItemNameCandyPack500 => '500 糖果包';
+
+  @override
+  String get storeItemDescCandyPack500 => '使用 50 鑽石兌換 500 糖果。';
+
+  @override
   String get storeItemNameReturnLetter => '回家信';
 
   @override
@@ -1245,6 +1251,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
+
+  @override
+  String get storeItemNameFurnitureToilet => '馬桶';
+
+  @override
+  String get storeItemDescFurnitureToilet => '乾淨的小浴室家具。';
+
+  @override
+  String get storeItemNameFurnitureTub => '浴缸';
+
+  @override
+  String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
 
   @override
   String get shopSignInPrompt => '请先登录才能使用商店。';
@@ -1569,6 +1587,21 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get whatsNew111Bullet3 =>
       'Improved overall performance for a smoother experience.';
+
+  @override
+  String get whatsNew112Title => 'Bathroom Decor & @Mentions';
+
+  @override
+  String get whatsNew112Bullet1 =>
+      'Added two new bathroom furniture items: Toilet and Tub.';
+
+  @override
+  String get whatsNew112Bullet2 =>
+      'You can now @mention room members in the chat to grab their attention.';
+
+  @override
+  String get whatsNew112Bullet3 =>
+      'Minor bug fixes and performance improvements.';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2721,6 +2754,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemDescDiamondPack300 => '一次性 300 鑽石。';
 
   @override
+  String get storeItemNameCandyPack500 => '500 糖果包';
+
+  @override
+  String get storeItemDescCandyPack500 => '使用 50 鑽石兌換 500 糖果。';
+
+  @override
   String get storeItemNameReturnLetter => '回家信';
 
   @override
@@ -2809,6 +2848,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
+
+  @override
+  String get storeItemNameFurnitureToilet => '馬桶';
+
+  @override
+  String get storeItemDescFurnitureToilet => '乾淨的小浴室家具。';
+
+  @override
+  String get storeItemNameFurnitureTub => '浴缸';
+
+  @override
+  String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
 
   @override
   String get shopSignInPrompt => '請先登入才能使用商店。';
@@ -3130,4 +3181,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew111Bullet3 => '提升整體執行效能，提供更流暢的使用體驗。';
+
+  @override
+  String get whatsNew112Title => '浴室傢俱與 @ 提及功能';
+
+  @override
+  String get whatsNew112Bullet1 => '新增了兩款浴室傢俱：馬桶和浴缸。';
+
+  @override
+  String get whatsNew112Bullet2 => '現在可以在聊天室中使用 @ 提及功能來提醒房內成員。';
+
+  @override
+  String get whatsNew112Bullet3 => '修復了部分已知問題並提升了效能。';
 }

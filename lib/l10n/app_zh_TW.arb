@@ -642,6 +642,8 @@
   "storePremiumBenefitExclusiveItems": "解鎖專屬商品",
   "storeItemNameDiamondPack300": "300 鑽石包",
   "storeItemDescDiamondPack300": "一次性 300 鑽石。",
+  "storeItemNameCandyPack500": "500 糖果包",
+  "storeItemDescCandyPack500": "使用 50 鑽石兌換 500 糖果。",
   "storeItemNameReturnLetter": "回家信",
   "storeItemDescReturnLetter": "召回離開的寵物。",
   "storeItemNameBackgroundDefault": "預設背景",
@@ -672,6 +674,10 @@
   "storeItemDescFurnitureBath": "迷你浴缸。",
   "storeItemNameFurnitureRibbon": "緞帶",
   "storeItemDescFurnitureRibbon": "裝飾緞帶。",
+  "storeItemNameFurnitureToilet": "馬桶",
+  "storeItemDescFurnitureToilet": "乾淨的小浴室家具。",
+  "storeItemNameFurnitureTub": "浴缸",
+  "storeItemDescFurnitureTub": "適合泡澡的舒適浴缸。",
   "shopSignInPrompt": "請先登入才能使用商店。",
   "storeSubscribe": "訂閱",
   "storeSubscriptionActive": "已啟用",
@@ -861,5 +867,9 @@
   "whatsNew111Title": "穩定性與效能更新",
   "whatsNew111Bullet1": "修復了多項可能導致應用程式崩潰的問題。",
   "whatsNew111Bullet2": "優化了聊天訊息傳送及相片解析流程。",
-  "whatsNew111Bullet3": "提升整體執行效能，提供更流暢的使用體驗。"
+  "whatsNew111Bullet3": "提升整體執行效能，提供更流暢的使用體驗。",
+  "whatsNew112Title": "浴室傢俱與 @ 提及功能",
+  "whatsNew112Bullet1": "新增了兩款浴室傢俱：馬桶和浴缸。",
+  "whatsNew112Bullet2": "現在可以在聊天室中使用 @ 提及功能來提醒房內成員。",
+  "whatsNew112Bullet3": "修復了部分已知問題並提升了效能。"
 }

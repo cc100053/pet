@@ -38,8 +38,8 @@ Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
 - `message_reactions` is one reaction per `(message_id, user_id)`; changing emoji
   overwrites the previous row and realtime refreshes summaries/details.
 - `items.metadata` carries catalog contracts, including IAP fields, background
-  metadata, `visibility_mode`, `min_app_version`, `shop_visibility`,
-  `fallback_behavior`, and `fallback_background_key`.
+  metadata, furniture `asset_path`, `visibility_mode`, `min_app_version`,
+  `shop_visibility`, `fallback_behavior`, and `fallback_background_key`.
 - `room_item_inventories` remains buyer-attributed; new shared furniture reads
   must use the aggregated RPC.
 - `room_furniture.scale` is clamped to `0.8..2.0`; positions are normalized
@@ -54,6 +54,9 @@ Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
 - Rollout-only decor hidden from Shop uses `metadata.shop_visibility = 'hidden'`.
 - For shop-backed decor, keep three layers aligned in the same change:
   catalog visibility, purchase RPC validation, and table RLS write policy.
+- Image-backed bathroom furniture and the 500-candy exchange pack are gated at
+  app version `1.1.2`; live rows stay `is_active = false` so legacy catalog
+  reads do not expose them.
 - Additive/backward-compatible RPCs are preferred over changing existing RPC
   parameters used by old app versions.
 

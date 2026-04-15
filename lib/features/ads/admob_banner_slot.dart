@@ -31,7 +31,7 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
 
   @override
   Widget build(BuildContext context) {
-    if (!AdMobIds.isSupported || !_loaded || _bannerAd == null) {
+    if (!AdMobIds.isBannerViewSupported || !_loaded || _bannerAd == null) {
       return const SizedBox.shrink();
     }
     final ad = _bannerAd!;
@@ -48,7 +48,7 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
   }
 
   Future<void> _loadBanner() async {
-    if (!AdMobIds.isSupported) {
+    if (!AdMobIds.isBannerViewSupported) {
       return;
     }
 

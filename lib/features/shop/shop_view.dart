@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../ads/admob_banner_slot.dart';
 import '../../services/analytics/analytics_service.dart';
+import '../../services/audio/app_sfx.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/env.dart';
 import '../../services/ads/admob_ids.dart';
@@ -25,6 +26,7 @@ import '../home/room_backgrounds.dart';
 import '../pet/pet_departure.dart';
 import 'models/shop_item.dart';
 import 'widgets/shop_legal_links_row.dart';
+import 'widgets/shop_item_visual.dart';
 
 part 'services/shop_iap_service.dart';
 part 'services/shop_purchase_handler.dart';
@@ -131,6 +133,8 @@ class _ShopViewState extends State<ShopView> {
   String? _error;
   int _coins = 0;
   int _diamonds = 0;
+  int? _coinReward;
+  int _coinRewardEventId = 0;
   List<ShopItem> _items = [];
   final Map<String, int> _inventory = {};
   final Set<String> _roomBackgroundOwned = {};
@@ -247,6 +251,9 @@ class _ShopViewState extends State<ShopView> {
     if (item.isBackground) {
       return _ShopNoticeBackgroundVisual(backgroundKey: item.backgroundKey);
     }
+    if (item.isFurniture) {
+      return ShopFurnitureVisual(item: item, size: 34);
+    }
     final emoji = item.emoji?.trim();
     if (emoji != null && emoji.isNotEmpty) {
       return Text(
@@ -301,9 +308,6 @@ class _ShopViewState extends State<ShopView> {
 
   Future<String?> _ensureCurrentAppVersion() async {
     final cached = _currentAppVersion?.trim();
-    if (cached != null && cached.isNotEmpty) {
-      return cached;
-    }
     try {
       final info = await PackageInfo.fromPlatform();
       final version = info.version.trim();
@@ -312,12 +316,14 @@ class _ShopViewState extends State<ShopView> {
         _currentAppVersion = resolved;
         return resolved;
       }
-      setState(() {
-        _currentAppVersion = resolved;
-      });
+      if (resolved != cached) {
+        setState(() {
+          _currentAppVersion = resolved;
+        });
+      }
       return resolved;
     } catch (_) {
-      return _currentAppVersion;
+      return cached != null && cached.isNotEmpty ? cached : _currentAppVersion;
     }
   }
 
@@ -568,7 +574,8 @@ class _ShopViewState extends State<ShopView> {
             ],
           ),
         ),
-        bottomNavigationBar: AdMobIds.isSupported && !_hasProAdFreeAccess
+        bottomNavigationBar:
+            AdMobIds.isBannerViewSupported && !_hasProAdFreeAccess
             ? const AdMobBannerSlot()
             : null,
       ),
@@ -832,7 +839,7 @@ class _ShopViewState extends State<ShopView> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _ShopCurrencyChip(
+              ShopCurrencyChip(
                 amount: _diamonds,
                 icon: Image.asset(
                   'assets/shop/icon/diamond.png',
@@ -841,8 +848,10 @@ class _ShopViewState extends State<ShopView> {
                 ),
               ),
               const SizedBox(width: 6),
-              _ShopCurrencyChip(
+              ShopCurrencyChip(
                 amount: _coins,
+                coinReward: _coinReward,
+                coinRewardEventId: _coinRewardEventId,
                 icon: Image.asset(
                   'assets/shop/icon/candy.png',
                   width: 24,
@@ -2002,42 +2011,165 @@ class _CategoryItem extends StatelessWidget {
   }
 }
 
-class _ShopCurrencyChip extends StatelessWidget {
-  const _ShopCurrencyChip({required this.amount, required this.icon});
+class ShopCurrencyChip extends StatefulWidget {
+  const ShopCurrencyChip({
+    super.key,
+    required this.amount,
+    required this.icon,
+    this.coinReward,
+    this.coinRewardEventId = 0,
+  });
 
   final int amount;
   final Widget icon;
+  final int? coinReward;
+  final int coinRewardEventId;
+
+  @override
+  State<ShopCurrencyChip> createState() => _ShopCurrencyChipState();
+}
+
+class _ShopCurrencyChipState extends State<ShopCurrencyChip>
+    with TickerProviderStateMixin {
+  late final AnimationController _bounceController;
+  late final AnimationController _rewardController;
+  late final Animation<double> _scaleAnimation;
+  late final Animation<Offset> _rewardOffset;
+  late final Animation<double> _rewardOpacity;
+  int? _displayReward;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 240),
+    );
+    _rewardController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 900),
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed && mounted) {
+            setState(() {
+              _displayReward = null;
+            });
+          }
+        });
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1, end: 1.14), weight: 42),
+      TweenSequenceItem(tween: Tween(begin: 1.14, end: 1), weight: 58),
+    ]).animate(_bounceController);
+    _rewardOffset =
+        Tween<Offset>(
+          begin: const Offset(0, 0.2),
+          end: const Offset(0, -0.85),
+        ).animate(
+          CurvedAnimation(
+            parent: _rewardController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+    _rewardOpacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0, end: 1), weight: 18),
+      TweenSequenceItem(tween: ConstantTween(1), weight: 46),
+      TweenSequenceItem(tween: Tween(begin: 1, end: 0), weight: 36),
+    ]).animate(_rewardController);
+  }
+
+  @override
+  void didUpdateWidget(covariant ShopCurrencyChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.coinRewardEventId == oldWidget.coinRewardEventId) {
+      return;
+    }
+    final reward = widget.coinReward ?? 0;
+    if (reward <= 0) {
+      return;
+    }
+    _displayReward = reward;
+    _bounceController.forward(from: 0);
+    _rewardController.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    _rewardController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          icon,
-          const SizedBox(width: 6),
-          Text(
-            '$amount',
-            style: GoogleFonts.mPlusRounded1c(
-              fontWeight: FontWeight.w900,
-              fontSize: 14,
-              color: AppTheme.textPrimary,
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                widget.icon,
+                const SizedBox(width: 6),
+                Text(
+                  '${widget.amount}',
+                  style: GoogleFonts.mPlusRounded1c(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        if (_displayReward != null)
+          Positioned(
+            top: -18,
+            child: SlideTransition(
+              position: _rewardOffset,
+              child: FadeTransition(
+                opacity: _rewardOpacity,
+                child: IgnorePointer(
+                  child: Text(
+                    '+$_displayReward',
+                    key: const ValueKey('shop-currency-reward-label'),
+                    style: GoogleFonts.mPlusRounded1c(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      color: const Color(0xFFFF7A3D),
+                      shadows: [
+                        Shadow(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          blurRadius: 4,
+                        ),
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -649,6 +649,8 @@
   "storePremiumBenefitExclusiveItems": "Exclusive items",
   "storeItemNameDiamondPack300": "300 Diamond Pack",
   "storeItemDescDiamondPack300": "Get 300 diamonds instantly (one-time purchase).",
+  "storeItemNameCandyPack500": "500 Candy Pack",
+  "storeItemDescCandyPack500": "Exchange 50 diamonds for 500 candy.",
   "storeItemNameReturnLetter": "Return Letter",
   "storeItemDescReturnLetter": "Call back a departed pet.",
   "storeItemNameBackgroundDefault": "Default Background",
@@ -679,6 +681,10 @@
   "storeItemDescFurnitureBath": "Mini bath.",
   "storeItemNameFurnitureRibbon": "Ribbon",
   "storeItemDescFurnitureRibbon": "Decor ribbon.",
+  "storeItemNameFurnitureToilet": "Toilet",
+  "storeItemDescFurnitureToilet": "A clean little bathroom piece.",
+  "storeItemNameFurnitureTub": "Tub",
+  "storeItemDescFurnitureTub": "A cozy tub for bath time.",
   "shopSignInPrompt": "Please sign in to access the shop.",
   "storeSubscribe": "Subscribe",
   "storeSubscriptionActive": "Active",
@@ -868,5 +874,9 @@
   "whatsNew111Title": "Stability & Performance Update",
   "whatsNew111Bullet1": "Fixed critical issues that could cause unexpected crashes.",
   "whatsNew111Bullet2": "Optimized chat message processing and image rendering.",
-  "whatsNew111Bullet3": "Improved overall performance for a smoother experience."
+  "whatsNew111Bullet3": "Improved overall performance for a smoother experience.",
+  "whatsNew112Title": "Bathroom Decor & @Mentions",
+  "whatsNew112Bullet1": "Added two new bathroom furniture items: Toilet and Tub.",
+  "whatsNew112Bullet2": "You can now @mention room members in the chat to grab their attention.",
+  "whatsNew112Bullet3": "Minor bug fixes and performance improvements."
 }

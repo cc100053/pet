@@ -36,6 +36,12 @@ String localizedShopItemNameForSku(String sku, AppLocalizations l10n) {
       return l10n.storeItemNameFurnitureBath;
     case 'furniture_emoji_ribbon':
       return l10n.storeItemNameFurnitureRibbon;
+    case 'furniture_toilet':
+      return l10n.storeItemNameFurnitureToilet;
+    case 'furniture_tub':
+      return l10n.storeItemNameFurnitureTub;
+    case 'diamond_candy_pack_500':
+      return l10n.storeItemNameCandyPack500;
     default:
       return sku;
   }

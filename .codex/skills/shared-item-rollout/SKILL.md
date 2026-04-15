@@ -44,6 +44,15 @@ If you only do one layer, mixed-version rooms will drift.
 - Hidden rollout-only decor uses:
   - `metadata.shop_visibility = 'hidden'`
   - keep it out of the Shop UI and purchase path while still allowing room seeding / compatibility ownership
+- Room backpack/catalog hydration must not depend only on the visible Shop catalog:
+  - load the room's owned furniture inventory first
+  - if an owned `item_id` is missing from `get_visible_shop_items(...)`, fetch
+    the item row by id and merge it into the room furniture catalog
+  - still apply `ShopItem.isSupportedOnAppVersion(...)` before rendering/placing
+- Client app-version gates should prefer the live platform version from
+  `PackageInfo.fromPlatform()` and use `lastLaunchedAppVersion` only as a
+  fallback. A stale cached launch version can hide newly supported items after
+  an app update.
 
 Relevant files:
 - `supabase/migrations/20260403121500_add_version_gated_shop_catalog_rpc.sql`
@@ -145,6 +154,22 @@ Current background example:
 - version-gated paid backgrounds can be visible in Shop while `is_active = false`
 - therefore purchase RPCs and `room_backgrounds_insert` policy must not require `is_active = true`
 - hidden free rollout backgrounds must stay excluded from both purchase RPCs and insert policies
+
+### 8. Keep purchase feedback aligned
+
+For Shop consumables that grant an existing currency balance, such as a diamond
+to candy exchange pack:
+- update the balance immediately from the purchase RPC result
+- trigger the existing currency-gain SFX from the purchase-success path
+- trigger the matching balance animation with an explicit reward event id
+- do not rely on a passive balance refresh or widget rebuild alone for feedback
+
+For Flutter reward micro-animations:
+- do not feed `TweenSequence` with overshooting curve output such as
+  `Curves.easeOutBack` or elastic curves, because `TweenSequence` asserts when
+  its input `t` falls outside `0..1`
+- put the visual overshoot in the tween values, or use a non-overshooting curve
+  before the sequence
 
 ## Guardrails
 

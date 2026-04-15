@@ -2141,6 +2141,18 @@ abstract class AppLocalizations {
   /// **'Get 300 diamonds instantly (one-time purchase).'**
   String get storeItemDescDiamondPack300;
 
+  /// No description provided for @storeItemNameCandyPack500.
+  ///
+  /// In en, this message translates to:
+  /// **'500 Candy Pack'**
+  String get storeItemNameCandyPack500;
+
+  /// No description provided for @storeItemDescCandyPack500.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange 50 diamonds for 500 candy.'**
+  String get storeItemDescCandyPack500;
+
   /// No description provided for @storeItemNameReturnLetter.
   ///
   /// In en, this message translates to:
@@ -2320,6 +2332,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decor ribbon.'**
   String get storeItemDescFurnitureRibbon;
+
+  /// No description provided for @storeItemNameFurnitureToilet.
+  ///
+  /// In en, this message translates to:
+  /// **'Toilet'**
+  String get storeItemNameFurnitureToilet;
+
+  /// No description provided for @storeItemDescFurnitureToilet.
+  ///
+  /// In en, this message translates to:
+  /// **'A clean little bathroom piece.'**
+  String get storeItemDescFurnitureToilet;
+
+  /// No description provided for @storeItemNameFurnitureTub.
+  ///
+  /// In en, this message translates to:
+  /// **'Tub'**
+  String get storeItemNameFurnitureTub;
+
+  /// No description provided for @storeItemDescFurnitureTub.
+  ///
+  /// In en, this message translates to:
+  /// **'A cozy tub for bath time.'**
+  String get storeItemDescFurnitureTub;
 
   /// No description provided for @shopSignInPrompt.
   ///
@@ -2894,6 +2930,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Improved overall performance for a smoother experience.'**
   String get whatsNew111Bullet3;
+
+  /// No description provided for @whatsNew112Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bathroom Decor & @Mentions'**
+  String get whatsNew112Title;
+
+  /// No description provided for @whatsNew112Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Added two new bathroom furniture items: Toilet and Tub.'**
+  String get whatsNew112Bullet1;
+
+  /// No description provided for @whatsNew112Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'You can now @mention room members in the chat to grab their attention.'**
+  String get whatsNew112Bullet2;
+
+  /// No description provided for @whatsNew112Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Minor bug fixes and performance improvements.'**
+  String get whatsNew112Bullet3;
 }
 
 class _AppLocalizationsDelegate

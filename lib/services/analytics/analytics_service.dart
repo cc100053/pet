@@ -10,29 +10,47 @@ class AnalyticsService {
 
   static final AnalyticsService instance = AnalyticsService._();
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  FirebaseAnalytics? get _analyticsOrNull {
+    try {
+      return FirebaseAnalytics.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> configureCollection() async {
     try {
+      final analytics = _analyticsOrNull;
+      if (analytics == null) {
+        return;
+      }
       if (kIsWeb || !Platform.isIOS) {
-        await _analytics.setAnalyticsCollectionEnabled(true);
+        await analytics.setAnalyticsCollectionEnabled(true);
         return;
       }
 
       final allowTracking = await TrackingConsentService.instance
           .ensureTrackingAuthorization();
-      await _analytics.setAnalyticsCollectionEnabled(allowTracking);
+      await analytics.setAnalyticsCollectionEnabled(allowTracking);
     } catch (_) {}
   }
 
   Future<void> setUserId(String? userId) async {
     try {
-      await _analytics.setUserId(id: userId);
+      final analytics = _analyticsOrNull;
+      if (analytics == null) {
+        return;
+      }
+      await analytics.setUserId(id: userId);
     } catch (_) {}
   }
 
   Future<void> logEvent(String name, {Map<String, Object?>? parameters}) async {
     try {
+      final analytics = _analyticsOrNull;
+      if (analytics == null) {
+        return;
+      }
       Map<String, Object>? sanitized;
       if (parameters != null) {
         final cleaned = <String, Object>{};
@@ -46,13 +64,17 @@ class AnalyticsService {
           sanitized = cleaned;
         }
       }
-      await _analytics.logEvent(name: name, parameters: sanitized);
+      await analytics.logEvent(name: name, parameters: sanitized);
     } catch (_) {}
   }
 
   Future<void> logScreenView(String screenName) async {
     try {
-      await _analytics.logScreenView(screenName: screenName);
+      final analytics = _analyticsOrNull;
+      if (analytics == null) {
+        return;
+      }
+      await analytics.logScreenView(screenName: screenName);
     } catch (_) {}
   }
 }

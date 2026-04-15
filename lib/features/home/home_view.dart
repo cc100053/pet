@@ -58,6 +58,7 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../shop/models/shop_item.dart';
 import '../shop/shop_view.dart';
+import 'home_furniture_inventory_utils.dart';
 import 'home_furniture_math.dart';
 import 'home_gallery_feed_utils.dart';
 import 'home_unread_rules.dart';
@@ -507,9 +508,6 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<String?> _ensureCurrentAppVersion() async {
     final cached = _currentAppVersion?.trim();
-    if (cached != null && cached.isNotEmpty) {
-      return cached;
-    }
     try {
       final info = await PackageInfo.fromPlatform();
       final version = info.version.trim();
@@ -518,12 +516,14 @@ class _HomeViewState extends ConsumerState<HomeView>
         _currentAppVersion = resolved;
         return resolved;
       }
-      setState(() {
-        _currentAppVersion = resolved;
-      });
+      if (resolved != cached) {
+        setState(() {
+          _currentAppVersion = resolved;
+        });
+      }
       return resolved;
     } catch (_) {
-      return _currentAppVersion;
+      return cached != null && cached.isNotEmpty ? cached : _currentAppVersion;
     }
   }
 
@@ -2911,11 +2911,8 @@ class _HomeViewState extends ConsumerState<HomeView>
         'get_room_furniture_inventory',
         params: {'p_room_id': roomId},
       );
-      if (!mounted) {
-        return;
-      }
 
-      final items = (itemsResponse as List<dynamic>)
+      final visibleItems = (itemsResponse as List<dynamic>)
           .map((row) => ShopItem.fromJson(row as Map<String, dynamic>))
           .where((item) => item.isFurniture)
           .toList(growable: false);
@@ -2929,10 +2926,40 @@ class _HomeViewState extends ConsumerState<HomeView>
         }
       }
 
+      final visibleItemIds = visibleItems.map((item) => item.id).toSet();
+      final missingInventoryIds = inventory.keys
+          .where((itemId) => !visibleItemIds.contains(itemId))
+          .toList(growable: false);
+      final inventoryItemDetails = <ShopItem>[];
+      if (missingInventoryIds.isNotEmpty) {
+        final ownedItemsResponse = await Supabase.instance.client
+            .from('items')
+            .select(
+              'id,sku,type,name,price_coins,price_diamonds,metadata,is_active',
+            )
+            .inFilter('id', missingInventoryIds);
+        inventoryItemDetails.addAll(
+          (ownedItemsResponse as List<dynamic>)
+              .map((row) => ShopItem.fromJson(row as Map<String, dynamic>))
+              .where((item) => item.isFurniture),
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      final catalog = buildRoomFurnitureCatalog(
+        visibleShopItems: visibleItems,
+        inventoryItemDetails: inventoryItemDetails,
+        inventory: inventory,
+        appVersion: appVersion,
+      );
+
       setState(() {
         _furnitureCatalog
           ..clear()
-          ..addEntries(items.map((item) => MapEntry(item.id, item)));
+          ..addAll(catalog);
         _furnitureInventory
           ..clear()
           ..addAll(inventory);
@@ -2982,12 +3009,14 @@ class _HomeViewState extends ConsumerState<HomeView>
         final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
         final scale = _parseFurnitureScale(record['scale']);
         final emoji = _resolveFurnitureEmoji(itemId, record);
+        final assetPath = _resolveFurnitureAssetPath(itemId, record);
         placed.add(
           _PlacedFurniture(
             id: id,
             itemId: itemId,
             ownerUserId: ownerUserId,
             emoji: emoji,
+            assetPath: assetPath,
             normalizedPosition: Offset(posX, posY),
             persistedNormalizedPosition: Offset(posX, posY),
             scale: scale,
@@ -3077,6 +3106,22 @@ class _HomeViewState extends ConsumerState<HomeView>
     final metadata = (itemData?['metadata'] as Map?)?.cast<String, dynamic>();
     final emoji = metadata?['emoji'] as String?;
     return (emoji != null && emoji.isNotEmpty) ? emoji : '🪑';
+  }
+
+  String? _resolveFurnitureAssetPath(
+    String itemId,
+    Map<String, dynamic> record,
+  ) {
+    final catalogAssetPath = _furnitureCatalog[itemId]?.furnitureAssetPath;
+    if (catalogAssetPath != null && catalogAssetPath.trim().isNotEmpty) {
+      return catalogAssetPath.trim();
+    }
+    final itemData = record['items'] as Map<String, dynamic>?;
+    final metadata = (itemData?['metadata'] as Map?)?.cast<String, dynamic>();
+    final assetPath = metadata?['asset_path'] as String?;
+    return (assetPath != null && assetPath.trim().isNotEmpty)
+        ? assetPath.trim()
+        : null;
   }
 
   double _clampFurnitureScale(double scale) {
@@ -3498,6 +3543,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       itemId: itemId,
       ownerUserId: Supabase.instance.client.auth.currentUser?.id,
       emoji: item.emoji ?? '🪑',
+      assetPath: item.furnitureAssetPath,
       normalizedPosition: normalized,
       persistedNormalizedPosition: normalized,
       scale: 1.0,
@@ -4564,7 +4610,19 @@ class _HomeViewState extends ConsumerState<HomeView>
             clipBehavior: Clip.none,
             children: [
               Center(
-                child: Text(item.emoji, style: TextStyle(fontSize: iconSize)),
+                child:
+                    item.assetPath != null && item.assetPath!.trim().isNotEmpty
+                    ? Image.asset(
+                        item.assetPath!.trim(),
+                        width: itemSize.width * 0.9,
+                        height: itemSize.height * 0.9,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Text(
+                          item.emoji,
+                          style: TextStyle(fontSize: iconSize),
+                        ),
+                      )
+                    : Text(item.emoji, style: TextStyle(fontSize: iconSize)),
               ),
               if (canEdit && isSelected)
                 Positioned(
@@ -4715,7 +4773,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 createRoomCtaKey: _onboardingCreateRoomCtaKey,
                 highlightJoinRoomCta: _isCreatePetOnboardingStepActive,
                 joinRoomCtaKey: _onboardingJoinRoomCtaKey,
-                topBanner: AdMobIds.isSupported && !_hasProPlanAccess
+                topBanner: AdMobIds.isBannerViewSupported && !_hasProPlanAccess
                     ? const AdMobBannerSlot()
                     : null,
               ),

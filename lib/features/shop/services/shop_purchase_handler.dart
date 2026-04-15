@@ -347,6 +347,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
           unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
         }
       } else {
+        final previousCoins = _coins;
         final response = await Supabase.instance.client.rpc(
           'purchase_item_with_diamonds',
           params: {'p_item_id': item.id, 'p_quantity': 1},
@@ -359,6 +360,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
         final remaining = row['remaining_diamonds'] as int?;
         final newQuantity = row['new_quantity'] as int?;
         final newCoinBalance = row['new_coin_balance'] as int?;
+        final gainedCoins = newCoinBalance == null
+            ? null
+            : newCoinBalance - previousCoins;
+        final shouldShowCoinReward = gainedCoins != null && gainedCoins > 0;
         _setStoreState(() {
           if (remaining != null) {
             _diamonds = remaining;
@@ -368,8 +373,15 @@ extension _ShopPurchaseHandler on _ShopViewState {
           }
           if (newCoinBalance != null) {
             _coins = newCoinBalance;
+            if (shouldShowCoinReward) {
+              _coinReward = gainedCoins;
+              _coinRewardEventId += 1;
+            }
           }
         });
+        if (shouldShowCoinReward) {
+          unawaited(AppSfx.playCandyGain());
+        }
       }
 
       if (!mounted) {

@@ -1164,6 +1164,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescDiamondPack300 => '다이아몬드 300개를 즉시 획득합니다(1회 구매).';
 
   @override
+  String get storeItemNameCandyPack500 => '캔디 500 팩';
+
+  @override
+  String get storeItemDescCandyPack500 => '다이아몬드 50개를 캔디 500개로 교환합니다.';
+
+  @override
   String get storeItemNameReturnLetter => '귀환 편지';
 
   @override
@@ -1256,6 +1262,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get storeItemDescFurnitureRibbon => '장식 리본.';
+
+  @override
+  String get storeItemNameFurnitureToilet => '변기';
+
+  @override
+  String get storeItemDescFurnitureToilet => '깔끔한 작은 욕실 가구.';
+
+  @override
+  String get storeItemNameFurnitureTub => '욕조';
+
+  @override
+  String get storeItemDescFurnitureTub => '목욕 시간에 어울리는 아늑한 욕조.';
 
   @override
   String get shopSignInPrompt => '샵을 이용하려면 로그인해 주세요.';
@@ -1581,4 +1599,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew111Bullet3 => '전반적인 성능을 개선하여 더욱 쾌적한 환경을 제공합니다.';
+
+  @override
+  String get whatsNew112Title => '욕실 가구 및 @멘션 기능 추가';
+
+  @override
+  String get whatsNew112Bullet1 => '새로운 욕실 가구인 \'변기\'와 \'욕조\'가 추가되었습니다.';
+
+  @override
+  String get whatsNew112Bullet2 => '채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다.';
+
+  @override
+  String get whatsNew112Bullet3 => '기타 버그 수정 및 성능 개선.';
 }

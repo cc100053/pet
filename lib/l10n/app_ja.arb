@@ -649,6 +649,8 @@
   "storePremiumBenefitExclusiveItems": "限定アイテムの解放",
   "storeItemNameDiamondPack300": "300ダイヤパック",
   "storeItemDescDiamondPack300": "一度の購入で300ダイヤをすぐ獲得できます。",
+  "storeItemNameCandyPack500": "500キャンディパック",
+  "storeItemDescCandyPack500": "50ダイヤを500キャンディに交換します。",
   "storeItemNameReturnLetter": "おかえりの手紙",
   "storeItemDescReturnLetter": "旅立ったペットを呼び戻します。",
   "storeItemNameBackgroundDefault": "デフォルト背景",
@@ -679,6 +681,10 @@
   "storeItemDescFurnitureBath": "ミニバス。",
   "storeItemNameFurnitureRibbon": "リボン",
   "storeItemDescFurnitureRibbon": "飾りリボン。",
+  "storeItemNameFurnitureToilet": "トイレ",
+  "storeItemDescFurnitureToilet": "清潔感のある小さなバスルーム家具。",
+  "storeItemNameFurnitureTub": "バスタブ",
+  "storeItemDescFurnitureTub": "おふろ時間にぴったりのバスタブ。",
   "shopSignInPrompt": "ショップを利用するにはサインインしてください。",
   "storeSubscribe": "購読する",
   "storeSubscriptionActive": "有効",
@@ -868,5 +874,9 @@
   "whatsNew111Title": "安定性とパフォーマンスの向上",
   "whatsNew111Bullet1": "アプリが予期せず終了する問題を特定し、修正しました。",
   "whatsNew111Bullet2": "チャットのメッセージ処理や画像の描画を最適化しました。",
-  "whatsNew111Bullet3": "全体的なパフォーマンスを改善し、より快適にご利用いただけます。"
+  "whatsNew111Bullet3": "全体的なパフォーマンスを改善し、より快適にご利用いただけます。",
+  "whatsNew112Title": "バスルーム家具と@メンション",
+  "whatsNew112Bullet1": "2つの新しいバスルーム家具「トイレ」と「浴槽」が登場！",
+  "whatsNew112Bullet2": "チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。",
+  "whatsNew112Bullet3": "軽微な不具合の修正とパフォーマンスの向上。"
 }

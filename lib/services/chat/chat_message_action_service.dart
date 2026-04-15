@@ -42,8 +42,28 @@ class ChatMessageActionService {
   final ChatAccessTokenProvider? _accessTokenProvider;
 
   SupabaseClient get _resolvedClient => _client ?? Supabase.instance.client;
+  static const String _messageSelectClause =
+      'id,room_id,sender_id,type,body,image_url,caption,coins_awarded,'
+      'created_at,client_created_at,labels,reply_to_message_id';
 
   Future<String> sendTextMessage({
+    required String roomId,
+    required String text,
+    String? userId,
+  }) async {
+    final inserted = await sendTextMessageRow(
+      roomId: roomId,
+      text: text,
+      userId: userId,
+    );
+    final messageId = (inserted['id'] as String? ?? '').trim();
+    if (messageId.isEmpty) {
+      throw StateError('message_insert_missing_id');
+    }
+    return messageId;
+  }
+
+  Future<Map<String, dynamic>> sendTextMessageRow({
     required String roomId,
     required String text,
     String? userId,
@@ -68,6 +88,24 @@ class ChatMessageActionService {
 
     final inserted =
         await (_insertText?.call(payload) ?? _defaultInsertText(payload));
+    if (((inserted['id'] as String?) ?? '').trim().isEmpty) {
+      throw StateError('message_insert_missing_id');
+    }
+    return inserted;
+  }
+
+  Future<String> sendTextReply({
+    required String roomId,
+    required String replyToMessageId,
+    required String text,
+    String? userId,
+  }) async {
+    final inserted = await sendTextReplyRow(
+      roomId: roomId,
+      replyToMessageId: replyToMessageId,
+      text: text,
+      userId: userId,
+    );
     final messageId = (inserted['id'] as String? ?? '').trim();
     if (messageId.isEmpty) {
       throw StateError('message_insert_missing_id');
@@ -75,7 +113,7 @@ class ChatMessageActionService {
     return messageId;
   }
 
-  Future<String> sendTextReply({
+  Future<Map<String, dynamic>> sendTextReplyRow({
     required String roomId,
     required String replyToMessageId,
     required String text,
@@ -109,7 +147,7 @@ class ChatMessageActionService {
 
     await (_notifyTextMessage?.call(roomId: roomId, messageId: messageId) ??
         _defaultNotifyTextMessage(roomId: roomId, messageId: messageId));
-    return messageId;
+    return inserted;
   }
 
   Future<void> toggleReaction({
@@ -158,7 +196,7 @@ class ChatMessageActionService {
     final response = await _resolvedClient
         .from('messages')
         .insert(payload)
-        .select('id')
+        .select(_messageSelectClause)
         .single();
     return Map<String, dynamic>.from(response);
   }
@@ -169,7 +207,7 @@ class ChatMessageActionService {
     final response = await _resolvedClient
         .from('messages')
         .insert(payload)
-        .select('id')
+        .select(_messageSelectClause)
         .single();
     return Map<String, dynamic>.from(response);
   }

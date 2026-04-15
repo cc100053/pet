@@ -4,6 +4,7 @@ import 'package:pet/l10n/app_localizations.dart';
 
 import '../room_backgrounds.dart';
 import '../../shop/models/shop_item.dart';
+import '../../shop/widgets/shop_item_visual.dart';
 
 class HomeRoomInventoryPanel extends StatefulWidget {
   const HomeRoomInventoryPanel({
@@ -306,7 +307,7 @@ class _FurnitureInventoryItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(item.emoji ?? '🪑', style: const TextStyle(fontSize: 22)),
+            ShopFurnitureVisual(item: item, size: 32),
             const SizedBox(height: 3),
             Text(
               item.localizedName(l10n),

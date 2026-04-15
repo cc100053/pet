@@ -1157,6 +1157,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescDiamondPack300 => '一度の購入で300ダイヤをすぐ獲得できます。';
 
   @override
+  String get storeItemNameCandyPack500 => '500キャンディパック';
+
+  @override
+  String get storeItemDescCandyPack500 => '50ダイヤを500キャンディに交換します。';
+
+  @override
   String get storeItemNameReturnLetter => 'おかえりの手紙';
 
   @override
@@ -1248,6 +1254,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeItemDescFurnitureRibbon => '飾りリボン。';
+
+  @override
+  String get storeItemNameFurnitureToilet => 'トイレ';
+
+  @override
+  String get storeItemDescFurnitureToilet => '清潔感のある小さなバスルーム家具。';
+
+  @override
+  String get storeItemNameFurnitureTub => 'バスタブ';
+
+  @override
+  String get storeItemDescFurnitureTub => 'おふろ時間にぴったりのバスタブ。';
 
   @override
   String get shopSignInPrompt => 'ショップを利用するにはサインインしてください。';
@@ -1573,4 +1591,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew111Bullet3 => '全体的なパフォーマンスを改善し、より快適にご利用いただけます。';
+
+  @override
+  String get whatsNew112Title => 'バスルーム家具と@メンション';
+
+  @override
+  String get whatsNew112Bullet1 => '2つの新しいバスルーム家具「トイレ」と「浴槽」が登場！';
+
+  @override
+  String get whatsNew112Bullet2 => 'チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。';
+
+  @override
+  String get whatsNew112Bullet3 => '軽微な不具合の修正とパフォーマンスの向上。';
 }

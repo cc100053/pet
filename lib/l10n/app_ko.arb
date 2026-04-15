@@ -646,6 +646,8 @@
   "storePremiumBenefitExclusiveItems": "전용 아이템 잠금해제",
   "storeItemNameDiamondPack300": "다이아몬드 300 팩",
   "storeItemDescDiamondPack300": "다이아몬드 300개를 즉시 획득합니다(1회 구매).",
+  "storeItemNameCandyPack500": "캔디 500 팩",
+  "storeItemDescCandyPack500": "다이아몬드 50개를 캔디 500개로 교환합니다.",
   "storeItemNameReturnLetter": "귀환 편지",
   "storeItemDescReturnLetter": "떠난 펫을 다시 불러옵니다.",
   "storeItemNameBackgroundDefault": "기본 배경",
@@ -676,6 +678,10 @@
   "storeItemDescFurnitureBath": "미니 욕조.",
   "storeItemNameFurnitureRibbon": "리본",
   "storeItemDescFurnitureRibbon": "장식 리본.",
+  "storeItemNameFurnitureToilet": "변기",
+  "storeItemDescFurnitureToilet": "깔끔한 작은 욕실 가구.",
+  "storeItemNameFurnitureTub": "욕조",
+  "storeItemDescFurnitureTub": "목욕 시간에 어울리는 아늑한 욕조.",
   "shopSignInPrompt": "샵을 이용하려면 로그인해 주세요.",
   "storeSubscribe": "구독하기",
   "storeSubscriptionActive": "사용 중",
@@ -855,5 +861,9 @@
   "whatsNew111Title": "안정성 및 성능 업데이트",
   "whatsNew111Bullet1": "앱이 예기치 않게 종료될 수 있는 문제들을 해결했습니다.",
   "whatsNew111Bullet2": "채팅 메시지 처리와 이미지 렌더링 과정을 최적화했습니다.",
-  "whatsNew111Bullet3": "전반적인 성능을 개선하여 더욱 쾌적한 환경을 제공합니다."
+  "whatsNew111Bullet3": "전반적인 성능을 개선하여 더욱 쾌적한 환경을 제공합니다.",
+  "whatsNew112Title": "욕실 가구 및 @멘션 기능 추가",
+  "whatsNew112Bullet1": "새로운 욕실 가구인 '변기'와 '욕조'가 추가되었습니다.",
+  "whatsNew112Bullet2": "채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다.",
+  "whatsNew112Bullet3": "기타 버그 수정 및 성능 개선."
 }

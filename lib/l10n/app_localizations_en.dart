@@ -1195,6 +1195,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Get 300 diamonds instantly (one-time purchase).';
 
   @override
+  String get storeItemNameCandyPack500 => '500 Candy Pack';
+
+  @override
+  String get storeItemDescCandyPack500 => 'Exchange 50 diamonds for 500 candy.';
+
+  @override
   String get storeItemNameReturnLetter => 'Return Letter';
 
   @override
@@ -1287,6 +1293,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeItemDescFurnitureRibbon => 'Decor ribbon.';
+
+  @override
+  String get storeItemNameFurnitureToilet => 'Toilet';
+
+  @override
+  String get storeItemDescFurnitureToilet => 'A clean little bathroom piece.';
+
+  @override
+  String get storeItemNameFurnitureTub => 'Tub';
+
+  @override
+  String get storeItemDescFurnitureTub => 'A cozy tub for bath time.';
 
   @override
   String get shopSignInPrompt => 'Please sign in to access the shop.';
@@ -1627,4 +1645,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew111Bullet3 =>
       'Improved overall performance for a smoother experience.';
+
+  @override
+  String get whatsNew112Title => 'Bathroom Decor & @Mentions';
+
+  @override
+  String get whatsNew112Bullet1 =>
+      'Added two new bathroom furniture items: Toilet and Tub.';
+
+  @override
+  String get whatsNew112Bullet2 =>
+      'You can now @mention room members in the chat to grab their attention.';
+
+  @override
+  String get whatsNew112Bullet3 =>
+      'Minor bug fixes and performance improvements.';
 }

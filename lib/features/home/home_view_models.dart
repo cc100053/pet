@@ -42,6 +42,7 @@ class _PlacedFurniture {
     required this.itemId,
     required this.ownerUserId,
     required this.emoji,
+    required this.assetPath,
     required this.normalizedPosition,
     required this.persistedNormalizedPosition,
     required this.scale,
@@ -53,6 +54,7 @@ class _PlacedFurniture {
   String itemId;
   String? ownerUserId;
   String emoji;
+  String? assetPath;
   Offset normalizedPosition;
   Offset persistedNormalizedPosition;
   double scale;

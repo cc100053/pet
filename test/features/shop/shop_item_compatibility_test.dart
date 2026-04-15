@@ -96,4 +96,28 @@ void main() {
     expect(item.priceDiamonds, isNull);
     expect(item.backgroundKey, 'starlit_dream');
   });
+
+  test('parses image-backed furniture rollout metadata', () {
+    final item = ShopItem.fromJson({
+      'id': 'item-furniture-1',
+      'sku': 'furniture_toilet',
+      'type': 'cosmetic',
+      'name': 'Toilet',
+      'price_coins': 150,
+      'price_diamonds': null,
+      'metadata': {
+        'category': 'furniture',
+        'asset_path': 'assets/furniture/toilet.png',
+        'visibility_mode': 'version_gated',
+        'min_app_version': '1.1.2',
+        'fallback_behavior': 'skip',
+      },
+    });
+
+    expect(item.isFurniture, isTrue);
+    expect(item.priceCoins, 150);
+    expect(item.furnitureAssetPath, 'assets/furniture/toilet.png');
+    expect(item.isSupportedOnAppVersion('1.1.1'), isFalse);
+    expect(item.isSupportedOnAppVersion('1.1.2'), isTrue);
+  });
 }

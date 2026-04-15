@@ -5,7 +5,7 @@ import 'package:pet/features/shop/models/shop_item.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 void main() {
-  ShopItem buildFurnitureItem() {
+  ShopItem buildFurnitureItem({String? assetPath}) {
     return ShopItem(
       id: 'sofa',
       sku: 'furniture_emoji_sofa',
@@ -24,6 +24,7 @@ void main() {
       catalogCurrencyCode: 'JPY',
       category: 'furniture',
       emoji: '🛋️',
+      furnitureAssetPath: assetPath,
       backgroundKey: null,
     );
   }
@@ -66,5 +67,38 @@ void main() {
 
     expect(find.text('Sofa'), findsOneWidget);
     expect(find.text('x1'), findsOneWidget);
+  });
+
+  testWidgets('renders image-backed furniture in the inventory panel', (
+    tester,
+  ) async {
+    final item = buildFurnitureItem(assetPath: 'assets/furniture/toilet.png');
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          furnitureCatalog: {item.id: item},
+          furnitureInventory: {item.id: 1},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (itemId) => 1,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+        ),
+      ),
+    );
+
+    final image = tester.widget<Image>(find.byType(Image).first);
+    expect(
+      (image.image as AssetImage).assetName,
+      'assets/furniture/toilet.png',
+    );
   });
 }

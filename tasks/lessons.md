@@ -1,5 +1,19 @@
 # Lessons
 
+## 2026-04-15
+- Do not run multiple `flutter test` commands in parallel in this repo. The
+  Flutter tool writes shared `build/unit_test_assets` shader outputs and can
+  crash with `ShaderCompilerException`; run Flutter tests sequentially.
+- Even for small focused checks, never use `multi_tool_use.parallel` with
+  `flutter test`. Use one `flutter test` invocation with multiple test files,
+  or run separate invocations one after another.
+- Do not feed `TweenSequence` with an overshooting curve such as
+  `Curves.easeOutBack`; it can output `t > 1.0` and trip Flutter's
+  `t >= 0.0 && t <= 1.0` assertion.
+- For Shop consumables that grant an existing currency balance, trigger the SFX
+  from the purchase-success path. A passive balance-chip rebuild can animate
+  while the sound call is too indirect or easy to miss.
+
 ## 2026-04-04
 - Do not bind a precision multi-touch action directly to a tiny object in the scene. If the target can be smaller than comfortable touch size, move the adjustment onto a large dedicated control surface and keep direct manipulation for single-finger drag/select only.
 - For full-screen blur overlays, do not rely only on route-level child fade/scale. Animate the blur sigma and scrim opacity themselves, or the background still appears to snap abruptly between sharp and blurred states.

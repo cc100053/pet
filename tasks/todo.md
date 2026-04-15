@@ -1,5 +1,122 @@
 # TODO
 
+# Plan (2026-04-15 iOS Platform View Recreate Crash)
+- [x] Identify every Flutter surface that creates an iOS platform view and map it to the reported `UiKitView` stack.
+- [x] Reproduce or reason from lifecycle/key ownership to find why Flutter attempts to create an already-created view id.
+- [x] Implement the smallest lifecycle-safe fix and add regression coverage where practical.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`; update task/memory notes with root cause and verification.
+
+# Review (2026-04-15 iOS Platform View Recreate Crash)
+- [x] Implemented and verified.
+- Root cause:
+  - The reported stack is from Flutter iOS platform-view creation (`PlatformViewsService.initUiKitView` / `_DarwinViewState._createNewUiKitView`).
+  - The app's normal persistent `UiKitView` owner is the AdMob banner `AdWidget` in `AdMobBannerSlot`.
+  - Live Firebase Crashlytics for iOS did not show a matching production issue in the last 7 or 90 days; this matches a local debug/hot-restart platform-view id collision pattern, where Dart's platform-view id counter restarts while native iOS still has an old embedded view.
+- Scope:
+  - Added `AdMobIds.isBannerViewSupported` so embedded banner platform views are disabled in debug by default and remain enabled in profile/release.
+  - Added env override `ADMOB_ENABLE_DEBUG_BANNER_VIEWS=true` for intentional local banner testing.
+  - Switched Home room-selection and Shop banner slots to the banner-specific gate; rewarded ads remain on the existing iOS support gate.
+  - Added unit coverage for banner platform-view gating.
+- Verification:
+  - `dart format lib/services/env.dart lib/services/ads/admob_ids.dart lib/features/ads/admob_banner_slot.dart lib/features/home/home_view.dart lib/features/shop/shop_view.dart test/services/ads/admob_ids_test.dart`
+  - `flutter test test/services/ads/admob_ids_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-15 Shop Candy Feedback Follow-up)
+- [x] Update the shared item rollout skill with the lessons from the bathroom furniture / candy pack rollout.
+- [x] Move Shop candy-pack SFX triggering onto the purchase success path so it fires even when the balance-chip animation is rebuilt.
+- [x] Fix the Shop currency-chip `TweenSequence` assertion by removing overshooting curve output from the sequence input.
+- [x] Add focused animation regression coverage that advances the reward animation far enough to catch the scheduler assertion.
+- [x] Run `dart format`, focused tests, `flutter analyze`, and `flutter test`; update task/memory notes.
+
+# Review (2026-04-15 Shop Candy Feedback Follow-up)
+- [x] Implemented and verified.
+- Scope:
+  - Updated `.codex/skills/shared-item-rollout/SKILL.md` with rollout lessons for owned inventory hydration, live app-version gates, purchase feedback, and `TweenSequence` animation safety.
+  - Moved Shop candy-pack SFX to the successful diamond-purchase branch when `new_coin_balance` increases, while keeping the balance chip responsible for the visual `+N` animation only.
+  - Removed the overshooting `Curves.easeOutBack` input from the Shop currency-chip `TweenSequence`; the scale overshoot is now expressed by tween values with controller input staying in `0..1`.
+  - Extended `shop_currency_chip_test` to advance the reward animation and verify the reward label clears after completion.
+- Verification:
+  - `dart format lib/features/shop/shop_view.dart lib/features/shop/services/shop_purchase_handler.dart test/features/shop/shop_currency_chip_test.dart`
+  - `flutter test test/features/shop/shop_currency_chip_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-15 Room Furniture Inventory And Candy Feedback)
+- [x] Hydrate room furniture catalog from owned inventory item IDs so bought bathroom furniture stays visible/usable even if the shop visibility response is stale.
+- [x] Resolve current app version from the platform before applying version gates in Home/Shop so old cached launch versions do not hide newly supported items.
+- [x] Add the existing candy-gain sound and reward animation feedback when buying the 500-candy diamond pack in Shop.
+- [x] Add focused regression tests for owned furniture catalog hydration and Shop candy reward feedback.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`; document results and any current-state notes.
+
+# Review (2026-04-15 Room Furniture Inventory And Candy Feedback)
+- [x] Implemented and verified.
+- Scope:
+  - Home room inventory now merges visible shop furniture with owned room-inventory item rows, so already-purchased bathroom furniture can appear in the room backpack even if the shop visibility response omits it.
+  - Home and Shop now resolve the platform app version before applying version gates, using the cached launch version only as a fallback if the platform lookup fails.
+  - Shop candy balance chips now support the same candy-gain sound plus a floating `+N` reward animation; the 500 Candy Pack triggers it when the purchase RPC returns a higher coin balance.
+  - Added focused regression coverage for owned version-gated furniture catalog hydration and Shop candy reward feedback.
+- Verification:
+  - `dart format ...`
+  - `flutter test test/features/home/home_furniture_inventory_utils_test.dart test/features/shop/shop_currency_chip_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-15 Chat Mentions And Smooth Send)
+- [x] Add display-only chat @mention autocomplete for active room members, excluding the current user and blocked users.
+- [x] Highlight known @mention display names inside chat text bubbles while storing messages as plain text.
+- [x] Replace optimistic sent messages with confirmed server rows in one timeline update to remove the post-send shrink/expand jitter.
+- [x] Add focused mention parsing/widget tests plus send-regression tests for optimistic replacement and viewport stability.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`; document results and compact current-state notes as needed.
+
+# Review (2026-04-15 Chat Mentions And Smooth Send)
+- [x] Implemented and verified.
+- Scope:
+  - Added display-only chat mentions with active-token parsing, active room-member suggestions, blocked/current-user filtering, fixed-height overlay placement, focus-preserving insertion, and known-name text highlighting.
+  - Kept message storage as plain text and avoided Supabase schema, Edge Function, notification, unread-rule, or old-client behavior changes.
+  - Added send-row APIs to `ChatMessageActionService` while preserving existing return-id methods.
+  - Replaced optimistic temp messages with confirmed server/realtime rows in a single timeline update so the reversed latest view does not collapse then expand after send.
+  - Made analytics calls no-op safely when Firebase is unavailable, preventing send-success bookkeeping from crashing tests or early startup.
+- Verification:
+  - `dart format ...`
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart --plain-name "successful send replaces optimistic" -r expanded`
+  - `flutter test test/features/chat/chat_mentions_test.dart test/services/chat/chat_message_action_service_test.dart test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-15 Shop Furniture And Candy Pack)
+- [x] Inspect current Shop/furniture catalog, image rendering, purchase RPCs, and live Supabase target before mutating data.
+- [x] Add image-backed furniture support for shop cards, room inventory, and placed room furniture while preserving emoji fallback.
+- [x] Add localized labels/descriptions for Toilet, Tub, and 500 Candy Pack.
+- [x] Add a version-gated Supabase catalog migration for toilet, tub, and the 500-candy diamond exchange pack, keeping purchase predicates aligned.
+- [x] Apply the migration through Supabase MCP after confirming the target project, then verify catalog visibility boundaries.
+- [x] Run asset bundle, localization, analyzer, and tests; update memory/task notes with results and pricing rationale.
+
+# Review (2026-04-15 Shop Furniture And Candy Pack)
+- [x] Implemented and verified.
+- Scope:
+  - Added reusable image-backed furniture rendering with emoji fallback for Shop cards, purchase notices, Home inventory, and placed room furniture.
+  - Registered `assets/furniture/` and localized Toilet, Tub, and 500 Candy Pack names/descriptions across supported ARB files.
+  - Added and live-applied Supabase migration `20260415104915_add_bathroom_furniture_and_candy_pack.sql`: Toilet is `150` candy, Tub is `300` candy, and 500 Candy Pack costs `50` diamonds.
+  - Kept all three new SKUs `is_active = false` with `visibility_mode = version_gated` and `min_app_version = 1.1.2`; verified `get_visible_shop_items('1.1.1')` returns none and `get_visible_shop_items('1.1.2')` returns all three.
+  - Updated furniture purchase/place RPC predicates and diamond exchange purchase predicates so visible version-gated rows can be bought/placed while hidden rollout rows remain excluded.
+- Pricing note:
+  - Toilet at `150` candy fits as an accessible mid-low decor item.
+  - Tub at `300` candy is reasonable as a larger premium decor item, but should stay below rare/background anchor prices unless it becomes a premium highlight.
+  - 500 candy for `50` diamonds creates a clear `10 candy = 1 diamond` exchange rate; that is simple, but it becomes an economy anchor, so future candy rewards and furniture prices should be checked against this rate.
+- Verification:
+  - Supabase MCP target/migration history checked against the repo project; live migration applied successfully.
+  - Live catalog visibility: `1.1.1` hidden, `1.1.2` visible.
+  - `flutter gen-l10n`
+  - `dart format ...`
+  - `flutter test test/features/shop/shop_item_compatibility_test.dart`
+  - `flutter test test/features/home/widgets/home_room_inventory_panel_test.dart`
+  - `flutter build bundle`
+  - `strings build/flutter_assets/AssetManifest.bin | rg 'assets/furniture/(toilet|bathtub)\\.png'`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-14 Chat Crash Hardening)
 - [x] Harden chat send path so optimistic UI, latest-window refresh, DB insert,
   and post-send refresh all recover without uncaught exceptions.

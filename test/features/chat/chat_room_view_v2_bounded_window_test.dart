@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/chat/chat_message.dart';
+import 'package:pet/features/chat/chat_mentions.dart';
 import 'package:pet/features/chat/chat_room_view_runtime.dart';
 import 'package:pet/features/chat/chat_room_view_v2.dart';
 import 'package:pet/l10n/app_localizations.dart';
@@ -248,6 +249,29 @@ void main() {
       localImagePath: null,
       replyToMessageId: replyToMessageId,
     );
+  }
+
+  Map<String, dynamic> textMessageRow({
+    required String id,
+    required String senderId,
+    required String body,
+    required DateTime createdAt,
+    String? replyToMessageId,
+  }) {
+    return <String, dynamic>{
+      'id': id,
+      'room_id': 'room-1',
+      'sender_id': senderId,
+      'type': 'text',
+      'body': body,
+      'image_url': null,
+      'caption': null,
+      'coins_awarded': 0,
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'client_created_at': createdAt.toUtc().toIso8601String(),
+      'labels': const <Map<String, dynamic>>[],
+      'reply_to_message_id': replyToMessageId,
+    };
   }
 
   ChatMessage feedMessage({
@@ -652,6 +676,89 @@ void main() {
   });
 
   testWidgets(
+    'typing @ shows other active room members without moving composer',
+    (tester) async {
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: const <ChatMessage>[],
+        canonicalMessages: const <ChatMessage>[],
+      );
+      final runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+        loadBlockedUserIds: (_) async => <String>{'blocked'},
+        fetchMentionCandidates: (_) async => const <ChatMentionCandidate>[
+          ChatMentionCandidate(userId: 'me', displayName: 'Me'),
+          ChatMentionCandidate(userId: 'alice', displayName: 'Alice'),
+          ChatMentionCandidate(userId: 'blocked', displayName: 'Blocked'),
+        ],
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      final beforeTop = composerTop(tester);
+      await tester.enterText(
+        find.byKey(const ValueKey('chatComposerTextField')),
+        '@',
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('chatMentionSuggestionsPanel')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('chatMentionSuggestion_alice')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('chatMentionSuggestion_me')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('chatMentionSuggestion_blocked')),
+        findsNothing,
+      );
+      expect(composerTop(tester), closeTo(beforeTop, 1));
+    },
+  );
+
+  testWidgets('selecting a mention inserts display text and keeps focus', (
+    tester,
+  ) async {
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: const <ChatMessage>[],
+      canonicalMessages: const <ChatMessage>[],
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+      loadBlockedUserIds: (_) async => <String>{},
+      fetchMentionCandidates: (_) async => const <ChatMentionCandidate>[
+        ChatMentionCandidate(userId: 'alice', displayName: 'Alice'),
+      ],
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+    await tester.tap(find.byKey(const ValueKey('chatComposerTextField')));
+    await tester.pump();
+    await tester.enterText(
+      find.byKey(const ValueKey('chatComposerTextField')),
+      'hi @Al',
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('chatMentionSuggestion_alice')));
+    await tester.pumpAndSettle();
+
+    expect(composerText(tester), 'hi @Alice ');
+    expect(composerHasFocus(tester), isTrue);
+    expect(
+      find.byKey(const ValueKey('chatMentionSuggestionsPanel')),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
     'history mode buffers live messages and jump button resets to latest',
     (tester) async {
       final incomingController = StreamController<ChatMessage>();
@@ -743,6 +850,85 @@ void main() {
     expect(repository.lastPersistedMessages, isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'successful send replaces optimistic message with confirmed row without disappearing',
+    (tester) async {
+      final insertCompleter = Completer<Map<String, dynamic>>();
+      addTearDown(() {
+        if (!insertCompleter.isCompleted) {
+          insertCompleter.complete(
+            textMessageRow(
+              id: 'server-send',
+              senderId: 'me',
+              body: 'smooth send',
+              createdAt: DateTime.utc(2026, 3, 31, 12),
+            ),
+          );
+        }
+      });
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: <ChatMessage>[message(1)],
+        canonicalMessages: <ChatMessage>[message(1)],
+      );
+      final messageActionService = ChatMessageActionService(
+        insertText: (_) => insertCompleter.future,
+        notifyTextMessage: ({required roomId, required messageId}) async {},
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(
+        tester,
+        repository: repository,
+        runtime: runtime,
+        messageActionService: messageActionService,
+      );
+
+      final controller = timelineController(tester);
+      final offsets = <double>[controller.position.pixels];
+      await tester.enterText(
+        find.byKey(const ValueKey('chatComposerTextField')),
+        'smooth send',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('chatComposerSendButton')));
+      await tester.pump();
+      offsets.add(controller.position.pixels);
+      expect(composerText(tester), isEmpty);
+      expect(find.text('smooth send'), findsOneWidget);
+
+      insertCompleter.complete(
+        textMessageRow(
+          id: 'server-send',
+          senderId: 'me',
+          body: 'smooth send',
+          createdAt: DateTime.utc(2026, 3, 31, 12),
+        ),
+      );
+      for (var frame = 0; frame < 6; frame += 1) {
+        await tester.pump(const Duration(milliseconds: 16));
+        offsets.add(controller.position.pixels);
+        expect(find.text('smooth send'), findsOneWidget);
+      }
+      await tester.pumpAndSettle();
+      offsets.add(controller.position.pixels);
+
+      expect(
+        find.byKey(const ValueKey('chatMessageSurface_server-send')),
+        findsOneWidget,
+      );
+      expect(
+        repository.lastPersistedMessages.map((entry) => entry.id),
+        contains('server-send'),
+      );
+      for (var index = 1; index < offsets.length; index += 1) {
+        expect(offsets[index], lessThanOrEqualTo(offsets[index - 1] + 1));
+      }
+    },
+  );
 
   testWidgets('stale runtime messages after dispose are ignored', (
     tester,

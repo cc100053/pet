@@ -31,9 +31,11 @@ import '../../shared/ui/chat_emoji_picker_sheet.dart';
 import '../feed/feed_capture_view.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
+import '../../shared/ui/user_avatar.dart';
 import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'chat_mentions.dart';
 import 'chat_room_view_runtime.dart';
 import 'chat_reaction_options.dart';
 import 'chat_reaction_utils.dart';
@@ -141,6 +143,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   final Map<String, GlobalKey> _messageAnchorKeys = <String, GlobalKey>{};
   final Map<String, ProfileSummary> _profilesById = <String, ProfileSummary>{};
   final Map<String, String> _optimisticFeedImageByTempId = <String, String>{};
+  final List<ChatMentionCandidate> _mentionCandidates =
+      <ChatMentionCandidate>[];
+  final List<ChatMentionCandidate> _mentionSuggestions =
+      <ChatMentionCandidate>[];
   final Set<String> _blockedUserIds = <String>{};
   final Set<String> _optimisticIds = <String>{};
   final Set<String> _loadingReplyPreviewIds = <String>{};
@@ -158,6 +164,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   String? _replyTargetMessageId;
   String? _highlightedMessageId;
   String? _historyGroupingBoundaryMessageId;
+  ChatMentionToken? _activeMentionToken;
   int? _memberCount;
   double _composerHeight = 0;
   double _lastKnownViewInsetBottom = 0;
@@ -218,6 +225,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     WidgetsBinding.instance.addObserver(this);
     _memberCount = widget.memberCount;
     _chatScrollController.addListener(_handleChatScroll);
+    _composerController.addListener(_handleComposerEditingChanged);
     unawaited(_setChatCrashContext(lastAction: 'chat_init'));
     unawaited(_captureMemorySnapshot(source: 'chat_init_state'));
     if (_memberCount == null) {
@@ -241,6 +249,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     _runtimeReactionSubscription?.cancel();
     _runtimeReactionSubscription = null;
     _chatScrollController.removeListener(_handleChatScroll);
+    _composerController.removeListener(_handleComposerEditingChanged);
     _chatController.dispose();
     _chatScrollController.dispose();
     _composerController.dispose();
@@ -389,6 +398,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
   Future<void> _initialize() async {
     await _loadBlockedUsers();
+    await _loadMentionCandidates();
     await _loadCachedMessages();
     await _loadInitial();
   }
@@ -450,8 +460,65 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     }
   }
 
+  Future<void> _loadMentionCandidates() async {
+    try {
+      final runtimeLoader = _runtime?.fetchMentionCandidates;
+      final candidates = runtimeLoader != null
+          ? await runtimeLoader(widget.roomId)
+          : await _fetchMentionCandidates();
+      if (!mounted) {
+        return;
+      }
+      _mentionCandidates
+        ..clear()
+        ..addAll(candidates.where(_isMentionCandidateVisible));
+      _updateMentionSuggestions(setStateIfChanged: true);
+    } catch (_) {
+      // Mention autocomplete is best-effort; the composer remains usable.
+    }
+  }
+
+  Future<List<ChatMentionCandidate>> _fetchMentionCandidates() async {
+    final response = await Supabase.instance.client
+        .from('room_members')
+        .select('user_id')
+        .eq('room_id', widget.roomId)
+        .eq('is_active', true)
+        .order('joined_at', ascending: true);
+    final memberIds = (response as List<dynamic>)
+        .whereType<Map>()
+        .map((row) => (row['user_id'] as String? ?? '').trim())
+        .where((userId) => userId.isNotEmpty && userId != _currentUserId)
+        .toList(growable: false);
+    if (memberIds.isEmpty) {
+      return const <ChatMentionCandidate>[];
+    }
+
+    final profiles = await ProfileCacheService.instance.getProfiles(memberIds);
+    return memberIds
+        .map((userId) {
+          final profile = profiles[userId];
+          final nickname = profile?.nickname?.trim();
+          return ChatMentionCandidate(
+            userId: userId,
+            displayName: nickname != null && nickname.isNotEmpty
+                ? nickname
+                : 'User',
+            avatarUrl: profile?.avatarUrl,
+          );
+        })
+        .toList(growable: false);
+  }
+
+  bool _isMentionCandidateVisible(ChatMentionCandidate candidate) {
+    return candidate.userId != _currentUserId &&
+        candidate.displayName.trim().isNotEmpty &&
+        !_blockedUserIds.contains(candidate.userId);
+  }
+
   Future<void> _refreshAfterBlockChange() async {
     await _loadBlockedUsers();
+    await _loadMentionCandidates();
     await _refreshLatest(resetWindow: true);
     if (!mounted) {
       return;
@@ -1086,7 +1153,15 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     }
     final duplicateOptimisticId = _findMatchingOptimisticMessageId(message);
     if (duplicateOptimisticId != null) {
-      unawaited(_removeMessageById(duplicateOptimisticId, animated: false));
+      unawaited(
+        _replaceOptimisticMessage(
+          tempId: duplicateOptimisticId,
+          confirmedMessage: message,
+          animated: true,
+          scrollToLatest: true,
+        ),
+      );
+      return;
     }
     if (_messagesById.containsKey(message.id)) {
       return;
@@ -1227,6 +1302,50 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     }
   }
 
+  Future<void> _replaceOptimisticMessage({
+    required String tempId,
+    required ChatMessage confirmedMessage,
+    required bool animated,
+    required bool scrollToLatest,
+  }) async {
+    if (!mounted) {
+      return;
+    }
+
+    final hasTemp = _window.containsVisibleMessage(tempId);
+    final hasConfirmed = _window.containsVisibleMessage(confirmedMessage.id);
+    _optimisticIds.remove(tempId);
+    _optimisticIds.remove(confirmedMessage.id);
+    _messageAnchorKeys.remove(tempId);
+    if (hasTemp) {
+      _window.removeVisibleMessage(tempId);
+    }
+    if (hasConfirmed) {
+      _window.replaceVisibleMessage(confirmedMessage);
+    } else {
+      _window.upsertVisibleMessage(
+        confirmedMessage,
+        keepLatestWindow: _window.isLiveMode,
+      );
+    }
+
+    await _applyWindowToChat(animated: animated);
+    unawaited(_ensureProfilesForMessages([confirmedMessage]));
+    unawaited(_ensureReplyPreviewsForMessages([confirmedMessage]));
+    unawaited(_ensureReactionSummariesForMessages([confirmedMessage]));
+    unawaited(_persistCache());
+    if (scrollToLatest) {
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: animated,
+        followUpFrames: animated ? 1 : 0,
+      );
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   List<fc.Message> _toUiMessages(List<ChatMessage> messages) {
     final l10n = AppLocalizations.of(context)!;
     return messages
@@ -1314,37 +1433,50 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         ),
       );
 
-      final String insertedMessageId;
+      final ChatMessage confirmedMessage;
       if (replyTarget != null) {
-        insertedMessageId = await _messageActionService.sendTextReply(
-          roomId: widget.roomId,
-          replyToMessageId: replyTarget.id,
-          text: text,
-          userId: userId,
+        confirmedMessage = ChatMessage.fromJson(
+          await _messageActionService.sendTextReplyRow(
+            roomId: widget.roomId,
+            replyToMessageId: replyTarget.id,
+            text: text,
+            userId: userId,
+          ),
         );
       } else {
-        insertedMessageId = await _messageActionService.sendTextMessage(
-          roomId: widget.roomId,
-          text: text,
-          userId: userId,
+        confirmedMessage = ChatMessage.fromJson(
+          await _messageActionService.sendTextMessageRow(
+            roomId: widget.roomId,
+            text: text,
+            userId: userId,
+          ),
         );
       }
       unawaited(
-        _chatBreadcrumb('chat_send_db_success', messageId: insertedMessageId),
+        _chatBreadcrumb('chat_send_db_success', messageId: confirmedMessage.id),
       );
       if (replyTarget == null) {
-        unawaited(_notifyTextMessage(insertedMessageId));
+        unawaited(_notifyTextMessage(confirmedMessage.id));
       }
       if (!mounted) {
         return;
       }
-      await _removeMessageById(tempId, animated: false);
+      await _replaceOptimisticMessage(
+        tempId: tempId,
+        confirmedMessage: confirmedMessage.copyWith(
+          replyPreview: replyTarget == null
+              ? null
+              : ChatReplyPreview.fromMessage(replyTarget),
+        ),
+        animated: false,
+        scrollToLatest: true,
+      );
       tempId = null;
       unawaited(_refreshLatest());
       unawaited(
         _chatBreadcrumb(
           'chat_send_refresh_requested',
-          messageId: insertedMessageId,
+          messageId: confirmedMessage.id,
         ),
       );
       AnalyticsService.instance.logEvent(
@@ -1385,6 +1517,85 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         setState(() => _sending = false);
       }
     }
+  }
+
+  void _handleComposerEditingChanged() {
+    _updateMentionSuggestions(setStateIfChanged: true);
+  }
+
+  void _updateMentionSuggestions({required bool setStateIfChanged}) {
+    final token = activeChatMentionToken(
+      _composerController.text,
+      _composerController.selection,
+    );
+    final nextSuggestions = token == null
+        ? const <ChatMentionCandidate>[]
+        : filterChatMentionCandidates(
+            candidates: _mentionCandidates.where(_isMentionCandidateVisible),
+            query: token.query,
+          );
+    if (_sameMentionState(token, nextSuggestions)) {
+      return;
+    }
+
+    void apply() {
+      _activeMentionToken = token;
+      _mentionSuggestions
+        ..clear()
+        ..addAll(nextSuggestions);
+    }
+
+    if (!setStateIfChanged || !mounted) {
+      apply();
+      return;
+    }
+    setState(apply);
+  }
+
+  bool _sameMentionState(
+    ChatMentionToken? token,
+    List<ChatMentionCandidate> suggestions,
+  ) {
+    final currentToken = _activeMentionToken;
+    if ((currentToken == null) != (token == null)) {
+      return false;
+    }
+    if (currentToken != null && token != null) {
+      if (currentToken.start != token.start ||
+          currentToken.end != token.end ||
+          currentToken.query != token.query) {
+        return false;
+      }
+    }
+    if (_mentionSuggestions.length != suggestions.length) {
+      return false;
+    }
+    for (var index = 0; index < suggestions.length; index += 1) {
+      if (_mentionSuggestions[index].userId != suggestions[index].userId ||
+          _mentionSuggestions[index].displayName !=
+              suggestions[index].displayName) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void _selectMentionCandidate(ChatMentionCandidate candidate) {
+    final token = _activeMentionToken;
+    if (token == null) {
+      return;
+    }
+    final replacement = replaceChatMentionToken(
+      text: _composerController.text,
+      token: token,
+      candidate: candidate,
+    );
+    _composerController.value = TextEditingValue(
+      text: replacement.text,
+      selection: TextSelection.collapsed(offset: replacement.selectionOffset),
+    );
+    _composerFocusNode.requestFocus();
+    _updateMentionSuggestions(setStateIfChanged: true);
   }
 
   void _setMessageReactionsLocally(
@@ -2874,6 +3085,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                               replySenderName: _displayNameForSenderId(
                                 resolvedReplyPreview?.senderId,
                               ),
+                              mentionCandidates: _mentionCandidates,
                               onReplyTap: replyTap,
                             );
                           },
@@ -3102,6 +3314,19 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
                   pendingCount: _pendingLiveMessageCount,
                   isDarkBackground: widget.isDarkBackground,
                   onTap: () => unawaited(_handleJumpToLatestPressed()),
+                ),
+              ),
+            if (_mentionSuggestions.isNotEmpty)
+              Positioned(
+                left: 68,
+                right: 68,
+                bottom: composerBottomInset + _composerHeight + 8,
+                child: _MentionSuggestionsPanel(
+                  candidates: List<ChatMentionCandidate>.unmodifiable(
+                    _mentionSuggestions,
+                  ),
+                  isDarkBackground: widget.isDarkBackground,
+                  onSelected: _selectMentionCandidate,
                 ),
               ),
             if (_loading)
@@ -3361,6 +3586,176 @@ class _JumpToLatestPill extends StatelessWidget {
                 ],
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MentionTextMessageBubble extends StatelessWidget {
+  const _MentionTextMessageBubble({
+    required this.message,
+    required this.constraints,
+    required this.borderRadius,
+    required this.backgroundColor,
+    required this.padding,
+    required this.textSpans,
+    required this.timeStyle,
+    this.topWidget,
+  });
+
+  final fc.TextMessage message;
+  final BoxConstraints constraints;
+  final BorderRadiusGeometry borderRadius;
+  final Color backgroundColor;
+  final EdgeInsetsGeometry padding;
+  final List<InlineSpan> textSpans;
+  final TextStyle? timeStyle;
+  final Widget? topWidget;
+
+  @override
+  Widget build(BuildContext context) {
+    final bubbleTime = _formatBubbleTime(context, message.resolvedTime);
+
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: Container(
+        constraints: constraints,
+        decoration: BoxDecoration(color: backgroundColor),
+        padding: padding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ?topWidget,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: RichText(
+                    key: ValueKey<String>('chatMentionRichText_${message.id}'),
+                    text: TextSpan(children: textSpans),
+                  ),
+                ),
+                if (bubbleTime != null) ...[
+                  const SizedBox(width: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 1),
+                    child: Text(bubbleTime, style: timeStyle),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MentionSuggestionsPanel extends StatelessWidget {
+  const _MentionSuggestionsPanel({
+    required this.candidates,
+    required this.isDarkBackground,
+    required this.onSelected,
+  });
+
+  final List<ChatMentionCandidate> candidates;
+  final bool isDarkBackground;
+  final ValueChanged<ChatMentionCandidate> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final surfaceColor = isDarkBackground
+        ? const Color(0xFF202833).withValues(alpha: 0.96)
+        : Colors.white.withValues(alpha: 0.98);
+    final borderColor = isDarkBackground
+        ? Colors.white.withValues(alpha: 0.10)
+        : Colors.black.withValues(alpha: 0.08);
+    final textColor = isDarkBackground ? Colors.white : AppTheme.textPrimary;
+    final subTextColor = isDarkBackground
+        ? Colors.white.withValues(alpha: 0.58)
+        : AppTheme.textSecondary;
+
+    return TextFieldTapRegion(
+      child: Material(
+        key: const ValueKey('chatMentionSuggestionsPanel'),
+        color: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 184),
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.16),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ListView.separated(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            itemCount: candidates.length,
+            separatorBuilder: (_, _) =>
+                Divider(height: 1, color: borderColor.withValues(alpha: 0.7)),
+            itemBuilder: (context, index) {
+              final candidate = candidates[index];
+              return InkWell(
+                key: ValueKey<String>(
+                  'chatMentionSuggestion_${candidate.userId}',
+                ),
+                onTap: () => onSelected(candidate),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      UserAvatar(
+                        avatar: candidate.avatarUrl,
+                        fallbackText: candidate.displayName,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              candidate.displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            Text(
+                              candidate.mentionText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: subTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -3899,6 +4294,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     required this.showSenderName,
     required this.replyPreview,
     required this.replySenderName,
+    required this.mentionCandidates,
     required this.onReplyTap,
   });
 
@@ -3914,6 +4310,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
   final bool showSenderName;
   final ChatReplyPreview? replyPreview;
   final String? replySenderName;
+  final List<ChatMentionCandidate> mentionCandidates;
   final VoidCallback? onReplyTap;
 
   @override
@@ -3954,6 +4351,55 @@ class _TelegramTextMessageBubble extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.06)
               : const Color(0xFFF1F5F8));
 
+    final mentionSpans = buildChatMentionSpans(
+      text: message.text,
+      baseStyle:
+          (isSentByMe
+              ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: sentTextColor,
+                  fontSize: 16,
+                  height: 1.36,
+                  fontWeight: FontWeight.w400,
+                )
+              : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: receivedTextColor,
+                  fontSize: 16,
+                  height: 1.36,
+                  fontWeight: FontWeight.w400,
+                )) ??
+          TextStyle(
+            color: isSentByMe ? sentTextColor : receivedTextColor,
+            fontSize: 16,
+            height: 1.36,
+          ),
+      mentionStyle:
+          (isSentByMe
+              ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isDarkBackground
+                      ? const Color(0xFFA2E0CF)
+                      : const Color(0xFF276D5A),
+                  fontSize: 16,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                )
+              : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontSize: 16,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                )) ??
+          TextStyle(
+            color: isSentByMe ? const Color(0xFF276D5A) : AppTheme.primaryColor,
+            fontSize: 16,
+            height: 1.36,
+            fontWeight: FontWeight.w700,
+          ),
+      candidates: mentionCandidates,
+    );
+    final hasHighlightedMention = mentionSpans.any(
+      (span) => span.style?.fontWeight == FontWeight.w700,
+    );
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {},
@@ -3965,103 +4411,148 @@ class _TelegramTextMessageBubble extends StatelessWidget {
           key: ValueKey<String>('chatMessageSurface_${message.id}'),
           child: KeyedSubtree(
             key: surfaceKey,
-            child: SimpleTextMessage(
-              message: message,
-              index: index,
-              padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
-              constraints: const BoxConstraints(maxWidth: 296),
-              borderRadius: bubbleRadius,
-              sentBackgroundColor: sentBackgroundColor,
-              receivedBackgroundColor: receivedBackgroundColor,
-              sentTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: sentTextColor,
-                fontSize: 16,
-                height: 1.36,
-                fontWeight: FontWeight.w400,
-              ),
-              receivedTextStyle: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(
-                    color: receivedTextColor,
-                    fontSize: 16,
-                    height: 1.36,
-                    fontWeight: FontWeight.w400,
-                  ),
-              timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: timeColor,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-              topWidget:
-                  !isSentByMe &&
-                      (!showSenderName ||
-                          senderName?.trim().isNotEmpty != true) &&
-                      replyPreview == null
-                  ? null
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!isSentByMe &&
-                            showSenderName &&
-                            senderName?.trim().isNotEmpty == true)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: replyPreview == null ? 4 : 6,
-                            ),
-                            child: Text(
-                              senderName!.trim(),
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12.5,
-                                  ),
-                            ),
-                          ),
-                        if (replyPreview != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: ChatReplyPreviewPanel(
-                              key: const ValueKey('chatTextBubbleReplyPreview'),
-                              senderName: replyLabel,
-                              previewText:
-                                  PetChatMessageAdapter.previewTextForReply(
-                                    replyPreview!,
-                                    AppLocalizations.of(context)!,
-                                  ),
-                              accentColor: AppTheme.primaryColor,
-                              senderColor: isSentByMe
-                                  ? (isDarkBackground
-                                        ? const Color(0xFFA2E0CF)
-                                        : const Color(0xFF4B8F7B))
-                                  : AppTheme.primaryColor,
-                              previewTextColor: isDarkBackground
-                                  ? Colors.white.withValues(alpha: 0.68)
-                                  : AppTheme.textSecondary,
-                              backgroundColor: replyPreviewBackground,
-                              iconColor: isDarkBackground
-                                  ? Colors.white.withValues(alpha: 0.58)
-                                  : AppTheme.textSecondary.withValues(
-                                      alpha: 0.8,
-                                    ),
-                              isImage: replyPreview!.isImageFeed,
-                              showJumpIcon: true,
-                              compact: true,
-                              maxLines: 1,
-                              onTap: onReplyTap,
-                            ),
-                          ),
-                      ],
+            child: hasHighlightedMention
+                ? _MentionTextMessageBubble(
+                    message: message,
+                    constraints: const BoxConstraints(maxWidth: 296),
+                    borderRadius: bubbleRadius,
+                    backgroundColor: isSentByMe
+                        ? sentBackgroundColor
+                        : receivedBackgroundColor,
+                    padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
+                    textSpans: mentionSpans,
+                    timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: timeColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
                     ),
-              timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
-              timeAndStatusPositionInlineInsets: const EdgeInsets.only(
-                bottom: 1,
-              ),
-              showStatus: false,
-            ),
+                    topWidget: _buildTextMessageTopWidget(
+                      context: context,
+                      isSentByMe: isSentByMe,
+                      isDarkBackground: isDarkBackground,
+                      showSenderName: showSenderName,
+                      senderName: senderName,
+                      replyPreview: replyPreview,
+                      replyLabel: replyLabel,
+                      replyPreviewBackground: replyPreviewBackground,
+                      onReplyTap: onReplyTap,
+                    ),
+                  )
+                : SimpleTextMessage(
+                    message: message,
+                    index: index,
+                    padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
+                    constraints: const BoxConstraints(maxWidth: 296),
+                    borderRadius: bubbleRadius,
+                    sentBackgroundColor: sentBackgroundColor,
+                    receivedBackgroundColor: receivedBackgroundColor,
+                    sentTextStyle: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(
+                          color: sentTextColor,
+                          fontSize: 16,
+                          height: 1.36,
+                          fontWeight: FontWeight.w400,
+                        ),
+                    receivedTextStyle: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(
+                          color: receivedTextColor,
+                          fontSize: 16,
+                          height: 1.36,
+                          fontWeight: FontWeight.w400,
+                        ),
+                    timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: timeColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    topWidget: _buildTextMessageTopWidget(
+                      context: context,
+                      isSentByMe: isSentByMe,
+                      isDarkBackground: isDarkBackground,
+                      showSenderName: showSenderName,
+                      senderName: senderName,
+                      replyPreview: replyPreview,
+                      replyLabel: replyLabel,
+                      replyPreviewBackground: replyPreviewBackground,
+                      onReplyTap: onReplyTap,
+                    ),
+                    timeAndStatusPosition: fc.TimeAndStatusPosition.inline,
+                    timeAndStatusPositionInlineInsets: const EdgeInsets.only(
+                      bottom: 1,
+                    ),
+                    showStatus: false,
+                  ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget? _buildTextMessageTopWidget({
+    required BuildContext context,
+    required bool isSentByMe,
+    required bool isDarkBackground,
+    required bool showSenderName,
+    required String? senderName,
+    required ChatReplyPreview? replyPreview,
+    required String replyLabel,
+    required Color replyPreviewBackground,
+    required VoidCallback? onReplyTap,
+  }) {
+    if (!isSentByMe &&
+        (!showSenderName || senderName?.trim().isNotEmpty != true) &&
+        replyPreview == null) {
+      return null;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!isSentByMe &&
+            showSenderName &&
+            senderName?.trim().isNotEmpty == true)
+          Padding(
+            padding: EdgeInsets.only(bottom: replyPreview == null ? 4 : 6),
+            child: Text(
+              senderName!.trim(),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
+        if (replyPreview != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: ChatReplyPreviewPanel(
+              key: const ValueKey('chatTextBubbleReplyPreview'),
+              senderName: replyLabel,
+              previewText: PetChatMessageAdapter.previewTextForReply(
+                replyPreview,
+                AppLocalizations.of(context)!,
+              ),
+              accentColor: AppTheme.primaryColor,
+              senderColor: isSentByMe
+                  ? (isDarkBackground
+                        ? const Color(0xFFA2E0CF)
+                        : const Color(0xFF4B8F7B))
+                  : AppTheme.primaryColor,
+              previewTextColor: isDarkBackground
+                  ? Colors.white.withValues(alpha: 0.68)
+                  : AppTheme.textSecondary,
+              backgroundColor: replyPreviewBackground,
+              iconColor: isDarkBackground
+                  ? Colors.white.withValues(alpha: 0.58)
+                  : AppTheme.textSecondary.withValues(alpha: 0.8),
+              isImage: replyPreview.isImageFeed,
+              showJumpIcon: true,
+              compact: true,
+              maxLines: 1,
+              onTap: onReplyTap,
+            ),
+          ),
+      ],
     );
   }
 }

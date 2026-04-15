@@ -143,6 +143,8 @@ class ShopGridItemCard extends StatelessWidget {
                                     height: 80,
                                     fit: BoxFit.contain,
                                   )
+                                : item.isFurniture
+                                ? ShopFurnitureVisual(item: item, size: 86)
                                 : Text(
                                     itemEmoji,
                                     style: const TextStyle(fontSize: 56),

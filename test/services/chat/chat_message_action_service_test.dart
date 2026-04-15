@@ -3,6 +3,35 @@ import 'package:pet/services/chat/chat_message_action_service.dart';
 
 void main() {
   group('ChatMessageActionService', () {
+    test('sendTextMessageRow returns inserted message row', () async {
+      Map<String, dynamic>? insertedPayload;
+      final service = ChatMessageActionService(
+        insertText: (payload) async {
+          insertedPayload = payload;
+          return <String, dynamic>{
+            'id': 'message-456',
+            'room_id': payload['room_id'],
+            'sender_id': payload['sender_id'],
+            'type': payload['type'],
+            'body': payload['body'],
+            'created_at': '2026-03-31T12:00:00.000Z',
+          };
+        },
+      );
+
+      final row = await service.sendTextMessageRow(
+        roomId: 'room-1',
+        text: 'Hello',
+        userId: 'user-1',
+      );
+
+      expect(row['id'], 'message-456');
+      expect(row['body'], 'Hello');
+      expect(insertedPayload?['room_id'], 'room-1');
+      expect(insertedPayload?['sender_id'], 'user-1');
+      expect(insertedPayload?['client_created_at'], isA<String>());
+    });
+
     test('sendTextReply inserts reply payload and notifies room', () async {
       Map<String, dynamic>? insertedPayload;
       String? notifiedRoomId;

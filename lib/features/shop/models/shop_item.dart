@@ -23,6 +23,7 @@ class ShopItem {
     required this.catalogCurrencyCode,
     required this.category,
     required this.emoji,
+    this.furnitureAssetPath,
     this.backgroundKey,
     this.minAppVersion,
     this.visibilityMode,
@@ -48,6 +49,7 @@ class ShopItem {
   final String? catalogCurrencyCode;
   final String? category;
   final String? emoji;
+  final String? furnitureAssetPath;
   final String? backgroundKey;
   final String? minAppVersion;
   final String? visibilityMode;
@@ -141,6 +143,8 @@ class ShopItem {
         return l10n.storeItemDescProMonthly;
       case 'iap_diamond_pack_small':
         return null;
+      case 'diamond_candy_pack_500':
+        return l10n.storeItemDescCandyPack500;
       case 'return_letter':
         return l10n.storeItemDescReturnLetter;
       case 'background_default':
@@ -171,6 +175,10 @@ class ShopItem {
         return l10n.storeItemDescFurnitureBath;
       case 'furniture_emoji_ribbon':
         return l10n.storeItemDescFurnitureRibbon;
+      case 'furniture_toilet':
+        return l10n.storeItemDescFurnitureToilet;
+      case 'furniture_tub':
+        return l10n.storeItemDescFurnitureTub;
       default:
         return description;
     }
@@ -189,6 +197,7 @@ class ShopItem {
     final catalogCurrencyCode = metadata['currency'] as String?;
     final category = metadata['category'] as String?;
     final emoji = metadata['emoji'] as String?;
+    final furnitureAssetPath = metadata['asset_path'] as String?;
     final backgroundKey = metadata['background_key'] as String?;
     final minAppVersion = metadata['min_app_version'] as String?;
     final visibilityMode = metadata['visibility_mode'] as String?;
@@ -242,6 +251,7 @@ class ShopItem {
       catalogCurrencyCode: catalogCurrencyCode,
       category: category,
       emoji: emoji,
+      furnitureAssetPath: furnitureAssetPath,
       backgroundKey: backgroundKey,
       minAppVersion: minAppVersion,
       visibilityMode: visibilityMode,

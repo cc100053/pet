@@ -15,6 +15,23 @@ class AdMobIds {
 
   static bool get isSupported => !kIsWeb && Platform.isIOS;
 
+  static bool get isBannerViewSupported => shouldEnableBannerViews(
+    adsSupported: isSupported,
+    isDebugMode: kDebugMode,
+    debugOverrideEnabled: Env.adMobEnableDebugBannerViews,
+  );
+
+  static bool shouldEnableBannerViews({
+    required bool adsSupported,
+    required bool isDebugMode,
+    required bool debugOverrideEnabled,
+  }) {
+    if (!adsSupported) {
+      return false;
+    }
+    return !isDebugMode || debugOverrideEnabled;
+  }
+
   static String get bannerAdUnitId {
     final configured = Env.adMobIosBannerAdUnitId;
     if (configured != null && configured.isNotEmpty) {

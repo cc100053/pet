@@ -10,6 +10,8 @@ class Env {
       _optional('ADMOB_IOS_BANNER_AD_UNIT_ID');
   static String? get adMobIosRewardedAdUnitId =>
       _optional('ADMOB_IOS_REWARDED_AD_UNIT_ID');
+  static bool get adMobEnableDebugBannerViews =>
+      _optionalBool('ADMOB_ENABLE_DEBUG_BANNER_VIEWS') ?? false;
   static int get adRewardCoins => _optionalInt('AD_REWARD_COINS') ?? 10;
   static String get privacyPolicyUrl => _require('PRIVACY_POLICY_URL');
   static String get termsOfUseUrl =>
@@ -55,5 +57,28 @@ class Env {
       return null;
     }
     return int.tryParse(raw);
+  }
+
+  static bool? _optionalBool(String key) {
+    final raw = _optional(key);
+    if (raw == null) {
+      return null;
+    }
+    switch (raw.trim().toLowerCase()) {
+      case '1':
+      case 'true':
+      case 'yes':
+      case 'y':
+      case 'on':
+        return true;
+      case '0':
+      case 'false':
+      case 'no':
+      case 'n':
+      case 'off':
+        return false;
+      default:
+        return null;
+    }
   }
 }
