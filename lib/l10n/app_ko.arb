@@ -168,6 +168,7 @@
   },
   "calendarYesterday": "어제",
   "commonBuy": "구매",
+  "commonBuyMore": "더 구매",
   "commonCamera": "카메라",
   "commonCancel": "취소",
   "commonClose": "닫기",
@@ -599,7 +600,7 @@
   },
   "storeNotEnoughCoins": "캔디가 부족합니다.",
   "storeNotEnoughDiamonds": "다이아몬드가 부족합니다.",
-  "storeOwnedCount": "보유: {amount}",
+  "storeOwnedCount": "보유 x{amount}",
   "@storeOwnedCount": {
     "placeholders": {
       "amount": {}
@@ -718,6 +719,13 @@
   "furnitureScaleLabel": "크기",
   "furnitureScaleDecrease": "작게",
   "furnitureScaleIncrease": "크게",
+  "furnitureFlipHorizontal": "좌우 반전",
+  "furnitureAvailableCount": "배치 가능 x{count}",
+  "@furnitureAvailableCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "roomInventoryTitle": "방 인벤토리",
   "roomDecorCompatibilityTitle": "최신 방 아이템을 보려면 업데이트하세요",
   "roomDecorCompatibilityMessage": "이 방에는 더 새로운 펫, 가구 또는 배경이 사용되고 있습니다. 앱을 업데이트하면 대체 표시 대신 최신 공유 아이템을 볼 수 있습니다.",
@@ -867,8 +875,8 @@
   "whatsNew111Bullet1": "앱이 예기치 않게 종료될 수 있는 문제들을 해결했습니다.",
   "whatsNew111Bullet2": "채팅 메시지 처리와 이미지 렌더링 과정을 최적화했습니다.",
   "whatsNew111Bullet3": "전반적인 성능을 개선하여 더욱 쾌적한 환경을 제공합니다.",
-  "whatsNew112Title": "욕실 가구 및 @멘션 기능 추가",
+  "whatsNew112Title": "방 꾸미기 및 @멘션 기능",
   "whatsNew112Bullet1": "새로운 욕실 가구인 '변기'와 '욕조'가 추가되었습니다.",
-  "whatsNew112Bullet2": "채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다.",
-  "whatsNew112Bullet3": "기타 버그 수정 및 성능 개선."
+  "whatsNew112Bullet2": "가구를 좌우로 반전할 수 있어 더욱 자유로운 방 꾸미기가 가능해졌습니다.",
+  "whatsNew112Bullet3": "채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다."
 }

@@ -161,6 +161,7 @@
   "chatUserAlreadyBlocked": "已封鎖",
   "chatUserBlocked": "已封鎖用戶。",
   "commonBuy": "購買",
+  "commonBuyMore": "繼續購買",
   "commonCamera": "相機",
   "commonCancel": "取消",
   "commonClose": "關閉",
@@ -595,7 +596,7 @@
   },
   "storeNotEnoughCoins": "糖果不足。",
   "storeNotEnoughDiamonds": "鑽石不足。",
-  "storeOwnedCount": "已擁有：{amount}",
+  "storeOwnedCount": "已擁有 x{amount}",
   "@storeOwnedCount": {
     "placeholders": {
       "amount": {}
@@ -714,6 +715,13 @@
   "furnitureScaleLabel": "大小",
   "furnitureScaleDecrease": "縮小",
   "furnitureScaleIncrease": "放大",
+  "furnitureFlipHorizontal": "左右反轉",
+  "furnitureAvailableCount": "可放置 x{count}",
+  "@furnitureAvailableCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "roomInventoryTitle": "房間背包",
   "roomDecorCompatibilityTitle": "更新後即可查看最新房間物品",
   "roomDecorCompatibilityMessage": "這個房間正在使用較新的寵物、家具或背景。更新 App 後，就可以看到最新共享物品，而不是替代顯示。",
@@ -873,8 +881,8 @@
   "whatsNew111Bullet1": "修復了多項可能導致應用程式崩潰的問題。",
   "whatsNew111Bullet2": "優化了聊天訊息傳送及相片解析流程。",
   "whatsNew111Bullet3": "提升整體執行效能，提供更流暢的使用體驗。",
-  "whatsNew112Title": "浴室傢俱與 @ 提及功能",
+  "whatsNew112Title": "房間佈置與 @ 提及功能",
   "whatsNew112Bullet1": "新增了兩款浴室傢俱：馬桶和浴缸。",
-  "whatsNew112Bullet2": "現在可以在聊天室中使用 @ 提及功能來提醒房內成員。",
-  "whatsNew112Bullet3": "修復了部分已知問題並提升了效能。"
+  "whatsNew112Bullet2": "現在可以將傢俱左右翻轉，讓佈置房間更自由靈活。",
+  "whatsNew112Bullet3": "現在可以在聊天室中使用 @ 提及功能來提醒房內成員。"
 }

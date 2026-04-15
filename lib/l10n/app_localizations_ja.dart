@@ -236,6 +236,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get commonBuy => '購入';
 
   @override
+  String get commonBuyMore => 'さらに購入';
+
+  @override
   String get commonCamera => 'カメラ';
 
   @override
@@ -1083,7 +1086,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeOwnedCount(Object amount) {
-    return '所持数: $amount';
+    return '所有 x$amount';
   }
 
   @override
@@ -1365,6 +1368,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get furnitureScaleIncrease => '大きくする';
 
   @override
+  String get furnitureFlipHorizontal => '左右反転';
+
+  @override
+  String furnitureAvailableCount(Object count) {
+    return '配置可 x$count';
+  }
+
+  @override
   String get roomInventoryTitle => 'ルーム在庫';
 
   @override
@@ -1609,14 +1620,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew111Bullet3 => '全体的なパフォーマンスを改善し、より快適にご利用いただけます。';
 
   @override
-  String get whatsNew112Title => 'バスルーム家具と@メンション';
+  String get whatsNew112Title => 'ルームデコと@メンション';
 
   @override
   String get whatsNew112Bullet1 => '2つの新しいバスルーム家具「トイレ」と「浴槽」が登場！';
 
   @override
-  String get whatsNew112Bullet2 => 'チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。';
+  String get whatsNew112Bullet2 => '家具を左右に反転できるようになり、お部屋のレイアウトがさらに自由になりました。';
 
   @override
-  String get whatsNew112Bullet3 => '軽微な不具合の修正とパフォーマンスの向上。';
+  String get whatsNew112Bullet3 => 'チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。';
 }

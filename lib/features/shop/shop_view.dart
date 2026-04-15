@@ -156,6 +156,8 @@ class _ShopViewState extends State<ShopView> {
   ShopNoticeData? _storeNotice;
   String? _currentAppVersion =
       AppSettingsRepository.instance.lastLaunchedAppVersion;
+  RealtimeChannel? _roomInventoryRevisionChannel;
+  String? _roomInventoryRevisionSubscriptionRoomId;
 
   bool get _hasProAdFreeAccess =>
       widget.isProUser || _activeEntitlements.isNotEmpty;
@@ -179,8 +181,71 @@ class _ShopViewState extends State<ShopView> {
   @override
   void dispose() {
     _storeNoticeTimer?.cancel();
+    final roomInventoryRevisionChannel = _roomInventoryRevisionChannel;
+    _roomInventoryRevisionChannel = null;
+    unawaited(_removeRealtimeChannel(roomInventoryRevisionChannel));
     _storeScrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) async {
+    if (channel == null) {
+      return;
+    }
+    try {
+      await Supabase.instance.client.removeChannel(channel);
+    } catch (_) {
+      // Best effort cleanup.
+    }
+  }
+
+  void _subscribeToRoomInventoryRevisions(String roomId) {
+    if (_roomInventoryRevisionSubscriptionRoomId == roomId) {
+      return;
+    }
+
+    final previousChannel = _roomInventoryRevisionChannel;
+    _roomInventoryRevisionChannel = null;
+    unawaited(_removeRealtimeChannel(previousChannel));
+    _roomInventoryRevisionSubscriptionRoomId = roomId;
+
+    final channel = Supabase.instance.client.channel(
+      'shop_room_item_inventory_revisions_$roomId',
+    );
+    _roomInventoryRevisionChannel = channel;
+
+    void refreshStore() {
+      if (!mounted || widget.roomId != roomId || _loading) {
+        return;
+      }
+      unawaited(_loadStore());
+    }
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'room_item_inventory_revisions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => refreshStore(),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'room_item_inventory_revisions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => refreshStore(),
+    );
+
+    channel.subscribe();
   }
 
   void _showStoreNotice(ShopNoticeData notice, {Duration? duration}) {
@@ -427,6 +492,10 @@ class _ShopViewState extends State<ShopView> {
 
       if (!mounted) {
         return;
+      }
+
+      if (roomId != null) {
+        _subscribeToRoomInventoryRevisions(roomId);
       }
 
       setState(() {

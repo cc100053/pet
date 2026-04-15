@@ -263,9 +263,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, String?> _activeBackgroundByRoom = {};
   RealtimeChannel? _backgroundStateChannel;
   RealtimeChannel? _backgroundInventoryChannel;
+  RealtimeChannel? _roomInventoryRevisionChannel;
   String? _backgroundSubscriptionRoomId;
   RealtimeChannel? _furnitureChannel;
   String? _furnitureSubscriptionRoomId;
+  String? _roomInventoryRevisionSubscriptionRoomId;
   final Map<String, RealtimeChannel> _messageChannels = {};
   String? _chatOpenRoomId;
   final Set<String> _notifiedHungerAlertMessageIds = <String>{};
@@ -408,14 +410,17 @@ class _HomeViewState extends ConsumerState<HomeView>
     final furnitureChannel = _furnitureChannel;
     final backgroundStateChannel = _backgroundStateChannel;
     final backgroundInventoryChannel = _backgroundInventoryChannel;
+    final roomInventoryRevisionChannel = _roomInventoryRevisionChannel;
     _petStateChannel = null;
     _furnitureChannel = null;
     _backgroundStateChannel = null;
     _backgroundInventoryChannel = null;
+    _roomInventoryRevisionChannel = null;
     unawaited(_removeRealtimeChannel(petStateChannel));
     unawaited(_removeRealtimeChannel(furnitureChannel));
     unawaited(_removeRealtimeChannel(backgroundStateChannel));
     unawaited(_removeRealtimeChannel(backgroundInventoryChannel));
+    unawaited(_removeRealtimeChannel(roomInventoryRevisionChannel));
     _overfedBubbleTimer?.cancel();
     for (final channel in _messageChannels.values) {
       unawaited(_removeRealtimeChannel(channel));
@@ -2986,7 +2991,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       final response = await Supabase.instance.client
           .from('room_furniture')
           .select(
-            'id,item_id,owner_user_id,position_x,position_y,scale,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
+            'id,item_id,owner_user_id,position_x,position_y,scale,flip_x,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
           )
           .eq('room_id', roomId);
 
@@ -3008,6 +3013,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
         final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
         final scale = _parseFurnitureScale(record['scale']);
+        final flipX = record['flip_x'] == true;
         final emoji = _resolveFurnitureEmoji(itemId, record);
         final assetPath = _resolveFurnitureAssetPath(itemId, record);
         placed.add(
@@ -3021,6 +3027,8 @@ class _HomeViewState extends ConsumerState<HomeView>
             persistedNormalizedPosition: Offset(posX, posY),
             scale: scale,
             persistedScale: scale,
+            flipX: flipX,
+            persistedFlipX: flipX,
             isPending: false,
           ),
         );
@@ -3092,6 +3100,55 @@ class _HomeViewState extends ConsumerState<HomeView>
         value: roomId,
       ),
       callback: (_) => unawaited(_loadRoomFurniture(roomId)),
+    );
+
+    channel.subscribe();
+  }
+
+  void _subscribeToRoomInventoryRevisions(String roomId) {
+    if (_roomInventoryRevisionSubscriptionRoomId == roomId) {
+      return;
+    }
+
+    final previousChannel = _roomInventoryRevisionChannel;
+    _roomInventoryRevisionChannel = null;
+    unawaited(_removeRealtimeChannel(previousChannel));
+    _roomInventoryRevisionSubscriptionRoomId = roomId;
+
+    final channel = Supabase.instance.client.channel(
+      'room_item_inventory_revisions_$roomId',
+    );
+    _roomInventoryRevisionChannel = channel;
+
+    void refreshInventory() {
+      if (!_furnitureMode || _roomId != roomId) {
+        return;
+      }
+      unawaited(_loadFurnitureInventory());
+    }
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'room_item_inventory_revisions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => refreshInventory(),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'room_item_inventory_revisions',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => refreshInventory(),
     );
 
     channel.subscribe();
@@ -3170,6 +3227,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _clearFurnitureScaleInteraction();
     });
     _furnitureWiggleController.repeat(reverse: true);
+    _subscribeToRoomInventoryRevisions(roomId);
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
     unawaited(_loadRoomBackgrounds(roomId));
@@ -3548,6 +3606,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       persistedNormalizedPosition: normalized,
       scale: 1.0,
       persistedScale: 1.0,
+      flipX: false,
+      persistedFlipX: false,
       isPending: true,
     );
 
@@ -3749,6 +3809,22 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_persistFurnitureTransform(item));
   }
 
+  void _toggleSelectedFurnitureFlip() {
+    final item = _selectedPlacedFurniture();
+    if (item == null) {
+      return;
+    }
+    final nextFlipX = !item.flipX;
+    setState(() {
+      _selectedPlacedFurnitureId = item.id;
+      _selectedFurnitureItemId = null;
+      item.flipX = nextFlipX;
+    });
+    if (!item.isPending) {
+      unawaited(_persistFurnitureFlip(item));
+    }
+  }
+
   Offset _positionFromNormalizedSized(
     Offset normalized,
     Size fieldSize,
@@ -3865,6 +3941,47 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       if (mounted) {
         setState(() {
+          _furnitureError = AppLocalizations.of(
+            context,
+          )!.shopLoadFailed(userFacingError(context, error));
+        });
+      }
+      final roomId = _roomId;
+      if (roomId != null) {
+        unawaited(_loadRoomFurniture(roomId));
+      }
+    }
+  }
+
+  Future<void> _persistFurnitureFlip(_PlacedFurniture item) async {
+    if (item.isPending) {
+      return;
+    }
+    final requestedFlipX = item.flipX;
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'update_room_furniture_flip',
+        params: {'p_id': item.id, 'p_flip_x': requestedFlipX},
+      );
+      final row = _coerceFurnitureTransformResponse(response);
+      final persistedFlipX = row == null
+          ? requestedFlipX
+          : row['flip_x'] == true;
+      if (!mounted) {
+        item
+          ..flipX = persistedFlipX
+          ..persistedFlipX = persistedFlipX;
+        return;
+      }
+      setState(() {
+        item
+          ..flipX = persistedFlipX
+          ..persistedFlipX = persistedFlipX;
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          item.flipX = item.persistedFlipX;
           _furnitureError = AppLocalizations.of(
             context,
           )!.shopLoadFailed(userFacingError(context, error));
@@ -4610,19 +4727,28 @@ class _HomeViewState extends ConsumerState<HomeView>
             clipBehavior: Clip.none,
             children: [
               Center(
-                child:
-                    item.assetPath != null && item.assetPath!.trim().isNotEmpty
-                    ? Image.asset(
-                        item.assetPath!.trim(),
-                        width: itemSize.width * 0.9,
-                        height: itemSize.height * 0.9,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => Text(
-                          item.emoji,
-                          style: TextStyle(fontSize: iconSize),
-                        ),
-                      )
-                    : Text(item.emoji, style: TextStyle(fontSize: iconSize)),
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.diagonal3Values(
+                    item.flipX ? -1.0 : 1.0,
+                    1.0,
+                    1.0,
+                  ),
+                  child:
+                      item.assetPath != null &&
+                          item.assetPath!.trim().isNotEmpty
+                      ? Image.asset(
+                          item.assetPath!.trim(),
+                          width: itemSize.width * 0.9,
+                          height: itemSize.height * 0.9,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Text(
+                            item.emoji,
+                            style: TextStyle(fontSize: iconSize),
+                          ),
+                        )
+                      : Text(item.emoji, style: TextStyle(fontSize: iconSize)),
+                ),
               ),
               if (canEdit && isSelected)
                 Positioned(
@@ -4698,8 +4824,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       step: roomFurnitureScaleStep,
       decreaseLabel: l10n.furnitureScaleDecrease,
       increaseLabel: l10n.furnitureScaleIncrease,
+      flipLabel: l10n.furnitureFlipHorizontal,
       onDecrease: canDecrease ? () => _stepSelectedFurnitureScale(-1) : null,
       onIncrease: canIncrease ? () => _stepSelectedFurnitureScale(1) : null,
+      onFlip: _toggleSelectedFurnitureFlip,
       onChanged: _handleFurnitureScaleChanged,
       onChangeStart: _handleFurnitureScaleChangeStart,
       onChangeEnd: _handleFurnitureScaleChangeEnd,

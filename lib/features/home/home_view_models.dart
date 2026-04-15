@@ -47,6 +47,8 @@ class _PlacedFurniture {
     required this.persistedNormalizedPosition,
     required this.scale,
     required this.persistedScale,
+    required this.flipX,
+    required this.persistedFlipX,
     required this.isPending,
   });
 
@@ -59,6 +61,8 @@ class _PlacedFurniture {
   Offset persistedNormalizedPosition;
   double scale;
   double persistedScale;
+  bool flipX;
+  bool persistedFlipX;
   bool isPending;
 }
 

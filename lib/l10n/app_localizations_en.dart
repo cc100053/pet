@@ -248,6 +248,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonBuy => 'Buy';
 
   @override
+  String get commonBuyMore => 'Buy more';
+
+  @override
   String get commonCamera => 'Camera';
 
   @override
@@ -1118,7 +1121,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String storeOwnedCount(Object amount) {
-    return 'Owned: $amount';
+    return 'Owned x$amount';
   }
 
   @override
@@ -1407,6 +1410,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get furnitureScaleIncrease => 'Make larger';
 
   @override
+  String get furnitureFlipHorizontal => 'Flip horizontally';
+
+  @override
+  String furnitureAvailableCount(Object count) {
+    return 'Available x$count';
+  }
+
+  @override
   String get roomInventoryTitle => 'Room Inventory';
 
   @override
@@ -1663,7 +1674,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved overall performance for a smoother experience.';
 
   @override
-  String get whatsNew112Title => 'Bathroom Decor & @Mentions';
+  String get whatsNew112Title => 'Room Decor & @Mentions';
 
   @override
   String get whatsNew112Bullet1 =>
@@ -1671,9 +1682,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew112Bullet2 =>
-      'You can now @mention room members in the chat to grab their attention.';
+      'You can now flip furniture horizontally to decorate your room more flexibly.';
 
   @override
   String get whatsNew112Bullet3 =>
-      'Minor bug fixes and performance improvements.';
+      'You can now @mention room members in the chat to grab their attention.';
 }

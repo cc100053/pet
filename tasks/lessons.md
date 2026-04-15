@@ -1,6 +1,10 @@
 # Lessons
 
 ## 2026-04-15
+- When the user corrects a rollout/version assumption, treat the explicit
+  version as product intent and update the task plan before implementation; do
+  not keep using "next version" as a default if the current released version is
+  named.
 - Do not run multiple `flutter test` commands in parallel in this repo. The
   Flutter tool writes shared `build/unit_test_assets` shader outputs and can
   crash with `ShaderCompilerException`; run Flutter tests sequentially.

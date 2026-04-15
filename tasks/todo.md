@@ -1,5 +1,46 @@
 # TODO
 
+# Plan (2026-04-15 Furniture Flip And Multi-Quantity Inventory)
+- [x] Add live Supabase support for per-instance furniture flip and room-level
+      furniture inventory revision notifications without changing old RPC
+      parameters.
+- [x] Update Home placed-furniture loading/rendering/edit controls to persist
+      horizontal flip per placed furniture instance.
+- [x] Update Shop furniture cards so owned furniture remains purchasable and
+      shows room-owned quantity, while one-off cosmetics stay owned/locked.
+- [x] Update room inventory UI to show shared total and available-to-place
+      counts, and refresh automatically when another room member buys furniture.
+- [x] Add localized strings, focused tests, run `flutter gen-l10n`,
+      `flutter analyze`, and `flutter test`, then update memory-bank notes.
+- [x] Rollout target: app version `1.1.2`.
+
+# Review (2026-04-15 Furniture Flip And Multi-Quantity Inventory)
+- [x] Implemented and verified.
+- Scope:
+  - Added and live-applied Supabase migration
+    `20260415132020_add_furniture_flip_and_inventory_revisions.sql`.
+  - Added `room_furniture.flip_x`, additive
+    `update_room_furniture_flip(...)`, and room-level
+    `room_item_inventory_revisions` realtime notifications triggered by
+    `room_item_inventories` changes.
+  - Home now loads, renders, toggles, and persists per-instance horizontal
+    furniture flip while keeping selection/delete chrome unmirrored.
+  - Shop furniture cards now show room-owned quantity and use `Buy more` while
+    remaining purchasable; backgrounds and other one-off cosmetics remain
+    owned/locked.
+  - Room Inventory now shows owned and available counts when copies are already
+    placed, and Home/room-scoped Shop refresh counts from revision events.
+  - Added localized copy for `Buy more`, owned count, available count, and flip
+    tooltip across supported locales.
+- Verification:
+  - Supabase MCP live migration applied and verified (`flip_x`, flip RPC,
+    revision table, realtime publication).
+  - `flutter gen-l10n`
+  - `dart format ...`
+  - `flutter test test/features/shop/shop_grid_item_card_test.dart test/features/home/widgets/home_room_inventory_panel_test.dart test/features/home/widgets/home_furniture_scale_controls_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-15 Crash Recovery Prompt UX)
 - [x] Replace the crash fallback screen copy so it no longer claims an update is available.
 - [x] Redesign the crash fallback as a PicPet-style recovery screen with a pet GIF and clear restart guidance.

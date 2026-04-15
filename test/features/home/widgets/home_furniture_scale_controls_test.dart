@@ -8,6 +8,7 @@ void main() {
     required double scale,
     required ValueNotifier<double> scaleNotifier,
     ValueNotifier<double?>? endValueNotifier,
+    VoidCallback? onFlip,
   }) {
     scaleNotifier.value = scale;
     return MaterialApp(
@@ -26,6 +27,7 @@ void main() {
                 step: roomFurnitureScaleStep,
                 decreaseLabel: 'Smaller',
                 increaseLabel: 'Larger',
+                flipLabel: 'Flip horizontally',
                 onDecrease: canDecrease
                     ? () {
                         scaleNotifier.value = nudgeRoomFurnitureScale(
@@ -42,6 +44,7 @@ void main() {
                         );
                       }
                     : null,
+                onFlip: onFlip,
                 onChanged: (value) {
                   scaleNotifier.value = roundRoomFurnitureScaleToStep(value);
                 },
@@ -150,5 +153,25 @@ void main() {
 
     slider.onChangeEnd?.call(1.27);
     expect(endValueNotifier.value, closeTo(1.3, 0.001));
+  });
+
+  testWidgets('flip button fires callback with tooltip label', (tester) async {
+    final scaleNotifier = ValueNotifier<double>(1.0);
+    var flipCount = 0;
+
+    await tester.pumpWidget(
+      buildHarness(
+        scale: 1.0,
+        scaleNotifier: scaleNotifier,
+        onFlip: () => flipCount++,
+      ),
+    );
+
+    expect(find.byTooltip('Flip horizontally'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('home_furniture_flip')));
+    await tester.pump();
+
+    expect(flipCount, 1);
   });
 }

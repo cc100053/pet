@@ -12,6 +12,9 @@ remain in `memory-bank/archive/progress_archive.md`.
   `update_room_furniture_transform(...)` RPC with legacy per-field fallback.
 - Home furniture editing uses tap-to-select, one-finger drag, and bottom scale
   controls (`0.8x..2.0x`) instead of pinch resizing.
+- Placed room furniture can be flipped horizontally per instance on `1.1.2+`
+  clients via the additive `update_room_furniture_flip(...)` RPC; older clients
+  safely ignore the stored `flip_x` value.
 - Shared room item rollout is now version-aware across backgrounds, furniture,
   and pets. Future rollouts should use `.codex/skills/shared-item-rollout/SKILL.md`.
 - Shop-backed version-gated backgrounds are visible through
@@ -39,6 +42,8 @@ remain in `memory-bank/archive/progress_archive.md`.
   successful sends.
 - Shop purchase feedback uses floating notices; room decor purchases can return
   to Home and trigger the room-decor guidance hint.
+- Shop furniture purchases are repeatable and show shared room-owned quantity;
+  backgrounds and other one-off cosmetics remain owned/locked.
 - Shop supports image-backed bathroom furniture. Toilet (`150` candy), Tub
   (`300` candy), and a 500-candy exchange pack (`50` diamonds) are live
   version-gated catalog rows for app `1.1.2+`.
@@ -46,6 +51,9 @@ remain in `memory-bank/archive/progress_archive.md`.
   missing from the visible shop catalog, so purchased version-gated decor stays
   usable in the room backpack. Home/Shop app-version gates prefer the live
   platform version over the cached last-launch version.
+- Home and room-scoped Shop refresh shared furniture counts through
+  `room_item_inventory_revisions` realtime events instead of subscribing to
+  buyer-attributed inventory rows directly.
 - Shop diamond-to-candy exchange purchases trigger the same candy-gain SFX and a
   floating `+N` reward animation on the candy balance chip.
 - Shop candy-pack SFX now fires from the purchase-success branch when
@@ -64,6 +72,11 @@ remain in `memory-bank/archive/progress_archive.md`.
   `.codex/skills/release-notes-sync/SKILL.md`.
 
 ## Latest Completed Work
+- Added per-instance furniture horizontal flip, repeatable furniture buying,
+  shared owned/available furniture counts, and room inventory revision realtime
+  refresh. Applied the live Supabase migration and verified with
+  `flutter gen-l10n`, focused widget tests, `flutter analyze`, and
+  `flutter test`.
 - Replaced the crash fallback "update required" screen with localized recovery
   copy, a default ghost pet GIF visual, and an acknowledgement action that clears
   the overlay while leaving true hard/soft update flows unchanged.
@@ -92,7 +105,7 @@ remain in `memory-bank/archive/progress_archive.md`.
 - Updated `AGENTS.md` with newly discovered repo workflows and commands:
   local skills, asset bundle verification, Firebase Crashlytics MCP wrapper, and
   ASC localization commands. Verified with `flutter analyze` and `flutter test`.
-- Prepared and synced `1.1.2` release metadata (Bathroom Decor & @Mentions) across
+- Prepared and synced `1.1.2` release metadata (Bathroom Decor, Furniture Flip & @Mentions) across
   local ARB, What's New catalog, and App Store Connect localization strings.
 - Prepared and synced `1.1.1` release metadata (stability and bugfix focus) across
   local ARB, What's New catalog, and App Store Connect localization strings.

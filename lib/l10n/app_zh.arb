@@ -168,6 +168,7 @@
   },
   "calendarYesterday": "昨天",
   "commonBuy": "購買",
+  "commonBuyMore": "繼續購買",
   "commonCamera": "相機",
   "commonCancel": "取消",
   "commonClose": "关闭",
@@ -589,7 +590,7 @@
   },
   "storeNotEnoughCoins": "糖果不足。",
   "storeNotEnoughDiamonds": "鑽石不足。",
-  "storeOwnedCount": "已拥有：{amount}",
+  "storeOwnedCount": "已擁有 x{amount}",
   "@storeOwnedCount": {
     "placeholders": {
       "amount": {}
@@ -708,6 +709,13 @@
   "furnitureScaleLabel": "大小",
   "furnitureScaleDecrease": "缩小",
   "furnitureScaleIncrease": "放大",
+  "furnitureFlipHorizontal": "左右反轉",
+  "furnitureAvailableCount": "可放置 x{count}",
+  "@furnitureAvailableCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "roomInventoryTitle": "房间背包",
   "roomDecorCompatibilityTitle": "更新后即可查看最新房间物品",
   "roomDecorCompatibilityMessage": "这个房间正在使用较新的宠物、家具或背景。更新 App 后，就可以看到最新共享物品，而不是备用显示。",

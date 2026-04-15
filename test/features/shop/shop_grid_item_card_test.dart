@@ -8,13 +8,15 @@ void main() {
   ShopItem buildItem({
     required String id,
     required String sku,
+    String type = 'consumable',
+    String category = 'utility',
     int? priceCoins,
     int? priceDiamonds,
   }) {
     return ShopItem(
       id: id,
       sku: sku,
-      type: 'consumable',
+      type: type,
       name: 'Test Item',
       priceCoins: priceCoins,
       priceDiamonds: priceDiamonds,
@@ -27,7 +29,7 @@ void main() {
       diamondAmount: null,
       iapCurrency: null,
       catalogCurrencyCode: 'JPY',
-      category: 'utility',
+      category: category,
       emoji: '🎁',
       backgroundKey: null,
     );
@@ -73,6 +75,7 @@ void main() {
         child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: false,
+          ownedQuantity: 0,
           isIap: false,
           priceString: '',
           canAffordCoins: false,
@@ -113,6 +116,7 @@ void main() {
         child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: false,
+          ownedQuantity: 0,
           isIap: false,
           priceString: '',
           canAffordCoins: false,
@@ -148,6 +152,7 @@ void main() {
         child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: true,
+          ownedQuantity: 1,
           isIap: false,
           priceString: '',
           canAffordCoins: true,
@@ -170,6 +175,86 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
+  testWidgets('owned furniture stays purchasable and shows room quantity', (
+    tester,
+  ) async {
+    final item = buildItem(
+      id: 'furniture-1',
+      sku: 'furniture_emoji_sofa',
+      type: 'cosmetic',
+      category: 'furniture',
+      priceCoins: 30,
+    );
+    var buyCount = 0;
+
+    await tester.pumpWidget(
+      buildHarness(
+        locale: const Locale('en'),
+        child: (context, l10n) => ShopGridItemCard(
+          item: item,
+          isOwned: true,
+          ownedQuantity: 2,
+          isIap: false,
+          priceString: '',
+          canAffordCoins: true,
+          canAffordDiamonds: false,
+          canBuyIap: false,
+          hasDepartedPets: true,
+          onOpenThemePreview: () {},
+          onBuyIap: () {},
+          onBuyCoins: () => buyCount++,
+          onBuyDiamonds: () {},
+          onHandleLetter: () {},
+        ),
+      ),
+    );
+
+    expect(find.text('Owned x2'), findsOneWidget);
+
+    await tester.tap(find.text('Buy more').last);
+    await tester.pump();
+
+    expect(buyCount, 1);
+  });
+
+  testWidgets('owned background remains non-interactive', (tester) async {
+    final item = buildItem(
+      id: 'background-1',
+      sku: 'background_test1',
+      type: 'cosmetic',
+      category: 'background',
+      priceCoins: 30,
+    );
+    var buyCount = 0;
+
+    await tester.pumpWidget(
+      buildHarness(
+        locale: const Locale('en'),
+        child: (context, l10n) => ShopGridItemCard(
+          item: item,
+          isOwned: true,
+          ownedQuantity: 0,
+          isIap: false,
+          priceString: '',
+          canAffordCoins: true,
+          canAffordDiamonds: false,
+          canBuyIap: false,
+          hasDepartedPets: true,
+          onOpenThemePreview: () {},
+          onBuyIap: () => buyCount++,
+          onBuyCoins: () => buyCount++,
+          onBuyDiamonds: () => buyCount++,
+          onHandleLetter: () => buyCount++,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Owned').last);
+    await tester.pump();
+
+    expect(buyCount, 0);
+  });
+
   testWidgets('Return Letter is interactive even when no departed pets', (
     tester,
   ) async {
@@ -187,6 +272,7 @@ void main() {
         child: (context, l10n) => ShopGridItemCard(
           item: item,
           isOwned: false,
+          ownedQuantity: 0,
           isIap: false,
           priceString: '',
           canAffordCoins: true,

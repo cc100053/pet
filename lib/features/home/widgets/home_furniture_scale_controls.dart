@@ -10,8 +10,10 @@ class HomeFurnitureScaleControls extends StatelessWidget {
     required this.step,
     required this.decreaseLabel,
     required this.increaseLabel,
+    required this.flipLabel,
     required this.onDecrease,
     required this.onIncrease,
+    required this.onFlip,
     required this.onChanged,
     this.onChangeStart,
     this.onChangeEnd,
@@ -24,8 +26,10 @@ class HomeFurnitureScaleControls extends StatelessWidget {
   final double step;
   final String decreaseLabel;
   final String increaseLabel;
+  final String flipLabel;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
+  final VoidCallback? onFlip;
   final ValueChanged<double> onChanged;
   final ValueChanged<double>? onChangeStart;
   final ValueChanged<double>? onChangeEnd;
@@ -120,6 +124,13 @@ class HomeFurnitureScaleControls extends StatelessWidget {
                 icon: Icons.add_rounded,
                 tooltip: increaseLabel,
                 onPressed: onIncrease,
+              ),
+              const SizedBox(width: 8),
+              _ScaleActionButton(
+                key: const Key('home_furniture_flip'),
+                icon: Icons.flip_rounded,
+                tooltip: flipLabel,
+                onPressed: onFlip,
               ),
             ],
           ),

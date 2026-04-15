@@ -39,7 +39,7 @@ void main() {
     );
   }
 
-  testWidgets('shows shared available furniture count in the inventory panel', (
+  testWidgets('shows shared total and available furniture counts', (
     tester,
   ) async {
     final item = buildFurnitureItem();
@@ -66,7 +66,44 @@ void main() {
     );
 
     expect(find.text('Sofa'), findsOneWidget);
-    expect(find.text('x1'), findsOneWidget);
+    expect(find.text('Owned x2'), findsOneWidget);
+    expect(find.text('Available x1'), findsOneWidget);
+  });
+
+  testWidgets('disables furniture placement when no copies are available', (
+    tester,
+  ) async {
+    final item = buildFurnitureItem();
+    var tapCount = 0;
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          furnitureCatalog: {item.id: item},
+          furnitureInventory: {item.id: 2},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (itemId) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          onClose: () {},
+          onFurnitureTap: (_) => tapCount++,
+          onBackgroundApply: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('Owned x2'), findsOneWidget);
+    expect(find.text('Available x0'), findsOneWidget);
+
+    await tester.tap(find.text('Sofa'));
+    await tester.pump();
+
+    expect(tapCount, 0);
   });
 
   testWidgets('renders image-backed furniture in the inventory panel', (

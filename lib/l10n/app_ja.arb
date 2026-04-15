@@ -168,6 +168,7 @@
   },
   "calendarYesterday": "昨日",
   "commonBuy": "購入",
+  "commonBuyMore": "さらに購入",
   "commonCamera": "カメラ",
   "commonCancel": "キャンセル",
   "commonClose": "閉じる",
@@ -602,7 +603,7 @@
   },
   "storeNotEnoughCoins": "キャンディが足りません。",
   "storeNotEnoughDiamonds": "ダイヤが足りません。",
-  "storeOwnedCount": "所持数: {amount}",
+  "storeOwnedCount": "所有 x{amount}",
   "@storeOwnedCount": {
     "placeholders": {
       "amount": {}
@@ -721,6 +722,13 @@
   "furnitureScaleLabel": "サイズ",
   "furnitureScaleDecrease": "小さくする",
   "furnitureScaleIncrease": "大きくする",
+  "furnitureFlipHorizontal": "左右反転",
+  "furnitureAvailableCount": "配置可 x{count}",
+  "@furnitureAvailableCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "roomInventoryTitle": "ルーム在庫",
   "roomDecorCompatibilityTitle": "最新のルームアイテムを見るにはアップデート",
   "roomDecorCompatibilityMessage": "このルームでは新しいペットや家具、背景が使われています。アプリを更新すると、代替表示ではなく最新の共有アイテムが見られます。",
@@ -880,8 +888,8 @@
   "whatsNew111Bullet1": "アプリが予期せず終了する問題を特定し、修正しました。",
   "whatsNew111Bullet2": "チャットのメッセージ処理や画像の描画を最適化しました。",
   "whatsNew111Bullet3": "全体的なパフォーマンスを改善し、より快適にご利用いただけます。",
-  "whatsNew112Title": "バスルーム家具と@メンション",
+  "whatsNew112Title": "ルームデコと@メンション",
   "whatsNew112Bullet1": "2つの新しいバスルーム家具「トイレ」と「浴槽」が登場！",
-  "whatsNew112Bullet2": "チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。",
-  "whatsNew112Bullet3": "軽微な不具合の修正とパフォーマンスの向上。"
+  "whatsNew112Bullet2": "家具を左右に反転できるようになり、お部屋のレイアウトがさらに自由になりました。",
+  "whatsNew112Bullet3": "チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。"
 }

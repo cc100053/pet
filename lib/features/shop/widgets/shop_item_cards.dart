@@ -5,6 +5,7 @@ class ShopGridItemCard extends StatelessWidget {
     super.key,
     required this.item,
     required this.isOwned,
+    required this.ownedQuantity,
     required this.isIap,
     required this.priceString,
     required this.canAffordCoins,
@@ -20,6 +21,7 @@ class ShopGridItemCard extends StatelessWidget {
 
   final ShopItem item;
   final bool isOwned;
+  final int ownedQuantity;
   final bool isIap;
   final String priceString;
   final bool canAffordCoins;
@@ -33,7 +35,7 @@ class ShopGridItemCard extends StatelessWidget {
   final VoidCallback onHandleLetter;
 
   VoidCallback? _resolveBuyAction() {
-    if (isOwned) {
+    if (isOwned && !item.isFurniture) {
       return null;
     }
     if (isIap) {
@@ -77,6 +79,10 @@ class ShopGridItemCard extends StatelessWidget {
     ];
     final List<Color> bgGradient = gradientPairs[colorIndex];
     final onBuy = _resolveBuyAction();
+    final isOwnedLocked = isOwned && !item.isFurniture;
+    final buyActionLabel = item.isFurniture && ownedQuantity > 0
+        ? l10n.commonBuyMore
+        : (isOwnedLocked ? l10n.commonOwned : l10n.commonBuy);
 
     return Container(
       decoration: BoxDecoration(
@@ -159,6 +165,14 @@ class ShopGridItemCard extends StatelessWidget {
                               onPressed: onOpenThemePreview,
                             ),
                           ),
+                        if (item.isFurniture && ownedQuantity > 0)
+                          Positioned(
+                            left: 4,
+                            bottom: 4,
+                            child: _GridOwnedCountBadge(
+                              label: l10n.storeOwnedCount(ownedQuantity),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -203,7 +217,11 @@ class ShopGridItemCard extends StatelessWidget {
                     ),
                 ],
                 const Spacer(),
-                _GridBuyAction(onPressed: onBuy, isOwned: isOwned),
+                _GridBuyAction(
+                  onPressed: onBuy,
+                  isOwnedLocked: isOwnedLocked,
+                  label: buyActionLabel,
+                ),
               ],
             ),
           ),
@@ -231,8 +249,16 @@ extension _ShopItemCards on _ShopViewState {
     return (_inventory[item.id] ?? 0) > 0;
   }
 
+  int _ownedQuantityForItem(ShopItem item) {
+    if (!item.isFurniture) {
+      return 0;
+    }
+    return _inventory[item.id] ?? 0;
+  }
+
   Widget _buildGridItemCard(ShopItem item, AppLocalizations l10n) {
     final isOwned = _isItemOwned(item);
+    final ownedQuantity = _ownedQuantityForItem(item);
     final isIap = item.isIap;
     final productId = item.iapProductId;
     final package = productId == null
@@ -251,6 +277,7 @@ extension _ShopItemCards on _ShopViewState {
     return ShopGridItemCard(
       item: item,
       isOwned: isOwned,
+      ownedQuantity: ownedQuantity,
       isIap: isIap,
       priceString: priceString,
       canAffordCoins: canAffordCoins,
@@ -343,6 +370,39 @@ class _GridCurrencyPrice extends StatelessWidget {
   }
 }
 
+class _GridOwnedCountBadge extends StatelessWidget {
+  const _GridOwnedCountBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: AppTheme.textPrimary,
+        ),
+      ),
+    );
+  }
+}
+
 class _ShopRaisedButtonShell extends StatefulWidget {
   const _ShopRaisedButtonShell({
     required this.onPressed,
@@ -412,38 +472,50 @@ class _ShopRaisedButtonShellState extends State<_ShopRaisedButtonShell> {
 }
 
 class _GridBuyAction extends StatelessWidget {
-  const _GridBuyAction({this.onPressed, required this.isOwned});
+  const _GridBuyAction({
+    this.onPressed,
+    required this.isOwnedLocked,
+    required this.label,
+  });
 
   final VoidCallback? onPressed;
-  final bool isOwned;
+  final bool isOwnedLocked;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return _ShopRaisedButtonShell(
       onPressed: onPressed,
       depth: 3,
       borderRadius: BorderRadius.circular(20),
-      shadowColor: isOwned ? Colors.grey.shade400 : const Color(0xFFE65100),
+      shadowColor: isOwnedLocked
+          ? Colors.grey.shade400
+          : const Color(0xFFE65100),
       faceBuilder: (context, isPressed) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        constraints: const BoxConstraints(minWidth: 68, maxWidth: 104),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          gradient: isOwned
+          gradient: isOwnedLocked
               ? null
               : const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
                 ),
-          color: isOwned ? Colors.grey.shade200 : null,
+          color: isOwnedLocked ? Colors.grey.shade200 : null,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: _ShopStrokeText(
-          isOwned ? l10n.commonOwned : l10n.commonBuy,
-          fontSize: 16,
-          color: Colors.white,
-          strokeColor: isOwned ? Colors.grey.shade500 : const Color(0xFFD54900),
-          strokeWidth: 3.5,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: _ShopStrokeText(
+            label,
+            fontSize: 16,
+            color: Colors.white,
+            strokeColor: isOwnedLocked
+                ? Colors.grey.shade500
+                : const Color(0xFFD54900),
+            strokeWidth: 3.5,
+          ),
         ),
       ),
     );

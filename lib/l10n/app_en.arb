@@ -168,6 +168,7 @@
   },
   "calendarYesterday": "Yesterday",
   "commonBuy": "Buy",
+  "commonBuyMore": "Buy more",
   "commonCamera": "Camera",
   "commonCancel": "Cancel",
   "commonClose": "Close",
@@ -602,7 +603,7 @@
   },
   "storeNotEnoughCoins": "Not enough candy.",
   "storeNotEnoughDiamonds": "Not enough diamonds.",
-  "storeOwnedCount": "Owned: {amount}",
+  "storeOwnedCount": "Owned x{amount}",
   "@storeOwnedCount": {
     "placeholders": {
       "amount": {}
@@ -721,6 +722,13 @@
   "furnitureScaleLabel": "Size",
   "furnitureScaleDecrease": "Make smaller",
   "furnitureScaleIncrease": "Make larger",
+  "furnitureFlipHorizontal": "Flip horizontally",
+  "furnitureAvailableCount": "Available x{count}",
+  "@furnitureAvailableCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "roomInventoryTitle": "Room Inventory",
   "roomDecorCompatibilityTitle": "Update to see the latest room items",
   "roomDecorCompatibilityMessage": "This room is using a newer pet, furniture, or background. Update the app to see the latest shared items instead of fallback visuals.",
@@ -880,8 +888,8 @@
   "whatsNew111Bullet1": "Fixed critical issues that could cause unexpected crashes.",
   "whatsNew111Bullet2": "Optimized chat message processing and image rendering.",
   "whatsNew111Bullet3": "Improved overall performance for a smoother experience.",
-  "whatsNew112Title": "Bathroom Decor & @Mentions",
+  "whatsNew112Title": "Room Decor & @Mentions",
   "whatsNew112Bullet1": "Added two new bathroom furniture items: Toilet and Tub.",
-  "whatsNew112Bullet2": "You can now @mention room members in the chat to grab their attention.",
-  "whatsNew112Bullet3": "Minor bug fixes and performance improvements."
+  "whatsNew112Bullet2": "You can now flip furniture horizontally to decorate your room more flexibly.",
+  "whatsNew112Bullet3": "You can now @mention room members in the chat to grab their attention."
 }

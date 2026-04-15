@@ -236,6 +236,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonBuy => '購買';
 
   @override
+  String get commonBuyMore => '繼續購買';
+
+  @override
   String get commonCamera => '相機';
 
   @override
@@ -1083,7 +1086,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String storeOwnedCount(Object amount) {
-    return '已拥有：$amount';
+    return '已擁有 x$amount';
   }
 
   @override
@@ -1360,6 +1363,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureScaleIncrease => '放大';
 
   @override
+  String get furnitureFlipHorizontal => '左右反轉';
+
+  @override
+  String furnitureAvailableCount(Object count) {
+    return '可放置 x$count';
+  }
+
+  @override
   String get roomInventoryTitle => '房间背包';
 
   @override
@@ -1605,7 +1616,7 @@ class AppLocalizationsZh extends AppLocalizations {
       'Improved overall performance for a smoother experience.';
 
   @override
-  String get whatsNew112Title => 'Bathroom Decor & @Mentions';
+  String get whatsNew112Title => 'Room Decor & @Mentions';
 
   @override
   String get whatsNew112Bullet1 =>
@@ -1613,11 +1624,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew112Bullet2 =>
-      'You can now @mention room members in the chat to grab their attention.';
+      'You can now flip furniture horizontally to decorate your room more flexibly.';
 
   @override
   String get whatsNew112Bullet3 =>
-      'Minor bug fixes and performance improvements.';
+      'You can now @mention room members in the chat to grab their attention.';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1850,6 +1861,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get commonBuy => '購買';
+
+  @override
+  String get commonBuyMore => '繼續購買';
 
   @override
   String get commonCamera => '相機';
@@ -2696,7 +2710,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String storeOwnedCount(Object amount) {
-    return '已擁有：$amount';
+    return '已擁有 x$amount';
   }
 
   @override
@@ -2973,6 +2987,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get furnitureScaleIncrease => '放大';
 
   @override
+  String get furnitureFlipHorizontal => '左右反轉';
+
+  @override
+  String furnitureAvailableCount(Object count) {
+    return '可放置 x$count';
+  }
+
+  @override
   String get roomInventoryTitle => '房間背包';
 
   @override
@@ -3215,14 +3237,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get whatsNew111Bullet3 => '提升整體執行效能，提供更流暢的使用體驗。';
 
   @override
-  String get whatsNew112Title => '浴室傢俱與 @ 提及功能';
+  String get whatsNew112Title => '房間佈置與 @ 提及功能';
 
   @override
   String get whatsNew112Bullet1 => '新增了兩款浴室傢俱：馬桶和浴缸。';
 
   @override
-  String get whatsNew112Bullet2 => '現在可以在聊天室中使用 @ 提及功能來提醒房內成員。';
+  String get whatsNew112Bullet2 => '現在可以將傢俱左右翻轉，讓佈置房間更自由靈活。';
 
   @override
-  String get whatsNew112Bullet3 => '修復了部分已知問題並提升了效能。';
+  String get whatsNew112Bullet3 => '現在可以在聊天室中使用 @ 提及功能來提醒房內成員。';
 }

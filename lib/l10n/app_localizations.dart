@@ -475,6 +475,12 @@ abstract class AppLocalizations {
   /// **'Buy'**
   String get commonBuy;
 
+  /// No description provided for @commonBuyMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy more'**
+  String get commonBuyMore;
+
   /// No description provided for @commonCamera.
   ///
   /// In en, this message translates to:
@@ -2012,7 +2018,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeOwnedCount.
   ///
   /// In en, this message translates to:
-  /// **'Owned: {amount}'**
+  /// **'Owned x{amount}'**
   String storeOwnedCount(Object amount);
 
   /// No description provided for @storePriceUnavailable.
@@ -2535,6 +2541,18 @@ abstract class AppLocalizations {
   /// **'Make larger'**
   String get furnitureScaleIncrease;
 
+  /// No description provided for @furnitureFlipHorizontal.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip horizontally'**
+  String get furnitureFlipHorizontal;
+
+  /// No description provided for @furnitureAvailableCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Available x{count}'**
+  String furnitureAvailableCount(Object count);
+
   /// No description provided for @roomInventoryTitle.
   ///
   /// In en, this message translates to:
@@ -2964,7 +2982,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew112Title.
   ///
   /// In en, this message translates to:
-  /// **'Bathroom Decor & @Mentions'**
+  /// **'Room Decor & @Mentions'**
   String get whatsNew112Title;
 
   /// No description provided for @whatsNew112Bullet1.
@@ -2976,13 +2994,13 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew112Bullet2.
   ///
   /// In en, this message translates to:
-  /// **'You can now @mention room members in the chat to grab their attention.'**
+  /// **'You can now flip furniture horizontally to decorate your room more flexibly.'**
   String get whatsNew112Bullet2;
 
   /// No description provided for @whatsNew112Bullet3.
   ///
   /// In en, this message translates to:
-  /// **'Minor bug fixes and performance improvements.'**
+  /// **'You can now @mention room members in the chat to grab their attention.'**
   String get whatsNew112Bullet3;
 }
 

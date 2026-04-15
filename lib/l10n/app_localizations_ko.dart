@@ -242,6 +242,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonBuy => '구매';
 
   @override
+  String get commonBuyMore => '더 구매';
+
+  @override
   String get commonCamera => '카메라';
 
   @override
@@ -1089,7 +1092,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String storeOwnedCount(Object amount) {
-    return '보유: $amount';
+    return '보유 x$amount';
   }
 
   @override
@@ -1373,6 +1376,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get furnitureScaleIncrease => '크게';
 
   @override
+  String get furnitureFlipHorizontal => '좌우 반전';
+
+  @override
+  String furnitureAvailableCount(Object count) {
+    return '배치 가능 x$count';
+  }
+
+  @override
   String get roomInventoryTitle => '방 인벤토리';
 
   @override
@@ -1617,14 +1628,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew111Bullet3 => '전반적인 성능을 개선하여 더욱 쾌적한 환경을 제공합니다.';
 
   @override
-  String get whatsNew112Title => '욕실 가구 및 @멘션 기능 추가';
+  String get whatsNew112Title => '방 꾸미기 및 @멘션 기능';
 
   @override
   String get whatsNew112Bullet1 => '새로운 욕실 가구인 \'변기\'와 \'욕조\'가 추가되었습니다.';
 
   @override
-  String get whatsNew112Bullet2 => '채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다.';
+  String get whatsNew112Bullet2 => '가구를 좌우로 반전할 수 있어 더욱 자유로운 방 꾸미기가 가능해졌습니다.';
 
   @override
-  String get whatsNew112Bullet3 => '기타 버그 수정 및 성능 개선.';
+  String get whatsNew112Bullet3 => '채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다.';
 }

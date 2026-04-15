@@ -111,6 +111,8 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
                 children: [
                   _FurnitureTab(
                     items: furnitureItems,
+                    totalCount: (itemId) =>
+                        widget.furnitureInventory[itemId] ?? 0,
                     selectedItemId: widget.selectedFurnitureItemId,
                     availableCount: widget.availableFurnitureCount,
                     loading: widget.furnitureLoading,
@@ -152,6 +154,7 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
 class _FurnitureTab extends StatelessWidget {
   const _FurnitureTab({
     required this.items,
+    required this.totalCount,
     required this.selectedItemId,
     required this.availableCount,
     required this.loading,
@@ -160,6 +163,7 @@ class _FurnitureTab extends StatelessWidget {
   });
 
   final List<ShopItem> items;
+  final int Function(String itemId) totalCount;
   final String? selectedItemId;
   final int Function(String itemId) availableCount;
   final bool loading;
@@ -193,10 +197,12 @@ class _FurnitureTab extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(width: 10),
       itemBuilder: (context, index) {
         final item = items[index];
+        final total = totalCount(item.id);
         final available = availableCount(item.id);
         final isSelected = selectedItemId == item.id;
         return _FurnitureInventoryItem(
           item: item,
+          total: total,
           available: available,
           isSelected: isSelected,
           onTap: () => onItemTap(item.id),
@@ -268,12 +274,14 @@ class _BackgroundTab extends StatelessWidget {
 class _FurnitureInventoryItem extends StatelessWidget {
   const _FurnitureInventoryItem({
     required this.item,
+    required this.total,
     required this.available,
     required this.isSelected,
     required this.onTap,
   });
 
   final ShopItem item;
+  final int total;
   final int available;
   final bool isSelected;
   final VoidCallback onTap;
@@ -320,14 +328,39 @@ class _FurnitureInventoryItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              'x$available',
-              style: TextStyle(
-                fontSize: 11,
-                height: 1.0,
-                color: canSelect ? Colors.black87 : Colors.black38,
+            if (total == available)
+              Text(
+                l10n.storeOwnedCount(total),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1.0,
+                  color: canSelect ? Colors.black87 : Colors.black38,
+                ),
+              )
+            else ...[
+              Text(
+                l10n.storeOwnedCount(total),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 10,
+                  height: 1.0,
+                  color: Colors.black87,
+                ),
               ),
-            ),
+              Text(
+                l10n.furnitureAvailableCount(available),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  height: 1.0,
+                  color: canSelect ? Colors.black87 : Colors.black38,
+                ),
+              ),
+            ],
           ],
         ),
       ),

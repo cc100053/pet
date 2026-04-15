@@ -42,8 +42,11 @@ Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
   `shop_visibility`, `fallback_behavior`, and `fallback_background_key`.
 - `room_item_inventories` remains buyer-attributed; new shared furniture reads
   must use the aggregated RPC.
+- `room_item_inventory_revisions` is the room-level realtime signal for shared
+  furniture inventory count changes; clients should reload totals through
+  `get_room_furniture_inventory` after receiving it.
 - `room_furniture.scale` is clamped to `0.8..2.0`; positions are normalized
-  `0..1`.
+  `0..1`; `flip_x` stores per-instance horizontal flip for newer clients.
 - `notification_delivery_logs` records masked token diagnostics and per-recipient
   push outcomes.
 
@@ -74,8 +77,8 @@ Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
   `purchase_room_background_with_diamonds`, `grant_iap_coins`,
   `grant_iap_diamonds`
 - Furniture: `get_room_furniture_inventory`, `place_room_furniture`,
-  `update_room_furniture_transform`, legacy `update_room_furniture_scale` and
-  per-field transform helpers
+  `update_room_furniture_transform`, `update_room_furniture_flip`, legacy
+  `update_room_furniture_scale` and per-field transform helpers
 - Unread badges: `get_unread_message_total_for_user`,
   `get_unread_message_counts_for_user`
 
