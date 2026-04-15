@@ -1561,4 +1561,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String feedAdDoubleRewardFailed(Object error) {
     return '2倍報酬の受け取りに失敗しました: $error';
   }
+
+  @override
+  String get whatsNew111Title => '安定性とパフォーマンスの向上';
+
+  @override
+  String get whatsNew111Bullet1 => 'アプリが予期せず終了する問題を特定し、修正しました。';
+
+  @override
+  String get whatsNew111Bullet2 => 'チャットのメッセージ処理や画像の描画を最適化しました。';
+
+  @override
+  String get whatsNew111Bullet3 => '全体的なパフォーマンスを改善し、より快適にご利用いただけます。';
 }

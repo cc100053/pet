@@ -1554,6 +1554,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String feedAdDoubleRewardFailed(Object error) {
     return '翻倍奖励领取失敗：$error';
   }
+
+  @override
+  String get whatsNew111Title => 'Stability & Performance Update';
+
+  @override
+  String get whatsNew111Bullet1 =>
+      'Fixed critical issues that could cause unexpected crashes.';
+
+  @override
+  String get whatsNew111Bullet2 =>
+      'Optimized chat message processing and image rendering.';
+
+  @override
+  String get whatsNew111Bullet3 =>
+      'Improved overall performance for a smoother experience.';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3103,4 +3118,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String feedAdDoubleRewardFailed(Object error) {
     return '加倍獎勵領取失敗：$error';
   }
+
+  @override
+  String get whatsNew111Title => '穩定性與效能更新';
+
+  @override
+  String get whatsNew111Bullet1 => '修復了多項可能導致應用程式崩潰的問題。';
+
+  @override
+  String get whatsNew111Bullet2 => '優化了聊天訊息傳送及相片解析流程。';
+
+  @override
+  String get whatsNew111Bullet3 => '提升整體執行效能，提供更流暢的使用體驗。';
 }

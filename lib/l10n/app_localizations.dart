@@ -2870,6 +2870,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Double reward failed: {error}'**
   String feedAdDoubleRewardFailed(Object error);
+
+  /// No description provided for @whatsNew111Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Stability & Performance Update'**
+  String get whatsNew111Title;
+
+  /// No description provided for @whatsNew111Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed critical issues that could cause unexpected crashes.'**
+  String get whatsNew111Bullet1;
+
+  /// No description provided for @whatsNew111Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized chat message processing and image rendering.'**
+  String get whatsNew111Bullet2;
+
+  /// No description provided for @whatsNew111Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved overall performance for a smoother experience.'**
+  String get whatsNew111Bullet3;
 }
 
 class _AppLocalizationsDelegate

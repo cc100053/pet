@@ -48,6 +48,8 @@ remain in `memory-bank/archive/progress_archive.md`.
 - Updated `AGENTS.md` with newly discovered repo workflows and commands:
   local skills, asset bundle verification, Firebase Crashlytics MCP wrapper, and
   ASC localization commands. Verified with `flutter analyze` and `flutter test`.
+- Prepared and synced `1.1.1` release metadata (stability and bugfix focus) across
+  local ARB, What's New catalog, and App Store Connect localization strings.
 - Compacted active memory-bank docs to reduce mandatory-read token cost while
   preserving long-form snapshots under `memory-bank/archive/`.
 

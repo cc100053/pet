@@ -857,5 +857,9 @@
     "placeholders": {
       "error": {}
     }
-  }
+  },
+  "whatsNew111Title": "穩定性與效能更新",
+  "whatsNew111Bullet1": "修復了多項可能導致應用程式崩潰的問題。",
+  "whatsNew111Bullet2": "優化了聊天訊息傳送及相片解析流程。",
+  "whatsNew111Bullet3": "提升整體執行效能，提供更流暢的使用體驗。"
 }

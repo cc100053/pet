@@ -1612,4 +1612,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String feedAdDoubleRewardFailed(Object error) {
     return 'Double reward failed: $error';
   }
+
+  @override
+  String get whatsNew111Title => 'Stability & Performance Update';
+
+  @override
+  String get whatsNew111Bullet1 =>
+      'Fixed critical issues that could cause unexpected crashes.';
+
+  @override
+  String get whatsNew111Bullet2 =>
+      'Optimized chat message processing and image rendering.';
+
+  @override
+  String get whatsNew111Bullet3 =>
+      'Improved overall performance for a smoother experience.';
 }

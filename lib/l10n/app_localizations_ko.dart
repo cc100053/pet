@@ -1569,4 +1569,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String feedAdDoubleRewardFailed(Object error) {
     return '2배 보상 지급 실패: $error';
   }
+
+  @override
+  String get whatsNew111Title => '안정성 및 성능 업데이트';
+
+  @override
+  String get whatsNew111Bullet1 => '앱이 예기치 않게 종료될 수 있는 문제들을 해결했습니다.';
+
+  @override
+  String get whatsNew111Bullet2 => '채팅 메시지 처리와 이미지 렌더링 과정을 최적화했습니다.';
+
+  @override
+  String get whatsNew111Bullet3 => '전반적인 성능을 개선하여 더욱 쾌적한 환경을 제공합니다.';
 }

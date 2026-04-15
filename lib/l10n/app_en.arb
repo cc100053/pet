@@ -864,5 +864,9 @@
     "placeholders": {
       "error": {}
     }
-  }
+  },
+  "whatsNew111Title": "Stability & Performance Update",
+  "whatsNew111Bullet1": "Fixed critical issues that could cause unexpected crashes.",
+  "whatsNew111Bullet2": "Optimized chat message processing and image rendering.",
+  "whatsNew111Bullet3": "Improved overall performance for a smoother experience."
 }
