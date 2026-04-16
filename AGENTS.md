@@ -115,7 +115,9 @@ This file is for agentic coding agents working in this repo.
 - Notify webhook test: `scripts/test_notify_friend.sh` (see env vars in `docs/testing.md`).
 - Firebase Crashlytics MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
 - Apple client secret (Sign in with Apple):
-  - Generate: `node scripts/generate_apple_client_secret.mjs --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
+  - Generate and update reminder: `./tool/generate_secret.sh` (Reads `APPLE_*` vars from `.env`)
+  - Manual override: `./tool/generate_secret.sh --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
+  - Reminder system: `.github/workflows/apple_key_reminder.yml` checks `LAST_UPDATED_APPLE_SECRET.txt` monthly and alerts if expiry (< 60 days) is near.
   - Never commit `.p8` files or generated secrets.
 
 ### App Store Connect metadata

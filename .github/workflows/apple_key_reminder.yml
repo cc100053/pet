@@ -1,0 +1,97 @@
+name: Apple Client Secret Expiration Reminder
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Run at 00:00 on the 1st of every month
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-expiration:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check expiration
+        id: check
+        run: |
+          DATE_FILE="LAST_UPDATED_APPLE_SECRET.txt"
+          if [ ! -f "$DATE_FILE" ]; then
+            echo "Error: $DATE_FILE not found."
+            echo "ALERT=true" >> $GITHUB_OUTPUT
+            echo "DAYS_LEFT=UNKNOWN" >> $GITHUB_OUTPUT
+            echo "LAST_DATE=NEVER" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LAST_DATE=$(cat "$DATE_FILE" | xargs)
+          echo "Last updated date: $LAST_DATE"
+
+          # Calculate days since last update
+          LAST_SEC=$(date -d "$LAST_DATE" +%s)
+          NOW_SEC=$(date +%s)
+          DIFF_SEC=$((NOW_SEC - LAST_SEC))
+          DIFF_DAYS=$((DIFF_SEC / 86400))
+          
+          MAX_DAYS=180
+          DAYS_LEFT=$((MAX_DAYS - DIFF_DAYS))
+          
+          echo "Days left: $DAYS_LEFT"
+          echo "DAYS_LEFT=$DAYS_LEFT" >> $GITHUB_OUTPUT
+          echo "LAST_DATE=$LAST_DATE" >> $GITHUB_OUTPUT
+
+          if [ $DAYS_LEFT -lt 60 ]; then
+            echo "ALERT=true" >> $GITHUB_OUTPUT
+          else
+            echo "ALERT=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Issue if urgent
+        if: steps.check.outputs.ALERT == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const daysLeft = "${{ steps.check.outputs.DAYS_LEFT }}";
+            const lastDate = "${{ steps.check.outputs.LAST_DATE }}";
+            let title, body;
+
+            if (lastDate === "NEVER") {
+              title = "🚨 URGENT: Apple Client Secret Date File Missing";
+              body = "The file `LAST_UPDATED_APPLE_SECRET.txt` was not found. Please run `./tool/generate_secret.sh` locally to initialize it.";
+            } else {
+              title = `🚨 URGENT: Apple Client Secret Expiration Warning (${daysLeft} days left)`;
+              body = `The Apple Client Secret was last updated on **${lastDate}**.
+            It is estimated to expire in **${daysLeft}** days.
+            
+            Please run \`./tool/generate_secret.sh\` locally to generate a new secret and update the date file.
+            
+            **Max validity:** 180 days
+            **Warning threshold:** 60 days`;
+            }
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['urgent', 'security']
+            });
+
+      - name: Job Summary
+        run: |
+          echo "### 🍎 Apple Client Secret Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Last Updated | \`${{ steps.check.outputs.LAST_DATE }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Days Left | \`${{ steps.check.outputs.DAYS_LEFT }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Alert Triggered | \`${{ steps.check.outputs.ALERT }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check.outputs.ALERT }}" = "true" ]; then
+            echo "⚠️ **Action Required:** Please update the Apple Client Secret soon." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Status:** Apple Client Secret is up to date." >> $GITHUB_STEP_SUMMARY
+          fi
