@@ -67,11 +67,20 @@ remain in `memory-bank/archive/progress_archive.md`.
   RPC so the extra reward is tied to a specific feed message. The Home HUD shows
   an x2 total-reward animation, and Chat feed-photo badges update from
   `messages.coins_awarded`.
+- Feed photo uploads now run through a durable Hive/Riverpod queue. Camera
+  capture only enqueues the job, while Home/Chat observe queue state so pending
+  photos, completion refresh, and failed uploads survive route changes and are
+  reconciled on app resume/restart.
 - Crashlytics triage and release-note sync have repo-local skills:
   `.codex/skills/firebase-crashlytics-triage/SKILL.md` and
   `.codex/skills/release-notes-sync/SKILL.md`.
 
 ## Latest Completed Work
+- Added the durable feed upload queue and moved compression/`feed_validate`
+  invocation out of `FeedCaptureView`. Home now owns global completion handling
+  for pet state, coins, gallery, and failure cleanup; Chat observes the same
+  queue for optimistic row reconciliation. Verified with focused queue/chat
+  tests, `flutter analyze`, and `flutter test`.
 - Added per-instance furniture horizontal flip, repeatable furniture buying,
   shared owned/available furniture counts, and room inventory revision realtime
   refresh. Applied the live Supabase migration and verified with

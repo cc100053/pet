@@ -23,8 +23,9 @@ and live Supabase state. Do not rely on older memory-bank wording as canonical.
 - `lib/features/chat/`: active chat route is `ChatRoomViewV2`; it owns bounded
   message windows, realtime/cache refresh, deterministic timeline rendering,
   reply/reaction flows, keyboard behavior, and photo/chat actions.
-- `lib/features/feed/`: camera capture, ML Kit labeling, client-side WebP
-  preparation, `feed_validate` invocation, and reward/double-reward feedback.
+- `lib/features/feed/`: camera capture, durable Hive/Riverpod feed upload queue,
+  client-side WebP preparation, `feed_validate` invocation, resume
+  reconciliation, and reward/double-reward feedback.
 - `lib/features/shop/`: in-app Shop for backgrounds, furniture, consumables,
   RevenueCat products, floating purchase notices, and room-decor return flow.
 - `lib/features/profile/`: profile editing, avatar presets/upload, account deletion.
@@ -57,6 +58,9 @@ and live Supabase state. Do not rely on older memory-bank wording as canonical.
   stores only the newest 20 canonical messages per room in Hive.
 - Chat listens to `messages` updates so feed-photo reward badge changes, such as
   ad-driven double rewards, update in-place and refresh the latest cache.
+- Feed uploads are queue-owned rather than route-owned: `FeedCaptureView`
+  enqueues a persisted job, Home owns global completion/failure side effects,
+  and Chat observes queue events only for local optimistic row reconciliation.
 - Chat reactions use separate surfaces: long-press quick actions and reaction-chip
   details. The shared emoji picker intentionally has no search mode.
 - Shared image display uses `CachedNetworkImageView` cache bounds from rendered

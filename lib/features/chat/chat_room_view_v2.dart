@@ -5,6 +5,7 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatMessage;
 import 'package:flutter_svg/flutter_svg.dart';
@@ -29,6 +30,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_ui_scale.dart';
 import '../../shared/ui/chat_emoji_picker_sheet.dart';
 import '../feed/feed_capture_view.dart';
+import '../feed/feed_upload_queue.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/user_avatar.dart';
@@ -78,7 +80,7 @@ class _MessagePreviewPresentation {
   final bool showSenderName;
 }
 
-class ChatRoomViewV2 extends StatefulWidget {
+class ChatRoomViewV2 extends ConsumerStatefulWidget {
   const ChatRoomViewV2({
     super.key,
     required this.roomId,
@@ -90,8 +92,6 @@ class ChatRoomViewV2 extends StatefulWidget {
     this.isPetDeparted = false,
     this.isRoomLocked = false,
     this.onFeedSendStarted,
-    this.onFeedUploaded,
-    this.onFeedUploadFailed,
     this.repository,
     this.runtime,
     this.messageActionService,
@@ -106,18 +106,15 @@ class ChatRoomViewV2 extends StatefulWidget {
   final bool isPetDeparted;
   final bool isRoomLocked;
   final ValueChanged<FeedOptimisticMessage>? onFeedSendStarted;
-  final void Function(FeedUploadResult result, String? imageSource)?
-  onFeedUploaded;
-  final void Function(String tempId, Object error)? onFeedUploadFailed;
   final ChatMessageRepository? repository;
   final ChatRoomViewRuntime? runtime;
   final ChatMessageActionService? messageActionService;
 
   @override
-  State<ChatRoomViewV2> createState() => _ChatRoomViewV2State();
+  ConsumerState<ChatRoomViewV2> createState() => _ChatRoomViewV2State();
 }
 
-class _ChatRoomViewV2State extends State<ChatRoomViewV2>
+class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     with WidgetsBindingObserver {
   static const int _pageSize = 20;
   static const int _maxVisibleMessages = 80;
@@ -150,6 +147,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   final Set<String> _blockedUserIds = <String>{};
   final Set<String> _optimisticIds = <String>{};
   final Set<String> _loadingReplyPreviewIds = <String>{};
+  final Set<String> _seenFeedUploadPendingTempIds = <String>{};
+  final Set<String> _handledFeedUploadCompletedTempIds = <String>{};
+  final Set<String> _handledFeedUploadFailedTempIds = <String>{};
 
   RealtimeChannel? _channel;
   StreamSubscription<ChatMessage>? _runtimeIncomingSubscription;
@@ -267,6 +267,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
     }
     // Reconcile the latest server page after backgrounded periods where the
     // realtime channel may not have delivered foreground updates yet.
+    unawaited(ref.read(feedUploadQueueProvider.notifier).resumePendingJobs());
     unawaited(_refreshLatest());
   }
 
@@ -1728,8 +1729,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
           roomId: widget.roomId,
           onOptimisticMessage: _handleOptimisticFeed,
           onSendStarted: _handleFeedSendStarted,
-          onUploadCompleted: _handleFeedUploadCompleted,
-          onUploadFailed: _handleFeedUploadFailed,
         ),
       ),
     );
@@ -1834,6 +1833,9 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {
+    if (_optimisticIds.contains(entry.tempId)) {
+      return;
+    }
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
     final optimisticMessage = ChatMessage(
       id: entry.tempId,
@@ -1864,8 +1866,7 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
-    final optimisticImage = _optimisticFeedImageByTempId.remove(result.tempId);
-    widget.onFeedUploaded?.call(result, optimisticImage ?? result.imageUrl);
+    _optimisticFeedImageByTempId.remove(result.tempId);
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
     if (!mounted) {
       return;
@@ -1876,7 +1877,6 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
   void _handleFeedUploadFailed(String tempId, Object error) {
     _optimisticFeedImageByTempId.remove(tempId);
-    widget.onFeedUploadFailed?.call(tempId, error);
     if (!mounted) {
       return;
     }
@@ -1890,6 +1890,40 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
         ),
       ),
     );
+  }
+
+  void _handleFeedUploadQueueTransition(
+    FeedUploadQueueState? previous,
+    FeedUploadQueueState next,
+  ) {
+    for (final job in next.jobs) {
+      if (job.roomId != widget.roomId) {
+        continue;
+      }
+      switch (job.status) {
+        case FeedUploadJobStatus.pending:
+        case FeedUploadJobStatus.uploading:
+          if (_seenFeedUploadPendingTempIds.add(job.tempId)) {
+            _handleOptimisticFeed(job.toOptimisticMessage());
+          }
+          break;
+        case FeedUploadJobStatus.completed:
+          final result = job.result;
+          if (result != null &&
+              _handledFeedUploadCompletedTempIds.add(job.tempId)) {
+            _handleFeedUploadCompleted(result);
+          }
+          break;
+        case FeedUploadJobStatus.failed:
+          if (_handledFeedUploadFailedTempIds.add(job.tempId)) {
+            _handleFeedUploadFailed(
+              job.tempId,
+              Exception(job.lastError ?? 'feed_upload_failed'),
+            );
+          }
+          break;
+      }
+    }
   }
 
   void _requestReply(ChatMessage message) {
@@ -2933,6 +2967,10 @@ class _ChatRoomViewV2State extends State<ChatRoomViewV2>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<FeedUploadQueueState>(
+      feedUploadQueueProvider,
+      _handleFeedUploadQueueTransition,
+    );
     final l10n = AppLocalizations.of(context)!;
     final media = MediaQuery.of(context);
     _lastKnownViewInsetBottom = media.viewInsets.bottom;

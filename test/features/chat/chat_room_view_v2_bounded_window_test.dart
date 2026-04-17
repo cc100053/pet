@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/chat/chat_message.dart';
 import 'package:pet/features/chat/chat_mentions.dart';
 import 'package:pet/features/chat/chat_room_view_runtime.dart';
 import 'package:pet/features/chat/chat_room_view_v2.dart';
+import 'package:pet/features/feed/feed_upload_models.dart';
+import 'package:pet/features/feed/feed_upload_queue.dart';
+import 'package:pet/features/feed/feed_upload_repository.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/services/chat/chat_message_action_service.dart';
 import 'package:pet/services/chat/chat_message_repository.dart';
@@ -189,6 +193,20 @@ class _FakeChatMessageRepository extends ChatMessageRepository {
   }
 }
 
+class _NoopFeedUploadRepository extends FeedUploadRepository {
+  @override
+  Future<void> init() async {}
+
+  @override
+  List<FeedUploadJob> loadJobs() => const <FeedUploadJob>[];
+
+  @override
+  Future<void> saveJob(FeedUploadJob job) async {}
+
+  @override
+  Future<void> deleteJob(String tempId) async {}
+}
+
 void main() {
   ChatMessage message(int index) {
     final createdAt = DateTime.utc(2026, 3, 19).add(Duration(minutes: index));
@@ -305,16 +323,23 @@ void main() {
     ChatMessageActionService? messageActionService,
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: ChatRoomViewV2(
-          roomId: 'room-1',
-          petName: 'Mochi',
-          memberCount: 2,
-          repository: repository,
-          runtime: runtime,
-          messageActionService: messageActionService,
+      ProviderScope(
+        overrides: [
+          feedUploadRepositoryProvider.overrideWithValue(
+            _NoopFeedUploadRepository(),
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ChatRoomViewV2(
+            roomId: 'room-1',
+            petName: 'Mochi',
+            memberCount: 2,
+            repository: repository,
+            runtime: runtime,
+            messageActionService: messageActionService,
+          ),
         ),
       ),
     );

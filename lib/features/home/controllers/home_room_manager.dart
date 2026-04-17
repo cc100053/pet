@@ -364,9 +364,32 @@ extension _HomeRoomManager on _HomeViewState {
         !_hasProPlanAccess &&
         _myRooms.length >= _HomeViewState._freePlanRoomLimit;
     if (reachedFreePlanLimit) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.roomLimitReached)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.roomLimitReached),
+          action: SnackBarAction(
+            label: l10n.shopTitle,
+            onPressed: () {
+              final firstRoomId =
+                  _myRooms.isNotEmpty ? _myRooms.first['id'] as String? : null;
+              final departedInfo =
+                  firstRoomId != null ? _departedPetsByRoom[firstRoomId] : null;
+
+              Navigator.of(context).push<ShopRouteResult>(
+                MaterialPageRoute(
+                  builder: (_) => ShopView(
+                    roomId: firstRoomId,
+                    isProUser: _hasProPlanAccess,
+                    departedPets:
+                        departedInfo != null ? [departedInfo] : const [],
+                    onReturnPet: _returnDepartedPet,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
       return;
     }
 

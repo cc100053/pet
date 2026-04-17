@@ -49,6 +49,7 @@ import '../../shared/upload_limits.dart';
 import '../chat/chat_room_view_v2.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
+import '../feed/feed_upload_queue.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../pet/pet_catalog.dart';
 import '../pet/leveling.dart';
@@ -295,6 +296,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _latestFeedJumpToLatestEventId = 0;
   final Map<String, PendingPetHomeOptimisticFeed>
   _pendingOptimisticFeedsByTempId = {};
+  final Set<String> _seenFeedUploadPendingTempIds = <String>{};
+  final Set<String> _handledFeedUploadCompletedTempIds = <String>{};
+  final Set<String> _handledFeedUploadFailedTempIds = <String>{};
+  late final FeedUploadQueueNotifier _feedUploadQueue;
   String? _photoFoodImageSource;
   Offset? _photoFoodNormalizedPosition;
   bool _photoFoodDropping = false;
@@ -326,6 +331,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     super.initState();
     _fcmService = ref.read(fcmServiceProvider);
     _rewardedAdsService = ref.read(rewardedAdsServiceProvider);
+    _feedUploadQueue = ref.read(feedUploadQueueProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     unawaited(
       CrashReportingService.instance.setContext(
@@ -379,6 +385,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _startWanderTimer();
     _startPetTickTimer();
     _startRoomSelectionRefreshTimer();
+    unawaited(_feedUploadQueue.resumePendingJobs());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (AdMobIds.isSupported) {
@@ -460,6 +467,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
+    unawaited(_feedUploadQueue.resumePendingJobs());
     unawaited(_fcmService.refreshTokenSync());
     unawaited(_reconcileUnreadStateFromServer());
     _scheduleUnreadReconcile();
@@ -2088,8 +2096,6 @@ class _HomeViewState extends ConsumerState<HomeView>
               isPetDeparted: _petDeparted,
               isRoomLocked: isRoomLocked,
               onFeedSendStarted: _handleOptimisticFeed,
-              onFeedUploaded: (result, _) => _handleFeedUploadCompleted(result),
-              onFeedUploadFailed: _handleFeedUploadFailed,
             ),
           ),
         )
@@ -4843,6 +4849,10 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<FeedUploadQueueState>(
+      feedUploadQueueProvider,
+      _handleFeedUploadQueueTransition,
+    );
     final overlayStyle = _currentOverlayStyle();
     final currency = ref.watch(homeCurrencyProvider);
     final petSnapshot = ref.watch(homePetStateProvider);

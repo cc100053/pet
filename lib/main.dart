@@ -19,6 +19,7 @@ import 'services/crash/crash_reporting_service.dart';
 import 'services/home/home_bootstrap_cache_repository.dart';
 import 'services/performance/performance_service.dart';
 import 'services/settings/app_settings_repository.dart';
+import 'features/feed/feed_upload_repository.dart';
 import 'shared/force_update/crash_update_guard.dart';
 
 RawReceivePort? _isolateErrorPort;
@@ -101,6 +102,7 @@ Future<void> main() async {
       await AppSettingsRepository.instance.init();
       await ChatMessageRepository.instance.init();
       await HomeBootstrapCacheRepository.instance.init();
+      await FeedUploadRepository.instance.init();
       PerformanceService.instance.markAppStart(appStartTime);
 
       runApp(const ProviderScope(child: PicPetApp()));

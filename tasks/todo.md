@@ -1,5 +1,33 @@
 # TODO
 
+# Plan (2026-04-17 Reliable Feed Upload Queue)
+- [x] Extract feed upload result/optimistic models out of the route-owned camera view.
+- [x] Add a persistent Riverpod/Hive-backed feed upload queue that owns upload,
+      retry, and resume reconciliation.
+- [x] Refactor `FeedCaptureView` to enqueue jobs and close without owning the
+      background upload future.
+- [x] Wire Home and Chat to observe queue events so pending/completed/failed
+      feed jobs reconcile after navigation or app resume.
+- [x] Add focused queue/reconciliation tests and run `flutter analyze` plus
+      `flutter test`.
+
+# Review (2026-04-17 Reliable Feed Upload Queue)
+- [x] Implemented and verified.
+- Scope:
+  - Added feed upload models, a Hive repository, Supabase upload/reconciliation
+    client, and a non-auto-disposed Riverpod queue.
+  - `FeedCaptureView` now persists/enqueues a feed job and closes; compression,
+    token refresh, `feed_validate`, and reconciliation are queue-owned.
+  - Home observes the queue for global pending/completed/failed handling,
+    refreshes pet state/gallery/coins after completion, and resumes pending jobs
+    on app resume.
+  - Chat observes the queue only for room-local optimistic row reconciliation,
+    avoiding duplicate Home reward/refresh side effects.
+- Verification:
+  - `flutter test test/features/feed/feed_upload_queue_test.dart test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter analyze`
+  - `flutter test`
+
 # Plan (2026-04-15 Furniture Flip And Multi-Quantity Inventory)
 - [x] Add live Supabase support for per-instance furniture flip and room-level
       furniture inventory revision notifications without changing old RPC

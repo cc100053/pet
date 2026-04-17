@@ -154,8 +154,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         builder: (_) => FeedCaptureView(
           roomId: roomId,
           onOptimisticMessage: _handleOptimisticFeed,
-          onUploadCompleted: _handleFeedUploadCompleted,
-          onUploadFailed: _handleFeedUploadFailed,
         ),
       ),
     );
@@ -168,11 +166,16 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (!mounted) {
       return;
     }
+    final alreadyPending = _pendingOptimisticFeedsByTempId.containsKey(
+      entry.tempId,
+    );
     _armOverfedBubbleForFeedEvent();
     _prunePendingOptimisticFeeds();
-    _setStateForFeedOrchestrator(() {
-      _feedRewardPendingCount += 1;
-    });
+    if (!alreadyPending) {
+      _setStateForFeedOrchestrator(() {
+        _feedRewardPendingCount += 1;
+      });
+    }
     _pendingOptimisticFeedsByTempId[entry.tempId] =
         PendingPetHomeOptimisticFeed(
           tempId: entry.tempId,
@@ -222,6 +225,69 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     });
     unawaited(_ensureProfileSummary(entry.senderId));
     unawaited(_playFeedSequence(entry.localImagePath));
+  }
+
+  void _handleFeedUploadQueueTransition(
+    FeedUploadQueueState? previous,
+    FeedUploadQueueState next,
+  ) {
+    for (final job in next.jobs) {
+      switch (job.status) {
+        case FeedUploadJobStatus.pending:
+        case FeedUploadJobStatus.uploading:
+          _handleQueuedFeedPending(job);
+          break;
+        case FeedUploadJobStatus.completed:
+          _handleQueuedFeedCompleted(job);
+          break;
+        case FeedUploadJobStatus.failed:
+          _handleQueuedFeedFailed(job);
+          break;
+      }
+    }
+  }
+
+  void _handleQueuedFeedPending(FeedUploadJob job) {
+    if (!_seenFeedUploadPendingTempIds.add(job.tempId)) {
+      return;
+    }
+    if (_pendingOptimisticFeedsByTempId.containsKey(job.tempId)) {
+      return;
+    }
+    _handleOptimisticFeed(job.toOptimisticMessage());
+  }
+
+  void _handleQueuedFeedCompleted(FeedUploadJob job) {
+    final result = job.result;
+    if (result == null) {
+      return;
+    }
+    if (!_handledFeedUploadCompletedTempIds.add(job.tempId)) {
+      return;
+    }
+    _handleFeedUploadCompleted(result);
+    unawaited(
+      Future<void>.delayed(
+        Duration.zero,
+        () => _feedUploadQueue.acknowledge(job.tempId),
+      ),
+    );
+  }
+
+  void _handleQueuedFeedFailed(FeedUploadJob job) {
+    if (!_handledFeedUploadFailedTempIds.add(job.tempId)) {
+      return;
+    }
+    _handleFeedUploadFailed(
+      job.tempId,
+      Exception(job.lastError ?? 'feed_upload_failed'),
+    );
+    unawaited(
+      Future<void>.delayed(
+        Duration.zero,
+        () => _feedUploadQueue.acknowledge(job.tempId),
+      ),
+    );
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
@@ -292,16 +358,20 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _latestFeedOptimisticPrevCaption = null;
     }
     final roomId = _roomId;
-    if (optimisticRoomId != null) {
+    if (!result.reconciled && optimisticRoomId != null) {
       unawaited(_maybePromptFeedDoubleReward(result, optimisticRoomId));
-    } else if (roomId != null) {
+    } else if (!result.reconciled && roomId != null) {
       unawaited(_maybePromptFeedDoubleReward(result, roomId));
     }
-    if (result.coinsAwarded > 0) {
+    if (result.coinsAwarded > 0 && !result.reconciled) {
       _applyCoinRewardFeedback(result.coinsAwarded);
     }
     unawaited(
-      _loadCoinsInternal(expectedReward: result.coinsAwarded > 0 ? null : 0),
+      _loadCoinsInternal(
+        expectedReward: result.reconciled
+            ? null
+            : (result.coinsAwarded > 0 ? null : 0),
+      ),
     );
     final refreshRoomId = optimisticRoomId ?? roomId;
     if (refreshRoomId != null) {
