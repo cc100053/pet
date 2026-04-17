@@ -733,17 +733,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (route != null && !route.isCurrent) {
       return;
     }
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) {
-      return;
-    }
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        content: Text(AppLocalizations.of(context)!.errorNetwork),
-      ),
+    showJuiceToast(
+      context: context,
+      message: AppLocalizations.of(context)!.errorNetwork,
+      tone: AppDialogTone.warning,
     );
   }
 
@@ -1154,8 +1147,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.drawerDebugMemorySnapshotCaptured)),
+    showJuiceToast(
+      context: context,
+      message: l10n.drawerDebugMemorySnapshotCaptured,
+      tone: AppDialogTone.success,
     );
   }
 
@@ -1171,9 +1166,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.drawerDebugImageCacheCleared)));
+    showJuiceToast(
+      context: context,
+      message: l10n.drawerDebugImageCacheCleared,
+      tone: AppDialogTone.success,
+    );
   }
 
   Future<void> _openMemoryDiagnosticsSheet() async {
@@ -1567,9 +1564,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final message = level <= 10
         ? l10n.chatPetHungryUrgentMessage(petName)
         : l10n.chatPetHungryReminderMessage(petName);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
-    );
+    showJuiceToast(context: context, message: message, tone: AppDialogTone.warning);
   }
 
   Future<bool> _ensureDebugAdminAccess() async {
@@ -2151,8 +2146,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.petNotFound)),
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(context)!.petNotFound,
+        tone: AppDialogTone.warning,
       );
       return;
     }
@@ -2241,12 +2238,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n.petNameUpdateFailed(userFacingError(context, error)),
-          ),
-        ),
+      showJuiceToast(
+        context: context,
+        message: l10n.petNameUpdateFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
       );
     }
   }
@@ -2481,12 +2476,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     } catch (error) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.petActionFailed(userFacingError(context, error)),
-            ),
-          ),
+        showJuiceToast(
+          context: context,
+          message: l10n.petActionFailed(userFacingError(context, error)),
+          tone: AppDialogTone.danger,
         );
       }
       return false;
@@ -3556,10 +3549,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         mode: LaunchMode.externalApplication,
       );
       if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.forceUpdateLinkError),
-          ),
+        showJuiceToast(
+          context: context,
+          message: AppLocalizations.of(context)!.forceUpdateLinkError,
+          tone: AppDialogTone.danger,
         );
       }
     } catch (_) {}

@@ -24,9 +24,11 @@ extension _ShopPurchaseHandler on _ShopViewState {
       return;
     }
     if (widget.onReturnPet == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.storeProductUnavailable)));
+      showJuiceToast(
+        context: context,
+        message: l10n.storeProductUnavailable,
+        tone: AppDialogTone.warning,
+      );
       return;
     }
     if (!_hasDepartedPets) {
@@ -131,9 +133,11 @@ extension _ShopPurchaseHandler on _ShopViewState {
         ? item.priceCoins
         : item.priceDiamonds;
     if (price == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.storeProductUnavailable)));
+      showJuiceToast(
+        context: context,
+        message: l10n.storeProductUnavailable,
+        tone: AppDialogTone.warning,
+      );
       return false;
     }
     final canAfford = _canAfford(item, currency);
@@ -191,12 +195,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
       } else if (item.isFurniture) {
         final roomId = widget.roomId;
         if (roomId == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.storeBackgroundRoomRequired,
-              ),
-            ),
+          showJuiceToast(
+            context: context,
+            message: AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+            tone: AppDialogTone.warning,
           );
           return false;
         }
@@ -263,14 +265,12 @@ extension _ShopPurchaseHandler on _ShopViewState {
       if (!mounted) {
         return false;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(
-              context,
-            )!.storePurchaseFailed(userFacingError(context, error)),
-          ),
-        ),
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(
+          context,
+        )!.storePurchaseFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
       );
       AnalyticsService.instance.logEvent(
         'purchase_coins',
@@ -312,12 +312,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
       } else if (item.isFurniture) {
         final roomId = widget.roomId;
         if (roomId == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.storeBackgroundRoomRequired,
-              ),
-            ),
+          showJuiceToast(
+            context: context,
+            message: AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+            tone: AppDialogTone.warning,
           );
           return false;
         }
@@ -400,14 +398,12 @@ extension _ShopPurchaseHandler on _ShopViewState {
       if (!mounted) {
         return false;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(
-              context,
-            )!.storePurchaseFailed(userFacingError(context, error)),
-          ),
-        ),
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(
+          context,
+        )!.storePurchaseFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
       );
       AnalyticsService.instance.logEvent(
         'purchase_diamonds',
@@ -426,12 +422,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
   Future<bool> _purchaseBackgroundWithCoins(ShopItem item) async {
     final roomId = widget.roomId;
     if (roomId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.storeBackgroundRoomRequired,
-          ),
-        ),
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+        tone: AppDialogTone.warning,
       );
       return false;
     }
@@ -465,12 +459,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
   Future<bool> _purchaseBackgroundWithDiamonds(ShopItem item) async {
     final roomId = widget.roomId;
     if (roomId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.storeBackgroundRoomRequired,
-          ),
-        ),
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+        tone: AppDialogTone.warning,
       );
       return false;
     }

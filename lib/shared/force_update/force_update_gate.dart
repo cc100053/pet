@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
 import '../../services/crash/crash_reporting_service.dart';
-import '../ui/app_dialog.dart';
+import '../../shared/ui/app_dialog.dart';
 import '../whats_new/app_whats_new_catalog.dart';
 import '../whats_new/app_whats_new_entry.dart';
 import '../whats_new/whats_new_dialog.dart';
@@ -331,57 +331,31 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       return;
     }
     _dialogShowing = true;
-    await showAppDialog<void>(
+    showJuiceToast(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AppDialog(
-        tone: AppDialogTone.info,
-        title: AppLocalizations.of(context)!.softUpdateTitle,
-        message:
-            config.softUpdateMessage ??
+      message: AppLocalizations.of(context)!.softUpdateTitle,
+      body: Text(
+        config.softUpdateMessage ??
             AppLocalizations.of(context)!.softUpdateMessage,
-        actions: [
-          AppDialogAction.secondary(
-            label: AppLocalizations.of(context)!.softUpdateLater,
-            onPressed: () {
-              _skippedSoftUpdateVersion = config.latestAvailableVersion;
-              Navigator.of(context).pop();
-              unawaited(
-                _setCrashContextSafe(
-                  feature: 'force_update_gate',
-                  lastAction: 'tap_soft_update_later',
-                ),
-              );
-              unawaited(
-                _logEventSafe(
-                  'soft_update_tap_later',
-                  parameters: {'latest_version': config.latestAvailableVersion},
-                ),
-              );
-            },
-          ),
-          AppDialogAction.primary(
-            label: AppLocalizations.of(context)!.softUpdateAction,
-            onPressed: () {
-              _skippedSoftUpdateVersion = config.latestAvailableVersion;
-              Navigator.of(context).pop();
-              unawaited(
-                _setCrashContextSafe(
-                  feature: 'force_update_gate',
-                  lastAction: 'tap_soft_update',
-                ),
-              );
-              unawaited(
-                _logEventSafe(
-                  'soft_update_tap_update',
-                  parameters: {'latest_version': config.latestAvailableVersion},
-                ),
-              );
-              _launchStore(config.storeUrl);
-            },
-          ),
-        ],
       ),
+      position: JuicePosition.center,
+      actionLabel: AppLocalizations.of(context)!.softUpdateAction,
+      onActionPressed: () {
+        _skippedSoftUpdateVersion = config.latestAvailableVersion;
+        unawaited(
+          _setCrashContextSafe(
+            feature: 'force_update_gate',
+            lastAction: 'tap_soft_update',
+          ),
+        );
+        unawaited(
+          _logEventSafe(
+            'soft_update_tap_update',
+            parameters: {'latest_version': config.latestAvailableVersion},
+          ),
+        );
+        _launchStore(config.storeUrl);
+      },
     );
     _dialogShowing = false;
   }
@@ -397,10 +371,11 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
         mode: LaunchMode.externalApplication,
       );
       if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.forceUpdateLinkError),
-          ),
+        showJuiceToast(
+          context: context,
+          message: AppLocalizations.of(context)!.forceUpdateLinkError,
+          tone: AppDialogTone.danger,
+          position: JuicePosition.center,
         );
       }
     } catch (error, stackTrace) {

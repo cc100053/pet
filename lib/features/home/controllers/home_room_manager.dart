@@ -359,37 +359,11 @@ extension _HomeRoomManager on _HomeViewState {
     if (_creatingRoom) {
       return;
     }
-    final l10n = AppLocalizations.of(context)!;
     final reachedFreePlanLimit =
         !_hasProPlanAccess &&
         _myRooms.length >= _HomeViewState._freePlanRoomLimit;
     if (reachedFreePlanLimit) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.roomLimitReached),
-          action: SnackBarAction(
-            label: l10n.shopTitle,
-            onPressed: () {
-              final firstRoomId =
-                  _myRooms.isNotEmpty ? _myRooms.first['id'] as String? : null;
-              final departedInfo =
-                  firstRoomId != null ? _departedPetsByRoom[firstRoomId] : null;
-
-              Navigator.of(context).push<ShopRouteResult>(
-                MaterialPageRoute(
-                  builder: (_) => ShopView(
-                    roomId: firstRoomId,
-                    isProUser: _hasProPlanAccess,
-                    departedPets:
-                        departedInfo != null ? [departedInfo] : const [],
-                    onReturnPet: _returnDepartedPet,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
+      _showRoomLimitReachedJuiceCard();
       return;
     }
 
@@ -398,6 +372,35 @@ extension _HomeRoomManager on _HomeViewState {
         maxPetNameLength: _HomeViewState._petNameMaxLength,
         onSubmitSelection: _submitCreateRoomFromPetSelection,
       ),
+    );
+  }
+
+  void _showRoomLimitReachedJuiceCard() {
+    final l10n = AppLocalizations.of(context)!;
+    showJuiceToast(
+      context: context,
+      message: l10n.roomLimitReached,
+      tone: AppDialogTone.warning,
+      actionLabel: l10n.shopTitle,
+      onActionPressed: () {
+        final firstRoomId = _myRooms.isNotEmpty
+            ? _myRooms.first['id'] as String?
+            : null;
+        final departedInfo = firstRoomId != null
+            ? _departedPetsByRoom[firstRoomId]
+            : null;
+
+        Navigator.of(context).push<ShopRouteResult>(
+          MaterialPageRoute(
+            builder: (_) => ShopView(
+              roomId: firstRoomId,
+              isProUser: _hasProPlanAccess,
+              departedPets: departedInfo != null ? [departedInfo] : const [],
+              onReturnPet: _returnDepartedPet,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -448,9 +451,7 @@ extension _HomeRoomManager on _HomeViewState {
       );
       _syncCrashContextFromHome(lastAction: 'create_room_success');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.roomCreatedSuccess)));
+        showJuiceToast(context: context, message: l10n.roomCreatedSuccess, tone: AppDialogTone.success);
       }
       return null;
     } catch (error) {
@@ -482,9 +483,7 @@ extension _HomeRoomManager on _HomeViewState {
       final petId = await _loadPetId(roomId);
       if (petId == null) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.petNotFound)));
+          showJuiceToast(context: context, message: l10n.petNotFound, tone: AppDialogTone.danger);
         }
         return false;
       }
@@ -501,12 +500,10 @@ extension _HomeRoomManager on _HomeViewState {
       return true;
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.petSelectionFailed(userFacingError(context, error)),
-            ),
-          ),
+        showJuiceToast(
+          context: context,
+          message: l10n.petSelectionFailed(userFacingError(context, error)),
+          tone: AppDialogTone.danger,
         );
       }
       return false;
@@ -523,9 +520,7 @@ extension _HomeRoomManager on _HomeViewState {
       final petId = await _loadPetId(roomId);
       if (petId == null) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.petNotFound)));
+          showJuiceToast(context: context, message: l10n.petNotFound, tone: AppDialogTone.danger);
         }
         return;
       }
@@ -554,12 +549,10 @@ extension _HomeRoomManager on _HomeViewState {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n.petNameUpdateFailed(userFacingError(context, error)),
-          ),
-        ),
+      showJuiceToast(
+        context: context,
+        message: l10n.petNameUpdateFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
       );
     }
   }
@@ -649,9 +642,7 @@ extension _HomeRoomManager on _HomeViewState {
         parameters: {'method': 'invite_code', 'result': 'success'},
       );
       _syncCrashContextFromHome(lastAction: 'join_room_success');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.roomJoinSuccess)));
+      showJuiceToast(context: context, message: l10n.roomJoinSuccess, tone: AppDialogTone.success);
     } catch (error) {
       unawaited(
         CrashReportingService.instance.reportError(
@@ -664,10 +655,10 @@ extension _HomeRoomManager on _HomeViewState {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.roomJoinFailed(userFacingError(context, error))),
-        ),
+      showJuiceToast(
+        context: context,
+        message: l10n.roomJoinFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
       );
     } finally {
       if (mounted) {
@@ -740,9 +731,7 @@ extension _HomeRoomManager on _HomeViewState {
         return;
       }
       if (showSnackBar) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.roomLeaveSuccess)));
+        showJuiceToast(context: context, message: l10n.roomLeaveSuccess, tone: AppDialogTone.success);
       }
       _syncCrashContextFromHome(lastAction: 'leave_room_success');
     } catch (error) {
@@ -758,12 +747,10 @@ extension _HomeRoomManager on _HomeViewState {
         return;
       }
       if (showSnackBar) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.roomLeaveFailed(userFacingError(context, error)),
-            ),
-          ),
+        showJuiceToast(
+          context: context,
+          message: l10n.roomLeaveFailed(userFacingError(context, error)),
+          tone: AppDialogTone.danger,
         );
       }
     } finally {
