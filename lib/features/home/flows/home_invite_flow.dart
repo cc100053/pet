@@ -118,10 +118,9 @@ extension _HomeInviteFlow on _HomeViewState {
       return;
     }
     final l10n = AppLocalizations.of(context)!;
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: l10n.roomInviteCodeCopiedMessage,
-      position: JuicePosition.bottom,
       tone: AppDialogTone.success,
     );
   }

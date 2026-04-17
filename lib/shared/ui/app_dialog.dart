@@ -72,6 +72,180 @@ enum JuicePosition {
   bottom,
 }
 
+/// A non-intrusive, auto-dismissing notification that doesn't block interaction.
+void showJuiceSnackbar({
+  required BuildContext context,
+  required String message,
+  AppDialogTone tone = AppDialogTone.success,
+  Duration duration = const Duration(seconds: 2, milliseconds: 500),
+}) {
+  final theme = Theme.of(context);
+  final toneStyle = _toneStyle(theme, tone);
+  final accent = toneStyle.accent;
+
+  final overlay = Overlay.of(context);
+  late OverlayEntry entry;
+
+  entry = OverlayEntry(
+    builder: (context) {
+      return _JuiceSnackbarWidget(
+        message: message,
+        accent: accent,
+        icon: toneStyle.icon,
+        duration: duration,
+        onDismiss: () => entry.remove(),
+      );
+    },
+  );
+
+  overlay.insert(entry);
+}
+
+class _JuiceSnackbarWidget extends StatefulWidget {
+  final String message;
+  final Color accent;
+  final IconData icon;
+  final Duration duration;
+  final VoidCallback onDismiss;
+
+  const _JuiceSnackbarWidget({
+    required this.message,
+    required this.accent,
+    required this.icon,
+    required this.duration,
+    required this.onDismiss,
+  });
+
+  @override
+  State<_JuiceSnackbarWidget> createState() => _JuiceSnackbarWidgetState();
+}
+
+class _JuiceSnackbarWidgetState extends State<_JuiceSnackbarWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _offsetAnimation = Tween<Offset>(
+      begin: const Offset(0, 1.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+    _controller.forward();
+
+    Future.delayed(widget.duration, () {
+      if (mounted) {
+        _controller.reverse().then((_) => widget.onDismiss());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 60,
+      left: 24,
+      right: 24,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _offsetAnimation,
+          child: Material(
+            color: Colors.transparent,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: 6,
+                      left: 0,
+                      right: 0,
+                      bottom: -6,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: widget.accent.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.white, Color(0xFFFFF7EA)],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white, width: 2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: widget.accent.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              widget.icon,
+                              color: widget.accent,
+                              size: 20,
+                            ),
+                          ),
+                          const Gap(12),
+                          Expanded(
+                            child: Text(
+                              widget.message,
+                              style: GoogleFonts.mPlusRounded1c(
+                                color: widget.accent,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A soft, game-style floating UI component that can appear at different positions.
 Future<T?> showJuiceToast<T>({
   required BuildContext context,

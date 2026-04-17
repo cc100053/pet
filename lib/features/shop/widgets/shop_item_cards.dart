@@ -426,7 +426,7 @@ class _GridOwnedCountBadge extends StatelessWidget {
   }
 }
 
-class _ShopRaisedButtonShell extends StatefulWidget {
+class _ShopRaisedButtonShell extends StatelessWidget {
   const _ShopRaisedButtonShell({
     required this.onPressed,
     required this.borderRadius,
@@ -442,53 +442,29 @@ class _ShopRaisedButtonShell extends StatefulWidget {
   final double depth;
 
   @override
-  State<_ShopRaisedButtonShell> createState() => _ShopRaisedButtonShellState();
-}
-
-class _ShopRaisedButtonShellState extends State<_ShopRaisedButtonShell> {
-  bool _isPressed = false;
-
-  void _setPressed(bool value) {
-    if (_isPressed == value || widget.onPressed == null) {
-      return;
-    }
-    setState(() {
-      _isPressed = value;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final bool isEnabled = widget.onPressed != null;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onPressed,
-      onTapDown: isEnabled ? (_) => _setPressed(true) : null,
-      onTapUp: isEnabled ? (_) => _setPressed(false) : null,
-      onTapCancel: isEnabled ? () => _setPressed(false) : null,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            top: widget.depth,
-            child: Container(
-              decoration: BoxDecoration(
-                color: widget.shadowColor,
-                borderRadius: widget.borderRadius,
-              ),
+    final bool isEnabled = onPressed != null;
+
+    if (!isEnabled) {
+      return faceBuilder(context, false);
+    }
+
+    return JuicyScaleButton(
+      onTap: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          border: Border.all(color: Colors.black, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              offset: Offset(0, depth),
+              blurRadius: 4,
             ),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 110),
-            curve: Curves.easeOutCubic,
-            margin: EdgeInsets.only(bottom: _isPressed ? 0 : widget.depth),
-            child: AnimatedScale(
-              scale: _isPressed ? 0.98 : 1.0,
-              duration: const Duration(milliseconds: 110),
-              curve: Curves.easeOutCubic,
-              child: widget.faceBuilder(context, _isPressed),
-            ),
-          ),
-        ],
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: faceBuilder(context, false),
       ),
     );
   }

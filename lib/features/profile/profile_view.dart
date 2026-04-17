@@ -196,7 +196,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return;
     }
 
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: AppLocalizations.of(context)!.profileUpdated,
       tone: AppDialogTone.success,
@@ -418,7 +418,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return;
     }
 
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: AppLocalizations.of(context)!.profileUpdated,
       tone: AppDialogTone.success,
@@ -456,7 +456,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return;
     }
 
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: AppLocalizations.of(context)!.profileUpdated,
       tone: AppDialogTone.success,
@@ -493,7 +493,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return;
     }
 
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: AppLocalizations.of(context)!.profileUpdated,
       tone: AppDialogTone.success,
@@ -866,25 +866,38 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     return Center(
       child: JuicyScaleButton(
         onTap: () => _showNicknamePrompt(nickname),
-        child: Column(
-          children: [
-            Text(
-              nickname,
-              style: GoogleFonts.mPlusRounded1c(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                nickname,
+                style: GoogleFonts.mPlusRounded1c(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF2D2D2D),
+                ),
               ),
-            ),
-            const Gap(4),
-            Text(
-              l10n.profileNicknameLabel,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+              const Gap(10),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.edit_rounded,
+                  size: 16,
+                  color: AppTheme.primaryColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

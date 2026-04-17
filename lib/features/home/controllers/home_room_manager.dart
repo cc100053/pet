@@ -451,7 +451,7 @@ extension _HomeRoomManager on _HomeViewState {
       );
       _syncCrashContextFromHome(lastAction: 'create_room_success');
       if (mounted) {
-        showJuiceToast(context: context, message: l10n.roomCreatedSuccess, tone: AppDialogTone.success);
+        showJuiceSnackbar(context: context, message: l10n.roomCreatedSuccess);
       }
       return null;
     } catch (error) {
@@ -565,130 +565,153 @@ extension _HomeRoomManager on _HomeViewState {
 
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
+    String? errorText;
+
     final code = await showJuiceToast<String>(
       context: context,
       message: l10n.roomJoinTitle,
       position: JuicePosition.center,
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.roomJoinHelper,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.mPlusRounded1c(
-              color: const Color(0xFF5A4A42),
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const Gap(16),
-          TextField(
-            controller: controller,
-            onTapOutside: dismissKeyboardOnTapOutside,
-            autofocus: true,
-            style: GoogleFonts.mPlusRounded1c(
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-            decoration: InputDecoration(
-              hintText: l10n.roomJoinHint,
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Colors.black, width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: AppTheme.primaryColor,
-                  width: 3,
-                ),
-              ),
-            ),
-            textCapitalization: TextCapitalization.characters,
-            inputFormatters: [
-              UpperCaseTextFormatter(),
-              LengthLimitingTextInputFormatter(6),
-              FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
-            ],
-            onSubmitted: (value) {
-              final val = value.trim().toUpperCase();
-              Navigator.pop(context, val.isEmpty ? null : val);
-            },
-          ),
-          const Gap(24),
-          Row(
+      body: StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: JuicyScaleButton(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEEEEE),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 2),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        l10n.commonCancel,
-                        style: GoogleFonts.mPlusRounded1c(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
+              Text(
+                l10n.roomJoinHelper,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.mPlusRounded1c(
+                  color: const Color(0xFF5A4A42),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const Gap(12),
-              Expanded(
-                child: JuicyScaleButton(
-                  onTap: () {
-                    final value = controller.text.trim().toUpperCase();
-                    Navigator.pop(context, value.isEmpty ? null : value);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFD600),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 2),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
+              const Gap(16),
+              TextField(
+                controller: controller,
+                onTapOutside: dismissKeyboardOnTapOutside,
+                autofocus: true,
+                style: GoogleFonts.mPlusRounded1c(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  hintText: l10n.roomJoinHint,
+                  errorText: errorText,
+                  errorStyle: GoogleFonts.mPlusRounded1c(
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.errorColor,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.black, width: 2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 3,
                     ),
-                    child: Center(
-                      child: Text(
-                        l10n.commonJoin,
-                        style: GoogleFonts.mPlusRounded1c(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: Colors.black,
+                  ),
+                ),
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  UpperCaseTextFormatter(),
+                  LengthLimitingTextInputFormatter(6),
+                  FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+                ],
+                onSubmitted: (value) {
+                  final val = value.trim().toUpperCase();
+                  if (val.length < 6) {
+                    setState(() {
+                      errorText = l10n.roomJoinHint;
+                    });
+                    return;
+                  }
+                  Navigator.pop(context, val);
+                },
+              ),
+              const Gap(24),
+              Row(
+                children: [
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.black, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonCancel,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  const Gap(12),
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: () {
+                        final value = controller.text.trim().toUpperCase();
+                        if (value.length < 6) {
+                          setState(() {
+                            errorText = l10n.roomJoinHint;
+                          });
+                          return;
+                        }
+                        Navigator.pop(context, value);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD600),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.black, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonJoin,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
 
@@ -698,45 +721,20 @@ extension _HomeRoomManager on _HomeViewState {
 
     _setStateForRoomManager(() => _joiningRoom = true);
     try {
-      final response = await Supabase.instance.client.rpc(
-        'join_room_by_code',
-        params: {'code': code},
+      await Supabase.instance.client.rpc(
+        'join_room_by_invite_code',
+        params: {'p_invite_code': code},
       );
-
-      String? roomId;
-      if (response is String) {
-        roomId = response;
-      } else if (response is Map) {
-        final value = response.values.isNotEmpty ? response.values.first : null;
-        if (value is String) {
-          roomId = value;
-        }
-      } else if (response is List && response.isNotEmpty) {
-        final value = response.first;
-        if (value is String) {
-          roomId = value;
-        } else if (value is Map) {
-          final inner = value.values.isNotEmpty ? value.values.first : null;
-          if (inner is String) {
-            roomId = inner;
-          }
-        }
-      }
-
       await _fetchRooms();
       if (!mounted) {
         return;
       }
-      if (roomId != null) {
-        _enterRoomFromSelection(roomId);
-      }
-
       AnalyticsService.instance.logEvent(
         'room_join',
         parameters: {'method': 'invite_code', 'result': 'success'},
       );
       _syncCrashContextFromHome(lastAction: 'join_room_success');
-      showJuiceToast(context: context, message: l10n.roomJoinSuccess, tone: AppDialogTone.success);
+      showJuiceSnackbar(context: context, message: l10n.roomJoinSuccess);
     } catch (error) {
       unawaited(
         CrashReportingService.instance.reportError(
@@ -865,7 +863,7 @@ extension _HomeRoomManager on _HomeViewState {
     }
   }
 
-  Future<void> _leaveRoom(String roomId, {bool showSnackBar = true}) async {
+  Future<void> _leaveRoom(String roomId) async {
     _syncCrashContextFromHome(lastAction: 'leave_room_start');
     if (_leavingRoom) {
       return;
@@ -890,9 +888,7 @@ extension _HomeRoomManager on _HomeViewState {
       if (!mounted) {
         return;
       }
-      if (showSnackBar) {
-        showJuiceToast(context: context, message: l10n.roomLeaveSuccess, tone: AppDialogTone.success);
-      }
+      showJuiceSnackbar(context: context, message: l10n.roomLeaveSuccess);
       _syncCrashContextFromHome(lastAction: 'leave_room_success');
     } catch (error) {
       unawaited(
@@ -906,13 +902,11 @@ extension _HomeRoomManager on _HomeViewState {
       if (!mounted) {
         return;
       }
-      if (showSnackBar) {
-        showJuiceToast(
-          context: context,
-          message: l10n.roomLeaveFailed(userFacingError(context, error)),
-          tone: AppDialogTone.danger,
-        );
-      }
+      showJuiceToast(
+        context: context,
+        message: l10n.roomLeaveFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
+      );
     } finally {
       if (mounted) {
         _setStateForRoomManager(() => _leavingRoom = false);

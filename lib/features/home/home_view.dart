@@ -1148,7 +1148,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!mounted) {
       return;
     }
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: l10n.drawerDebugMemorySnapshotCaptured,
       tone: AppDialogTone.success,
@@ -1167,7 +1167,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!mounted) {
       return;
     }
-    showJuiceToast(
+    showJuiceSnackbar(
       context: context,
       message: l10n.drawerDebugImageCacheCleared,
       tone: AppDialogTone.success,
