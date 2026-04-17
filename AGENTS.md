@@ -266,6 +266,23 @@ flutter run
 ### Assets
 - If adding assets, ensure they are referenced in `pubspec.yaml` (this repo includes `assets/lottie/`).
 
+### Juice UI System (Game-style Design)
+
+To maintain the playful, game-like feel of PicPet, follow these UI standards:
+
+- **Bouncy Interactions**: ALWAYS use `JuicyScaleButton` for clickable elements. It triggers the action IMMEDIATELY on release while performing a squish-and-pop animation in the background.
+- **Floating Toasts**: Use `showJuiceToast` for blocking alerts, inputs, and confirmations.
+    - `JuicePosition.bottom`: Standard feedback/warnings.
+    - `JuicePosition.center`: Dialogs, complex inputs (using `body`), and critical confirmations.
+    - `JuicePosition.top`: Background task notifications.
+- **Non-intrusive Feedback**: Use `showJuiceSnackbar` for success messages or information that should NOT dim the screen or block user interaction. It uses an Overlay and auto-dismisses.
+- **Visual Style**:
+    - **Borders**: Thick black borders (typically 2px to 3px) for containers and buttons.
+    - **Shadows**: Use `BoxShadow` with vertical offsets (depth) and soft transparency (`alpha: 0.15`) instead of solid colored blocks.
+    - **Gradients**: Soft gradients (e.g., White to `#FFF7EA`) for card backgrounds.
+    - **Typography**: Use `GoogleFonts.mPlusRounded1c` for a friendly, rounded game aesthetic.
+- **Validation**: User input in `showJuiceToast` should be validated inside the dialog (using `StatefulBuilder`) to prevent premature closing and provide instant error feedback.
+
 ## PR/commit hygiene
 - Do not commit secrets (no `.env`, tokens, credentials).
 - Commits: concise, imperative ("Add ...", "Fix ...").
