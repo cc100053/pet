@@ -565,34 +565,128 @@ extension _HomeRoomManager on _HomeViewState {
 
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
-    final code = await showAppDialog<String>(
+    final code = await showJuiceToast<String>(
       context: context,
-      builder: (context) => AppDialog(
-        tone: AppDialogTone.info,
-        title: l10n.roomJoinTitle,
-        message: l10n.roomJoinHelper,
-        body: TextField(
-          controller: controller,
-          onTapOutside: dismissKeyboardOnTapOutside,
-          decoration: InputDecoration(hintText: l10n.roomJoinHint),
-          textCapitalization: TextCapitalization.characters,
-          inputFormatters: [
-            UpperCaseTextFormatter(),
-            LengthLimitingTextInputFormatter(6),
-            FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
-          ],
-        ),
-        actions: [
-          AppDialogAction.secondary(
-            label: l10n.commonCancel,
-            onPressed: () => Navigator.pop(context),
+      message: l10n.roomJoinTitle,
+      position: JuicePosition.center,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.roomJoinHelper,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.mPlusRounded1c(
+              color: const Color(0xFF5A4A42),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          AppDialogAction.primary(
-            label: l10n.commonJoin,
-            onPressed: () {
-              final value = controller.text.trim().toUpperCase();
-              Navigator.pop(context, value.isEmpty ? null : value);
+          const Gap(16),
+          TextField(
+            controller: controller,
+            onTapOutside: dismissKeyboardOnTapOutside,
+            autofocus: true,
+            style: GoogleFonts.mPlusRounded1c(
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+            decoration: InputDecoration(
+              hintText: l10n.roomJoinHint,
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.black, width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: AppTheme.primaryColor,
+                  width: 3,
+                ),
+              ),
+            ),
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: [
+              UpperCaseTextFormatter(),
+              LengthLimitingTextInputFormatter(6),
+              FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+            ],
+            onSubmitted: (value) {
+              final val = value.trim().toUpperCase();
+              Navigator.pop(context, val.isEmpty ? null : val);
             },
+          ),
+          const Gap(24),
+          Row(
+            children: [
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEEEEE),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        l10n.commonCancel,
+                        style: GoogleFonts.mPlusRounded1c(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () {
+                    final value = controller.text.trim().toUpperCase();
+                    Navigator.pop(context, value.isEmpty ? null : value);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD600),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        l10n.commonJoin,
+                        style: GoogleFonts.mPlusRounded1c(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -679,22 +773,88 @@ extension _HomeRoomManager on _HomeViewState {
     final petName = (room['pet_name'] as String?)?.trim();
     final petType = room['pet_type'] as String?;
     final fallbackName = PetCatalog.byId(petType).name(l10n);
-    final confirmed = await showAppDialog<bool>(
+    final confirmed = await showJuiceToast<bool>(
       context: context,
-      builder: (context) => AppDialog(
-        tone: AppDialogTone.warning,
-        title: l10n.roomLeaveTitle,
-        message: l10n.roomLeaveMessage(
-          petName == null || petName.isEmpty ? fallbackName : petName,
-        ),
-        actions: [
-          AppDialogAction.secondary(
-            label: l10n.commonCancel,
-            onPressed: () => Navigator.of(context).pop(false),
+      message: l10n.roomLeaveTitle,
+      position: JuicePosition.center,
+      tone: AppDialogTone.danger,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.roomLeaveMessage(
+              petName == null || petName.isEmpty ? fallbackName : petName,
+            ),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.mPlusRounded1c(
+              color: const Color(0xFF5A4A42),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          AppDialogAction.destructive(
-            label: l10n.roomLeaveConfirm,
-            onPressed: () => Navigator.of(context).pop(true),
+          const Gap(24),
+          Row(
+            children: [
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEEEEE),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        l10n.commonCancel,
+                        style: GoogleFonts.mPlusRounded1c(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () => Navigator.of(context).pop(true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        l10n.roomLeaveConfirm,
+                        style: GoogleFonts.mPlusRounded1c(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

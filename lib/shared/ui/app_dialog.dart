@@ -73,7 +73,7 @@ enum JuicePosition {
 }
 
 /// A soft, game-style floating UI component that can appear at different positions.
-void showJuiceToast({
+Future<T?> showJuiceToast<T>({
   required BuildContext context,
   String? message,
   Widget? body,
@@ -87,12 +87,12 @@ void showJuiceToast({
   final toneStyle = _toneStyle(theme, tone);
   final accent = toneStyle.accent;
 
-  showGeneralDialog(
+  return showGeneralDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
     barrierLabel: 'JuiceToast',
     barrierColor: Colors.black45,
-    transitionDuration: const Duration(milliseconds: 500),
+    transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
       final curve = CurvedAnimation(

@@ -299,40 +299,63 @@ Future<void> showStoreThemePreviewDialog({
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final bg = RoomBackgrounds.resolve(item.backgroundKey);
-  await showAppDialog<void>(
+  await showJuiceToast<void>(
     context: context,
-    builder: (context) => AppDialog(
-      tone: AppDialogTone.info,
-      title: l10n.storeThemePreviewTitle(item.localizedName(l10n)),
-      body: AspectRatio(
-        aspectRatio: 16 / 10,
-        child: Container(
-          decoration: bg.previewDecoration,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              margin: const EdgeInsets.all(12),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                item.localizedName(l10n),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+    message: l10n.storeThemePreviewTitle(item.localizedName(l10n)),
+    position: JuicePosition.center,
+    body: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 10,
+          child: Container(
+            decoration: bg.previewDecoration,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  item.localizedName(l10n),
+                  style: GoogleFonts.mPlusRounded1c(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-      actions: [
-        AppDialogAction.primary(
-          label: l10n.commonClose,
-          onPressed: () => Navigator.of(context).pop(),
+        const Gap(24),
+        JuicyScaleButton(
+          onTap: () => Navigator.of(context).pop(),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEEEEE),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.black, width: 2),
+              boxShadow: const [
+                BoxShadow(color: Colors.black, offset: Offset(0, 3)),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                l10n.commonClose,
+                style: GoogleFonts.mPlusRounded1c(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     ),

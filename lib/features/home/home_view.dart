@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
@@ -1660,7 +1661,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _signOut() async {
     AnalyticsService.instance.logEvent('sign_out_tap');
-    await Supabase.instance.client.auth.signOut();
+    unawaited(Supabase.instance.client.auth.signOut());
   }
 
   Future<void> _openProfile() async {
@@ -2169,39 +2170,119 @@ class _HomeViewState extends ConsumerState<HomeView>
       Navigator.of(context).pop(next);
     }
 
-    final newName = await showAppDialog<String>(
+    final newName = await showJuiceToast<String>(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AppDialog(
-              tone: AppDialogTone.info,
-              title: l10n.petNameEditTitle,
-              body: TextField(
+      message: l10n.petNameEditTitle,
+      position: JuicePosition.center,
+      body: StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
                 controller: controller,
+                autofocus: true,
                 onTapOutside: dismissKeyboardOnTapOutside,
-                maxLength: 20,
                 textInputAction: TextInputAction.done,
+                style: GoogleFonts.mPlusRounded1c(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
                 decoration: InputDecoration(
                   hintText: l10n.petNameHint,
                   errorText: errorText,
+                  errorStyle: GoogleFonts.mPlusRounded1c(
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.errorColor,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.black, width: 2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 3,
+                    ),
+                  ),
                 ),
                 onSubmitted: (_) => submit(setState),
               ),
-              actions: [
-                AppDialogAction.secondary(
-                  label: l10n.commonCancel,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                AppDialogAction.primary(
-                  label: l10n.commonSave,
-                  onPressed: () => submit(setState),
-                ),
-              ],
-            );
-          },
-        );
-      },
+              const Gap(24),
+              Row(
+                children: [
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.black, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonCancel,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: () => submit(setState),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD600),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.black, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonSave,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
 
     if (newName == null) {

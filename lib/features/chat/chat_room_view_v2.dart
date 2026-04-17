@@ -9,9 +9,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart' hide ChatMessage;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
+import 'package:pet/shared/ui/juice_wrappers.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -1688,16 +1691,19 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   Future<void> _openFeedCamera() async {
     final l10n = AppLocalizations.of(context)!;
     if (widget.isRoomLocked) {
-      await showAppDialog<void>(
+      await showJuiceToast<void>(
         context: context,
-        builder: (context) => AppDialog(
-          tone: AppDialogTone.info,
-          title: l10n.roomLockedTitle,
-          message: l10n.roomLockedMessage,
-          actions: [
-            AppDialogAction.primary(
-              label: l10n.commonClose,
-              onPressed: () => Navigator.of(context).pop(),
+        position: JuicePosition.center,
+        message: l10n.roomLockedTitle,
+        body: Column(
+          children: [
+            Text(
+              l10n.roomLockedMessage,
+              style: GoogleFonts.mPlusRounded1c(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black54,
+              ),
             ),
           ],
         ),
@@ -1705,16 +1711,19 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return;
     }
     if (widget.isPetDeparted) {
-      await showAppDialog<void>(
+      await showJuiceToast<void>(
         context: context,
-        builder: (context) => AppDialog(
-          tone: AppDialogTone.info,
-          title: l10n.petDepartureFeedDisabledTitle,
-          message: l10n.petDepartureFeedDisabledMessage,
-          actions: [
-            AppDialogAction.primary(
-              label: l10n.commonClose,
-              onPressed: () => Navigator.of(context).pop(),
+        position: JuicePosition.center,
+        message: l10n.petDepartureFeedDisabledTitle,
+        body: Column(
+          children: [
+            Text(
+              l10n.petDepartureFeedDisabledMessage,
+              style: GoogleFonts.mPlusRounded1c(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black54,
+              ),
             ),
           ],
         ),
@@ -2406,31 +2415,74 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   Future<String?> _promptReportReason(BuildContext context) async {
     final controller = TextEditingController();
     final l10n = AppLocalizations.of(context)!;
-    final result = await showAppDialog<String>(
+    final result = await showJuiceToast<String>(
       context: context,
-      builder: (context) => AppDialog(
-        tone: AppDialogTone.warning,
-        title: l10n.chatReportMessageTitle,
-        body: TextField(
-          controller: controller,
-          onTapOutside: dismissKeyboardOnTapOutside,
-          decoration: InputDecoration(hintText: l10n.chatReportHint),
-          maxLines: 3,
-        ),
-        actions: [
-          AppDialogAction.secondary(
-            label: l10n.commonCancel,
-            onPressed: () => Navigator.pop(context),
+      position: JuicePosition.center,
+      tone: AppDialogTone.warning,
+      message: l10n.chatReportMessageTitle,
+      body: Column(
+        children: [
+          TextField(
+            controller: controller,
+            onTapOutside: dismissKeyboardOnTapOutside,
+            style: GoogleFonts.mPlusRounded1c(),
+            decoration: InputDecoration(
+              hintText: l10n.chatReportHint,
+              hintStyle: GoogleFonts.mPlusRounded1c(color: Colors.black26),
+            ),
+            maxLines: 3,
           ),
-          AppDialogAction.primary(
-            label: l10n.commonSubmit,
-            onPressed: () {
-              final text = controller.text.trim();
-              Navigator.pop(
-                context,
-                text.isEmpty ? l10n.chatReportNoReason : text,
-              );
-            },
+          const Gap(16),
+          Row(
+            children: [
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        l10n.commonCancel,
+                        style: GoogleFonts.mPlusRounded1c(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () {
+                    final text = controller.text.trim();
+                    Navigator.pop(
+                      context,
+                      text.isEmpty ? l10n.chatReportNoReason : text,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD600),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        l10n.commonSubmit,
+                        style: GoogleFonts.mPlusRounded1c(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
