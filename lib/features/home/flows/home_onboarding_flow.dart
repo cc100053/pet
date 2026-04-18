@@ -357,6 +357,34 @@ extension _HomeOnboardingFlow on _HomeViewState {
     );
   }
 
+  Future<AvatarFramingData?> _confirmOnboardingAvatarFraming(
+    XFile image,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final bytes = await image.readAsBytes();
+    if (!mounted) {
+      return null;
+    }
+    return Navigator.of(context).push<AvatarFramingData>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (routeContext) => AvatarPositionEditorPage(
+          imageProvider: MemoryImage(bytes),
+          initialFraming: const AvatarFramingData(
+            alignment: Alignment.center,
+            scale: 1,
+          ),
+          title: l10n.profileAvatarEdit,
+          applyLabel: l10n.commonSave,
+          cancelLabel: l10n.commonCancel,
+          hintLabel: l10n.profileAvatarEditorHint,
+          zoomLabel: l10n.profileAvatarEditorZoom,
+          resetLabel: l10n.profileAvatarEditorCenter,
+        ),
+      ),
+    );
+  }
+
   Future<void> _uploadOnboardingProfileAvatar() async {
     if (_onboardingProfileSaving) {
       return;
@@ -370,6 +398,27 @@ extension _HomeOnboardingFlow on _HomeViewState {
       source: ImageSource.gallery,
     );
     if (image == null) {
+      return;
+    }
+
+    late final AvatarFramingData? confirmedFraming;
+    try {
+      confirmedFraming = await _confirmOnboardingAvatarFraming(image);
+    } catch (error, stackTrace) {
+      if (!mounted) {
+        return;
+      }
+      _setStateForOnboarding(() {
+        _onboardingProfileError = userFacingError(
+          context,
+          error,
+          stackTrace: stackTrace,
+          source: 'home_onboarding_avatar_framing_preview',
+        );
+      });
+      return;
+    }
+    if (!mounted || confirmedFraming == null) {
       return;
     }
 
@@ -464,13 +513,27 @@ extension _HomeOnboardingFlow on _HomeViewState {
         );
       }
 
-      _myAvatarUrl = uploadedAvatarUrl;
-      _onboardingProfileAvatarUrl = uploadedAvatarUrl;
+      final framedAvatarUrl = buildAvatarUrlWithFraming(
+        uploadedAvatarUrl,
+        alignment: confirmedFraming.alignment,
+        scale: confirmedFraming.scale,
+      );
+      if (framedAvatarUrl != uploadedAvatarUrl) {
+        await _withNetworkTimeout(
+          Supabase.instance.client
+              .from('profiles')
+              .update({'avatar_url': framedAvatarUrl})
+              .eq('user_id', user.id),
+        );
+      }
+
+      _myAvatarUrl = framedAvatarUrl;
+      _onboardingProfileAvatarUrl = framedAvatarUrl;
       ProfileCacheService.instance.prime(
         ProfileSummary(
           userId: user.id,
           nickname: _myNickname,
-          avatarUrl: uploadedAvatarUrl,
+          avatarUrl: framedAvatarUrl,
         ),
       );
       await _cacheHomeBootstrapSnapshot();

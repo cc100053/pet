@@ -21,6 +21,7 @@ import '../../shared/localization/app_locale_controller.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/upload_limits.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/avatar_position_editor_page.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -371,7 +372,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     return int.tryParse(value.substring(UserAvatar.presetPrefix.length));
   }
 
-  Future<void> _saveAvatar(XFile image) async {
+  Future<void> _saveAvatarFraming({
+    required String currentAvatarUrl,
+    required Alignment alignment,
+    required double scale,
+  }) async {
     if (_busy) {
       return;
     }
@@ -382,8 +387,171 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
     setState(() => _busy = true);
     try {
+      final updatedAvatarUrl = buildAvatarUrlWithFraming(
+        currentAvatarUrl,
+        alignment: alignment,
+        scale: scale,
+      );
+      await _withNetworkTimeout(
+        Supabase.instance.client
+            .from('profiles')
+            .update({'avatar_url': updatedAvatarUrl})
+            .eq('user_id', user.id),
+        operation: 'set_avatar_framing',
+      );
+    } catch (error, stackTrace) {
+      if (mounted) {
+        showJuiceToast(
+          context: context,
+          message: userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'profile_avatar_framing',
+          ),
+          tone: AppDialogTone.danger,
+        );
+      }
+      return;
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    showJuiceSnackbar(
+      context: context,
+      message: AppLocalizations.of(context)!.profileUpdated,
+      tone: AppDialogTone.success,
+    );
+
+    setState(_reloadProfileFuture);
+  }
+
+  Future<void> _adjustCurrentAvatar(String? currentAvatarUrl) async {
+    if (_busy) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    if (!_isRemoteAvatarUrl(currentAvatarUrl)) {
+      showJuiceSnackbar(
+        context: context,
+        message: l10n.profileAvatarAdjustUnavailable,
+        tone: AppDialogTone.warning,
+      );
+      return;
+    }
+
+    final parsed = parseAvatarUrlWithAlignment(currentAvatarUrl!.trim());
+    final confirmedFraming = await Navigator.of(context)
+        .push<AvatarFramingData>(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (routeContext) => AvatarPositionEditorPage(
+              imageProvider: NetworkImage(parsed.imageUrl),
+              initialFraming: AvatarFramingData(
+                alignment: parsed.alignment,
+                scale: parsed.scale,
+              ),
+              title: l10n.profileAvatarAdjustCurrent,
+              applyLabel: l10n.commonSave,
+              cancelLabel: l10n.commonCancel,
+              hintLabel: l10n.profileAvatarEditorHint,
+              zoomLabel: l10n.profileAvatarEditorZoom,
+              resetLabel: l10n.profileAvatarEditorCenter,
+            ),
+          ),
+        );
+    if (!mounted || confirmedFraming == null) {
+      return;
+    }
+
+    await _saveAvatarFraming(
+      currentAvatarUrl: currentAvatarUrl,
+      alignment: confirmedFraming.alignment,
+      scale: confirmedFraming.scale,
+    );
+  }
+
+  Future<AvatarFramingData?> _confirmPickedAvatarFraming(XFile image) async {
+    final l10n = AppLocalizations.of(context)!;
+    final bytes = await image.readAsBytes();
+    if (!mounted) {
+      return null;
+    }
+    return Navigator.of(context).push<AvatarFramingData>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (routeContext) => AvatarPositionEditorPage(
+          imageProvider: MemoryImage(bytes),
+          initialFraming: const AvatarFramingData(
+            alignment: Alignment.center,
+            scale: 1,
+          ),
+          title: l10n.profileAvatarEdit,
+          applyLabel: l10n.commonSave,
+          cancelLabel: l10n.commonCancel,
+          hintLabel: l10n.profileAvatarEditorHint,
+          zoomLabel: l10n.profileAvatarEditorZoom,
+          resetLabel: l10n.profileAvatarEditorCenter,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveAvatar(XFile image) async {
+    if (_busy) {
+      return;
+    }
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    late final AvatarFramingData? confirmedFraming;
+    try {
+      confirmedFraming = await _confirmPickedAvatarFraming(image);
+    } catch (error, stackTrace) {
+      if (mounted) {
+        showJuiceToast(
+          context: context,
+          message: userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'profile_avatar_framing_preview',
+          ),
+          tone: AppDialogTone.danger,
+        );
+      }
+      return;
+    }
+    if (!mounted || confirmedFraming == null) {
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
       final compressed = await _compressAvatar(image);
-      await _uploadAvatarViaEdgeFunction(compressed);
+      final uploadedAvatarUrl = await _uploadAvatarViaEdgeFunction(compressed);
+      final framedAvatarUrl = buildAvatarUrlWithFraming(
+        uploadedAvatarUrl,
+        alignment: confirmedFraming.alignment,
+        scale: confirmedFraming.scale,
+      );
+      if (framedAvatarUrl != uploadedAvatarUrl) {
+        await _withNetworkTimeout(
+          Supabase.instance.client
+              .from('profiles')
+              .update({'avatar_url': framedAvatarUrl})
+              .eq('user_id', user.id),
+          operation: 'save_avatar_framing',
+        );
+      }
     } catch (error, stackTrace) {
       if (mounted) {
         showJuiceToast(
@@ -417,7 +585,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     setState(_reloadProfileFuture);
   }
 
-  Future<void> _uploadAvatarViaEdgeFunction(_CompressedImage compressed) async {
+  Future<String> _uploadAvatarViaEdgeFunction(
+    _CompressedImage compressed,
+  ) async {
     if (!kAllowedUploadImageContentTypes.contains(compressed.contentType)) {
       throw Exception('invalid_image_content_type');
     }
@@ -454,7 +624,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return 'status_${response.status}';
     }
 
-    Future<void> invokeAndValidate(String token, String operation) async {
+    Future<String> invokeAndValidate(String token, String operation) async {
       final response = await _withNetworkTimeout(
         invokeWithToken(token),
         operation: operation,
@@ -468,7 +638,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (data is Map<String, dynamic>) {
         final avatarUrl = data['avatar_url']?.toString();
         if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
-          return;
+          return avatarUrl.trim();
         }
       }
       throw Exception('avatar_upload_missing_avatar_url');
@@ -480,7 +650,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }
 
     try {
-      await invokeAndValidate(accessToken, 'avatar_upload');
+      return await invokeAndValidate(accessToken, 'avatar_upload');
     } on FunctionException catch (error) {
       if (error.status != 401) {
         rethrow;
@@ -492,7 +662,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (refreshedToken == null) {
         rethrow;
       }
-      await invokeAndValidate(refreshedToken, 'avatar_upload_retry');
+      return await invokeAndValidate(refreshedToken, 'avatar_upload_retry');
     }
   }
 
@@ -865,7 +1035,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   title: Text(l10n.profileAvatarAdjustCurrent),
                   onTap: () {
                     Navigator.pop(context);
-                    // Adjust framing not implemented in this snippet
+                    _adjustCurrentAvatar(currentAvatarUrl);
                   },
                 ),
               const Divider(),

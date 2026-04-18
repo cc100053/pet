@@ -227,6 +227,8 @@
   "drawerDebugForceOnboarding": "每次都顯示新手引導",
   "drawerDebugForceOnboardingEnabled": "每次打開 App 都顯示",
   "drawerDebugForceOnboardingDisabled": "使用正常一次性顯示",
+  "drawerDebugTestProfileSetupOnboarding": "測試個人資料設定",
+  "drawerDebugTestProfileSetupOnboardingSubtitle": "立即打開新用戶改名與上傳照片步驟",
   "drawerDebugHungerDown": "宠物飢餓度 -10",
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓宠物便便",
@@ -426,6 +428,9 @@
   "profileAvatarAdjustCurrent": "調整目前照片",
   "profileAvatarAdjustUnavailable": "沒有可調整的已上傳照片。",
   "profileAvatarAdjustUnsupportedPlatform": "此平台暫不支援調整目前照片。",
+  "profileAvatarEditorHint": "拖曳調整位置，雙指縮放。",
+  "profileAvatarEditorZoom": "縮放",
+  "profileAvatarEditorCenter": "置中",
   "profileAvatarRemove": "移除",
   "profileCoinsLabel": "糖果：{amount}",
   "@profileCoinsLabel": {

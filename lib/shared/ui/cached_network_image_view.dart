@@ -262,28 +262,25 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
         widget.width != null &&
         widget.height != null) {
       final viewport = Size(widget.width!, widget.height!);
-      final base = _baseImageSizeForContain(viewport, ratio);
-      final circleRadius = viewport.shortestSide / 2;
-      final minScale = _minScaleForCircle(base, circleRadius);
-      final effectiveScale = (widget.scale.clamp(1.0, 4.0) * minScale);
-      final maxPan = _maxPan(base, circleRadius, effectiveScale);
-      final offset = Offset(
-        widget.alignment.x.clamp(-1.0, 1.0) * maxPan.dx,
-        widget.alignment.y.clamp(-1.0, 1.0) * maxPan.dy,
+      final transform = AvatarFramingTransform.resolve(
+        viewport: viewport,
+        imageAspectRatio: ratio,
+        alignment: widget.alignment,
+        scale: widget.scale,
       );
       return Center(
         child: Transform.translate(
-          offset: offset,
+          offset: transform.offset,
           child: Transform.scale(
-            scale: effectiveScale,
+            scale: transform.effectiveScale,
             child: SizedBox(
-              width: base.width,
-              height: base.height,
+              width: transform.baseImageSize.width,
+              height: transform.baseImageSize.height,
               child: Image(
                 image: widget.imageProvider,
                 fit: BoxFit.fill,
-                width: base.width,
-                height: base.height,
+                width: transform.baseImageSize.width,
+                height: transform.baseImageSize.height,
                 errorBuilder: (context, error, stackTrace) =>
                     const SizedBox.shrink(),
               ),
@@ -311,38 +308,5 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
         errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
       ),
     );
-  }
-
-  Size _baseImageSizeForContain(Size viewport, double ratio) {
-    final viewportAspect = viewport.width / viewport.height;
-    if (ratio > viewportAspect) {
-      final width = viewport.width;
-      final height = width / ratio;
-      return Size(width, height);
-    }
-    final height = viewport.height;
-    final width = height * ratio;
-    return Size(width, height);
-  }
-
-  double _minScaleForCircle(Size base, double circleRadius) {
-    final neededWidthScale = (circleRadius * 2) / base.width;
-    final neededHeightScale = (circleRadius * 2) / base.height;
-    return [
-      neededWidthScale,
-      neededHeightScale,
-      0.5,
-    ].reduce((a, b) => a > b ? a : b);
-  }
-
-  Offset _maxPan(Size base, double circleRadius, double scale) {
-    final width = base.width * scale;
-    final height = base.height * scale;
-    final maxX = ((width - (circleRadius * 2)) / 2).clamp(0.0, double.infinity);
-    final maxY = ((height - (circleRadius * 2)) / 2).clamp(
-      0.0,
-      double.infinity,
-    );
-    return Offset(maxX, maxY);
   }
 }

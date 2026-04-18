@@ -1,5 +1,86 @@
 # TODO
 
+# Plan (2026-04-18 Avatar Photo Adjustment UX)
+- [x] Extract shared avatar framing transform math so editor preview and final avatar rendering stay identical.
+- [x] Rebuild the full-screen avatar editor around a fixed circular frame with bounded drag, pinch zoom, slider zoom, and reset/center.
+- [x] Keep Profile and onboarding save flows non-destructive with the existing `avatar_view_v2` URL fragment contract.
+- [x] Add localized editor hint/control copy and regenerate l10n.
+- [x] Add focused framing math and editor widget tests.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`; record results and any unrelated failures.
+
+# Review (2026-04-18 Avatar Photo Adjustment UX)
+- [x] Implemented with the existing unrelated full-suite failure still present.
+- Scope:
+  - Added shared `AvatarFramingTransform` math for relative avatar zoom, minimum fill scale, pan bounds, and normalized alignment.
+  - Updated final avatar rendering to consume the shared transform helper.
+  - Rebuilt the shared full-screen avatar editor as a fixed circular crop-frame UI with bounded drag, pinch zoom, zoom slider, center reset, localized hint text, and Juice-style tappable controls.
+  - Kept Profile and onboarding on the existing non-destructive `avatar_view_v2` URL-fragment save contract; no DB/schema or upload-contract changes.
+  - Added focused math and editor widget coverage, including drag, pinch, slider, reset, save, and cancel behavior.
+- Verification:
+  - `flutter gen-l10n`: passed; existing zh untranslated-message notice remains.
+  - `dart format lib/shared/utils/avatar_display_position.dart lib/shared/ui/cached_network_image_view.dart lib/shared/ui/avatar_position_editor_page.dart lib/features/profile/profile_view.dart lib/features/home/flows/home_onboarding_flow.dart test/avatar_display_position_test.dart test/shared/ui/avatar_position_editor_page_test.dart lib/l10n/app_localizations*.dart`
+  - `flutter test test/avatar_display_position_test.dart test/shared/ui/avatar_position_editor_page_test.dart`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` What's New/force-update failures; feed integration test skipped due missing Supabase test env vars.
+
+# Plan (2026-04-18 Debug Profile Setup Onboarding Tool)
+- [x] Add a debug drawer action that opens the profile-setup onboarding step directly for testing the new-user upload-photo entry point.
+- [x] Keep the action scoped to debug-admin tools and avoid mutating the real persisted onboarding state beyond the existing debug-onboarding flag.
+- [x] Add localized debug labels and regenerate l10n.
+- [x] Run formatting, analyzer, and tests; record results and unrelated failures.
+
+# Review (2026-04-18 Debug Profile Setup Onboarding Tool)
+- [x] Implemented with the existing unrelated full-suite failure still present.
+- Scope:
+  - Added a debug-admin drawer action under User & Plan: `Test Profile Setup`.
+  - The action closes the drawer, returns to room selection, and shows the profile-setup onboarding overlay immediately with the default-name draft and empty draft avatar.
+  - The action is a local preview trigger and does not write the normal onboarding completed/dismissed settings; normal Save photo / Continue actions still exercise the real new-user profile update/upload path.
+  - Added localized debug labels for en, ja, ko, zh, and zh_TW, then regenerated Flutter l10n.
+- Verification:
+  - `flutter gen-l10n`: passed; existing zh untranslated-message notice remains.
+  - `dart format lib/features/home/home_view.dart lib/l10n/app_localizations*.dart`
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test test/avatar_display_position_test.dart test/user_avatar_test.dart test/services/profile/profile_bootstrap_service_test.dart`: passed.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` What's New/force-update failures; feed integration test skipped due missing Supabase test env vars.
+
+# Plan (2026-04-18 Shared Avatar Framing Upload Flow)
+- [x] Extract the avatar position editor into shared UI so Profile and onboarding use the same framing surface.
+- [x] Change Profile photo upload to pick -> adjust -> save/upload, with cancel leaving the remote avatar unchanged.
+- [x] Change new-user onboarding photo upload to use the same adjust-before-upload flow and persist the framing metadata.
+- [x] Run formatting, analyzer, and tests; record results and any unrelated failures.
+
+# Review (2026-04-18 Shared Avatar Framing Upload Flow)
+- [x] Implemented with the existing unrelated full-suite failure still present.
+- Scope:
+  - Extracted the full-screen avatar framing editor into shared UI.
+  - Profile photo upload now opens the editor immediately after image selection, uploads only after Save, and appends `avatar_view_v2` framing metadata to the uploaded R2 URL.
+  - New-user onboarding uses the same editor before `avatar_upload`, then persists the same framing metadata and primes the profile/home cache with the framed URL.
+  - Canceling the editor returns without uploading, so the current avatar remains unchanged and no orphaned upload is created by that path.
+- Verification:
+  - `dart format lib/shared/ui/avatar_position_editor_page.dart lib/features/profile/profile_view.dart lib/features/home/home_view.dart lib/features/home/flows/home_onboarding_flow.dart`
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test test/avatar_display_position_test.dart test/user_avatar_test.dart test/services/profile/profile_bootstrap_service_test.dart`: passed.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` What's New/force-update failures; feed integration test skipped due missing Supabase test env vars.
+  - `flutter test test/shared/force_update/force_update_gate_test.dart -r expanded`: reproduced the same three failures (`soft update resolves before What's New is shown`, `same-version build upgrade shows What's New when not shown before`, `legacy install without recorded version still shows first tracked What's New`).
+
+# Plan (2026-04-18 Restore Profile Avatar Adjustment)
+- [x] Restore the Profile remote-avatar adjustment action so it opens the framing editor instead of closing as a no-op.
+- [x] Persist non-destructive avatar framing by updating the `profiles.avatar_url` fragment only, preserving the `avatar_upload` Edge Function upload path.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`; record results and any unrelated failures.
+
+# Review (2026-04-18 Restore Profile Avatar Adjustment)
+- [x] Implemented with one pre-existing unrelated full-suite failure still present.
+- Scope:
+  - Restored `_adjustCurrentAvatar(...)`, `_saveAvatarFraming(...)`, and the full-screen avatar position editor removed by the Profile UI refactor.
+  - Wired the `profileAvatarAdjustCurrent` bottom-sheet item to open the editor instead of closing as a no-op.
+  - Framing saves by updating only the remote avatar URL fragment through `buildAvatarUrlWithFraming(...)`; the `1.1.4` `avatar_upload` Edge Function upload path remains unchanged.
+- Verification:
+  - `dart format lib/features/profile/profile_view.dart`
+  - `flutter analyze`: passed, no issues found.
+  - `rg "Adjust framing not implemented|profileAvatarAdjustCurrent|_adjustCurrentAvatar|_AvatarPositionEditorPage|buildAvatarUrlWithFraming" lib/features/profile/profile_view.dart`: placeholder removed; adjust path/editor present.
+  - `flutter test test/avatar_display_position_test.dart test/user_avatar_test.dart test/services/profile/profile_bootstrap_service_test.dart`: passed.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` What's New/force-update failures already recorded below; feed integration test skipped due missing Supabase test env vars.
+
 # Plan (2026-04-18 Profile Avatar Upload Crash v1.1.4)
 - [x] Replace Profile photo avatar upload direct Supabase Storage call with the deployed `avatar_upload` Edge Function/R2 path.
 - [x] Handle Profile avatar upload failures locally so missing bucket/config/network errors do not escape to Crashlytics as fatal zoned errors.

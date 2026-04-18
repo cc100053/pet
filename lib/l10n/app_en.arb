@@ -232,6 +232,8 @@
   "drawerDebugForceOnboarding": "Always Show Onboarding",
   "drawerDebugForceOnboardingEnabled": "Show on every app open",
   "drawerDebugForceOnboardingDisabled": "Use normal one-time behavior",
+  "drawerDebugTestProfileSetupOnboarding": "Test Profile Setup",
+  "drawerDebugTestProfileSetupOnboardingSubtitle": "Open the new-user name and photo step now",
   "drawerDebugHungerDown": "-10 Pet Hunger",
   "drawerDebugAddExp": "+10 EXP",
   "drawerDebugSpawnPoop": "Make Pet Poop",
@@ -439,6 +441,9 @@
   "profileAvatarAdjustCurrent": "Adjust current photo",
   "profileAvatarAdjustUnavailable": "No uploaded photo to adjust.",
   "profileAvatarAdjustUnsupportedPlatform": "Adjusting current photo is not supported on this platform.",
+  "profileAvatarEditorHint": "Drag to position. Pinch to zoom.",
+  "profileAvatarEditorZoom": "Zoom",
+  "profileAvatarEditorCenter": "Center",
   "profileAvatarRemove": "Remove",
   "profileCoinsLabel": "Candy: {amount}",
   "@profileCoinsLabel": {

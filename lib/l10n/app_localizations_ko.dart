@@ -423,6 +423,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugForceOnboardingDisabled => '기본 1회 표시 동작';
 
   @override
+  String get drawerDebugTestProfileSetupOnboarding => '프로필 설정 테스트';
+
+  @override
+  String get drawerDebugTestProfileSetupOnboardingSubtitle =>
+      '신규 사용자 이름 및 사진 단계를 지금 열기';
+
+  @override
   String get drawerDebugHungerDown => '펫 배고픔 -10';
 
   @override
@@ -823,6 +830,15 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get profileAvatarAdjustUnsupportedPlatform =>
       '이 플랫폼에서는 현재 사진 조정을 지원하지 않습니다.';
+
+  @override
+  String get profileAvatarEditorHint => '드래그로 위치를 조정하고 손가락을 벌려 확대해요.';
+
+  @override
+  String get profileAvatarEditorZoom => '확대';
+
+  @override
+  String get profileAvatarEditorCenter => '가운데로';
 
   @override
   String get profileAvatarRemove => '삭제';

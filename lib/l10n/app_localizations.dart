@@ -829,6 +829,18 @@ abstract class AppLocalizations {
   /// **'Use normal one-time behavior'**
   String get drawerDebugForceOnboardingDisabled;
 
+  /// No description provided for @drawerDebugTestProfileSetupOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Profile Setup'**
+  String get drawerDebugTestProfileSetupOnboarding;
+
+  /// No description provided for @drawerDebugTestProfileSetupOnboardingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the new-user name and photo step now'**
+  String get drawerDebugTestProfileSetupOnboardingSubtitle;
+
   /// No description provided for @drawerDebugHungerDown.
   ///
   /// In en, this message translates to:
@@ -1558,6 +1570,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adjusting current photo is not supported on this platform.'**
   String get profileAvatarAdjustUnsupportedPlatform;
+
+  /// No description provided for @profileAvatarEditorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to position. Pinch to zoom.'**
+  String get profileAvatarEditorHint;
+
+  /// No description provided for @profileAvatarEditorZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom'**
+  String get profileAvatarEditorZoom;
+
+  /// No description provided for @profileAvatarEditorCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Center'**
+  String get profileAvatarEditorCenter;
 
   /// No description provided for @profileAvatarRemove.
   ///

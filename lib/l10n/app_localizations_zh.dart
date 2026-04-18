@@ -415,6 +415,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugForceOnboardingDisabled => '使用正常一次性顯示';
 
   @override
+  String get drawerDebugTestProfileSetupOnboarding => '測試個人資料設定';
+
+  @override
+  String get drawerDebugTestProfileSetupOnboardingSubtitle =>
+      '立即打開新用戶改名與上傳照片步驟';
+
+  @override
   String get drawerDebugHungerDown => '宠物飢餓度 -10';
 
   @override
@@ -817,6 +824,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileAvatarAdjustUnsupportedPlatform => '此平台暫不支援調整目前照片。';
+
+  @override
+  String get profileAvatarEditorHint => '拖曳調整位置，雙指縮放。';
+
+  @override
+  String get profileAvatarEditorZoom => '縮放';
+
+  @override
+  String get profileAvatarEditorCenter => '置中';
 
   @override
   String get profileAvatarRemove => '移除';
@@ -2061,6 +2077,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get drawerDebugForceOnboardingDisabled => '使用正常一次性顯示';
 
   @override
+  String get drawerDebugTestProfileSetupOnboarding => '測試個人資料設定';
+
+  @override
+  String get drawerDebugTestProfileSetupOnboardingSubtitle =>
+      '立即打開新用戶改名與上傳照片步驟';
+
+  @override
   String get drawerDebugHungerDown => '寵物飢餓度 -10';
 
   @override
@@ -2460,6 +2483,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileAvatarAdjustUnsupportedPlatform => '此平台暫不支援調整目前照片。';
+
+  @override
+  String get profileAvatarEditorHint => '拖曳調整位置，雙指縮放。';
+
+  @override
+  String get profileAvatarEditorZoom => '縮放';
+
+  @override
+  String get profileAvatarEditorCenter => '置中';
 
   @override
   String get profileAvatarRemove => '移除';

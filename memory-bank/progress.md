@@ -9,8 +9,17 @@ Active progress stays current-state focused. Full snapshots:
 - Profile bootstrap is centralized in `ProfileBootstrapService`; Home/Profile
   share missing-profile creation and timezone sync.
 - Profile photo avatar uploads now use the deployed `avatar_upload` Edge
-  Function/R2 path with local UI error handling; they no longer write directly
-  to a Supabase Storage bucket.
+  Function/R2 path with local UI error handling and shared adjust-before-upload
+  framing; they no longer write directly to a Supabase Storage bucket.
+- Profile and new-user onboarding avatar uploads share the full-screen fixed
+  circle framing editor. It supports bounded drag, pinch zoom, slider zoom, and
+  center reset; Save persists the `avatar_view_v2` fragment, while Cancel leaves
+  the current avatar unchanged.
+- Debug-admin tools include a one-shot Profile Setup onboarding preview for
+  testing the new-user name/photo entry point without rewriting persisted
+  onboarding completion state.
+- Remote Profile photo avatars still support non-destructive framing adjustment
+  through the same editor; saving only updates the `avatar_url` fragment.
 - Shared room item rollout is version-aware across backgrounds, furniture, and
   pets. Use `.codex/skills/shared-item-rollout/SKILL.md` for future rollouts.
 - Shop-backed version-gated decor uses `get_visible_shop_items(p_app_version)`;
@@ -56,6 +65,14 @@ Active progress stays current-state focused. Full snapshots:
 - Fixed the v1.1.3 Crashlytics fatal Profile avatar upload path by removing the
   direct `app_assets` Supabase Storage write, routing through `avatar_upload`,
   handling failures locally, and bumping the app to `1.1.4+1`.
+- Unified Profile and onboarding avatar photo uploads so both pick an image,
+  open the shared framing editor immediately, and only upload after Save.
+- Added a debug drawer action to open the new-user Profile Setup onboarding
+  entry point directly for avatar upload/framing QA.
+- Restored the Profile `Adjust current photo` action after the UI refactor left
+  it as a no-op; the editor now writes framing metadata without re-uploading.
+- Reworked the shared avatar framing editor to use the same transform math as
+  final avatar rendering, preventing blank crop gaps and preview/display drift.
 - Durable feed upload queue shipped and moved compression/`feed_validate` out of
   `FeedCaptureView`; verified with focused queue/chat tests, `flutter analyze`,
   and `flutter test`.

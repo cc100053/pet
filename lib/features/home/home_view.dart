@@ -41,12 +41,14 @@ import '../../shared/debug/memory_diagnostics_sheet.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/avatar_position_editor_page.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import '../../shared/upload_limits.dart';
+import '../../shared/utils/avatar_display_position.dart';
 import '../chat/chat_room_view_v2.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
@@ -1329,6 +1331,29 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  void _debugShowProfileSetupOnboarding() {
+    if (!_isDebugAdmin) {
+      return;
+    }
+    final defaultNickname = _defaultProfileNickname;
+    _onboardingProfileNicknameController
+      ..text = defaultNickname
+      ..selection = TextSelection.collapsed(offset: defaultNickname.length);
+
+    setState(() {
+      _debugAlwaysShowOnboarding = true;
+      _debugForceOnboardingHidden = false;
+      _basicOnboardingReady = true;
+      _basicOnboardingDismissed = false;
+      _basicOnboardingCompleted = false;
+      _basicOnboardingStep = _BasicOnboardingStep.profileSetup;
+      _showRoomSelection = true;
+      _onboardingProfileSaving = false;
+      _onboardingProfileError = null;
+      _onboardingProfileAvatarUrl = '';
+    });
+  }
+
   bool get _hasProPlanAccess =>
       (_isDebugAdmin && _debugProPlan) || _revenueCatProPlan;
 
@@ -1565,7 +1590,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     final message = level <= 10
         ? l10n.chatPetHungryUrgentMessage(petName)
         : l10n.chatPetHungryReminderMessage(petName);
-    showJuiceToast(context: context, message: message, tone: AppDialogTone.warning);
+    showJuiceToast(
+      context: context,
+      message: message,
+      tone: AppDialogTone.warning,
+    );
   }
 
   Future<bool> _ensureDebugAdminAccess() async {
@@ -5391,6 +5420,17 @@ class _HomeViewState extends ConsumerState<HomeView>
                       value: _debugAlwaysShowOnboarding,
                       onChanged: (value) =>
                           unawaited(_setDebugAlwaysShowOnboarding(value)),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.person_add_alt_1_outlined),
+                      title: Text(l10n.drawerDebugTestProfileSetupOnboarding),
+                      subtitle: Text(
+                        l10n.drawerDebugTestProfileSetupOnboardingSubtitle,
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _debugShowProfileSetupOnboarding();
+                      },
                     ),
                   ],
                 ),

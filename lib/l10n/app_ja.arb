@@ -232,6 +232,8 @@
   "drawerDebugForceOnboarding": "毎回オンボーディングを表示",
   "drawerDebugForceOnboardingEnabled": "アプリ起動ごとに表示",
   "drawerDebugForceOnboardingDisabled": "通常の一回表示動作",
+  "drawerDebugTestProfileSetupOnboarding": "プロフィール設定をテスト",
+  "drawerDebugTestProfileSetupOnboardingSubtitle": "新規ユーザーの名前と写真ステップを今すぐ開く",
   "drawerDebugHungerDown": "ペット空腹度 -10",
   "drawerDebugAddExp": "経験値 +10",
   "drawerDebugSpawnPoop": "うんちさせる",
@@ -439,6 +441,9 @@
   "profileAvatarAdjustCurrent": "現在の写真を調整",
   "profileAvatarAdjustUnavailable": "調整できるアップロード済み写真がありません。",
   "profileAvatarAdjustUnsupportedPlatform": "このプラットフォームでは現在の写真調整に対応していません。",
+  "profileAvatarEditorHint": "ドラッグで位置調整。ピンチで拡大縮小。",
+  "profileAvatarEditorZoom": "ズーム",
+  "profileAvatarEditorCenter": "中央へ",
   "profileAvatarRemove": "削除",
   "profileCoinsLabel": "キャンディ: {amount}",
   "@profileCoinsLabel": {

@@ -417,6 +417,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugForceOnboardingDisabled => '通常の一回表示動作';
 
   @override
+  String get drawerDebugTestProfileSetupOnboarding => 'プロフィール設定をテスト';
+
+  @override
+  String get drawerDebugTestProfileSetupOnboardingSubtitle =>
+      '新規ユーザーの名前と写真ステップを今すぐ開く';
+
+  @override
   String get drawerDebugHungerDown => 'ペット空腹度 -10';
 
   @override
@@ -817,6 +824,15 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get profileAvatarAdjustUnsupportedPlatform =>
       'このプラットフォームでは現在の写真調整に対応していません。';
+
+  @override
+  String get profileAvatarEditorHint => 'ドラッグで位置調整。ピンチで拡大縮小。';
+
+  @override
+  String get profileAvatarEditorZoom => 'ズーム';
+
+  @override
+  String get profileAvatarEditorCenter => '中央へ';
 
   @override
   String get profileAvatarRemove => '削除';

@@ -438,6 +438,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use normal one-time behavior';
 
   @override
+  String get drawerDebugTestProfileSetupOnboarding => 'Test Profile Setup';
+
+  @override
+  String get drawerDebugTestProfileSetupOnboardingSubtitle =>
+      'Open the new-user name and photo step now';
+
+  @override
   String get drawerDebugHungerDown => '-10 Pet Hunger';
 
   @override
@@ -847,6 +854,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileAvatarAdjustUnsupportedPlatform =>
       'Adjusting current photo is not supported on this platform.';
+
+  @override
+  String get profileAvatarEditorHint => 'Drag to position. Pinch to zoom.';
+
+  @override
+  String get profileAvatarEditorZoom => 'Zoom';
+
+  @override
+  String get profileAvatarEditorCenter => 'Center';
 
   @override
   String get profileAvatarRemove => 'Remove';
