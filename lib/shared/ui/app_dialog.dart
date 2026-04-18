@@ -256,6 +256,7 @@ Future<T?> showJuiceToast<T>({
   String? actionLabel,
   VoidCallback? onActionPressed,
   bool barrierDismissible = true,
+  Widget? leading,
 }) {
   final theme = Theme.of(context);
   final toneStyle = _toneStyle(theme, tone);
@@ -351,7 +352,7 @@ Future<T?> showJuiceToast<T>({
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Circular Icon Area with Badge
-                        Stack(
+                        leading ?? Stack(
                           clipBehavior: Clip.none,
                           children: [
                             Container(
@@ -414,7 +415,7 @@ Future<T?> showJuiceToast<T>({
                                   message,
                                   style: GoogleFonts.mPlusRounded1c(
                                     color: accent,
-                                    fontSize: 18,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.w900,
                                     height: 1.2,
                                   ),

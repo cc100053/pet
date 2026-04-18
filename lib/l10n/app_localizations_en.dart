@@ -1687,4 +1687,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew112Bullet3 =>
       'You can now @mention room members in the chat to grab their attention.';
+
+  @override
+  String get whatsNew113Title => 'Operation Experience Upgrade';
+
+  @override
+  String get whatsNew113Bullet1 => '📸 Smoother feeding photo sharing';
+
+  @override
+  String get whatsNew113Bullet2 => '🔘 Fun button redesign with better feel';
+
+  @override
+  String get whatsNew113Bullet3 => '🛍️ Faster and seamless shop purchases';
+
+  @override
+  String get whatsNew114Title => 'Bug Fixes';
+
+  @override
+  String get whatsNew114Bullet1 =>
+      'Fixed a bug that could cause the game to crash.';
 }

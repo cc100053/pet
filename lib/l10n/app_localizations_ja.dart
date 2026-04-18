@@ -1629,5 +1629,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew112Bullet2 => '家具を左右に反転できるようになり、お部屋のレイアウトがさらに自由になりました。';
 
   @override
-  String get whatsNew112Bullet3 => 'チャットで@メンションを使って、特定のメンバーにメッセージを伝えやすくなりました。';
+  String get whatsNew112Bullet3 => 'チャットで@メンションを使って、特定のメンバーにメッセージを伝えや すくなりました。';
+
+  @override
+  String get whatsNew113Title => '操作体験の大型アップグレード';
+
+  @override
+  String get whatsNew113Bullet1 => '📸 写真送信がよりスムーズに';
+
+  @override
+  String get whatsNew113Bullet2 => '🔘 ボタン刷新！心地よい操作感';
+
+  @override
+  String get whatsNew113Bullet3 => '🛍️ ショップ購入がさらに快適に';
+
+  @override
+  String get whatsNew114Title => '不具合の修正';
+
+  @override
+  String get whatsNew114Bullet1 => 'ゲームがクラッシュする可能性がある不具合を修正しました。';
 }

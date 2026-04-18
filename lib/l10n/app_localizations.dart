@@ -3002,6 +3002,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can now @mention room members in the chat to grab their attention.'**
   String get whatsNew112Bullet3;
+
+  /// No description provided for @whatsNew113Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation Experience Upgrade'**
+  String get whatsNew113Title;
+
+  /// No description provided for @whatsNew113Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'📸 Smoother feeding photo sharing'**
+  String get whatsNew113Bullet1;
+
+  /// No description provided for @whatsNew113Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'🔘 Fun button redesign with better feel'**
+  String get whatsNew113Bullet2;
+
+  /// No description provided for @whatsNew113Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'🛍️ Faster and seamless shop purchases'**
+  String get whatsNew113Bullet3;
+
+  /// No description provided for @whatsNew114Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Fixes'**
+  String get whatsNew114Title;
+
+  /// No description provided for @whatsNew114Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed a bug that could cause the game to crash.'**
+  String get whatsNew114Bullet1;
 }
 
 class _AppLocalizationsDelegate

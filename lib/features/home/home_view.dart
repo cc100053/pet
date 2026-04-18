@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:ui' show ImageFilter, lerpDouble;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart' show kIsWeb, listEquals;
 import 'package:flutter/material.dart';

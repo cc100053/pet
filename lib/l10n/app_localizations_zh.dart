@@ -1629,6 +1629,25 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get whatsNew112Bullet3 =>
       'You can now @mention room members in the chat to grab their attention.';
+
+  @override
+  String get whatsNew113Title => 'Operation Experience Upgrade';
+
+  @override
+  String get whatsNew113Bullet1 => '📸 Smoother feeding photo sharing';
+
+  @override
+  String get whatsNew113Bullet2 => '🔘 Fun button redesign with better feel';
+
+  @override
+  String get whatsNew113Bullet3 => '🛍️ Faster and seamless shop purchases';
+
+  @override
+  String get whatsNew114Title => 'Bug Fixes';
+
+  @override
+  String get whatsNew114Bullet1 =>
+      'Fixed a bug that could cause the game to crash.';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3247,4 +3266,22 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew112Bullet3 => '現在可以在聊天室中使用 @ 提及功能來提醒房內成員。';
+
+  @override
+  String get whatsNew113Title => '操作體驗大升級';
+
+  @override
+  String get whatsNew113Bullet1 => '📸 優化餵食相片發送體驗';
+
+  @override
+  String get whatsNew113Bullet2 => '🔘 按鈕設計全面換裝，點擊感 UP';
+
+  @override
+  String get whatsNew113Bullet3 => '🛍️ 商店購買流程更順滑即時';
+
+  @override
+  String get whatsNew114Title => '錯誤修復';
+
+  @override
+  String get whatsNew114Bullet1 => '修復了可能導致遊戲崩潰的錯誤。';
 }

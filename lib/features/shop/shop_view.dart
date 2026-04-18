@@ -217,10 +217,10 @@ class _ShopViewState extends State<ShopView> {
     _roomInventoryRevisionChannel = channel;
 
     void refreshStore() {
-      if (!mounted || widget.roomId != roomId || _loading) {
+      if (!mounted || widget.roomId != roomId) {
         return;
       }
-      unawaited(_loadStore());
+      unawaited(_loadStore(silent: true));
     }
 
     channel.onPostgresChanges(
@@ -394,11 +394,14 @@ class _ShopViewState extends State<ShopView> {
     }
   }
 
-  Future<void> _loadStore() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+  Future<void> _loadStore({bool silent = false}) async {
+    final showFullLoading = !silent && (_items.isEmpty || _error != null);
+    if (showFullLoading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -515,6 +518,10 @@ class _ShopViewState extends State<ShopView> {
       await _loadIap(user.id);
     } catch (error) {
       if (!mounted) {
+        return;
+      }
+      if (silent && _items.isNotEmpty) {
+        // Ignore background refresh errors if we already have items
         return;
       }
       setState(() {

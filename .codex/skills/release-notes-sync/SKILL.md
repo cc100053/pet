@@ -113,3 +113,5 @@ asc localizations list --version <VERSION_ID> --output table
 - If the version already exists in the bundled catalog, update that version’s localized keys instead of duplicating the entry.
 - If the ASC locale file is missing, create it with only the fields being managed.
 - If asked to sync multiple locales later, add only the locales the user actually provides.
+- **File Integrity:** For small `.strings` or `.arb` files, prefer `write_file` over `replace` to avoid partial string remnants or unclosed quotes.
+- **ASC Format:** Always ensure `.strings` files end exactly after the last semicolon; trailing content from previous `replace` calls will cause ASC upload errors.

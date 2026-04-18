@@ -1,5 +1,10 @@
 # Lessons
 
+## 2026-04-18
+- **Localization File Handling:** For small localization files (like `.strings` or `.arb`), prefer using `write_file` to overwrite the entire content instead of multiple `replace` calls. This prevents "ghost" content or duplicate entries caused by overlapping matches.
+- **Strings File Integrity:** App Store Connect `.strings` files are extremely sensitive to trailing content and unclosed quotes. Always verify the file ends exactly after the last semicolon and that no partial strings from previous versions remain at the bottom.
+- **Catalog Entry Point:** When adding a new "What's New" version, ensure the entry is added to BOTH the `entries` list at the top AND the builder methods at the bottom of `app_whats_new_catalog.dart`. Missing either will lead to unused elements or missing UI.
+
 ## 2026-04-15
 - When the user corrects a rollout/version assumption, treat the explicit
   version as product intent and update the task plan before implementation; do

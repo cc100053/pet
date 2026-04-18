@@ -144,13 +144,14 @@ flutter run
 
 ### Setup
 - Repo target Supabase project: `ilxzpszgirhwxpeocygs` (`https://ilxzpszgirhwxpeocygs.supabase.co`)
-- Migrations: `supabase/migrations/` (run in Supabase SQL editor).
+- Migrations: `supabase/migrations/` (apply through Supabase MCP per the workflow below).
 - Seed data: `supabase/seed.sql`.
 - Login (for MCP tooling): `codex mcp login supabase`.
 
 ### Edge functions
 - Functions live in `supabase/functions/`.
 - If an edge function uses auth quirks, document it in `docs/testing.md` and keep security tradeoffs explicit.
+- Hunger tick scheduling is server-side: see `docs/hunger_tick_schedule_report.md` for the `pg_cron` job, `hunger_tick_dispatch` behavior, and manual verification SQL.
 
 ## Repo-specific workflows
 

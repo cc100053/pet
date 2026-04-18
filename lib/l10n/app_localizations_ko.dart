@@ -1637,5 +1637,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew112Bullet2 => '가구를 좌우로 반전할 수 있어 더욱 자유로운 방 꾸미기가 가능해졌습니다.';
 
   @override
-  String get whatsNew112Bullet3 => '채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니다.';
+  String get whatsNew112Bullet3 => '채팅에서 @멘션을 사용하여 특정 멤버에게 메시지를 강조할 수 있습니 다。';
+
+  @override
+  String get whatsNew113Title => '조작 경험 대규모 업그레이드';
+
+  @override
+  String get whatsNew113Bullet1 => '📸 사진 전송이 더욱 원활해졌어요';
+
+  @override
+  String get whatsNew113Bullet2 => '🔘 버튼 개편! 기분 좋은 터치감';
+
+  @override
+  String get whatsNew113Bullet3 => '🛍️ 더욱 빠르고 쾌적한 상점 쇼핑';
+
+  @override
+  String get whatsNew114Title => '버그 수정';
+
+  @override
+  String get whatsNew114Bullet1 => '게임이 충돌할 수 있는 버그를 수정했습니다.';
 }

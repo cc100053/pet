@@ -9,11 +9,12 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
 import '../../services/crash/crash_reporting_service.dart';
 import '../../shared/ui/app_dialog.dart';
+import '../../shared/ui/user_avatar.dart';
 import '../whats_new/app_whats_new_catalog.dart';
 import '../whats_new/app_whats_new_entry.dart';
-import '../whats_new/whats_new_dialog.dart';
 import '../whats_new/whats_new_policy.dart';
 import '../whats_new/whats_new_service.dart';
+import '../whats_new/whats_new_toast_body.dart';
 import 'force_update_debug_tool.dart';
 import 'update_policy.dart';
 
@@ -250,33 +251,59 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     required String shownEventName,
     required String dismissedEventName,
   }) async {
-    if (_dialogShowing) {
-      return;
-    }
     if (!mounted) {
       return;
     }
-    _dialogShowing = true;
-    try {
-      unawaited(
-        _logEventSafe(shownEventName, parameters: {'version': version}),
-      );
-      await showAppDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => WhatsNewDialog(version: version, entry: entry),
-      );
-      if (markShown) {
-        await _whatsNewService.markShown(
-          version: version,
-          currentReleaseSignature: releaseSignature,
+
+    unawaited(
+      _logEventSafe(shownEventName, parameters: {'version': version}),
+    );
+
+    final l10n = AppLocalizations.of(context)!;
+    showJuiceToast(
+      context: context,
+      message: '${l10n.whatsNewDialogTitle} $version',
+      leading: Container(
+        height: 56,
+        width: 56,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Image.asset(
+            UserAvatar.defaultAvatarAssetPath,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      body: WhatsNewToastBody(version: version, entry: entry),
+      tone: AppDialogTone.info,
+      position: JuicePosition.center,
+      actionLabel: entry.actionLabel(l10n) ?? l10n.whatsNewContinueAction,
+      onActionPressed: () {
+        unawaited(
+          _logEventSafe(dismissedEventName, parameters: {'version': version}),
         );
-      }
-      unawaited(
-        _logEventSafe(dismissedEventName, parameters: {'version': version}),
+      },
+    );
+
+    if (markShown) {
+      await _whatsNewService.markShown(
+        version: version,
+        currentReleaseSignature: releaseSignature,
       );
-    } finally {
-      _dialogShowing = false;
     }
   }
 

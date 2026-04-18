@@ -1,5 +1,59 @@
 # TODO
 
+# Plan (2026-04-18 Profile Avatar Upload Crash v1.1.4)
+- [x] Replace Profile photo avatar upload direct Supabase Storage call with the deployed `avatar_upload` Edge Function/R2 path.
+- [x] Handle Profile avatar upload failures locally so missing bucket/config/network errors do not escape to Crashlytics as fatal zoned errors.
+- [x] Bump app version from `1.1.3+1` to `1.1.4+1`.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`; record results and current-state notes.
+
+# Review (2026-04-18 Profile Avatar Upload Crash v1.1.4)
+- [x] Implemented with one pre-existing unrelated full-suite failure still present.
+- Scope:
+  - Replaced Profile custom avatar direct Supabase Storage upload to missing `app_assets` with the deployed `avatar_upload` Edge Function path.
+  - Reused the existing upload MIME/size limits and Supabase access-token refresh retry for 401 Edge Function responses.
+  - Caught Profile avatar upload errors locally and displays localized `userFacingError(...)` in a danger toast instead of letting the exception escape to `runZonedGuarded`.
+  - Bumped `pubspec.yaml` to `1.1.4+1`.
+- Verification:
+  - `dart format lib/features/profile/profile_view.dart`
+  - `flutter analyze`: passed, no issues found.
+  - `rg "storage\\.from\\('app_assets'\\)|from\\(\\\"app_assets\\\"\\)|uploadBinary\\(" lib test`: no matches.
+  - `flutter test test/services/profile/profile_bootstrap_service_test.dart test/services/crash/crash_reporting_service_test.dart`: passed.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` failures already recorded above; the env-gated feed integration test skipped due missing Supabase test env vars.
+
+# Plan (2026-04-18 AGENTS + Memory-Bank Optimization)
+- [x] Read required repo guidance, active memory-bank files, task notes, workflow docs/skills/scripts/functions, and check git status.
+- [x] Measure active memory-bank line counts, archive any file before compacting it, and keep active files current-state focused.
+- [x] Patch `AGENTS.md` only for grounded workflow/command corrections or additions discovered from local sources.
+- [x] Review diffs for overreach, then run required verification: `wc -l memory-bank/*.md`, `git diff --stat`, `flutter analyze`, and `flutter test`.
+- [x] Record before/after line counts, archive paths, verification results, and remaining notes in this file.
+
+# Review (2026-04-18 AGENTS + Memory-Bank Optimization)
+- [x] Implemented with one unrelated verification failure recorded.
+- Scope:
+  - Updated `AGENTS.md` Supabase setup guidance so migrations point to the MCP-first workflow instead of the SQL editor.
+  - Added a grounded Edge Function workflow pointer to `docs/hunger_tick_schedule_report.md` for server-side hunger tick cron/manual verification.
+  - Compacted active `architecture.md`, `database-schema.md`, and `progress.md` into current-state summaries with pointers to source-of-truth files and archive snapshots.
+  - Did not edit app/runtime code.
+- Active memory-bank line counts:
+  - Before: `architecture.md` 103, `database-schema.md` 116, `progress.md` 129, `tech-stack.md` 53, `ui-ux-guidelines.md` 81; total 482.
+  - After: `architecture.md` 72, `database-schema.md` 92, `progress.md` 71, `tech-stack.md` 53, `ui-ux-guidelines.md` 81; total 369.
+- Archived snapshots:
+  - `memory-bank/archive/architecture_20260418_pre_compaction.md` (103 lines)
+  - `memory-bank/archive/database_schema_20260418_pre_compaction.md` (116 lines)
+  - `memory-bank/archive/progress_20260418_pre_compaction.md` (129 lines)
+- Diff review:
+  - Scoped tracked diff: `AGENTS.md`, three active memory-bank files, and `tasks/todo.md` only (`217 insertions`, `295 deletions`).
+  - `git status` still shows pre-existing unrelated app/localization/release-note changes outside this task; left untouched.
+- Verification:
+  - `wc -l memory-bank/*.md`: total 369 active lines.
+  - `git diff --stat`: reviewed; global stat includes unrelated pre-existing app/release changes.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: failed in `test/shared/force_update/force_update_gate_test.dart`; appears unrelated to this documentation-only change because the affected force-update/What's New files were already modified outside this task. The env-gated feed integration test skipped with: `Set SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_TEST_REFRESH_TOKEN.`
+  - Focused failure details from `flutter test test/shared/force_update/force_update_gate_test.dart -r expanded`:
+    - `soft update resolves before What's New is shown`: expected no `Stability & Security Update`, but one widget was found.
+    - `same-version build upgrade shows What's New when not shown before`: expected `1.0.5+1`, actual `1.0.5+2`.
+    - `legacy install without recorded version still shows first tracked What's New`: expected `null`, actual `1.0.5`.
+
 # Plan (2026-04-17 Reliable Feed Upload Queue)
 - [x] Extract feed upload result/optimistic models out of the route-owned camera view.
 - [x] Add a persistent Riverpod/Hive-backed feed upload queue that owns upload,

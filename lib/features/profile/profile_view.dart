@@ -9,25 +9,22 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../services/analytics/analytics_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../services/env.dart';
-import '../../services/iap/revenuecat_service.dart';
 import '../../services/profile/profile_bootstrap_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/localization/app_locale_controller.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/upload_limits.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/ui/user_avatar.dart';
-import '../../shared/upload_limits.dart';
 import '../../shared/utils/avatar_display_position.dart';
 
 class ProfileView extends ConsumerStatefulWidget {
@@ -386,28 +383,21 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     setState(() => _busy = true);
     try {
       final compressed = await _compressAvatar(image);
-      final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.webp';
-      final storagePath = 'avatars/$fileName';
-
-      await _withNetworkTimeout(
-        Supabase.instance.client.storage.from('app_assets').uploadBinary(
-              storagePath,
-              compressed.bytes,
-              fileOptions: FileOptions(contentType: compressed.contentType),
-            ),
-        operation: 'upload_avatar',
-      );
-
-      final avatarUrl =
-          Supabase.instance.client.storage.from('app_assets').getPublicUrl(storagePath);
-
-      await _withNetworkTimeout(
-        Supabase.instance.client
-            .from('profiles')
-            .update({'avatar_url': avatarUrl})
-            .eq('user_id', user.id),
-        operation: 'save_profile_avatar',
-      );
+      await _uploadAvatarViaEdgeFunction(compressed);
+    } catch (error, stackTrace) {
+      if (mounted) {
+        showJuiceToast(
+          context: context,
+          message: userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'profile_avatar_upload',
+          ),
+          tone: AppDialogTone.danger,
+        );
+      }
+      return;
     } finally {
       if (mounted) {
         setState(() => _busy = false);
@@ -425,6 +415,85 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
 
     setState(_reloadProfileFuture);
+  }
+
+  Future<void> _uploadAvatarViaEdgeFunction(_CompressedImage compressed) async {
+    if (!kAllowedUploadImageContentTypes.contains(compressed.contentType)) {
+      throw Exception('invalid_image_content_type');
+    }
+    if (compressed.bytes.length > kMaxUploadImageBytes) {
+      throw Exception('image_too_large');
+    }
+
+    final dataUri =
+        'data:${compressed.contentType};base64,${base64Encode(compressed.bytes)}';
+
+    Future<FunctionResponse> invokeWithToken(String token) {
+      return Supabase.instance.client.functions.invoke(
+        'avatar_upload',
+        headers: {'Authorization': 'Bearer $token'},
+        body: {
+          'image_base64': dataUri,
+          'image_content_type': compressed.contentType,
+        },
+      );
+    }
+
+    String responseErrorSummary(FunctionResponse response) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final error = data['error']?.toString();
+        final detail = data['detail']?.toString();
+        if (error != null && error.isNotEmpty) {
+          if (detail != null && detail.isNotEmpty) {
+            return '$error:$detail';
+          }
+          return error;
+        }
+      }
+      return 'status_${response.status}';
+    }
+
+    Future<void> invokeAndValidate(String token, String operation) async {
+      final response = await _withNetworkTimeout(
+        invokeWithToken(token),
+        operation: operation,
+      );
+      if (response.status < 200 || response.status >= 300) {
+        throw Exception(
+          'avatar_upload_failed:$operation:${responseErrorSummary(response)}',
+        );
+      }
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final avatarUrl = data['avatar_url']?.toString();
+        if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
+          return;
+        }
+      }
+      throw Exception('avatar_upload_missing_avatar_url');
+    }
+
+    final accessToken = await ensureValidAccessToken();
+    if (accessToken == null) {
+      throw Exception('missing_session');
+    }
+
+    try {
+      await invokeAndValidate(accessToken, 'avatar_upload');
+    } on FunctionException catch (error) {
+      if (error.status != 401) {
+        rethrow;
+      }
+      final refreshed = await ensureValidAccessTokenWithDebug(
+        forceRefresh: true,
+      );
+      final refreshedToken = refreshed.token;
+      if (refreshedToken == null) {
+        rethrow;
+      }
+      await invokeAndValidate(refreshedToken, 'avatar_upload_retry');
+    }
   }
 
   Future<void> _savePresetAvatar(int presetId) async {
@@ -601,9 +670,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (mounted) {
         showJuiceToast(
           context: context,
-          message: AppLocalizations.of(context)!.profileDeleteFailed(
-            userFacingError(context, error),
-          ),
+          message: AppLocalizations.of(
+            context,
+          )!.profileDeleteFailed(userFacingError(context, error)),
           tone: AppDialogTone.danger,
         );
       }
@@ -716,7 +785,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildAvatarSection(BuildContext context, String? avatarUrl, String nickname) {
+  Widget _buildAvatarSection(
+    BuildContext context,
+    String? avatarUrl,
+    String nickname,
+  ) {
     return Center(
       child: Stack(
         children: [
@@ -809,7 +882,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
                   itemCount: 8,
-                  separatorBuilder: (_, __) => const Gap(12),
+                  separatorBuilder: (_, _) => const Gap(12),
                   itemBuilder: (context, index) {
                     final presetId = index + 1;
                     final isActive = activePreset == presetId;
@@ -841,7 +914,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               const Gap(16),
               if (currentAvatarUrl != null)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.red,
+                  ),
                   title: Text(
                     l10n.profileAvatarRemove,
                     style: const TextStyle(color: Colors.red),
@@ -903,7 +979,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildInfoSection(BuildContext context, int coins, AppLocalizations l10n) {
+  Widget _buildInfoSection(
+    BuildContext context,
+    int coins,
+    AppLocalizations l10n,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
