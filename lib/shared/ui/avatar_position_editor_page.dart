@@ -198,16 +198,14 @@ class _AvatarPositionEditorPageState extends State<AvatarPositionEditorPage> {
                   onApply: () => _save(cropSize),
                 ),
                 Expanded(
-                  child: Center(
-                    child: _AvatarCropFrame(
-                      cropSize: cropSize,
-                      imageProvider: widget.imageProvider,
-                      transform: transform,
-                      onScaleStart: (details) =>
-                          _handleScaleStart(details, cropSize),
-                      onScaleUpdate: (details) =>
-                          _handleScaleUpdate(details, cropSize),
-                    ),
+                  child: _AvatarEditorStage(
+                    cropSize: cropSize,
+                    imageProvider: widget.imageProvider,
+                    transform: transform,
+                    onScaleStart: (details) =>
+                        _handleScaleStart(details, cropSize),
+                    onScaleUpdate: (details) =>
+                        _handleScaleUpdate(details, cropSize),
                   ),
                 ),
                 _EditorControls(
@@ -328,8 +326,8 @@ class _TopActionButton extends StatelessWidget {
   }
 }
 
-class _AvatarCropFrame extends StatelessWidget {
-  const _AvatarCropFrame({
+class _AvatarEditorStage extends StatelessWidget {
+  const _AvatarEditorStage({
     required this.cropSize,
     required this.imageProvider,
     required this.transform,
@@ -345,51 +343,121 @@ class _AvatarCropFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.fromSize(
-      size: cropSize,
-      child: GestureDetector(
-        key: const ValueKey<String>('avatar-editor-gesture-area'),
-        behavior: HitTestBehavior.opaque,
-        onScaleStart: onScaleStart,
-        onScaleUpdate: onScaleUpdate,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black,
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    blurRadius: 24,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stageSize = Size(constraints.maxWidth, constraints.maxHeight);
+        final cropCenter = Offset(stageSize.width / 2, stageSize.height / 2);
+        final cropRect = Rect.fromCenter(
+          center: cropCenter,
+          width: cropSize.width,
+          height: cropSize.height,
+        );
+
+        return GestureDetector(
+          key: const ValueKey<String>('avatar-editor-gesture-area'),
+          behavior: HitTestBehavior.opaque,
+          onScaleStart: onScaleStart,
+          onScaleUpdate: onScaleUpdate,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const ColoredBox(color: Colors.black),
+              _StageBackgroundImage(
+                imageProvider: imageProvider,
+                transform: transform,
+                cropCenter: cropCenter,
               ),
-            ),
-            ClipOval(
-              child: ColoredBox(
-                color: Colors.black,
-                child: _AvatarFramedImage(
-                  imageProvider: imageProvider,
-                  transform: transform,
-                ),
-              ),
-            ),
-            IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.92),
-                    width: 3,
+              ColoredBox(color: Colors.black.withValues(alpha: 0.56)),
+              Positioned.fromRect(
+                rect: cropRect,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              Positioned.fromRect(
+                rect: cropRect,
+                child: ClipOval(
+                  child: ColoredBox(
+                    color: Colors.black,
+                    child: _AvatarFramedImage(
+                      imageProvider: imageProvider,
+                      transform: transform,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fromRect(
+                rect: cropRect,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        width: 3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _StageBackgroundImage extends StatelessWidget {
+  const _StageBackgroundImage({
+    required this.imageProvider,
+    required this.transform,
+    required this.cropCenter,
+  });
+
+  final ImageProvider imageProvider;
+  final AvatarFramingTransform transform;
+  final Offset cropCenter;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left:
+                cropCenter.dx -
+                (transform.baseImageSize.width / 2) +
+                transform.offset.dx,
+            top:
+                cropCenter.dy -
+                (transform.baseImageSize.height / 2) +
+                transform.offset.dy,
+            width: transform.baseImageSize.width,
+            height: transform.baseImageSize.height,
+            child: Transform.scale(
+              scale: transform.effectiveScale,
+              child: Image(
+                image: imageProvider,
+                fit: BoxFit.fill,
+                width: transform.baseImageSize.width,
+                height: transform.baseImageSize.height,
+                errorBuilder: (context, error, stackTrace) =>
+                    const SizedBox.shrink(),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

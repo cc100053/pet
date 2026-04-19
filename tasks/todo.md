@@ -1,5 +1,22 @@
 # TODO
 
+# Plan (2026-04-19 Avatar Crop Context Preview)
+- [x] Replace the avatar editor's pure-black crop surroundings with a dimmed preview of the same image.
+- [x] Keep the clear circular crop preview and existing non-destructive `avatar_view_v2` save behavior unchanged.
+- [x] Run focused avatar editor tests and analyzer; record results.
+
+# Review (2026-04-19 Avatar Crop Context Preview)
+- [x] Implemented.
+- Scope:
+  - The editor stage now renders the currently framed image behind the crop circle with a dark overlay, so users can still see the photo outside the crop boundary while adjusting.
+  - The circular crop preview remains clear and still uses the same shared avatar framing transform as final avatar rendering.
+  - The gesture area covers the full editor stage, so dragging outside the circle still adjusts the photo.
+- Verification:
+  - `dart format lib/shared/ui/avatar_position_editor_page.dart`
+  - `flutter test test/shared/ui/avatar_position_editor_page_test.dart`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` What's New/force-update failures; feed integration test skipped due missing Supabase test env vars.
+
 # Plan (2026-04-18 Avatar Photo Adjustment UX)
 - [x] Extract shared avatar framing transform math so editor preview and final avatar rendering stay identical.
 - [x] Rebuild the full-screen avatar editor around a fixed circular frame with bounded drag, pinch zoom, slider zoom, and reset/center.

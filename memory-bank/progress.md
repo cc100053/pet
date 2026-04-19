@@ -13,8 +13,9 @@ Active progress stays current-state focused. Full snapshots:
   framing; they no longer write directly to a Supabase Storage bucket.
 - Profile and new-user onboarding avatar uploads share the full-screen fixed
   circle framing editor. It supports bounded drag, pinch zoom, slider zoom, and
-  center reset; Save persists the `avatar_view_v2` fragment, while Cancel leaves
-  the current avatar unchanged.
+  center reset, with a dimmed image preview outside the crop circle; Save
+  persists the `avatar_view_v2` fragment, while Cancel leaves the current avatar
+  unchanged.
 - Debug-admin tools include a one-shot Profile Setup onboarding preview for
   testing the new-user name/photo entry point without rewriting persisted
   onboarding completion state.
