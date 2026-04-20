@@ -983,6 +983,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInviteCodeTapHint => '點擊邀請碼即可複製。';
 
   @override
+  String get roomInviteCopyCodeAction => '複製邀請碼';
+
+  @override
+  String get roomInviteShareAction => '分享';
+
+  @override
+  String get roomInviteShareCaption => '來 Petttomo 和我一起玩';
+
+  @override
+  String roomInviteShareFailed(Object error) {
+    return '分享邀請失敗：$error';
+  }
+
+  @override
+  String get roomInviteLinkJoining => '正在透過邀請加入房間...';
+
+  @override
   String get roomInviteCodeCopiedTitle => '已複製';
 
   @override
@@ -2674,6 +2691,23 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomInviteCodeTapHint => '點擊邀請碼即可複製。';
+
+  @override
+  String get roomInviteCopyCodeAction => '複製邀請碼';
+
+  @override
+  String get roomInviteShareAction => '分享';
+
+  @override
+  String get roomInviteShareCaption => '來 Petttomo 和我一起玩';
+
+  @override
+  String roomInviteShareFailed(Object error) {
+    return '分享邀請失敗：$error';
+  }
+
+  @override
+  String get roomInviteLinkJoining => '正在透過邀請加入房間...';
 
   @override
   String get roomInviteCodeCopiedTitle => '已複製';

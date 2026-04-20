@@ -1853,6 +1853,36 @@ abstract class AppLocalizations {
   /// **'Tap the code to copy it.'**
   String get roomInviteCodeTapHint;
 
+  /// No description provided for @roomInviteCopyCodeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get roomInviteCopyCodeAction;
+
+  /// No description provided for @roomInviteShareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get roomInviteShareAction;
+
+  /// No description provided for @roomInviteShareCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me in Petttomo'**
+  String get roomInviteShareCaption;
+
+  /// No description provided for @roomInviteShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to share invite: {error}'**
+  String roomInviteShareFailed(Object error);
+
+  /// No description provided for @roomInviteLinkJoining.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining room from invite...'**
+  String get roomInviteLinkJoining;
+
   /// No description provided for @roomInviteCodeCopiedTitle.
   ///
   /// In en, this message translates to:

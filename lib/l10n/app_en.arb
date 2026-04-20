@@ -523,6 +523,16 @@
   "roomInviteCodeTitle": "Invite code",
   "roomInviteCodeMessage": "Share this code to invite someone to your room.",
   "roomInviteCodeTapHint": "Tap the code to copy it.",
+  "roomInviteCopyCodeAction": "Copy code",
+  "roomInviteShareAction": "Share",
+  "roomInviteShareCaption": "Join me in Petttomo",
+  "roomInviteShareFailed": "Failed to share invite: {error}",
+  "@roomInviteShareFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomInviteLinkJoining": "Joining room from invite...",
   "roomInviteCodeCopiedTitle": "Copied",
   "roomInviteCodeCopiedMessage": "Invite friends now and raise your pet together!",
   "roomInviteCodeRegenerated": "Invite code regenerated.",

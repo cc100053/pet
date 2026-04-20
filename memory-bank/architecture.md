@@ -15,7 +15,8 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 
 ## App Shape
 - `lib/features/home/`: signed-in shell, room switching, pet HUD, decor, unread
-  badges, feed/gallery previews, and shared-item compatibility prompts.
+  badges, room invite code/link sharing, feed/gallery previews, and shared-item
+  compatibility prompts.
 - `lib/features/chat/`: active route is `ChatRoomViewV2`; it owns bounded
   message windows, Hive cache refresh, realtime, replies/reactions, keyboard
   behavior, and photo/chat actions.
@@ -48,6 +49,10 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   while Chat observes queue events only for local optimistic row reconciliation.
 - Force-update and What's New are sequenced: hard updates block What's New, then
   eligible upgraded versions show bundled release notes once.
+- Room invites use reusable active codes for normal share/copy. Flutter builds
+  hosted links at `https://pet-app-702be.web.app/invite?code=...`, handles
+  app/universal links through `AppInviteLinkService`, persists pending codes for
+  signed-out opens, and joins with live `join_room_by_code` after Home bootstrap.
 
 ## Backend And Platform
 - Supabase Auth supports Apple/Google. Postgres is room-scoped with strict RLS;
@@ -63,6 +68,9 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 - Android notifications use native room-thread `MessagingStyle`; iOS uses
   `PetTomoNotificationServiceExtension`. Crashlytics dSYM upload runs through
   `ios/scripts/upload_crashlytics_symbols.sh`.
+- Firebase Hosting serves the invite fallback page plus `.well-known`
+  association files for App Links/Universal Links. Production release still
+  needs verified platform entitlement/signing setup.
 - ML Kit binary frameworks do not support iOS Simulator on Xcode 26+; see
   `memory-bank/tech-stack.md` for the pubspec toggle.
 

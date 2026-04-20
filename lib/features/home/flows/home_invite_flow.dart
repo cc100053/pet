@@ -125,11 +125,40 @@ extension _HomeInviteFlow on _HomeViewState {
     );
   }
 
+  Future<void> _shareInviteCode(String code) async {
+    final l10n = AppLocalizations.of(context)!;
+    final displayCode = AppInviteLinkService.normalizeInviteCode(code);
+    if (displayCode == null) {
+      return;
+    }
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: AppInviteLinkService.shareText(
+            caption: l10n.roomInviteShareCaption,
+            code: displayCode,
+          ),
+          title: l10n.roomInviteCodeTitle,
+          subject: l10n.roomInviteCodeTitle,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showJuiceToast(
+        context: context,
+        message: l10n.roomInviteShareFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
+      );
+    }
+  }
+
   Future<void> _showInviteCodeDialog(String code) async {
     final l10n = AppLocalizations.of(context)!;
     var showingCopiedPrompt = false;
-    final displayCode = code.trim();
-    if (displayCode.isEmpty) {
+    final displayCode = AppInviteLinkService.normalizeInviteCode(code);
+    if (displayCode == null) {
       return;
     }
     showJuiceToast(
@@ -142,16 +171,14 @@ extension _HomeInviteFlow on _HomeViewState {
           Text(
             l10n.roomInviteCodeMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.black.withValues(alpha: 0.65),
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.black.withValues(alpha: 0.65),
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 16),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () async {
+          JuicyScaleButton(
+            onTap: () {
+              unawaited(() async {
                 if (showingCopiedPrompt) {
                   return;
                 }
@@ -161,26 +188,23 @@ extension _HomeInviteFlow on _HomeViewState {
                 } finally {
                   showingCopiedPrompt = false;
                 }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.black87, width: 1.5),
-                ),
-                child: Center(
-                  child: Text(
-                    displayCode,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                    ),
+              }());
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black87, width: 1.5),
+              ),
+              child: Center(
+                child: Text(
+                  displayCode,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2,
                   ),
                 ),
               ),
@@ -191,9 +215,49 @@ extension _HomeInviteFlow on _HomeViewState {
             l10n.roomInviteCodeTapHint,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.black.withValues(alpha: 0.65),
-                  fontWeight: FontWeight.w600,
+              color: Colors.black.withValues(alpha: 0.65),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () {
+                    unawaited(() async {
+                      if (showingCopiedPrompt) {
+                        return;
+                      }
+                      showingCopiedPrompt = true;
+                      try {
+                        await _copyInviteCode(displayCode);
+                      } finally {
+                        showingCopiedPrompt = false;
+                      }
+                    }());
+                  },
+                  child: _InviteActionButton(
+                    icon: Icons.copy_rounded,
+                    label: l10n.roomInviteCopyCodeAction,
+                    backgroundColor: Colors.white,
+                  ),
                 ),
+              ),
+              const Gap(10),
+              Expanded(
+                child: JuicyScaleButton(
+                  onTap: () {
+                    unawaited(_shareInviteCode(displayCode));
+                  },
+                  child: _InviteActionButton(
+                    icon: Icons.ios_share_rounded,
+                    label: l10n.roomInviteShareAction,
+                    backgroundColor: const Color(0xFFFFD600),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -213,7 +277,7 @@ extension _HomeInviteFlow on _HomeViewState {
     _setInviteCodeLoading(true);
     try {
       final response = await Supabase.instance.client.rpc(
-        'create_room_invite_code',
+        'get_or_create_room_invite_code',
         params: {'p_room_id': roomId},
       );
       final code = _extractInviteCode(response);
@@ -342,6 +406,58 @@ extension _HomeInviteFlow on _HomeViewState {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InviteActionButton extends StatelessWidget {
+  const _InviteActionButton({
+    required this.icon,
+    required this.label,
+    required this.backgroundColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 46),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            offset: const Offset(0, 4),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: Colors.black),
+          const Gap(6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.mPlusRounded1c(
+                color: Colors.black,
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

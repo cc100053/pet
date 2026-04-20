@@ -990,6 +990,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomInviteCodeTapHint => '코드를 탭하면 복사돼요.';
 
   @override
+  String get roomInviteCopyCodeAction => '코드 복사';
+
+  @override
+  String get roomInviteShareAction => '공유';
+
+  @override
+  String get roomInviteShareCaption => 'Petttomo에서 함께해요';
+
+  @override
+  String roomInviteShareFailed(Object error) {
+    return '초대 공유 실패: $error';
+  }
+
+  @override
+  String get roomInviteLinkJoining => '초대로 방에 참가하는 중...';
+
+  @override
   String get roomInviteCodeCopiedTitle => '복사 완료';
 
   @override

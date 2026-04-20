@@ -1,5 +1,37 @@
 # TODO
 
+# Plan (2026-04-20 Invite Link Share Flow)
+- [x] Verify current invite UI, link/deep-link, and live RPC behavior.
+- [x] Add reusable invite-code RPC migration and apply it through Supabase MCP.
+- [x] Add invite-link parsing, pending invite persistence, and deep-link handling.
+- [x] Update invite UI to keep copy code and add system share-sheet sharing.
+- [x] Add Firebase Hosting invite fallback and app/universal-link association files.
+- [x] Add localization keys, regenerate l10n, and update memory-bank current state.
+- [x] Run formatting, `flutter analyze`, and `flutter test`; record results.
+
+# Review (2026-04-20 Invite Link Share Flow)
+- [x] Implemented.
+- Scope:
+  - Added and live-applied Supabase migration `20260420113000_add_reusable_room_invite_code_rpc.sql`.
+  - Added `get_or_create_room_invite_code(...)` so normal share/copy reuses an existing active code and keeps `rooms.invite_code` synced for old clients.
+  - Kept refresh semantics separate through the existing explicit invite-code RPCs.
+  - Added `AppInviteLinkService` for hosted/custom invite URL parsing, share-text construction, pending invite persistence, initial-link handling, and runtime link stream handling.
+  - Fixed client joins to use live `join_room_by_code`, with pending invite auto-join after Home bootstrap.
+  - Updated the invite dialog to keep tap/copy code and add a system Share button for WhatsApp/LINE/Telegram/etc. through the platform share sheet.
+  - Added Firebase Hosting `/invite` fallback page, AASA, Android assetlinks, Android intent filters, and iOS associated-domain entitlement.
+  - Added EN/JA/KO/zh/zh-TW localized invite share/copy/pending/error copy and regenerated l10n.
+- User action required:
+  - Done 2026-04-20: Firebase Hosting `/invite` and `.well-known/*` deployed to `https://pet-app-702be.web.app`.
+  - Done 2026-04-20: iOS Associated Domains enabled on Apple Developer bundle ID `ZX7BF33P9V` for `com.cc100053.pet`; local entitlements include `applinks:pet-app-702be.web.app` and iOS signing is automatic under team `QRLFBRL2J2`.
+  - Replace/add the Android production Play/App Signing SHA-256 in `html/.well-known/assetlinks.json`; the current value is the local debug keystore fingerprint.
+- Verification:
+  - Supabase MCP read confirmed `get_or_create_room_invite_code`, `join_room_by_code`, `create_room_invite_code`, and `regenerate_invite_code` are present.
+  - `flutter gen-l10n`: passed; existing zh untranslated-message notice remains.
+  - `dart format ...`: passed.
+  - `flutter test test/services/invite/invite_link_service_test.dart`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-20 Flutter Test Fix)
 - [x] Run `flutter test` and confirm the active failure surface.
 - [x] Trace the failing test(s) to the smallest root-cause code or test mismatch.

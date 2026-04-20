@@ -523,6 +523,16 @@
   "roomInviteCodeTitle": "招待コード",
   "roomInviteCodeMessage": "このコードを共有してルームに招待してください。",
   "roomInviteCodeTapHint": "コードをタップするとコピーできます。",
+  "roomInviteCopyCodeAction": "コードをコピー",
+  "roomInviteShareAction": "共有",
+  "roomInviteShareCaption": "Petttomoで一緒に遊ぼう",
+  "roomInviteShareFailed": "招待の共有に失敗しました: {error}",
+  "@roomInviteShareFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomInviteLinkJoining": "招待からルームに参加中...",
   "roomInviteCodeCopiedTitle": "コピーしました",
   "roomInviteCodeCopiedMessage": "今すぐ友だちを招待して、いっしょにペットを育てましょう！",
   "roomInviteCodeRegenerated": "招待コードを再生成しました。",

@@ -24,7 +24,9 @@ migration that rewrites the object before proposing or applying changes.
   synced through `ProfileBootstrapService`.
 - `rooms.timezone` drives room night mode; `rooms.invite_code` remains the
   legacy primary invite code while `room_invite_codes` supports up to 3 active
-  codes per room.
+  codes per room. Normal share flow calls `get_or_create_room_invite_code(...)`
+  to reuse an existing active code and keep `rooms.invite_code` synced; explicit
+  refresh/revoke paths still use `create_room_invite_code`/`regenerate_invite_code`.
 - `pet_state` stores hunger/mood/hygiene, poop state, action timestamps, feed
   burst tracking, and one-time hunger alert markers/message IDs.
 - `pet_hunger_tick_schedule.next_check_at` is the server-side hunger due cursor.
@@ -58,8 +60,9 @@ migration that rewrites the object before proposing or applying changes.
   app versions.
 
 ## RPC Watchlist
-- Room lifecycle: `create_room`, `join_room_by_code`, invite-code RPCs,
-  `leave_room`, `regenerate_invite_code`
+- Room lifecycle: `create_room`, `join_room_by_code`,
+  `get_or_create_room_invite_code`, `create_room_invite_code`,
+  `list_room_invite_codes`, `leave_room`, `regenerate_invite_code`
 - Pet/gameplay: `apply_pet_action`, `claim_action_reward`, `tick_pet_state`,
   `tick_pet_state_as_system`, `refresh_pet_hunger_tick_schedule`,
   `claim_feed_double_reward`

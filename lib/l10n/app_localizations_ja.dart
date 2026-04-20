@@ -983,6 +983,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomInviteCodeTapHint => 'コードをタップするとコピーできます。';
 
   @override
+  String get roomInviteCopyCodeAction => 'コードをコピー';
+
+  @override
+  String get roomInviteShareAction => '共有';
+
+  @override
+  String get roomInviteShareCaption => 'Petttomoで一緒に遊ぼう';
+
+  @override
+  String roomInviteShareFailed(Object error) {
+    return '招待の共有に失敗しました: $error';
+  }
+
+  @override
+  String get roomInviteLinkJoining => '招待からルームに参加中...';
+
+  @override
   String get roomInviteCodeCopiedTitle => 'コピーしました';
 
   @override

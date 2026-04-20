@@ -1016,6 +1016,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomInviteCodeTapHint => 'Tap the code to copy it.';
 
   @override
+  String get roomInviteCopyCodeAction => 'Copy code';
+
+  @override
+  String get roomInviteShareAction => 'Share';
+
+  @override
+  String get roomInviteShareCaption => 'Join me in Petttomo';
+
+  @override
+  String roomInviteShareFailed(Object error) {
+    return 'Failed to share invite: $error';
+  }
+
+  @override
+  String get roomInviteLinkJoining => 'Joining room from invite...';
+
+  @override
   String get roomInviteCodeCopiedTitle => 'Copied';
 
   @override

@@ -1,6 +1,8 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-class AppSettingsRepository {
+import '../invite/pending_invite_code_store.dart';
+
+class AppSettingsRepository implements PendingInviteCodeStore {
   AppSettingsRepository._();
 
   static final AppSettingsRepository instance = AppSettingsRepository._();
@@ -30,6 +32,7 @@ class AppSettingsRepository {
       'onboarding_basic_started_at_iso';
   static const String _onboardingBasicCompletedAtIsoKey =
       'onboarding_basic_completed_at_iso';
+  static const String _pendingInviteCodeKey = 'pending_invite_code';
 
   Box<dynamic>? _box;
   bool _hadExistingBoxAtInit = false;
@@ -202,5 +205,17 @@ class AppSettingsRepository {
       _onboardingBasicCompletedAtIsoKey,
       value.toUtc().toIso8601String(),
     );
+  }
+
+  @override
+  String? get pendingInviteCode => _box?.get(_pendingInviteCodeKey) as String?;
+
+  @override
+  Future<void> setPendingInviteCode(String? code) async {
+    if (code == null || code.isEmpty) {
+      await _box?.delete(_pendingInviteCodeKey);
+      return;
+    }
+    await _box?.put(_pendingInviteCodeKey, code);
   }
 }

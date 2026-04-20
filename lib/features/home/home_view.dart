@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,6 +30,7 @@ import '../../services/home/home_bootstrap_cache_repository.dart';
 import '../../services/iap/revenuecat_service.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/ads/rewarded_ads_service.dart';
+import '../../services/invite/invite_link_service.dart';
 import '../../services/profile/profile_cache_service.dart';
 import '../../services/profile/profile_bootstrap_service.dart';
 import '../../services/review/review_prompt_service.dart';
@@ -328,6 +330,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, int> _unsupportedPlacedFurnitureCountByRoom = {};
   final Set<String> _shownDecorCompatibilityPromptKeys = <String>{};
   bool _decorCompatibilityPromptShowing = false;
+  StreamSubscription<String>? _inviteLinkSubscription;
+  bool _pendingInviteJoinRunning = false;
 
   @override
   void initState() {
@@ -351,6 +355,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     ) {
       _pendingNotificationIntent = intent;
       _processPendingNotificationIntent();
+    });
+    _inviteLinkSubscription = AppInviteLinkService.instance.inviteCodes.listen((
+      _,
+    ) {
+      unawaited(_processPendingInviteLink());
     });
     _pendingNotificationIntent ??= _fcmService.takePendingNotificationIntent();
     unawaited(_ensureCurrentAppVersion());
@@ -441,6 +450,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _roomSelectionRefreshTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
+    _inviteLinkSubscription?.cancel();
     _feedingAnimationToken++;
     _onboardingProfileNicknameController.dispose();
     _petMoveController.dispose();
@@ -574,6 +584,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       await _refreshRoomSelectionHealthBars();
     }
     _homeBootstrapCompleted = true;
+    unawaited(_processPendingInviteLink());
     _processPendingNotificationIntent();
   }
 

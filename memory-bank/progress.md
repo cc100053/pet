@@ -23,6 +23,10 @@ Active progress stays current-state focused. Full snapshots:
   through the same editor; saving only updates the `avatar_url` fragment.
 - Shared room item rollout is version-aware across backgrounds, furniture, and
   pets. Use `.codex/skills/shared-item-rollout/SKILL.md` for future rollouts.
+- Room invite sharing now reuses the current active room code by default, keeps
+  copy-code, adds system share-sheet links, stores pending invite codes from
+  app/universal links for signed-out users, and joins through live
+  `join_room_by_code` after Home bootstrap.
 - Shop-backed version-gated decor uses `get_visible_shop_items(p_app_version)`;
   old clients keep the legacy `is_active = true` path. Hidden compatibility-only
   decor uses `metadata.shop_visibility = 'hidden'`.
@@ -95,6 +99,11 @@ Active progress stays current-state focused. Full snapshots:
   `20260419123000_add_chat_message_edit_delete.sql`, localized actions and
   placeholders, optimistic update/revert behavior, cache/realtime support, and
   focused service/model/widget coverage.
+- Invite link share flow shipped with live Supabase migration
+  `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
+  `/invite` fallback, App Links/Universal Links config, localized share copy,
+  and invite-link service tests. Remaining release setup: confirm iOS Associated
+  Domains and add the Android production SHA-256 to `assetlinks.json`.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account`

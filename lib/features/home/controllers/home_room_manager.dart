@@ -483,7 +483,11 @@ extension _HomeRoomManager on _HomeViewState {
       final petId = await _loadPetId(roomId);
       if (petId == null) {
         if (mounted) {
-          showJuiceToast(context: context, message: l10n.petNotFound, tone: AppDialogTone.danger);
+          showJuiceToast(
+            context: context,
+            message: l10n.petNotFound,
+            tone: AppDialogTone.danger,
+          );
         }
         return false;
       }
@@ -520,7 +524,11 @@ extension _HomeRoomManager on _HomeViewState {
       final petId = await _loadPetId(roomId);
       if (petId == null) {
         if (mounted) {
-          showJuiceToast(context: context, message: l10n.petNotFound, tone: AppDialogTone.danger);
+          showJuiceToast(
+            context: context,
+            message: l10n.petNotFound,
+            tone: AppDialogTone.danger,
+          );
         }
         return;
       }
@@ -557,8 +565,113 @@ extension _HomeRoomManager on _HomeViewState {
     }
   }
 
-  Future<void> _joinRoomByCode() async {
+  Future<void> _processPendingInviteLink() async {
+    if (!mounted || !_homeBootstrapCompleted || _pendingInviteJoinRunning) {
+      return;
+    }
+    final pendingCode = AppInviteLinkService.instance.pendingInviteCode;
+    if (pendingCode == null || pendingCode.isEmpty) {
+      return;
+    }
+    _pendingInviteJoinRunning = true;
+    try {
+      await _joinRoomWithInviteCode(
+        pendingCode,
+        method: 'invite_link',
+        clearPendingInviteCode: true,
+      );
+    } finally {
+      _pendingInviteJoinRunning = false;
+    }
+  }
+
+  Future<bool> _joinRoomWithInviteCode(
+    String rawCode, {
+    required String method,
+    bool clearPendingInviteCode = false,
+  }) async {
     _syncCrashContextFromHome(lastAction: 'join_room_start');
+    if (_joiningRoom) {
+      return false;
+    }
+    final code = AppInviteLinkService.normalizeInviteCode(rawCode);
+    if (code == null) {
+      if (clearPendingInviteCode) {
+        await AppInviteLinkService.instance.clearPendingInviteCode();
+      }
+      return false;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    _setStateForRoomManager(() => _joiningRoom = true);
+    try {
+      if (method == 'invite_link') {
+        showJuiceSnackbar(
+          context: context,
+          message: l10n.roomInviteLinkJoining,
+        );
+      }
+      final response = await Supabase.instance.client.rpc(
+        'join_room_by_code',
+        params: {'code': code},
+      );
+      final joinedRoomId = response is String ? response : null;
+      await _fetchRooms();
+      if (!mounted) {
+        return true;
+      }
+      if (clearPendingInviteCode) {
+        await AppInviteLinkService.instance.clearPendingInviteCode();
+        if (!mounted) {
+          return true;
+        }
+      }
+      if (joinedRoomId != null && joinedRoomId.isNotEmpty) {
+        if (_isRoomLocked(joinedRoomId)) {
+          await _showRoomLockedDialog();
+          if (!mounted) {
+            return true;
+          }
+        } else {
+          _enterRoomFromSelection(joinedRoomId);
+        }
+      }
+      AnalyticsService.instance.logEvent(
+        'room_join',
+        parameters: {'method': method, 'result': 'success'},
+      );
+      _syncCrashContextFromHome(lastAction: 'join_room_success');
+      showJuiceSnackbar(context: context, message: l10n.roomJoinSuccess);
+      return true;
+    } catch (error) {
+      if (clearPendingInviteCode) {
+        await AppInviteLinkService.instance.clearPendingInviteCode();
+      }
+      unawaited(
+        CrashReportingService.instance.reportError(
+          error: error,
+          stackTrace: StackTrace.current,
+          source: 'home_join_room',
+          fatal: false,
+        ),
+      );
+      if (!mounted) {
+        return false;
+      }
+      showJuiceToast(
+        context: context,
+        message: l10n.roomJoinFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
+      );
+      return false;
+    } finally {
+      if (mounted) {
+        _setStateForRoomManager(() => _joiningRoom = false);
+      }
+    }
+  }
+
+  Future<void> _joinRoomByCode() async {
     if (_joiningRoom) {
       return;
     }
@@ -719,44 +832,7 @@ extension _HomeRoomManager on _HomeViewState {
       return;
     }
 
-    _setStateForRoomManager(() => _joiningRoom = true);
-    try {
-      await Supabase.instance.client.rpc(
-        'join_room_by_invite_code',
-        params: {'p_invite_code': code},
-      );
-      await _fetchRooms();
-      if (!mounted) {
-        return;
-      }
-      AnalyticsService.instance.logEvent(
-        'room_join',
-        parameters: {'method': 'invite_code', 'result': 'success'},
-      );
-      _syncCrashContextFromHome(lastAction: 'join_room_success');
-      showJuiceSnackbar(context: context, message: l10n.roomJoinSuccess);
-    } catch (error) {
-      unawaited(
-        CrashReportingService.instance.reportError(
-          error: error,
-          stackTrace: StackTrace.current,
-          source: 'home_join_room',
-          fatal: false,
-        ),
-      );
-      if (!mounted) {
-        return;
-      }
-      showJuiceToast(
-        context: context,
-        message: l10n.roomJoinFailed(userFacingError(context, error)),
-        tone: AppDialogTone.danger,
-      );
-    } finally {
-      if (mounted) {
-        _setStateForRoomManager(() => _joiningRoom = false);
-      }
-    }
+    await _joinRoomWithInviteCode(code, method: 'invite_code');
   }
 
   Future<void> _confirmLeaveRoom(String roomId) async {
@@ -803,10 +879,7 @@ extension _HomeRoomManager on _HomeViewState {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.black, width: 2),
                       boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black,
-                          offset: Offset(0, 3),
-                        ),
+                        BoxShadow(color: Colors.black, offset: Offset(0, 3)),
                       ],
                     ),
                     child: Center(
@@ -833,10 +906,7 @@ extension _HomeRoomManager on _HomeViewState {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.black, width: 2),
                       boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black,
-                          offset: Offset(0, 3),
-                        ),
+                        BoxShadow(color: Colors.black, offset: Offset(0, 3)),
                       ],
                     ),
                     child: Center(

@@ -523,6 +523,16 @@
   "roomInviteCodeTitle": "초대 코드",
   "roomInviteCodeMessage": "이 코드를 공유해 방에 초대하세요.",
   "roomInviteCodeTapHint": "코드를 탭하면 복사돼요.",
+  "roomInviteCopyCodeAction": "코드 복사",
+  "roomInviteShareAction": "공유",
+  "roomInviteShareCaption": "Petttomo에서 함께해요",
+  "roomInviteShareFailed": "초대 공유 실패: {error}",
+  "@roomInviteShareFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomInviteLinkJoining": "초대로 방에 참가하는 중...",
   "roomInviteCodeCopiedTitle": "복사 완료",
   "roomInviteCodeCopiedMessage": "지금 친구를 초대해서 함께 반려동물을 돌봐요!",
   "roomInviteCodeRegenerated": "초대 코드가 재생성되었습니다.",

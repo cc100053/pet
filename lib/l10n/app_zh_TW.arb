@@ -516,6 +516,16 @@
   "roomInviteCodeTitle": "邀請碼",
   "roomInviteCodeMessage": "分享此邀請碼讓朋友加入房間。",
   "roomInviteCodeTapHint": "點擊邀請碼即可複製。",
+  "roomInviteCopyCodeAction": "複製邀請碼",
+  "roomInviteShareAction": "分享",
+  "roomInviteShareCaption": "來 Petttomo 和我一起玩",
+  "roomInviteShareFailed": "分享邀請失敗：{error}",
+  "@roomInviteShareFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "roomInviteLinkJoining": "正在透過邀請加入房間...",
   "roomInviteCodeCopiedTitle": "已複製",
   "roomInviteCodeCopiedMessage": "快邀請朋友加入，一起照顧寵物吧！",
   "roomInviteCodeRegenerated": "邀請碼已重新產生。",
