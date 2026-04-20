@@ -674,6 +674,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNewContinueAction => 'Continue';
 
   @override
+  String get whatsNewSuggestFeatureAction => 'Suggest a Feature';
+
+  @override
+  String get whatsNewSuggestFeatureTitle => 'What would you like to see?';
+
+  @override
+  String get whatsNewSuggestFeaturePlaceholder => 'Describe your idea...';
+
+  @override
+  String get whatsNewSuggestFeatureSubmit => 'Send';
+
+  @override
+  String get whatsNewSuggestFeatureSuccess => 'Thanks for your feedback!';
+
+  @override
   String get whatsNewContentLabel => 'What\'s new';
 
   @override
@@ -1016,7 +1031,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomInviteCodeTapHint => 'Tap the code to copy it.';
 
   @override
-  String get roomInviteCopyCodeAction => 'Copy code';
+  String get roomInviteCopyCodeAction => 'Copy';
 
   @override
   String get roomInviteShareAction => 'Share';
@@ -1774,4 +1789,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew114Bullet1 =>
       'Fixed a bug that could cause the game to crash.';
+
+  @override
+  String get whatsNew120Title => 'Chat & Sharing Upgrades';
+
+  @override
+  String get whatsNew120Bullet1 =>
+      '✏️ Edit or delete your messages in the chat room';
+
+  @override
+  String get whatsNew120Bullet2 =>
+      '🔗 Improved invite link sharing — more reliable, fewer errors';
+
+  @override
+  String get whatsNew120Bullet3 =>
+      '💡 New Feature Request: share your ideas directly from the app';
 }

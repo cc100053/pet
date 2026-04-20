@@ -347,6 +347,11 @@
   "softUpdateTitle": "アップデートがあります",
   "whatsNewDialogTitle": "バージョンアップデート",
   "whatsNewContinueAction": "続ける",
+  "whatsNewSuggestFeatureAction": "機能を提案する",
+  "whatsNewSuggestFeatureTitle": "どんな機能が欲しいですか？",
+  "whatsNewSuggestFeaturePlaceholder": "アイデアを説明してください...",
+  "whatsNewSuggestFeatureSubmit": "送信",
+  "whatsNewSuggestFeatureSuccess": "フィードバックありがとうございます！",
   "whatsNewContentLabel": "更新内容",
   "whatsNewHighlightsLabel": "このバージョンの主な変更",
   "whatsNewVersionLabel": "バージョン {version}",
@@ -523,7 +528,7 @@
   "roomInviteCodeTitle": "招待コード",
   "roomInviteCodeMessage": "このコードを共有してルームに招待してください。",
   "roomInviteCodeTapHint": "コードをタップするとコピーできます。",
-  "roomInviteCopyCodeAction": "コードをコピー",
+  "roomInviteCopyCodeAction": "コピー",
   "roomInviteShareAction": "共有",
   "roomInviteShareCaption": "PetTomoで一緒に遊ぼう",
   "roomInviteShareFailed": "招待の共有に失敗しました: {error}",
@@ -932,5 +937,9 @@
   "whatsNew113Bullet2": "🔘 ボタン刷新！心地よい操作感",
   "whatsNew113Bullet3": "🛍️ ショップ購入がさらに快適に",
   "whatsNew114Title": "不具合の修正",
-  "whatsNew114Bullet1": "ゲームがクラッシュする可能性がある不具合を修正しました。"
+  "whatsNew114Bullet1": "ゲームがクラッシュする可能性がある不具合を修正しました。",
+  "whatsNew120Title": "チャットと共有のアップグレード",
+  "whatsNew120Bullet1": "✏️ チャットルームでメッセージの編集・削除が可能に",
+  "whatsNew120Bullet2": "🔗 招待リンクの共有がより安定・信頼性アップ",
+  "whatsNew120Bullet3": "💡 機能リクエスト追加！アプリから直接アイデアを送れます"
 }

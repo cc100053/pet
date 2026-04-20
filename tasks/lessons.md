@@ -4,6 +4,9 @@
 - **Brand Spelling:** The product name is `PetTomo`, with a capital `T` and one
   `t` after `Pe`. Do not add extra letters in user-facing copy, tests, fallback
   pages, or task notes.
+- **Paired CTA Labels:** In side-by-side mobile buttons, keep action labels
+  short across every locale. Prefer verb-only labels like `Copy`/`Share` when
+  surrounding UI already explains the object.
 - **Shared Flow Entry Points:** When restoring a user-facing flow that exists in Profile and onboarding, check every entry point before finishing. The correct avatar upload path is pick -> adjust -> save/upload for both existing users and new-user setup, not just the Profile menu.
 - **Localization File Handling:** For small localization files (like `.strings` or `.arb`), prefer using `write_file` to overwrite the entire content instead of multiple `replace` calls. This prevents "ghost" content or duplicate entries caused by overlapping matches.
 - **Strings File Integrity:** App Store Connect `.strings` files are extremely sensitive to trailing content and unclosed quotes. Always verify the file ends exactly after the last semicolon and that no partial strings from previous versions remain at the bottom.

@@ -347,6 +347,11 @@
   "softUpdateTitle": "업데이트 가능",
   "whatsNewDialogTitle": "버전 업데이트",
   "whatsNewContinueAction": "계속",
+  "whatsNewSuggestFeatureAction": "기능 제안하기",
+  "whatsNewSuggestFeatureTitle": "어떤 기능을 원하세요?",
+  "whatsNewSuggestFeaturePlaceholder": "아이디어를 설명해 주세요...",
+  "whatsNewSuggestFeatureSubmit": "전송",
+  "whatsNewSuggestFeatureSuccess": "피드백 감사합니다!",
   "whatsNewContentLabel": "업데이트 내용",
   "whatsNewHighlightsLabel": "이번 버전의 핵심 변경사항",
   "whatsNewVersionLabel": "버전 {version}",
@@ -523,7 +528,7 @@
   "roomInviteCodeTitle": "초대 코드",
   "roomInviteCodeMessage": "이 코드를 공유해 방에 초대하세요.",
   "roomInviteCodeTapHint": "코드를 탭하면 복사돼요.",
-  "roomInviteCopyCodeAction": "코드 복사",
+  "roomInviteCopyCodeAction": "복사",
   "roomInviteShareAction": "공유",
   "roomInviteShareCaption": "PetTomo에서 함께해요",
   "roomInviteShareFailed": "초대 공유 실패: {error}",
@@ -919,5 +924,9 @@
   "whatsNew113Bullet2": "🔘 버튼 개편! 기분 좋은 터치감",
   "whatsNew113Bullet3": "🛍️ 더욱 빠르고 쾌적한 상점 쇼핑",
   "whatsNew114Title": "버그 수정",
-  "whatsNew114Bullet1": "게임이 충돌할 수 있는 버그를 수정했습니다."
+  "whatsNew114Bullet1": "게임이 충돌할 수 있는 버그를 수정했습니다.",
+  "whatsNew120Title": "채팅 및 공유 업그레이드",
+  "whatsNew120Bullet1": "✏️ 채팅방에서 메시지 편집 및 삭제 가능",
+  "whatsNew120Bullet2": "🔗 초대 링크 공유 개선 — 더 안정적으로",
+  "whatsNew120Bullet3": "💡 기능 건의 추가! 앱에서 직접 아이디어를 제출하세요"
 }

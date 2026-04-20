@@ -410,19 +410,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTools => '除錯工具';
 
   @override
-  String get drawerDebugCategorySimulation => 'Simulation & Testing';
+  String get drawerDebugCategorySimulation => '模拟与测试';
 
   @override
-  String get drawerDebugCategoryUser => 'User & Plan';
+  String get drawerDebugCategoryUser => '用户与方案';
 
   @override
-  String get drawerDebugCategoryPet => 'Pet Status';
+  String get drawerDebugCategoryPet => '宠物状态';
 
   @override
-  String get drawerDebugCategoryMemory => 'Memory Diagnostics';
+  String get drawerDebugCategoryMemory => '内存诊断';
 
   @override
-  String get drawerDebugCategorySystem => 'Update & System';
+  String get drawerDebugCategorySystem => '更新与系统';
 
   @override
   String get drawerFreePlan => '免費方案';
@@ -645,6 +645,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNewContinueAction => '继续';
 
   @override
+  String get whatsNewSuggestFeatureAction => '建議新功能';
+
+  @override
+  String get whatsNewSuggestFeatureTitle => '你希望有咩新功能？';
+
+  @override
+  String get whatsNewSuggestFeaturePlaceholder => '描述你嘅想法...';
+
+  @override
+  String get whatsNewSuggestFeatureSubmit => '發送';
+
+  @override
+  String get whatsNewSuggestFeatureSuccess => '多謝你嘅建議！';
+
+  @override
   String get whatsNewContentLabel => '更新內容';
 
   @override
@@ -668,31 +683,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew105Bullet3 => '成功喂食后恢复的饥饿值提升了，从 +20 提高到 +25。';
 
   @override
-  String get whatsNew106Title => 'Major Shop Update & Stability';
+  String get whatsNew106Title => '商店大改版与稳定性提升';
 
   @override
-  String get whatsNew106Bullet1 => 'Major shop redesign and visual update';
+  String get whatsNew106Bullet1 => '商店全面改版，视觉焕然一新';
 
   @override
-  String get whatsNew106Bullet2 => 'Improved app stability and performance';
+  String get whatsNew106Bullet2 => '提升 App 稳定性与性能';
 
   @override
-  String get whatsNew106Bullet3 => 'Fixed several minor known issues';
+  String get whatsNew106Bullet3 => '修复多项已知小问题';
 
   @override
-  String get whatsNew110Title => 'New Tiger Pet & Furniture Resize';
+  String get whatsNew110Title => '全新老虎宠物与家具缩放';
 
   @override
-  String get whatsNew110Bullet1 =>
-      'Meet the new Tiger pet and choose it for your room!';
+  String get whatsNew110Bullet1 => '认识全新的老虎宠物，并为你的房间选择它！';
 
   @override
-  String get whatsNew110Bullet2 =>
-      'Beautiful new backgrounds are now available in the Shop.';
+  String get whatsNew110Bullet2 => '商店上架多款精美新背景。';
 
   @override
-  String get whatsNew110Bullet3 =>
-      'Tap a placed furniture item and use the bottom size controls for a precise layout.';
+  String get whatsNew110Bullet3 => '点击已放置的家具，使用底部大小控制列进行精确布局。';
 
   @override
   String get languageChineseSimplified => '简体中文';
@@ -983,7 +995,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInviteCodeTapHint => '點擊邀請碼即可複製。';
 
   @override
-  String get roomInviteCopyCodeAction => '複製邀請碼';
+  String get roomInviteCopyCodeAction => '複製';
 
   @override
   String get roomInviteShareAction => '分享';
@@ -1668,53 +1680,58 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get whatsNew111Title => 'Stability & Performance Update';
+  String get whatsNew111Title => '稳定性与性能优化';
 
   @override
-  String get whatsNew111Bullet1 =>
-      'Fixed critical issues that could cause unexpected crashes.';
+  String get whatsNew111Bullet1 => '修复可能导致意外崩溃的关键问题。';
 
   @override
-  String get whatsNew111Bullet2 =>
-      'Optimized chat message processing and image rendering.';
+  String get whatsNew111Bullet2 => '优化聊天消息处理与图片渲染。';
 
   @override
-  String get whatsNew111Bullet3 =>
-      'Improved overall performance for a smoother experience.';
+  String get whatsNew111Bullet3 => '全面提升整体性能，带来更流畅的体验。';
 
   @override
-  String get whatsNew112Title => 'Room Decor & @Mentions';
+  String get whatsNew112Title => '房间装饰与@提及';
 
   @override
-  String get whatsNew112Bullet1 =>
-      'Added two new bathroom furniture items: Toilet and Tub.';
+  String get whatsNew112Bullet1 => '新增两款卫浴家具：马桶与浴缸。';
 
   @override
-  String get whatsNew112Bullet2 =>
-      'You can now flip furniture horizontally to decorate your room more flexibly.';
+  String get whatsNew112Bullet2 => '现在可左右翻转家具，布置房间更灵活。';
 
   @override
-  String get whatsNew112Bullet3 =>
-      'You can now @mention room members in the chat to grab their attention.';
+  String get whatsNew112Bullet3 => '现在可在聊天中@提及房间成员以吸引注意。';
 
   @override
-  String get whatsNew113Title => 'Operation Experience Upgrade';
+  String get whatsNew113Title => '操作体验升级';
 
   @override
-  String get whatsNew113Bullet1 => '📸 Smoother feeding photo sharing';
+  String get whatsNew113Bullet1 => '📸 喂食照片分享更顺畅';
 
   @override
-  String get whatsNew113Bullet2 => '🔘 Fun button redesign with better feel';
+  String get whatsNew113Bullet2 => '🔘 按钮全新设计，手感更好';
 
   @override
-  String get whatsNew113Bullet3 => '🛍️ Faster and seamless shop purchases';
+  String get whatsNew113Bullet3 => '🛍️ 购物更快速流畅';
 
   @override
-  String get whatsNew114Title => 'Bug Fixes';
+  String get whatsNew114Title => '问题修复';
 
   @override
-  String get whatsNew114Bullet1 =>
-      'Fixed a bug that could cause the game to crash.';
+  String get whatsNew114Bullet1 => '修复可能导致游戏崩溃的问题。';
+
+  @override
+  String get whatsNew120Title => '聊天与分享升级';
+
+  @override
+  String get whatsNew120Bullet1 => '✏️ 可在聊天室编辑或删除消息';
+
+  @override
+  String get whatsNew120Bullet2 => '🔗 改善邀请链接分享——更可靠，错误更少';
+
+  @override
+  String get whatsNew120Bullet3 => '💡 新功能请求：直接在 App 内分享你的想法';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2358,6 +2375,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get whatsNewContinueAction => '繼續';
 
   @override
+  String get whatsNewSuggestFeatureAction => '建議新功能';
+
+  @override
+  String get whatsNewSuggestFeatureTitle => '你希望有什麼新功能？';
+
+  @override
+  String get whatsNewSuggestFeaturePlaceholder => '描述您的想法...';
+
+  @override
+  String get whatsNewSuggestFeatureSubmit => '發送';
+
+  @override
+  String get whatsNewSuggestFeatureSuccess => '感謝您的建議！';
+
+  @override
   String get whatsNewContentLabel => '更新內容';
 
   @override
@@ -2693,7 +2725,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomInviteCodeTapHint => '點擊邀請碼即可複製。';
 
   @override
-  String get roomInviteCopyCodeAction => '複製邀請碼';
+  String get roomInviteCopyCodeAction => '複製';
 
   @override
   String get roomInviteShareAction => '分享';
@@ -3418,4 +3450,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew114Bullet1 => '修復了可能導致遊戲崩潰的錯誤。';
+
+  @override
+  String get whatsNew120Title => '聊天與分享升級';
+
+  @override
+  String get whatsNew120Bullet1 => '✏️ 可以在聊天室編輯或刪除訊息';
+
+  @override
+  String get whatsNew120Bullet2 => '🔗 優化邀請連結分享，更穩定可靠';
+
+  @override
+  String get whatsNew120Bullet3 => '💡 全新功能建議：直接在 App 提交你的想法';
 }

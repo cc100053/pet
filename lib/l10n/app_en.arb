@@ -347,6 +347,11 @@
   "softUpdateTitle": "Update available",
   "whatsNewDialogTitle": "Version update",
   "whatsNewContinueAction": "Continue",
+  "whatsNewSuggestFeatureAction": "Suggest a Feature",
+  "whatsNewSuggestFeatureTitle": "What would you like to see?",
+  "whatsNewSuggestFeaturePlaceholder": "Describe your idea...",
+  "whatsNewSuggestFeatureSubmit": "Send",
+  "whatsNewSuggestFeatureSuccess": "Thanks for your feedback!",
   "whatsNewContentLabel": "What's new",
   "whatsNewHighlightsLabel": "Highlights in this release",
   "whatsNewVersionLabel": "Version {version}",
@@ -523,7 +528,7 @@
   "roomInviteCodeTitle": "Invite code",
   "roomInviteCodeMessage": "Share this code to invite someone to your room.",
   "roomInviteCodeTapHint": "Tap the code to copy it.",
-  "roomInviteCopyCodeAction": "Copy code",
+  "roomInviteCopyCodeAction": "Copy",
   "roomInviteShareAction": "Share",
   "roomInviteShareCaption": "Join me in PetTomo",
   "roomInviteShareFailed": "Failed to share invite: {error}",
@@ -932,5 +937,9 @@
   "whatsNew113Bullet2": "🔘 Fun button redesign with better feel",
   "whatsNew113Bullet3": "🛍️ Faster and seamless shop purchases",
   "whatsNew114Title": "Bug Fixes",
-  "whatsNew114Bullet1": "Fixed a bug that could cause the game to crash."
+  "whatsNew114Bullet1": "Fixed a bug that could cause the game to crash.",
+  "whatsNew120Title": "Chat & Sharing Upgrades",
+  "whatsNew120Bullet1": "✏️ Edit or delete your messages in the chat room",
+  "whatsNew120Bullet2": "🔗 Improved invite link sharing — more reliable, fewer errors",
+  "whatsNew120Bullet3": "💡 New Feature Request: share your ideas directly from the app"
 }

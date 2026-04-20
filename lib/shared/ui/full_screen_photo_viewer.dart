@@ -97,6 +97,8 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   double _dragOpacity = 1.0;
   bool _chromeVisible = true;
   bool _isCurrentPageZoomed = false;
+  int? _trackingPointer;
+  double? _pointerDownY;
   bool _savingToGallery = false;
   bool _showDownloadedIcon = false;
   bool _showReplySentState = false;
@@ -169,17 +171,32 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
     });
   }
 
-  void _onVerticalDragUpdate(DragUpdateDetails details) {
+  void _onRawPointerDown(PointerDownEvent event) {
+    if (_trackingPointer == null) {
+      _trackingPointer = event.pointer;
+      _pointerDownY = event.position.dy;
+    } else {
+      _cancelDismissGesture();
+    }
+  }
+
+  void _onRawPointerMove(PointerMoveEvent event) {
+    if (event.pointer != _trackingPointer) return;
     if (_isCurrentPageZoomed) {
+      _cancelDismissGesture();
       return;
     }
+    final dy = event.position.dy - (_pointerDownY ?? event.position.dy);
     setState(() {
-      _dragOffset += details.delta.dy;
-      _dragOpacity = (1 - (_dragOffset.abs() / 300)).clamp(0.4, 1.0);
+      _dragOffset = dy;
+      _dragOpacity = (1 - (dy.abs() / 300)).clamp(0.4, 1.0);
     });
   }
 
-  void _onVerticalDragEnd(DragEndDetails details) {
+  void _onRawPointerUp(PointerUpEvent event) {
+    if (event.pointer != _trackingPointer) return;
+    _trackingPointer = null;
+    _pointerDownY = null;
     if (_dragOffset.abs() > 100) {
       _closeWithCurrentIndex();
       return;
@@ -188,6 +205,22 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
       _dragOffset = 0;
       _dragOpacity = 1.0;
     });
+  }
+
+  void _onRawPointerCancel(PointerCancelEvent event) {
+    if (event.pointer != _trackingPointer) return;
+    _cancelDismissGesture();
+  }
+
+  void _cancelDismissGesture() {
+    _trackingPointer = null;
+    _pointerDownY = null;
+    if (_dragOffset != 0) {
+      setState(() {
+        _dragOffset = 0;
+        _dragOpacity = 1.0;
+      });
+    }
   }
 
   void _onPageChanged(int index) {
@@ -765,10 +798,12 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          body: GestureDetector(
+          body: Listener(
             behavior: HitTestBehavior.opaque,
-            onVerticalDragUpdate: _onVerticalDragUpdate,
-            onVerticalDragEnd: _onVerticalDragEnd,
+            onPointerDown: _onRawPointerDown,
+            onPointerMove: _onRawPointerMove,
+            onPointerUp: _onRawPointerUp,
+            onPointerCancel: _onRawPointerCancel,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 100),
               opacity: _dragOpacity,

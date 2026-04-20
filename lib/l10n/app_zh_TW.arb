@@ -340,6 +340,11 @@
   "softUpdateTitle": "可更新新版本",
   "whatsNewDialogTitle": "版本更新",
   "whatsNewContinueAction": "繼續",
+  "whatsNewSuggestFeatureAction": "建議新功能",
+  "whatsNewSuggestFeatureTitle": "你希望有什麼新功能？",
+  "whatsNewSuggestFeaturePlaceholder": "描述您的想法...",
+  "whatsNewSuggestFeatureSubmit": "發送",
+  "whatsNewSuggestFeatureSuccess": "感謝您的建議！",
   "whatsNewContentLabel": "更新內容",
   "whatsNewHighlightsLabel": "這個版本的重點",
   "whatsNewVersionLabel": "版本 {version}",
@@ -516,7 +521,7 @@
   "roomInviteCodeTitle": "邀請碼",
   "roomInviteCodeMessage": "分享此邀請碼讓朋友加入房間。",
   "roomInviteCodeTapHint": "點擊邀請碼即可複製。",
-  "roomInviteCopyCodeAction": "複製邀請碼",
+  "roomInviteCopyCodeAction": "複製",
   "roomInviteShareAction": "分享",
   "roomInviteShareCaption": "來 PetTomo 和我一起玩",
   "roomInviteShareFailed": "分享邀請失敗：{error}",
@@ -925,5 +930,9 @@
   "whatsNew113Bullet2": "🔘 按鈕設計全面換裝，點擊感 UP",
   "whatsNew113Bullet3": "🛍️ 商店購買流程更順滑即時",
   "whatsNew114Title": "錯誤修復",
-  "whatsNew114Bullet1": "修復了可能導致遊戲崩潰的錯誤。"
+  "whatsNew114Bullet1": "修復了可能導致遊戲崩潰的錯誤。",
+  "whatsNew120Title": "聊天與分享升級",
+  "whatsNew120Bullet1": "✏️ 可以在聊天室編輯或刪除訊息",
+  "whatsNew120Bullet2": "🔗 優化邀請連結分享，更穩定可靠",
+  "whatsNew120Bullet3": "💡 全新功能建議：直接在 App 提交你的想法"
 }

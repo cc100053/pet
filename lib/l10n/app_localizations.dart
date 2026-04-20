@@ -1249,6 +1249,36 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get whatsNewContinueAction;
 
+  /// No description provided for @whatsNewSuggestFeatureAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest a Feature'**
+  String get whatsNewSuggestFeatureAction;
+
+  /// No description provided for @whatsNewSuggestFeatureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to see?'**
+  String get whatsNewSuggestFeatureTitle;
+
+  /// No description provided for @whatsNewSuggestFeaturePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your idea...'**
+  String get whatsNewSuggestFeaturePlaceholder;
+
+  /// No description provided for @whatsNewSuggestFeatureSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get whatsNewSuggestFeatureSubmit;
+
+  /// No description provided for @whatsNewSuggestFeatureSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for your feedback!'**
+  String get whatsNewSuggestFeatureSuccess;
+
   /// No description provided for @whatsNewContentLabel.
   ///
   /// In en, this message translates to:
@@ -1856,7 +1886,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomInviteCopyCodeAction.
   ///
   /// In en, this message translates to:
-  /// **'Copy code'**
+  /// **'Copy'**
   String get roomInviteCopyCodeAction;
 
   /// No description provided for @roomInviteShareAction.
@@ -3158,6 +3188,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fixed a bug that could cause the game to crash.'**
   String get whatsNew114Bullet1;
+
+  /// No description provided for @whatsNew120Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat & Sharing Upgrades'**
+  String get whatsNew120Title;
+
+  /// No description provided for @whatsNew120Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'✏️ Edit or delete your messages in the chat room'**
+  String get whatsNew120Bullet1;
+
+  /// No description provided for @whatsNew120Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'🔗 Improved invite link sharing — more reliable, fewer errors'**
+  String get whatsNew120Bullet2;
+
+  /// No description provided for @whatsNew120Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'💡 New Feature Request: share your ideas directly from the app'**
+  String get whatsNew120Bullet3;
 }
 
 class _AppLocalizationsDelegate

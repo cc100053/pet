@@ -647,6 +647,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNewContinueAction => '続ける';
 
   @override
+  String get whatsNewSuggestFeatureAction => '機能を提案する';
+
+  @override
+  String get whatsNewSuggestFeatureTitle => 'どんな機能が欲しいですか？';
+
+  @override
+  String get whatsNewSuggestFeaturePlaceholder => 'アイデアを説明してください...';
+
+  @override
+  String get whatsNewSuggestFeatureSubmit => '送信';
+
+  @override
+  String get whatsNewSuggestFeatureSuccess => 'フィードバックありがとうございます！';
+
+  @override
   String get whatsNewContentLabel => '更新内容';
 
   @override
@@ -983,7 +998,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomInviteCodeTapHint => 'コードをタップするとコピーできます。';
 
   @override
-  String get roomInviteCopyCodeAction => 'コードをコピー';
+  String get roomInviteCopyCodeAction => 'コピー';
 
   @override
   String get roomInviteShareAction => '共有';
@@ -1715,4 +1730,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew114Bullet1 => 'ゲームがクラッシュする可能性がある不具合を修正しました。';
+
+  @override
+  String get whatsNew120Title => 'チャットと共有のアップグレード';
+
+  @override
+  String get whatsNew120Bullet1 => '✏️ チャットルームでメッセージの編集・削除が可能に';
+
+  @override
+  String get whatsNew120Bullet2 => '🔗 招待リンクの共有がより安定・信頼性アップ';
+
+  @override
+  String get whatsNew120Bullet3 => '💡 機能リクエスト追加！アプリから直接アイデアを送れます';
 }

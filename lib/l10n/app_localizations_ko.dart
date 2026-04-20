@@ -654,6 +654,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNewContinueAction => '계속';
 
   @override
+  String get whatsNewSuggestFeatureAction => '기능 제안하기';
+
+  @override
+  String get whatsNewSuggestFeatureTitle => '어떤 기능을 원하세요?';
+
+  @override
+  String get whatsNewSuggestFeaturePlaceholder => '아이디어를 설명해 주세요...';
+
+  @override
+  String get whatsNewSuggestFeatureSubmit => '전송';
+
+  @override
+  String get whatsNewSuggestFeatureSuccess => '피드백 감사합니다!';
+
+  @override
   String get whatsNewContentLabel => '업데이트 내용';
 
   @override
@@ -990,7 +1005,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomInviteCodeTapHint => '코드를 탭하면 복사돼요.';
 
   @override
-  String get roomInviteCopyCodeAction => '코드 복사';
+  String get roomInviteCopyCodeAction => '복사';
 
   @override
   String get roomInviteShareAction => '공유';
@@ -1724,4 +1739,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew114Bullet1 => '게임이 충돌할 수 있는 버그를 수정했습니다.';
+
+  @override
+  String get whatsNew120Title => '채팅 및 공유 업그레이드';
+
+  @override
+  String get whatsNew120Bullet1 => '✏️ 채팅방에서 메시지 편집 및 삭제 가능';
+
+  @override
+  String get whatsNew120Bullet2 => '🔗 초대 링크 공유 개선 — 더 안정적으로';
+
+  @override
+  String get whatsNew120Bullet3 => '💡 기능 건의 추가! 앱에서 직접 아이디어를 제출하세요';
 }
