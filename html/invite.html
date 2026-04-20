@@ -76,7 +76,7 @@
 <body>
   <main>
     <img src="/assets/PetTomo_appicon.png" alt="PetTomo">
-    <h1>Join me in Petttomo</h1>
+    <h1>Join me in PetTomo</h1>
     <p>Opening your shared pet room...</p>
     <div class="code" id="invite-code">------</div>
     <p>If PetTomo does not open, install it from the App Store and tap this invite again.</p>
@@ -84,11 +84,15 @@
   </main>
   <script>
     const params = new URLSearchParams(window.location.search);
-    const rawCode = (params.get('code') || '').trim().toUpperCase();
+    const rawCode = (
+      params.get('invite_code') ||
+      params.get('code') ||
+      ''
+    ).trim().toUpperCase();
     const code = /^[A-Z0-9]{6}$/.test(rawCode) ? rawCode : '';
     const storeUrl = 'https://apps.apple.com/app/id6757725650';
     const customUrl = code
-      ? `com.cc100053.pet://invite?code=${encodeURIComponent(code)}`
+      ? `com.cc100053.pet://invite?invite_code=${encodeURIComponent(code)}`
       : 'com.cc100053.pet://invite';
 
     document.getElementById('invite-code').textContent = code || '------';

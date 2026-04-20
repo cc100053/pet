@@ -525,7 +525,7 @@
   "roomInviteCodeTapHint": "コードをタップするとコピーできます。",
   "roomInviteCopyCodeAction": "コードをコピー",
   "roomInviteShareAction": "共有",
-  "roomInviteShareCaption": "Petttomoで一緒に遊ぼう",
+  "roomInviteShareCaption": "PetTomoで一緒に遊ぼう",
   "roomInviteShareFailed": "招待の共有に失敗しました: {error}",
   "@roomInviteShareFailed": {
     "placeholders": {

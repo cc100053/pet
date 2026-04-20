@@ -996,7 +996,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomInviteShareAction => '공유';
 
   @override
-  String get roomInviteShareCaption => 'Petttomo에서 함께해요';
+  String get roomInviteShareCaption => 'PetTomo에서 함께해요';
 
   @override
   String roomInviteShareFailed(Object error) {

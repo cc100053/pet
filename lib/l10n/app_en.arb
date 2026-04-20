@@ -525,7 +525,7 @@
   "roomInviteCodeTapHint": "Tap the code to copy it.",
   "roomInviteCopyCodeAction": "Copy code",
   "roomInviteShareAction": "Share",
-  "roomInviteShareCaption": "Join me in Petttomo",
+  "roomInviteShareCaption": "Join me in PetTomo",
   "roomInviteShareFailed": "Failed to share invite: {error}",
   "@roomInviteShareFailed": {
     "placeholders": {

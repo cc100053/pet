@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../settings/app_settings_repository.dart';
 import 'pending_invite_code_store.dart';
@@ -8,6 +9,10 @@ import 'pending_invite_code_store.dart';
 abstract class InviteLinkGateway {
   Future<Uri?> getInitialLink();
   Stream<Uri> get uriLinkStream;
+}
+
+abstract class AuthCallbackHandler {
+  Future<void> handleAuthCallback(Uri uri);
 }
 
 class AppLinksInviteLinkGateway implements InviteLinkGateway {
@@ -23,13 +28,25 @@ class AppLinksInviteLinkGateway implements InviteLinkGateway {
   Stream<Uri> get uriLinkStream => _appLinks.uriLinkStream;
 }
 
+class SupabaseAuthCallbackHandler implements AuthCallbackHandler {
+  const SupabaseAuthCallbackHandler();
+
+  @override
+  Future<void> handleAuthCallback(Uri uri) {
+    return Supabase.instance.client.auth.getSessionFromUrl(uri);
+  }
+}
+
 class AppInviteLinkService {
   AppInviteLinkService({
     required InviteLinkGateway gateway,
     required PendingInviteCodeStore settingsStore,
+    AuthCallbackHandler authCallbackHandler =
+        const SupabaseAuthCallbackHandler(),
     void Function(Object error, StackTrace stackTrace)? onError,
   }) : _gateway = gateway,
        _settingsStore = settingsStore,
+       _authCallbackHandler = authCallbackHandler,
        _onError = onError;
 
   AppInviteLinkService._default()
@@ -42,14 +59,18 @@ class AppInviteLinkService {
 
   static const String inviteHost = 'pet-app-702be.web.app';
   static const String invitePath = '/invite';
+  static const String inviteCodeQueryParameter = 'invite_code';
+  static const String legacyInviteCodeQueryParameter = 'code';
   static const String customScheme = 'com.cc100053.pet';
   static const String customInviteHost = 'invite';
+  static const String authCallbackHost = 'login-callback';
   static const String iosAppStoreUrl =
       'https://apps.apple.com/app/id6757725650';
   static final RegExp _inviteCodePattern = RegExp(r'^[A-Z0-9]{6}$');
 
   final InviteLinkGateway _gateway;
   final PendingInviteCodeStore _settingsStore;
+  final AuthCallbackHandler _authCallbackHandler;
   final void Function(Object error, StackTrace stackTrace)? _onError;
   final StreamController<String> _inviteCodeController =
       StreamController<String>.broadcast();
@@ -104,6 +125,15 @@ class AppInviteLinkService {
   }
 
   Future<void> _handleUri(Uri uri) async {
+    if (_isAuthCallbackUri(uri)) {
+      try {
+        await _authCallbackHandler.handleAuthCallback(uri);
+      } catch (error, stackTrace) {
+        _onError?.call(error, stackTrace);
+      }
+      return;
+    }
+
     final code = parseInviteCode(uri);
     if (code == null) {
       return;
@@ -125,11 +155,15 @@ class AppInviteLinkService {
   }
 
   static String? parseInviteCode(Uri uri) {
-    final rawCode = uri.queryParameters['code'];
     if (_isHostedInviteUri(uri) || _isCustomInviteUri(uri)) {
-      return normalizeInviteCode(rawCode);
+      return normalizeInviteCode(_rawInviteCodeParameter(uri));
     }
     return null;
+  }
+
+  static String? _rawInviteCodeParameter(Uri uri) {
+    return uri.queryParameters[inviteCodeQueryParameter] ??
+        uri.queryParameters[legacyInviteCodeQueryParameter];
   }
 
   static bool _isHostedInviteUri(Uri uri) {
@@ -145,6 +179,11 @@ class AppInviteLinkService {
     }
     final host = uri.host.toLowerCase();
     return host == customInviteHost || _normalizedPath(uri) == invitePath;
+  }
+
+  static bool _isAuthCallbackUri(Uri uri) {
+    return uri.scheme.toLowerCase() == customScheme &&
+        uri.host.toLowerCase() == authCallbackHost;
   }
 
   static String _normalizedPath(Uri uri) {
@@ -167,7 +206,9 @@ class AppInviteLinkService {
     if (normalized == null) {
       throw ArgumentError.value(code, 'code', 'Invalid invite code');
     }
-    return Uri.https(inviteHost, invitePath, {'code': normalized});
+    return Uri.https(inviteHost, invitePath, {
+      inviteCodeQueryParameter: normalized,
+    });
   }
 
   static Uri customInviteUriForCode(String code) {
@@ -178,7 +219,7 @@ class AppInviteLinkService {
     return Uri(
       scheme: customScheme,
       host: customInviteHost,
-      queryParameters: {'code': normalized},
+      queryParameters: {inviteCodeQueryParameter: normalized},
     );
   }
 

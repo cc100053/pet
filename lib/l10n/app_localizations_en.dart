@@ -1022,7 +1022,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomInviteShareAction => 'Share';
 
   @override
-  String get roomInviteShareCaption => 'Join me in Petttomo';
+  String get roomInviteShareCaption => 'Join me in PetTomo';
 
   @override
   String roomInviteShareFailed(Object error) {

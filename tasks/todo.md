@@ -1,5 +1,31 @@
 # TODO
 
+# Plan (2026-04-20 Invite Link Auth-Code Collision Fix)
+- [x] Reproduce/trace why invite links trigger Supabase Auth PKCE handling.
+- [x] Change generated invite links and fallback redirects to use an invite-specific query parameter instead of auth `code`.
+- [x] Keep parsing compatibility for old `?code=` links without generating new ones.
+- [x] Update tests, memory/task notes, and redeploy Firebase Hosting.
+- [x] Run focused tests plus `flutter analyze` and `flutter test`.
+
+# Review (2026-04-20 Invite Link Auth-Code Collision Fix)
+- [x] Implemented.
+- Root cause:
+  - Supabase Flutter treats any mobile deep link with query parameter `code` as a PKCE auth callback, regardless of host/path.
+  - Room invite links used `?code=XXXXXX`, so Supabase tried to exchange the room code as an auth code and threw `Code verifier could not be found in local storage`.
+- Scope:
+  - Generated invite links now use `?invite_code=XXXXXX`.
+  - Hosted fallback accepts both `invite_code` and legacy `code`, but redirects to the app with `invite_code`.
+  - App invite parser accepts both `invite_code` and legacy `code`.
+  - Supabase mobile auto deep-link detection is disabled; `AppInviteLinkService` manually sends only `com.cc100053.pet://login-callback` links to Supabase Auth.
+  - Added regression coverage for generated links not containing `?code=` and auth callbacks not becoming pending invites.
+- Verification:
+  - `dart format lib/main.dart lib/services/invite/invite_link_service.dart test/services/invite/invite_link_service_test.dart`
+  - `flutter test test/services/invite/invite_link_service_test.dart`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+  - `firebase deploy --only hosting --project pet-app-702be --non-interactive`: passed.
+  - Live `/invite` verified accepting both `invite_code` and legacy `code` while redirecting custom scheme with `invite_code`.
+
 # Plan (2026-04-20 Invite Link Share Flow)
 - [x] Verify current invite UI, link/deep-link, and live RPC behavior.
 - [x] Add reusable invite-code RPC migration and apply it through Supabase MCP.
@@ -20,6 +46,7 @@
   - Updated the invite dialog to keep tap/copy code and add a system Share button for WhatsApp/LINE/Telegram/etc. through the platform share sheet.
   - Added Firebase Hosting `/invite` fallback page, AASA, Android assetlinks, Android intent filters, and iOS associated-domain entitlement.
   - Added EN/JA/KO/zh/zh-TW localized invite share/copy/pending/error copy and regenerated l10n.
+  - Corrected invite share/fallback brand spelling to `PetTomo`.
 - User action required:
   - Done 2026-04-20: Firebase Hosting `/invite` and `.well-known/*` deployed to `https://pet-app-702be.web.app`.
   - Done 2026-04-20: iOS Associated Domains enabled on Apple Developer bundle ID `ZX7BF33P9V` for `com.cc100053.pet`; local entitlements include `applinks:pet-app-702be.web.app` and iOS signing is automatic under team `QRLFBRL2J2`.

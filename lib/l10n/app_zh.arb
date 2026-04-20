@@ -512,7 +512,7 @@
   "roomInviteCodeTapHint": "點擊邀請碼即可複製。",
   "roomInviteCopyCodeAction": "複製邀請碼",
   "roomInviteShareAction": "分享",
-  "roomInviteShareCaption": "來 Petttomo 和我一起玩",
+  "roomInviteShareCaption": "來 PetTomo 和我一起玩",
   "roomInviteShareFailed": "分享邀請失敗：{error}",
   "@roomInviteShareFailed": {
     "placeholders": {

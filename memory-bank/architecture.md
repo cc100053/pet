@@ -50,9 +50,11 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 - Force-update and What's New are sequenced: hard updates block What's New, then
   eligible upgraded versions show bundled release notes once.
 - Room invites use reusable active codes for normal share/copy. Flutter builds
-  hosted links at `https://pet-app-702be.web.app/invite?code=...`, handles
+  hosted links at `https://pet-app-702be.web.app/invite?invite_code=...`, handles
   app/universal links through `AppInviteLinkService`, persists pending codes for
   signed-out opens, and joins with live `join_room_by_code` after Home bootstrap.
+  Avoid using a bare `code` query param in invite links because Supabase Auth
+  treats it as a PKCE callback parameter on mobile.
 
 ## Backend And Platform
 - Supabase Auth supports Apple/Google. Postgres is room-scoped with strict RLS;

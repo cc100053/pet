@@ -989,7 +989,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomInviteShareAction => '共有';
 
   @override
-  String get roomInviteShareCaption => 'Petttomoで一緒に遊ぼう';
+  String get roomInviteShareCaption => 'PetTomoで一緒に遊ぼう';
 
   @override
   String roomInviteShareFailed(Object error) {

@@ -96,7 +96,10 @@ Future<void> main() async {
       await Supabase.initialize(
         url: Env.supabaseUrl,
         anonKey: Env.supabaseAnonKey,
-        authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
+        authOptions: const FlutterAuthClientOptions(
+          autoRefreshToken: true,
+          detectSessionInUri: kIsWeb,
+        ),
       );
 
       await Hive.initFlutter();

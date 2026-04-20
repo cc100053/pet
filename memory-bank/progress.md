@@ -26,7 +26,8 @@ Active progress stays current-state focused. Full snapshots:
 - Room invite sharing now reuses the current active room code by default, keeps
   copy-code, adds system share-sheet links, stores pending invite codes from
   app/universal links for signed-out users, and joins through live
-  `join_room_by_code` after Home bootstrap.
+  `join_room_by_code` after Home bootstrap. Invite URLs use `invite_code` rather
+  than `code` to avoid Supabase Auth PKCE callback collisions.
 - Shop-backed version-gated decor uses `get_visible_shop_items(p_app_version)`;
   old clients keep the legacy `is_active = true` path. Hidden compatibility-only
   decor uses `metadata.shop_visibility = 'hidden'`.
@@ -102,8 +103,9 @@ Active progress stays current-state focused. Full snapshots:
 - Invite link share flow shipped with live Supabase migration
   `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
   `/invite` fallback, App Links/Universal Links config, localized share copy,
-  and invite-link service tests. Remaining release setup: confirm iOS Associated
-  Domains and add the Android production SHA-256 to `assetlinks.json`.
+  and invite-link service tests. Firebase Hosting and iOS Associated Domains
+  were enabled on 2026-04-20. Remaining release setup: add the Android
+  production SHA-256 to `assetlinks.json`.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account`

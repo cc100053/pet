@@ -1868,7 +1868,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomInviteShareCaption.
   ///
   /// In en, this message translates to:
-  /// **'Join me in Petttomo'**
+  /// **'Join me in PetTomo'**
   String get roomInviteShareCaption;
 
   /// No description provided for @roomInviteShareFailed.

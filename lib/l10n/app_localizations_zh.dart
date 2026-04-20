@@ -989,7 +989,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInviteShareAction => '分享';
 
   @override
-  String get roomInviteShareCaption => '來 Petttomo 和我一起玩';
+  String get roomInviteShareCaption => '來 PetTomo 和我一起玩';
 
   @override
   String roomInviteShareFailed(Object error) {
@@ -2699,7 +2699,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomInviteShareAction => '分享';
 
   @override
-  String get roomInviteShareCaption => '來 Petttomo 和我一起玩';
+  String get roomInviteShareCaption => '來 PetTomo 和我一起玩';
 
   @override
   String roomInviteShareFailed(Object error) {

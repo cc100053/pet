@@ -525,7 +525,7 @@
   "roomInviteCodeTapHint": "코드를 탭하면 복사돼요.",
   "roomInviteCopyCodeAction": "코드 복사",
   "roomInviteShareAction": "공유",
-  "roomInviteShareCaption": "Petttomo에서 함께해요",
+  "roomInviteShareCaption": "PetTomo에서 함께해요",
   "roomInviteShareFailed": "초대 공유 실패: {error}",
   "@roomInviteShareFailed": {
     "placeholders": {
