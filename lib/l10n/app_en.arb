@@ -79,7 +79,27 @@
   "chatJumpToLatest": "Latest",
   "chatMessageHint": "Message",
   "chatCopyAction": "Copy",
+  "chatEditAction": "Edit",
+  "chatDeleteAction": "Delete",
   "chatMessageCopied": "Message copied.",
+  "chatEditMessageTitle": "Edit message",
+  "chatDeleteMessageTitle": "Delete message",
+  "chatDeleteMessageConfirm": "This message will be replaced with a deleted-message placeholder.",
+  "chatMessageEdited": "edited",
+  "chatMessageDeleted": "Message deleted",
+  "chatEditNoChanges": "No changes to save.",
+  "chatEditFailed": "Edit failed: {error}",
+  "@chatEditFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatDeleteFailed": "Delete failed: {error}",
+  "@chatDeleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "chatNoOlderMessages": "No older messages.",
   "chatPartnerLabel": "Partner",
   "chatReplyAction": "Reply",

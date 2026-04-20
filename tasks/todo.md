@@ -1,5 +1,51 @@
 # TODO
 
+# Plan (2026-04-20 Flutter Test Fix)
+- [x] Run `flutter test` and confirm the active failure surface.
+- [x] Trace the failing test(s) to the smallest root-cause code or test mismatch.
+- [x] Apply a scoped fix without reverting existing chat edit/delete worktree changes.
+- [x] Run `dart format` if files change, then `flutter analyze` and `flutter test`.
+- [x] Record the review and verification result here.
+
+# Review (2026-04-20 Flutter Test Fix)
+- [x] Implemented.
+- Scope:
+  - Fixed `ForceUpdateGate` so soft-update and What's New `showJuiceToast` dialogs are awaited instead of continuing while still visible.
+  - Restored explicit soft-update `Later` handling while keeping the `Update` action available.
+  - Deferred What's New launch persistence until after the user dismisses the toast.
+  - Restored version and "What's new" section labels inside the compact What's New toast body.
+- Verification:
+  - `dart format lib/shared/ui/app_dialog.dart lib/shared/force_update/force_update_gate.dart`
+  - `dart format lib/shared/whats_new/whats_new_toast_body.dart`
+  - `flutter test test/shared/force_update/force_update_gate_test.dart -r expanded`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-19 Chat Message Edit/Delete)
+- [x] Verify Supabase MCP target/current state before mutating DB.
+- [x] Add a migration for `messages.edited_at`, `messages.deleted_at`, `messages.deleted_by`, plus narrow sender-owned text edit/delete RPCs.
+- [x] Apply the migration through Supabase MCP and confirm live columns/RPCs.
+- [x] Extend chat message/reply models, repository selects, action service methods, and Hive cache serialization for edited/deleted state.
+- [x] Add own-text edit/delete actions, Juice edit dialog/delete confirmation, optimistic update/revert behavior, deleted placeholder rendering, and edited marker rendering.
+- [x] Add localized strings in all ARB files and regenerate Flutter l10n.
+- [x] Add/adjust service, model/cache, action-sheet, and chat-room widget tests.
+- [x] Run `dart format`, `flutter gen-l10n`, `flutter analyze`, and `flutter test`; record results.
+
+# Review (2026-04-19 Chat Message Edit/Delete)
+- [x] Implemented with one pre-existing unrelated full-suite failure still present.
+- Scope:
+  - Added and live-applied Supabase migration `20260419123000_add_chat_message_edit_delete.sql`.
+  - Added `messages.edited_at`, `messages.deleted_at`, `messages.deleted_by`, plus sender-owned text-only `edit_message(...)` and `delete_message(...)` RPCs.
+  - Kept direct table updates closed to clients; RPCs enforce authenticated active room membership, sender ownership, text type, non-deleted state, and body validation.
+  - Extended chat models, reply previews, repository selects, Hive cache serialization, action service RPC calls, realtime updates, and localized deleted/edited rendering.
+  - Added own-message Edit/Delete actions with optimistic updates and failure rollback; deleted messages hide reply/copy/reaction/edit/delete affordances and clear local reactions.
+- Verification:
+  - `flutter gen-l10n`: passed; existing zh untranslated-message notice remains.
+  - `dart format lib/features/chat lib/services/chat test/features/chat test/services/chat test/pet_chat_message_adapter_test.dart lib/l10n/app_localizations*.dart`: passed.
+  - Focused chat/service tests passed: `flutter test test/services/chat/chat_message_action_service_test.dart test/services/chat/chat_message_repository_test.dart test/pet_chat_message_adapter_test.dart test/features/chat/chat_message_action_sheet_test.dart test/features/chat/chat_room_view_v2_bounded_window_test.dart`.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: failed only in the pre-existing `test/shared/force_update/force_update_gate_test.dart` failures; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-19 Avatar Crop Context Preview)
 - [x] Replace the avatar editor's pure-black crop surroundings with a dimmed preview of the same image.
 - [x] Keep the clear circular crop preview and existing non-destructive `avatar_view_v2` save behavior unchanged.

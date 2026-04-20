@@ -29,11 +29,15 @@ class ChatMessageActionSheet extends StatelessWidget {
     required this.reactionOptions,
     required this.selectedReaction,
     required this.copyEnabled,
+    required this.editEnabled,
+    required this.deleteEnabled,
     required this.isMine,
     required this.isBlocked,
     required this.onReactionSelected,
     required this.onReply,
     required this.onCopy,
+    required this.onEdit,
+    required this.onDelete,
     required this.onReport,
     required this.onBlock,
     required this.onMoreReactions,
@@ -44,11 +48,15 @@ class ChatMessageActionSheet extends StatelessWidget {
   final List<String> reactionOptions;
   final String? selectedReaction;
   final bool copyEnabled;
+  final bool editEnabled;
+  final bool deleteEnabled;
   final bool isMine;
   final bool isBlocked;
   final ValueChanged<String> onReactionSelected;
   final VoidCallback onReply;
   final VoidCallback onCopy;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final VoidCallback onReport;
   final VoidCallback onBlock;
   final VoidCallback onMoreReactions;
@@ -140,7 +148,11 @@ class ChatMessageActionSheet extends StatelessWidget {
                 viewportWidth: size.width,
                 outerMargin: outerMargin,
               );
-              final actionCount = 2 + (isMine ? 0 : 2);
+              final actionCount =
+                  2 +
+                  (editEnabled ? 1 : 0) +
+                  (deleteEnabled ? 1 : 0) +
+                  (isMine ? 0 : 2);
               final estimatedActionHeight = 20 + (actionCount * 56);
               final estimatedTotalHeight =
                   railHeightEstimate +
@@ -262,6 +274,18 @@ class ChatMessageActionSheet extends StatelessWidget {
                             enabled: copyEnabled,
                             onTap: copyEnabled ? onCopy : null,
                           ),
+                          if (editEnabled)
+                            _ActionRow(
+                              icon: Icons.edit_rounded,
+                              label: l10n.chatEditAction,
+                              onTap: onEdit,
+                            ),
+                          if (deleteEnabled)
+                            _ActionRow(
+                              icon: Icons.delete_outline_rounded,
+                              label: l10n.chatDeleteAction,
+                              onTap: onDelete,
+                            ),
                           if (!isMine)
                             _ActionRow(
                               icon: Icons.report_gmailerrorred_outlined,

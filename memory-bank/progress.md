@@ -44,6 +44,9 @@ Active progress stays current-state focused. Full snapshots:
   covered by tests.
 - Chat supports display-only `@Name` mentions for active room members. Messages
   remain plain text; there is no mention notification/schema contract yet.
+- Chat senders can edit/delete their own non-deleted text messages anytime.
+  Deletes are soft placeholders: `messages.body` is cleared, reactions/actions
+  are hidden, and replies render the localized deleted placeholder.
 - Chat crash hardening records `chat_room_view_v2` Crashlytics context, removes
   realtime channels with `removeChannel(...)`, guards stale callbacks, restores
   composer state on send failures, and avoids invalid image cache sizes.
@@ -55,7 +58,9 @@ Active progress stays current-state focused. Full snapshots:
 - Feed double rewards use additive `claim_feed_double_reward(...)`; Home shows
   x2 total-reward feedback and Chat updates badges from `messages.coins_awarded`.
 - Crash fallback is a dedicated pet-themed recovery screen, not the force-update
-  flow. Hard/soft force updates and What's New remain separately sequenced.
+  flow. Hard/soft force updates and What's New remain separately sequenced;
+  soft update uses explicit Update/Later actions, and What's New is persisted
+  only after the user dismisses it.
 - iOS AdMob banner `AdWidget`s are disabled in debug by default to avoid
   `UiKitView` hot-restart/platform-view id collisions; use
   `ADMOB_ENABLE_DEBUG_BANNER_VIEWS=true` only for intentional local banner tests.
@@ -86,6 +91,10 @@ Active progress stays current-state focused. Full snapshots:
   @Mentions across bundled What's New and App Store Connect strings.
 - Active memory-bank files were compacted again on 2026-04-18; snapshots are in
   `memory-bank/archive/*_20260418_pre_compaction.md`.
+- Chat message edit/delete shipped with live Supabase migration
+  `20260419123000_add_chat_message_edit_delete.sql`, localized actions and
+  placeholders, optimistic update/revert behavior, cache/realtime support, and
+  focused service/model/widget coverage.
 
 ## Next
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account`

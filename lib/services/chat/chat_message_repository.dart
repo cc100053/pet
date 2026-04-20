@@ -96,7 +96,8 @@ class ChatMessageRepository {
         .from('messages')
         .select(
           'id,room_id,sender_id,type,body,image_url,caption,coins_awarded,'
-          'created_at,client_created_at,labels,reply_to_message_id',
+          'created_at,client_created_at,labels,reply_to_message_id,'
+          'edited_at,deleted_at,deleted_by',
         )
         .eq('room_id', roomId);
 

@@ -30,8 +30,10 @@ migration that rewrites the object before proposing or applying changes.
 - `pet_hunger_tick_schedule.next_check_at` is the server-side hunger due cursor.
 - `messages.sender_id` may be null for room-wide system events; newer
   `clean_poop` messages store the actor so unread logic can exclude self-actions.
-- `messages.reply_to_message_id` backs chat/photo replies. `message_reactions`
-  allows one reaction per `(message_id, user_id)`.
+- `messages.reply_to_message_id` backs chat/photo replies. Text-message
+  edit/delete state is additive: `edited_at`, `deleted_at`, and `deleted_by`.
+  Soft delete clears `messages.body` and leaves the timeline placeholder.
+- `message_reactions` allows one reaction per `(message_id, user_id)`.
 - `items.metadata` carries catalog contracts: IAP fields, background metadata,
   furniture `asset_path`, `visibility_mode`, `min_app_version`,
   `shop_visibility`, and fallback metadata.
@@ -66,6 +68,9 @@ migration that rewrites the object before proposing or applying changes.
 - Furniture: `get_room_furniture_inventory`, `place_room_furniture`,
   `update_room_furniture_transform`, `update_room_furniture_flip`, and legacy
   scale/position helpers
+- Chat: `edit_message(p_room_id, p_message_id, p_body)` and
+  `delete_message(p_room_id, p_message_id)` only update authenticated active
+  room members' own non-deleted text messages; delete clears `body`.
 - Unread badges: `get_unread_message_total_for_user`,
   `get_unread_message_counts_for_user`
 

@@ -53,9 +53,10 @@ import 'widgets/chat_reaction_details_sheet.dart';
 import 'widgets/chat_reply_preview_panel.dart';
 import 'widgets/chat_keyboard_dismiss_shell.dart';
 
-bool canSwipeReplyToMessage(ChatMessage message) => !message.isSystem;
+bool canSwipeReplyToMessage(ChatMessage message) =>
+    !message.isSystem && !message.isDeleted;
 
-enum _MessageAction { reply, copy, report, block, moreReactions }
+enum _MessageAction { reply, copy, edit, delete, report, block, moreReactions }
 
 class _MessageActionSelection {
   const _MessageActionSelection._({this.action, this.emoji});
@@ -156,6 +157,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
 
   RealtimeChannel? _channel;
   StreamSubscription<ChatMessage>? _runtimeIncomingSubscription;
+  StreamSubscription<ChatMessage>? _runtimeUpdatedSubscription;
   StreamSubscription<String>? _runtimeReactionSubscription;
   int _realtimeGeneration = 0;
   bool _loading = true;
@@ -249,6 +251,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     unawaited(_removeRealtimeChannel(channel));
     _runtimeIncomingSubscription?.cancel();
     _runtimeIncomingSubscription = null;
+    _runtimeUpdatedSubscription?.cancel();
+    _runtimeUpdatedSubscription = null;
     _runtimeReactionSubscription?.cancel();
     _runtimeReactionSubscription = null;
     _chatScrollController.removeListener(_handleChatScroll);
@@ -925,7 +929,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
 
     final messageIds = messages
-        .where((message) => !message.isSystem)
+        .where((message) => !message.isSystem && !message.isDeleted)
         .map((message) => message.id)
         .where((id) => id.isNotEmpty)
         .toSet()
@@ -1013,12 +1017,20 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   void _subscribeToMessages() {
     final generation = ++_realtimeGeneration;
     if (_runtime?.incomingMessages != null ||
+        _runtime?.updatedMessages != null ||
         _runtime?.disableRealtime == true) {
       _runtimeIncomingSubscription = _runtime?.incomingMessages?.listen((
         message,
       ) {
         if (_isRealtimeGenerationActive(generation)) {
           _handleIncomingMessage(message);
+        }
+      });
+      _runtimeUpdatedSubscription = _runtime?.updatedMessages?.listen((
+        message,
+      ) {
+        if (_isRealtimeGenerationActive(generation)) {
+          _handleUpdatedMessage(message);
         }
       });
       _runtimeReactionSubscription = _runtime?.reactionMessageIds?.listen((
@@ -1129,7 +1141,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   ) async {
     final response = await Supabase.instance.client
         .from('messages')
-        .select('id,sender_id,type,body,image_url,caption')
+        .select(
+          'id,sender_id,type,body,image_url,caption,deleted_at,deleted_by',
+        )
         .filter('id', 'in', '(${replyIds.join(',')})');
     final rows = response as List<dynamic>;
     final previewById = <String, ChatReplyPreview>{};
@@ -1208,13 +1222,15 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return;
     }
     final previous = _messagesById[message.id];
-    _window.replaceVisibleMessage(
-      message.copyWith(
-        reactions: previous?.reactions,
-        replyPreview: previous?.replyPreview,
-      ),
+    final mergedMessage = message.copyWith(
+      reactions: message.isDeleted
+          ? const <ChatMessageReactionSummary>[]
+          : previous?.reactions,
+      replyPreview: previous?.replyPreview,
     );
-    await _applyWindowToChat(animated: false);
+    _window.replaceVisibleMessage(mergedMessage);
+    _rebuildMessageIndex();
+    await _updateVisibleChatMessage(mergedMessage);
     unawaited(_ensureProfilesForMessages([message]));
     unawaited(_ensureReplyPreviewsForMessages([message]));
     unawaited(_ensureReactionSummariesForMessages([message]));
@@ -1361,6 +1377,28 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
           ),
         )
         .toList();
+  }
+
+  fc.Message _toUiMessage(ChatMessage message) {
+    return PetChatMessageAdapter.toUiMessage(
+      message,
+      AppLocalizations.of(context)!,
+      isOptimistic: _optimisticIds.contains(message.id),
+    );
+  }
+
+  Future<void> _updateVisibleChatMessage(ChatMessage message) async {
+    final controllerIndex = _chatController.messages.indexWhere(
+      (entry) => entry.id == message.id,
+    );
+    if (controllerIndex == -1) {
+      await _applyWindowToChat(animated: false);
+      return;
+    }
+    await _chatController.updateMessage(
+      _chatController.messages[controllerIndex],
+      _toUiMessage(message),
+    );
   }
 
   Future<void> _handleSendMessage(String rawText) async {
@@ -1621,11 +1659,36 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
   }
 
+  Future<void> _replaceMessageLocally(
+    ChatMessage message, {
+    required bool animated,
+  }) async {
+    if (!mounted || !_messagesById.containsKey(message.id)) {
+      return;
+    }
+    final shouldKeepLatestVisible = _shouldKeepLatestVisible();
+    _window.replaceVisibleMessage(message);
+    _rebuildMessageIndex();
+    await _updateVisibleChatMessage(message);
+    unawaited(_persistCache());
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
+    if (shouldKeepLatestVisible) {
+      _scheduleViewportSync(
+        stickToLatest: true,
+        animated: false,
+        followUpFrames: 2,
+      );
+    }
+  }
+
   Future<void> _toggleReaction(ChatMessage message, String emoji) async {
     final userId =
         _runtime?.currentUserId ??
         Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null || message.isSystem) {
+    if (userId == null || message.isSystem || message.isDeleted) {
       return;
     }
 
@@ -1941,6 +2004,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   String? _copyTextForMessage(ChatMessage message) {
+    if (message.isDeleted) {
+      return null;
+    }
     if ((message.body ?? '').trim().isNotEmpty) {
       return message.body!.trim();
     }
@@ -1948,6 +2014,296 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return message.caption!.trim();
     }
     return null;
+  }
+
+  Future<String?> _promptEditMessageText(ChatMessage message) async {
+    final controller = TextEditingController(text: (message.body ?? '').trim());
+    final l10n = AppLocalizations.of(context)!;
+    final originalText = controller.text.trim();
+    String? errorText;
+    final result = await showJuiceToast<String>(
+      context: context,
+      position: JuicePosition.center,
+      tone: AppDialogTone.info,
+      message: l10n.chatEditMessageTitle,
+      body: StatefulBuilder(
+        builder: (context, setDialogState) {
+          void submit() {
+            final text = controller.text.trim();
+            if (text.isEmpty) {
+              setDialogState(() {
+                errorText = l10n.chatMessageHint;
+              });
+              return;
+            }
+            if (text == originalText) {
+              setDialogState(() {
+                errorText = l10n.chatEditNoChanges;
+              });
+              return;
+            }
+            final navigator = Navigator.of(context);
+            Future<void>.microtask(() => navigator.pop(text));
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                key: const ValueKey('chatEditMessageTextField'),
+                controller: controller,
+                autofocus: true,
+                onTapOutside: dismissKeyboardOnTapOutside,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                minLines: 1,
+                maxLines: 4,
+                style: GoogleFonts.mPlusRounded1c(),
+                decoration: InputDecoration(
+                  hintText: l10n.chatMessageHint,
+                  errorText: errorText,
+                  hintStyle: GoogleFonts.mPlusRounded1c(color: Colors.black26),
+                ),
+                onSubmitted: (_) => submit(),
+              ),
+              const Gap(16),
+              Row(
+                children: [
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: () {
+                        final navigator = Navigator.of(context);
+                        Future<void>.microtask(navigator.pop);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.black12,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonCancel,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: submit,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD600),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonSave,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 350)).then((_) {
+        controller.dispose();
+      }),
+    );
+    return result;
+  }
+
+  Future<bool> _confirmDeleteMessage() async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showJuiceToast<bool>(
+      context: context,
+      position: JuicePosition.center,
+      tone: AppDialogTone.danger,
+      message: l10n.chatDeleteMessageTitle,
+      body: Builder(
+        builder: (dialogContext) {
+          void close(bool value) {
+            final navigator = Navigator.of(dialogContext);
+            Future<void>.microtask(() => navigator.pop(value));
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.chatDeleteMessageConfirm,
+                style: GoogleFonts.mPlusRounded1c(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black54,
+                ),
+              ),
+              const Gap(16),
+              Row(
+                children: [
+                  Expanded(
+                    child: JuicyScaleButton(
+                      onTap: () => close(false),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.black12,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.commonCancel,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: JuicyScaleButton(
+                      key: const ValueKey('chatDeleteMessageConfirmButton'),
+                      onTap: () => close(true),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.error,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.chatDeleteAction,
+                            style: GoogleFonts.mPlusRounded1c(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    return result == true;
+  }
+
+  Future<void> _editMessage(ChatMessage message) async {
+    if (message.isDeleted || message.type != 'text') {
+      return;
+    }
+    final text = await _promptEditMessageText(message);
+    if (!mounted || text == null || text.trim().isEmpty) {
+      return;
+    }
+
+    final previous = _messagesById[message.id] ?? message;
+    final optimistic = previous.copyWith(
+      body: text.trim(),
+      editedAt: DateTime.now().toUtc(),
+    );
+    await _replaceMessageLocally(optimistic, animated: false);
+
+    try {
+      final updated =
+          ChatMessage.fromJson(
+            await _messageActionService.editTextMessageRow(
+              roomId: widget.roomId,
+              messageId: message.id,
+              text: text,
+            ),
+          ).copyWith(
+            reactions: previous.reactions,
+            replyPreview: previous.replyPreview,
+          );
+      await _replaceMessageLocally(updated, animated: false);
+    } catch (error) {
+      await _replaceMessageLocally(previous, animated: false);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.chatEditFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteMessage(ChatMessage message) async {
+    if (message.isDeleted || message.type != 'text') {
+      return;
+    }
+    if (!await _confirmDeleteMessage() || !mounted) {
+      return;
+    }
+
+    final userId =
+        _runtime?.currentUserId ??
+        Supabase.instance.client.auth.currentUser?.id;
+    final previous = _messagesById[message.id] ?? message;
+    final optimistic = previous.copyWith(
+      clearBody: true,
+      deletedAt: DateTime.now().toUtc(),
+      deletedBy: userId,
+      reactions: const <ChatMessageReactionSummary>[],
+    );
+    await _replaceMessageLocally(optimistic, animated: false);
+
+    try {
+      final updated =
+          ChatMessage.fromJson(
+            await _messageActionService.deleteTextMessageRow(
+              roomId: widget.roomId,
+              messageId: message.id,
+            ),
+          ).copyWith(
+            reactions: const <ChatMessageReactionSummary>[],
+            replyPreview: previous.replyPreview,
+          );
+      await _replaceMessageLocally(updated, animated: false);
+    } catch (error) {
+      await _replaceMessageLocally(previous, animated: false);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.chatDeleteFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
+    }
   }
 
   String? _defaultReactionSheetFilterEmoji(
@@ -2065,11 +2421,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     LongPressStartDetails? details,
   }) async {
     final senderId = message.senderId;
-    if (_currentUserId == '__anonymous__' || senderId == null) {
+    if (_currentUserId == '__anonymous__' ||
+        senderId == null ||
+        message.isDeleted) {
       return;
     }
 
     final isMine = senderId == _currentUserId;
+    final canEditDelete = isMine && message.type == 'text';
     final isBlocked = _blockedUserIds.contains(senderId);
     final copyText = _copyTextForMessage(message);
     ChatMessageReactionSummary? myReaction;
@@ -2104,6 +2463,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         reactionOptions: kChatQuickReactionOptions,
         selectedReaction: myReaction?.emoji,
         copyEnabled: copyText != null,
+        editEnabled: canEditDelete,
+        deleteEnabled: canEditDelete,
         isMine: isMine,
         isBlocked: isBlocked,
         onReactionSelected: (emoji) => Navigator.pop(
@@ -2117,6 +2478,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         onCopy: () => Navigator.pop(
           dialogContext,
           const _MessageActionSelection.action(_MessageAction.copy),
+        ),
+        onEdit: () => Navigator.pop(
+          dialogContext,
+          const _MessageActionSelection.action(_MessageAction.edit),
+        ),
+        onDelete: () => Navigator.pop(
+          dialogContext,
+          const _MessageActionSelection.action(_MessageAction.delete),
         ),
         onReport: () => Navigator.pop(
           dialogContext,
@@ -2169,6 +2538,12 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
             ),
           );
         }
+        break;
+      case _MessageAction.edit:
+        await _editMessage(message);
+        break;
+      case _MessageAction.delete:
+        await _deleteMessage(message);
         break;
       case _MessageAction.report:
         await _reportMessage(message);
@@ -2921,6 +3296,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     final domainMessage = _messagesById[message.id];
     if (domainMessage == null ||
         domainMessage.isSystem ||
+        domainMessage.isDeleted ||
         domainMessage.senderId == null) {
       return;
     }
@@ -3692,6 +4068,7 @@ class _MentionTextMessageBubble extends StatelessWidget {
     required this.padding,
     required this.textSpans,
     required this.timeStyle,
+    required this.isEdited,
     this.topWidget,
   });
 
@@ -3702,6 +4079,7 @@ class _MentionTextMessageBubble extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final List<InlineSpan> textSpans;
   final TextStyle? timeStyle;
+  final bool isEdited;
   final Widget? topWidget;
 
   @override
@@ -3733,7 +4111,19 @@ class _MentionTextMessageBubble extends StatelessWidget {
                   const SizedBox(width: 4),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 1),
-                    child: Text(bubbleTime, style: timeStyle),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isEdited) ...[
+                          Text(
+                            AppLocalizations.of(context)!.chatMessageEdited,
+                            style: timeStyle,
+                          ),
+                          const SizedBox(width: 3),
+                        ],
+                        Text(bubbleTime, style: timeStyle),
+                      ],
+                    ),
                   ),
                 ],
               ],
@@ -4441,51 +4831,80 @@ class _TelegramTextMessageBubble extends StatelessWidget {
               ? Colors.white.withValues(alpha: 0.06)
               : const Color(0xFFF1F5F8));
 
-    final mentionSpans = buildChatMentionSpans(
-      text: message.text,
-      baseStyle:
-          (isSentByMe
-              ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: sentTextColor,
+    final metadata = message.metadata ?? const <String, dynamic>{};
+    final isEdited =
+        metadata[PetChatMessageAdapter.isEditedKey] as bool? ?? false;
+    final isDeleted =
+        metadata[PetChatMessageAdapter.isDeletedKey] as bool? ?? false;
+    final deletedTextStyle =
+        Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: isDarkBackground
+              ? Colors.white.withValues(alpha: 0.58)
+              : AppTheme.textSecondary.withValues(alpha: 0.78),
+          fontSize: 13,
+          height: 1.28,
+          fontStyle: FontStyle.italic,
+          fontWeight: FontWeight.w500,
+        ) ??
+        TextStyle(
+          color: isDarkBackground
+              ? Colors.white.withValues(alpha: 0.58)
+              : AppTheme.textSecondary.withValues(alpha: 0.78),
+          fontSize: 13,
+          height: 1.28,
+          fontStyle: FontStyle.italic,
+          fontWeight: FontWeight.w500,
+        );
+
+    final mentionSpans = isDeleted
+        ? <InlineSpan>[TextSpan(text: message.text, style: deletedTextStyle)]
+        : buildChatMentionSpans(
+            text: message.text,
+            baseStyle:
+                (isSentByMe
+                    ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: sentTextColor,
+                        fontSize: 16,
+                        height: 1.36,
+                        fontWeight: FontWeight.w400,
+                      )
+                    : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: receivedTextColor,
+                        fontSize: 16,
+                        height: 1.36,
+                        fontWeight: FontWeight.w400,
+                      )) ??
+                TextStyle(
+                  color: isSentByMe ? sentTextColor : receivedTextColor,
                   fontSize: 16,
                   height: 1.36,
-                  fontWeight: FontWeight.w400,
-                )
-              : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: receivedTextColor,
-                  fontSize: 16,
-                  height: 1.36,
-                  fontWeight: FontWeight.w400,
-                )) ??
-          TextStyle(
-            color: isSentByMe ? sentTextColor : receivedTextColor,
-            fontSize: 16,
-            height: 1.36,
-          ),
-      mentionStyle:
-          (isSentByMe
-              ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDarkBackground
-                      ? const Color(0xFFA2E0CF)
-                      : const Color(0xFF276D5A),
+                ),
+            mentionStyle:
+                (isSentByMe
+                    ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDarkBackground
+                            ? const Color(0xFFA2E0CF)
+                            : const Color(0xFF276D5A),
+                        fontSize: 16,
+                        height: 1.36,
+                        fontWeight: FontWeight.w700,
+                      )
+                    : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.primaryColor,
+                        fontSize: 16,
+                        height: 1.36,
+                        fontWeight: FontWeight.w700,
+                      )) ??
+                TextStyle(
+                  color: isSentByMe
+                      ? const Color(0xFF276D5A)
+                      : AppTheme.primaryColor,
                   fontSize: 16,
                   height: 1.36,
                   fontWeight: FontWeight.w700,
-                )
-              : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontSize: 16,
-                  height: 1.36,
-                  fontWeight: FontWeight.w700,
-                )) ??
-          TextStyle(
-            color: isSentByMe ? const Color(0xFF276D5A) : AppTheme.primaryColor,
-            fontSize: 16,
-            height: 1.36,
-            fontWeight: FontWeight.w700,
-          ),
-      candidates: mentionCandidates,
-    );
+                ),
+            candidates: mentionCandidates,
+          );
     final hasHighlightedMention = mentionSpans.any(
       (span) => span.style?.fontWeight == FontWeight.w700,
     );
@@ -4501,7 +4920,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
           key: ValueKey<String>('chatMessageSurface_${message.id}'),
           child: KeyedSubtree(
             key: surfaceKey,
-            child: hasHighlightedMention
+            child: (hasHighlightedMention || isEdited || isDeleted)
                 ? _MentionTextMessageBubble(
                     message: message,
                     constraints: const BoxConstraints(maxWidth: 296),
@@ -4516,6 +4935,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
                     ),
+                    isEdited: isEdited,
                     topWidget: _buildTextMessageTopWidget(
                       context: context,
                       isSentByMe: isSentByMe,

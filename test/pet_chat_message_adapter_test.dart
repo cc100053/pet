@@ -34,6 +34,52 @@ void main() {
       expect(mapped.status, fc.MessageStatus.sent);
     });
 
+    test('maps deleted text messages to deleted placeholder', () {
+      final message = ChatMessage(
+        id: 'm-deleted',
+        roomId: 'room',
+        senderId: 'user-a',
+        type: 'text',
+        body: null,
+        imageUrl: null,
+        caption: null,
+        coinsAwarded: 0,
+        createdAt: DateTime.utc(2026, 3, 10, 12),
+        clientCreatedAt: DateTime.utc(2026, 3, 10, 12),
+        labels: const [],
+        localImagePath: null,
+        deletedAt: DateTime.utc(2026, 4, 19, 12),
+        deletedBy: 'user-a',
+      );
+
+      final mapped = PetChatMessageAdapter.toUiMessage(message, l10n);
+
+      expect((mapped as fc.TextMessage).text, l10n.chatMessageDeleted);
+      expect(mapped.metadata?[PetChatMessageAdapter.isDeletedKey], isTrue);
+      expect(
+        PetChatMessageAdapter.previewTextForMessage(message, l10n),
+        l10n.chatMessageDeleted,
+      );
+    });
+
+    test('deleted reply previews use deleted placeholder', () {
+      final preview = ChatReplyPreview(
+        id: 'reply-1',
+        senderId: 'user-a',
+        type: 'text',
+        body: null,
+        imageUrl: null,
+        caption: null,
+        deletedAt: DateTime.utc(2026, 4, 19, 12),
+        deletedBy: 'user-a',
+      );
+
+      expect(
+        PetChatMessageAdapter.previewTextForReply(preview, l10n),
+        l10n.chatMessageDeleted,
+      );
+    });
+
     test('maps feed messages to custom messages and preserves metadata', () {
       final message = ChatMessage(
         id: 'feed-1',

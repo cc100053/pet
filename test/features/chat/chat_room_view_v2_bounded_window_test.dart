@@ -251,6 +251,9 @@ void main() {
     required String body,
     required DateTime createdAt,
     String? replyToMessageId,
+    DateTime? editedAt,
+    DateTime? deletedAt,
+    String? deletedBy,
   }) {
     return ChatMessage(
       id: id,
@@ -265,6 +268,9 @@ void main() {
       clientCreatedAt: createdAt,
       labels: const <Map<String, dynamic>>[],
       localImagePath: null,
+      editedAt: editedAt,
+      deletedAt: deletedAt,
+      deletedBy: deletedBy,
       replyToMessageId: replyToMessageId,
     );
   }
@@ -275,6 +281,9 @@ void main() {
     required String body,
     required DateTime createdAt,
     String? replyToMessageId,
+    DateTime? editedAt,
+    DateTime? deletedAt,
+    String? deletedBy,
   }) {
     return <String, dynamic>{
       'id': id,
@@ -289,6 +298,9 @@ void main() {
       'client_created_at': createdAt.toUtc().toIso8601String(),
       'labels': const <Map<String, dynamic>>[],
       'reply_to_message_id': replyToMessageId,
+      'edited_at': editedAt?.toUtc().toIso8601String(),
+      'deleted_at': deletedAt?.toUtc().toIso8601String(),
+      'deleted_by': deletedBy,
     };
   }
 
@@ -366,6 +378,18 @@ void main() {
       find.byKey(const ValueKey('chatTimelineList')),
     );
     return listView.controller!;
+  }
+
+  Finder findRenderedText(String text) {
+    return find.byWidgetPredicate((widget) {
+      if (widget is Text) {
+        return (widget.data ?? widget.textSpan?.toPlainText()) == text;
+      }
+      if (widget is RichText) {
+        return widget.text.toPlainText().contains(text);
+      }
+      return false;
+    });
   }
 
   double composerTop(WidgetTester tester) {
@@ -1589,6 +1613,206 @@ void main() {
       );
     },
   );
+
+  testWidgets('editing own text message updates body and edited marker', (
+    tester,
+  ) async {
+    final createdAt = DateTime.utc(2026, 4, 19, 12);
+    final message = textMessage(
+      id: 'editable-message',
+      senderId: 'me',
+      body: 'before edit',
+      createdAt: createdAt,
+    );
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message],
+      canonicalMessages: <ChatMessage>[message],
+    );
+    final messageActionService = ChatMessageActionService(
+      editText: ({required roomId, required messageId, required text}) async {
+        return textMessageRow(
+          id: messageId,
+          senderId: 'me',
+          body: text,
+          createdAt: createdAt,
+          editedAt: DateTime.utc(2026, 4, 19, 12, 1),
+        );
+      },
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(
+      tester,
+      repository: repository,
+      runtime: runtime,
+      messageActionService: messageActionService,
+    );
+
+    await tester.longPress(
+      find.byKey(const ValueKey('chatMessageSurface_editable-message')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('chatEditMessageTextField')),
+      'after edit',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(findRenderedText('after edit'), findsOneWidget);
+    expect(find.text('before edit'), findsNothing);
+    expect(find.text('edited'), findsOneWidget);
+  });
+
+  testWidgets('deleting own text message renders deleted placeholder', (
+    tester,
+  ) async {
+    final createdAt = DateTime.utc(2026, 4, 19, 12);
+    final message = textMessage(
+      id: 'delete-message',
+      senderId: 'me',
+      body: 'delete me',
+      createdAt: createdAt,
+    );
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message],
+      canonicalMessages: <ChatMessage>[message],
+    );
+    var deleteCalled = false;
+    final messageActionService = ChatMessageActionService(
+      deleteText: ({required roomId, required messageId}) async {
+        deleteCalled = true;
+        return textMessageRow(
+          id: messageId,
+          senderId: 'me',
+          body: '',
+          createdAt: createdAt,
+          deletedAt: DateTime.utc(2026, 4, 19, 12, 1),
+          deletedBy: 'me',
+        )..['body'] = null;
+      },
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(
+      tester,
+      repository: repository,
+      runtime: runtime,
+      messageActionService: messageActionService,
+    );
+
+    await tester.longPress(
+      find.byKey(const ValueKey('chatMessageSurface_delete-message')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete message'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('chatDeleteMessageConfirmButton')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(deleteCalled, isTrue);
+    expect(findRenderedText('Message deleted'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) {
+        if (widget is! RichText ||
+            widget.text.toPlainText() != 'Message deleted') {
+          return false;
+        }
+        final textSpan = widget.text;
+        if (textSpan is! TextSpan || textSpan.children?.isEmpty != false) {
+          return false;
+        }
+        final deletedSpan = textSpan.children!.first;
+        return deletedSpan is TextSpan &&
+            deletedSpan.style?.fontSize == 13 &&
+            deletedSpan.style?.fontStyle == FontStyle.italic &&
+            deletedSpan.style?.color != null;
+      }),
+      findsOneWidget,
+    );
+    expect(find.text('delete me'), findsNothing);
+  });
+
+  testWidgets('deleted messages do not open long-press actions', (
+    tester,
+  ) async {
+    final message = textMessage(
+      id: 'deleted-message',
+      senderId: 'me',
+      body: '',
+      createdAt: DateTime.utc(2026, 4, 19, 12),
+      deletedAt: DateTime.utc(2026, 4, 19, 12, 1),
+      deletedBy: 'me',
+    ).copyWith(clearBody: true);
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message],
+      canonicalMessages: <ChatMessage>[message],
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    await tester.longPress(
+      find.byKey(const ValueKey('chatMessageSurface_deleted-message')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(findRenderedText('Message deleted'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('chatMessageActionSheetOptionsCard')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('runtime message update edits visible row in place', (
+    tester,
+  ) async {
+    final updatedMessages = StreamController<ChatMessage>.broadcast(sync: true);
+    addTearDown(updatedMessages.close);
+    final createdAt = DateTime.utc(2026, 4, 19, 12);
+    final message = textMessage(
+      id: 'runtime-update-message',
+      senderId: 'other',
+      body: 'before realtime',
+      createdAt: createdAt,
+    );
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message],
+      canonicalMessages: <ChatMessage>[message],
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+      updatedMessages: updatedMessages.stream,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    updatedMessages.add(
+      message.copyWith(
+        body: 'after realtime',
+        editedAt: DateTime.utc(2026, 4, 19, 12, 1),
+      ),
+    );
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(findRenderedText('after realtime'), findsOneWidget);
+    expect(find.text('before realtime'), findsNothing);
+  });
 
   testWidgets('system messages stay horizontally centered', (tester) async {
     final repository = _FakeChatMessageRepository(

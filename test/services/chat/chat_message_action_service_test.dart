@@ -65,6 +65,86 @@ void main() {
       expect(notifiedMessageId, 'message-123');
     });
 
+    test('editTextMessageRow trims text and returns updated row', () async {
+      String? editedRoomId;
+      String? editedMessageId;
+      String? editedText;
+      final service = ChatMessageActionService(
+        editText: ({required roomId, required messageId, required text}) async {
+          editedRoomId = roomId;
+          editedMessageId = messageId;
+          editedText = text;
+          return <String, dynamic>{
+            'id': messageId,
+            'room_id': roomId,
+            'sender_id': 'user-1',
+            'type': 'text',
+            'body': text,
+            'edited_at': '2026-04-19T12:00:00Z',
+          };
+        },
+      );
+
+      final row = await service.editTextMessageRow(
+        roomId: 'room-1',
+        messageId: 'message-1',
+        text: '  Updated  ',
+      );
+
+      expect(row['id'], 'message-1');
+      expect(row['body'], 'Updated');
+      expect(editedRoomId, 'room-1');
+      expect(editedMessageId, 'message-1');
+      expect(editedText, 'Updated');
+    });
+
+    test('editTextMessageRow rejects empty text', () async {
+      final service = ChatMessageActionService(
+        editText:
+            ({required roomId, required messageId, required text}) async =>
+                <String, dynamic>{'id': messageId},
+      );
+
+      expect(
+        () => service.editTextMessageRow(
+          roomId: 'room-1',
+          messageId: 'message-1',
+          text: '   ',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('deleteTextMessageRow returns deleted row', () async {
+      String? deletedRoomId;
+      String? deletedMessageId;
+      final service = ChatMessageActionService(
+        deleteText: ({required roomId, required messageId}) async {
+          deletedRoomId = roomId;
+          deletedMessageId = messageId;
+          return <String, dynamic>{
+            'id': messageId,
+            'room_id': roomId,
+            'sender_id': 'user-1',
+            'type': 'text',
+            'body': null,
+            'deleted_at': '2026-04-19T12:00:00Z',
+            'deleted_by': 'user-1',
+          };
+        },
+      );
+
+      final row = await service.deleteTextMessageRow(
+        roomId: 'room-1',
+        messageId: 'message-1',
+      );
+
+      expect(row['id'], 'message-1');
+      expect(row['body'], isNull);
+      expect(deletedRoomId, 'room-1');
+      expect(deletedMessageId, 'message-1');
+    });
+
     test('toggleReaction deletes when emoji is already selected', () async {
       String? deletedMessageId;
       String? deletedUserId;

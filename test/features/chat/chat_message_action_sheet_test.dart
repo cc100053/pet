@@ -48,11 +48,15 @@ void main() {
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: '👍',
           copyEnabled: true,
+          editEnabled: true,
+          deleteEnabled: true,
           isMine: true,
           isBlocked: false,
           onReactionSelected: (_) {},
           onReply: () {},
           onCopy: () {},
+          onEdit: () {},
+          onDelete: () {},
           onReport: () {},
           onBlock: () {},
           onMoreReactions: () {},
@@ -74,6 +78,8 @@ void main() {
     );
     expect(find.text('Reply'), findsOneWidget);
     expect(find.text('Copy'), findsOneWidget);
+    expect(find.text('Edit'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
     expect(find.text('Report message'), findsNothing);
     expect(find.text('Block user'), findsNothing);
   });
@@ -87,11 +93,15 @@ void main() {
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: null,
           copyEnabled: false,
+          editEnabled: false,
+          deleteEnabled: false,
           isMine: false,
           isBlocked: false,
           onReactionSelected: (_) {},
           onReply: () {},
           onCopy: () {},
+          onEdit: () {},
+          onDelete: () {},
           onReport: () {},
           onBlock: () {},
           onMoreReactions: () {},
@@ -101,6 +111,8 @@ void main() {
 
     expect(find.text('Reply'), findsOneWidget);
     expect(find.text('Copy'), findsOneWidget);
+    expect(find.text('Edit'), findsNothing);
+    expect(find.text('Delete'), findsNothing);
     expect(find.text('Report message'), findsOneWidget);
     expect(find.text('Block user'), findsOneWidget);
   });
@@ -116,11 +128,15 @@ void main() {
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: null,
           copyEnabled: true,
+          editEnabled: false,
+          deleteEnabled: false,
           isMine: false,
           isBlocked: false,
           onReactionSelected: (emoji) => selectedEmoji = emoji,
           onReply: () {},
           onCopy: () {},
+          onEdit: () {},
+          onDelete: () {},
           onReport: () {},
           onBlock: () {},
           onMoreReactions: () {},
@@ -145,11 +161,15 @@ void main() {
           reactionOptions: const <String>['👍', '❤️'],
           selectedReaction: null,
           copyEnabled: true,
+          editEnabled: false,
+          deleteEnabled: false,
           isMine: false,
           isBlocked: false,
           onReactionSelected: (_) {},
           onReply: () {},
           onCopy: () {},
+          onEdit: () {},
+          onDelete: () {},
           onReport: () {},
           onBlock: () {},
           onMoreReactions: () => invoked = true,

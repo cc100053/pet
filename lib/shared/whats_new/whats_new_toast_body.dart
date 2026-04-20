@@ -23,6 +23,8 @@ class WhatsNewToastBody extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _VersionPill(version: version),
+        const SizedBox(height: 10),
         Text(
           entry.title(l10n),
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -33,8 +35,49 @@ class WhatsNewToastBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
+        Text(
+          l10n.whatsNewContentLabel,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+        const SizedBox(height: 10),
         _TimelinePanel(bullets: bullets),
       ],
+    );
+  }
+}
+
+class _VersionPill extends StatelessWidget {
+  const _VersionPill({required this.version});
+
+  final String version;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Text(
+          l10n.whatsNewVersionLabel(version),
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
     );
   }
 }

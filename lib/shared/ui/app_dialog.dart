@@ -7,19 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import 'juice_wrappers.dart';
 
-enum AppDialogTone {
-  info,
-  success,
-  warning,
-  danger,
-}
+enum AppDialogTone { info, success, warning, danger }
 
-enum AppDialogActionStyle {
-  primary,
-  secondary,
-  destructive,
-  ghost,
-}
+enum AppDialogActionStyle { primary, secondary, destructive, ghost }
 
 class AppDialogAction {
   const AppDialogAction({
@@ -28,10 +18,8 @@ class AppDialogAction {
     this.style = AppDialogActionStyle.primary,
   });
 
-  const AppDialogAction.primary({
-    required this.label,
-    required this.onPressed,
-  }) : style = AppDialogActionStyle.primary;
+  const AppDialogAction.primary({required this.label, required this.onPressed})
+    : style = AppDialogActionStyle.primary;
 
   const AppDialogAction.secondary({
     required this.label,
@@ -43,10 +31,8 @@ class AppDialogAction {
     required this.onPressed,
   }) : style = AppDialogActionStyle.destructive;
 
-  const AppDialogAction.ghost({
-    required this.label,
-    required this.onPressed,
-  }) : style = AppDialogActionStyle.ghost;
+  const AppDialogAction.ghost({required this.label, required this.onPressed})
+    : style = AppDialogActionStyle.ghost;
 
   final String label;
   final VoidCallback? onPressed;
@@ -66,11 +52,7 @@ Future<T?> showAppDialog<T>({
   );
 }
 
-enum JuicePosition {
-  top,
-  center,
-  bottom,
-}
+enum JuicePosition { top, center, bottom }
 
 /// A non-intrusive, auto-dismissing notification that doesn't block interaction.
 void showJuiceSnackbar({
@@ -255,6 +237,8 @@ Future<T?> showJuiceToast<T>({
   JuicePosition position = JuicePosition.bottom,
   String? actionLabel,
   VoidCallback? onActionPressed,
+  String? secondaryActionLabel,
+  VoidCallback? onSecondaryActionPressed,
   bool barrierDismissible = true,
   Widget? leading,
 }) {
@@ -290,17 +274,17 @@ Future<T?> showJuiceToast<T>({
 
       final slideTween = switch (position) {
         JuicePosition.top => Tween<Offset>(
-            begin: const Offset(0, -1.5),
-            end: Offset.zero,
-          ),
+          begin: const Offset(0, -1.5),
+          end: Offset.zero,
+        ),
         JuicePosition.center => Tween<Offset>(
-            begin: const Offset(0, 0.05), // Slight nudge
-            end: Offset.zero,
-          ),
+          begin: const Offset(0, 0.05), // Slight nudge
+          end: Offset.zero,
+        ),
         JuicePosition.bottom => Tween<Offset>(
-            begin: const Offset(0, 1.5),
-            end: Offset.zero,
-          ),
+          begin: const Offset(0, 1.5),
+          end: Offset.zero,
+        ),
       };
 
       Widget content = Material(
@@ -330,10 +314,7 @@ Future<T?> showJuiceToast<T>({
                   gradient: const LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white,
-                      Color(0xFFFFF7EA),
-                    ],
+                    colors: [Colors.white, Color(0xFFFFF7EA)],
                   ),
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(color: Colors.white, width: 3),
@@ -352,58 +333,59 @@ Future<T?> showJuiceToast<T>({
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Circular Icon Area with Badge
-                        leading ?? Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    accent.withValues(alpha: 0.22),
-                                    accent.withValues(alpha: 0.38),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: accent.withValues(alpha: 0.5),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  toneStyle.icon,
-                                  color: accent,
-                                  size: 28,
-                                ),
-                              ),
-                            ),
-                            // Top-left Badge
-                            Positioned(
-                              top: -4,
-                              left: -4,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: accent,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
+                        leading ??
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        accent.withValues(alpha: 0.22),
+                                        accent.withValues(alpha: 0.38),
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: accent.withValues(alpha: 0.5),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      toneStyle.icon,
+                                      color: accent,
+                                      size: 28,
+                                    ),
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.priority_high,
-                                  color: Colors.white,
-                                  size: 10,
+                                // Top-left Badge
+                                Positioned(
+                                  top: -4,
+                                  left: -4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: accent,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.priority_high,
+                                      color: Colors.white,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
                         const Gap(14),
                         Expanded(
                           child: Column(
@@ -441,40 +423,91 @@ Future<T?> showJuiceToast<T>({
                         ),
                       ],
                     ),
-                    if (actionLabel != null) ...[
+                    if (actionLabel != null ||
+                        secondaryActionLabel != null) ...[
                       const Gap(16),
-                      JuicyScaleButton(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          onActionPressed?.call();
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFD600), // Pop Yellow
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                offset: const Offset(0, 4),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              actionLabel,
-                              style: GoogleFonts.mPlusRounded1c(
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black,
-                                fontSize: 18,
-                                letterSpacing: 1.2,
+                      Row(
+                        children: [
+                          if (secondaryActionLabel != null) ...[
+                            Expanded(
+                              child: JuicyScaleButton(
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  onSecondaryActionPressed?.call();
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: accent.withValues(alpha: 0.35),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      secondaryActionLabel,
+                                      style: GoogleFonts.mPlusRounded1c(
+                                        fontWeight: FontWeight.w900,
+                                        color: accent,
+                                        fontSize: 18,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                            if (actionLabel != null) const Gap(10),
+                          ],
+                          if (actionLabel != null)
+                            Expanded(
+                              child: JuicyScaleButton(
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  onActionPressed?.call();
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFD600),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        offset: const Offset(0, 4),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      actionLabel,
+                                      style: GoogleFonts.mPlusRounded1c(
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ],
@@ -504,6 +537,7 @@ Future<T?> showJuiceToast<T>({
     },
   );
 }
+
 class AppDialog extends StatelessWidget {
   const AppDialog({
     super.key,
@@ -531,7 +565,8 @@ class AppDialog extends StatelessWidget {
     final outline = theme.colorScheme.outlineVariant.withValues(alpha: 0.45);
     final cardColor = theme.colorScheme.surface.withValues(alpha: 0.92);
 
-    final icon = leading ??
+    final icon =
+        leading ??
         Container(
           height: 44,
           width: 44,
@@ -604,9 +639,12 @@ class AppDialog extends StatelessWidget {
                                     const SizedBox(height: 6),
                                     Text(
                                       message!,
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
                                     ),
                                   ],
                                 ],
@@ -653,33 +691,33 @@ class _DialogActions extends StatelessWidget {
         children: actions.map((action) {
           return switch (action.style) {
             AppDialogActionStyle.primary => FilledButton(
-                onPressed: action.onPressed,
-                style: FilledButton.styleFrom(backgroundColor: accent),
-                child: Text(action.label),
-              ),
+              onPressed: action.onPressed,
+              style: FilledButton.styleFrom(backgroundColor: accent),
+              child: Text(action.label),
+            ),
             AppDialogActionStyle.destructive => FilledButton(
-                onPressed: action.onPressed,
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                ),
-                child: Text(action.label),
+              onPressed: action.onPressed,
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
               ),
+              child: Text(action.label),
+            ),
             AppDialogActionStyle.secondary => OutlinedButton(
-                onPressed: action.onPressed,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.onSurface,
-                  side: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.6,
-                    ),
+              onPressed: action.onPressed,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.onSurface,
+                side: BorderSide(
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.6,
                   ),
                 ),
-                child: Text(action.label),
               ),
+              child: Text(action.label),
+            ),
             AppDialogActionStyle.ghost => TextButton(
-                onPressed: action.onPressed,
-                child: Text(action.label),
-              ),
+              onPressed: action.onPressed,
+              child: Text(action.label),
+            ),
           };
         }).toList(),
       ),
@@ -697,20 +735,20 @@ class _ToneStyle {
 _ToneStyle _toneStyle(ThemeData theme, AppDialogTone tone) {
   return switch (tone) {
     AppDialogTone.info => _ToneStyle(
-        icon: Icons.stars_rounded,
-        accent: AppTheme.primaryColor,
-      ),
+      icon: Icons.stars_rounded,
+      accent: AppTheme.primaryColor,
+    ),
     AppDialogTone.success => _ToneStyle(
-        icon: Icons.check_circle_rounded,
-        accent: AppTheme.successColor,
-      ),
+      icon: Icons.check_circle_rounded,
+      accent: AppTheme.successColor,
+    ),
     AppDialogTone.warning => _ToneStyle(
-        icon: Icons.warning_rounded,
-        accent: AppTheme.secondaryColor,
-      ),
+      icon: Icons.warning_rounded,
+      accent: AppTheme.secondaryColor,
+    ),
     AppDialogTone.danger => _ToneStyle(
-        icon: Icons.error_rounded,
-        accent: theme.colorScheme.error,
-      ),
+      icon: Icons.error_rounded,
+      accent: theme.colorScheme.error,
+    ),
   };
 }

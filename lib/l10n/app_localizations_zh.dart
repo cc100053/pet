@@ -117,7 +117,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatCopyAction => '复制';
 
   @override
+  String get chatEditAction => '编辑';
+
+  @override
+  String get chatDeleteAction => '删除';
+
+  @override
   String get chatMessageCopied => '已复制消息。';
+
+  @override
+  String get chatEditMessageTitle => '编辑消息';
+
+  @override
+  String get chatDeleteMessageTitle => '删除消息';
+
+  @override
+  String get chatDeleteMessageConfirm => '这条消息会改为“已删除”提示，原内容不会再显示。';
+
+  @override
+  String get chatMessageEdited => '已编辑';
+
+  @override
+  String get chatMessageDeleted => '消息已删除';
+
+  @override
+  String get chatEditNoChanges => '没有需要保存的更改。';
+
+  @override
+  String chatEditFailed(Object error) {
+    return '编辑失敗：$error';
+  }
+
+  @override
+  String chatDeleteFailed(Object error) {
+    return '删除失敗：$error';
+  }
 
   @override
   String get chatNoOlderMessages => '沒有更早的消息。';
@@ -1779,7 +1813,41 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatCopyAction => '複製';
 
   @override
+  String get chatEditAction => '編輯';
+
+  @override
+  String get chatDeleteAction => '刪除';
+
+  @override
   String get chatMessageCopied => '已複製訊息。';
+
+  @override
+  String get chatEditMessageTitle => '編輯訊息';
+
+  @override
+  String get chatDeleteMessageTitle => '刪除訊息';
+
+  @override
+  String get chatDeleteMessageConfirm => '這則訊息會改為「已刪除」提示，原內容不會再顯示。';
+
+  @override
+  String get chatMessageEdited => '已編輯';
+
+  @override
+  String get chatMessageDeleted => '訊息已刪除';
+
+  @override
+  String get chatEditNoChanges => '沒有需要儲存的變更。';
+
+  @override
+  String chatEditFailed(Object error) {
+    return '編輯失敗：$error';
+  }
+
+  @override
+  String chatDeleteFailed(Object error) {
+    return '刪除失敗：$error';
+  }
 
   @override
   String get chatNoOlderMessages => '沒有更早的訊息。';

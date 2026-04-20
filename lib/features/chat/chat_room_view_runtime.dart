@@ -14,6 +14,7 @@ class ChatRoomViewRuntime {
     this.fetchMemberCount,
     this.fetchMentionCandidates,
     this.incomingMessages,
+    this.updatedMessages,
     this.reactionMessageIds,
     this.fetchReplyPreviews,
   });
@@ -24,6 +25,7 @@ class ChatRoomViewRuntime {
   final Future<int> Function(String roomId)? fetchMemberCount;
   final ChatMentionCandidatesLoader? fetchMentionCandidates;
   final Stream<ChatMessage>? incomingMessages;
+  final Stream<ChatMessage>? updatedMessages;
   final Stream<String>? reactionMessageIds;
   final Future<Map<String, ChatReplyPreview>> Function(Set<String> replyIds)?
   fetchReplyPreviews;

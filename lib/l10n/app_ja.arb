@@ -79,7 +79,27 @@
   "chatJumpToLatest": "最新",
   "chatMessageHint": "メッセージ",
   "chatCopyAction": "コピー",
+  "chatEditAction": "編集",
+  "chatDeleteAction": "削除",
   "chatMessageCopied": "メッセージをコピーしました。",
+  "chatEditMessageTitle": "メッセージを編集",
+  "chatDeleteMessageTitle": "メッセージを削除",
+  "chatDeleteMessageConfirm": "このメッセージは削除済み表示に置き換わり、元の内容は表示されません。",
+  "chatMessageEdited": "編集済み",
+  "chatMessageDeleted": "メッセージは削除されました",
+  "chatEditNoChanges": "保存する変更はありません。",
+  "chatEditFailed": "編集に失敗しました: {error}",
+  "@chatEditFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatDeleteFailed": "削除に失敗しました: {error}",
+  "@chatDeleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "chatNoOlderMessages": "これ以上のメッセージはありません。",
   "chatPartnerLabel": "相手",
   "chatReplyAction": "返信",

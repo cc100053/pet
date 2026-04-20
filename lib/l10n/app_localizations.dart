@@ -277,11 +277,71 @@ abstract class AppLocalizations {
   /// **'Copy'**
   String get chatCopyAction;
 
+  /// No description provided for @chatEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get chatEditAction;
+
+  /// No description provided for @chatDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get chatDeleteAction;
+
   /// No description provided for @chatMessageCopied.
   ///
   /// In en, this message translates to:
   /// **'Message copied.'**
   String get chatMessageCopied;
+
+  /// No description provided for @chatEditMessageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit message'**
+  String get chatEditMessageTitle;
+
+  /// No description provided for @chatDeleteMessageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get chatDeleteMessageTitle;
+
+  /// No description provided for @chatDeleteMessageConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This message will be replaced with a deleted-message placeholder.'**
+  String get chatDeleteMessageConfirm;
+
+  /// No description provided for @chatMessageEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'edited'**
+  String get chatMessageEdited;
+
+  /// No description provided for @chatMessageDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Message deleted'**
+  String get chatMessageDeleted;
+
+  /// No description provided for @chatEditNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes to save.'**
+  String get chatEditNoChanges;
+
+  /// No description provided for @chatEditFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit failed: {error}'**
+  String chatEditFailed(Object error);
+
+  /// No description provided for @chatDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed: {error}'**
+  String chatDeleteFailed(Object error);
 
   /// No description provided for @chatNoOlderMessages.
   ///

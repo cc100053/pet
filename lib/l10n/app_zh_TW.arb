@@ -81,7 +81,27 @@
   "chatJumpToLatest": "最新",
   "chatMessageHint": "訊息",
   "chatCopyAction": "複製",
+  "chatEditAction": "編輯",
+  "chatDeleteAction": "刪除",
   "chatMessageCopied": "已複製訊息。",
+  "chatEditMessageTitle": "編輯訊息",
+  "chatDeleteMessageTitle": "刪除訊息",
+  "chatDeleteMessageConfirm": "這則訊息會改為「已刪除」提示，原內容不會再顯示。",
+  "chatMessageEdited": "已編輯",
+  "chatMessageDeleted": "訊息已刪除",
+  "chatEditNoChanges": "沒有需要儲存的變更。",
+  "chatEditFailed": "編輯失敗：{error}",
+  "@chatEditFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatDeleteFailed": "刪除失敗：{error}",
+  "@chatDeleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "chatNoOlderMessages": "沒有更早的訊息。",
   "chatPartnerLabel": "對方",
   "chatReplyAction": "回覆",

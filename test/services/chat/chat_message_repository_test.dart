@@ -76,6 +76,39 @@ void main() {
     ]);
   });
 
+  test('cacheMessages round-trips edited and deleted message state', () async {
+    final repository = ChatMessageRepository(box: box);
+    final editedAt = DateTime.utc(2026, 4, 19, 12);
+    final deletedAt = DateTime.utc(2026, 4, 19, 12, 5);
+    final deleted = message(1).copyWith(
+      clearBody: true,
+      editedAt: editedAt,
+      deletedAt: deletedAt,
+      deletedBy: 'user-1',
+      replyPreview: ChatReplyPreview(
+        id: 'reply-1',
+        senderId: 'user-2',
+        type: 'text',
+        body: null,
+        imageUrl: null,
+        caption: null,
+        deletedAt: deletedAt,
+        deletedBy: 'user-2',
+      ),
+    );
+
+    await repository.cacheMessages('room-1', <ChatMessage>[deleted]);
+
+    final cached = await repository.loadCachedMessages('room-1');
+    expect(cached, hasLength(1));
+    expect(cached.single.body, isNull);
+    expect(cached.single.editedAt, editedAt);
+    expect(cached.single.deletedAt, deletedAt);
+    expect(cached.single.deletedBy, 'user-1');
+    expect(cached.single.isDeleted, isTrue);
+    expect(cached.single.replyPreview?.isDeleted, isTrue);
+  });
+
   test(
     'fetchReactionDetails maps rows and keeps newest reactions first',
     () async {

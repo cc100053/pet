@@ -117,7 +117,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatCopyAction => 'Copy';
 
   @override
+  String get chatEditAction => 'Edit';
+
+  @override
+  String get chatDeleteAction => 'Delete';
+
+  @override
   String get chatMessageCopied => 'Message copied.';
+
+  @override
+  String get chatEditMessageTitle => 'Edit message';
+
+  @override
+  String get chatDeleteMessageTitle => 'Delete message';
+
+  @override
+  String get chatDeleteMessageConfirm =>
+      'This message will be replaced with a deleted-message placeholder.';
+
+  @override
+  String get chatMessageEdited => 'edited';
+
+  @override
+  String get chatMessageDeleted => 'Message deleted';
+
+  @override
+  String get chatEditNoChanges => 'No changes to save.';
+
+  @override
+  String chatEditFailed(Object error) {
+    return 'Edit failed: $error';
+  }
+
+  @override
+  String chatDeleteFailed(Object error) {
+    return 'Delete failed: $error';
+  }
 
   @override
   String get chatNoOlderMessages => 'No older messages.';

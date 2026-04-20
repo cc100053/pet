@@ -117,7 +117,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatCopyAction => 'コピー';
 
   @override
+  String get chatEditAction => '編集';
+
+  @override
+  String get chatDeleteAction => '削除';
+
+  @override
   String get chatMessageCopied => 'メッセージをコピーしました。';
+
+  @override
+  String get chatEditMessageTitle => 'メッセージを編集';
+
+  @override
+  String get chatDeleteMessageTitle => 'メッセージを削除';
+
+  @override
+  String get chatDeleteMessageConfirm => 'このメッセージは削除済み表示に置き換わり、元の内容は表示されません。';
+
+  @override
+  String get chatMessageEdited => '編集済み';
+
+  @override
+  String get chatMessageDeleted => 'メッセージは削除されました';
+
+  @override
+  String get chatEditNoChanges => '保存する変更はありません。';
+
+  @override
+  String chatEditFailed(Object error) {
+    return '編集に失敗しました: $error';
+  }
+
+  @override
+  String chatDeleteFailed(Object error) {
+    return '削除に失敗しました: $error';
+  }
 
   @override
   String get chatNoOlderMessages => 'これ以上のメッセージはありません。';

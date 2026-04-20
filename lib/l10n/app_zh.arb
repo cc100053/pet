@@ -79,7 +79,27 @@
   "chatJumpToLatest": "最新",
   "chatMessageHint": "消息",
   "chatCopyAction": "复制",
+  "chatEditAction": "编辑",
+  "chatDeleteAction": "删除",
   "chatMessageCopied": "已复制消息。",
+  "chatEditMessageTitle": "编辑消息",
+  "chatDeleteMessageTitle": "删除消息",
+  "chatDeleteMessageConfirm": "这条消息会改为“已删除”提示，原内容不会再显示。",
+  "chatMessageEdited": "已编辑",
+  "chatMessageDeleted": "消息已删除",
+  "chatEditNoChanges": "没有需要保存的更改。",
+  "chatEditFailed": "编辑失敗：{error}",
+  "@chatEditFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "chatDeleteFailed": "删除失敗：{error}",
+  "@chatDeleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "chatNoOlderMessages": "沒有更早的消息。",
   "chatPartnerLabel": "對方",
   "chatReplyAction": "回覆",

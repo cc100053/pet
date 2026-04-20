@@ -255,12 +255,10 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       return;
     }
 
-    unawaited(
-      _logEventSafe(shownEventName, parameters: {'version': version}),
-    );
+    unawaited(_logEventSafe(shownEventName, parameters: {'version': version}));
 
     final l10n = AppLocalizations.of(context)!;
-    showJuiceToast(
+    await showJuiceToast<void>(
       context: context,
       message: '${l10n.whatsNewDialogTitle} $version',
       leading: Container(
@@ -269,7 +267,9 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
             width: 2,
           ),
           boxShadow: [
@@ -358,33 +358,45 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       return;
     }
     _dialogShowing = true;
-    showJuiceToast(
-      context: context,
-      message: AppLocalizations.of(context)!.softUpdateTitle,
-      body: Text(
-        config.softUpdateMessage ??
-            AppLocalizations.of(context)!.softUpdateMessage,
-      ),
-      position: JuicePosition.center,
-      actionLabel: AppLocalizations.of(context)!.softUpdateAction,
-      onActionPressed: () {
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      await showJuiceToast<void>(
+        context: context,
+        message: l10n.softUpdateTitle,
+        body: Text(config.softUpdateMessage ?? l10n.softUpdateMessage),
+        position: JuicePosition.center,
+        actionLabel: l10n.softUpdateAction,
+        onActionPressed: () {
+          unawaited(
+            _setCrashContextSafe(
+              feature: 'force_update_gate',
+              lastAction: 'tap_soft_update',
+            ),
+          );
+          unawaited(
+            _logEventSafe(
+              'soft_update_tap_update',
+              parameters: {'latest_version': config.latestAvailableVersion},
+            ),
+          );
+          _launchStore(config.storeUrl);
+        },
+        secondaryActionLabel: l10n.softUpdateLater,
+        onSecondaryActionPressed: () {
+          unawaited(
+            _logEventSafe(
+              'soft_update_tap_later',
+              parameters: {'latest_version': config.latestAvailableVersion},
+            ),
+          );
+        },
+      );
+    } finally {
+      if (mounted) {
         _skippedSoftUpdateVersion = config.latestAvailableVersion;
-        unawaited(
-          _setCrashContextSafe(
-            feature: 'force_update_gate',
-            lastAction: 'tap_soft_update',
-          ),
-        );
-        unawaited(
-          _logEventSafe(
-            'soft_update_tap_update',
-            parameters: {'latest_version': config.latestAvailableVersion},
-          ),
-        );
-        _launchStore(config.storeUrl);
-      },
-    );
-    _dialogShowing = false;
+      }
+      _dialogShowing = false;
+    }
   }
 
   Future<void> _launchStore(String url) async {

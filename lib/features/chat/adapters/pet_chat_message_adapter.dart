@@ -18,6 +18,8 @@ class PetChatMessageAdapter {
   static const String localImagePathKey = 'localImagePath';
   static const String coinsAwardedKey = 'coinsAwarded';
   static const String isOptimisticKey = 'isOptimistic';
+  static const String isEditedKey = 'isEdited';
+  static const String isDeletedKey = 'isDeleted';
 
   static fc.Message toUiMessage(
     ChatMessage message,
@@ -28,6 +30,8 @@ class PetChatMessageAdapter {
     final metadata = <String, dynamic>{
       metadataTypeKey: message.type,
       if (isOptimistic) isOptimisticKey: true,
+      if (message.isEdited) isEditedKey: true,
+      if (message.isDeleted) isDeletedKey: true,
     };
 
     if (message.isSystem) {
@@ -70,7 +74,9 @@ class PetChatMessageAdapter {
       replyToMessageId: message.replyToMessageId,
       status: isOptimistic ? fc.MessageStatus.sending : fc.MessageStatus.sent,
       metadata: metadata,
-      text: (message.body ?? '').trim(),
+      text: message.isDeleted
+          ? l10n.chatMessageDeleted
+          : (message.body ?? '').trim(),
     );
   }
 
@@ -85,6 +91,9 @@ class PetChatMessageAdapter {
       final caption = (message.caption ?? '').trim();
       return caption.isNotEmpty ? caption : l10n.feedTitle;
     }
+    if (message.isDeleted) {
+      return l10n.chatMessageDeleted;
+    }
     final body = (message.body ?? '').trim();
     return body.isNotEmpty ? body : l10n.chatMessageHint;
   }
@@ -96,6 +105,9 @@ class PetChatMessageAdapter {
     if (preview.isImageFeed) {
       final caption = (preview.caption ?? '').trim();
       return caption.isNotEmpty ? caption : l10n.feedTitle;
+    }
+    if (preview.isDeleted) {
+      return l10n.chatMessageDeleted;
     }
     final body = (preview.body ?? '').trim();
     return body.isNotEmpty ? body : l10n.chatMessageHint;

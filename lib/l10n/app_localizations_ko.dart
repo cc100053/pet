@@ -117,7 +117,42 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatCopyAction => '복사';
 
   @override
+  String get chatEditAction => '수정';
+
+  @override
+  String get chatDeleteAction => '삭제';
+
+  @override
   String get chatMessageCopied => '메시지를 복사했어요.';
+
+  @override
+  String get chatEditMessageTitle => '메시지 수정';
+
+  @override
+  String get chatDeleteMessageTitle => '메시지 삭제';
+
+  @override
+  String get chatDeleteMessageConfirm =>
+      '이 메시지는 삭제됨 표시로 바뀌며 원문은 더 이상 보이지 않습니다.';
+
+  @override
+  String get chatMessageEdited => '수정됨';
+
+  @override
+  String get chatMessageDeleted => '메시지가 삭제되었습니다';
+
+  @override
+  String get chatEditNoChanges => '저장할 변경 사항이 없습니다.';
+
+  @override
+  String chatEditFailed(Object error) {
+    return '수정 실패: $error';
+  }
+
+  @override
+  String chatDeleteFailed(Object error) {
+    return '삭제 실패: $error';
+  }
 
   @override
   String get chatNoOlderMessages => '이전 메시지가 없습니다.';

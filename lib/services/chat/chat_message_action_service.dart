@@ -6,6 +6,17 @@ typedef ChatReplyInsertFn =
     Future<Map<String, dynamic>> Function(Map<String, dynamic> payload);
 typedef ChatTextInsertFn =
     Future<Map<String, dynamic>> Function(Map<String, dynamic> payload);
+typedef ChatTextEditFn =
+    Future<Map<String, dynamic>> Function({
+      required String roomId,
+      required String messageId,
+      required String text,
+    });
+typedef ChatTextDeleteFn =
+    Future<Map<String, dynamic>> Function({
+      required String roomId,
+      required String messageId,
+    });
 typedef ChatReactionDeleteFn =
     Future<void> Function({required String messageId, required String userId});
 typedef ChatReactionUpsertFn =
@@ -19,6 +30,8 @@ class ChatMessageActionService {
     SupabaseClient? client,
     ChatTextInsertFn? insertText,
     ChatReplyInsertFn? insertReply,
+    ChatTextEditFn? editText,
+    ChatTextDeleteFn? deleteText,
     ChatReactionDeleteFn? deleteReaction,
     ChatReactionUpsertFn? upsertReaction,
     ChatNotifyFn? notifyTextMessage,
@@ -26,6 +39,8 @@ class ChatMessageActionService {
   }) : _client = client,
        _insertText = insertText,
        _insertReply = insertReply,
+       _editText = editText,
+       _deleteText = deleteText,
        _deleteReaction = deleteReaction,
        _upsertReaction = upsertReaction,
        _notifyTextMessage = notifyTextMessage,
@@ -36,6 +51,8 @@ class ChatMessageActionService {
   final SupabaseClient? _client;
   final ChatTextInsertFn? _insertText;
   final ChatReplyInsertFn? _insertReply;
+  final ChatTextEditFn? _editText;
+  final ChatTextDeleteFn? _deleteText;
   final ChatReactionDeleteFn? _deleteReaction;
   final ChatReactionUpsertFn? _upsertReaction;
   final ChatNotifyFn? _notifyTextMessage;
@@ -44,7 +61,8 @@ class ChatMessageActionService {
   SupabaseClient get _resolvedClient => _client ?? Supabase.instance.client;
   static const String _messageSelectClause =
       'id,room_id,sender_id,type,body,image_url,caption,coins_awarded,'
-      'created_at,client_created_at,labels,reply_to_message_id';
+      'created_at,client_created_at,labels,reply_to_message_id,'
+      'edited_at,deleted_at,deleted_by';
 
   Future<String> sendTextMessage({
     required String roomId,
@@ -150,6 +168,46 @@ class ChatMessageActionService {
     return inserted;
   }
 
+  Future<Map<String, dynamic>> editTextMessageRow({
+    required String roomId,
+    required String messageId,
+    required String text,
+  }) async {
+    final trimmedText = text.trim();
+    if (trimmedText.isEmpty) {
+      throw ArgumentError.value(text, 'text', 'Message text cannot be empty.');
+    }
+
+    final updated =
+        await (_editText?.call(
+              roomId: roomId,
+              messageId: messageId,
+              text: trimmedText,
+            ) ??
+            _defaultEditTextMessage(
+              roomId: roomId,
+              messageId: messageId,
+              text: trimmedText,
+            ));
+    if (((updated['id'] as String?) ?? '').trim().isEmpty) {
+      throw StateError('message_update_missing_id');
+    }
+    return updated;
+  }
+
+  Future<Map<String, dynamic>> deleteTextMessageRow({
+    required String roomId,
+    required String messageId,
+  }) async {
+    final updated =
+        await (_deleteText?.call(roomId: roomId, messageId: messageId) ??
+            _defaultDeleteTextMessage(roomId: roomId, messageId: messageId));
+    if (((updated['id'] as String?) ?? '').trim().isEmpty) {
+      throw StateError('message_delete_missing_id');
+    }
+    return updated;
+  }
+
   Future<void> toggleReaction({
     required String roomId,
     required String messageId,
@@ -210,6 +268,43 @@ class ChatMessageActionService {
         .select(_messageSelectClause)
         .single();
     return Map<String, dynamic>.from(response);
+  }
+
+  Future<Map<String, dynamic>> _defaultEditTextMessage({
+    required String roomId,
+    required String messageId,
+    required String text,
+  }) async {
+    final response = await _resolvedClient.rpc(
+      'edit_message',
+      params: <String, dynamic>{
+        'p_room_id': roomId,
+        'p_message_id': messageId,
+        'p_body': text,
+      },
+    );
+    return _singleRpcRow(response, 'message_update_missing_id');
+  }
+
+  Future<Map<String, dynamic>> _defaultDeleteTextMessage({
+    required String roomId,
+    required String messageId,
+  }) async {
+    final response = await _resolvedClient.rpc(
+      'delete_message',
+      params: <String, dynamic>{'p_room_id': roomId, 'p_message_id': messageId},
+    );
+    return _singleRpcRow(response, 'message_delete_missing_id');
+  }
+
+  Map<String, dynamic> _singleRpcRow(dynamic response, String errorCode) {
+    if (response is Map) {
+      return Map<String, dynamic>.from(response);
+    }
+    if (response is List && response.isNotEmpty && response.first is Map) {
+      return Map<String, dynamic>.from(response.first as Map);
+    }
+    throw StateError(errorCode);
   }
 
   Future<void> _defaultDeleteReaction({

@@ -12,6 +12,9 @@ class ChatMessage {
     required this.clientCreatedAt,
     required this.labels,
     required this.localImagePath,
+    this.editedAt,
+    this.deletedAt,
+    this.deletedBy,
     this.replyToMessageId,
     this.replyPreview,
     this.reactions = const <ChatMessageReactionSummary>[],
@@ -29,12 +32,17 @@ class ChatMessage {
   final DateTime? clientCreatedAt;
   final List<Map<String, dynamic>> labels;
   final String? localImagePath;
+  final DateTime? editedAt;
+  final DateTime? deletedAt;
+  final String? deletedBy;
   final String? replyToMessageId;
   final ChatReplyPreview? replyPreview;
   final List<ChatMessageReactionSummary> reactions;
 
   bool get isSystem => type == 'system';
   bool get isImageFeed => type == 'image_feed';
+  bool get isEdited => editedAt != null && !isDeleted;
+  bool get isDeleted => deletedAt != null;
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
@@ -50,6 +58,9 @@ class ChatMessage {
       clientCreatedAt: _parseOptionalDate(json['client_created_at']),
       labels: _parseLabels(json['labels']),
       localImagePath: json['local_image_path'] as String?,
+      editedAt: _parseOptionalDate(json['edited_at']),
+      deletedAt: _parseOptionalDate(json['deleted_at']),
+      deletedBy: json['deleted_by'] as String?,
       replyToMessageId: json['reply_to_message_id'] as String?,
       replyPreview: _parseReplyPreview(json['reply_to']),
       reactions: _parseReactionSummaries(json['reactions']),
@@ -69,9 +80,16 @@ class ChatMessage {
     DateTime? clientCreatedAt,
     List<Map<String, dynamic>>? labels,
     String? localImagePath,
+    DateTime? editedAt,
+    DateTime? deletedAt,
+    String? deletedBy,
     String? replyToMessageId,
     ChatReplyPreview? replyPreview,
     List<ChatMessageReactionSummary>? reactions,
+    bool clearBody = false,
+    bool clearEditedAt = false,
+    bool clearDeletedAt = false,
+    bool clearDeletedBy = false,
     bool clearReplyPreview = false,
   }) {
     return ChatMessage(
@@ -79,7 +97,7 @@ class ChatMessage {
       roomId: roomId ?? this.roomId,
       senderId: senderId ?? this.senderId,
       type: type ?? this.type,
-      body: body ?? this.body,
+      body: clearBody ? null : (body ?? this.body),
       imageUrl: imageUrl ?? this.imageUrl,
       caption: caption ?? this.caption,
       coinsAwarded: coinsAwarded ?? this.coinsAwarded,
@@ -87,6 +105,9 @@ class ChatMessage {
       clientCreatedAt: clientCreatedAt ?? this.clientCreatedAt,
       labels: labels ?? this.labels,
       localImagePath: localImagePath ?? this.localImagePath,
+      editedAt: clearEditedAt ? null : (editedAt ?? this.editedAt),
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
+      deletedBy: clearDeletedBy ? null : (deletedBy ?? this.deletedBy),
       replyToMessageId: replyToMessageId ?? this.replyToMessageId,
       replyPreview: clearReplyPreview
           ? null
@@ -110,6 +131,9 @@ class ChatMessage {
       'client_created_at': clientCreatedAt?.toUtc().toIso8601String(),
       'labels': labels,
       'local_image_path': localImagePath,
+      'edited_at': editedAt?.toUtc().toIso8601String(),
+      'deleted_at': deletedAt?.toUtc().toIso8601String(),
+      'deleted_by': deletedBy,
       'reply_to_message_id': replyToMessageId,
       'reply_to': replyPreview?.toJson(),
       'reactions': reactions.map((reaction) => reaction.toJson()).toList(),
@@ -239,6 +263,8 @@ class ChatReplyPreview {
     required this.body,
     required this.imageUrl,
     required this.caption,
+    this.deletedAt,
+    this.deletedBy,
   });
 
   final String id;
@@ -247,8 +273,11 @@ class ChatReplyPreview {
   final String? body;
   final String? imageUrl;
   final String? caption;
+  final DateTime? deletedAt;
+  final String? deletedBy;
 
   bool get isImageFeed => type == 'image_feed';
+  bool get isDeleted => deletedAt != null;
 
   factory ChatReplyPreview.fromJson(Map<String, dynamic> json) {
     return ChatReplyPreview(
@@ -258,6 +287,8 @@ class ChatReplyPreview {
       body: json['body'] as String?,
       imageUrl: json['image_url'] as String?,
       caption: json['caption'] as String?,
+      deletedAt: ChatMessage._parseOptionalDate(json['deleted_at']),
+      deletedBy: json['deleted_by'] as String?,
     );
   }
 
@@ -269,6 +300,8 @@ class ChatReplyPreview {
       body: message.body,
       imageUrl: message.imageUrl,
       caption: message.caption,
+      deletedAt: message.deletedAt,
+      deletedBy: message.deletedBy,
     );
   }
 
@@ -280,6 +313,8 @@ class ChatReplyPreview {
       'body': body,
       'image_url': imageUrl,
       'caption': caption,
+      'deleted_at': deletedAt?.toUtc().toIso8601String(),
+      'deleted_by': deletedBy,
     };
   }
 }
