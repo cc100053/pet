@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-22 Multi-Room Memory Pressure Hardening)
+- [x] Trace the current room-switch, image-cache, and diagnostics hooks relevant to low-memory multi-room usage.
+- [x] Add an iOS native memory-warning bridge into Flutter and record Crashlytics + memory snapshot context when it fires.
+- [x] Tighten image cache policy and add room-switch-time cache trimming plus room-count/index diagnostics.
+- [x] Add focused regression coverage and update memory-bank notes.
+- [x] Run `flutter analyze` and `flutter test`, then record the review summary and verification results here.
+
+# Review (2026-04-22 Multi-Room Memory Pressure Hardening)
+- [x] Implemented.
+- Scope:
+  - Added an iOS native memory-warning bridge in `ios/Runner/AppDelegate.swift` and a Flutter-side `SystemMemoryPressureService` so native low-memory warnings are captured by the existing Crashlytics + memory diagnostics pipeline before a possible jetsam kill.
+  - Exposed the current Crashlytics route/feature/room context so the memory-warning handler can stamp room-aware custom keys and snapshots instead of logging a generic app-level event.
+  - Reduced the global Flutter image-cache budget from `150 / 192 MB` to `120 / 128 MB` and added high-water-mark room-switch trimming (`soft_trim` / `hard_trim`) through `MemoryDiagnosticsService`.
+  - Added room-switch custom keys (`room_count`, `selected_room_index`, `room_switch_from`, `room_switch_to`, `room_switch_entry_loading`) plus richer room-switch memory snapshot notes to improve future triage for the hard-to-reproduce fourth-room crash.
+  - Updated active memory-bank docs with the new multi-room memory-pressure hardening behavior.
+- Verification:
+  - `dart format lib/main.dart lib/services/crash/crash_reporting_service.dart lib/services/performance/memory_diagnostics_service.dart lib/services/performance/system_memory_pressure_service.dart lib/features/home/controllers/home_room_manager.dart test/services/performance/memory_diagnostics_service_test.dart test/services/performance/system_memory_pressure_service_test.dart`
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-22 Chat Long-Press Overlay Collision Avoidance)
 - [x] Trace why the long-press options card can overlap the selected message preview on taller preview content.
 - [x] Replace height estimation in the action-sheet layout with measured child sizing so the rail, preview, and options card stack without collision.

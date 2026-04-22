@@ -19,14 +19,15 @@ import 'services/crash/crash_reporting_service.dart';
 import 'services/home/home_bootstrap_cache_repository.dart';
 import 'services/invite/invite_link_service.dart';
 import 'services/performance/performance_service.dart';
+import 'services/performance/system_memory_pressure_service.dart';
 import 'services/settings/app_settings_repository.dart';
 import 'features/feed/feed_upload_repository.dart';
 import 'shared/force_update/crash_update_guard.dart';
 
 RawReceivePort? _isolateErrorPort;
 
-const int _maxImageCacheEntries = 150;
-const int _maxImageCacheBytes = 192 * 1024 * 1024;
+const int _maxImageCacheEntries = 120;
+const int _maxImageCacheBytes = 128 * 1024 * 1024;
 
 Future<void> main() async {
   runZonedGuarded(
@@ -44,6 +45,7 @@ Future<void> main() async {
         !kDebugMode,
       );
       await CrashReportingService.instance.initialize();
+      await SystemMemoryPressureService.instance.initialize();
       _registerIsolateErrorListener();
       FlutterError.onError = (details) {
         FlutterError.presentError(details);

@@ -189,6 +189,8 @@ class MemoryDiagnosticsService {
 
   static final MemoryDiagnosticsService instance = MemoryDiagnosticsService._();
   static const int _maxSnapshots = 30;
+  static const int imageCacheSoftTrimThresholdBytes = 96 * 1024 * 1024;
+  static const int imageCacheHardTrimThresholdBytes = 128 * 1024 * 1024;
 
   final ValueNotifier<List<MemoryDiagnosticsSnapshot>> _snapshots =
       ValueNotifier<List<MemoryDiagnosticsSnapshot>>(
@@ -283,6 +285,53 @@ class MemoryDiagnosticsService {
           ? 'image_cache_cleared'
           : 'image_cache_cleared:$note',
     );
+  }
+
+  Future<MemoryDiagnosticsSnapshot?> trimImageCacheIfNeeded({
+    required String source,
+    required String route,
+    String? roomId,
+    int messageCount = 0,
+    int imageMessageCount = 0,
+    int optimisticMessageCount = 0,
+    String? note,
+    int softThresholdBytes = imageCacheSoftTrimThresholdBytes,
+    int hardThresholdBytes = imageCacheHardTrimThresholdBytes,
+  }) async {
+    final imageCache = PaintingBinding.instance.imageCache;
+    final action = cacheTrimActionForBytes(
+      imageCache.currentSizeBytes,
+      softThresholdBytes: softThresholdBytes,
+      hardThresholdBytes: hardThresholdBytes,
+    );
+    if (action == null) {
+      return null;
+    }
+    if (action == 'hard_trim') {
+      imageCache.clear();
+    }
+    imageCache.clearLiveImages();
+    return captureSnapshot(
+      source: source,
+      route: route,
+      roomId: roomId,
+      messageCount: messageCount,
+      imageMessageCount: imageMessageCount,
+      optimisticMessageCount: optimisticMessageCount,
+      note: note == null || note.isEmpty ? action : '$action:$note',
+    );
+  }
+
+  @visibleForTesting
+  static String? cacheTrimActionForBytes(
+    int currentSizeBytes, {
+    int softThresholdBytes = imageCacheSoftTrimThresholdBytes,
+    int hardThresholdBytes = imageCacheHardTrimThresholdBytes,
+  }) {
+    if (currentSizeBytes < softThresholdBytes) {
+      return null;
+    }
+    return currentSizeBytes >= hardThresholdBytes ? 'hard_trim' : 'soft_trim';
   }
 
   void clearDebugSnapshots() {

@@ -59,6 +59,10 @@ Active progress stays current-state focused. Full snapshots:
 - Chat crash hardening records `chat_room_view_v2` Crashlytics context, removes
   realtime channels with `removeChannel(...)`, guards stale callbacks, restores
   composer state on send failures, and avoids invalid image cache sizes.
+- iOS multi-room diagnostics now bridge native memory warnings into Flutter,
+  record Crashlytics room/index context on room switches, trim the image cache
+  at high-water marks during room changes, and cap the global image cache at
+  `120` entries / `128 MB` to reduce low-RAM room-entry crashes.
 - Chat text sends replace optimistic temp rows with confirmed server rows in one
   timeline update to avoid latest-view shrink/expand jitter.
 - Feed uploads run through a durable Hive/Riverpod queue. Capture only enqueues;
@@ -111,6 +115,11 @@ Active progress stays current-state focused. Full snapshots:
   could cover taller selected-message previews by switching the overlay to
   measured child stacking and reserving option-card space in the vertical
   placement clamp.
+- Added memory-pressure hardening for the hard-to-reproduce multi-room crash:
+  `SystemMemoryPressureService` now records native iOS memory warnings into
+  Crashlytics + `MemoryDiagnosticsService`, room switches stamp room-count/index
+  custom keys and opportunistically trim the Flutter image cache at high-water
+  marks, and startup lowers the image-cache cap to `120` entries / `128 MB`.
 - Invite link share flow shipped with live Supabase migration
   `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
   `/invite` fallback, App Links/Universal Links config, localized share copy,

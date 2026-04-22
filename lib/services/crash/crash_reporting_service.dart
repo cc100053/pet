@@ -16,6 +16,16 @@ class CrashReportingService {
   String _lastAction = 'app_start';
   String _networkState = 'unknown';
 
+  String get currentRoute => _route;
+
+  String get currentFeature => _feature;
+
+  String get currentRoomId => _roomId;
+
+  String get currentLastAction => _lastAction;
+
+  String get currentNetworkState => _networkState;
+
   FirebaseCrashlytics? get _crashlyticsOrNull {
     try {
       return FirebaseCrashlytics.instance;

@@ -213,18 +213,43 @@ extension _HomeRoomManager on _HomeViewState {
     String? petType,
     bool showEntryLoading = false,
   }) {
+    final previousRoom = _roomId;
+    final roomCount = _myRooms.length;
+    final targetRoomIndex = _myRooms.indexWhere((room) => room['id'] == roomId);
     _syncCrashContextFromHome(lastAction: 'switch_room');
+    unawaited(
+      CrashReportingService.instance.setCustomKeys(<String, Object?>{
+        'room_count': roomCount,
+        'selected_room_index': targetRoomIndex >= 0 ? targetRoomIndex : null,
+        'room_switch_from': previousRoom ?? 'none',
+        'room_switch_to': roomId,
+        'room_switch_entry_loading': showEntryLoading,
+      }),
+    );
     unawaited(
       _captureHomeMemorySnapshot(
         source: 'home_room_switch_start',
         roomId: roomId,
-        note: showEntryLoading ? 'entry_loading' : null,
+        note:
+            'count=$roomCount index=${targetRoomIndex < 0 ? 'unknown' : targetRoomIndex}'
+            '${showEntryLoading ? ' entry_loading' : ''}',
+      ),
+    );
+    unawaited(
+      MemoryDiagnosticsService.instance.trimImageCacheIfNeeded(
+        source: 'home_room_switch_cache_trim',
+        route: 'home_view',
+        roomId: roomId,
+        note:
+            'from=${previousRoom ?? 'none'}'
+            ',to=$roomId'
+            ',count=$roomCount'
+            ',index=${targetRoomIndex < 0 ? 'unknown' : targetRoomIndex}',
       ),
     );
     _feedingAnimationToken++;
     final roomEntryToken = showEntryLoading ? ++_roomEntryLoadingToken : -1;
     final roomEntryStartedAt = DateTime.now();
-    final previousRoom = _roomId;
     final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
       (room) => room?['id'] == roomId,
       orElse: () => null,

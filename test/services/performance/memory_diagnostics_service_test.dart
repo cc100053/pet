@@ -52,4 +52,19 @@ void main() {
 
     expect(service.recentSnapshots, isEmpty);
   });
+
+  test('cacheTrimActionForBytes uses soft and hard thresholds', () {
+    expect(
+      MemoryDiagnosticsService.cacheTrimActionForBytes(64 * 1024 * 1024),
+      isNull,
+    );
+    expect(
+      MemoryDiagnosticsService.cacheTrimActionForBytes(96 * 1024 * 1024),
+      'soft_trim',
+    );
+    expect(
+      MemoryDiagnosticsService.cacheTrimActionForBytes(128 * 1024 * 1024),
+      'hard_trim',
+    );
+  });
 }

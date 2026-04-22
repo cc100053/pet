@@ -68,7 +68,10 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   ES256/asymmetric tokens are rejected at the gateway. `notify_friend` currently
   uses `verify_jwt=false` with function-level auth checks.
 - Android notifications use native room-thread `MessagingStyle`; iOS uses
-  `PetTomoNotificationServiceExtension`. Crashlytics dSYM upload runs through
+  `PetTomoNotificationServiceExtension`. `ios/Runner/AppDelegate.swift` also
+  bridges native iOS memory warnings into Flutter so the existing
+  Crashlytics/memory diagnostics pipeline can record low-memory context before a
+  possible jetsam kill. Crashlytics dSYM upload runs through
   `ios/scripts/upload_crashlytics_symbols.sh`.
 - Firebase Hosting serves the invite fallback page plus `.well-known`
   association files for App Links/Universal Links. Production release still
