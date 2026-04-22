@@ -14,6 +14,7 @@ import '../whats_new/app_whats_new_catalog.dart';
 import '../whats_new/app_whats_new_entry.dart';
 import '../whats_new/whats_new_policy.dart';
 import '../whats_new/whats_new_service.dart';
+import '../whats_new/feature_request_sheet.dart';
 import '../whats_new/whats_new_toast_body.dart';
 import 'force_update_debug_tool.dart';
 import 'update_policy.dart';
@@ -260,7 +261,6 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     final l10n = AppLocalizations.of(context)!;
     await showJuiceToast<void>(
       context: context,
-      message: '${l10n.whatsNewDialogTitle} $version',
       leading: Container(
         height: 56,
         width: 56,
@@ -297,6 +297,8 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
           _logEventSafe(dismissedEventName, parameters: {'version': version}),
         );
       },
+      secondaryActionLabel: l10n.whatsNewSuggestFeatureAction,
+      onSecondaryActionPressed: () => showFeatureRequestSheet(context),
     );
 
     if (markShown) {
