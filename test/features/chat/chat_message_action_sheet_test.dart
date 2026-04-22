@@ -38,6 +38,29 @@ Widget _preview() {
   );
 }
 
+Widget _tallPreview() {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    padding: const EdgeInsets.all(12),
+    child: const Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Reply preview'),
+        SizedBox(height: 12),
+        Text('Preview message line 1'),
+        SizedBox(height: 12),
+        Text('Preview message line 2'),
+        SizedBox(height: 12),
+        Text('Preview message line 3'),
+      ],
+    ),
+  );
+}
+
 void main() {
   testWidgets('own-message sheet hides moderation actions', (tester) async {
     await tester.pumpWidget(
@@ -66,6 +89,10 @@ void main() {
 
     expect(
       find.byKey(const ValueKey('chatMessageActionOverlayScrim')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
       findsOneWidget,
     );
     expect(
@@ -184,5 +211,42 @@ void main() {
 
     expect(invoked, isTrue);
     expect(find.text('More'), findsOneWidget);
+  });
+
+  testWidgets('options card stays below tall preview without overlap', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        ChatMessageActionSheet(
+          anchor: _anchor,
+          preview: _tallPreview(),
+          reactionOptions: const <String>['👍', '❤️'],
+          selectedReaction: null,
+          copyEnabled: true,
+          editEnabled: false,
+          deleteEnabled: false,
+          isMine: false,
+          isBlocked: false,
+          onReactionSelected: (_) {},
+          onReply: () {},
+          onCopy: () {},
+          onEdit: () {},
+          onDelete: () {},
+          onReport: () {},
+          onBlock: () {},
+          onMoreReactions: () {},
+        ),
+      ),
+    );
+
+    final previewRect = tester.getRect(
+      find.byKey(const ValueKey('chatMessageActionSheetPreview')),
+    );
+    final optionsRect = tester.getRect(
+      find.byKey(const ValueKey('chatMessageActionSheetOptionsCard')),
+    );
+
+    expect(optionsRect.top, greaterThanOrEqualTo(previewRect.bottom));
   });
 }

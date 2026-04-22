@@ -1,5 +1,47 @@
 # TODO
 
+# Plan (2026-04-22 Chat Long-Press Overlay Collision Avoidance)
+- [x] Trace why the long-press options card can overlap the selected message preview on taller preview content.
+- [x] Replace height estimation in the action-sheet layout with measured child sizing so the rail, preview, and options card stack without collision.
+- [x] Add focused regression coverage for tall preview content and rerun required verification.
+- [x] Record the review summary and verification results here.
+
+# Review (2026-04-22 Chat Long-Press Overlay Collision Avoidance)
+- [x] Implemented.
+- Scope:
+  - Traced the overlap to the action sheet positioning the options card from `anchor.messageRect.height` instead of the preview widget's real laid-out height.
+  - Switched the overlay stack to measured rail/preview/card sizing in `CustomMultiChildLayout`, so the whole vertical stack shifts together using actual child heights.
+  - Updated the top clamp logic to reserve space for the options card as well, which keeps Edit/Delete reachable when the pressed message sits low in the viewport.
+  - Added a focused tall-preview regression test proving the options card stays below the selected message preview without overlap.
+- Verification:
+  - `dart format lib/features/chat/widgets/chat_message_action_sheet.dart test/features/chat/chat_message_action_sheet_test.dart`
+  - `flutter test test/features/chat/chat_message_action_sheet_test.dart`: passed.
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart --plain-name "editing own text message updates body and edited marker"`: passed.
+  - `flutter test test/features/chat/chat_room_view_v2_bounded_window_test.dart --plain-name "deleting own text message renders deleted placeholder"`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-22 Chat Long-Press Overlay Refinement)
+- [x] Inspect the current `ChatMessageActionSheet` overlay/animation path and restore a Telegram-like focused long-press presentation.
+- [x] Add animated background blur + softer scrim and tune motion timing/translation so the selected message, reaction rail, and actions enter smoothly.
+- [x] Update focused chat overlay tests and any bounded-window integration coverage that asserts the long-press UI.
+- [x] Run `dart format` on touched files, then `flutter analyze` and `flutter test`.
+- [x] Record the review summary and verification results here.
+
+# Review (2026-04-22 Chat Long-Press Overlay Refinement)
+- [x] Implemented.
+- Scope:
+  - Restored the long-press message overlay toward a Telegram-like focused presentation instead of the flatter transparent-scrim state.
+  - Added animated full-screen background blur plus a softer vignette scrim so the selected message stays visually isolated during long press.
+  - Tuned the reaction rail, message preview, and action card entry/exit motion to use smaller travel distances and calmer scale ramps for smoother movement.
+  - Slightly lengthened the dialog transition duration so the overlay settles more softly without changing message actions or reaction behavior.
+  - Added regression coverage for the new blur layer in both the standalone action-sheet test and the bounded-window chat-room long-press test.
+- Verification:
+  - `dart format lib/features/chat/chat_room_view_v2.dart lib/features/chat/widgets/chat_message_action_sheet.dart test/features/chat/chat_message_action_sheet_test.dart test/features/chat/chat_room_view_v2_bounded_window_test.dart`
+  - `flutter test test/features/chat/chat_message_action_sheet_test.dart test/features/chat/chat_room_view_v2_bounded_window_test.dart`: passed.
+  - `flutter analyze`: passed, no issues found.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-20 Invite Link Auth-Code Collision Fix)
 - [x] Reproduce/trace why invite links trigger Supabase Auth PKCE handling.
 - [x] Change generated invite links and fallback redirects to use an invite-specific query parameter instead of auth `code`.

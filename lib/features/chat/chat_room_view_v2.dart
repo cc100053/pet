@@ -2456,7 +2456,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 320),
+      transitionDuration: const Duration(milliseconds: 360),
       pageBuilder: (dialogContext, _, _) => ChatMessageActionSheet(
         anchor: anchor,
         preview: preview,

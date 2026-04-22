@@ -1414,6 +1414,10 @@ void main() {
       find.byKey(const ValueKey('chatMessageActionOverlayScrim')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('chatMessageActionOverlayBlur')),
+      findsOneWidget,
+    );
     expect(find.byType(BottomSheet), findsNothing);
     expect(find.text('Reply'), findsOneWidget);
     expect(find.text('Copy'), findsOneWidget);

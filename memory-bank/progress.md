@@ -47,6 +47,10 @@ Active progress stays current-state focused. Full snapshots:
   80-message visible cap, newest-20 Hive cache, deterministic timeline,
   separate long-press/reaction-detail surfaces, and keyboard/latest regressions
   covered by tests.
+- Chat long-press message actions use a Telegram-like focused overlay with
+  animated background blur, soft vignette scrim, calmer motion, and measured
+  rail/preview/action-card stacking so the options card avoids overlapping the
+  selected message preview.
 - Chat supports display-only `@Name` mentions for active room members. Messages
   remain plain text; there is no mention notification/schema contract yet.
 - Chat senders can edit/delete their own non-deleted text messages anytime.
@@ -100,6 +104,13 @@ Active progress stays current-state focused. Full snapshots:
   `20260419123000_add_chat_message_edit_delete.sql`, localized actions and
   placeholders, optimistic update/revert behavior, cache/realtime support, and
   focused service/model/widget coverage.
+- Refined the chat long-press overlay back toward the original Telegram-like
+  feel by restoring animated blur-focus background treatment and smoother
+  motion for the action surfaces, with focused regression coverage.
+- Fixed a follow-up chat long-press layout regression where the options card
+  could cover taller selected-message previews by switching the overlay to
+  measured child stacking and reserving option-card space in the vertical
+  placement clamp.
 - Invite link share flow shipped with live Supabase migration
   `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
   `/invite` fallback, App Links/Universal Links config, localized share copy,
