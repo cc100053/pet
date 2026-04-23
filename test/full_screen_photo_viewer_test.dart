@@ -39,6 +39,21 @@ Future<void> _pumpViewer(
   }
 }
 
+double _viewerDragOpacity(WidgetTester tester) {
+  final widget = tester.widget<AnimatedOpacity>(
+    find.byKey(const ValueKey<String>('photo-viewer-drag-opacity')),
+  );
+  return widget.opacity;
+}
+
+double _viewerDragOffsetY(WidgetTester tester) {
+  final widget = tester.widget<Transform>(
+    find.byKey(const ValueKey<String>('photo-viewer-drag-translate')),
+  );
+  final translation = widget.transform.getTranslation();
+  return translation.y;
+}
+
 void main() {
   testWidgets('renders fullscreen metadata and caption overlays', (
     tester,
@@ -83,6 +98,87 @@ void main() {
       find.byKey(const ValueKey<String>('photo-viewer-caption')),
       findsNothing,
     );
+  });
+
+  testWidgets(
+    'horizontal swipe with slight vertical drift keeps dismiss motion idle',
+    (tester) async {
+      await _pumpViewer(
+        tester,
+        items: <PhotoViewerItem>[
+          const PhotoViewerItem(imageUrl: '', caption: 'First photo'),
+          const PhotoViewerItem(imageUrl: '', caption: 'Second photo'),
+        ],
+      );
+
+      final viewerCenter = tester.getCenter(find.byType(FullScreenPhotoViewer));
+      final gesture = await tester.startGesture(viewerCenter);
+      await gesture.moveBy(const Offset(-260, 24));
+      await tester.pump();
+
+      expect(_viewerDragOpacity(tester), 1.0);
+      expect(_viewerDragOffsetY(tester), closeTo(0, 0.001));
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FullScreenPhotoViewer), findsOneWidget);
+      expect(find.text('First photo'), findsOneWidget);
+    },
+  );
+
+  testWidgets('clear vertical swipe dismisses the viewer', (tester) async {
+    int? resultIndex;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    resultIndex = await FullScreenPhotoViewer.open(
+                      context,
+                      items: <PhotoViewerItem>[
+                        const PhotoViewerItem(imageUrl: '', caption: 'Photo'),
+                      ],
+                    );
+                  },
+                  child: const Text('Open viewer'),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open viewer'));
+    await tester.pumpAndSettle();
+
+    final viewerCenter = tester.getCenter(find.byType(FullScreenPhotoViewer));
+    final gesture = await tester.startGesture(viewerCenter);
+    await gesture.moveBy(const Offset(8, 140));
+    await tester.pump();
+
+    expect(_viewerDragOpacity(tester), lessThan(1.0));
+    expect(_viewerDragOffsetY(tester), greaterThan(100));
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FullScreenPhotoViewer), findsNothing);
+    expect(find.text('Open viewer'), findsOneWidget);
+    expect(resultIndex, 0);
   });
 
   testWidgets('shows broken image fallback when remote photo returns 404', (

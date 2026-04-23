@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -83,7 +84,13 @@ class FullScreenPhotoViewer extends StatefulWidget {
   State<FullScreenPhotoViewer> createState() => _FullScreenPhotoViewerState();
 }
 
+enum _DismissGestureDisposition { undecided, vertical, rejected }
+
 class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
+  static const double _dismissTriggerDistance = 100;
+  static const double _horizontalIntentBias = 8;
+  static const double _verticalIntentBias = 24;
+
   late final PageController _pageController;
   late int _currentIndex;
   final Map<int, PhotoViewController> _photoControllers =
@@ -98,7 +105,9 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   bool _chromeVisible = true;
   bool _isCurrentPageZoomed = false;
   int? _trackingPointer;
-  double? _pointerDownY;
+  Offset? _pointerDownPosition;
+  _DismissGestureDisposition _dismissGestureDisposition =
+      _DismissGestureDisposition.undecided;
   bool _savingToGallery = false;
   bool _showDownloadedIcon = false;
   bool _showReplySentState = false;
@@ -174,7 +183,8 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   void _onRawPointerDown(PointerDownEvent event) {
     if (_trackingPointer == null) {
       _trackingPointer = event.pointer;
-      _pointerDownY = event.position.dy;
+      _pointerDownPosition = event.position;
+      _dismissGestureDisposition = _DismissGestureDisposition.undecided;
     } else {
       _cancelDismissGesture();
     }
@@ -186,7 +196,31 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
       _cancelDismissGesture();
       return;
     }
-    final dy = event.position.dy - (_pointerDownY ?? event.position.dy);
+    final start = _pointerDownPosition;
+    if (start == null) {
+      return;
+    }
+    final delta = event.position - start;
+    final absDx = delta.dx.abs();
+    final absDy = delta.dy.abs();
+    if (_dismissGestureDisposition == _DismissGestureDisposition.undecided) {
+      if (delta.distance <= kTouchSlop) {
+        return;
+      }
+      if (absDx >= absDy + _horizontalIntentBias) {
+        _dismissGestureDisposition = _DismissGestureDisposition.rejected;
+        return;
+      }
+      if (absDy >= absDx + _verticalIntentBias) {
+        _dismissGestureDisposition = _DismissGestureDisposition.vertical;
+      } else {
+        return;
+      }
+    }
+    if (_dismissGestureDisposition != _DismissGestureDisposition.vertical) {
+      return;
+    }
+    final dy = delta.dy;
     setState(() {
       _dragOffset = dy;
       _dragOpacity = (1 - (dy.abs() / 300)).clamp(0.4, 1.0);
@@ -195,9 +229,13 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
 
   void _onRawPointerUp(PointerUpEvent event) {
     if (event.pointer != _trackingPointer) return;
+    final shouldDismiss =
+        _dismissGestureDisposition == _DismissGestureDisposition.vertical &&
+        _dragOffset.abs() > _dismissTriggerDistance;
     _trackingPointer = null;
-    _pointerDownY = null;
-    if (_dragOffset.abs() > 100) {
+    _pointerDownPosition = null;
+    _dismissGestureDisposition = _DismissGestureDisposition.undecided;
+    if (shouldDismiss) {
       _closeWithCurrentIndex();
       return;
     }
@@ -214,7 +252,8 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
 
   void _cancelDismissGesture() {
     _trackingPointer = null;
-    _pointerDownY = null;
+    _pointerDownPosition = null;
+    _dismissGestureDisposition = _DismissGestureDisposition.undecided;
     if (_dragOffset != 0) {
       setState(() {
         _dragOffset = 0;
@@ -229,6 +268,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
       _isCurrentPageZoomed = _scaleFor(index) > 1.01;
       _dragOffset = 0;
       _dragOpacity = 1.0;
+      _dismissGestureDisposition = _DismissGestureDisposition.undecided;
     });
   }
 
@@ -805,9 +845,11 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
             onPointerUp: _onRawPointerUp,
             onPointerCancel: _onRawPointerCancel,
             child: AnimatedOpacity(
+              key: const ValueKey<String>('photo-viewer-drag-opacity'),
               duration: const Duration(milliseconds: 100),
               opacity: _dragOpacity,
               child: Transform.translate(
+                key: const ValueKey<String>('photo-viewer-drag-translate'),
                 offset: Offset(0, _dragOffset),
                 child: DecoratedBox(
                   decoration: const BoxDecoration(color: Colors.black),

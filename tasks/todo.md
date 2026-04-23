@@ -1,5 +1,23 @@
 # TODO
 
+# Plan (2026-04-23 Photo Viewer Swipe Safety)
+- [x] Trace the full-screen photo viewer gesture path and confirm why horizontal swipes can trigger vertical dismiss motion.
+- [x] Tighten the dismiss gesture arbitration so the viewer only starts vertical drag/dismiss after clear vertical intent, leaving left/right paging with more tolerance.
+- [x] Add regression coverage for horizontal, diagonal, and vertical swipe behavior in the full-screen photo viewer.
+- [x] Run formatting, `flutter analyze`, and `flutter test`, then record the review summary here.
+
+# Review (2026-04-23 Photo Viewer Swipe Safety)
+- [x] Implemented.
+- Scope:
+  - Reworked `FullScreenPhotoViewer` swipe-to-dismiss tracking so raw pointer movement stays idle until the gesture shows clear vertical intent instead of reacting immediately to any small `dy`.
+  - Biased the arbitration toward horizontal paging by rejecting dismiss earlier for horizontal-dominant drags and requiring a larger vertical lead before the viewer starts moving/fading.
+  - Added regression tests that verify a slightly diagonal left/right swipe does not start dismiss motion and that a clearly vertical swipe still dismisses the viewer.
+- Verification:
+  - `dart format lib/shared/ui/full_screen_photo_viewer.dart test/full_screen_photo_viewer_test.dart`
+  - `flutter test test/full_screen_photo_viewer_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-23 Dress-Up Fit Tool Implementation)
 - [x] Add shared pet equipment placement math and wire production overlays through it.
 - [x] Add local per-pet equipment fit override support without changing current catalog behavior.

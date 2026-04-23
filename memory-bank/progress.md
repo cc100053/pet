@@ -42,6 +42,9 @@ Active progress stays current-state focused. Full snapshots:
 - Home furniture editing uses tap-to-select, one-finger drag, bottom scale
   controls (`0.8x..2.0x`), atomic transform persistence, and per-instance
   horizontal flip on `1.1.2+` clients.
+- Full-screen photo viewing now waits for clear vertical intent before
+  swipe-to-dismiss engages, so left/right gallery paging tolerates small
+  up/down drift instead of nudging the image vertically.
 - Shop furniture purchases are repeatable, show shared room-owned quantity, and
   refresh Home/Shop counts via `room_item_inventory_revisions` realtime signals.
 - Image-backed Toilet (`150` candy), Tub (`300` candy), and 500-candy exchange
