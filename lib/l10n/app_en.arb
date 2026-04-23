@@ -258,6 +258,7 @@
   "drawerDebugAddExp": "+10 EXP",
   "drawerDebugSpawnPoop": "Make Pet Poop",
   "drawerDebugShowFullBubble": "Show \"I'm Full\" Bubble",
+  "drawerDebugShowSocketOverlay": "Show Socket Overlay",
   "drawerDebugCaptureMemorySnapshot": "Capture Memory Snapshot",
   "drawerDebugClearImageCacheSnapshot": "Clear Image Cache + Snapshot",
   "drawerDebugOpenMemoryDiagnostics": "Open Memory Diagnostics",
@@ -731,6 +732,7 @@
   "storeItemDescFurnitureToilet": "A clean little bathroom piece.",
   "storeItemNameFurnitureTub": "Tub",
   "storeItemDescFurnitureTub": "A cozy tub for bath time.",
+  "storeItemNameEquipmentStrawHat": "Straw Hat",
   "shopSignInPrompt": "Please sign in to access the shop.",
   "storeSubscribe": "Subscribe",
   "storeSubscriptionActive": "Active",
@@ -780,9 +782,29 @@
     }
   },
   "inventoryTabFurniture": "Furniture",
+  "inventoryTabEquipment": "Equipment",
   "backgroundGalleryTab": "Background Gallery",
   "backgroundInventoryEmpty": "No backgrounds yet. Pick one up in the shop.",
   "backgroundInventoryHint": "Tap a background to apply it for everyone in the room.",
+  "equipmentInventoryHint": "Preview outfits here, then equip or remove items on the shared pet.",
+  "equipmentNoneOwned": "You don't own any items for this slot yet.",
+  "equipmentSlotHead": "Head",
+  "equipmentSlotBody": "Body",
+  "equipmentSlotBack": "Back",
+  "equipmentEquipCta": "Equip",
+  "equipmentUnequipCta": "Remove",
+  "equipmentEquipSuccess": "Equipped {itemName}!",
+  "@equipmentEquipSuccess": {
+    "placeholders": {
+      "itemName": {}
+    }
+  },
+  "equipmentUnequipSuccess": "Removed equipment from {slotName}.",
+  "@equipmentUnequipSuccess": {
+    "placeholders": {
+      "slotName": {}
+    }
+  },
   "backgroundApply": "Apply",
   "backgroundAppliedLabel": "Applied",
   "backgroundApplyFailed": "Failed to apply background: {error}",
@@ -792,6 +814,7 @@
     }
   },
   "shopSectionBackgrounds": "Backgrounds",
+  "shopSectionEquipment": "Equipment",
   "shopSectionItems": "Items",
   "storeBackgroundRoomRequired": "Choose a room before purchasing a background.",
   "storeBuyWithCandies": "Buy {price} Candy",

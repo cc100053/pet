@@ -492,6 +492,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugShowFullBubble => 'Show \"I\'m Full\" Bubble';
 
   @override
+  String get drawerDebugShowSocketOverlay => 'Show Socket Overlay';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => 'Capture Memory Snapshot';
 
   @override
@@ -1409,6 +1412,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescFurnitureTub => 'A cozy tub for bath time.';
 
   @override
+  String get storeItemNameEquipmentStrawHat => 'Straw Hat';
+
+  @override
   String get shopSignInPrompt => 'Please sign in to access the shop.';
 
   @override
@@ -1523,6 +1529,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inventoryTabFurniture => 'Furniture';
 
   @override
+  String get inventoryTabEquipment => 'Equipment';
+
+  @override
   String get backgroundGalleryTab => 'Background Gallery';
 
   @override
@@ -1532,6 +1541,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get backgroundInventoryHint =>
       'Tap a background to apply it for everyone in the room.';
+
+  @override
+  String get equipmentInventoryHint =>
+      'Preview outfits here, then equip or remove items on the shared pet.';
+
+  @override
+  String get equipmentNoneOwned =>
+      'You don\'t own any items for this slot yet.';
+
+  @override
+  String get equipmentSlotHead => 'Head';
+
+  @override
+  String get equipmentSlotBody => 'Body';
+
+  @override
+  String get equipmentSlotBack => 'Back';
+
+  @override
+  String get equipmentEquipCta => 'Equip';
+
+  @override
+  String get equipmentUnequipCta => 'Remove';
+
+  @override
+  String equipmentEquipSuccess(Object itemName) {
+    return 'Equipped $itemName!';
+  }
+
+  @override
+  String equipmentUnequipSuccess(Object slotName) {
+    return 'Removed equipment from $slotName.';
+  }
 
   @override
   String get backgroundApply => 'Apply';
@@ -1546,6 +1588,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shopSectionBackgrounds => 'Backgrounds';
+
+  @override
+  String get shopSectionEquipment => 'Equipment';
 
   @override
   String get shopSectionItems => 'Items';

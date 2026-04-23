@@ -264,6 +264,10 @@ extension _HomeRoomManager on _HomeViewState {
       _roomId = roomId;
       _petState = null;
       _petId = null;
+      _equippedItemsBySlot.clear();
+      _ownedEquipmentItems.clear();
+      _equipmentError = null;
+      _equipmentLoading = false;
       _petStateReady = false;
       _lastOverfedAt = null;
       _overfedFeedEventArmedAt = null;
@@ -291,9 +295,13 @@ extension _HomeRoomManager on _HomeViewState {
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
     final previousPetStateChannel = _petStateChannel;
+    final previousPetEquipmentChannel = _petEquipmentChannel;
     _petStateChannel = null;
+    _petEquipmentChannel = null;
     unawaited(_removeRealtimeChannel(previousPetStateChannel));
+    unawaited(_removeRealtimeChannel(previousPetEquipmentChannel));
     _petSubscriptionPetId = null;
+    _petEquipmentSubscriptionRoomId = null;
     final previousFurnitureChannel = _furnitureChannel;
     _furnitureChannel = null;
     unawaited(_removeRealtimeChannel(previousFurnitureChannel));
@@ -972,6 +980,10 @@ extension _HomeRoomManager on _HomeViewState {
         _roomSelectionId = null;
         _petState = null;
         _petId = null;
+        _equippedItemsBySlot.clear();
+        _ownedEquipmentItems.clear();
+        _equipmentError = null;
+        _equipmentLoading = false;
       }
     });
     try {

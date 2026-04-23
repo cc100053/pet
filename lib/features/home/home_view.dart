@@ -56,7 +56,9 @@ import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
 import '../feed/feed_upload_queue.dart';
 import '../gallery/memory_calendar_view.dart';
+import '../pet/equipment_catalog.dart';
 import '../pet/pet_catalog.dart';
+import '../pet/pet_sockets.dart';
 import '../pet/leveling.dart';
 import '../pet/pet_departure.dart';
 import '../pet/pet_departure_note_view.dart';
@@ -84,6 +86,7 @@ import 'widgets/home_main_content.dart';
 import 'widgets/home_room_background.dart';
 import 'widgets/home_loading_view.dart';
 import 'widgets/home_game_status_bar.dart';
+import 'widgets/pet_equipment_overlay.dart';
 import 'widgets/home_responsive.dart';
 import 'widgets/pet_photo_gallery.dart';
 import 'widgets/photo_food.dart';
@@ -261,6 +264,15 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, int> _furnitureInventory = {};
   final Map<String, List<_PlacedFurniture>> _placedFurnitureByRoom = {};
 
+  // Equipment State
+  bool _equipmentLoading = false;
+  String? _equipmentError;
+  bool _showSocketDebug = false;
+  final List<ShopItem> _ownedEquipmentItems = <ShopItem>[];
+  final Map<String, _EquippedPetItem> _equippedItemsBySlot = {};
+  RealtimeChannel? _petEquipmentChannel;
+  String? _petEquipmentSubscriptionRoomId;
+
   // Background State
   bool _backgroundLoading = false;
   String? _backgroundError;
@@ -426,16 +438,19 @@ class _HomeViewState extends ConsumerState<HomeView>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     final petStateChannel = _petStateChannel;
+    final petEquipmentChannel = _petEquipmentChannel;
     final furnitureChannel = _furnitureChannel;
     final backgroundStateChannel = _backgroundStateChannel;
     final backgroundInventoryChannel = _backgroundInventoryChannel;
     final roomInventoryRevisionChannel = _roomInventoryRevisionChannel;
     _petStateChannel = null;
+    _petEquipmentChannel = null;
     _furnitureChannel = null;
     _backgroundStateChannel = null;
     _backgroundInventoryChannel = null;
     _roomInventoryRevisionChannel = null;
     unawaited(_removeRealtimeChannel(petStateChannel));
+    unawaited(_removeRealtimeChannel(petEquipmentChannel));
     unawaited(_removeRealtimeChannel(furnitureChannel));
     unawaited(_removeRealtimeChannel(backgroundStateChannel));
     unawaited(_removeRealtimeChannel(backgroundInventoryChannel));
@@ -501,6 +516,22 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
     }
   }
+
+  void _precacheEquippedAssets(Iterable<String> skus) {
+    for (final sku in skus) {
+      final definition = EquipmentCatalog.bySku(sku);
+      final asset = definition?.assetPath.trim();
+      if (asset != null && asset.isNotEmpty && _cachedPetAssets.add(asset)) {
+        precacheImage(AssetImage(asset), context);
+      }
+    }
+  }
+
+  Map<String, String> get _equippedSkusBySlot =>
+      _equippedItemsBySlot.map((slot, item) => MapEntry(slot, item.sku));
+
+  Map<String, String> get _equippedItemIdsBySlot =>
+      _equippedItemsBySlot.map((slot, item) => MapEntry(slot, item.itemId));
 
   Future<void> _warmDepartureNoteFonts() {
     if (_departureFontsWarmed) {
@@ -1896,6 +1927,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       _subscribeToPetState(petId);
+      _subscribeToPetEquipment(roomId);
       unawaited(_loadPetInfo(petId, roomId: roomId));
 
       if (tick) {
@@ -1931,6 +1963,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       _handleOverfedState();
       _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
+      unawaited(_loadPetEquipment(petId: petId, roomId: roomId, silent: true));
     } catch (error) {
       if (!mounted) {
         return;
@@ -2034,6 +2067,302 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
 
     channel.subscribe();
+  }
+
+  Future<void> _loadPetEquipment({
+    String? petId,
+    String? roomId,
+    bool silent = false,
+  }) async {
+    final resolvedPetId = petId ?? _petId;
+    final expectedRoomId = roomId ?? _roomId;
+    if (resolvedPetId == null || expectedRoomId == null) {
+      if (!silent && mounted) {
+        setState(() {
+          _equipmentLoading = false;
+          _equipmentError = null;
+          _equippedItemsBySlot.clear();
+        });
+      } else {
+        _equippedItemsBySlot.clear();
+      }
+      return;
+    }
+
+    if (!silent && mounted) {
+      setState(() {
+        _equipmentLoading = true;
+        _equipmentError = null;
+      });
+    }
+
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'get_pet_equipment',
+        params: {'p_pet_id': resolvedPetId},
+      );
+      final equipped = <String, _EquippedPetItem>{};
+      for (final row in response as List<dynamic>) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+        final slot = row['slot'] as String?;
+        final itemId = row['item_id'] as String?;
+        final sku = row['item_sku'] as String?;
+        if (slot == null || itemId == null || sku == null) {
+          continue;
+        }
+        equipped[slot] = _EquippedPetItem(itemId: itemId, sku: sku);
+      }
+      _precacheEquippedAssets(equipped.values.map((item) => item.sku));
+      if (!mounted) {
+        _equippedItemsBySlot
+          ..clear()
+          ..addAll(equipped);
+        _equipmentLoading = false;
+        return;
+      }
+      if (_roomId != expectedRoomId ||
+          (_petId != null && _petId != resolvedPetId)) {
+        return;
+      }
+      setState(() {
+        _equippedItemsBySlot
+          ..clear()
+          ..addAll(equipped);
+      });
+    } catch (error) {
+      if (!mounted) {
+        _equipmentError = error.toString();
+        _equipmentLoading = false;
+        return;
+      }
+      setState(() {
+        _equipmentError = AppLocalizations.of(
+          context,
+        )!.shopLoadFailed(userFacingError(context, error));
+      });
+    } finally {
+      if (!silent) {
+        if (mounted) {
+          setState(() => _equipmentLoading = false);
+        } else {
+          _equipmentLoading = false;
+        }
+      }
+    }
+  }
+
+  Future<void> _loadOwnedEquipment({bool silent = false}) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      if (mounted) {
+        setState(() {
+          _ownedEquipmentItems.clear();
+          _equipmentLoading = false;
+        });
+      } else {
+        _ownedEquipmentItems.clear();
+      }
+      return;
+    }
+
+    if (!silent && mounted) {
+      setState(() {
+        _equipmentLoading = true;
+        _equipmentError = null;
+      });
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('inventories')
+          .select('item_id, quantity, items(*)')
+          .eq('user_id', userId)
+          .gt('quantity', 0);
+      final items = <ShopItem>[];
+      for (final row in response as List<dynamic>) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+        final itemData = row['items'] as Map<String, dynamic>?;
+        if (itemData == null) {
+          continue;
+        }
+        final item = ShopItem.fromJson(itemData);
+        if (!item.isEquipment) {
+          continue;
+        }
+        if (!item.isSupportedOnAppVersion(_currentAppVersion)) {
+          continue;
+        }
+        items.add(item);
+      }
+      items.sort((a, b) => a.sku.compareTo(b.sku));
+      if (!mounted) {
+        _ownedEquipmentItems
+          ..clear()
+          ..addAll(items);
+        _equipmentLoading = false;
+        return;
+      }
+      setState(() {
+        _ownedEquipmentItems
+          ..clear()
+          ..addAll(items);
+      });
+    } catch (error) {
+      if (!mounted) {
+        _equipmentError = error.toString();
+        _equipmentLoading = false;
+        return;
+      }
+      setState(() {
+        _equipmentError = AppLocalizations.of(
+          context,
+        )!.shopLoadFailed(userFacingError(context, error));
+      });
+    } finally {
+      if (!silent) {
+        if (mounted) {
+          setState(() => _equipmentLoading = false);
+        } else {
+          _equipmentLoading = false;
+        }
+      }
+    }
+  }
+
+  void _subscribeToPetEquipment(String roomId) {
+    if (_petEquipmentSubscriptionRoomId == roomId) {
+      return;
+    }
+
+    final previousChannel = _petEquipmentChannel;
+    _petEquipmentChannel = null;
+    unawaited(_removeRealtimeChannel(previousChannel));
+    _petEquipmentSubscriptionRoomId = roomId;
+
+    final channel = Supabase.instance.client.channel('pet_equipment_$roomId');
+    _petEquipmentChannel = channel;
+
+    void refreshEquipment() {
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      unawaited(_loadPetEquipment(roomId: roomId, silent: true));
+    }
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'pet_equipment',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => refreshEquipment(),
+    );
+
+    channel.subscribe();
+  }
+
+  Future<void> _equipItem(String itemId, String slot) async {
+    final petId = _petId;
+    final roomId = _roomId;
+    if (petId == null || roomId == null) {
+      return;
+    }
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'equip_pet_item',
+        params: {
+          'p_pet_id': petId,
+          'p_room_id': roomId,
+          'p_item_id': itemId,
+          'p_slot': slot,
+        },
+      );
+      await _loadPetEquipment(roomId: roomId, silent: true);
+      if (!mounted) {
+        return;
+      }
+      final itemName = _ownedEquipmentItems
+          .cast<ShopItem?>()
+          .firstWhere((item) => item?.id == itemId, orElse: () => null)
+          ?.localizedName(AppLocalizations.of(context)!);
+      final responseMap = response is Map<String, dynamic>
+          ? response
+          : <String, dynamic>{};
+      final fallbackSku = responseMap['item_sku'] as String?;
+      showJuiceSnackbar(
+        context: context,
+        message: AppLocalizations.of(
+          context,
+        )!.equipmentEquipSuccess(itemName ?? fallbackSku ?? ''),
+        tone: AppDialogTone.success,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(
+          context,
+        )!.storePurchaseFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
+      );
+    }
+  }
+
+  Future<void> _unequipItem(String slot) async {
+    final petId = _petId;
+    final roomId = _roomId;
+    if (petId == null || roomId == null) {
+      return;
+    }
+    try {
+      await Supabase.instance.client.rpc(
+        'unequip_pet_item',
+        params: {'p_pet_id': petId, 'p_room_id': roomId, 'p_slot': slot},
+      );
+      await _loadPetEquipment(roomId: roomId, silent: true);
+      if (!mounted) {
+        return;
+      }
+      showJuiceSnackbar(
+        context: context,
+        message: AppLocalizations.of(context)!.equipmentUnequipSuccess(
+          _localizedEquipmentSlot(slot, AppLocalizations.of(context)!),
+        ),
+        tone: AppDialogTone.success,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(
+          context,
+        )!.storePurchaseFailed(userFacingError(context, error)),
+        tone: AppDialogTone.danger,
+      );
+    }
+  }
+
+  String _localizedEquipmentSlot(String slot, AppLocalizations l10n) {
+    switch (slot) {
+      case PetEquipmentSlot.head:
+        return l10n.equipmentSlotHead;
+      case PetEquipmentSlot.body:
+        return l10n.equipmentSlotBody;
+      case PetEquipmentSlot.back:
+        return l10n.equipmentSlotBack;
+    }
+    return slot;
   }
 
   Future<void> _applyPetAction(String action) async {
@@ -3352,6 +3681,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_loadRoomFurniture(roomId));
     unawaited(_loadRoomBackgrounds(roomId));
     unawaited(_loadRoomBackgroundState(roomId));
+    unawaited(_loadOwnedEquipment());
+    unawaited(_loadPetEquipment(roomId: roomId, silent: true));
   }
 
   void _closeFurnitureInventory() {
@@ -5084,11 +5415,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                         ((petSnapshot.state ?? _petState)?['hunger'] as num?)
                             ?.round();
                     return HomeGameStatusBar(
-                      petAvatar: Image.asset(
-                        petDefinition.stayAsset,
-                        fit: BoxFit.cover,
-                        gaplessPlayback: true,
-                      ),
+                      petAvatar: _buildStatusBarPetAvatar(petDefinition),
                       expProgress: expProgressValue,
                       level: level,
                       petName: resolvedPetName,
@@ -5166,6 +5493,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               HomeFurnitureInventoryOverlay(
                 visible: _furnitureMode,
                 panel: HomeRoomInventoryPanel(
+                  petType: _petType,
                   furnitureCatalog: _furnitureCatalog,
                   furnitureInventory: _furnitureInventory,
                   selectedFurnitureItemId: _selectedFurnitureItemId,
@@ -5177,6 +5505,11 @@ class _HomeViewState extends ConsumerState<HomeView>
                   backgroundLoading: _backgroundLoading,
                   backgroundErrorText: _backgroundError,
                   applyingBackgroundId: _backgroundApplyingItemId,
+                  equipmentItems: _ownedEquipmentItems,
+                  equippedItemIdsBySlot: _equippedItemIdsBySlot,
+                  equippedItemSkusBySlot: _equippedSkusBySlot,
+                  equipmentLoading: _equipmentLoading,
+                  equipmentErrorText: _equipmentError,
                   onClose: _closeFurnitureInventory,
                   onFurnitureTap: (itemId) {
                     setState(() {
@@ -5186,6 +5519,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                     _autoPlaceFurnitureFromInventory(itemId);
                   },
                   onBackgroundApply: _applyRoomBackground,
+                  onEquipItem: _equipItem,
+                  onUnequipItem: _unequipItem,
                 ),
               ),
             ],
@@ -5217,24 +5552,92 @@ class _HomeViewState extends ConsumerState<HomeView>
       };
     }
 
+    return RepaintBoundary(
+      child: _buildPetVisualForAsset(
+        petId: _petType,
+        asset: asset,
+        size: _petAvatarSize,
+        isWalking: _petIsMoving,
+        isSleeping:
+            !_petIsMoving &&
+            _petStationaryState == _PetStationaryState.sleeping &&
+            !_petEating,
+        petFallbackColor: petColor,
+        showSocketDebug: _showSocketDebug,
+      ),
+    );
+  }
+
+  Widget _buildStatusBarPetAvatar(PetDefinition petDefinition) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = constraints.biggest.shortestSide;
+        final resolvedSide = side.isFinite && side > 0 ? side : 54.0;
+        return Center(
+          child: _buildPetVisualForAsset(
+            petId: _petType,
+            asset: petDefinition.stayAsset,
+            size: Size.square(resolvedSide),
+            petFallbackColor: petDefinition.accent,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPetVisualForAsset({
+    required String petId,
+    required String asset,
+    required Size size,
+    required Color petFallbackColor,
+    bool isWalking = false,
+    bool isSleeping = false,
+    bool showSocketDebug = false,
+  }) {
+    final equippedSkus = _equippedSkusBySlot;
     return SizedBox(
-      width: _petAvatarSize.width,
-      height: _petAvatarSize.height,
-      child: Image.asset(
-        asset,
-        key: ValueKey(asset),
-        fit: BoxFit.contain,
-        alignment: Alignment.bottomCenter,
-        gaplessPlayback: true,
-        filterQuality: FilterQuality.high,
-        errorBuilder: (context, error, stackTrace) =>
-            _buildPetFallback(petColor),
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (frame == null) {
-            return _buildPetFallback(petColor, loading: true);
-          }
-          return child;
-        },
+      width: size.width,
+      height: size.height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          PetEquipmentOverlay(
+            petId: petId,
+            equippedSkusBySlot: equippedSkus,
+            petSize: size,
+            layer: PetEquipmentOverlayLayer.behindPet,
+            isWalking: isWalking,
+            isSleeping: isSleeping,
+          ),
+          Image.asset(
+            asset,
+            key: ValueKey('$asset-${size.width}x${size.height}'),
+            width: size.width,
+            height: size.height,
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomCenter,
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.high,
+            errorBuilder: (context, error, stackTrace) =>
+                _buildPetFallback(petFallbackColor),
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (frame == null) {
+                return _buildPetFallback(petFallbackColor, loading: true);
+              }
+              return child;
+            },
+          ),
+          PetEquipmentOverlay(
+            petId: petId,
+            equippedSkusBySlot: equippedSkus,
+            petSize: size,
+            layer: PetEquipmentOverlayLayer.frontPet,
+            isWalking: isWalking,
+            isSleeping: isSleeping,
+            showSocketDebug: showSocketDebug,
+          ),
+        ],
       ),
     );
   }
@@ -5474,6 +5877,14 @@ class _HomeViewState extends ConsumerState<HomeView>
                               _effectivePetDeparted)
                           ? null
                           : _debugShowOverfedBubble,
+                    ),
+                    SwitchListTile(
+                      contentPadding: const EdgeInsets.only(left: 16, right: 8),
+                      title: Text(l10n.drawerDebugShowSocketOverlay),
+                      value: _showSocketDebug,
+                      onChanged: (value) {
+                        setState(() => _showSocketDebug = value);
+                      },
                     ),
                     if (_petError != null)
                       ListTile(

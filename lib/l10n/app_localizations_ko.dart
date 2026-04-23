@@ -477,6 +477,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugShowFullBubble => '\"배불러요\" 말풍선 표시';
 
   @override
+  String get drawerDebugShowSocketOverlay => 'Show Socket Overlay';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => '메모리 스냅샷 기록';
 
   @override
@@ -1378,6 +1381,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurnitureTub => '목욕 시간에 어울리는 아늑한 욕조.';
 
   @override
+  String get storeItemNameEquipmentStrawHat => 'Straw Hat';
+
+  @override
   String get shopSignInPrompt => '샵을 이용하려면 로그인해 주세요.';
 
   @override
@@ -1488,6 +1494,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get inventoryTabFurniture => '가구';
 
   @override
+  String get inventoryTabEquipment => 'Equipment';
+
+  @override
   String get backgroundGalleryTab => '배경 갤러리';
 
   @override
@@ -1495,6 +1504,39 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get backgroundInventoryHint => '배경을 탭하면 방의 모든 사용자에게 적용됩니다.';
+
+  @override
+  String get equipmentInventoryHint =>
+      'Preview outfits here, then equip or remove items on the shared pet.';
+
+  @override
+  String get equipmentNoneOwned =>
+      'You don\'t own any items for this slot yet.';
+
+  @override
+  String get equipmentSlotHead => 'Head';
+
+  @override
+  String get equipmentSlotBody => 'Body';
+
+  @override
+  String get equipmentSlotBack => 'Back';
+
+  @override
+  String get equipmentEquipCta => 'Equip';
+
+  @override
+  String get equipmentUnequipCta => 'Remove';
+
+  @override
+  String equipmentEquipSuccess(Object itemName) {
+    return 'Equipped $itemName!';
+  }
+
+  @override
+  String equipmentUnequipSuccess(Object slotName) {
+    return 'Removed equipment from $slotName.';
+  }
 
   @override
   String get backgroundApply => '적용';
@@ -1509,6 +1551,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get shopSectionBackgrounds => '배경';
+
+  @override
+  String get shopSectionEquipment => 'Equipment';
 
   @override
   String get shopSectionItems => '아이템';

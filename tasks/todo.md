@@ -1,5 +1,29 @@
 # TODO
 
+# Plan (2026-04-22 Pet Dress-Up MVP v1.3.0)
+- [x] Verify the current dress-up touchpoints in Home, inventory, shop, assets, and release metadata.
+- [x] Add Supabase support for pet equipment: table, RLS, realtime publication, RPCs, and seeded live hat item with `min_app_version = 1.3.0`.
+- [x] Update store purchase compatibility so version-gated shop-visible cosmetic items remain purchasable with coins.
+- [x] Implement Flutter equipment catalogs, pet socket rendering, Home realtime/state flows, and the Equipment inventory tab.
+- [x] Extend shop models/UI/localization/assets for the live hat rollout and keep the app release target at `1.3.0+1`.
+- [x] Add focused tests, update active memory-bank docs, run `flutter analyze`, `flutter test`, and `flutter build bundle`, then record the review summary here.
+
+# Review (2026-04-23 Pet Dress-Up MVP v1.3.0)
+- [x] Implemented.
+- Scope:
+  - Verified the current dress-up branch had already completed most Flutter work: equipment/socket catalogs, pet overlay rendering in Home + status avatar, Equipment inventory tab in the shared room panel, Shop section/category wiring, localizations, and the `1.3.0+1` app version bump.
+  - Confirmed through Supabase MCP that the repo-target project `ilxzpszgirhwxpeocygs` already had live migration `20260422150216_add_pet_equipment` applied, including `pet_equipment`, its RLS/realtime publication, `equip_pet_item` / `unequip_pet_item` / `get_pet_equipment`, seeded `equip_straw_hat`, and the version-gated `purchase_item_with_coins` fix.
+  - Added the missing local migration file `supabase/migrations/20260422150216_add_pet_equipment.sql` so the repo matches the live backend state instead of drifting from it.
+  - Added focused regression coverage for `PetEquipmentOverlay`, `PetSocketCatalog`, and `EquipmentCatalog`, regenerated Flutter `l10n` so the new equipment strings compile, and made Shop purchase-success notices render equipment assets.
+  - Updated active memory-bank docs to record the dress-up architecture, schema contracts, and rollout state.
+- Verification:
+  - `dart format lib/features/home/home_view.dart lib/features/home/controllers/home_room_manager.dart lib/features/home/home_view_models.dart lib/features/home/widgets/home_room_inventory_panel.dart lib/features/home/widgets/pet_equipment_overlay.dart lib/features/pet/equipment_catalog.dart lib/features/pet/pet_sockets.dart lib/features/shop/models/shop_item.dart lib/features/shop/shop_item_localization.dart lib/features/shop/shop_view.dart lib/features/shop/widgets/shop_item_cards.dart lib/features/shop/widgets/shop_item_visual.dart test/features/home/widgets/home_room_inventory_panel_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/pet/equipment_catalog_test.dart test/features/pet/pet_socket_config_test.dart`
+  - `flutter gen-l10n`: passed; existing `ko` and `zh_TW` untranslated-message warnings remain.
+  - Focused tests passed: `flutter test test/features/home/widgets/home_room_inventory_panel_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/pet/equipment_catalog_test.dart test/features/pet/pet_socket_config_test.dart`
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+  - `flutter build bundle`: passed.
+
 # Plan (2026-04-22 Multi-Room Memory Pressure Hardening)
 - [x] Trace the current room-switch, image-cache, and diagnostics hooks relevant to low-memory multi-room usage.
 - [x] Add an iOS native memory-warning bridge into Flutter and record Crashlytics + memory snapshot context when it fires.

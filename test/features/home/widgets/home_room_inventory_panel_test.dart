@@ -29,6 +29,31 @@ void main() {
     );
   }
 
+  ShopItem buildEquipmentItem() {
+    return ShopItem(
+      id: 'hat',
+      sku: 'equip_straw_hat',
+      type: 'cosmetic',
+      name: 'Straw Hat',
+      priceCoins: 120,
+      priceDiamonds: null,
+      priceJpy: 120,
+      description: 'Sunny hat.',
+      iapProductId: null,
+      iapType: null,
+      rcEntitlementId: null,
+      coinAmount: null,
+      diamondAmount: null,
+      iapCurrency: null,
+      catalogCurrencyCode: 'JPY',
+      category: 'equipment',
+      emoji: '👒',
+      furnitureAssetPath: 'assets/equipment/hats/straw_hat.png',
+      equipmentSlotValue: 'head',
+      backgroundKey: null,
+    );
+  }
+
   Widget buildHarness(Widget child) {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -47,6 +72,7 @@ void main() {
     await tester.pumpWidget(
       buildHarness(
         HomeRoomInventoryPanel(
+          petType: 'ghost',
           furnitureCatalog: {item.id: item},
           furnitureInventory: {item.id: 2},
           selectedFurnitureItemId: item.id,
@@ -58,9 +84,16 @@ void main() {
           backgroundLoading: false,
           backgroundErrorText: null,
           applyingBackgroundId: null,
+          equipmentItems: const [],
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
           onClose: () {},
           onFurnitureTap: (_) {},
           onBackgroundApply: (_) {},
+          onEquipItem: (itemId, slot) async {},
+          onUnequipItem: (_) async {},
         ),
       ),
     );
@@ -79,6 +112,7 @@ void main() {
     await tester.pumpWidget(
       buildHarness(
         HomeRoomInventoryPanel(
+          petType: 'ghost',
           furnitureCatalog: {item.id: item},
           furnitureInventory: {item.id: 2},
           selectedFurnitureItemId: null,
@@ -90,9 +124,16 @@ void main() {
           backgroundLoading: false,
           backgroundErrorText: null,
           applyingBackgroundId: null,
+          equipmentItems: const [],
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
           onClose: () {},
           onFurnitureTap: (_) => tapCount++,
           onBackgroundApply: (_) {},
+          onEquipItem: (itemId, slot) async {},
+          onUnequipItem: (_) async {},
         ),
       ),
     );
@@ -114,6 +155,7 @@ void main() {
     await tester.pumpWidget(
       buildHarness(
         HomeRoomInventoryPanel(
+          petType: 'ghost',
           furnitureCatalog: {item.id: item},
           furnitureInventory: {item.id: 1},
           selectedFurnitureItemId: null,
@@ -125,9 +167,16 @@ void main() {
           backgroundLoading: false,
           backgroundErrorText: null,
           applyingBackgroundId: null,
+          equipmentItems: const [],
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
           onClose: () {},
           onFurnitureTap: (_) {},
           onBackgroundApply: (_) {},
+          onEquipItem: (itemId, slot) async {},
+          onUnequipItem: (_) async {},
         ),
       ),
     );
@@ -137,5 +186,58 @@ void main() {
       (image.image as AssetImage).assetName,
       'assets/furniture/toilet.png',
     );
+  });
+
+  testWidgets('equipment tab previews and equips owned item', (tester) async {
+    final item = buildEquipmentItem();
+    String? equippedItemId;
+    String? unequippedSlot;
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          petType: 'ghost',
+          furnitureCatalog: const {},
+          furnitureInventory: const {},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (_) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          equipmentItems: [item],
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+          onEquipItem: (itemId, slot) async {
+            equippedItemId = '$itemId:$slot';
+          },
+          onUnequipItem: (slot) async {
+            unequippedSlot = slot;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Straw Hat'), findsOneWidget);
+
+    await tester.tap(find.text('Straw Hat'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Equip'));
+    await tester.pumpAndSettle();
+
+    expect(equippedItemId, 'hat:head');
+    expect(unequippedSlot, isNull);
   });
 }

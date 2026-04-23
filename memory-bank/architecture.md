@@ -15,8 +15,8 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 
 ## App Shape
 - `lib/features/home/`: signed-in shell, room switching, pet HUD, decor, unread
-  badges, room invite code/link sharing, feed/gallery previews, and shared-item
-  compatibility prompts.
+  badges, room invite code/link sharing, feed/gallery previews, shared-item
+  compatibility prompts, and the shared-pet dress-up overlay/inventory flow.
 - `lib/features/chat/`: active route is `ChatRoomViewV2`; it owns bounded
   message windows, Hive cache refresh, realtime, replies/reactions, keyboard
   behavior, and photo/chat actions.
@@ -34,6 +34,10 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 - Shared room content must be mixed-version safe: version-gate new decor/pets,
   fall back unsupported backgrounds/pets, hide unsupported furniture, and reuse
   the one-shot room compatibility prompt.
+- Pet dress-up uses widget-layer equipment overlays on top of the existing pet
+  GIFs. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
+  live in the catalog/Shop metadata, and Home renders behind/front layers plus a
+  debug socket overlay without changing the GIF animation pipeline.
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.

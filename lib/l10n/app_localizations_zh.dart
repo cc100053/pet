@@ -468,6 +468,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
 
   @override
+  String get drawerDebugShowSocketOverlay => '顯示掛點調試';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => '記錄記憶體快照';
 
   @override
@@ -1363,6 +1366,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
 
   @override
+  String get storeItemNameEquipmentStrawHat => '草帽';
+
+  @override
   String get shopSignInPrompt => '请先登录才能使用商店。';
 
   @override
@@ -1471,6 +1477,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inventoryTabFurniture => '家具';
 
   @override
+  String get inventoryTabEquipment => '裝扮';
+
+  @override
   String get backgroundGalleryTab => '背景圖庫';
 
   @override
@@ -1478,6 +1487,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get backgroundInventoryHint => '點擊背景即可套用到房间所有成員。';
+
+  @override
+  String get equipmentInventoryHint => '先在這裡預覽造型，再為共享寵物穿上或卸下裝備。';
+
+  @override
+  String get equipmentNoneOwned => '你還沒有這個部位可用的裝備。';
+
+  @override
+  String get equipmentSlotHead => '頭部';
+
+  @override
+  String get equipmentSlotBody => '身體';
+
+  @override
+  String get equipmentSlotBack => '背部';
+
+  @override
+  String get equipmentEquipCta => '穿上';
+
+  @override
+  String get equipmentUnequipCta => '卸下';
+
+  @override
+  String equipmentEquipSuccess(Object itemName) {
+    return '已穿上 $itemName！';
+  }
+
+  @override
+  String equipmentUnequipSuccess(Object slotName) {
+    return '已卸下 $slotName 的裝備。';
+  }
 
   @override
   String get backgroundApply => '套用';
@@ -1492,6 +1532,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get shopSectionBackgrounds => '背景';
+
+  @override
+  String get shopSectionEquipment => '裝扮';
 
   @override
   String get shopSectionItems => '商品';

@@ -1,14 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
+import '../../../shared/ui/juice_wrappers.dart';
+import '../../pet/pet_catalog.dart';
+import '../../pet/pet_sockets.dart';
 import '../room_backgrounds.dart';
 import '../../shop/models/shop_item.dart';
 import '../../shop/widgets/shop_item_visual.dart';
+import 'pet_equipment_overlay.dart';
 
 class HomeRoomInventoryPanel extends StatefulWidget {
   const HomeRoomInventoryPanel({
     super.key,
+    required this.petType,
     required this.furnitureCatalog,
     required this.furnitureInventory,
     required this.selectedFurnitureItemId,
@@ -20,11 +27,19 @@ class HomeRoomInventoryPanel extends StatefulWidget {
     required this.backgroundLoading,
     required this.backgroundErrorText,
     required this.applyingBackgroundId,
+    required this.equipmentItems,
+    required this.equippedItemIdsBySlot,
+    required this.equippedItemSkusBySlot,
+    required this.equipmentLoading,
+    required this.equipmentErrorText,
     required this.onClose,
     required this.onFurnitureTap,
     required this.onBackgroundApply,
+    required this.onEquipItem,
+    required this.onUnequipItem,
   });
 
+  final String petType;
   final Map<String, ShopItem> furnitureCatalog;
   final Map<String, int> furnitureInventory;
   final String? selectedFurnitureItemId;
@@ -36,9 +51,16 @@ class HomeRoomInventoryPanel extends StatefulWidget {
   final bool backgroundLoading;
   final String? backgroundErrorText;
   final String? applyingBackgroundId;
+  final List<ShopItem> equipmentItems;
+  final Map<String, String> equippedItemIdsBySlot;
+  final Map<String, String> equippedItemSkusBySlot;
+  final bool equipmentLoading;
+  final String? equipmentErrorText;
   final VoidCallback onClose;
   final void Function(String itemId) onFurnitureTap;
   final void Function(String itemId) onBackgroundApply;
+  final Future<void> Function(String itemId, String slot) onEquipItem;
+  final Future<void> Function(String slot) onUnequipItem;
 
   @override
   State<HomeRoomInventoryPanel> createState() => _HomeRoomInventoryPanelState();
@@ -47,17 +69,103 @@ class HomeRoomInventoryPanel extends StatefulWidget {
 class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  String _selectedEquipmentSlot = PetEquipmentSlot.head;
+  String? _previewEquipmentItemId;
+  bool _equipmentSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeRoomInventoryPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_previewEquipmentItemId == null) {
+      return;
+    }
+    final exists = widget.equipmentItems.any(
+      (item) => item.id == _previewEquipmentItemId,
+    );
+    if (!exists) {
+      _previewEquipmentItemId = null;
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  List<ShopItem> _equipmentItemsForSelectedSlot() {
+    return widget.equipmentItems
+        .where((item) => item.equipmentSlot == _selectedEquipmentSlot)
+        .toList(growable: false);
+  }
+
+  String? _equippedItemIdForSelectedSlot() {
+    return widget.equippedItemIdsBySlot[_selectedEquipmentSlot];
+  }
+
+  Map<String, String> _previewSkusBySlot() {
+    final preview = Map<String, String>.from(widget.equippedItemSkusBySlot);
+    if (_previewEquipmentItemId == null) {
+      return preview;
+    }
+    for (final item in widget.equipmentItems) {
+      if (item.id == _previewEquipmentItemId) {
+        preview[_selectedEquipmentSlot] = item.sku;
+        break;
+      }
+    }
+    return preview;
+  }
+
+  Future<void> _handleEquipPressed() async {
+    final itemId = _previewEquipmentItemId;
+    if (itemId == null || _equipmentSubmitting) {
+      return;
+    }
+    setState(() => _equipmentSubmitting = true);
+    try {
+      await widget.onEquipItem(itemId, _selectedEquipmentSlot);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _previewEquipmentItemId = null;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _equipmentSubmitting = false);
+      } else {
+        _equipmentSubmitting = false;
+      }
+    }
+  }
+
+  Future<void> _handleUnequipPressed() async {
+    if (_equipmentSubmitting) {
+      return;
+    }
+    setState(() => _equipmentSubmitting = true);
+    try {
+      await widget.onUnequipItem(_selectedEquipmentSlot);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _previewEquipmentItemId = null;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _equipmentSubmitting = false);
+      } else {
+        _equipmentSubmitting = false;
+      }
+    }
   }
 
   @override
@@ -101,11 +209,12 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
               tabs: [
                 Tab(text: l10n.inventoryTabFurniture),
                 Tab(text: l10n.backgroundGalleryTab),
+                Tab(text: l10n.inventoryTabEquipment),
               ],
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 122,
+              height: 246,
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -127,6 +236,30 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
                     errorText: widget.backgroundErrorText,
                     onApply: widget.onBackgroundApply,
                   ),
+                  _EquipmentTab(
+                    petType: widget.petType,
+                    previewSkusBySlot: _previewSkusBySlot(),
+                    selectedSlot: _selectedEquipmentSlot,
+                    onSelectSlot: (slot) {
+                      setState(() {
+                        _selectedEquipmentSlot = slot;
+                        _previewEquipmentItemId = null;
+                      });
+                    },
+                    items: _equipmentItemsForSelectedSlot(),
+                    equippedItemId: _equippedItemIdForSelectedSlot(),
+                    previewItemId: _previewEquipmentItemId,
+                    loading: widget.equipmentLoading,
+                    errorText: widget.equipmentErrorText,
+                    submitting: _equipmentSubmitting,
+                    onItemTap: (itemId) {
+                      setState(() {
+                        _previewEquipmentItemId = itemId;
+                      });
+                    },
+                    onEquip: () => unawaited(_handleEquipPressed()),
+                    onUnequip: () => unawaited(_handleUnequipPressed()),
+                  ),
                 ],
               ),
             ),
@@ -134,10 +267,11 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
             AnimatedBuilder(
               animation: _tabController,
               builder: (context, _) {
-                final isFurnitureTab = _tabController.index == 0;
-                final hint = isFurnitureTab
-                    ? l10n.furnitureInventoryHint
-                    : l10n.backgroundInventoryHint;
+                final hint = switch (_tabController.index) {
+                  0 => l10n.furnitureInventoryHint,
+                  1 => l10n.backgroundInventoryHint,
+                  _ => l10n.equipmentInventoryHint,
+                };
                 return Text(
                   hint,
                   style: const TextStyle(fontSize: 12, color: Colors.black54),
@@ -267,6 +401,436 @@ class _BackgroundTab extends StatelessWidget {
           onTap: isActive ? null : () => onApply(item.id),
         );
       },
+    );
+  }
+}
+
+class _EquipmentTab extends StatelessWidget {
+  const _EquipmentTab({
+    required this.petType,
+    required this.previewSkusBySlot,
+    required this.selectedSlot,
+    required this.onSelectSlot,
+    required this.items,
+    required this.equippedItemId,
+    required this.previewItemId,
+    required this.loading,
+    required this.errorText,
+    required this.submitting,
+    required this.onItemTap,
+    required this.onEquip,
+    required this.onUnequip,
+  });
+
+  final String petType;
+  final Map<String, String> previewSkusBySlot;
+  final String selectedSlot;
+  final ValueChanged<String> onSelectSlot;
+  final List<ShopItem> items;
+  final String? equippedItemId;
+  final String? previewItemId;
+  final bool loading;
+  final String? errorText;
+  final bool submitting;
+  final VoidCallback onEquip;
+  final VoidCallback onUnequip;
+  final ValueChanged<String> onItemTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final hasEquipped = previewSkusBySlot.containsKey(selectedSlot);
+    final canEquip =
+        previewItemId != null &&
+        previewItemId != equippedItemId &&
+        !submitting &&
+        !loading;
+    final canUnequip = hasEquipped && !submitting && !loading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _EquipmentPetPreview(
+                petType: petType,
+                equippedSkusBySlot: previewSkusBySlot,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final slot in PetEquipmentSlot.values)
+                        _EquipmentSlotChip(
+                          label: _slotLabel(slot, l10n),
+                          selected: slot == selectedSlot,
+                          onTap: () => onSelectSlot(slot),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 90,
+                    child: _EquipmentItemStrip(
+                      items: items,
+                      equippedItemId: equippedItemId,
+                      previewItemId: previewItemId,
+                      loading: loading,
+                      errorText: errorText,
+                      onItemTap: onItemTap,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _EquipmentActionButton(
+                label: l10n.equipmentUnequipCta,
+                enabled: canUnequip,
+                accent: const Color(0xFFFFE2E2),
+                borderColor: const Color(0xFFE57373),
+                onTap: onUnequip,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _EquipmentActionButton(
+                label: l10n.equipmentEquipCta,
+                enabled: canEquip,
+                accent: const Color(0xFFFFF1C9),
+                borderColor: const Color(0xFFFFB74D),
+                onTap: onEquip,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _slotLabel(String slot, AppLocalizations l10n) {
+    switch (slot) {
+      case PetEquipmentSlot.head:
+        return l10n.equipmentSlotHead;
+      case PetEquipmentSlot.body:
+        return l10n.equipmentSlotBody;
+      case PetEquipmentSlot.back:
+        return l10n.equipmentSlotBack;
+    }
+    return slot;
+  }
+}
+
+class _EquipmentPetPreview extends StatelessWidget {
+  const _EquipmentPetPreview({
+    required this.petType,
+    required this.equippedSkusBySlot,
+  });
+
+  final String petType;
+  final Map<String, String> equippedSkusBySlot;
+
+  @override
+  Widget build(BuildContext context) {
+    final pet = PetCatalog.byId(petType);
+    const previewSize = Size(84, 84);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFFFF7EA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black87, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: SizedBox(
+          width: previewSize.width,
+          height: previewSize.height,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              PetEquipmentOverlay(
+                petId: petType,
+                equippedSkusBySlot: equippedSkusBySlot,
+                petSize: previewSize,
+                layer: PetEquipmentOverlayLayer.behindPet,
+              ),
+              Image.asset(
+                pet.stayAsset,
+                width: previewSize.width,
+                height: previewSize.height,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+              ),
+              PetEquipmentOverlay(
+                petId: petType,
+                equippedSkusBySlot: equippedSkusBySlot,
+                petSize: previewSize,
+                layer: PetEquipmentOverlayLayer.frontPet,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EquipmentSlotChip extends StatelessWidget {
+  const _EquipmentSlotChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return JuicyScaleButton(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFFFF0C9) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? const Color(0xFFFFB74D) : Colors.black12,
+            width: selected ? 1.8 : 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.black : Colors.black87,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EquipmentItemStrip extends StatelessWidget {
+  const _EquipmentItemStrip({
+    required this.items,
+    required this.equippedItemId,
+    required this.previewItemId,
+    required this.loading,
+    required this.errorText,
+    required this.onItemTap,
+  });
+
+  final List<ShopItem> items;
+  final String? equippedItemId;
+  final String? previewItemId;
+  final bool loading;
+  final String? errorText;
+  final ValueChanged<String> onItemTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (loading) {
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+    }
+    if (errorText != null) {
+      return Center(
+        child: Text(
+          errorText!,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      );
+    }
+    if (items.isEmpty) {
+      return Center(
+        child: Text(
+          l10n.equipmentNoneOwned,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: Colors.black54),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: items.length,
+      separatorBuilder: (context, index) => const SizedBox(width: 10),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _EquipmentInventoryItem(
+          item: item,
+          isEquipped: item.id == equippedItemId,
+          isPreviewed: item.id == previewItemId,
+          onTap: () => onItemTap(item.id),
+        );
+      },
+    );
+  }
+}
+
+class _EquipmentInventoryItem extends StatelessWidget {
+  const _EquipmentInventoryItem({
+    required this.item,
+    required this.isEquipped,
+    required this.isPreviewed,
+    required this.onTap,
+  });
+
+  final ShopItem item;
+  final bool isEquipped;
+  final bool isPreviewed;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return JuicyScaleButton(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: 150.ms,
+        width: 86,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: isPreviewed
+              ? const Color(0xFFFFF2D6)
+              : Colors.white.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isEquipped
+                ? const Color(0xFF5ABCA5)
+                : (isPreviewed ? const Color(0xFFFFB74D) : Colors.black12),
+            width: isEquipped || isPreviewed ? 1.8 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ShopCatalogItemVisual(
+                  item: item,
+                  size: 36,
+                  fallbackEmoji: item.emoji ?? '👒',
+                ),
+                if (isEquipped)
+                  const Positioned(
+                    top: -4,
+                    right: -8,
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      size: 16,
+                      color: Color(0xFF5ABCA5),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              item.localizedName(l10n),
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                height: 1.1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EquipmentActionButton extends StatelessWidget {
+  const _EquipmentActionButton({
+    required this.label,
+    required this.enabled,
+    required this.accent,
+    required this.borderColor,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool enabled;
+  final Color accent;
+  final Color borderColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return JuicyScaleButton(
+      onTap: enabled ? onTap : null,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.45,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: accent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

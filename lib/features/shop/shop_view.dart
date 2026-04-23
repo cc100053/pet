@@ -147,6 +147,7 @@ class _ShopViewState extends State<ShopView> {
   final Map<String, StoreProduct> _storeProductsByProductId = {};
   Set<String> _activeEntitlements = {};
   final ScrollController _storeScrollController = ScrollController();
+  final GlobalKey _equipmentSectionKey = GlobalKey();
   final GlobalKey _furnitureSectionKey = GlobalKey();
   final GlobalKey _themeSectionKey = GlobalKey();
   final GlobalKey _specialPacksSectionKey = GlobalKey();
@@ -320,6 +321,9 @@ class _ShopViewState extends State<ShopView> {
     }
     if (item.isFurniture) {
       return ShopFurnitureVisual(item: item, size: 34);
+    }
+    if (item.isEquipment) {
+      return ShopCatalogItemVisual(item: item, size: 34);
     }
     final emoji = item.emoji?.trim();
     if (emoji != null && emoji.isNotEmpty) {
@@ -573,11 +577,16 @@ class _ShopViewState extends State<ShopView> {
       .where((item) => item.isBackground && !item.isDefaultBackground)
       .toList(growable: false);
 
+  List<ShopItem> get _equipmentItems =>
+      _storeItems.where((item) => item.isEquipment).toList(growable: false);
+
   List<ShopItem> get _furnitureItems =>
       _storeItems.where((item) => item.isFurniture).toList(growable: false);
 
   List<ShopItem> get _premiumUtilityItems => _storeItems
-      .where((item) => !item.isBackground && !item.isFurniture)
+      .where(
+        (item) => !item.isBackground && !item.isFurniture && !item.isEquipment,
+      )
       .toList(growable: false);
 
   int _itemSortPrice(ShopItem item) {
@@ -752,6 +761,12 @@ class _ShopViewState extends State<ShopView> {
 
         SliverToBoxAdapter(
           child: _ShopCategoryRow(
+            onEquipmentTap: _equipmentItems.isEmpty
+                ? null
+                : () => _jumpToSection(
+                    _equipmentSectionKey,
+                    fallbackFraction: 0.35,
+                  ),
             onFurnitureTap: _furnitureItems.isEmpty
                 ? null
                 : () => _jumpToSection(
@@ -808,6 +823,30 @@ class _ShopViewState extends State<ShopView> {
                 (context, index) =>
                     _buildGridItemCard(_premiumUtilityItems[index], l10n),
                 childCount: _premiumUtilityItems.length,
+              ),
+            ),
+          ),
+        ],
+        if (_equipmentItems.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: KeyedSubtree(
+              key: _equipmentSectionKey,
+              child: _SectionHeader(title: l10n.shopSectionEquipment),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.1,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) =>
+                    _buildGridItemCard(_equipmentItems[index], l10n),
+                childCount: _equipmentItems.length,
               ),
             ),
           ),
@@ -2016,8 +2055,13 @@ class _ShopNoticeBackgroundVisual extends StatelessWidget {
 }
 
 class _ShopCategoryRow extends StatelessWidget {
-  const _ShopCategoryRow({this.onFurnitureTap, this.onThemeTap});
+  const _ShopCategoryRow({
+    this.onEquipmentTap,
+    this.onFurnitureTap,
+    this.onThemeTap,
+  });
 
+  final VoidCallback? onEquipmentTap;
   final VoidCallback? onFurnitureTap;
   final VoidCallback? onThemeTap;
 
@@ -2029,6 +2073,12 @@ class _ShopCategoryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          _CategoryItem(
+            icon: const Text('👒', style: TextStyle(fontSize: 36)),
+            label: l10n.shopSectionEquipment,
+            color: const Color(0xFFFFE0B2),
+            onTap: onEquipmentTap,
+          ),
           _CategoryItem(
             icon: Image.asset(
               'assets/shop/icon/sofa.png',

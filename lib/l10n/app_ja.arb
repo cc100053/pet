@@ -258,6 +258,7 @@
   "drawerDebugAddExp": "経験値 +10",
   "drawerDebugSpawnPoop": "うんちさせる",
   "drawerDebugShowFullBubble": "「おなかいっぱい！」を表示",
+  "drawerDebugShowSocketOverlay": "ソケット位置を表示",
   "drawerDebugCaptureMemorySnapshot": "メモリスナップショットを記録",
   "drawerDebugClearImageCacheSnapshot": "画像キャッシュを消去して記録",
   "drawerDebugOpenMemoryDiagnostics": "メモリ診断を開く",
@@ -731,6 +732,7 @@
   "storeItemDescFurnitureToilet": "清潔感のある小さなバスルーム家具。",
   "storeItemNameFurnitureTub": "バスタブ",
   "storeItemDescFurnitureTub": "おふろ時間にぴったりのバスタブ。",
+  "storeItemNameEquipmentStrawHat": "麦わら帽子",
   "shopSignInPrompt": "ショップを利用するにはサインインしてください。",
   "storeSubscribe": "購読する",
   "storeSubscriptionActive": "有効",
@@ -780,9 +782,29 @@
     }
   },
   "inventoryTabFurniture": "家具",
+  "inventoryTabEquipment": "きせかえ",
   "backgroundGalleryTab": "背景ギャラリー",
   "backgroundInventoryEmpty": "背景がまだありません。ショップで入手できます。",
   "backgroundInventoryHint": "背景をタップするとルーム全員に適用されます。",
+  "equipmentInventoryHint": "ここで見た目をプレビューして、共有ペットに装備したり外したりできます。",
+  "equipmentNoneOwned": "この部位に装備できるアイテムをまだ持っていません。",
+  "equipmentSlotHead": "頭",
+  "equipmentSlotBody": "体",
+  "equipmentSlotBack": "背中",
+  "equipmentEquipCta": "装備する",
+  "equipmentUnequipCta": "外す",
+  "equipmentEquipSuccess": "{itemName} を装備しました！",
+  "@equipmentEquipSuccess": {
+    "placeholders": {
+      "itemName": {}
+    }
+  },
+  "equipmentUnequipSuccess": "{slotName} の装備を外しました。",
+  "@equipmentUnequipSuccess": {
+    "placeholders": {
+      "slotName": {}
+    }
+  },
   "backgroundApply": "適用",
   "backgroundAppliedLabel": "適用中",
   "backgroundApplyFailed": "背景の適用に失敗しました: {error}",
@@ -792,6 +814,7 @@
     }
   },
   "shopSectionBackgrounds": "背景",
+  "shopSectionEquipment": "きせかえ",
   "shopSectionItems": "アイテム",
   "storeBackgroundRoomRequired": "背景を購入する前にルームを選択してください。",
   "storeBuyWithCandies": "{price} キャンディで購入",

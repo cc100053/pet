@@ -1,5 +1,8 @@
 # Lessons
 
+## 2026-04-22
+- When a user names the ship target release for a feature, align every rollout gate to that exact version: repo app version, seeded `min_app_version`, compatibility checks, and user-facing release notes or task notes.
+
 ## 2026-04-18
 - **Brand Spelling:** The product name is `PetTomo`, with a capital `T` and one
   `t` after `Pe`. Do not add extra letters in user-facing copy, tests, fallback

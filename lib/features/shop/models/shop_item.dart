@@ -24,6 +24,7 @@ class ShopItem {
     required this.category,
     required this.emoji,
     this.furnitureAssetPath,
+    this.equipmentSlotValue,
     this.backgroundKey,
     this.minAppVersion,
     this.visibilityMode,
@@ -50,6 +51,7 @@ class ShopItem {
   final String? category;
   final String? emoji;
   final String? furnitureAssetPath;
+  final String? equipmentSlotValue;
   final String? backgroundKey;
   final String? minAppVersion;
   final String? visibilityMode;
@@ -62,6 +64,7 @@ class ShopItem {
   bool get isDiamondIap =>
       iapType != 'subscription' &&
       (iapCurrency == 'diamond' || diamondAmount != null);
+  bool get isEquipment => category == 'equipment';
   bool get isFurniture => category == 'furniture';
   bool get isUtility => category == 'utility';
   bool get isDefaultBackground => sku == 'background_default';
@@ -69,6 +72,9 @@ class ShopItem {
       (visibilityMode ?? '').trim().toLowerCase() == 'version_gated';
   bool get isHiddenFromShop =>
       (shopVisibility ?? '').trim().toLowerCase() == 'hidden';
+  String? get equipmentSlot => equipmentSlotValue;
+  String? get equipmentAssetPath => isEquipment ? furnitureAssetPath : null;
+  String? get previewAssetPath => equipmentAssetPath ?? furnitureAssetPath;
 
   bool isSupportedOnAppVersion(String? appVersion) {
     final requiredVersion = minAppVersion?.trim();
@@ -198,6 +204,7 @@ class ShopItem {
     final category = metadata['category'] as String?;
     final emoji = metadata['emoji'] as String?;
     final furnitureAssetPath = metadata['asset_path'] as String?;
+    final equipmentSlot = metadata['equipment_slot'] as String?;
     final backgroundKey = metadata['background_key'] as String?;
     final minAppVersion = metadata['min_app_version'] as String?;
     final visibilityMode = metadata['visibility_mode'] as String?;
@@ -252,6 +259,7 @@ class ShopItem {
       category: category,
       emoji: emoji,
       furnitureAssetPath: furnitureAssetPath,
+      equipmentSlotValue: equipmentSlot,
       backgroundKey: backgroundKey,
       minAppVersion: minAppVersion,
       visibilityMode: visibilityMode,

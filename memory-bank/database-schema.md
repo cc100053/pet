@@ -14,7 +14,7 @@ migration that rewrites the object before proposing or applying changes.
 - Chat: `messages`, `message_reactions`
 - Gameplay/economy: `label_mappings`, `quests`, `daily_quests`,
   `action_cooldowns`, `coin_ledger`, `diamond_ledger`, `items`, `inventories`,
-  `room_item_inventories`, `room_furniture`, `room_backgrounds`,
+  `pet_equipment`, `room_item_inventories`, `room_furniture`, `room_backgrounds`,
   `room_background_state`, `purchases`, `subscriptions`, `iap_transactions`
 - Safety/config/diagnostics: `reports`, `blocks`, `app_config`,
   `notification_delivery_logs`
@@ -37,8 +37,12 @@ migration that rewrites the object before proposing or applying changes.
   Soft delete clears `messages.body` and leaves the timeline placeholder.
 - `message_reactions` allows one reaction per `(message_id, user_id)`.
 - `items.metadata` carries catalog contracts: IAP fields, background metadata,
-  furniture `asset_path`, `visibility_mode`, `min_app_version`,
-  `shop_visibility`, and fallback metadata.
+  furniture/equipment `asset_path`, equipment `equipment_slot`,
+  `visibility_mode`, `min_app_version`, `shop_visibility`, and fallback
+  metadata.
+- `pet_equipment` stores one equipped item per `(pet_id, slot)` with room scope,
+  audit timestamps, and `equipped_by`; live slots are `head`, `body`, and
+  `back`, and the table is on the `supabase_realtime` publication.
 - `room_item_inventories` is still buyer-attributed; shared furniture totals use
   `get_room_furniture_inventory`.
 - `room_item_inventory_revisions` is the room-level realtime signal for shared
@@ -67,7 +71,11 @@ migration that rewrites the object before proposing or applying changes.
   `tick_pet_state_as_system`, `refresh_pet_hunger_tick_schedule`,
   `claim_feed_double_reward`
 - Shop/economy: `get_visible_shop_items`, coin/diamond purchase RPCs for items,
-  furniture, backgrounds, plus `grant_iap_coins`, `grant_iap_diamonds`
+  furniture, backgrounds, pet equipment, plus `grant_iap_coins`,
+  `grant_iap_diamonds`
+- Pet equipment: `equip_pet_item(p_pet_id, p_room_id, p_item_id, p_slot)`,
+  `unequip_pet_item(p_pet_id, p_room_id, p_slot)`,
+  `get_pet_equipment(p_pet_id)`
 - Furniture: `get_room_furniture_inventory`, `place_room_furniture`,
   `update_room_furniture_transform`, `update_room_furniture_flip`, and legacy
   scale/position helpers

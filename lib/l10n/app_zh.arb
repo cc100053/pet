@@ -253,6 +253,7 @@
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓宠物便便",
   "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
+  "drawerDebugShowSocketOverlay": "顯示掛點調試",
   "drawerDebugCaptureMemorySnapshot": "記錄記憶體快照",
   "drawerDebugClearImageCacheSnapshot": "清除圖片快取並記錄",
   "drawerDebugOpenMemoryDiagnostics": "開啟記憶體診斷",
@@ -718,6 +719,7 @@
   "storeItemDescFurnitureToilet": "乾淨的小浴室家具。",
   "storeItemNameFurnitureTub": "浴缸",
   "storeItemDescFurnitureTub": "適合泡澡的舒適浴缸。",
+  "storeItemNameEquipmentStrawHat": "草帽",
   "shopSignInPrompt": "请先登录才能使用商店。",
   "storeSubscribe": "訂閱",
   "storeSubscriptionActive": "已啟用",
@@ -767,9 +769,29 @@
     }
   },
   "inventoryTabFurniture": "家具",
+  "inventoryTabEquipment": "裝扮",
   "backgroundGalleryTab": "背景圖庫",
   "backgroundInventoryEmpty": "還沒有背景，去商店看看吧。",
   "backgroundInventoryHint": "點擊背景即可套用到房间所有成員。",
+  "equipmentInventoryHint": "先在這裡預覽造型，再為共享寵物穿上或卸下裝備。",
+  "equipmentNoneOwned": "你還沒有這個部位可用的裝備。",
+  "equipmentSlotHead": "頭部",
+  "equipmentSlotBody": "身體",
+  "equipmentSlotBack": "背部",
+  "equipmentEquipCta": "穿上",
+  "equipmentUnequipCta": "卸下",
+  "equipmentEquipSuccess": "已穿上 {itemName}！",
+  "@equipmentEquipSuccess": {
+    "placeholders": {
+      "itemName": {}
+    }
+  },
+  "equipmentUnequipSuccess": "已卸下 {slotName} 的裝備。",
+  "@equipmentUnequipSuccess": {
+    "placeholders": {
+      "slotName": {}
+    }
+  },
   "backgroundApply": "套用",
   "backgroundAppliedLabel": "已套用",
   "backgroundApplyFailed": "套用背景失敗：{error}",
@@ -779,6 +801,7 @@
     }
   },
   "shopSectionBackgrounds": "背景",
+  "shopSectionEquipment": "裝扮",
   "shopSectionItems": "商品",
   "storeBackgroundRoomRequired": "購買背景前请先选择房间。",
   "storeBuyWithCandies": "用 {price} 糖果購買",

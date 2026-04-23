@@ -470,6 +470,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugShowFullBubble => '「おなかいっぱい！」を表示';
 
   @override
+  String get drawerDebugShowSocketOverlay => 'ソケット位置を表示';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => 'メモリスナップショットを記録';
 
   @override
@@ -1369,6 +1372,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescFurnitureTub => 'おふろ時間にぴったりのバスタブ。';
 
   @override
+  String get storeItemNameEquipmentStrawHat => '麦わら帽子';
+
+  @override
   String get shopSignInPrompt => 'ショップを利用するにはサインインしてください。';
 
   @override
@@ -1479,6 +1485,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get inventoryTabFurniture => '家具';
 
   @override
+  String get inventoryTabEquipment => 'きせかえ';
+
+  @override
   String get backgroundGalleryTab => '背景ギャラリー';
 
   @override
@@ -1486,6 +1495,37 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backgroundInventoryHint => '背景をタップするとルーム全員に適用されます。';
+
+  @override
+  String get equipmentInventoryHint => 'ここで見た目をプレビューして、共有ペットに装備したり外したりできます。';
+
+  @override
+  String get equipmentNoneOwned => 'この部位に装備できるアイテムをまだ持っていません。';
+
+  @override
+  String get equipmentSlotHead => '頭';
+
+  @override
+  String get equipmentSlotBody => '体';
+
+  @override
+  String get equipmentSlotBack => '背中';
+
+  @override
+  String get equipmentEquipCta => '装備する';
+
+  @override
+  String get equipmentUnequipCta => '外す';
+
+  @override
+  String equipmentEquipSuccess(Object itemName) {
+    return '$itemName を装備しました！';
+  }
+
+  @override
+  String equipmentUnequipSuccess(Object slotName) {
+    return '$slotName の装備を外しました。';
+  }
 
   @override
   String get backgroundApply => '適用';
@@ -1500,6 +1540,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get shopSectionBackgrounds => '背景';
+
+  @override
+  String get shopSectionEquipment => 'きせかえ';
 
   @override
   String get shopSectionItems => 'アイテム';

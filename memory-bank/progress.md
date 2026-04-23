@@ -23,6 +23,11 @@ Active progress stays current-state focused. Full snapshots:
   through the same editor; saving only updates the `avatar_url` fragment.
 - Shared room item rollout is version-aware across backgrounds, furniture, and
   pets. Use `.codex/skills/shared-item-rollout/SKILL.md` for future rollouts.
+- Pet dress-up MVP is wired end-to-end for app `1.3.0`: the live
+  `pet_equipment` table/RPCs + `equip_straw_hat` catalog row exist on the repo
+  Supabase project, Home renders equipment overlays on the shared pet and status
+  avatar, the room inventory panel has an Equipment tab with preview/equip/remove
+  actions, and Shop exposes version-gated equipment items alongside furniture.
 - Room invite sharing now reuses the current active room code by default, keeps
   copy-code, adds system share-sheet links, stores pending invite codes from
   app/universal links for signed-out users, and joins through live
@@ -120,6 +125,10 @@ Active progress stays current-state focused. Full snapshots:
   Crashlytics + `MemoryDiagnosticsService`, room switches stamp room-count/index
   custom keys and opportunistically trim the Flutter image cache at high-water
   marks, and startup lowers the image-cache cap to `120` entries / `128 MB`.
+- Synced the repo to the already-applied live dress-up backend migration
+  `20260422150216_add_pet_equipment`, including the `purchase_item_with_coins`
+  version-gated catalog fix, and added focused overlay/socket/catalog tests plus
+  the missing local `l10n` generation step.
 - Invite link share flow shipped with live Supabase migration
   `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
   `/invite` fallback, App Links/Universal Links config, localized share copy,

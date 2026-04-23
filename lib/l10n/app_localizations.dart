@@ -925,6 +925,12 @@ abstract class AppLocalizations {
   /// **'Show \"I\'m Full\" Bubble'**
   String get drawerDebugShowFullBubble;
 
+  /// No description provided for @drawerDebugShowSocketOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Socket Overlay'**
+  String get drawerDebugShowSocketOverlay;
+
   /// No description provided for @drawerDebugCaptureMemorySnapshot.
   ///
   /// In en, this message translates to:
@@ -2543,6 +2549,12 @@ abstract class AppLocalizations {
   /// **'A cozy tub for bath time.'**
   String get storeItemDescFurnitureTub;
 
+  /// No description provided for @storeItemNameEquipmentStrawHat.
+  ///
+  /// In en, this message translates to:
+  /// **'Straw Hat'**
+  String get storeItemNameEquipmentStrawHat;
+
   /// No description provided for @shopSignInPrompt.
   ///
   /// In en, this message translates to:
@@ -2739,6 +2751,12 @@ abstract class AppLocalizations {
   /// **'Furniture'**
   String get inventoryTabFurniture;
 
+  /// No description provided for @inventoryTabEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get inventoryTabEquipment;
+
   /// No description provided for @backgroundGalleryTab.
   ///
   /// In en, this message translates to:
@@ -2756,6 +2774,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap a background to apply it for everyone in the room.'**
   String get backgroundInventoryHint;
+
+  /// No description provided for @equipmentInventoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview outfits here, then equip or remove items on the shared pet.'**
+  String get equipmentInventoryHint;
+
+  /// No description provided for @equipmentNoneOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t own any items for this slot yet.'**
+  String get equipmentNoneOwned;
+
+  /// No description provided for @equipmentSlotHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Head'**
+  String get equipmentSlotHead;
+
+  /// No description provided for @equipmentSlotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get equipmentSlotBody;
+
+  /// No description provided for @equipmentSlotBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get equipmentSlotBack;
+
+  /// No description provided for @equipmentEquipCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Equip'**
+  String get equipmentEquipCta;
+
+  /// No description provided for @equipmentUnequipCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get equipmentUnequipCta;
+
+  /// No description provided for @equipmentEquipSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipped {itemName}!'**
+  String equipmentEquipSuccess(Object itemName);
+
+  /// No description provided for @equipmentUnequipSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed equipment from {slotName}.'**
+  String equipmentUnequipSuccess(Object slotName);
 
   /// No description provided for @backgroundApply.
   ///
@@ -2780,6 +2852,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backgrounds'**
   String get shopSectionBackgrounds;
+
+  /// No description provided for @shopSectionEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get shopSectionEquipment;
 
   /// No description provided for @shopSectionItems.
   ///

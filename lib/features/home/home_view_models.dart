@@ -73,6 +73,13 @@ class _PoopSpot {
   final Offset normalized;
 }
 
+class _EquippedPetItem {
+  const _EquippedPetItem({required this.itemId, required this.sku});
+
+  final String itemId;
+  final String sku;
+}
+
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

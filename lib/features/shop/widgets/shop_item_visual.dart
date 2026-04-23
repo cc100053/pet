@@ -37,3 +37,41 @@ class ShopFurnitureVisual extends StatelessWidget {
     );
   }
 }
+
+class ShopCatalogItemVisual extends StatelessWidget {
+  const ShopCatalogItemVisual({
+    super.key,
+    required this.item,
+    required this.size,
+    this.fit = BoxFit.contain,
+    this.fallbackEmoji,
+  });
+
+  final ShopItem item;
+  final double size;
+  final BoxFit fit;
+  final String? fallbackEmoji;
+
+  @override
+  Widget build(BuildContext context) {
+    final assetPath = item.previewAssetPath?.trim();
+    if (assetPath != null && assetPath.isNotEmpty) {
+      return Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => _fallback(),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    return Text(
+      fallbackEmoji ?? item.emoji ?? '🎁',
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: size * 0.7, height: 1),
+    );
+  }
+}
