@@ -495,6 +495,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugShowSocketOverlay => 'Show Socket Overlay';
 
   @override
+  String get drawerDebugDressUpFitTool => 'Dress-up Fit Tool';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => 'Capture Memory Snapshot';
 
   @override

@@ -259,6 +259,7 @@
   "drawerDebugSpawnPoop": "うんちさせる",
   "drawerDebugShowFullBubble": "「おなかいっぱい！」を表示",
   "drawerDebugShowSocketOverlay": "ソケット位置を表示",
+  "drawerDebugDressUpFitTool": "きせかえ調整ツール",
   "drawerDebugCaptureMemorySnapshot": "メモリスナップショットを記録",
   "drawerDebugClearImageCacheSnapshot": "画像キャッシュを消去して記録",
   "drawerDebugOpenMemoryDiagnostics": "メモリ診断を開く",

@@ -36,8 +36,9 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   the one-shot room compatibility prompt.
 - Pet dress-up uses widget-layer equipment overlays on top of the existing pet
   GIFs. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
-  live in the catalog/Shop metadata, and Home renders behind/front layers plus a
-  debug socket overlay without changing the GIF animation pipeline.
+  and optional per-pet fit overrides live in `EquipmentCatalog`, and shared
+  placement math keeps Home overlays and the admin fit tool aligned without
+  changing the GIF animation pipeline.
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.

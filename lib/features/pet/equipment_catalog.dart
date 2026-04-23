@@ -18,6 +18,13 @@ class EquipmentSize {
   final double h;
 }
 
+class EquipmentFitOverride {
+  const EquipmentFitOverride({this.offset = Offset.zero, this.scale = 1});
+
+  final Offset offset;
+  final double scale;
+}
+
 class EquipmentDefinition {
   const EquipmentDefinition({
     required this.sku,
@@ -25,6 +32,7 @@ class EquipmentDefinition {
     required this.anchor,
     required this.sizeRatio,
     required this.assetPath,
+    this.petOverrides = const <String, EquipmentFitOverride>{},
     this.zOrder = 1,
   });
 
@@ -33,6 +41,7 @@ class EquipmentDefinition {
   final EquipmentAnchor anchor;
   final EquipmentSize sizeRatio;
   final String assetPath;
+  final Map<String, EquipmentFitOverride> petOverrides;
   final int zOrder;
 }
 

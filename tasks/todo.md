@@ -1,5 +1,43 @@
 # TODO
 
+# Plan (2026-04-23 Dress-Up Fit Tool Implementation)
+- [x] Add shared pet equipment placement math and wire production overlays through it.
+- [x] Add local per-pet equipment fit override support without changing current catalog behavior.
+- [x] Build the admin-only Dress-up Fit Tool page with preview, controls, resets, and copyable snippets.
+- [x] Add a debug-admin drawer entry and minimal localized labels.
+- [x] Add focused layout, overlay, catalog, and fit-tool widget tests.
+- [x] Run formatting, l10n generation, analyzer, and tests; record the review summary here.
+
+# Review (2026-04-23 Dress-Up Fit Tool Implementation)
+- [x] Implemented.
+- Scope:
+  - Added shared equipment placement math and updated `PetEquipmentOverlay` to use it for both normal rendering and per-pet fit overrides.
+  - Added the debug-admin-only Dress-up Fit Tool page with pet/equipment/state/facing/layer controls, live markers/bounds, slider/stepper tuning, reset actions, and copyable Dart snippets.
+  - Added the Home drawer entry plus EN/JA/ZH localization and regenerated Flutter l10n outputs; existing `ko` and `zh_TW` untranslated warnings remain.
+  - Kept the tool local-only: no Supabase schema, RPC, remote config, upload, or production data writes.
+- Verification:
+  - `flutter gen-l10n`: passed; existing `ko` and `zh_TW` untranslated-message warnings remain.
+  - `dart format ...`: passed on touched files.
+  - Focused tests passed: `flutter test test/features/home/widgets/pet_equipment_layout_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/pet/equipment_catalog_test.dart test/features/pet/pet_socket_config_test.dart test/features/home/debug/dress_up_fit_tool_page_test.dart test/features/home/widgets/home_room_inventory_panel_test.dart`
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-23 Dress-Up Fit Tool Handoff Plan)
+- [x] Read current memory-bank state and dress-up/debug-admin context.
+- [x] Add a detailed handoff plan under `docs/` for the admin-only visual equipment fitting tool.
+- [x] Record scope, phases, tests, non-goals, and next-agent checklist.
+- [x] Run documentation-change verification and record results here.
+
+# Review (2026-04-23 Dress-Up Fit Tool Handoff Plan)
+- [x] Implemented.
+- Scope:
+  - Added `docs/dressup-fit-tool-implementation-plan.md` as the next-session handoff spec for an admin-only visual equipment fitting tool.
+  - Covered manager workflow, UI spec, layout math extraction, local draft state, generated Dart snippets, implementation phases, tests, non-goals, and future remote-dashboard considerations.
+  - Kept this as documentation/planning only; no app behavior changed.
+- Verification:
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-22 Pet Dress-Up MVP v1.3.0)
 - [x] Verify the current dress-up touchpoints in Home, inventory, shop, assets, and release metadata.
 - [x] Add Supabase support for pet equipment: table, RLS, realtime publication, RPCs, and seeded live hat item with `min_app_version = 1.3.0`.

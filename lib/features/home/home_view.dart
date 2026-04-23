@@ -66,6 +66,7 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../shop/models/shop_item.dart';
 import '../shop/shop_view.dart';
+import 'debug/dress_up_fit_tool_page.dart';
 import 'home_furniture_inventory_utils.dart';
 import 'home_furniture_math.dart';
 import 'home_gallery_feed_utils.dart';
@@ -5884,6 +5885,18 @@ class _HomeViewState extends ConsumerState<HomeView>
                       value: _showSocketDebug,
                       onChanged: (value) {
                         setState(() => _showSocketDebug = value);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.straighten_rounded),
+                      title: Text(l10n.drawerDebugDressUpFitTool),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const DressUpFitToolPage(),
+                          ),
+                        );
                       },
                     ),
                     if (_petError != null)

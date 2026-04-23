@@ -473,6 +473,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugShowSocketOverlay => 'ソケット位置を表示';
 
   @override
+  String get drawerDebugDressUpFitTool => 'きせかえ調整ツール';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => 'メモリスナップショットを記録';
 
   @override

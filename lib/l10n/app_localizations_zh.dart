@@ -471,6 +471,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugShowSocketOverlay => '顯示掛點調試';
 
   @override
+  String get drawerDebugDressUpFitTool => '裝扮調整工具';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => '記錄記憶體快照';
 
   @override

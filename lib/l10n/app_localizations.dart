@@ -931,6 +931,12 @@ abstract class AppLocalizations {
   /// **'Show Socket Overlay'**
   String get drawerDebugShowSocketOverlay;
 
+  /// No description provided for @drawerDebugDressUpFitTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Dress-up Fit Tool'**
+  String get drawerDebugDressUpFitTool;
+
   /// No description provided for @drawerDebugCaptureMemorySnapshot.
   ///
   /// In en, this message translates to:

@@ -18,4 +18,21 @@ void main() {
     expect(headItems.map((item) => item.sku), contains('equip_straw_hat'));
     expect(bodyItems, isEmpty);
   });
+
+  test('defaults per-pet fit overrides to empty', () {
+    final item = EquipmentCatalog.bySku('equip_straw_hat');
+
+    expect(item, isNotNull);
+    expect(item!.petOverrides, isEmpty);
+  });
+
+  test('stores per-pet fit override offset and scale', () {
+    const override = EquipmentFitOverride(
+      offset: Offset(-0.03, 0.02),
+      scale: 0.85,
+    );
+
+    expect(override.offset, const Offset(-0.03, 0.02));
+    expect(override.scale, 0.85);
+  });
 }

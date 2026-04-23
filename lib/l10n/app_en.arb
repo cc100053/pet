@@ -259,6 +259,7 @@
   "drawerDebugSpawnPoop": "Make Pet Poop",
   "drawerDebugShowFullBubble": "Show \"I'm Full\" Bubble",
   "drawerDebugShowSocketOverlay": "Show Socket Overlay",
+  "drawerDebugDressUpFitTool": "Dress-up Fit Tool",
   "drawerDebugCaptureMemorySnapshot": "Capture Memory Snapshot",
   "drawerDebugClearImageCacheSnapshot": "Clear Image Cache + Snapshot",
   "drawerDebugOpenMemoryDiagnostics": "Open Memory Diagnostics",

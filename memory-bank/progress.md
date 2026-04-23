@@ -18,7 +18,8 @@ Active progress stays current-state focused. Full snapshots:
   unchanged.
 - Debug-admin tools include a one-shot Profile Setup onboarding preview for
   testing the new-user name/photo entry point without rewriting persisted
-  onboarding completion state.
+  onboarding completion state, plus a local Dress-up Fit Tool for tuning
+  equipment socket/anchor/size/override values and copying Dart snippets.
 - Remote Profile photo avatars still support non-destructive framing adjustment
   through the same editor; saving only updates the `avatar_url` fragment.
 - Shared room item rollout is version-aware across backgrounds, furniture, and
@@ -28,6 +29,8 @@ Active progress stays current-state focused. Full snapshots:
   Supabase project, Home renders equipment overlays on the shared pet and status
   avatar, the room inventory panel has an Equipment tab with preview/equip/remove
   actions, and Shop exposes version-gated equipment items alongside furniture.
+  Overlay placement now uses a shared helper with optional local per-pet fit
+  overrides so production rendering and the admin preview use identical math.
 - Room invite sharing now reuses the current active room code by default, keeps
   copy-code, adds system share-sheet links, stores pending invite codes from
   app/universal links for signed-out users, and joins through live

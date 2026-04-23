@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../pet/equipment_catalog.dart';
 import '../../pet/pet_sockets.dart';
+import 'pet_equipment_layout.dart';
 
 enum PetEquipmentOverlayLayer { behindPet, frontPet }
 
@@ -56,25 +57,28 @@ class PetEquipmentOverlay extends StatelessWidget {
         continue;
       }
 
-      final itemSize = Size(
-        definition.sizeRatio.w * petSize.width,
-        definition.sizeRatio.h * petSize.height,
+      final override =
+          definition.petOverrides[petId] ?? const EquipmentFitOverride();
+      final placement = resolveEquipmentPlacement(
+        petSize: petSize,
+        socket: socket,
+        anchor: definition.anchor,
+        sizeRatio: definition.sizeRatio,
+        normalizedOffset: override.offset,
+        scale: override.scale,
       );
-      final socketOffset = socket.toOffset(petSize);
-      final anchorOffset = definition.anchor.toOffset(itemSize);
-      final position = socketOffset - anchorOffset;
 
       children.add(
         Positioned(
           key: ValueKey(
             'pet-equipment-${layer.name}-${entry.key}-${definition.sku}',
           ),
-          left: position.dx,
-          top: position.dy,
+          left: placement.topLeft.dx,
+          top: placement.topLeft.dy,
           child: Image.asset(
             definition.assetPath,
-            width: itemSize.width,
-            height: itemSize.height,
+            width: placement.itemSize.width,
+            height: placement.itemSize.height,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.high,
             errorBuilder: (context, error, stackTrace) =>

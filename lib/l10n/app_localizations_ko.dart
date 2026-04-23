@@ -480,6 +480,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugShowSocketOverlay => 'Show Socket Overlay';
 
   @override
+  String get drawerDebugDressUpFitTool => 'Dress-up Fit Tool';
+
+  @override
   String get drawerDebugCaptureMemorySnapshot => '메모리 스냅샷 기록';
 
   @override
