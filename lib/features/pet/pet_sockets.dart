@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'pet_animation_frames.dart';
+
 enum PetMotionSampling { linear, stepped }
 
 class PetEquipmentSlot {
@@ -27,6 +29,7 @@ class PetMotionTrack {
   const PetMotionTrack({
     required this.frames,
     this.sampling = PetMotionSampling.linear,
+    this.frameDurationsMs = const <int>[],
   });
 
   factory PetMotionTrack.repeated({
@@ -46,8 +49,28 @@ class PetMotionTrack {
     return PetMotionTrack(frames: expanded, sampling: sampling);
   }
 
+  factory PetMotionTrack.timed({
+    required List<Offset> frames,
+    required List<int> frameDurationsMs,
+    PetMotionSampling sampling = PetMotionSampling.stepped,
+  }) {
+    if (frameDurationsMs.length != frames.length) {
+      throw ArgumentError.value(
+        frameDurationsMs,
+        'frameDurationsMs',
+        'Must have one duration per frame.',
+      );
+    }
+    return PetMotionTrack(
+      frames: frames,
+      sampling: sampling,
+      frameDurationsMs: frameDurationsMs,
+    );
+  }
+
   final List<Offset> frames;
   final PetMotionSampling sampling;
+  final List<int> frameDurationsMs;
 
   Offset sample(double progress) {
     if (frames.isEmpty) {
@@ -58,6 +81,9 @@ class PetMotionTrack {
     }
 
     final clamped = progress.clamp(0.0, 1.0);
+    if (_hasFrameDurations) {
+      return _sampleTimed(clamped);
+    }
     if (sampling == PetMotionSampling.stepped) {
       final index = (clamped * frames.length).floor().clamp(
         0,
@@ -73,6 +99,37 @@ class PetMotionTrack {
     final end = frames[endIndex];
     return Offset.lerp(start, end, t) ?? start;
   }
+
+  bool get _hasFrameDurations => frameDurationsMs.length == frames.length;
+
+  Offset _sampleTimed(double progress) {
+    final totalMs = frameDurationsMs.fold<int>(
+      0,
+      (total, duration) => total + _safeDurationMs(duration),
+    );
+    if (totalMs <= 0) {
+      return frames.first;
+    }
+
+    final currentMs = progress * totalMs;
+    var elapsedMs = 0;
+    for (var index = 0; index < frameDurationsMs.length; index += 1) {
+      final durationMs = _safeDurationMs(frameDurationsMs[index]);
+      final frameEndMs = elapsedMs + durationMs;
+      if (currentMs < frameEndMs) {
+        if (sampling == PetMotionSampling.stepped) {
+          return frames[index];
+        }
+        final next = frames[(index + 1) % frames.length];
+        final t = (currentMs - elapsedMs) / durationMs;
+        return Offset.lerp(frames[index], next, t) ?? frames[index];
+      }
+      elapsedMs = frameEndMs;
+    }
+    return frames.last;
+  }
+
+  static int _safeDurationMs(int durationMs) => durationMs < 1 ? 1 : durationMs;
 }
 
 class PetSocketConfig {
@@ -139,8 +196,8 @@ class PetSocketCatalog {
         PetEquipmentSlot.head: PetSocket(x: 0.484444444, y: 0.131111111),
       },
       idleMotionTracksBySlot: {
-        PetEquipmentSlot.head: PetMotionTrack.repeated(
-          hold: 2,
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.ghostIdle.frameDurationsMs,
           frames: [
             Offset(0, 0),
             Offset(0, -0.002222222),

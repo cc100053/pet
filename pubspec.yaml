@@ -120,10 +120,37 @@ flutter:
     - assets/bg/paid/
     - assets/furniture/
     - assets/equipment/hats/
-    - assets/pet/ghost/
+    - assets/pet/ghost/ghost_stay.gif
+    - assets/pet/ghost/ghost_sleep.gif
+    - assets/pet/ghost/ghost_walking.gif
+    - assets/pet/ghost/ghost_stay/ghost_stay-01.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-02.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-03.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-04.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-05.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-06.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-07.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-08.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-09.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-10.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-11.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-12.png
+    - assets/pet/ghost/ghost_stay/ghost_stay-13.png
     - assets/pet/cat/
     - assets/pet/fish/
     - assets/pet/tiger/
+    - assets/pet_sequences/ghost/stay/
+    - assets/pet_sequences/ghost/sleep/
+    - assets/pet_sequences/ghost/walk/
+    - assets/pet_sequences/cat/stay/
+    - assets/pet_sequences/cat/sleep/
+    - assets/pet_sequences/cat/walk/
+    - assets/pet_sequences/fish/stay/
+    - assets/pet_sequences/fish/sleep/
+    - assets/pet_sequences/fish/walk/
+    - assets/pet_sequences/tiger/stay/
+    - assets/pet_sequences/tiger/sleep/
+    - assets/pet_sequences/tiger/walk/
     - assets/icon/
     - assets/shop/
     - assets/shop/icon/

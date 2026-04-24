@@ -34,20 +34,24 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 - Shared room content must be mixed-version safe: version-gate new decor/pets,
   fall back unsupported backgrounds/pets, hide unsupported furniture, and reuse
   the one-shot room compatibility prompt.
-- Pet dress-up uses widget-layer equipment overlays on top of the existing pet
-  GIFs. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
+- Pet dress-up uses widget-layer equipment overlays on top of rendered pet
+  animation frames. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
   and optional per-pet fit overrides live in `EquipmentCatalog`, and shared
   placement math keeps Home overlays and the admin fit tool aligned without
-  changing the GIF animation pipeline. Idle overlays can also sample optional
-  per-pet motion tracks derived from source PNG frames so equipment anchors
-  follow in-GIF sprite drift when the rendered pet art floats inside a fixed
-  canvas. Motion lookup is now slot-aware, so a pet can mix manually authored
-  tracks for calibrated slots (for example ghost `head`) with static sockets for
-  unfinished slots (`body` / `back`) during rollout. Tracks can also opt into
-  stepped sampling so exported GIFs that hold each authored frame multiple ticks
-  stay in sync with overlay motion. The latest ghost idle anchors were authored
-  in the local Godot socket tool and applied as frame-0 base sockets plus
-  per-frame normalized deltas in `PetSocketCatalog`.
+  legacy previews while production rendering moves to PNG sequences. App pet
+  visuals now resolve source GIF asset ids through `PetAnimationFrames` and
+  `PetAnimationFrameBuilder`, so Home, room selection, chat menu avatars,
+  inventory previews, and pet selection render bundled PNG frame sequences for
+  every current pet/state. GIFs remain bundled as source/fallback assets during
+  the migration and should not be deleted until the follow-up cleanup is
+  explicitly approved. Idle overlays can sample optional per-pet motion tracks
+  derived from source PNG frames so equipment anchors follow sprite drift inside
+  a fixed canvas. Motion lookup is slot-aware, so a pet can mix manually authored
+  tracks for calibrated slots with static sockets for unfinished slots during
+  rollout. Tracks and frame sequences sample by cumulative per-frame duration,
+  matching variable GIF frame timing where needed. Equipment catalog sizes can
+  use source-image aspect-preserving sizing so Godot-authored preview anchors map
+  to Flutter without `BoxFit.contain` letterbox padding shifting the anchor.
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.

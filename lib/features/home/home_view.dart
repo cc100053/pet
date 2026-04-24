@@ -57,6 +57,8 @@ import '../feed/feed_capture_view.dart';
 import '../feed/feed_upload_queue.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../pet/equipment_catalog.dart';
+import '../pet/pet_animation_frames.dart';
+import '../pet/pet_animated_image.dart';
 import '../pet/pet_catalog.dart';
 import '../pet/pet_sockets.dart';
 import '../pet/leveling.dart';
@@ -131,7 +133,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const int _minMoveMs = 260;
   static const Duration _foodDropDuration = Duration(milliseconds: 760);
   static const Duration _petEatingStayDuration = Duration(seconds: 3);
-  static const Duration _ghostIdleMotionDuration = Duration(milliseconds: 2600);
   static const Duration _idleThreshold = Duration(seconds: 8);
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
@@ -207,7 +208,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   final ImagePicker _onboardingProfileImagePicker = ImagePicker();
   final Random _random = Random();
   late final AnimationController _petMoveController;
-  late final AnimationController _petIdleMotionController;
   late final AnimationController _furnitureWiggleController;
   Animation<Offset>? _petMoveAnimation;
   Offset _petNormalizedPosition = const Offset(0.5, 0.6);
@@ -405,10 +405,6 @@ class _HomeViewState extends ConsumerState<HomeView>
           }
         }
       });
-    _petIdleMotionController = AnimationController(
-      vsync: this,
-      duration: _ghostIdleMotionDuration,
-    )..repeat();
     _furnitureWiggleController = AnimationController(
       vsync: this,
       duration: 450.ms,
@@ -476,7 +472,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     _feedingAnimationToken++;
     _onboardingProfileNicknameController.dispose();
     _petMoveController.dispose();
-    _petIdleMotionController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
   }
@@ -519,6 +514,13 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   void _precachePetAssets(PetDefinition pet) {
     for (final asset in PetCatalog.assetPaths(pet)) {
+      if (_cachedPetAssets.add(asset)) {
+        precacheImage(AssetImage(asset), context);
+      }
+    }
+    for (final asset in PetAnimationFrames.frameAssetsForPetSources(
+      PetCatalog.assetPaths(pet),
+    )) {
       if (_cachedPetAssets.add(asset)) {
         precacheImage(AssetImage(asset), context);
       }
@@ -5602,62 +5604,61 @@ class _HomeViewState extends ConsumerState<HomeView>
     bool isSleeping = false,
     bool showSocketDebug = false,
   }) {
-    final shouldAnimateIdleOverlay =
-        petId == PetCatalog.defaultPetId && !isWalking && !isSleeping;
     final equippedSkus = _equippedSkusBySlot;
-    Widget buildStack(double animationProgress) => SizedBox(
-      width: size.width,
-      height: size.height,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          PetEquipmentOverlay(
-            petId: petId,
-            equippedSkusBySlot: equippedSkus,
-            petSize: size,
-            layer: PetEquipmentOverlayLayer.behindPet,
-            animationProgress: animationProgress,
-            isWalking: isWalking,
-            isSleeping: isSleeping,
-          ),
-          Image.asset(
-            asset,
-            key: ValueKey('$asset-${size.width}x${size.height}'),
-            width: size.width,
-            height: size.height,
-            fit: BoxFit.contain,
-            alignment: Alignment.bottomCenter,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) =>
-                _buildPetFallback(petFallbackColor),
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (frame == null) {
-                return _buildPetFallback(petFallbackColor, loading: true);
-              }
-              return child;
-            },
-          ),
-          PetEquipmentOverlay(
-            petId: petId,
-            equippedSkusBySlot: equippedSkus,
-            petSize: size,
-            layer: PetEquipmentOverlayLayer.frontPet,
-            animationProgress: animationProgress,
-            isWalking: isWalking,
-            isSleeping: isSleeping,
-            showSocketDebug: showSocketDebug,
-          ),
-        ],
-      ),
-    );
-    if (!shouldAnimateIdleOverlay) {
-      return buildStack(0);
+    Widget buildStack(String petAsset, double animationProgress) {
+      return SizedBox(
+        width: size.width,
+        height: size.height,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            PetEquipmentOverlay(
+              petId: petId,
+              equippedSkusBySlot: equippedSkus,
+              petSize: size,
+              layer: PetEquipmentOverlayLayer.behindPet,
+              animationProgress: animationProgress,
+              isWalking: isWalking,
+              isSleeping: isSleeping,
+            ),
+            Image.asset(
+              petAsset,
+              key: ValueKey('$asset-${size.width}x${size.height}'),
+              width: size.width,
+              height: size.height,
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomCenter,
+              gaplessPlayback: true,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildPetFallback(petFallbackColor),
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (frame == null) {
+                  return _buildPetFallback(petFallbackColor, loading: true);
+                }
+                return child;
+              },
+            ),
+            PetEquipmentOverlay(
+              petId: petId,
+              equippedSkusBySlot: equippedSkus,
+              petSize: size,
+              layer: PetEquipmentOverlayLayer.frontPet,
+              animationProgress: animationProgress,
+              isWalking: isWalking,
+              isSleeping: isSleeping,
+              showSocketDebug: showSocketDebug,
+            ),
+          ],
+        ),
+      );
     }
-    return AnimatedBuilder(
-      animation: _petIdleMotionController,
-      builder: (context, _) => buildStack(_petIdleMotionController.value),
+
+    return PetAnimationFrameBuilder(
+      sourceAsset: asset,
+      builder: (context, petAsset, animationProgress, _) =>
+          buildStack(petAsset, animationProgress),
     );
   }
 

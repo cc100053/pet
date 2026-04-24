@@ -12,6 +12,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
+import 'pet_animated_image.dart';
 import 'pet_catalog.dart';
 
 class PetSelectionResult {
@@ -521,8 +522,8 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                   ),
                   padding: const EdgeInsets.all(12),
                   child: Center(
-                    child: Image.asset(
-                      pet.stayAsset,
+                    child: PetAnimatedImage(
+                      sourceAsset: pet.stayAsset,
                       fit: BoxFit.contain,
                       gaplessPlayback: true,
                     ),

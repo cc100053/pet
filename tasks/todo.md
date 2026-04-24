@@ -1,5 +1,81 @@
 # TODO
 
+# Plan (2026-04-24 App-wide PNG Sequence Rendering)
+- [x] Add bundled PNG sequences for every current pet animation state without removing existing GIF assets.
+- [x] Route app pet rendering through the sequence renderer so GIFs become fallback-only during the migration.
+- [x] Update focused tests, memory notes, and run Flutter verification.
+
+# Review (2026-04-24 App-wide PNG Sequence Rendering)
+- [x] Implemented.
+- Scope:
+  - Added 128 bundled PNG sequence frames for ghost, cat, fish, and tiger stay/sleep/walk states under `assets/pet_sequences/`.
+  - Added a source-GIF-to-frame-sequence catalog with per-frame duration sampling, plus reusable `PetAnimationFrameBuilder` / `PetAnimatedImage` widgets.
+  - Migrated Home pet rendering, room selection avatars, chat menu avatars, room inventory previews, and pet selection cards to the sequence renderer while keeping GIF assets and legacy debug tooling in place for the migration window.
+- Verification:
+  - `dart format lib/features/pet/pet_animation_frames.dart lib/features/pet/pet_animated_image.dart lib/features/home/home_view.dart lib/features/home/widgets/home_room_inventory_panel.dart lib/features/home/room_selection_view.dart lib/features/chat/chat_room_view_v2.dart lib/features/pet/pet_selection_page.dart test/features/pet/pet_animation_frames_test.dart`
+  - `flutter analyze`: passed.
+  - `flutter test test/features/pet/pet_animation_frames_test.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/widgets/pet_equipment_layout_test.dart test/features/home/widgets/home_room_inventory_panel_test.dart test/features/home/room_selection_view_test.dart`: passed.
+  - `flutter build bundle`: passed; the bundle includes the new PNG sequence assets.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-24 Variable Frame Duration Socket Workflow)
+- [x] Extend the Godot socket authoring add-on so each frame can capture/export/load duration metadata and preview playback uses that timing.
+- [x] Make Flutter pet PNG sequences and socket motion tracks duration-aware while preserving the current ghost behavior.
+- [x] Add focused tests, update current-state docs, and run Flutter verification.
+
+# Review (2026-04-24 Variable Frame Duration Socket Workflow)
+- [x] Implemented.
+- Scope:
+  - Added a `Duration ms` control to the Godot Socket Authoring dock; capture/load/export now preserves per-frame durations.
+  - Godot exports both a compatibility `frameDurationsMs` array and a richer `frames[]` schema with `image`, `durationMs`, and per-frame sockets; preview playback uses each frame's duration.
+  - Flutter `PetFrameSequence` and `PetMotionTrack` now support cumulative duration sampling, while ghost idle keeps the same 2600 ms loop and visual behavior.
+  - Bumped the Godot add-on to `0.4.0`.
+- Verification:
+  - `dart format lib/features/pet/pet_animation_frames.dart lib/features/pet/pet_sockets.dart lib/features/home/home_view.dart lib/features/home/debug/dress_up_fit_tool_page.dart test/features/pet/pet_animation_frames_test.dart test/features/pet/pet_socket_config_test.dart`
+  - `flutter test test/features/pet/pet_animation_frames_test.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/widgets/pet_equipment_layout_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed.
+  - Godot CLI is not installed on this machine, so the add-on changes were statically inspected and still need runtime reload in the Godot editor.
+
+# Plan (2026-04-24 Godot Equipment Anchor Parity)
+- [x] Compare the Godot equipment preview transform with Flutter overlay placement.
+- [x] Apply the Godot-authored straw hat anchor/size using aspect-preserving Flutter sizing.
+- [x] Add focused coverage, update memory notes, and run Flutter verification.
+
+# Review (2026-04-24 Godot Equipment Anchor Parity)
+- [x] Implemented.
+- Diagnosis:
+  - Godot preview scaled equipment by width while preserving the PNG source aspect ratio.
+  - Flutter used the catalog's independent `w` / `h` layout box and then `BoxFit.contain`; when that box did not match the PNG aspect ratio, the anchor was computed against invisible padding.
+  - The app catalog still had older straw hat values instead of the Godot export's `anchor: 0.5,0.55` and width ratio `0.8`.
+- Scope:
+  - Added aspect-preserving equipment sizing via `EquipmentSize.fromWidthAspect(...)`.
+  - Updated `equip_straw_hat` to match the latest Godot preview metadata and the straw hat PNG aspect ratio.
+  - Added focused tests covering the aspect sizing math and catalog values.
+- Verification:
+  - `dart format lib/features/pet/equipment_catalog.dart test/features/home/widgets/pet_equipment_layout_test.dart`
+  - `flutter test test/features/home/widgets/pet_equipment_layout_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/pet/pet_animation_frames_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed.
+
+# Plan (2026-04-24 Ghost Equipped PNG Sequence Rendering)
+- [x] Add a small pet frame-sequence catalog/helper for the ghost idle PNG frames.
+- [x] Switch Home pet rendering to the PNG sequence only for ghost idle with equipped items, keeping GIF rendering for all other states.
+- [x] Add focused tests, update current-state docs, and run required Flutter verification.
+
+# Review (2026-04-24 Ghost Equipped PNG Sequence Rendering)
+- [x] Implemented.
+- Scope:
+  - Added a ghost idle frame-sequence helper that maps animation progress onto the 13 PNG source frames with the existing hold-2 cadence.
+  - Switched Home to use the PNG sequence only when ghost idle has equipped items, keeping GIF playback for unequipped ghost and all other pets/states.
+  - Explicitly listed ghost assets in `pubspec.yaml` so the bundle includes the runtime GIF/PNG files without pulling in authoring-only files from nested folders.
+- Verification:
+  - `dart format lib/features/pet/pet_animation_frames.dart lib/features/home/home_view.dart test/features/pet/pet_animation_frames_test.dart`
+  - `flutter test test/features/pet/pet_animation_frames_test.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter build bundle`: passed; manifest contains the 13 ghost idle PNG frames and no ghost authoring files.
+  - `flutter test`: passed.
+
 # Plan (2026-04-24 Godot Preview Live Controls)
 - [x] Wire equipment slot, anchor, size, canvas, and path controls to update the preview immediately.
 - [x] Include equipment preview metadata in exported JSON and restore it on JSON load.

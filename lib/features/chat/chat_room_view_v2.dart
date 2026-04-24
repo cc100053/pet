@@ -34,6 +34,7 @@ import '../../shared/ui/app_ui_scale.dart';
 import '../../shared/ui/chat_emoji_picker_sheet.dart';
 import '../feed/feed_capture_view.dart';
 import '../feed/feed_upload_queue.dart';
+import '../pet/pet_animated_image.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/user_avatar.dart';
@@ -5856,10 +5857,11 @@ class _ChatMenuAvatar extends StatelessWidget {
           backgroundColor: Colors.white.withValues(alpha: 0.9),
           child: petAssetPath == null
               ? Icon(Icons.pets, size: petIconSize, color: AppTheme.textPrimary)
-              : Image.asset(
-                  petAssetPath!,
+              : PetAnimatedImage(
+                  sourceAsset: petAssetPath!,
                   width: petAssetSize,
                   height: petAssetSize,
+                  fit: BoxFit.contain,
                 ),
         ),
       ),

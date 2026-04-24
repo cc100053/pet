@@ -14,6 +14,12 @@ class EquipmentAnchor {
 class EquipmentSize {
   const EquipmentSize({required this.w, required this.h});
 
+  const EquipmentSize.fromWidthAspect({
+    required double widthRatio,
+    required double aspectRatio,
+  }) : w = widthRatio,
+       h = widthRatio / aspectRatio;
+
   final double w;
   final double h;
 }
@@ -50,8 +56,11 @@ class EquipmentCatalog {
     EquipmentDefinition(
       sku: 'equip_straw_hat',
       slot: PetEquipmentSlot.head,
-      anchor: EquipmentAnchor(x: 0.52, y: 0.78),
-      sizeRatio: EquipmentSize(w: 0.66, h: 0.34),
+      anchor: EquipmentAnchor(x: 0.5, y: 0.55),
+      sizeRatio: EquipmentSize.fromWidthAspect(
+        widthRatio: 0.8,
+        aspectRatio: 1821 / 700,
+      ),
       assetPath: 'assets/equipment/hats/straw_hat.png',
       zOrder: 1,
     ),

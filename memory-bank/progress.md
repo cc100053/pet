@@ -18,10 +18,10 @@ Active progress stays current-state focused. Full snapshots:
   unchanged.
 - Debug-admin tools include a one-shot Profile Setup onboarding preview for
   testing the new-user name/photo entry point without rewriting persisted
-  onboarding completion state, plus a local Dress-up Fit Tool for tuning
-  equipment socket/anchor/size/override values and copying Dart snippets. Its
-  ghost idle preview now samples the same PNG-derived motion track as
-  production overlays, so fit-tool placement matches the live floating pet.
+  onboarding completion state, plus the legacy local Dress-up Fit Tool. Future
+  equipment socket/anchor/size calibration is expected to happen in the Godot
+  socket authoring tool; the Flutter debug fit tool remains in place for now but
+  is no longer the production calibration path.
 - Remote Profile photo avatars still support non-destructive framing adjustment
   through the same editor; saving only updates the `avatar_url` fragment.
 - Shared room item rollout is version-aware across backgrounds, furniture, and
@@ -38,9 +38,17 @@ Active progress stays current-state focused. Full snapshots:
   socket export for ghost `head`, `body`, and `back` base sockets, with the
   `head` slot using a slot-specific motion track while currently static
   `body` / `back` slots use the exported base positions.
-  The ghost `head` track now plays as stepped timing with each authored PNG
-  point held for two logical frames and a `2600 ms` loop so the overlay cadence
-  matches the exported GIF more closely.
+  The app-wide pet renderer now uses bundled PNG frame sequences for every
+  current pet/state instead of playing the GIFs directly. Home, room selection,
+  chat menu avatars, inventory equipment previews, and pet selection all go
+  through `PetAnimationFrameBuilder` / `PetAnimatedImage`; GIF paths remain as
+  stable source ids and fallback assets until the later cleanup. The straw hat
+  catalog mirrors the Godot equipment preview export and uses source-aspect
+  sizing, so the app computes anchors against the same rendered item bounds as
+  the Godot preview. The Godot socket tool can store per-frame `durationMs`
+  values and preview playback with those durations; Flutter PNG sequences and
+  socket motion tracks sample by the same cumulative timing for
+  variable-duration animations.
 - Room invite sharing now reuses the current active room code by default, keeps
   copy-code, adds system share-sheet links, stores pending invite codes from
   app/universal links for signed-out users, and joins through live
@@ -153,6 +161,15 @@ Active progress stays current-state focused. Full snapshots:
   (`ghost_stay_sockets.json`) to `PetSocketCatalog`, updating ghost idle
   head/body/back base anchors and replacing the head idle delta track with the
   Godot-authored frame sequence.
+- Migrated pet display surfaces from direct GIF playback to bundled PNG
+  sequences for ghost, cat, fish, and tiger stay/sleep/walk animations while
+  retaining GIF assets as migration fallbacks.
+- Matched the straw hat app catalog to the Godot equipment preview metadata
+  (`anchor: 0.5,0.55`, width ratio `0.8`) and added aspect-preserving equipment
+  sizing to avoid preview/app anchor drift from mismatched image boxes.
+- Added variable-duration frame support to the socket workflow: Godot exports
+  `frameDurationsMs` plus per-frame `durationMs`, and Flutter frame/motion
+  helpers now use cumulative timing rather than only fixed frame holds.
 - Invite link share flow shipped with live Supabase migration
   `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
   `/invite` fallback, App Links/Universal Links config, localized share copy,

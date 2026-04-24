@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../../../shared/ui/juice_wrappers.dart';
+import '../../pet/pet_animated_image.dart';
 import '../../pet/pet_catalog.dart';
 import '../../pet/pet_sockets.dart';
 import '../room_backgrounds.dart';
@@ -567,29 +568,36 @@ class _EquipmentPetPreview extends StatelessWidget {
         child: SizedBox(
           width: previewSize.width,
           height: previewSize.height,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              PetEquipmentOverlay(
-                petId: petType,
-                equippedSkusBySlot: equippedSkusBySlot,
-                petSize: previewSize,
-                layer: PetEquipmentOverlayLayer.behindPet,
-              ),
-              Image.asset(
-                pet.stayAsset,
-                width: previewSize.width,
-                height: previewSize.height,
-                fit: BoxFit.contain,
-                gaplessPlayback: true,
-              ),
-              PetEquipmentOverlay(
-                petId: petType,
-                equippedSkusBySlot: equippedSkusBySlot,
-                petSize: previewSize,
-                layer: PetEquipmentOverlayLayer.frontPet,
-              ),
-            ],
+          child: PetAnimationFrameBuilder(
+            sourceAsset: pet.stayAsset,
+            builder: (context, petAsset, animationProgress, _) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  PetEquipmentOverlay(
+                    petId: petType,
+                    equippedSkusBySlot: equippedSkusBySlot,
+                    petSize: previewSize,
+                    layer: PetEquipmentOverlayLayer.behindPet,
+                    animationProgress: animationProgress,
+                  ),
+                  Image.asset(
+                    petAsset,
+                    width: previewSize.width,
+                    height: previewSize.height,
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                  ),
+                  PetEquipmentOverlay(
+                    petId: petType,
+                    equippedSkusBySlot: equippedSkusBySlot,
+                    petSize: previewSize,
+                    layer: PetEquipmentOverlayLayer.frontPet,
+                    animationProgress: animationProgress,
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),

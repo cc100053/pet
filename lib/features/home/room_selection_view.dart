@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
+import '../pet/pet_animated_image.dart';
 import '../pet/pet_catalog.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/adaptive_layout.dart';
@@ -1255,8 +1256,8 @@ class _RoomPetIconWithFloatingLevel extends StatelessWidget {
           SizedBox(
             width: imageSize,
             height: imageSize,
-            child: Image.asset(
-              assetPath,
+            child: PetAnimatedImage(
+              sourceAsset: assetPath,
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high,
               gaplessPlayback: true,

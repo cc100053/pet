@@ -77,4 +77,16 @@ void main() {
       Offset.zero,
     );
   });
+
+  test('timed motion tracks follow frame durations', () {
+    final track = PetMotionTrack.timed(
+      frames: const [Offset.zero, Offset(1, 0), Offset(2, 0)],
+      frameDurationsMs: const [500, 200, 100],
+    );
+
+    expect(track.sample(499 / 800), Offset.zero);
+    expect(track.sample(500 / 800), const Offset(1, 0));
+    expect(track.sample(700 / 800), const Offset(2, 0));
+    expect(track.sample(1), const Offset(2, 0));
+  });
 }

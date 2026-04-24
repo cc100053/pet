@@ -7,6 +7,7 @@ import '../../../shared/theme/app_theme.dart';
 import '../../../shared/ui/app_dialog.dart';
 import '../../../shared/ui/juice_wrappers.dart';
 import '../../pet/equipment_catalog.dart';
+import '../../pet/pet_animation_frames.dart';
 import '../../pet/pet_catalog.dart';
 import '../../pet/pet_sockets.dart';
 import '../widgets/pet_equipment_layout.dart';
@@ -76,7 +77,9 @@ class _DressUpFitToolPageState extends State<DressUpFitToolPage>
     with SingleTickerProviderStateMixin {
   static const Size _petSize = Size.square(220);
   static const double _controlStep = 0.01;
-  static const Duration _ghostIdleMotionDuration = Duration(milliseconds: 2600);
+  static const Duration _ghostIdleMotionDuration = Duration(
+    milliseconds: PetAnimationFrames.ghostIdleTotalDurationMs,
+  );
 
   late DressUpFitDraft _draft;
   late final AnimationController _idleMotionController;

@@ -46,4 +46,35 @@ void main() {
     expect(placement.anchorOffset, const Offset(10, 10));
     expect(placement.topLeft, const Offset(40, 15));
   });
+
+  test('supports width ratio plus source image aspect sizing', () {
+    const sizeRatio = EquipmentSize.fromWidthAspect(
+      widthRatio: 0.8,
+      aspectRatio: 1821 / 700,
+    );
+
+    final placement = resolveEquipmentPlacement(
+      petSize: const Size(450, 450),
+      socket: const PetSocket(x: 214 / 450, y: 59 / 450),
+      anchor: const EquipmentAnchor(x: 0.5, y: 0.55),
+      sizeRatio: sizeRatio,
+    );
+
+    expect(placement.itemSize.width, closeTo(360, 0.001));
+    expect(placement.itemSize.height, closeTo(138.3855, 0.001));
+    expect(placement.anchorOffset.dx, closeTo(180, 0.001));
+    expect(placement.anchorOffset.dy, closeTo(76.1126, 0.001));
+    expect(placement.topLeft.dx, closeTo(34, 0.001));
+    expect(placement.topLeft.dy, closeTo(-17.1126, 0.001));
+  });
+
+  test('straw hat catalog values match the Godot equipment preview export', () {
+    final definition = EquipmentCatalog.bySku('equip_straw_hat');
+
+    expect(definition, isNotNull);
+    expect(definition!.anchor.x, closeTo(0.5, 0.001));
+    expect(definition.anchor.y, closeTo(0.55, 0.001));
+    expect(definition.sizeRatio.w, closeTo(0.8, 0.001));
+    expect(definition.sizeRatio.h, closeTo(0.8 / (1821 / 700), 0.001));
+  });
 }
