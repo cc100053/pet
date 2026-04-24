@@ -1,0 +1,244 @@
+{
+  "pet_id": "ghost",
+  "state": "idle",
+  "canvas": {
+    "width": 450,
+    "height": 450
+  },
+  "frames": [
+    {
+      "frame": 1,
+      "file": "ghost_stay-01.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 59
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "file": "ghost_stay-02.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "file": "ghost_stay-03.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 4,
+      "file": "ghost_stay-04.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 5,
+      "file": "ghost_stay-05.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 6,
+      "file": "ghost_stay-06.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 7,
+      "file": "ghost_stay-07.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 59
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 8,
+      "file": "ghost_stay-08.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 9,
+      "file": "ghost_stay-09.png",
+      "sockets": {
+        "head": {
+          "x": 214,
+          "y": 59
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 10,
+      "file": "ghost_stay-10.png",
+      "sockets": {
+        "head": {
+          "x": 211,
+          "y": 57
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 11,
+      "file": "ghost_stay-11.png",
+      "sockets": {
+        "head": {
+          "x": 211,
+          "y": 57
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 12,
+      "file": "ghost_stay-12.png",
+      "sockets": {
+        "head": {
+          "x": 211,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    },
+    {
+      "frame": 13,
+      "file": "ghost_stay-13.png",
+      "sockets": {
+        "head": {
+          "x": 211,
+          "y": 58
+        },
+        "body": {
+          "x": null,
+          "y": null
+        },
+        "back": {
+          "x": null,
+          "y": null
+        }
+      }
+    }
+  ]
+}

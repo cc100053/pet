@@ -72,16 +72,23 @@ class DressUpFitToolPage extends StatefulWidget {
   State<DressUpFitToolPage> createState() => _DressUpFitToolPageState();
 }
 
-class _DressUpFitToolPageState extends State<DressUpFitToolPage> {
+class _DressUpFitToolPageState extends State<DressUpFitToolPage>
+    with SingleTickerProviderStateMixin {
   static const Size _petSize = Size.square(220);
   static const double _controlStep = 0.01;
+  static const Duration _ghostIdleMotionDuration = Duration(milliseconds: 2600);
 
   late DressUpFitDraft _draft;
+  late final AnimationController _idleMotionController;
   bool _equipmentInFront = true;
 
   @override
   void initState() {
     super.initState();
+    _idleMotionController = AnimationController(
+      vsync: this,
+      duration: _ghostIdleMotionDuration,
+    )..repeat();
     final equipment = EquipmentCatalog.items.first;
     final petId = PetCatalog.pets.first.id;
     _draft = _buildDraft(
@@ -91,6 +98,12 @@ class _DressUpFitToolPageState extends State<DressUpFitToolPage> {
       state: DressUpFitAnimationState.idle,
       facingRight: true,
     );
+  }
+
+  @override
+  void dispose() {
+    _idleMotionController.dispose();
+    super.dispose();
   }
 
   @override
@@ -159,29 +172,6 @@ class _DressUpFitToolPageState extends State<DressUpFitToolPage> {
   Widget _buildPreview() {
     final equipment = _selectedEquipment;
     final pet = PetCatalog.byId(_draft.petId);
-    final placement = resolveEquipmentPlacement(
-      petSize: _petSize,
-      socket: _draft.socket,
-      anchor: _draft.anchor,
-      sizeRatio: _draft.sizeRatio,
-      normalizedOffset: _draft.overrideOffset,
-      scale: _draft.overrideScale,
-    );
-    final equipmentLayer = _buildEquipmentLayer(equipment, placement);
-    final petLayer = Image.asset(
-      _assetForState(pet, _draft.state),
-      width: _petSize.width,
-      height: _petSize.height,
-      fit: BoxFit.contain,
-      alignment: Alignment.bottomCenter,
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.high,
-      errorBuilder: (context, error, stackTrace) => ColoredBox(
-        color: pet.accent.withValues(alpha: 0.2),
-        child: const SizedBox.expand(),
-      ),
-    );
-
     return RepaintBoundary(
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -198,46 +188,89 @@ class _DressUpFitToolPageState extends State<DressUpFitToolPage> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(18),
-          child: Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.diagonal3Values(
-              _draft.facingRight ? 1.0 : -1.0,
-              1.0,
-              1.0,
-            ),
-            child: SizedBox(
-              width: _petSize.width,
-              height: _petSize.height,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(painter: _FitGridPainter()),
+          child: AnimatedBuilder(
+            animation: _idleMotionController,
+            builder: (context, _) {
+              final socketConfig = PetSocketCatalog.forPet(_draft.petId);
+              final motionOffset =
+                  socketConfig?.resolveMotion(
+                    slot: _draft.slot,
+                    animationProgress: _idleMotionController.value,
+                    isWalking: _draft.state == DressUpFitAnimationState.walk,
+                    isSleeping: _draft.state == DressUpFitAnimationState.sleep,
+                  ) ??
+                  Offset.zero;
+              final placement = resolveEquipmentPlacement(
+                petSize: _petSize,
+                socket: _draft.socket,
+                anchor: _draft.anchor,
+                sizeRatio: _draft.sizeRatio,
+                normalizedOffset: _draft.overrideOffset + motionOffset,
+                scale: _draft.overrideScale,
+              );
+              final equipmentLayer = _buildEquipmentLayer(equipment, placement);
+              final petLayer = Image.asset(
+                _assetForState(pet, _draft.state),
+                width: _petSize.width,
+                height: _petSize.height,
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomCenter,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (context, error, stackTrace) => ColoredBox(
+                  color: pet.accent.withValues(alpha: 0.2),
+                  child: const SizedBox.expand(),
+                ),
+              );
+
+              return Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.diagonal3Values(
+                  _draft.facingRight ? 1.0 : -1.0,
+                  1.0,
+                  1.0,
+                ),
+                child: SizedBox(
+                  width: _petSize.width,
+                  height: _petSize.height,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _FitGridPainter()),
+                      ),
+                      if (!_equipmentInFront) equipmentLayer,
+                      Positioned.fill(child: petLayer),
+                      if (_equipmentInFront) equipmentLayer,
+                      Positioned(
+                        left: placement.socketOffset.dx - 6,
+                        top: placement.socketOffset.dy - 6,
+                        child: const _Marker(
+                          key: Key('dress_up_fit_socket_marker'),
+                          color: Color(0xFFFF6B6B),
+                          label: 'S',
+                        ),
+                      ),
+                      Positioned(
+                        left:
+                            placement.topLeft.dx +
+                            placement.anchorOffset.dx -
+                            6,
+                        top:
+                            placement.topLeft.dy +
+                            placement.anchorOffset.dy -
+                            6,
+                        child: const _Marker(
+                          key: Key('dress_up_fit_anchor_marker'),
+                          color: Color(0xFF4FB8D9),
+                          label: 'A',
+                        ),
+                      ),
+                    ],
                   ),
-                  if (!_equipmentInFront) equipmentLayer,
-                  Positioned.fill(child: petLayer),
-                  if (_equipmentInFront) equipmentLayer,
-                  Positioned(
-                    left: placement.socketOffset.dx - 6,
-                    top: placement.socketOffset.dy - 6,
-                    child: const _Marker(
-                      key: Key('dress_up_fit_socket_marker'),
-                      color: Color(0xFFFF6B6B),
-                      label: 'S',
-                    ),
-                  ),
-                  Positioned(
-                    left: placement.topLeft.dx + placement.anchorOffset.dx - 6,
-                    top: placement.topLeft.dy + placement.anchorOffset.dy - 6,
-                    child: const _Marker(
-                      key: Key('dress_up_fit_anchor_marker'),
-                      color: Color(0xFF4FB8D9),
-                      label: 'A',
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),

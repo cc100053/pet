@@ -38,8 +38,8 @@ void main() {
       find.byKey(const ValueKey('pet-equipment-frontPet-head-test_hat')),
     );
 
-    expect(positioned.left, closeTo(30, 0.001));
-    expect(positioned.top, closeTo(3, 0.001));
+    expect(positioned.left, closeTo(28.444444, 0.001));
+    expect(positioned.top, closeTo(-6.888889, 0.001));
   });
 
   testWidgets('routes negative z-order items to the behind layer', (
@@ -141,9 +141,41 @@ void main() {
       ),
     );
 
-    expect(positioned.left, closeTo(50, 0.001));
-    expect(positioned.top, closeTo(18, 0.001));
+    expect(positioned.left, closeTo(48.444444, 0.001));
+    expect(positioned.top, closeTo(8.111111, 0.001));
     expect(image.width, closeTo(20, 0.001));
     expect(image.height, closeTo(10, 0.001));
+  });
+
+  testWidgets('applies ghost idle motion track to overlay placement', (
+    tester,
+  ) async {
+    const definition = EquipmentDefinition(
+      sku: 'test_hat',
+      slot: PetEquipmentSlot.head,
+      anchor: EquipmentAnchor(x: 0.5, y: 1.0),
+      sizeRatio: EquipmentSize(w: 0.4, h: 0.2),
+      assetPath: 'assets/equipment/hats/straw_hat.png',
+    );
+
+    await tester.pumpWidget(
+      buildHarness(
+        const PetEquipmentOverlay(
+          petId: 'ghost',
+          equippedSkusBySlot: {PetEquipmentSlot.head: 'test_hat'},
+          petSize: Size(100, 100),
+          layer: PetEquipmentOverlayLayer.frontPet,
+          animationProgress: 1 / 26,
+          definitions: [definition],
+        ),
+      ),
+    );
+
+    final positioned = tester.widget<Positioned>(
+      find.byKey(const ValueKey('pet-equipment-frontPet-head-test_hat')),
+    );
+
+    expect(positioned.left, closeTo(28.444444, 0.001));
+    expect(positioned.top, closeTo(-6.888889, 0.001));
   });
 }

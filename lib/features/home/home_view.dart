@@ -131,6 +131,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const int _minMoveMs = 260;
   static const Duration _foodDropDuration = Duration(milliseconds: 760);
   static const Duration _petEatingStayDuration = Duration(seconds: 3);
+  static const Duration _ghostIdleMotionDuration = Duration(milliseconds: 2600);
   static const Duration _idleThreshold = Duration(seconds: 8);
   static const Duration _wanderCooldown = Duration(seconds: 7);
   static const Duration _wanderCheckInterval = Duration(seconds: 4);
@@ -206,6 +207,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final ImagePicker _onboardingProfileImagePicker = ImagePicker();
   final Random _random = Random();
   late final AnimationController _petMoveController;
+  late final AnimationController _petIdleMotionController;
   late final AnimationController _furnitureWiggleController;
   Animation<Offset>? _petMoveAnimation;
   Offset _petNormalizedPosition = const Offset(0.5, 0.6);
@@ -403,6 +405,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           }
         }
       });
+    _petIdleMotionController = AnimationController(
+      vsync: this,
+      duration: _ghostIdleMotionDuration,
+    )..repeat();
     _furnitureWiggleController = AnimationController(
       vsync: this,
       duration: 450.ms,
@@ -470,6 +476,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _feedingAnimationToken++;
     _onboardingProfileNicknameController.dispose();
     _petMoveController.dispose();
+    _petIdleMotionController.dispose();
     _furnitureWiggleController.dispose();
     super.dispose();
   }
@@ -5595,8 +5602,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     bool isSleeping = false,
     bool showSocketDebug = false,
   }) {
+    final shouldAnimateIdleOverlay =
+        petId == PetCatalog.defaultPetId && !isWalking && !isSleeping;
     final equippedSkus = _equippedSkusBySlot;
-    return SizedBox(
+    Widget buildStack(double animationProgress) => SizedBox(
       width: size.width,
       height: size.height,
       child: Stack(
@@ -5608,6 +5617,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             equippedSkusBySlot: equippedSkus,
             petSize: size,
             layer: PetEquipmentOverlayLayer.behindPet,
+            animationProgress: animationProgress,
             isWalking: isWalking,
             isSleeping: isSleeping,
           ),
@@ -5634,12 +5644,20 @@ class _HomeViewState extends ConsumerState<HomeView>
             equippedSkusBySlot: equippedSkus,
             petSize: size,
             layer: PetEquipmentOverlayLayer.frontPet,
+            animationProgress: animationProgress,
             isWalking: isWalking,
             isSleeping: isSleeping,
             showSocketDebug: showSocketDebug,
           ),
         ],
       ),
+    );
+    if (!shouldAnimateIdleOverlay) {
+      return buildStack(0);
+    }
+    return AnimatedBuilder(
+      animation: _petIdleMotionController,
+      builder: (context, _) => buildStack(_petIdleMotionController.value),
     );
   }
 

@@ -19,7 +19,9 @@ Active progress stays current-state focused. Full snapshots:
 - Debug-admin tools include a one-shot Profile Setup onboarding preview for
   testing the new-user name/photo entry point without rewriting persisted
   onboarding completion state, plus a local Dress-up Fit Tool for tuning
-  equipment socket/anchor/size/override values and copying Dart snippets.
+  equipment socket/anchor/size/override values and copying Dart snippets. Its
+  ghost idle preview now samples the same PNG-derived motion track as
+  production overlays, so fit-tool placement matches the live floating pet.
 - Remote Profile photo avatars still support non-destructive framing adjustment
   through the same editor; saving only updates the `avatar_url` fragment.
 - Shared room item rollout is version-aware across backgrounds, furniture, and
@@ -31,6 +33,14 @@ Active progress stays current-state focused. Full snapshots:
   actions, and Shop exposes version-gated equipment items alongside furniture.
   Overlay placement now uses a shared helper with optional local per-pet fit
   overrides so production rendering and the admin preview use identical math.
+  Ghost idle equipment anchors now also follow motion data instead of staying
+  pinned to a fixed socket; the current production trial applies the Godot
+  socket export for ghost `head`, `body`, and `back` base sockets, with the
+  `head` slot using a slot-specific motion track while currently static
+  `body` / `back` slots use the exported base positions.
+  The ghost `head` track now plays as stepped timing with each authored PNG
+  point held for two logical frames and a `2600 ms` loop so the overlay cadence
+  matches the exported GIF more closely.
 - Room invite sharing now reuses the current active room code by default, keeps
   copy-code, adds system share-sheet links, stores pending invite codes from
   app/universal links for signed-out users, and joins through live
@@ -135,6 +145,14 @@ Active progress stays current-state focused. Full snapshots:
   `20260422150216_add_pet_equipment`, including the `purchase_item_with_coins`
   version-gated catalog fix, and added focused overlay/socket/catalog tests plus
   the missing local `l10n` generation step.
+- Trial-applied the first manually authored ghost `head` socket from the Krita
+  JSON template, added slot-aware idle motion lookup so only calibrated slots
+  consume authored drift, and kept the Dress-up Fit Tool preview aligned with
+  production overlay behavior.
+- Applied the first Godot socket-authoring export
+  (`ghost_stay_sockets.json`) to `PetSocketCatalog`, updating ghost idle
+  head/body/back base anchors and replacing the head idle delta track with the
+  Godot-authored frame sequence.
 - Invite link share flow shipped with live Supabase migration
   `20260420113000_add_reusable_room_invite_code_rpc.sql`, Firebase Hosting
   `/invite` fallback, App Links/Universal Links config, localized share copy,

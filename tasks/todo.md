@@ -1,5 +1,149 @@
 # TODO
 
+# Plan (2026-04-24 Godot Preview Live Controls)
+- [x] Wire equipment slot, anchor, size, canvas, and path controls to update the preview immediately.
+- [x] Include equipment preview metadata in exported JSON and restore it on JSON load.
+- [x] Bump the add-on version and statically verify the script.
+
+# Review (2026-04-24 Godot Preview Live Controls)
+- [x] Implemented.
+- Scope:
+  - Connected equipment slot, anchor X/Y, size, canvas width/height, and PNG path controls to refresh `EquipmentPreview` immediately.
+  - Added `equipmentPreview` metadata to socket JSON export with asset path, slot, anchor, and size ratio.
+  - Added JSON load support for restoring the saved preview metadata and bumped the add-on to `0.3.0`.
+- Verification:
+  - Static inspection of `/Users/fatboy/pet-tomo/addons/socket_authoring/socket_authoring_dock.gd` passed.
+  - Godot CLI is not available from the shell, so reload the plugin in Godot to validate the editor UI.
+
+# Plan (2026-04-24 Godot Equipment Preview)
+- [x] Extend the Socket Authoring dock with an equipment preview sprite that can load a PNG asset.
+- [x] Add playback using captured/exported socket frames so the equipment follows the selected marker during review.
+- [x] Verify the plugin statically and record how to use the preview.
+
+# Review (2026-04-24 Godot Equipment Preview)
+- [x] Implemented.
+- Scope:
+  - Added `Load JSON` so the dock can restore captured socket frames from `ghost_stay_sockets.json` after restarting Godot.
+  - Added equipment preview controls for PNG path, slot, anchor, and size.
+  - Added `Load`, `Play`, and `Stop`; playback advances `AnimatedSprite2D.frame`, reapplies captured marker positions, and positions a transient `EquipmentPreview` sprite on the selected socket.
+- Verification:
+  - Static inspection of `/Users/fatboy/pet-tomo/addons/socket_authoring/socket_authoring_dock.gd` passed.
+  - Godot CLI is not available from the shell, so final validation should be done in the open Godot editor.
+
+# Plan (2026-04-24 Apply Godot Ghost Socket Export)
+- [x] Convert `/Users/fatboy/pet-tomo/pet/ghost/ghost_stay_sockets.json` into Flutter `PetSocketCatalog` values.
+- [x] Update focused socket tests and current-state memory notes for the Godot-authored ghost idle anchors.
+- [x] Run formatting plus focused tests, then record verification.
+
+# Review (2026-04-24 Apply Godot Ghost Socket Export)
+- [x] Implemented.
+- Scope:
+  - Applied the Godot export's frame-0 normalized positions to ghost `head`, `body`, and `back` base sockets in `PetSocketCatalog`.
+  - Converted the exported ghost head frames into a stepped, hold-2 motion delta track relative to frame 0.
+  - Updated socket, overlay, and Dress-up Fit Tool tests plus active memory-bank notes.
+- Verification:
+  - `dart format lib/features/pet/pet_sockets.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/debug/dress_up_fit_tool_page_test.dart`
+  - `flutter test test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/debug/dress_up_fit_tool_page_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-24 Godot Socket Authoring Plugin)
+- [x] Add an editor dock plugin for capturing current frame socket marker positions without manually copying coordinates.
+- [x] Support previous/next frame navigation and JSON export with pixel plus normalized socket coordinates.
+- [x] Verify plugin files statically and document how to enable/use it without overwriting the currently dirty scene.
+
+# Review (2026-04-24 Godot Socket Authoring Plugin)
+- [x] Implemented.
+- Scope:
+  - Added `/Users/fatboy/pet-tomo/addons/socket_authoring/` with an enabled Godot editor plugin.
+  - The dock reads the currently edited scene's `AnimatedSprite2D`, `HeadSocket`, `BodySocket`, and `BackSocket`; supports `Prev`, `Next`, `Capture`, `Refresh`, and `Export JSON`.
+  - JSON export writes beside the scene as `ghost_stay_sockets.json`, including pixel `x/y` and normalized `nx/ny` values for every frame.
+- Verification:
+  - Static inspection of plugin files and `project.godot` passed.
+  - Godot CLI is not available from the shell, and the scene is currently dirty in the open editor, so runtime plugin validation should happen after saving/reloading the project in Godot.
+
+# Plan (2026-04-24 Godot Ghost Socket Authoring Fix)
+- [x] Normalize the Godot ghost socket preview around PNG top-left coordinates so authored points match the Flutter catalog contract.
+- [x] Add the missing `BackSocket` node and script handling so all current equipment slots have visible markers.
+- [x] Verify the Godot scene/script text state and record the outcome here.
+
+# Review (2026-04-24 Godot Ghost Socket Authoring Fix)
+- [x] Implemented.
+- Scope:
+  - Updated `/Users/fatboy/pet-tomo/pet/ghost/ghost_stay.tscn` so `AnimatedSprite2D.centered = false`, the idle preview speed is `5.0`, and `BackSocket` exists in the scene.
+  - Updated `/Users/fatboy/pet-tomo/pet/ghost/ghost_stay.gd` so head/body/back markers are driven from frame-indexed socket arrays using PNG top-left coordinates, and the script prints normalized `Offset(...)` values for Flutter handoff.
+- Verification:
+  - Static scene/script inspection passed.
+  - Godot CLI was not available from the shell, so runtime validation still needs the open Godot editor to reload the externally changed files.
+
+# Plan (2026-04-23 Ghost Head Timing Sync)
+- [x] Align ghost head motion timing with the exported GIF cadence by holding each authored point for two logical frames.
+- [x] Switch ghost head motion sampling to stepped playback and update idle loop durations in both production and the fit tool preview.
+- [x] Refresh focused tests plus required `flutter analyze` / `flutter test`, then record the result here.
+
+# Review (2026-04-23 Ghost Head Timing Sync)
+- [x] Implemented.
+- Scope:
+  - Added a repeat helper plus explicit stepped sampling mode to `PetMotionTrack`, then switched the ghost `head` motion track to hold each authored point for two logical frames instead of smoothing between marks.
+  - Updated the ghost idle motion loop in both `HomeView` and the Dress-up Fit Tool preview from `1820 ms` to `2600 ms` so overlay playback matches the exported GIF cadence more closely.
+  - Adjusted focused ghost motion tests to assert the new held-frame behavior and overlay placement at the repeated-frame boundary.
+- Verification:
+  - `dart format lib/features/pet/pet_sockets.dart lib/features/home/home_view.dart lib/features/home/debug/dress_up_fit_tool_page.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart`
+  - `flutter analyze`: passed.
+  - `flutter test test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/debug/dress_up_fit_tool_page_test.dart`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-23 Ghost Head Anchor Trial Apply)
+- [x] Apply the manually authored ghost `head` socket data as a production trial without changing unfinished `body` / `back` behavior.
+- [x] Make idle motion sampling slot-aware so only the calibrated head uses the new manual track for now.
+- [x] Update focused tests plus required `flutter analyze` / `flutter test`, then record the result here.
+
+# Review (2026-04-23 Ghost Head Anchor Trial Apply)
+- [x] Implemented.
+- Scope:
+  - Replaced the ghost `head` socket base position with the manually authored Krita trial data from `docs/templates/ghost_anchor_trial.template.json`, while leaving `body` and `back` on their previous production values.
+  - Extended `PetSocketConfig.resolveMotion(...)` to support slot-aware idle motion lookup, then attached the authored motion track only to the ghost `head` slot so uncalibrated slots do not inherit the same drift.
+  - Wired both production overlays and the Dress-up Fit Tool preview through the slot-aware lookup, keeping the trial behavior consistent anywhere ghost equipment placement is rendered.
+- Verification:
+  - `dart format lib/features/pet/pet_sockets.dart lib/features/home/widgets/pet_equipment_overlay.dart lib/features/home/debug/dress_up_fit_tool_page.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/debug/dress_up_fit_tool_page_test.dart`
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
+# Plan (2026-04-23 Krita Anchor Authoring Trial)
+- [x] Verify whether Krita is available locally and install it if needed.
+- [x] Define a minimal manual anchor-calibration workflow for the existing ghost stay PNG sequence.
+- [x] Add a short repo doc so the workflow can be repeated before investing in a bigger asset pipeline.
+- [x] Run doc-change verification and record the outcome here.
+
+# Review (2026-04-23 Krita Anchor Authoring Trial)
+- [x] Implemented.
+- Scope:
+  - Confirmed Krita was not present locally, installed it via Homebrew cask, and launched it so the free-tool trial can start immediately on this machine.
+  - Added `docs/krita-anchor-authoring-trial.md` with a minimal manual workflow scoped to `assets/pet/ghost/ghost_stay/` rather than a full pipeline redesign.
+  - Added `docs/templates/ghost_anchor_trial.template.json` so frame-by-frame socket coordinates can be recorded in one stable handoff format for later conversion into Flutter data.
+- Verification:
+  - `python3 -m json.tool docs/templates/ghost_anchor_trial.template.json >/dev/null`
+  - `git diff --check`
+
+# Plan (2026-04-23 Ghost Equipment Anchor Drift)
+- [x] Trace the ghost pet visual/equipment rendering path and identify why equipment anchors stay fixed while the idle GIF drifts internally.
+- [x] Add a scoped overlay motion mechanism so equipment placement can follow ghost idle drift without changing existing static socket math for other pets/states.
+- [x] Add regression coverage for ghost idle equipment motion and update compact memory/task notes if the current behavior contract changes.
+- [x] Run formatting, `flutter analyze`, and `flutter test`, then record the review summary here.
+
+# Review (2026-04-23 Ghost Equipment Anchor Drift)
+- [x] Implemented.
+- Scope:
+  - Measured the provided ghost idle PNG sequence under `assets/pet/ghost/ghost_stay/` and derived a 13-frame normalized motion track from the sprite's real in-canvas drift instead of approximating from static socket tweaks alone.
+  - Extended `PetSocketConfig` with optional idle motion tracks and sampled that motion only for non-walking/non-sleeping states, so existing static socket math remains unchanged for other pets and states.
+  - Added a looping ghost idle overlay animation in `HomeView` and passed the sampled motion into `PetEquipmentOverlay`, so equipment anchors now follow the ghost's subtle idle drift in both the main pet view and status avatar rendering.
+  - Updated focused tests to cover the current ghost socket overrides plus the new PNG-derived idle overlay motion.
+- Verification:
+  - `dart format lib/features/pet/pet_sockets.dart lib/features/home/widgets/pet_equipment_overlay.dart lib/features/home/home_view.dart test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart`
+  - `flutter test test/features/pet/pet_socket_config_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-23 Photo Viewer Swipe Safety)
 - [x] Trace the full-screen photo viewer gesture path and confirm why horizontal swipes can trigger vertical dismiss motion.
 - [x] Tighten the dismiss gesture arbitration so the viewer only starts vertical drag/dismiss after clear vertical intent, leaving left/right paging with more tolerance.

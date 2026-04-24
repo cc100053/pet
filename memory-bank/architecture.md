@@ -38,7 +38,16 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   GIFs. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
   and optional per-pet fit overrides live in `EquipmentCatalog`, and shared
   placement math keeps Home overlays and the admin fit tool aligned without
-  changing the GIF animation pipeline.
+  changing the GIF animation pipeline. Idle overlays can also sample optional
+  per-pet motion tracks derived from source PNG frames so equipment anchors
+  follow in-GIF sprite drift when the rendered pet art floats inside a fixed
+  canvas. Motion lookup is now slot-aware, so a pet can mix manually authored
+  tracks for calibrated slots (for example ghost `head`) with static sockets for
+  unfinished slots (`body` / `back`) during rollout. Tracks can also opt into
+  stepped sampling so exported GIFs that hold each authored frame multiple ticks
+  stay in sync with overlay motion. The latest ghost idle anchors were authored
+  in the local Godot socket tool and applied as frame-0 base sockets plus
+  per-frame normalized deltas in `PetSocketCatalog`.
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.

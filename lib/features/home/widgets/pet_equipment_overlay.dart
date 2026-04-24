@@ -13,6 +13,7 @@ class PetEquipmentOverlay extends StatelessWidget {
     required this.equippedSkusBySlot,
     required this.petSize,
     required this.layer,
+    this.animationProgress = 0,
     this.isWalking = false,
     this.isSleeping = false,
     this.showSocketDebug = false,
@@ -23,6 +24,7 @@ class PetEquipmentOverlay extends StatelessWidget {
   final Map<String, String> equippedSkusBySlot;
   final Size petSize;
   final PetEquipmentOverlayLayer layer;
+  final double animationProgress;
   final bool isWalking;
   final bool isSleeping;
   final bool showSocketDebug;
@@ -59,12 +61,18 @@ class PetEquipmentOverlay extends StatelessWidget {
 
       final override =
           definition.petOverrides[petId] ?? const EquipmentFitOverride();
+      final motionOffset = socketConfig.resolveMotion(
+        slot: entry.key,
+        animationProgress: animationProgress,
+        isWalking: isWalking,
+        isSleeping: isSleeping,
+      );
       final placement = resolveEquipmentPlacement(
         petSize: petSize,
         socket: socket,
         anchor: definition.anchor,
         sizeRatio: definition.sizeRatio,
-        normalizedOffset: override.offset,
+        normalizedOffset: override.offset + motionOffset,
         scale: override.scale,
       );
 

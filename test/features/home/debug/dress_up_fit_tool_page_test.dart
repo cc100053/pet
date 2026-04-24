@@ -24,7 +24,7 @@ void main() {
     );
     expect(find.text('Pet socket snippet'), findsOneWidget);
     expect(
-      find.text('PetEquipmentSlot.head: PetSocket(x: 0.50, y: 0.23),'),
+      find.text('PetEquipmentSlot.head: PetSocket(x: 0.48, y: 0.13),'),
       findsOneWidget,
     );
   });
@@ -41,7 +41,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('PetEquipmentSlot.head: PetSocket(x: 0.61, y: 0.23),'),
+      find.text('PetEquipmentSlot.head: PetSocket(x: 0.61, y: 0.13),'),
       findsOneWidget,
     );
   });
@@ -63,7 +63,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('PetEquipmentSlot.head: PetSocket(x: 0.50, y: 0.23),'),
+      find.text('PetEquipmentSlot.head: PetSocket(x: 0.48, y: 0.13),'),
       findsOneWidget,
     );
   });
@@ -93,6 +93,24 @@ void main() {
     );
     expect(find.text('Copied pet socket snippet.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
+  });
+
+  testWidgets('ghost idle preview moves equipment with the pet drift', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildHarness());
+
+    final before = tester.getTopLeft(
+      find.byKey(const Key('dress_up_fit_equipment_layer')),
+    );
+
+    await tester.pump(const Duration(milliseconds: 220));
+
+    final after = tester.getTopLeft(
+      find.byKey(const Key('dress_up_fit_equipment_layer')),
+    );
+
+    expect(after, isNot(equals(before)));
   });
 }
