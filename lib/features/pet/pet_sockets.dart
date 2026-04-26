@@ -140,6 +140,8 @@ class PetSocketConfig {
     this.sleepOverrides = const <String, PetSocket>{},
     this.idleMotionTrack,
     this.idleMotionTracksBySlot = const <String, PetMotionTrack>{},
+    this.walkMotionTracksBySlot = const <String, PetMotionTrack>{},
+    this.sleepMotionTracksBySlot = const <String, PetMotionTrack>{},
   });
 
   final String petId;
@@ -148,6 +150,8 @@ class PetSocketConfig {
   final Map<String, PetSocket> sleepOverrides;
   final PetMotionTrack? idleMotionTrack;
   final Map<String, PetMotionTrack> idleMotionTracksBySlot;
+  final Map<String, PetMotionTrack> walkMotionTracksBySlot;
+  final Map<String, PetMotionTrack> sleepMotionTracksBySlot;
 
   PetSocket? resolve(
     String slot, {
@@ -169,8 +173,13 @@ class PetSocketConfig {
     bool isWalking = false,
     bool isSleeping = false,
   }) {
-    if (isWalking || isSleeping) {
-      return Offset.zero;
+    if (isWalking) {
+      final slotTrack = slot == null ? null : walkMotionTracksBySlot[slot];
+      return slotTrack?.sample(animationProgress) ?? Offset.zero;
+    }
+    if (isSleeping) {
+      final slotTrack = slot == null ? null : sleepMotionTracksBySlot[slot];
+      return slotTrack?.sample(animationProgress) ?? Offset.zero;
     }
     final slotTrack = slot == null ? null : idleMotionTracksBySlot[slot];
     if (slotTrack != null) {
@@ -203,15 +212,67 @@ class PetSocketCatalog {
             Offset(0, -0.002222222),
             Offset(-0.002222222, -0.004444444),
             Offset(-0.002222222, -0.004444444),
+            Offset(-0.002222222, -0.002222222),
+            Offset(-0.002222222, -0.002222222),
+            Offset(-0.002222222, -0.002222222),
+            Offset(-0.002222222, -0.004444444),
+            Offset(0, -0.002222222),
             Offset(-0.002222222, -0.004444444),
             Offset(-0.002222222, -0.004444444),
+            Offset(-0.002222222, -0.002222222),
             Offset(-0.002222222, -0.004444444),
+          ],
+        ),
+      },
+      walkMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.ghostWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(-0.002222222, 0),
+            Offset(-0.002222222, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(-0.002222222, -0.002222222),
+            Offset(0, 0),
+            Offset(-0.002222222, 0),
+            Offset(-0.002222222, -0.002222222),
             Offset(-0.002222222, -0.004444444),
             Offset(0, 0),
             Offset(-0.002222222, -0.004444444),
+            Offset(-0.002222222, -0.002222222),
+            Offset(-0.002222222, 0),
+            Offset(-0.002222222, -0.002222222),
             Offset(-0.002222222, -0.004444444),
+            Offset(0, 0),
             Offset(-0.002222222, -0.004444444),
-            Offset(-0.002222222, -0.004444444),
+            Offset(0, 0),
+            Offset(-0.002222222, -0.002222222),
+            Offset(-0.002222222, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(-0.002222222, -0.002222222),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(-0.002222222, 0),
+          ],
+        ),
+      },
+      sleepMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.ghostSleep.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0, -0.008888889),
+            Offset(-0.002222222, -0.008888889),
+            Offset(-0.004444444, -0.004444444),
+            Offset(-0.002222222, -0.002222222),
+            Offset(-0.002222222, -0.008888889),
           ],
         ),
       },
@@ -219,32 +280,141 @@ class PetSocketCatalog {
     PetSocketConfig(
       petId: 'cat',
       sockets: {
-        PetEquipmentSlot.head: PetSocket(x: 0.52, y: 0.18),
+        PetEquipmentSlot.head: PetSocket(x: 0.448888889, y: 0.155555556),
         PetEquipmentSlot.body: PetSocket(x: 0.50, y: 0.52),
         PetEquipmentSlot.back: PetSocket(x: 0.68, y: 0.41),
       },
-      walkOverrides: {PetEquipmentSlot.head: PetSocket(x: 0.53, y: 0.19)},
-      sleepOverrides: {PetEquipmentSlot.head: PetSocket(x: 0.56, y: 0.32)},
+      walkOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.446666667, y: 0.16),
+      },
+      sleepOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.448888889, y: 0.157777778),
+      },
+      walkMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.catWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.011111111, -0.002222222),
+            Offset(-0.046666667, -0.004444444),
+            Offset(-0.055555556, -0.006666667),
+            Offset(-0.06, -0.006666667),
+            Offset(-0.004444444, -0.004444444),
+            Offset(0.006666667, -0.004444444),
+            Offset(-0.006666667, -0.004444444),
+          ],
+        ),
+      },
+      sleepMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.catSleep.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.026666667, 0),
+            Offset(-0.035555556, 0),
+            Offset(-0.051111111, 0.002222222),
+            Offset(-0.04, 0.002222222),
+            Offset(-0.028888889, 0.002222222),
+          ],
+        ),
+      },
     ),
     PetSocketConfig(
       petId: 'fish',
       sockets: {
-        PetEquipmentSlot.head: PetSocket(x: 0.48, y: 0.23),
+        PetEquipmentSlot.head: PetSocket(x: 0.48, y: 0.153333333),
         PetEquipmentSlot.body: PetSocket(x: 0.50, y: 0.52),
         PetEquipmentSlot.back: PetSocket(x: 0.69, y: 0.44),
       },
-      walkOverrides: {PetEquipmentSlot.head: PetSocket(x: 0.47, y: 0.24)},
-      sleepOverrides: {PetEquipmentSlot.head: PetSocket(x: 0.44, y: 0.31)},
+      walkOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.477777778, y: 0.135555556),
+      },
+      sleepOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.477777778, y: 0.135555556),
+      },
+      idleMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.fishIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0, -0.02),
+            Offset(0, -0.053333333),
+            Offset(0, -0.044444444),
+            Offset(0, -0.053333333),
+            Offset(0, -0.031111111),
+            Offset(0, -0.013333333),
+            Offset(0, -0.033333333),
+            Offset(0, -0.006666667),
+            Offset(0, 0),
+            Offset(0, -0.037777778),
+            Offset(0, -0.035555556),
+            Offset(0, -0.004444444),
+            Offset(0, -0.017777778),
+          ],
+        ),
+      },
+      walkMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.fishWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, -0.022222222),
+            Offset(0.002222222, -0.006666667),
+            Offset(-0.006666667, -0.006666667),
+            Offset(-0.006666667, -0.017777778),
+            Offset(0.013333333, -0.033333333),
+            Offset(-0.06, -0.024444444),
+            Offset(-0.053333333, -0.015555556),
+            Offset(-0.06, 0.004444444),
+            Offset(-0.031111111, -0.004444444),
+            Offset(-0.002222222, -0.004444444),
+          ],
+        ),
+      },
     ),
     PetSocketConfig(
       petId: 'tiger',
       sockets: {
-        PetEquipmentSlot.head: PetSocket(x: 0.52, y: 0.17),
+        PetEquipmentSlot.head: PetSocket(x: 0.386666667, y: 0.233333333),
         PetEquipmentSlot.body: PetSocket(x: 0.52, y: 0.50),
         PetEquipmentSlot.back: PetSocket(x: 0.69, y: 0.39),
       },
-      walkOverrides: {PetEquipmentSlot.head: PetSocket(x: 0.53, y: 0.18)},
-      sleepOverrides: {PetEquipmentSlot.head: PetSocket(x: 0.56, y: 0.31)},
+      walkOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.386666667, y: 0.235555556),
+      },
+      sleepOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.315555556, y: 0.38),
+      },
+      walkMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.tigerWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0.002222222, 0),
+            Offset(-0.024444444, -0.031111111),
+            Offset(-0.022222222, -0.004444444),
+            Offset(0.024444444, 0),
+            Offset(0.024444444, -0.017777778),
+            Offset(0.024444444, 0),
+          ],
+        ),
+      },
+      sleepMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.tigerSleep.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.028888889, 0),
+            Offset(-0.028888889, 0),
+            Offset(-0.028888889, 0),
+            Offset(-0.028888889, 0),
+            Offset(-0.028888889, 0),
+            Offset(-0.028888889, 0),
+            Offset(-0.028888889, 0),
+          ],
+        ),
+      },
     ),
   ];
 

@@ -76,6 +76,18 @@ void main() {
     }
   });
 
+  test('ghost sleep sequence matches exported socket frame count', () {
+    final sequence = PetAnimationFrames.ghostSleep;
+
+    expect(sequence.frameAssets, hasLength(6));
+    expect(sequence.frameDurationsMs, hasLength(6));
+    expect(sequence.totalDurationMs, 1206);
+    expect(
+      sequence.frameAssets.last,
+      'assets/pet_sequences/ghost/sleep/ghost_sleep-06.png',
+    );
+  });
+
   test('sequence lookup rejects mismatched pet ids', () {
     expect(
       PetAnimationFrames.sequenceFor(

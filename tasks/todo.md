@@ -1,5 +1,67 @@
 # TODO
 
+# Plan (2026-04-26 Apply Straw Hat Socket JSON)
+- [x] Inspect all exported Godot socket JSON files and compare frame counts/durations against bundled PNG sequences.
+- [x] Extend the Flutter socket catalog so head equipment can follow stay, sleep, and walk PNG sequences per pet.
+- [x] Convert the exported straw-hat socket JSON into catalog base sockets, state overrides, and timed motion tracks.
+- [x] Add focused socket coverage, run formatting, asset bundle verification, `flutter analyze`, and `flutter test`.
+- [x] Record the review summary and any memory-bank updates needed for current behavior.
+
+# Review (2026-04-26 Apply Straw Hat Socket JSON)
+- [x] Implemented.
+- Scope:
+  - Converted all 12 Godot straw-hat socket exports from `/Users/fatboy/pet-tomo/pet/*/*_sockets.json` into Flutter head socket values and timed motion tracks for stay/sleep/walk states.
+  - Extended `PetSocketConfig` so walk and sleep overlays can sample their own per-slot motion tracks instead of only idle motion.
+  - Added per-pet/per-state equipment fit overrides so the straw hat uses the Godot-authored anchor/size metadata for cat, fish, and tiger while keeping ghost defaults.
+  - Added missing `assets/pet_sequences/ghost/sleep/ghost_sleep-06.png` and updated `PetAnimationFrames.ghostSleep` to match the exported 6-frame socket JSON.
+  - Updated focused socket, animation-frame, equipment catalog, and overlay tests plus active memory notes.
+- Verification:
+  - JSON-to-PNG frame count check: passed for all current pet/state sequences.
+  - `dart format lib/features/pet/equipment_catalog.dart lib/features/home/widgets/pet_equipment_overlay.dart lib/features/pet/pet_sockets.dart lib/features/pet/pet_animation_frames.dart test/features/pet/equipment_catalog_test.dart test/features/pet/pet_socket_config_test.dart test/features/pet/pet_animation_frames_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart`
+  - `flutter test test/features/pet/pet_animation_frames_test.dart test/features/pet/pet_socket_config_test.dart test/features/pet/equipment_catalog_test.dart test/features/home/widgets/pet_equipment_overlay_test.dart test/features/home/widgets/pet_equipment_layout_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+  - `flutter build bundle`: passed; `AssetManifest.bin` includes `assets/pet_sequences/ghost/sleep/ghost_sleep-06.png`.
+  - `git diff --check`: passed.
+
+# Plan (2026-04-25 AGENTS + Memory-bank Optimization)
+- [x] Re-read the current repo instructions, active memory-bank files, task notes, and workflow sources before editing.
+- [x] Archive and compact any oversized active memory-bank files so they stay current-state focused.
+- [x] Make minimal AGENTS.md updates backed by verified repo docs, skills, scripts, or current repo usage.
+- [x] Run `wc -l memory-bank/*.md`, `git diff --stat`, `flutter analyze`, and `flutter test`, then record the review summary.
+
+# Review (2026-04-25 AGENTS + Memory-bank Optimization)
+- [x] Implemented.
+- Scope:
+  - Added a narrow AGENTS workflow note for the current Godot PNG sequence / socket / equipment-preview flow and tightened the Crashlytics MCP TODO to match the verified missing `.firebase-mcp.env.example` reference in both the workflow doc and `README.md`.
+  - Archived the pre-compaction active progress memory at `memory-bank/archive/progress_20260425_pre_compaction.md`.
+  - Rewrote `memory-bank/progress.md` as a current-state summary focused on active architecture/workflow contracts, current authoring flow, and open follow-ups.
+- Active memory-bank line counts:
+  - Before: `architecture 103`, `database-schema 108`, `progress 189`, `tech-stack 53`, `ui-ux-guidelines 81` (`534` total).
+  - After: `architecture 103`, `database-schema 108`, `progress 71`, `tech-stack 53`, `ui-ux-guidelines 81` (`416` total).
+- Archive snapshots:
+  - `memory-bank/archive/progress_20260425_pre_compaction.md`
+- Verification:
+  - `wc -l memory-bank/*.md`: passed; counts recorded above.
+  - `git diff --stat`: reviewed; scoped to `AGENTS.md`, `memory-bank/progress.md`, existing task notes, and the pre-existing `tasks/lessons.md` edit.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped with `Set SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_TEST_REFRESH_TOKEN.`
+
+# Plan (2026-04-25 Godot PNG Sequence Socket Workflow Docs)
+- [x] Inspect the current Godot add-on, exported JSON shape, and Flutter sequence/socket implementation.
+- [x] Add a handoff document covering marker authoring, equipment preview, JSON export, PNG sequence application, and verification.
+- [x] Run documentation checks and record the outcome.
+
+# Review (2026-04-25 Godot PNG Sequence Socket Workflow Docs)
+- [x] Implemented.
+- Scope:
+  - Added `docs/godot-png-sequence-socket-workflow.md` as the handoff guide for the current Godot-to-Flutter pet animation workflow.
+  - Documented file locations, Godot add-on controls, per-frame duration handling, exported JSON schema, Flutter `PetAnimationFrames` updates, socket/motion-track conversion, equipment preview metadata, and verification commands.
+- Verification:
+  - `git diff --check`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing Supabase test env vars.
+
 # Plan (2026-04-24 App-wide PNG Sequence Rendering)
 - [x] Add bundled PNG sequences for every current pet animation state without removing existing GIF assets.
 - [x] Route app pet rendering through the sequence renderer so GIFs become fallback-only during the migration.
@@ -2021,3 +2083,37 @@
 - Verification:
   - `flutter analyze`
   - `flutter test`
+# Plan (2026-04-25 Godot Socket Authoring Preview Picker)
+- [x] Add task tracking for the Godot add-on preview picker work.
+- [x] Add Pet/Action selectors that scan `/Users/fatboy/pet-tomo/pet` scenes and open the selected scene.
+- [x] Add an Equipment selector that scans Flutter equipment PNGs and includes a clear/no-equipment option.
+- [x] Keep existing manual PNG path/browse flow working and sync it with the selector.
+- [x] Update workflow docs/memory notes and run a GDScript syntax sanity check where possible.
+
+# Review (2026-04-25 Godot Socket Authoring Preview Picker)
+- [x] Implemented.
+- Root change:
+  - Updated the Godot Socket Authoring add-on to scan pet/action scenes into selectors, open the selected scene, and auto-load the matching socket JSON when present.
+  - Added an equipment selector sourced from Flutter equipment PNGs, with `Clear equipment` as the first option to remove the preview overlay and export `equipmentPreview.enabled = false`.
+  - Preserved the manual PNG path and browse flow for ad-hoc equipment previews.
+- Verification:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/fatboy/pet-tomo --check-only --quit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --editor --path /Users/fatboy/pet-tomo --quit`
+  - `git diff --check`
+  - `flutter analyze`
+  - `flutter test`
+
+# Plan (2026-04-25 Godot Clear Equipment Playback Fix)
+- [x] Let sequence playback run when equipment preview is cleared.
+- [x] Capture the optional-overlay lesson from the correction.
+- [x] Verify the Godot add-on still parses and loads.
+
+# Review (2026-04-25 Godot Clear Equipment Playback Fix)
+- [x] Implemented.
+- Root change:
+  - `Play` now only tries to load equipment when the PNG path is non-empty.
+  - When equipment is cleared, playback starts the same timer and status changes to `Playing sequence preview.`
+- Verification:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/fatboy/pet-tomo --check-only --quit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --editor --path /Users/fatboy/pet-tomo --quit`
+  - `git diff --check`

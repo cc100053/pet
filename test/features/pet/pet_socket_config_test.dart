@@ -46,6 +46,31 @@ void main() {
     expect(ghost.resolve('missing_slot'), isNull);
   });
 
+  test('resolves Godot-authored head sockets for every current pet state', () {
+    final cat = PetSocketCatalog.forPet('cat')!;
+    final fish = PetSocketCatalog.forPet('fish')!;
+    final tiger = PetSocketCatalog.forPet('tiger')!;
+
+    expect(
+      cat.resolve(PetEquipmentSlot.head),
+      isA<PetSocket>()
+          .having((socket) => socket.x, 'x', 0.448888889)
+          .having((socket) => socket.y, 'y', 0.155555556),
+    );
+    expect(
+      fish.resolve(PetEquipmentSlot.head, isWalking: true),
+      isA<PetSocket>()
+          .having((socket) => socket.x, 'x', 0.477777778)
+          .having((socket) => socket.y, 'y', 0.135555556),
+    );
+    expect(
+      tiger.resolve(PetEquipmentSlot.head, isSleeping: true),
+      isA<PetSocket>()
+          .having((socket) => socket.x, 'x', 0.315555556)
+          .having((socket) => socket.y, 'y', 0.38),
+    );
+  });
+
   test('samples ghost idle motion from PNG-derived track', () {
     final ghost = PetSocketCatalog.forPet('ghost');
 
@@ -75,6 +100,28 @@ void main() {
         isWalking: true,
       ),
       Offset.zero,
+    );
+  });
+
+  test('samples walk and sleep motion tracks from exported socket JSON', () {
+    final cat = PetSocketCatalog.forPet('cat')!;
+    final tiger = PetSocketCatalog.forPet('tiger')!;
+
+    expect(
+      cat.resolveMotion(
+        slot: PetEquipmentSlot.head,
+        animationProgress: 300 / 1200,
+        isWalking: true,
+      ),
+      const Offset(-0.046666667, -0.004444444),
+    );
+    expect(
+      tiger.resolveMotion(
+        slot: PetEquipmentSlot.head,
+        animationProgress: 300 / 1100,
+        isSleeping: true,
+      ),
+      const Offset(-0.028888889, 0),
     );
   });
 

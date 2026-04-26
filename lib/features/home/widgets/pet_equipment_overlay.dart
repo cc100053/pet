@@ -59,8 +59,11 @@ class PetEquipmentOverlay extends StatelessWidget {
         continue;
       }
 
-      final override =
-          definition.petOverrides[petId] ?? const EquipmentFitOverride();
+      final override = definition.fitOverrideFor(
+        petId,
+        isWalking: isWalking,
+        isSleeping: isSleeping,
+      );
       final motionOffset = socketConfig.resolveMotion(
         slot: entry.key,
         animationProgress: animationProgress,
@@ -70,8 +73,8 @@ class PetEquipmentOverlay extends StatelessWidget {
       final placement = resolveEquipmentPlacement(
         petSize: petSize,
         socket: socket,
-        anchor: definition.anchor,
-        sizeRatio: definition.sizeRatio,
+        anchor: override.anchor ?? definition.anchor,
+        sizeRatio: override.sizeRatio ?? definition.sizeRatio,
         normalizedOffset: override.offset + motionOffset,
         scale: override.scale,
       );

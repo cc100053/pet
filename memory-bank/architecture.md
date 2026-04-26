@@ -36,7 +36,7 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   the one-shot room compatibility prompt.
 - Pet dress-up uses widget-layer equipment overlays on top of rendered pet
   animation frames. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
-  and optional per-pet fit overrides live in `EquipmentCatalog`, and shared
+  and optional per-pet/per-state fit overrides live in `EquipmentCatalog`, and shared
   placement math keeps Home overlays and the admin fit tool aligned without
   legacy previews while production rendering moves to PNG sequences. App pet
   visuals now resolve source GIF asset ids through `PetAnimationFrames` and
@@ -44,14 +44,16 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   inventory previews, and pet selection render bundled PNG frame sequences for
   every current pet/state. GIFs remain bundled as source/fallback assets during
   the migration and should not be deleted until the follow-up cleanup is
-  explicitly approved. Idle overlays can sample optional per-pet motion tracks
-  derived from source PNG frames so equipment anchors follow sprite drift inside
-  a fixed canvas. Motion lookup is slot-aware, so a pet can mix manually authored
-  tracks for calibrated slots with static sockets for unfinished slots during
-  rollout. Tracks and frame sequences sample by cumulative per-frame duration,
-  matching variable GIF frame timing where needed. Equipment catalog sizes can
-  use source-image aspect-preserving sizing so Godot-authored preview anchors map
-  to Flutter without `BoxFit.contain` letterbox padding shifting the anchor.
+  explicitly approved. Overlays can sample optional per-pet/per-state motion
+  tracks derived from source PNG frames so equipment anchors follow sprite drift
+  inside a fixed canvas. Motion lookup is slot-aware, so a pet can mix manually
+  authored tracks for calibrated slots with static sockets for unfinished slots
+  during rollout. Tracks and frame sequences sample by cumulative per-frame
+  duration, matching variable GIF frame timing where needed. Equipment catalog
+  sizes can use source-image aspect-preserving sizing, and equipment definitions
+  can override anchor/size by pet and animation state so Godot-authored
+  straw-hat previews map to Flutter without `BoxFit.contain` letterbox padding
+  shifting the anchor.
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.

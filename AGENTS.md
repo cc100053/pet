@@ -16,6 +16,7 @@ This file is for agentic coding agents working in this repo.
   - Crashlytics triage: `.codex/skills/firebase-crashlytics-triage/SKILL.md`
   - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
   - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
+- For pet PNG sequence / socket / equipment-preview work, read `docs/godot-png-sequence-socket-workflow.md` before editing `assets/pet_sequences/`, `lib/features/pet/`, or related equipment placement code.
 
 # Agent Workflows & Core Principles
 
@@ -170,7 +171,12 @@ flutter run
 - Use `.codex/skills/firebase-crashlytics-triage/SKILL.md` and Firebase MCP for crash/non-fatal investigation.
 - Repo Firebase project: `pet-app-702be`; prefer the iOS app ID unless Android is explicitly requested.
 - Setup and wrapper details live in `docs/firebase_crashlytics_mcp_workflow.md` and `scripts/start_firebase_mcp_crashlytics.sh`.
-- TODO: `docs/firebase_crashlytics_mcp_workflow.md` references `.firebase-mcp.env.example`, but that example file is not present in this checkout; verify or restore it before relying on the copy step.
+- TODO: `docs/firebase_crashlytics_mcp_workflow.md` and `README.md` reference `.firebase-mcp.env.example`, but that example file is not present in this checkout; verify or restore it before relying on the copy step.
+
+### Pet PNG sequence / socket workflow
+- Use `docs/godot-png-sequence-socket-workflow.md` for the current Godot-to-Flutter authoring flow.
+- Keep GIF asset paths as stable source/fallback ids until explicit cleanup approval; runtime PNG sequence playback should stay wired through `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`.
+- When sequence assets or nested animation folders change, verify them with `flutter build bundle` before treating the rollout as complete.
 
 ## Testing notes
 

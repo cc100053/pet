@@ -116,13 +116,14 @@ class PetAnimationFrames {
   static const PetFrameSequence ghostSleep = PetFrameSequence(
     petId: 'ghost',
     sourceAsset: 'assets/pet/ghost/ghost_sleep.gif',
-    frameDurationsMs: [200, 200, 200, 200, 200],
+    frameDurationsMs: [201, 201, 201, 201, 201, 201],
     frameAssets: [
       'assets/pet_sequences/ghost/sleep/ghost_sleep-01.png',
       'assets/pet_sequences/ghost/sleep/ghost_sleep-02.png',
       'assets/pet_sequences/ghost/sleep/ghost_sleep-03.png',
       'assets/pet_sequences/ghost/sleep/ghost_sleep-04.png',
       'assets/pet_sequences/ghost/sleep/ghost_sleep-05.png',
+      'assets/pet_sequences/ghost/sleep/ghost_sleep-06.png',
     ],
   );
 

@@ -147,6 +147,52 @@ void main() {
     expect(image.height, closeTo(10, 0.001));
   });
 
+  testWidgets('applies per-state anchor and size override', (tester) async {
+    const definition = EquipmentDefinition(
+      sku: 'test_hat',
+      slot: PetEquipmentSlot.head,
+      anchor: EquipmentAnchor(x: 0.5, y: 1.0),
+      sizeRatio: EquipmentSize(w: 0.4, h: 0.2),
+      assetPath: 'assets/equipment/hats/straw_hat.png',
+      petStateOverrides: {
+        'cat': EquipmentStateFitOverrides(
+          walk: EquipmentFitOverride(
+            anchor: EquipmentAnchor(x: 0.25, y: 0.5),
+            sizeRatio: EquipmentSize(w: 0.2, h: 0.1),
+          ),
+        ),
+      },
+    );
+
+    await tester.pumpWidget(
+      buildHarness(
+        const PetEquipmentOverlay(
+          petId: 'cat',
+          equippedSkusBySlot: {PetEquipmentSlot.head: 'test_hat'},
+          petSize: Size(100, 100),
+          layer: PetEquipmentOverlayLayer.frontPet,
+          isWalking: true,
+          definitions: [definition],
+        ),
+      ),
+    );
+
+    final positioned = tester.widget<Positioned>(
+      find.byKey(const ValueKey('pet-equipment-frontPet-head-test_hat')),
+    );
+    final image = tester.widget<Image>(
+      find.descendant(
+        of: find.byKey(const ValueKey('pet-equipment-frontPet-head-test_hat')),
+        matching: find.byType(Image),
+      ),
+    );
+
+    expect(positioned.left, closeTo(39.666667, 0.001));
+    expect(positioned.top, closeTo(11, 0.001));
+    expect(image.width, closeTo(20, 0.001));
+    expect(image.height, closeTo(10, 0.001));
+  });
+
   testWidgets('applies ghost idle motion track to overlay placement', (
     tester,
   ) async {
@@ -177,5 +223,36 @@ void main() {
 
     expect(positioned.left, closeTo(28.444444, 0.001));
     expect(positioned.top, closeTo(-6.888889, 0.001));
+  });
+
+  testWidgets('applies walk motion track to overlay placement', (tester) async {
+    const definition = EquipmentDefinition(
+      sku: 'test_hat',
+      slot: PetEquipmentSlot.head,
+      anchor: EquipmentAnchor(x: 0.5, y: 1.0),
+      sizeRatio: EquipmentSize(w: 0.4, h: 0.2),
+      assetPath: 'assets/equipment/hats/straw_hat.png',
+    );
+
+    await tester.pumpWidget(
+      buildHarness(
+        const PetEquipmentOverlay(
+          petId: 'cat',
+          equippedSkusBySlot: {PetEquipmentSlot.head: 'test_hat'},
+          petSize: Size(100, 100),
+          layer: PetEquipmentOverlayLayer.frontPet,
+          animationProgress: 300 / 1200,
+          isWalking: true,
+          definitions: [definition],
+        ),
+      ),
+    );
+
+    final positioned = tester.widget<Positioned>(
+      find.byKey(const ValueKey('pet-equipment-frontPet-head-test_hat')),
+    );
+
+    expect(positioned.left, closeTo(20, 0.001));
+    expect(positioned.top, closeTo(-4.444444, 0.001));
   });
 }

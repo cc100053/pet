@@ -41,6 +41,8 @@
 - After renaming asset files to fix typos, verify both the registry file and every preview surface that resolves those assets. Background bugs can look like “preview component broken” when the real issue is a stale asset path feeding the shared preview widget.
 - When Flutter assets live inside nested subfolders, do not assume declaring the parent directory in `pubspec.yaml` is enough. Verify the generated `build/flutter_assets` output; if nested files are missing, list each subdirectory explicitly in `pubspec.yaml`.
 - When extending a store rollout from active items to version-gated items, update every enforcement layer together: catalog RPC, purchase RPCs, and any table RLS policies they write through. Fixing only one layer just moves the failure from validation to authorization.
+- For Godot editor APIs, do not infer return values from method names. Check the actual Godot version signature before assigning a call result; `EditorInterface.open_scene_from_path()` returns `void` in Godot 4.6, so assigning it creates a GDScript parse error that prevents the whole add-on from loading.
+- For preview tools with optional overlays, keep base playback independent from overlay availability. A "clear equipment" state should remove only the equipment sprite, not block the underlying pet sequence timer.
 
 ## 2026-04-03
 - When product compatibility rules are defined for shared room content, apply them to every shared visual state type, not just shop-backed decor. Pets need the same version-gated visibility, old-client fallback, and update-prompt path as backgrounds and furniture.
