@@ -25,6 +25,8 @@ Active progress stays current-state focused. Full snapshots:
   surfaces. Runtime code resolves old GIF asset ids through
   `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`, so
   GIF paths remain stable source/fallback ids during the migration window.
+  `PetAnimationTimeline` is the shared cumulative-duration sampler used by
+  frame playback and socket motion tracks.
 - Socket/equipment placement is authored against `PetSocketCatalog`,
   `EquipmentCatalog`, and shared overlay layout math. Straw-hat placement now
   uses Godot-authored head sockets and timed motion tracks for every current

@@ -52,11 +52,11 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   inside a fixed canvas. Motion lookup is slot-aware, so a pet can mix manually
   authored tracks for calibrated slots with static sockets for unfinished slots
   during rollout. Tracks and frame sequences sample by cumulative per-frame
-  duration, matching variable GIF frame timing where needed. Equipment catalog
-  sizes can use source-image aspect-preserving sizing, and equipment definitions
-  can override anchor/size by pet and animation state so Godot-authored
-  straw-hat previews map to Flutter without `BoxFit.contain` letterbox padding
-  shifting the anchor.
+  duration through the shared `PetAnimationTimeline` Module, matching variable
+  GIF frame timing where needed. Equipment catalog sizes can use source-image
+  aspect-preserving sizing, and equipment definitions can override anchor/size
+  by pet and animation state so Godot-authored straw-hat previews map to
+  Flutter without `BoxFit.contain` letterbox padding shifting the anchor.
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.

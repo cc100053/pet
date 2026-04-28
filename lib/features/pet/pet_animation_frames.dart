@@ -1,3 +1,5 @@
+import 'pet_animation_timeline.dart';
+
 class PetFrameSequence {
   const PetFrameSequence({
     required this.petId,
@@ -13,17 +15,15 @@ class PetFrameSequence {
   final int frameHold;
   final List<int> frameDurationsMs;
 
-  int get logicalFrameCount => frameAssets.length * frameHold;
+  PetAnimationTimeline get _timeline => PetAnimationTimeline(
+    frameCount: frameAssets.length,
+    frameHold: frameHold,
+    frameDurationsMs: frameDurationsMs,
+  );
 
-  int get totalDurationMs {
-    if (!_hasFrameDurations) {
-      return logicalFrameCount;
-    }
-    return frameDurationsMs.fold<int>(
-      0,
-      (total, duration) => total + _safeDurationMs(duration),
-    );
-  }
+  int get logicalFrameCount => _timeline.logicalFrameCount;
+
+  int get totalDurationMs => _timeline.totalDurationMs;
 
   String assetForProgress(double progress) {
     if (frameAssets.isEmpty) {
@@ -37,55 +37,15 @@ class PetFrameSequence {
       assetForProgress(progressForElapsedMs(elapsedMs));
 
   double progressForElapsedMs(int elapsedMs) {
-    final total = totalDurationMs;
-    if (total <= 0) {
-      return 0;
-    }
-    final loopMs = elapsedMs % total;
-    return loopMs / total;
+    return _timeline.progressForElapsedMs(elapsedMs);
   }
 
   int frameIndexForProgress(double progress) {
     if (frameAssets.isEmpty) {
       return 0;
     }
-    if (_hasFrameDurations) {
-      return _timedIndex(progress);
-    }
-    if (frameHold <= 1) {
-      return _logicalIndex(progress, frameAssets.length);
-    }
-    final logicalIndex = _logicalIndex(progress, logicalFrameCount);
-    return (logicalIndex ~/ frameHold).clamp(0, frameAssets.length - 1);
+    return _timeline.frameIndexForProgress(progress);
   }
-
-  bool get _hasFrameDurations => frameDurationsMs.length == frameAssets.length;
-
-  int _timedIndex(double progress) {
-    final total = totalDurationMs;
-    if (total <= 0) {
-      return 0;
-    }
-    final currentMs = progress.clamp(0.0, 1.0) * total;
-    var elapsedMs = 0;
-    for (var index = 0; index < frameDurationsMs.length; index += 1) {
-      elapsedMs += _safeDurationMs(frameDurationsMs[index]);
-      if (currentMs < elapsedMs) {
-        return index;
-      }
-    }
-    return frameAssets.length - 1;
-  }
-
-  static int _logicalIndex(double progress, int frameCount) {
-    if (frameCount <= 1) {
-      return 0;
-    }
-    final clamped = progress.clamp(0.0, 1.0);
-    return (clamped * frameCount).floor().clamp(0, frameCount - 1);
-  }
-
-  static int _safeDurationMs(int durationMs) => durationMs < 1 ? 1 : durationMs;
 }
 
 class PetAnimationFrames {

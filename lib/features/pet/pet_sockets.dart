@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'pet_animation_frames.dart';
+import 'pet_animation_timeline.dart';
 
 enum PetMotionSampling { linear, stepped }
 
@@ -82,54 +83,34 @@ class PetMotionTrack {
 
     final clamped = progress.clamp(0.0, 1.0);
     if (_hasFrameDurations) {
-      return _sampleTimed(clamped);
+      return _sampleFromTimeline(
+        PetAnimationTimeline(
+          frameCount: frames.length,
+          frameDurationsMs: frameDurationsMs,
+        ).timedSampleForProgress(clamped),
+      );
     }
     if (sampling == PetMotionSampling.stepped) {
-      final index = (clamped * frames.length).floor().clamp(
-        0,
-        frames.length - 1,
-      );
+      final index = PetAnimationTimeline.logicalIndex(clamped, frames.length);
       return frames[index];
     }
-    final scaled = clamped * frames.length;
-    final startIndex = scaled.floor() % frames.length;
-    final endIndex = (startIndex + 1) % frames.length;
-    final t = scaled - scaled.floorToDouble();
-    final start = frames[startIndex];
-    final end = frames[endIndex];
-    return Offset.lerp(start, end, t) ?? start;
+    return _sampleFromTimeline(
+      PetAnimationTimeline(
+        frameCount: frames.length,
+      ).loopingSampleForProgress(clamped),
+    );
   }
 
   bool get _hasFrameDurations => frameDurationsMs.length == frames.length;
 
-  Offset _sampleTimed(double progress) {
-    final totalMs = frameDurationsMs.fold<int>(
-      0,
-      (total, duration) => total + _safeDurationMs(duration),
-    );
-    if (totalMs <= 0) {
-      return frames.first;
+  Offset _sampleFromTimeline(PetAnimationTimelineSample sample) {
+    if (sampling == PetMotionSampling.stepped) {
+      return frames[sample.index];
     }
-
-    final currentMs = progress * totalMs;
-    var elapsedMs = 0;
-    for (var index = 0; index < frameDurationsMs.length; index += 1) {
-      final durationMs = _safeDurationMs(frameDurationsMs[index]);
-      final frameEndMs = elapsedMs + durationMs;
-      if (currentMs < frameEndMs) {
-        if (sampling == PetMotionSampling.stepped) {
-          return frames[index];
-        }
-        final next = frames[(index + 1) % frames.length];
-        final t = (currentMs - elapsedMs) / durationMs;
-        return Offset.lerp(frames[index], next, t) ?? frames[index];
-      }
-      elapsedMs = frameEndMs;
-    }
-    return frames.last;
+    final start = frames[sample.index];
+    final end = frames[sample.nextIndex];
+    return Offset.lerp(start, end, sample.t) ?? start;
   }
-
-  static int _safeDurationMs(int durationMs) => durationMs < 1 ? 1 : durationMs;
 }
 
 class PetSocketConfig {

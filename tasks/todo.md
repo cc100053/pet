@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-28 Shared Animation Timeline Module)
+- [x] Add a pure animation timeline sampler for cumulative-duration frame lookup.
+- [x] Route `PetFrameSequence` and `PetMotionTrack` through the sampler without changing frame/progress behavior.
+- [x] Add focused timeline tests and keep existing animation/socket tests passing.
+- [x] Update active memory-bank notes if the animation architecture contract changes.
+- [x] Run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-28 Shared Animation Timeline Module)
+- [x] Implemented.
+- Scope:
+  - Added `lib/features/pet/pet_animation_timeline.dart` as the pure Module for held-frame lookup, cumulative-duration frame lookup, elapsed-time progress, and interpolation sample metadata.
+  - Routed `PetFrameSequence` and `PetMotionTrack` through the shared timeline sampler while preserving current stepped, linear-looping, and timed-terminal behavior.
+  - Added focused timeline tests for frame hold sampling, cumulative durations, non-positive duration clamping, elapsed looping progress, timed interpolation samples, and looping interpolation samples.
+  - Updated active memory notes for the shared timeline contract.
+- Verification:
+  - `dart format lib/features/pet/pet_animation_timeline.dart lib/features/pet/pet_animation_frames.dart lib/features/pet/pet_sockets.dart test/features/pet/pet_animation_timeline_test.dart`
+  - `flutter test test/features/pet/pet_animation_timeline_test.dart test/features/pet/pet_animation_frames_test.dart test/features/pet/pet_socket_config_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-28 Shared Decor Compatibility Module)
 - [x] Add a pure shared decor compatibility Module for pet, background, furniture, and prompt decisions.
 - [x] Route Home, `PetCatalog`, `ShopItem`, and room furniture catalog checks through the Module without changing version gates or old-client fallback behavior.
@@ -50,9 +70,9 @@
 - [x] Alternative next candidate if Shop scope is too large: **Shared Decor Compatibility Module**.
   - Current friction: mixed-version rules for backgrounds, furniture, pets, fallbacks, unsupported counts, and update prompts are split across Home maps, `ShopItem`, `RoomBackgrounds`, and `PetCatalog`.
   - Target shape: one pure Module that answers what a given app version can render, buy, place, and prompt for.
-- [ ] Lower-risk follow-up: **Shared Animation Timeline Module** for `PetFrameSequence` and `PetMotionTrack` cumulative-duration sampling.
+- [x] Lower-risk follow-up: **Shared Animation Timeline Module** for `PetFrameSequence` and `PetMotionTrack` cumulative-duration sampling.
   - Target shape: one pure timeline sampler used by frame playback and socket motion tracks.
-- [ ] Keep verification discipline: update `tasks/todo.md`, update active `memory-bank/*.md` only for current architecture contracts, then run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Keep verification discipline: update `tasks/todo.md`, update active `memory-bank/*.md` only for current architecture contracts, then run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
 
 # Plan (2026-04-28 Feed Reconciliation Module)
 - [x] Add a pure feed reconciliation Module for optimistic/canonical image-feed identity matching.
