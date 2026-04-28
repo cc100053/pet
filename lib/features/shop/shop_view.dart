@@ -27,6 +27,7 @@ import '../../shared/ui/status_bar_style.dart';
 import '../home/room_backgrounds.dart';
 import '../pet/pet_departure.dart';
 import 'models/shop_item.dart';
+import 'services/economy_purchase_adapter.dart';
 import 'widgets/shop_legal_links_row.dart';
 import 'widgets/shop_item_visual.dart';
 
@@ -124,6 +125,8 @@ class ShopView extends StatefulWidget {
 
 class _ShopViewState extends State<ShopView> {
   final RevenueCatService _revenueCatService = RevenueCatService();
+  final EconomyPurchaseAdapter _economyPurchaseAdapter =
+      SupabaseEconomyPurchaseAdapter();
   static const Duration _storeShortageNoticeDuration = Duration(
     milliseconds: 2200,
   );

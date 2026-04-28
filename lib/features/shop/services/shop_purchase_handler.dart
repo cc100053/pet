@@ -154,19 +154,44 @@ extension _ShopPurchaseHandler on _ShopViewState {
     return false;
   }
 
-  Map<String, dynamic> _requirePurchaseResult({
-    required dynamic response,
-    required String rpcName,
-  }) {
-    if (response is List && response.isNotEmpty) {
-      final first = response.first;
-      if (first is Map) {
-        return first.cast<String, dynamic>();
+  void _applyPurchaseResult(ShopItem item, EconomyPurchaseResult result) {
+    _setStoreState(() {
+      final remainingCoins = result.remainingCoins;
+      if (remainingCoins != null) {
+        _coins = remainingCoins;
       }
-    } else if (response is Map) {
-      return response.cast<String, dynamic>();
+      final remainingDiamonds = result.remainingDiamonds;
+      if (remainingDiamonds != null) {
+        _diamonds = remainingDiamonds;
+      }
+      final inventoryQuantity = result.resolvedInventoryQuantity;
+      if (inventoryQuantity != null) {
+        _inventory[item.id] = inventoryQuantity;
+      }
+      final coinBalance = result.coinBalance;
+      if (coinBalance != null) {
+        _coins = coinBalance;
+        final coinGain = result.coinGain;
+        if (coinGain != null && coinGain > 0) {
+          _coinReward = coinGain;
+          _coinRewardEventId += 1;
+        }
+      }
+      if (item.isBackground && !result.backgroundAlreadyOwned) {
+        _roomBackgroundOwned.add(item.id);
+      }
+    });
+  }
+
+  void _notifyPurchaseIfNeeded({
+    required String roomId,
+    required EconomyPurchaseResult result,
+  }) {
+    final messageId = result.purchaseNotificationMessageId;
+    if (messageId == null || messageId.isEmpty) {
+      return;
     }
-    throw StateError('store.$rpcName returned no purchase result');
+    unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
   }
 
   Future<bool> _purchaseItem(ShopItem item) async {
@@ -202,51 +227,15 @@ extension _ShopPurchaseHandler on _ShopViewState {
           );
           return false;
         }
-        final response = await Supabase.instance.client.rpc(
-          'purchase_room_furniture_with_coins',
-          params: {'p_room_id': roomId, 'p_item_id': item.id},
-        );
-
-        final row = _requirePurchaseResult(
-          response: response,
-          rpcName: 'purchase_room_furniture_with_coins',
-        );
-        final remaining = row['remaining_coins'] as int?;
-        final newQuantity = row['new_quantity'] as int?;
-        final roomTotalQuantity = row['room_total_quantity'] as int?;
-        final messageId = row['message_id'] as String?;
-        _setStoreState(() {
-          if (remaining != null) {
-            _coins = remaining;
-          }
-          final resolvedQuantity = roomTotalQuantity ?? newQuantity;
-          if (resolvedQuantity != null) {
-            _inventory[item.id] = resolvedQuantity;
-          }
-        });
-        if (messageId != null && messageId.isNotEmpty) {
-          unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
-        }
+        final result = await _economyPurchaseAdapter
+            .purchaseRoomFurnitureWithCoins(roomId: roomId, itemId: item.id);
+        _applyPurchaseResult(item, result);
+        _notifyPurchaseIfNeeded(roomId: roomId, result: result);
       } else {
-        final response = await Supabase.instance.client.rpc(
-          'purchase_item_with_coins',
-          params: {'p_item_id': item.id, 'p_quantity': 1},
+        final result = await _economyPurchaseAdapter.purchaseItemWithCoins(
+          itemId: item.id,
         );
-
-        final row = _requirePurchaseResult(
-          response: response,
-          rpcName: 'purchase_item_with_coins',
-        );
-        final remaining = row['remaining_coins'] as int?;
-        final newQuantity = row['new_quantity'] as int?;
-        _setStoreState(() {
-          if (remaining != null) {
-            _coins = remaining;
-          }
-          if (newQuantity != null) {
-            _inventory[item.id] = newQuantity;
-          }
-        });
+        _applyPurchaseResult(item, result);
       }
 
       if (!mounted) {
@@ -319,65 +308,18 @@ extension _ShopPurchaseHandler on _ShopViewState {
           );
           return false;
         }
-        final response = await Supabase.instance.client.rpc(
-          'purchase_room_furniture_with_diamonds',
-          params: {'p_room_id': roomId, 'p_item_id': item.id},
-        );
-
-        final row = _requirePurchaseResult(
-          response: response,
-          rpcName: 'purchase_room_furniture_with_diamonds',
-        );
-        final remaining = row['remaining_diamonds'] as int?;
-        final newQuantity = row['new_quantity'] as int?;
-        final roomTotalQuantity = row['room_total_quantity'] as int?;
-        final messageId = row['message_id'] as String?;
-        _setStoreState(() {
-          if (remaining != null) {
-            _diamonds = remaining;
-          }
-          final resolvedQuantity = roomTotalQuantity ?? newQuantity;
-          if (resolvedQuantity != null) {
-            _inventory[item.id] = resolvedQuantity;
-          }
-        });
-        if (messageId != null && messageId.isNotEmpty) {
-          unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
-        }
+        final result = await _economyPurchaseAdapter
+            .purchaseRoomFurnitureWithDiamonds(roomId: roomId, itemId: item.id);
+        _applyPurchaseResult(item, result);
+        _notifyPurchaseIfNeeded(roomId: roomId, result: result);
       } else {
-        final previousCoins = _coins;
-        final response = await Supabase.instance.client.rpc(
-          'purchase_item_with_diamonds',
-          params: {'p_item_id': item.id, 'p_quantity': 1},
+        final result = await _economyPurchaseAdapter.purchaseItemWithDiamonds(
+          itemId: item.id,
+          previousCoinBalance: _coins,
         );
-
-        final row = _requirePurchaseResult(
-          response: response,
-          rpcName: 'purchase_item_with_diamonds',
-        );
-        final remaining = row['remaining_diamonds'] as int?;
-        final newQuantity = row['new_quantity'] as int?;
-        final newCoinBalance = row['new_coin_balance'] as int?;
-        final gainedCoins = newCoinBalance == null
-            ? null
-            : newCoinBalance - previousCoins;
-        final shouldShowCoinReward = gainedCoins != null && gainedCoins > 0;
-        _setStoreState(() {
-          if (remaining != null) {
-            _diamonds = remaining;
-          }
-          if (newQuantity != null) {
-            _inventory[item.id] = newQuantity;
-          }
-          if (newCoinBalance != null) {
-            _coins = newCoinBalance;
-            if (shouldShowCoinReward) {
-              _coinReward = gainedCoins;
-              _coinRewardEventId += 1;
-            }
-          }
-        });
-        if (shouldShowCoinReward) {
+        _applyPurchaseResult(item, result);
+        final coinGain = result.coinGain;
+        if (coinGain != null && coinGain > 0) {
           unawaited(AppSfx.playCandyGain());
         }
       }
@@ -430,29 +372,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
       return false;
     }
 
-    final response = await Supabase.instance.client.rpc(
-      'purchase_room_background_with_coins',
-      params: {'p_room_id': roomId, 'p_item_id': item.id},
-    );
-
-    final row = _requirePurchaseResult(
-      response: response,
-      rpcName: 'purchase_room_background_with_coins',
-    );
-    final remaining = row['remaining_coins'] as int?;
-    final alreadyOwned = row['already_owned'] as bool? ?? false;
-    final messageId = row['message_id'] as String?;
-    _setStoreState(() {
-      if (remaining != null) {
-        _coins = remaining;
-      }
-      if (!alreadyOwned) {
-        _roomBackgroundOwned.add(item.id);
-      }
-    });
-    if (!alreadyOwned && messageId != null && messageId.isNotEmpty) {
-      unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
-    }
+    final result = await _economyPurchaseAdapter
+        .purchaseRoomBackgroundWithCoins(roomId: roomId, itemId: item.id);
+    _applyPurchaseResult(item, result);
+    _notifyPurchaseIfNeeded(roomId: roomId, result: result);
     return true;
   }
 
@@ -467,29 +390,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
       return false;
     }
 
-    final response = await Supabase.instance.client.rpc(
-      'purchase_room_background_with_diamonds',
-      params: {'p_room_id': roomId, 'p_item_id': item.id},
-    );
-
-    final row = _requirePurchaseResult(
-      response: response,
-      rpcName: 'purchase_room_background_with_diamonds',
-    );
-    final remaining = row['remaining_diamonds'] as int?;
-    final alreadyOwned = row['already_owned'] as bool? ?? false;
-    final messageId = row['message_id'] as String?;
-    _setStoreState(() {
-      if (remaining != null) {
-        _diamonds = remaining;
-      }
-      if (!alreadyOwned) {
-        _roomBackgroundOwned.add(item.id);
-      }
-    });
-    if (!alreadyOwned && messageId != null && messageId.isNotEmpty) {
-      unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
-    }
+    final result = await _economyPurchaseAdapter
+        .purchaseRoomBackgroundWithDiamonds(roomId: roomId, itemId: item.id);
+    _applyPurchaseResult(item, result);
+    _notifyPurchaseIfNeeded(roomId: roomId, result: result);
     return true;
   }
 

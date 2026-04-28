@@ -244,29 +244,17 @@ extension _ShopIapService on _ShopViewState {
       throw StateError('Missing transaction id.');
     }
 
-    final response = await Supabase.instance.client.rpc(
-      'grant_iap_coins',
-      params: {
-        'p_product_id': productId,
-        'p_amount': coinAmount,
-        'p_transaction_id': transactionId,
-      },
+    final grant = await _economyPurchaseAdapter.grantIapCoins(
+      productId: productId,
+      amount: coinAmount,
+      transactionId: transactionId,
     );
 
-    Map<String, dynamic>? row;
-    if (response is List && response.isNotEmpty) {
-      row = response.first as Map<String, dynamic>;
-    } else if (response is Map) {
-      row = response.cast<String, dynamic>();
-    }
-
-    if (row != null) {
-      final newBalance = row['new_balance'] as int?;
-      if (newBalance != null) {
-        _setStoreState(() {
-          _coins = newBalance;
-        });
-      }
+    final newBalance = grant.newBalance;
+    if (newBalance != null) {
+      _setStoreState(() {
+        _coins = newBalance;
+      });
     }
   }
 
@@ -283,29 +271,17 @@ extension _ShopIapService on _ShopViewState {
       throw StateError('Missing transaction id.');
     }
 
-    final response = await Supabase.instance.client.rpc(
-      'grant_iap_diamonds',
-      params: {
-        'p_product_id': productId,
-        'p_amount': diamondAmount,
-        'p_transaction_id': transactionId,
-      },
+    final grant = await _economyPurchaseAdapter.grantIapDiamonds(
+      productId: productId,
+      amount: diamondAmount,
+      transactionId: transactionId,
     );
 
-    Map<String, dynamic>? row;
-    if (response is List && response.isNotEmpty) {
-      row = response.first as Map<String, dynamic>;
-    } else if (response is Map) {
-      row = response.cast<String, dynamic>();
-    }
-
-    if (row != null) {
-      final newBalance = row['new_balance'] as int?;
-      if (newBalance != null) {
-        _setStoreState(() {
-          _diamonds = newBalance;
-        });
-      }
+    final newBalance = grant.newBalance;
+    if (newBalance != null) {
+      _setStoreState(() {
+        _diamonds = newBalance;
+      });
     }
   }
 

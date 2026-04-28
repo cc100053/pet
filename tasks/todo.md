@@ -1,5 +1,39 @@
 # TODO
 
+# Plan (2026-04-28 Economy RPC Adapter Seam)
+- [x] Add a typed economy purchase Adapter for Shop RPC calls and response parsing.
+- [x] Route coin/diamond item purchases, room background/furniture purchases, and IAP currency grants through the Adapter without changing RPC params or old-client-visible behavior.
+- [x] Add focused fake-Adapter/RPC tests for purchase result variants, candy/diamond balances, inventory/background deltas, notification message ids, IAP grants, and typed failures.
+- [x] Update active memory-bank notes if the shop architecture contract changes.
+- [x] Run `dart format`, focused shop tests, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-28 Economy RPC Adapter Seam)
+- [x] Implemented.
+- Scope:
+  - Added `lib/features/shop/services/economy_purchase_adapter.dart` with `EconomyPurchaseAdapter`, a Supabase-backed Adapter, typed purchase/grant results, and typed empty-result failures.
+  - Moved Shop purchase RPC names, params, and response parsing out of `ShopView` part files while preserving existing UI state application, analytics, success/error notices, IAP orchestration, and purchase notification side effects.
+  - Covered coin/diamond item purchases, room furniture/background purchases, IAP coin/diamond grants, background already-owned notification suppression, room-total furniture inventory preference, and empty purchase results.
+  - Updated active memory notes for the Shop economy Adapter contract.
+- Verification:
+  - `dart format lib/features/shop/shop_view.dart lib/features/shop/services/shop_purchase_handler.dart lib/features/shop/services/shop_iap_service.dart lib/features/shop/services/economy_purchase_adapter.dart test/features/shop/economy_purchase_adapter_test.dart`
+  - `flutter test test/features/shop/economy_purchase_adapter_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
+# Next Refactor Backlog (for next session)
+- [x] Continue `improve-codebase-architecture` from the completed feed queue/reconciliation work.
+- [x] Recommended next candidate: **Economy RPC Adapter Seam**.
+  - Current friction: `lib/features/shop/services/shop_purchase_handler.dart`, `lib/features/shop/services/shop_iap_service.dart`, and `lib/features/shop/shop_view.dart` still mix UI state, Supabase RPC names, response parsing, balance updates, inventory deltas, analytics, and notification side effects.
+  - Target shape: a typed economy purchase Module with a small Interface for coin/diamond item purchases, room background/furniture purchases, IAP grants, balance/inventory deltas, and optional purchase notification message ids.
+  - Keep behavior unchanged first; use a Supabase-backed Adapter plus fake Adapter tests. Do not change RPC params or old-client-visible behavior without explicit approval.
+  - Suggested first tests: parse purchase RPC result variants, update candy/diamond balances, update background/furniture inventory, expose `messageId` for notification, and surface typed failures.
+- [ ] Alternative next candidate if Shop scope is too large: **Shared Decor Compatibility Module**.
+  - Current friction: mixed-version rules for backgrounds, furniture, pets, fallbacks, unsupported counts, and update prompts are split across Home maps, `ShopItem`, `RoomBackgrounds`, and `PetCatalog`.
+  - Target shape: one pure Module that answers what a given app version can render, buy, place, and prompt for.
+- [ ] Lower-risk follow-up: **Shared Animation Timeline Module** for `PetFrameSequence` and `PetMotionTrack` cumulative-duration sampling.
+  - Target shape: one pure timeline sampler used by frame playback and socket motion tracks.
+- [ ] Keep verification discipline: update `tasks/todo.md`, update active `memory-bank/*.md` only for current architecture contracts, then run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+
 # Plan (2026-04-28 Feed Reconciliation Module)
 - [x] Add a pure feed reconciliation Module for optimistic/canonical image-feed identity matching.
 - [x] Replace upload resume, Home realtime reconciliation, and Chat image-feed optimistic matching with the shared Module.

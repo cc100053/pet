@@ -57,6 +57,10 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 - Shop/Home furniture supports metadata PNG assets with emoji fallback. Shared
   counts come from `get_room_furniture_inventory`; buyer-attributed
   `room_item_inventories` remains for compatibility.
+- Shop economy RPC names, params, and result parsing are concentrated behind
+  `EconomyPurchaseAdapter`; `ShopView` applies typed balance/inventory deltas
+  and still owns UI notices, analytics, IAP orchestration, and purchase
+  notification dispatch.
 - Furniture transform persistence prefers additive RPCs:
   `update_room_furniture_transform(...)` and `update_room_furniture_flip(...)`,
   with legacy transform fallbacks where needed.
