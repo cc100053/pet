@@ -183,6 +183,106 @@ void main() {
     );
     expect(box.get(job.tempId), isNull);
   });
+
+  group('FeedUploadQueueEvents', () {
+    test('emits optimistic event when a job first becomes active', () {
+      final job = _buildJob(status: FeedUploadJobStatus.pending);
+
+      final events = FeedUploadQueueEvents.between(null, _stateWith(job));
+
+      expect(events, hasLength(1));
+      expect(events.single, isA<FeedUploadOptimisticReady>());
+      expect(events.single.job.tempId, job.tempId);
+    });
+
+    test(
+      'does not emit duplicate optimistic event for pending to uploading',
+      () {
+        final previous = _buildJob(status: FeedUploadJobStatus.pending);
+        final next = previous.copyWith(status: FeedUploadJobStatus.uploading);
+
+        final events = FeedUploadQueueEvents.between(
+          _stateWith(previous),
+          _stateWith(next),
+        );
+
+        expect(events, isEmpty);
+      },
+    );
+
+    test('emits optimistic event when a failed job is retried', () {
+      final previous = _buildJob(
+        status: FeedUploadJobStatus.failed,
+        lastError: 'network_timeout',
+      );
+      final next = previous.copyWith(
+        status: FeedUploadJobStatus.pending,
+        clearLastError: true,
+      );
+
+      final events = FeedUploadQueueEvents.between(
+        _stateWith(previous),
+        _stateWith(next),
+      );
+
+      expect(events, hasLength(1));
+      expect(events.single, isA<FeedUploadOptimisticReady>());
+    });
+
+    test('emits completed event only when result exists', () {
+      final previous = _buildJob(status: FeedUploadJobStatus.uploading);
+      final completedWithoutResult = previous.copyWith(
+        status: FeedUploadJobStatus.completed,
+      );
+      final next = previous.copyWith(
+        status: FeedUploadJobStatus.completed,
+        result: const FeedUploadResult(
+          tempId: 'temp-1',
+          coinsAwarded: 10,
+          messageId: 'message-1',
+        ),
+      );
+
+      expect(
+        FeedUploadQueueEvents.between(
+          _stateWith(previous),
+          _stateWith(completedWithoutResult),
+        ),
+        isEmpty,
+      );
+
+      final events = FeedUploadQueueEvents.between(
+        _stateWith(previous),
+        _stateWith(next),
+      );
+
+      expect(events, hasLength(1));
+      final event = events.single;
+      expect(event, isA<FeedUploadCompleted>());
+      expect((event as FeedUploadCompleted).result.messageId, 'message-1');
+    });
+
+    test('emits failed event with retryable error', () {
+      final previous = _buildJob(status: FeedUploadJobStatus.uploading);
+      final next = previous.copyWith(
+        status: FeedUploadJobStatus.failed,
+        lastError: 'network_timeout',
+      );
+
+      final events = FeedUploadQueueEvents.between(
+        _stateWith(previous),
+        _stateWith(next),
+      );
+
+      expect(events, hasLength(1));
+      final event = events.single;
+      expect(event, isA<FeedUploadFailed>());
+      expect(
+        (event as FeedUploadFailed).error.toString(),
+        contains('network_timeout'),
+      );
+    });
+  });
 }
 
 Future<void> _pumpUntil(bool Function() condition) async {
@@ -193,6 +293,33 @@ Future<void> _pumpUntil(bool Function() condition) async {
     await Future<void>.delayed(Duration.zero);
   }
   fail('Condition was not met before timeout.');
+}
+
+FeedUploadQueueState _stateWith(FeedUploadJob job) {
+  return FeedUploadQueueState(
+    jobsByTempId: {job.tempId: job},
+    loaded: true,
+    revision: 1,
+  );
+}
+
+FeedUploadJob _buildJob({
+  required FeedUploadJobStatus status,
+  String? lastError,
+}) {
+  return FeedUploadJob(
+    tempId: 'temp-1',
+    roomId: 'room-1',
+    senderId: 'user-1',
+    localImagePath: '/tmp/feed.jpg',
+    caption: 'Dinner',
+    clientCreatedAt: DateTime.utc(2026, 4, 17, 1),
+    labels: const <Map<String, dynamic>>[],
+    status: status,
+    retryCount: 0,
+    updatedAt: DateTime.utc(2026, 4, 17, 1),
+    lastError: lastError,
+  );
 }
 
 class _FakeFeedUploadClient implements FeedUploadClient {

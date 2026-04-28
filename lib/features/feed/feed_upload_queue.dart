@@ -39,6 +39,71 @@ class FeedUploadQueueState {
   }
 }
 
+sealed class FeedUploadQueueEvent {
+  const FeedUploadQueueEvent({required this.job});
+
+  final FeedUploadJob job;
+}
+
+class FeedUploadOptimisticReady extends FeedUploadQueueEvent {
+  const FeedUploadOptimisticReady({required super.job});
+}
+
+class FeedUploadCompleted extends FeedUploadQueueEvent {
+  const FeedUploadCompleted({required super.job, required this.result});
+
+  final FeedUploadResult result;
+}
+
+class FeedUploadFailed extends FeedUploadQueueEvent {
+  const FeedUploadFailed({required super.job, required this.error});
+
+  final Object error;
+}
+
+class FeedUploadQueueEvents {
+  const FeedUploadQueueEvents._();
+
+  static List<FeedUploadQueueEvent> between(
+    FeedUploadQueueState? previous,
+    FeedUploadQueueState next,
+  ) {
+    final events = <FeedUploadQueueEvent>[];
+    for (final job in next.jobs) {
+      final previousJob = previous?.jobsByTempId[job.tempId];
+      final previousStatus = previousJob?.status;
+      if (previousStatus == job.status) {
+        continue;
+      }
+      switch (job.status) {
+        case FeedUploadJobStatus.pending:
+        case FeedUploadJobStatus.uploading:
+          if (previousStatus == null ||
+              previousStatus == FeedUploadJobStatus.failed ||
+              previousStatus == FeedUploadJobStatus.completed) {
+            events.add(FeedUploadOptimisticReady(job: job));
+          }
+          break;
+        case FeedUploadJobStatus.completed:
+          final result = job.result;
+          if (result != null) {
+            events.add(FeedUploadCompleted(job: job, result: result));
+          }
+          break;
+        case FeedUploadJobStatus.failed:
+          events.add(
+            FeedUploadFailed(
+              job: job,
+              error: Exception(job.lastError ?? 'feed_upload_failed'),
+            ),
+          );
+          break;
+      }
+    }
+    return events;
+  }
+}
+
 final feedUploadRepositoryProvider = Provider<FeedUploadRepository>(
   (ref) => FeedUploadRepository.instance,
 );

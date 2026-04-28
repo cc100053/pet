@@ -231,61 +231,41 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     FeedUploadQueueState? previous,
     FeedUploadQueueState next,
   ) {
-    for (final job in next.jobs) {
-      switch (job.status) {
-        case FeedUploadJobStatus.pending:
-        case FeedUploadJobStatus.uploading:
-          _handleQueuedFeedPending(job);
-          break;
-        case FeedUploadJobStatus.completed:
-          _handleQueuedFeedCompleted(job);
-          break;
-        case FeedUploadJobStatus.failed:
-          _handleQueuedFeedFailed(job);
-          break;
+    for (final event in FeedUploadQueueEvents.between(previous, next)) {
+      switch (event) {
+        case FeedUploadOptimisticReady():
+          _handleQueuedFeedPending(event.job);
+        case FeedUploadCompleted():
+          _handleQueuedFeedCompleted(event);
+        case FeedUploadFailed():
+          _handleQueuedFeedFailed(event);
       }
     }
   }
 
   void _handleQueuedFeedPending(FeedUploadJob job) {
-    if (!_seenFeedUploadPendingTempIds.add(job.tempId)) {
-      return;
-    }
     if (_pendingOptimisticFeedsByTempId.containsKey(job.tempId)) {
       return;
     }
     _handleOptimisticFeed(job.toOptimisticMessage());
   }
 
-  void _handleQueuedFeedCompleted(FeedUploadJob job) {
-    final result = job.result;
-    if (result == null) {
-      return;
-    }
-    if (!_handledFeedUploadCompletedTempIds.add(job.tempId)) {
-      return;
-    }
-    _handleFeedUploadCompleted(result);
+  void _handleQueuedFeedCompleted(FeedUploadCompleted event) {
+    _handleFeedUploadCompleted(event.result);
     unawaited(
       Future<void>.delayed(
         Duration.zero,
-        () => _feedUploadQueue.acknowledge(job.tempId),
+        () => _feedUploadQueue.acknowledge(event.job.tempId),
       ),
     );
   }
 
-  void _handleQueuedFeedFailed(FeedUploadJob job) {
-    if (!_handledFeedUploadFailedTempIds.add(job.tempId)) {
-      return;
-    }
-    _handleFeedUploadFailed(
-      job.tempId,
-      Exception(job.lastError ?? 'feed_upload_failed'),
-    );
+  void _handleQueuedFeedFailed(FeedUploadFailed event) {
+    _handleFeedUploadFailed(event.job.tempId, event.error);
     unawaited(
       Future<void>.delayed(
         Duration.zero,
-        () => _feedUploadQueue.acknowledge(job.tempId),
+        () => _feedUploadQueue.acknowledge(event.job.tempId),
       ),
     );
   }

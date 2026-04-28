@@ -1,5 +1,50 @@
 # TODO
 
+# Plan (2026-04-28 Feed Upload Queue Event Module)
+- [x] Add a pure feed-upload event derivation Module so callers consume meaningful transitions instead of rescanning queue state.
+- [x] Update Home to consume queue events and remain the only owner that acknowledges completed/failed jobs.
+- [x] Update Chat to consume queue events for local optimistic-row cleanup only.
+- [x] Add focused event tests, run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record the review summary and update memory notes only if behavior/architecture contracts change.
+
+# Review (2026-04-28 Feed Upload Queue Event Module)
+- [x] Implemented.
+- Scope:
+  - Added `FeedUploadQueueEvent` variants plus `FeedUploadQueueEvents.between(...)` so queue consumers receive meaningful upload transitions.
+  - Removed duplicated Home/Chat `seen` and `handled` sets for feed upload queue consumption.
+  - Kept Home as the only owner that acknowledges completed/failed durable jobs; Chat now consumes events only for local optimistic row cleanup.
+  - Updated active progress memory for the queue event contract.
+- Verification:
+  - `dart format lib/features/feed/feed_upload_queue.dart lib/features/home/controllers/home_feed_orchestrator.dart lib/features/home/home_view.dart lib/features/chat/chat_room_view_v2.dart test/features/feed/feed_upload_queue_test.dart`
+  - `flutter test test/features/feed/feed_upload_queue_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
+# Plan (2026-04-28 Firebase v1.2.0 Feed Picker Crash)
+- [x] Read active memory-bank files and the Firebase Crashlytics triage workflow.
+- [x] Confirm Firebase MCP target and identify the actionable v1.2.0 issue.
+- [x] Patch the feed image picker late-completion crash and add regression coverage.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record the review summary and update current memory notes if behavior changed.
+
+# Review (2026-04-28 Firebase v1.2.0 Feed Picker Crash)
+- [x] Implemented.
+- Firebase evidence:
+  - iOS app `1:69520994244:ios:d6fc14579fda1a1ca33e91`, project `pet-app-702be`.
+  - Version `1.2.0 (1)` had 12 Crashlytics events in the last 90 days.
+  - Actionable app-code fatal: issue `c6391e8d53037b89b3324e6ce4c4ecf0`, `_FeedCaptureViewState._pickImage`, first/last seen in `1.2.0`, 1 event / 1 impacted user.
+  - Sample event `2211895696485662761` at `2026-04-27T14:44:58Z` crashed on iPhone XR / iOS 18.7.7 while offline; stack pointed to `feed_capture_view.dart:119` `setState`.
+- Scope:
+  - Added a mounted guard after async image selection/byte reading so late picker completions do not call `setState` after the capture route is disposed.
+  - Kept picker behavior unchanged for mounted views and added a test-only picker injection seam.
+  - Added a widget regression test that disposes `FeedCaptureView` before the pending picker future resolves.
+  - Active memory-bank notes did not need updates; this was a narrow crash fix, not a behavior/architecture decision change.
+- Verification:
+  - `dart format lib/features/feed/feed_capture_view.dart test/features/feed/feed_capture_view_callback_safety_test.dart`
+  - `flutter test test/features/feed/feed_capture_view_callback_safety_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-26 Apply Straw Hat Socket JSON)
 - [x] Inspect all exported Godot socket JSON files and compare frame counts/durations against bundled PNG sequences.
 - [x] Extend the Flutter socket catalog so head equipment can follow stay, sleep, and walk PNG sequences per pet.

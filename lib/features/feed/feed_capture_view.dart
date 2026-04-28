@@ -42,11 +42,14 @@ class FeedCaptureView extends ConsumerStatefulWidget {
     required this.roomId,
     this.onOptimisticMessage,
     this.onSendStarted,
+    this.pickImage,
   });
 
   final String roomId;
   final ValueChanged<FeedOptimisticMessage>? onOptimisticMessage;
   final ValueChanged<FeedOptimisticMessage>? onSendStarted;
+  @visibleForTesting
+  final Future<XFile?> Function(ImageSource source)? pickImage;
 
   @override
   ConsumerState<FeedCaptureView> createState() => _FeedCaptureViewState();
@@ -85,8 +88,15 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
       parameters: {'source': source.name},
     );
     XFile? image;
+    Uint8List? previewBytes;
     try {
-      image = await _picker.pickImage(source: source);
+      image =
+          await (widget.pickImage?.call(source) ??
+              _picker.pickImage(source: source));
+      if (image == null) {
+        return;
+      }
+      previewBytes = await image.readAsBytes();
     } catch (error, stackTrace) {
       if (!mounted) {
         return;
@@ -101,15 +111,11 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
       });
       return;
     }
-    if (image == null) {
+
+    if (!mounted) {
       return;
     }
-
-    final previewBytes = await image.readAsBytes();
     if (previewBytes.length > _feedInputHardLimitBytes) {
-      if (!mounted) {
-        return;
-      }
       setState(() {
         _error = AppLocalizations.of(context)!.errorImageTooLarge;
       });

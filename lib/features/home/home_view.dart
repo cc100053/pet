@@ -316,9 +316,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _latestFeedJumpToLatestEventId = 0;
   final Map<String, PendingPetHomeOptimisticFeed>
   _pendingOptimisticFeedsByTempId = {};
-  final Set<String> _seenFeedUploadPendingTempIds = <String>{};
-  final Set<String> _handledFeedUploadCompletedTempIds = <String>{};
-  final Set<String> _handledFeedUploadFailedTempIds = <String>{};
   late final FeedUploadQueueNotifier _feedUploadQueue;
   String? _photoFoodImageSource;
   Offset? _photoFoodNormalizedPosition;

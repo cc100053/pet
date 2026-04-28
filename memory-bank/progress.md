@@ -43,9 +43,10 @@ Active progress stays current-state focused. Full snapshots:
 - Chat uses only `ChatRoomViewV2`: latest-20 open, 20-message older pages,
   80-message visible cap, newest-20 Hive cache, edit/delete, replies/reactions,
   mention display, and the focused long-press overlay.
-- Feed uploads run through the durable Hive/Riverpod queue. Capture enqueues,
-  Home owns global completion/failure refresh, and Chat reconciles optimistic
-  rows locally.
+- Feed uploads run through the durable Hive/Riverpod queue. The queue derives
+  one-shot upload transition events from state changes; Home owns global
+  completion/failure refresh and acknowledges terminal jobs, while Chat consumes
+  those events only for local optimistic row reconciliation.
 - Force-update, What's New, crash fallback, and ATT-aware AdMob flows are all
   separate. iOS debug banner `AdWidget`s remain disabled by default unless
   `ADMOB_ENABLE_DEBUG_BANNER_VIEWS=true` is set for intentional testing.

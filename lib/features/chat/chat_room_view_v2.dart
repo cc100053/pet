@@ -152,9 +152,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   final Set<String> _blockedUserIds = <String>{};
   final Set<String> _optimisticIds = <String>{};
   final Set<String> _loadingReplyPreviewIds = <String>{};
-  final Set<String> _seenFeedUploadPendingTempIds = <String>{};
-  final Set<String> _handledFeedUploadCompletedTempIds = <String>{};
-  final Set<String> _handledFeedUploadFailedTempIds = <String>{};
 
   RealtimeChannel? _channel;
   StreamSubscription<ChatMessage>? _runtimeIncomingSubscription;
@@ -1969,32 +1966,17 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     FeedUploadQueueState? previous,
     FeedUploadQueueState next,
   ) {
-    for (final job in next.jobs) {
-      if (job.roomId != widget.roomId) {
+    for (final event in FeedUploadQueueEvents.between(previous, next)) {
+      if (event.job.roomId != widget.roomId) {
         continue;
       }
-      switch (job.status) {
-        case FeedUploadJobStatus.pending:
-        case FeedUploadJobStatus.uploading:
-          if (_seenFeedUploadPendingTempIds.add(job.tempId)) {
-            _handleOptimisticFeed(job.toOptimisticMessage());
-          }
-          break;
-        case FeedUploadJobStatus.completed:
-          final result = job.result;
-          if (result != null &&
-              _handledFeedUploadCompletedTempIds.add(job.tempId)) {
-            _handleFeedUploadCompleted(result);
-          }
-          break;
-        case FeedUploadJobStatus.failed:
-          if (_handledFeedUploadFailedTempIds.add(job.tempId)) {
-            _handleFeedUploadFailed(
-              job.tempId,
-              Exception(job.lastError ?? 'feed_upload_failed'),
-            );
-          }
-          break;
+      switch (event) {
+        case FeedUploadOptimisticReady():
+          _handleOptimisticFeed(event.job.toOptimisticMessage());
+        case FeedUploadCompleted():
+          _handleFeedUploadCompleted(event.result);
+        case FeedUploadFailed():
+          _handleFeedUploadFailed(event.job.tempId, event.error);
       }
     }
   }
