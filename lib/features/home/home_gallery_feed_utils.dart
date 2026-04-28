@@ -1,9 +1,8 @@
+import '../feed/feed_reconciliation.dart';
+
 const int kPetHomeGalleryMaxPhotos = 10;
 const int kPetHomeGalleryMinSlots = 3;
 const int kHomeSummaryPhotoPreviewMaxPhotos = 3;
-
-const Duration _kOptimisticClientCreatedAtTolerance = Duration(seconds: 2);
-const Duration _kOptimisticServerCreatedAtTolerance = Duration(seconds: 45);
 
 class PendingPetHomeOptimisticFeed {
   const PendingPetHomeOptimisticFeed({
@@ -77,36 +76,19 @@ class PendingPetHomeOptimisticFeed {
     required DateTime? clientCreatedAt,
     required DateTime? createdAt,
   }) {
-    if (roomId != this.roomId || senderId != this.senderId) {
-      return false;
-    }
-    if (_normalizeCaption(caption) != _normalizeCaption(this.caption)) {
-      return false;
-    }
-
-    final expectedMessageId = this.messageId?.trim();
-    final incomingMessageId = messageId?.trim();
-    if (expectedMessageId != null &&
-        expectedMessageId.isNotEmpty &&
-        incomingMessageId != null &&
-        incomingMessageId.isNotEmpty) {
-      return expectedMessageId == incomingMessageId;
-    }
-
-    final pendingClientCreatedAt = this.clientCreatedAt.toUtc();
-    final incomingClientCreatedAt = clientCreatedAt?.toUtc();
-    if (incomingClientCreatedAt != null) {
-      return incomingClientCreatedAt.difference(pendingClientCreatedAt).abs() <=
-          _kOptimisticClientCreatedAtTolerance;
-    }
-
-    final incomingCreatedAt = createdAt?.toUtc();
-    if (incomingCreatedAt != null) {
-      return incomingCreatedAt.difference(pendingClientCreatedAt).abs() <=
-          _kOptimisticServerCreatedAtTolerance;
-    }
-
-    return false;
+    return matchesFeedIdentity(
+      expectedRoomId: this.roomId,
+      expectedSenderId: this.senderId,
+      expectedCaption: this.caption,
+      expectedMessageId: this.messageId,
+      expectedClientCreatedAt: this.clientCreatedAt,
+      roomId: roomId,
+      senderId: senderId,
+      caption: caption,
+      messageId: messageId,
+      clientCreatedAt: clientCreatedAt,
+      createdAt: createdAt,
+    );
   }
 }
 
@@ -431,8 +413,6 @@ List<String> compactSummaryPhotoUrls(Iterable<String> imageUrls) => imageUrls
     .where((url) => url.isNotEmpty)
     .take(kHomeSummaryPhotoPreviewMaxPhotos)
     .toList(growable: false);
-
-String _normalizeCaption(String? caption) => caption?.trim() ?? '';
 
 class _PetHomeGalleryFeedEntry {
   const _PetHomeGalleryFeedEntry({

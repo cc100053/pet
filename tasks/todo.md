@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-28 Feed Reconciliation Module)
+- [x] Add a pure feed reconciliation Module for optimistic/canonical image-feed identity matching.
+- [x] Replace upload resume, Home realtime reconciliation, and Chat image-feed optimistic matching with the shared Module.
+- [x] Add focused reconciliation tests and update existing Home coverage as needed.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record the review summary and update memory notes if the architecture contract changes.
+
+# Review (2026-04-28 Feed Reconciliation Module)
+- [x] Implemented.
+- Scope:
+  - Added `lib/features/feed/feed_reconciliation.dart` with shared caption normalization, date parsing, and image-feed identity matching.
+  - Reused the matcher in upload resume (`findCompletedUpload`), Home realtime gallery reconciliation, and Chat image-feed optimistic replacement.
+  - Added focused tests for message-id matching, client/server timestamp tolerances, caption/room/sender/timestamp rejection, and feed date parsing.
+  - Updated active progress memory for the shared reconciliation contract.
+- Verification:
+  - `dart format lib/features/feed/feed_reconciliation.dart lib/features/feed/feed_upload_client.dart lib/features/home/home_gallery_feed_utils.dart lib/features/chat/chat_room_view_v2.dart test/features/feed/feed_reconciliation_test.dart`
+  - `flutter test test/features/feed/feed_reconciliation_test.dart test/features/home/home_gallery_feed_utils_test.dart test/features/feed/feed_upload_queue_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-28 Feed Upload Queue Event Module)
 - [x] Add a pure feed-upload event derivation Module so callers consume meaningful transitions instead of rescanning queue state.
 - [x] Update Home to consume queue events and remain the only owner that acknowledges completed/failed jobs.

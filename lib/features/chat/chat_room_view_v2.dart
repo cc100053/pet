@@ -33,6 +33,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_ui_scale.dart';
 import '../../shared/ui/chat_emoji_picker_sheet.dart';
 import '../feed/feed_capture_view.dart';
+import '../feed/feed_reconciliation.dart';
 import '../feed/feed_upload_queue.dart';
 import '../pet/pet_animated_image.dart';
 import '../../shared/ui/cached_network_image_view.dart';
@@ -1247,11 +1248,20 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         continue;
       }
       if (message.type == 'image_feed' && incoming.type == 'image_feed') {
-        final optimisticClient = message.clientCreatedAt?.toIso8601String();
-        final incomingClient = incoming.clientCreatedAt?.toIso8601String();
+        final optimisticClient = message.clientCreatedAt;
         if (optimisticClient != null &&
-            incomingClient != null &&
-            optimisticClient == incomingClient) {
+            matchesFeedIdentity(
+              expectedRoomId: message.roomId,
+              expectedSenderId: message.senderId,
+              expectedCaption: message.caption,
+              expectedClientCreatedAt: optimisticClient,
+              roomId: incoming.roomId,
+              senderId: incoming.senderId,
+              caption: incoming.caption,
+              messageId: incoming.id,
+              clientCreatedAt: incoming.clientCreatedAt,
+              createdAt: incoming.createdAt,
+            )) {
           return message.id;
         }
       }

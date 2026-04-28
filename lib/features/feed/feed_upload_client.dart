@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/auth/session_utils.dart';
 import '../../shared/upload_limits.dart';
+import 'feed_reconciliation.dart';
 import 'feed_upload_models.dart';
 
 abstract class FeedUploadClient {
@@ -21,7 +22,6 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
 
   static const int _feedCompressionTargetBytes = 5 * 1024 * 1024;
   static const int _feedCompressionMinBytesToAttempt = 512 * 1024;
-  static const Duration _clientCreatedAtTolerance = Duration(seconds: 2);
   static const List<_FeedCompressionProfile> _feedCompressionProfiles =
       <_FeedCompressionProfile>[
         _FeedCompressionProfile(maxDimension: 2048, quality: 90),
@@ -41,9 +41,11 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
   Future<FeedUploadResult?> findCompletedUpload(FeedUploadJob job) async {
     final createdAt = job.clientCreatedAt.toUtc();
     final lower = createdAt
-        .subtract(_clientCreatedAtTolerance)
+        .subtract(kFeedClientCreatedAtTolerance)
         .toIso8601String();
-    final upper = createdAt.add(_clientCreatedAtTolerance).toIso8601String();
+    final upper = createdAt
+        .add(kFeedClientCreatedAtTolerance)
+        .toIso8601String();
     final rows = await _client
         .from('messages')
         .select(
@@ -59,8 +61,18 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
 
     for (final row in rows) {
       final map = Map<String, dynamic>.from(row);
-      if (_normalizeCaption(map['caption'] as String?) !=
-          _normalizeCaption(job.caption)) {
+      if (!matchesFeedIdentity(
+        expectedRoomId: job.roomId,
+        expectedSenderId: job.senderId,
+        expectedCaption: job.caption,
+        expectedClientCreatedAt: job.clientCreatedAt,
+        roomId: job.roomId,
+        senderId: job.senderId,
+        caption: map['caption'] as String?,
+        messageId: map['id'] as String?,
+        clientCreatedAt: parseFeedDate(map['client_created_at']),
+        createdAt: parseFeedDate(map['created_at']),
+      )) {
         continue;
       }
       final imageUrl = map['image_url'] as String?;
@@ -367,11 +379,6 @@ class _FeedCompressionProfile {
 
   final int maxDimension;
   final int quality;
-}
-
-String _normalizeCaption(String? caption) {
-  final normalized = caption?.trim();
-  return normalized == null || normalized.isEmpty ? '' : normalized;
 }
 
 int _parseInt(dynamic value) {

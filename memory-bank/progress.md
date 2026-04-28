@@ -46,7 +46,9 @@ Active progress stays current-state focused. Full snapshots:
 - Feed uploads run through the durable Hive/Riverpod queue. The queue derives
   one-shot upload transition events from state changes; Home owns global
   completion/failure refresh and acknowledges terminal jobs, while Chat consumes
-  those events only for local optimistic row reconciliation.
+  those events only for local optimistic row reconciliation. Upload resume,
+  Home realtime feed reconciliation, and Chat optimistic image-feed replacement
+  share the feed identity matcher in `lib/features/feed/feed_reconciliation.dart`.
 - Force-update, What's New, crash fallback, and ATT-aware AdMob flows are all
   separate. iOS debug banner `AdWidget`s remain disabled by default unless
   `ADMOB_ENABLE_DEBUG_BANNER_VIEWS=true` is set for intentional testing.
