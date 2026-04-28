@@ -1,5 +1,5 @@
 import 'package:pet/l10n/app_localizations.dart';
-import 'package:pet/shared/force_update/update_policy.dart';
+import 'package:pet/shared/compatibility/shared_decor_compatibility.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../shop_item_localization.dart';
@@ -77,16 +77,10 @@ class ShopItem {
   String? get previewAssetPath => equipmentAssetPath ?? furnitureAssetPath;
 
   bool isSupportedOnAppVersion(String? appVersion) {
-    final requiredVersion = minAppVersion?.trim();
-    if (requiredVersion == null || requiredVersion.isEmpty) {
-      return true;
-    }
-    final currentVersion = appVersion?.trim();
-    if (currentVersion == null || currentVersion.isEmpty) {
-      return false;
-    }
-    return AppUpdatePolicy.compareVersions(currentVersion, requiredVersion) >=
-        0;
+    return SharedDecorCompatibility.canUseShopItem(
+      minAppVersion: minAppVersion,
+      appVersion: appVersion,
+    );
   }
 
   bool get isRecoveryLetter {

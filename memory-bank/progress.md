@@ -15,6 +15,8 @@ Active progress stays current-state focused. Full snapshots:
 - Shared room content is mixed-version aware. Backgrounds, furniture, and pets
   must use version-gated visibility plus old-client fallback behavior. Use
   `.codex/skills/shared-item-rollout/SKILL.md` for future rollouts.
+  `SharedDecorCompatibility` now centralizes app-version support, render
+  eligibility, and room compatibility prompt decisions for shared decor/pets.
 - Pet dress-up is live for app `1.3.0`. The repo Supabase project has the live
   `pet_equipment` table/RPCs and version-gated straw hat catalog row; Home,
   status/avatar surfaces, inventory previews, and Shop all use the shared

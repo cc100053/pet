@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-28 Shared Decor Compatibility Module)
+- [x] Add a pure shared decor compatibility Module for pet, background, furniture, and prompt decisions.
+- [x] Route Home, `PetCatalog`, `ShopItem`, and room furniture catalog checks through the Module without changing version gates or old-client fallback behavior.
+- [x] Add focused tests for version support, unsupported pet fallback, background render support, furniture inventory filtering, and prompt-state/key derivation.
+- [x] Update active memory-bank notes if the compatibility architecture contract changes.
+- [x] Run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-28 Shared Decor Compatibility Module)
+- [x] Implemented.
+- Scope:
+  - Added `lib/shared/compatibility/shared_decor_compatibility.dart` as the pure Module for shared app-version support, pet/background/furniture render eligibility, and room compatibility prompt state/key derivation.
+  - Routed `ShopItem`, `PetCatalog`, Home background/furniture support checks, and room furniture catalog hydration through the Module.
+  - Preserved current behavior: unsupported shared pets still fall back to the default pet, unsupported active backgrounds fall back through the existing default background path, unsupported placed furniture is skipped, and prompt keys keep the same string shape.
+  - Updated active memory notes for the shared decor compatibility contract.
+- Verification:
+  - `dart format lib/shared/compatibility/shared_decor_compatibility.dart lib/features/shop/models/shop_item.dart lib/features/pet/pet_catalog.dart lib/features/home/home_furniture_inventory_utils.dart lib/features/home/home_view.dart test/shared/compatibility/shared_decor_compatibility_test.dart`
+  - `flutter test test/shared/compatibility/shared_decor_compatibility_test.dart test/features/pet/pet_catalog_test.dart test/features/shop/shop_item_compatibility_test.dart test/features/home/home_furniture_inventory_utils_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-28 Economy RPC Adapter Seam)
 - [x] Add a typed economy purchase Adapter for Shop RPC calls and response parsing.
 - [x] Route coin/diamond item purchases, room background/furniture purchases, and IAP currency grants through the Adapter without changing RPC params or old-client-visible behavior.
@@ -27,7 +47,7 @@
   - Target shape: a typed economy purchase Module with a small Interface for coin/diamond item purchases, room background/furniture purchases, IAP grants, balance/inventory deltas, and optional purchase notification message ids.
   - Keep behavior unchanged first; use a Supabase-backed Adapter plus fake Adapter tests. Do not change RPC params or old-client-visible behavior without explicit approval.
   - Suggested first tests: parse purchase RPC result variants, update candy/diamond balances, update background/furniture inventory, expose `messageId` for notification, and surface typed failures.
-- [ ] Alternative next candidate if Shop scope is too large: **Shared Decor Compatibility Module**.
+- [x] Alternative next candidate if Shop scope is too large: **Shared Decor Compatibility Module**.
   - Current friction: mixed-version rules for backgrounds, furniture, pets, fallbacks, unsupported counts, and update prompts are split across Home maps, `ShopItem`, `RoomBackgrounds`, and `PetCatalog`.
   - Target shape: one pure Module that answers what a given app version can render, buy, place, and prompt for.
 - [ ] Lower-risk follow-up: **Shared Animation Timeline Module** for `PetFrameSequence` and `PetMotionTrack` cumulative-duration sampling.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
-import '../../shared/force_update/update_policy.dart';
+import '../../shared/compatibility/shared_decor_compatibility.dart';
 import '../../shared/theme/app_theme.dart';
 
 class PetDefinition {
@@ -30,15 +30,10 @@ class PetDefinition {
   final String? minAppVersion;
 
   bool isSupportedOnAppVersion(String? appVersion) {
-    final minimum = minAppVersion?.trim();
-    if (minimum == null || minimum.isEmpty) {
-      return true;
-    }
-    final current = appVersion?.trim();
-    if (current == null || current.isEmpty) {
-      return false;
-    }
-    return AppUpdatePolicy.compareVersions(current, minimum) >= 0;
+    return SharedDecorCompatibility.supportsAppVersion(
+      minAppVersion: minAppVersion,
+      appVersion: appVersion,
+    );
   }
 }
 
@@ -125,10 +120,11 @@ class PetCatalog {
 
   static bool supportsIdOnAppVersion(String? id, String? appVersion) {
     final pet = _byIdOrNull(id);
-    if (pet == null) {
-      return false;
-    }
-    return pet.isSupportedOnAppVersion(appVersion);
+    return SharedDecorCompatibility.canRenderPet(
+      petExists: pet != null,
+      minAppVersion: pet?.minAppVersion,
+      appVersion: appVersion,
+    );
   }
 
   static PetDefinition byIdForAppVersion(String? id, {String? appVersion}) {

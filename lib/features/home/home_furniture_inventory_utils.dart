@@ -1,3 +1,4 @@
+import '../../shared/compatibility/shared_decor_compatibility.dart';
 import '../shop/models/shop_item.dart';
 
 Map<String, ShopItem> buildRoomFurnitureCatalog({
@@ -9,10 +10,11 @@ Map<String, ShopItem> buildRoomFurnitureCatalog({
   final catalog = <String, ShopItem>{};
 
   void addIfUsable(ShopItem item, {required bool requireOwned}) {
-    if (!item.isFurniture) {
-      return;
-    }
-    if (!item.isSupportedOnAppVersion(appVersion)) {
+    if (!SharedDecorCompatibility.canRenderFurniture(
+      isFurniture: item.isFurniture,
+      minAppVersion: item.minAppVersion,
+      appVersion: appVersion,
+    )) {
       return;
     }
     if (requireOwned && (inventory[item.id] ?? 0) <= 0) {

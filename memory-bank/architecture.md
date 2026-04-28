@@ -33,7 +33,10 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
 - Home/Profile share `ProfileBootstrapService` for profile creation and timezone sync.
 - Shared room content must be mixed-version safe: version-gate new decor/pets,
   fall back unsupported backgrounds/pets, hide unsupported furniture, and reuse
-  the one-shot room compatibility prompt.
+  the one-shot room compatibility prompt. The pure
+  `SharedDecorCompatibility` Module owns shared app-version support, render
+  eligibility, and prompt-state/key decisions used by Shop items, PetCatalog,
+  Home background/furniture rendering, and room compatibility prompts.
 - Pet dress-up uses widget-layer equipment overlays on top of rendered pet
   animation frames. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
   and optional per-pet/per-state fit overrides live in `EquipmentCatalog`, and shared

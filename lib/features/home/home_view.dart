@@ -38,8 +38,9 @@ import '../../services/settings/app_settings_repository.dart';
 
 import '../../services/label_mapping/label_mapping_service.dart';
 import '../../services/performance/memory_diagnostics_service.dart';
-import '../../shared/errors/user_facing_error.dart';
+import '../../shared/compatibility/shared_decor_compatibility.dart';
 import '../../shared/debug/memory_diagnostics_sheet.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -3918,10 +3919,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   bool _supportsBackgroundItem(ShopItem item) {
-    if (!item.isSupportedOnAppVersion(_currentAppVersion)) {
-      return false;
-    }
-    return RoomBackgrounds.supportsKey(item.backgroundKey);
+    return SharedDecorCompatibility.canRenderBackground(
+      isBackground: item.isBackground,
+      minAppVersion: item.minAppVersion,
+      appVersion: _currentAppVersion,
+      backgroundKeySupported: RoomBackgrounds.supportsKey(item.backgroundKey),
+    );
   }
 
   bool _supportsPlacedFurniture(Map<String, dynamic>? itemData) {
@@ -3929,32 +3932,32 @@ class _HomeViewState extends ConsumerState<HomeView>
       return false;
     }
     final item = ShopItem.fromJson(itemData);
-    if (!item.isFurniture) {
-      return false;
-    }
-    return item.isSupportedOnAppVersion(_currentAppVersion);
+    return SharedDecorCompatibility.canRenderFurniture(
+      isFurniture: item.isFurniture,
+      minAppVersion: item.minAppVersion,
+      appVersion: _currentAppVersion,
+    );
   }
 
   Future<void> _maybePromptForUnsupportedRoomDecor(String roomId) async {
     if (!mounted || _roomId != roomId || _decorCompatibilityPromptShowing) {
       return;
     }
-    final hasUnsupportedPet = _unsupportedPetTypesByRoom.containsKey(roomId);
-    final unsupportedBackgroundIds =
-        _unsupportedBackgroundItemIdsByRoom[roomId] ?? const <String>{};
-    final activeBackgroundId = _activeBackgroundByRoom[roomId];
-    final hasUnsupportedBackground =
-        activeBackgroundId != null &&
-        unsupportedBackgroundIds.contains(activeBackgroundId);
-    final hasUnsupportedFurniture =
-        (_unsupportedPlacedFurnitureCountByRoom[roomId] ?? 0) > 0;
-    if (!hasUnsupportedPet &&
-        !hasUnsupportedBackground &&
-        !hasUnsupportedFurniture) {
+    final promptState = SharedDecorCompatibility.promptState(
+      unsupportedPetType: _unsupportedPetTypesByRoom[roomId],
+      unsupportedBackgroundItemIds:
+          _unsupportedBackgroundItemIdsByRoom[roomId] ?? const <String>{},
+      activeBackgroundItemId: _activeBackgroundByRoom[roomId],
+      unsupportedPlacedFurnitureCount:
+          _unsupportedPlacedFurnitureCountByRoom[roomId] ?? 0,
+    );
+    if (!promptState.shouldPrompt) {
       return;
     }
-    final promptKey =
-        '$roomId:${_currentAppVersion ?? 'unknown'}:${hasUnsupportedPet ? 'pet' : 'no-pet'}:${hasUnsupportedBackground ? 'bg' : 'no-bg'}:${hasUnsupportedFurniture ? 'furniture' : 'no-furniture'}';
+    final promptKey = promptState.keyFor(
+      roomId: roomId,
+      appVersion: _currentAppVersion,
+    );
     if (_shownDecorCompatibilityPromptKeys.contains(promptKey)) {
       return;
     }
