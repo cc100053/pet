@@ -44,8 +44,9 @@ Active progress stays current-state focused. Full snapshots:
 - Shop purchases and IAP currency grants now use `EconomyPurchaseAdapter` for
   Supabase RPC invocation and response parsing. `ShopEconomyState` applies
   typed candy/diamond/inventory/background deltas, IAP grant balance updates,
-  and reward feedback flags, while the view layer owns success/error UI,
-  analytics, and purchase notification side effects.
+  and reward feedback flags. `ShopPurchaseNotifier` owns best-effort
+  `notify_friend` delivery for store purchase messages, while the view layer
+  owns success/error UI, analytics, and when notification delivery is requested.
 - Furniture editing supports tap-select, drag, scale controls, and per-instance
   horizontal flip, with shared owned counts refreshed through
   `room_item_inventory_revisions` realtime signals.

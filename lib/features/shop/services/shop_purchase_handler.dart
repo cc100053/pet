@@ -195,7 +195,12 @@ extension _ShopPurchaseHandler on _ShopViewState {
     if (messageId == null || messageId.isEmpty) {
       return;
     }
-    unawaited(_notifyStorePurchase(roomId: roomId, messageId: messageId));
+    unawaited(
+      _purchaseNotifier.notifyStorePurchase(
+        roomId: roomId,
+        messageId: messageId,
+      ),
+    );
   }
 
   Future<bool> _purchaseItem(ShopItem item) async {
@@ -398,31 +403,5 @@ extension _ShopPurchaseHandler on _ShopViewState {
     _applyPurchaseResult(item, result);
     _notifyPurchaseIfNeeded(roomId: roomId, result: result);
     return true;
-  }
-
-  Future<void> _notifyStorePurchase({
-    required String roomId,
-    required String messageId,
-  }) async {
-    try {
-      final accessToken = await ensureValidAccessToken();
-      if (accessToken == null) {
-        return;
-      }
-      final response = await Supabase.instance.client.functions.invoke(
-        'notify_friend',
-        headers: {'Authorization': 'Bearer $accessToken'},
-        body: {
-          'type': 'store_purchase',
-          'room_id': roomId,
-          'message_id': messageId,
-        },
-      );
-      if (response.status < 200 || response.status >= 300) {
-        return;
-      }
-    } catch (_) {
-      // Notification delivery should not block store purchase success.
-    }
   }
 }

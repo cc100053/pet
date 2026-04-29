@@ -14,7 +14,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../ads/admob_banner_slot.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/audio/app_sfx.dart';
-import '../../services/auth/session_utils.dart';
 import '../../services/env.dart';
 import '../../services/ads/admob_ids.dart';
 import '../../services/iap/revenuecat_service.dart';
@@ -29,6 +28,7 @@ import '../pet/pet_departure.dart';
 import 'models/shop_item.dart';
 import 'services/economy_purchase_adapter.dart';
 import 'services/shop_economy_state.dart';
+import 'services/shop_purchase_notifier.dart';
 import 'widgets/shop_legal_links_row.dart';
 import 'widgets/shop_item_visual.dart';
 
@@ -128,6 +128,7 @@ class _ShopViewState extends State<ShopView> {
   final RevenueCatService _revenueCatService = RevenueCatService();
   final EconomyPurchaseAdapter _economyPurchaseAdapter =
       SupabaseEconomyPurchaseAdapter();
+  final ShopPurchaseNotifier _purchaseNotifier = SupabaseShopPurchaseNotifier();
   static const Duration _storeShortageNoticeDuration = Duration(
     milliseconds: 2200,
   );

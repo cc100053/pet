@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-29 Shop Purchase Notification Adapter)
+- [x] Add a `ShopPurchaseNotifier` Module for best-effort store purchase notification delivery through `notify_friend`.
+- [x] Route `ShopView` purchase notification dispatch through the notifier without changing payload shape, auth refresh behavior, or non-blocking failure semantics.
+- [x] Add focused notifier tests for delivered, missing token, non-2xx, and thrown delivery cases.
+- [x] Update active memory-bank notes if the Shop economy architecture contract changes.
+- [x] Run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-29 Shop Purchase Notification Adapter)
+- [x] Implemented.
+- Scope:
+  - Added `lib/features/shop/services/shop_purchase_notifier.dart` with `ShopPurchaseNotifier`, a Supabase-backed Adapter, injectable auth/function seams, and explicit best-effort delivery outcomes.
+  - Routed Shop purchase notification dispatch through the notifier while preserving the `notify_friend` function name, `store_purchase` payload shape, bearer-token refresh behavior, and non-blocking failure semantics.
+  - Removed direct `notify_friend` delivery mechanics from `ShopView` purchase handling; the view now only decides when a purchase notification should be requested.
+  - Updated active memory notes for the Shop purchase notification contract.
+- Verification:
+  - `dart format lib/features/shop/services/shop_purchase_notifier.dart lib/features/shop/shop_view.dart lib/features/shop/services/shop_purchase_handler.dart test/features/shop/shop_purchase_notifier_test.dart`
+  - `flutter test test/features/shop/shop_purchase_notifier_test.dart test/features/shop/economy_purchase_adapter_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-29 Shop IAP Grant State Delta Module)
 - [x] Extend the pure Shop economy state Module so IAP coin/diamond grants apply through the same state-delta seam as purchases.
 - [x] Route `_grantIapCoins` and `_grantIapDiamonds` through the Module without changing RevenueCat purchase flow, RPC params, success/error UI, analytics, or entitlement behavior.

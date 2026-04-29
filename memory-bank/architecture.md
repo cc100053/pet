@@ -62,8 +62,10 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   `room_item_inventories` remains for compatibility.
 - Shop economy RPC names, params, and result parsing are concentrated behind
   `EconomyPurchaseAdapter`; typed purchase-result and IAP grant balance deltas
-  are applied by `ShopEconomyState`. `ShopView` still owns UI notices,
-  analytics, IAP orchestration, and purchase notification dispatch.
+  are applied by `ShopEconomyState`. `ShopPurchaseNotifier` owns best-effort
+  `notify_friend` delivery for store purchase messages. `ShopView` still owns
+  UI notices, analytics, IAP orchestration, and when notification delivery is
+  requested.
 - Furniture transform persistence prefers additive RPCs:
   `update_room_furniture_transform(...)` and `update_room_furniture_flip(...)`,
   with legacy transform fallbacks where needed.
