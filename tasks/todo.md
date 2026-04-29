@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-29 Shop Economy State Delta Module)
+- [x] Add a pure Shop economy state Module for applying typed purchase results to balances, inventory, background ownership, and reward feedback.
+- [x] Route `ShopView` purchase handling through the Module without changing RPC params, UI notices, analytics, notification dispatch, or old-client-visible behavior.
+- [x] Add focused state-delta tests for candy/diamond balances, resolved room inventory quantity, background ownership, and coin-reward feedback.
+- [x] Update active memory-bank notes if the Shop economy architecture contract changes.
+- [x] Run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-29 Shop Economy State Delta Module)
+- [x] Implemented.
+- Scope:
+  - Added `lib/features/shop/services/shop_economy_state.dart` as the pure Module for applying typed purchase-result deltas to candy, diamonds, inventory, owned room backgrounds, and candy-reward feedback flags.
+  - Routed `ShopView` purchase state mutation through `ShopEconomyState` while preserving RPC params, success/error UI, analytics, notification dispatch, and old-client-visible behavior.
+  - Added focused state-delta tests for coin and diamond balance changes, room-total inventory quantity preference, background ownership, coin-reward feedback events, and immutable caller-owned inputs.
+  - Updated active memory notes for the Shop economy state contract.
+- Verification:
+  - `dart format lib/features/shop/services/shop_economy_state.dart lib/features/shop/shop_view.dart lib/features/shop/services/shop_purchase_handler.dart test/features/shop/shop_economy_state_test.dart`
+  - `flutter test test/features/shop/shop_economy_state_test.dart test/features/shop/economy_purchase_adapter_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-28 Shared Animation Timeline Module)
 - [x] Add a pure animation timeline sampler for cumulative-duration frame lookup.
 - [x] Route `PetFrameSequence` and `PetMotionTrack` through the sampler without changing frame/progress behavior.

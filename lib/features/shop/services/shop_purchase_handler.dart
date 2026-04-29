@@ -154,33 +154,37 @@ extension _ShopPurchaseHandler on _ShopViewState {
     return false;
   }
 
-  void _applyPurchaseResult(ShopItem item, EconomyPurchaseResult result) {
+  ShopEconomyStatePurchaseChange _applyPurchaseResult(
+    ShopItem item,
+    EconomyPurchaseResult result,
+  ) {
+    final change =
+        ShopEconomyState(
+          coins: _coins,
+          diamonds: _diamonds,
+          inventory: _inventory,
+          ownedBackgroundIds: _roomBackgroundOwned,
+          coinReward: _coinReward,
+          coinRewardEventId: _coinRewardEventId,
+        ).applyPurchaseResult(
+          itemId: item.id,
+          isBackground: item.isBackground,
+          result: result,
+        );
     _setStoreState(() {
-      final remainingCoins = result.remainingCoins;
-      if (remainingCoins != null) {
-        _coins = remainingCoins;
-      }
-      final remainingDiamonds = result.remainingDiamonds;
-      if (remainingDiamonds != null) {
-        _diamonds = remainingDiamonds;
-      }
-      final inventoryQuantity = result.resolvedInventoryQuantity;
-      if (inventoryQuantity != null) {
-        _inventory[item.id] = inventoryQuantity;
-      }
-      final coinBalance = result.coinBalance;
-      if (coinBalance != null) {
-        _coins = coinBalance;
-        final coinGain = result.coinGain;
-        if (coinGain != null && coinGain > 0) {
-          _coinReward = coinGain;
-          _coinRewardEventId += 1;
-        }
-      }
-      if (item.isBackground && !result.backgroundAlreadyOwned) {
-        _roomBackgroundOwned.add(item.id);
-      }
+      final state = change.state;
+      _coins = state.coins;
+      _diamonds = state.diamonds;
+      _inventory
+        ..clear()
+        ..addAll(state.inventory);
+      _roomBackgroundOwned
+        ..clear()
+        ..addAll(state.ownedBackgroundIds);
+      _coinReward = state.coinReward;
+      _coinRewardEventId = state.coinRewardEventId;
     });
+    return change;
   }
 
   void _notifyPurchaseIfNeeded({
@@ -317,9 +321,8 @@ extension _ShopPurchaseHandler on _ShopViewState {
           itemId: item.id,
           previousCoinBalance: _coins,
         );
-        _applyPurchaseResult(item, result);
-        final coinGain = result.coinGain;
-        if (coinGain != null && coinGain > 0) {
+        final change = _applyPurchaseResult(item, result);
+        if (change.shouldPlayCoinGainSfx) {
           unawaited(AppSfx.playCandyGain());
         }
       }

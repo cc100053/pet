@@ -28,6 +28,7 @@ import '../home/room_backgrounds.dart';
 import '../pet/pet_departure.dart';
 import 'models/shop_item.dart';
 import 'services/economy_purchase_adapter.dart';
+import 'services/shop_economy_state.dart';
 import 'widgets/shop_legal_links_row.dart';
 import 'widgets/shop_item_visual.dart';
 
