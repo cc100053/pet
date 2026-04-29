@@ -1,5 +1,25 @@
 # TODO
 
+# Plan (2026-04-29 Shop IAP Grant State Delta Module)
+- [x] Extend the pure Shop economy state Module so IAP coin/diamond grants apply through the same state-delta seam as purchases.
+- [x] Route `_grantIapCoins` and `_grantIapDiamonds` through the Module without changing RevenueCat purchase flow, RPC params, success/error UI, analytics, or entitlement behavior.
+- [x] Add focused state-delta tests for IAP coin grants, diamond grants, and missing grant balances.
+- [x] Update active memory-bank notes if the Shop economy architecture contract changes.
+- [x] Run `dart format`, focused tests, `flutter analyze`, and `flutter test`.
+
+# Review (2026-04-29 Shop IAP Grant State Delta Module)
+- [x] Implemented.
+- Scope:
+  - Extended `ShopEconomyState` with `applyIapGrantResult(...)` for typed candy/diamond grant balance deltas and explicit no-op handling when the grant response omits a balance.
+  - Routed `_grantIapCoins` and `_grantIapDiamonds` through the state Module while preserving RevenueCat purchase orchestration, grant RPC params, entitlement updates, success/error UI, and analytics behavior.
+  - Added focused state-delta tests for IAP coin grants, diamond grants, and omitted grant balances.
+  - Updated active memory notes for the Shop economy state contract.
+- Verification:
+  - `dart format lib/features/shop/services/shop_economy_state.dart lib/features/shop/services/shop_iap_service.dart test/features/shop/shop_economy_state_test.dart`
+  - `flutter test test/features/shop/shop_economy_state_test.dart test/features/shop/economy_purchase_adapter_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-29 Shop Economy State Delta Module)
 - [x] Add a pure Shop economy state Module for applying typed purchase results to balances, inventory, background ownership, and reward feedback.
 - [x] Route `ShopView` purchase handling through the Module without changing RPC params, UI notices, analytics, notification dispatch, or old-client-visible behavior.

@@ -1,5 +1,7 @@
 import 'economy_purchase_adapter.dart';
 
+enum ShopEconomyGrantCurrency { coins, diamonds }
+
 class ShopEconomyState {
   ShopEconomyState({
     required this.coins,
@@ -72,6 +74,30 @@ class ShopEconomyState {
       coinGainForFeedback: coinGainForFeedback,
     );
   }
+
+  ShopEconomyStateGrantChange applyIapGrantResult({
+    required ShopEconomyGrantCurrency currency,
+    required EconomyIapGrantResult result,
+  }) {
+    final newBalance = result.newBalance;
+    if (newBalance == null) {
+      return ShopEconomyStateGrantChange(state: this, balanceApplied: false);
+    }
+
+    return ShopEconomyStateGrantChange(
+      state: ShopEconomyState(
+        coins: currency == ShopEconomyGrantCurrency.coins ? newBalance : coins,
+        diamonds: currency == ShopEconomyGrantCurrency.diamonds
+            ? newBalance
+            : diamonds,
+        inventory: inventory,
+        ownedBackgroundIds: ownedBackgroundIds,
+        coinReward: coinReward,
+        coinRewardEventId: coinRewardEventId,
+      ),
+      balanceApplied: true,
+    );
+  }
 }
 
 class ShopEconomyStatePurchaseChange {
@@ -84,4 +110,14 @@ class ShopEconomyStatePurchaseChange {
   final int? coinGainForFeedback;
 
   bool get shouldPlayCoinGainSfx => coinGainForFeedback != null;
+}
+
+class ShopEconomyStateGrantChange {
+  const ShopEconomyStateGrantChange({
+    required this.state,
+    required this.balanceApplied,
+  });
+
+  final ShopEconomyState state;
+  final bool balanceApplied;
 }

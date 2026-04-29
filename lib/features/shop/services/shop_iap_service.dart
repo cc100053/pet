@@ -250,10 +250,21 @@ extension _ShopIapService on _ShopViewState {
       transactionId: transactionId,
     );
 
-    final newBalance = grant.newBalance;
-    if (newBalance != null) {
+    final change =
+        ShopEconomyState(
+          coins: _coins,
+          diamonds: _diamonds,
+          inventory: _inventory,
+          ownedBackgroundIds: _roomBackgroundOwned,
+          coinReward: _coinReward,
+          coinRewardEventId: _coinRewardEventId,
+        ).applyIapGrantResult(
+          currency: ShopEconomyGrantCurrency.coins,
+          result: grant,
+        );
+    if (change.balanceApplied) {
       _setStoreState(() {
-        _coins = newBalance;
+        _coins = change.state.coins;
       });
     }
   }
@@ -277,10 +288,21 @@ extension _ShopIapService on _ShopViewState {
       transactionId: transactionId,
     );
 
-    final newBalance = grant.newBalance;
-    if (newBalance != null) {
+    final change =
+        ShopEconomyState(
+          coins: _coins,
+          diamonds: _diamonds,
+          inventory: _inventory,
+          ownedBackgroundIds: _roomBackgroundOwned,
+          coinReward: _coinReward,
+          coinRewardEventId: _coinRewardEventId,
+        ).applyIapGrantResult(
+          currency: ShopEconomyGrantCurrency.diamonds,
+          result: grant,
+        );
+    if (change.balanceApplied) {
       _setStoreState(() {
-        _diamonds = newBalance;
+        _diamonds = change.state.diamonds;
       });
     }
   }

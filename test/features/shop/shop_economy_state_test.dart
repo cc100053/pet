@@ -119,6 +119,45 @@ void main() {
       expect(inventory, {'item-a': 1});
       expect(backgrounds, {'background-a'});
     });
+
+    test('applies IAP coin grant balance', () {
+      final state = _state(coins: 100, diamonds: 9);
+
+      final change = state.applyIapGrantResult(
+        currency: ShopEconomyGrantCurrency.coins,
+        result: const EconomyIapGrantResult(newBalance: 1500),
+      );
+
+      expect(change.balanceApplied, isTrue);
+      expect(change.state.coins, 1500);
+      expect(change.state.diamonds, 9);
+    });
+
+    test('applies IAP diamond grant balance', () {
+      final state = _state(coins: 100, diamonds: 9);
+
+      final change = state.applyIapGrantResult(
+        currency: ShopEconomyGrantCurrency.diamonds,
+        result: const EconomyIapGrantResult(newBalance: 42),
+      );
+
+      expect(change.balanceApplied, isTrue);
+      expect(change.state.coins, 100);
+      expect(change.state.diamonds, 42);
+    });
+
+    test('keeps balances unchanged when IAP grant omits balance', () {
+      final state = _state(coins: 100, diamonds: 9);
+
+      final change = state.applyIapGrantResult(
+        currency: ShopEconomyGrantCurrency.coins,
+        result: const EconomyIapGrantResult(),
+      );
+
+      expect(change.balanceApplied, isFalse);
+      expect(change.state.coins, 100);
+      expect(change.state.diamonds, 9);
+    });
   });
 }
 
