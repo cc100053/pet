@@ -3296,6 +3296,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'💡 New Feature Request: share your ideas directly from the app'**
   String get whatsNew120Bullet3;
+
+  /// No description provided for @whatsNew130Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet Dress-Up Arrives'**
+  String get whatsNew130Title;
+
+  /// No description provided for @whatsNew130Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Dress up your pet with new equipment.'**
+  String get whatsNew130Bullet1;
+
+  /// No description provided for @whatsNew130Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'The straw hat is now available in the Shop.'**
+  String get whatsNew130Bullet2;
+
+  /// No description provided for @whatsNew130Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet previews and room inventory are smoother and clearer.'**
+  String get whatsNew130Bullet3;
 }
 
 class _AppLocalizationsDelegate

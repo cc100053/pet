@@ -1788,4 +1788,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew120Bullet3 => '💡 機能リクエスト追加！アプリから直接アイデアを送れます';
+
+  @override
+  String get whatsNew130Title => 'ペット着せ替えが登場';
+
+  @override
+  String get whatsNew130Bullet1 => 'ペットに装備を着せ替えられるようになりました。';
+
+  @override
+  String get whatsNew130Bullet2 => 'ショップに麦わら帽子が登場しました。';
+
+  @override
+  String get whatsNew130Bullet3 => 'ペットのプレビューとルーム在庫がより見やすくなりました。';
 }

@@ -1,5 +1,29 @@
 # TODO
 
+# Plan (2026-04-30 v1.3.0 Release Notes)
+- [x] Read active memory-bank notes and release-note/ASC workflow skills.
+- [x] Add bundled v1.3.0 What's New catalog and localized ARB keys.
+- [x] Update App Store Connect localization `.strings` drafts for v1.3.0.
+- [x] Regenerate localizations and run required verification.
+- [x] Sync v1.3.0 version metadata to App Store Connect and verify.
+- [x] Record review summary.
+
+# Review (2026-04-30 v1.3.0 Release Notes)
+- [x] Implemented.
+- Scope:
+  - Added bundled in-app What's New entry for app version `1.3.0`.
+  - Added localized `whatsNew130*` ARB keys for English, Japanese, Korean, Traditional Chinese, and Simplified Chinese.
+  - Updated generated Flutter localization outputs.
+  - Updated local ASC version localization files for `promotionalText` and `whatsNew`, preserving existing description/support/marketing fields.
+  - Created App Store Connect version `1.3.0` (`7c5e1524-5dfa-45b9-86e6-01685d202256`) after `asc versions create` returned Apple `-50`; uploaded `promotionalText` and `whatsNew` via the App Store Connect API because `asc localizations upload` returned the same CLI error.
+  - Traditional Chinese release-note copy uses `寵物`, not `共享寵物`.
+- Verification:
+  - `flutter gen-l10n`: completed; existing ko/zh_TW untranslated-count warnings remain.
+  - `dart format lib/shared/whats_new/app_whats_new_catalog.dart lib/l10n/app_localizations.dart lib/l10n/app_localizations_en.dart lib/l10n/app_localizations_ja.dart lib/l10n/app_localizations_ko.dart lib/l10n/app_localizations_zh.dart`
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+  - ASC readback confirmed v1.3.0 in `PREPARE_FOR_SUBMISSION` and all four ASC locales have `Ver 1.3.0` release-note headers plus updated promotional text.
+
 # Plan (2026-04-30 Actual Pet Room Preview + Compact Inventory UI)
 - [x] Add room-selection equipped-pet preview data flow without changing Supabase schema/RPCs.
 - [x] Render room card pet previews with PNG frame playback and equipment overlays.

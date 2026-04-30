@@ -1799,4 +1799,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew120Bullet3 => '💡 기능 건의 추가! 앱에서 직접 아이디어를 제출하세요';
+
+  @override
+  String get whatsNew130Title => '펫 꾸미기 기능 등장';
+
+  @override
+  String get whatsNew130Bullet1 => '펫에게 장비를 착용시킬 수 있어요.';
+
+  @override
+  String get whatsNew130Bullet2 => '상점에 밀짚모자가 새로 추가되었습니다.';
+
+  @override
+  String get whatsNew130Bullet3 => '펫 미리보기와 방 인벤토리가 더 보기 쉬워졌어요.';
 }

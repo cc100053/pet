@@ -1852,4 +1852,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew120Bullet3 =>
       '💡 New Feature Request: share your ideas directly from the app';
+
+  @override
+  String get whatsNew130Title => 'Pet Dress-Up Arrives';
+
+  @override
+  String get whatsNew130Bullet1 => 'Dress up your pet with new equipment.';
+
+  @override
+  String get whatsNew130Bullet2 =>
+      'The straw hat is now available in the Shop.';
+
+  @override
+  String get whatsNew130Bullet3 =>
+      'Pet previews and room inventory are smoother and clearer.';
 }

@@ -7,6 +7,16 @@ class AppWhatsNewCatalog {
 
   static const List<AppWhatsNewEntry> entries = <AppWhatsNewEntry>[
     AppWhatsNewEntry(
+      version: '1.3.0',
+      titleBuilder: _version130Title,
+      bulletBuilders: <AppWhatsNewTextBuilder>[
+        _version130Bullet1,
+        _version130Bullet2,
+        _version130Bullet3,
+      ],
+      actionLabelBuilder: _continueLabel,
+    ),
+    AppWhatsNewEntry(
       version: '1.2.0',
       titleBuilder: _version120Title,
       bulletBuilders: <AppWhatsNewTextBuilder>[
@@ -19,9 +29,7 @@ class AppWhatsNewCatalog {
     AppWhatsNewEntry(
       version: '1.1.4',
       titleBuilder: _version114Title,
-      bulletBuilders: <AppWhatsNewTextBuilder>[
-        _version114Bullet1,
-      ],
+      bulletBuilders: <AppWhatsNewTextBuilder>[_version114Bullet1],
       actionLabelBuilder: _continueLabel,
     ),
     AppWhatsNewEntry(
@@ -95,7 +103,17 @@ class AppWhatsNewCatalog {
     return null;
   }
 
-  static String _version120Title(AppLocalizations l10n) => l10n.whatsNew120Title;
+  static String _version130Title(AppLocalizations l10n) =>
+      l10n.whatsNew130Title;
+  static String _version130Bullet1(AppLocalizations l10n) =>
+      l10n.whatsNew130Bullet1;
+  static String _version130Bullet2(AppLocalizations l10n) =>
+      l10n.whatsNew130Bullet2;
+  static String _version130Bullet3(AppLocalizations l10n) =>
+      l10n.whatsNew130Bullet3;
+
+  static String _version120Title(AppLocalizations l10n) =>
+      l10n.whatsNew120Title;
   static String _version120Bullet1(AppLocalizations l10n) =>
       l10n.whatsNew120Bullet1;
   static String _version120Bullet2(AppLocalizations l10n) =>
@@ -103,11 +121,13 @@ class AppWhatsNewCatalog {
   static String _version120Bullet3(AppLocalizations l10n) =>
       l10n.whatsNew120Bullet3;
 
-  static String _version114Title(AppLocalizations l10n) => l10n.whatsNew114Title;
+  static String _version114Title(AppLocalizations l10n) =>
+      l10n.whatsNew114Title;
   static String _version114Bullet1(AppLocalizations l10n) =>
       l10n.whatsNew114Bullet1;
 
-  static String _version113Title(AppLocalizations l10n) => l10n.whatsNew113Title;
+  static String _version113Title(AppLocalizations l10n) =>
+      l10n.whatsNew113Title;
   static String _version113Bullet1(AppLocalizations l10n) =>
       l10n.whatsNew113Bullet1;
   static String _version113Bullet2(AppLocalizations l10n) =>
@@ -115,7 +135,8 @@ class AppWhatsNewCatalog {
   static String _version113Bullet3(AppLocalizations l10n) =>
       l10n.whatsNew113Bullet3;
 
-  static String _version112Title(AppLocalizations l10n) => l10n.whatsNew112Title;
+  static String _version112Title(AppLocalizations l10n) =>
+      l10n.whatsNew112Title;
   static String _version112Bullet1(AppLocalizations l10n) =>
       l10n.whatsNew112Bullet1;
   static String _version112Bullet2(AppLocalizations l10n) =>
@@ -123,7 +144,8 @@ class AppWhatsNewCatalog {
   static String _version112Bullet3(AppLocalizations l10n) =>
       l10n.whatsNew112Bullet3;
 
-  static String _version111Title(AppLocalizations l10n) => l10n.whatsNew111Title;
+  static String _version111Title(AppLocalizations l10n) =>
+      l10n.whatsNew111Title;
   static String _version111Bullet1(AppLocalizations l10n) =>
       l10n.whatsNew111Bullet1;
   static String _version111Bullet2(AppLocalizations l10n) =>
@@ -131,7 +153,8 @@ class AppWhatsNewCatalog {
   static String _version111Bullet3(AppLocalizations l10n) =>
       l10n.whatsNew111Bullet3;
 
-  static String _version110Title(AppLocalizations l10n) => l10n.whatsNew110Title;
+  static String _version110Title(AppLocalizations l10n) =>
+      l10n.whatsNew110Title;
 
   static String _version110Bullet1(AppLocalizations l10n) =>
       l10n.whatsNew110Bullet1;
