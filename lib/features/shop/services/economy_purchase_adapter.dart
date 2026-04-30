@@ -25,6 +25,16 @@ abstract class EconomyPurchaseAdapter {
     required String itemId,
   });
 
+  Future<EconomyPurchaseResult> purchaseRoomEquipmentWithCoins({
+    required String roomId,
+    required String itemId,
+  });
+
+  Future<EconomyPurchaseResult> purchaseRoomEquipmentWithDiamonds({
+    required String roomId,
+    required String itemId,
+  });
+
   Future<EconomyPurchaseResult> purchaseRoomBackgroundWithCoins({
     required String roomId,
     required String itemId,
@@ -168,6 +178,38 @@ class SupabaseEconomyPurchaseAdapter implements EconomyPurchaseAdapter {
       inventoryQuantity: _intValue(row['new_quantity']),
       roomInventoryQuantity: _intValue(row['room_total_quantity']),
       purchaseNotificationMessageId: _nonEmptyString(row['message_id']),
+    );
+  }
+
+  @override
+  Future<EconomyPurchaseResult> purchaseRoomEquipmentWithCoins({
+    required String roomId,
+    required String itemId,
+  }) async {
+    final row = await _callRequiredResult(
+      'purchase_room_equipment_with_coins',
+      params: {'p_room_id': roomId, 'p_item_id': itemId},
+    );
+    return EconomyPurchaseResult(
+      remainingCoins: _intValue(row['remaining_coins']),
+      inventoryQuantity: _intValue(row['new_quantity']),
+      roomInventoryQuantity: _intValue(row['room_total_quantity']),
+    );
+  }
+
+  @override
+  Future<EconomyPurchaseResult> purchaseRoomEquipmentWithDiamonds({
+    required String roomId,
+    required String itemId,
+  }) async {
+    final row = await _callRequiredResult(
+      'purchase_room_equipment_with_diamonds',
+      params: {'p_room_id': roomId, 'p_item_id': itemId},
+    );
+    return EconomyPurchaseResult(
+      remainingDiamonds: _intValue(row['remaining_diamonds']),
+      inventoryQuantity: _intValue(row['new_quantity']),
+      roomInventoryQuantity: _intValue(row['room_total_quantity']),
     );
   }
 

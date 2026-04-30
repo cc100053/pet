@@ -38,7 +38,11 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   eligibility, and prompt-state/key decisions used by Shop items, PetCatalog,
   Home background/furniture rendering, and room compatibility prompts.
 - Pet dress-up uses widget-layer equipment overlays on top of rendered pet
-  animation frames. Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
+  animation frames. Equipment ownership and equip state are room-scoped:
+  Shop buys equipment through room equipment purchase RPCs,
+  Home loads available equipment through `get_room_equipment_inventory`, and
+  equipped slots are fetched with both `p_pet_id` and `p_room_id`.
+  Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
   and optional per-pet/per-state fit overrides live in `EquipmentCatalog`, and shared
   placement math keeps Home overlays and the admin fit tool aligned without
   legacy previews while production rendering moves to PNG sequences. App pet

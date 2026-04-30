@@ -18,9 +18,11 @@ Active progress stays current-state focused. Full snapshots:
   `SharedDecorCompatibility` now centralizes app-version support, render
   eligibility, and room compatibility prompt decisions for shared decor/pets.
 - Pet dress-up is live for app `1.3.0`. The repo Supabase project has the live
-  `pet_equipment` table/RPCs and version-gated straw hat catalog row; Home,
-  status/avatar surfaces, inventory previews, and Shop all use the shared
-  equipment/catalog pipeline.
+  room-scoped `pet_equipment` table/RPCs and version-gated straw hat catalog
+  row; Home, status/avatar surfaces, inventory previews, and Shop all use the
+  shared equipment/catalog pipeline. Equipment ownership and equip state are
+  scoped to the active room through `room_item_inventories`,
+  `get_room_equipment_inventory`, and room equipment purchase RPCs.
 - Pet rendering now prefers bundled PNG frame sequences across current pet/state
   surfaces. Runtime code resolves old GIF asset ids through
   `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`, so

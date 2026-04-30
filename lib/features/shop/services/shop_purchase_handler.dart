@@ -240,6 +240,19 @@ extension _ShopPurchaseHandler on _ShopViewState {
             .purchaseRoomFurnitureWithCoins(roomId: roomId, itemId: item.id);
         _applyPurchaseResult(item, result);
         _notifyPurchaseIfNeeded(roomId: roomId, result: result);
+      } else if (item.isEquipment) {
+        final roomId = widget.roomId;
+        if (roomId == null) {
+          showJuiceToast(
+            context: context,
+            message: AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+            tone: AppDialogTone.warning,
+          );
+          return false;
+        }
+        final result = await _economyPurchaseAdapter
+            .purchaseRoomEquipmentWithCoins(roomId: roomId, itemId: item.id);
+        _applyPurchaseResult(item, result);
       } else {
         final result = await _economyPurchaseAdapter.purchaseItemWithCoins(
           itemId: item.id,
@@ -252,7 +265,8 @@ extension _ShopPurchaseHandler on _ShopViewState {
       }
       _showPurchaseSuccessNotice(
         item: item,
-        showReturnToRoomAction: item.isFurniture || item.isBackground,
+        showReturnToRoomAction:
+            item.isFurniture || item.isBackground || item.isEquipment,
       );
       AnalyticsService.instance.logEvent(
         'purchase_coins',
@@ -321,6 +335,19 @@ extension _ShopPurchaseHandler on _ShopViewState {
             .purchaseRoomFurnitureWithDiamonds(roomId: roomId, itemId: item.id);
         _applyPurchaseResult(item, result);
         _notifyPurchaseIfNeeded(roomId: roomId, result: result);
+      } else if (item.isEquipment) {
+        final roomId = widget.roomId;
+        if (roomId == null) {
+          showJuiceToast(
+            context: context,
+            message: AppLocalizations.of(context)!.storeBackgroundRoomRequired,
+            tone: AppDialogTone.warning,
+          );
+          return false;
+        }
+        final result = await _economyPurchaseAdapter
+            .purchaseRoomEquipmentWithDiamonds(roomId: roomId, itemId: item.id);
+        _applyPurchaseResult(item, result);
       } else {
         final result = await _economyPurchaseAdapter.purchaseItemWithDiamonds(
           itemId: item.id,
@@ -337,7 +364,8 @@ extension _ShopPurchaseHandler on _ShopViewState {
       }
       _showPurchaseSuccessNotice(
         item: item,
-        showReturnToRoomAction: item.isFurniture || item.isBackground,
+        showReturnToRoomAction:
+            item.isFurniture || item.isBackground || item.isEquipment,
       );
       AnalyticsService.instance.logEvent(
         'purchase_diamonds',

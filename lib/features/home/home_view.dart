@@ -2107,7 +2107,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       final response = await Supabase.instance.client.rpc(
         'get_pet_equipment',
-        params: {'p_pet_id': resolvedPetId},
+        params: {'p_pet_id': resolvedPetId, 'p_room_id': expectedRoomId},
       );
       final equipped = <String, _EquippedPetItem>{};
       for (final row in response as List<dynamic>) {
@@ -2162,8 +2162,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _loadOwnedEquipment({bool silent = false}) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
+    final roomId = _roomId;
+    if (Supabase.instance.client.auth.currentUser == null || roomId == null) {
       if (mounted) {
         setState(() {
           _ownedEquipmentItems.clear();
@@ -2183,21 +2183,16 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
 
     try {
-      final response = await Supabase.instance.client
-          .from('inventories')
-          .select('item_id, quantity, items(*)')
-          .eq('user_id', userId)
-          .gt('quantity', 0);
+      final response = await Supabase.instance.client.rpc(
+        'get_room_equipment_inventory',
+        params: {'p_room_id': roomId},
+      );
       final items = <ShopItem>[];
       for (final row in response as List<dynamic>) {
         if (row is! Map<String, dynamic>) {
           continue;
         }
-        final itemData = row['items'] as Map<String, dynamic>?;
-        if (itemData == null) {
-          continue;
-        }
-        final item = ShopItem.fromJson(itemData);
+        final item = ShopItem.fromJson(row);
         if (!item.isEquipment) {
           continue;
         }

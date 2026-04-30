@@ -73,6 +73,56 @@ void main() {
       },
     );
 
+    test('parses room equipment coin purchase as room inventory', () async {
+      final rpc = _FakeRpc({
+        'purchase_room_equipment_with_coins': [
+          {'remaining_coins': 80, 'new_quantity': 1, 'room_total_quantity': 1},
+        ],
+      });
+      final adapter = SupabaseEconomyPurchaseAdapter(rpc: rpc.call);
+
+      final result = await adapter.purchaseRoomEquipmentWithCoins(
+        roomId: 'room-a',
+        itemId: 'hat-a',
+      );
+
+      expect(result.remainingCoins, 80);
+      expect(result.inventoryQuantity, 1);
+      expect(result.roomInventoryQuantity, 1);
+      expect(result.resolvedInventoryQuantity, 1);
+      expect(rpc.calls.single.rpcName, 'purchase_room_equipment_with_coins');
+      expect(rpc.calls.single.params, {
+        'p_room_id': 'room-a',
+        'p_item_id': 'hat-a',
+      });
+    });
+
+    test('parses room equipment diamond purchase as room inventory', () async {
+      final rpc = _FakeRpc({
+        'purchase_room_equipment_with_diamonds': {
+          'remaining_diamonds': 7,
+          'new_quantity': 1,
+          'room_total_quantity': 1,
+        },
+      });
+      final adapter = SupabaseEconomyPurchaseAdapter(rpc: rpc.call);
+
+      final result = await adapter.purchaseRoomEquipmentWithDiamonds(
+        roomId: 'room-a',
+        itemId: 'cape-a',
+      );
+
+      expect(result.remainingDiamonds, 7);
+      expect(result.inventoryQuantity, 1);
+      expect(result.roomInventoryQuantity, 1);
+      expect(result.resolvedInventoryQuantity, 1);
+      expect(rpc.calls.single.rpcName, 'purchase_room_equipment_with_diamonds');
+      expect(rpc.calls.single.params, {
+        'p_room_id': 'room-a',
+        'p_item_id': 'cape-a',
+      });
+    });
+
     test(
       'suppresses background notification message when already owned',
       () async {

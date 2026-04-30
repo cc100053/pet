@@ -1,5 +1,32 @@
 # TODO
 
+# Plan (2026-04-30 Room-Scoped Equipment)
+- [x] Confirm the current equipment ownership/equipped-state boundaries in Flutter and Supabase.
+- [x] Add a Supabase migration that scopes equipment ownership and equipment fetches to the active room without changing old generic purchase RPC signatures.
+- [x] Route Shop equipment purchases and Home equipment inventory loading through room-scoped APIs.
+- [x] Add focused regression coverage for the new room equipment purchase adapter behavior.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record the review summary and update active memory notes for the room-scoped equipment contract.
+
+# Review (2026-04-30 Room-Scoped Equipment)
+- [x] Implemented.
+- Root cause:
+  - Equipped rows had a `room_id`, but the active app still loaded owned equipment from user-wide `inventories` and bought equipment through generic item purchase RPCs, so equipment ownership could follow a user into other rooms.
+  - `get_pet_equipment` also accepted only `p_pet_id`, which left the room boundary implicit.
+- Scope:
+  - Added live/local migration `20260430090000_room_scoped_pet_equipment` with room equipment purchase RPCs, `get_room_equipment_inventory`, room-aware `get_pet_equipment`, room inventory enforcement in `equip_pet_item`, and `(room_id, pet_id, slot)` uniqueness.
+  - Backfilled currently equipped room equipment into `room_item_inventories` so existing equipped hats remain room-owned.
+  - Added a legacy compatibility path so `equip_pet_item` claims one old user-wide equipment inventory row into the active room before equipping, preventing old generic-purchase clients from failing while stopping future cross-room reuse.
+  - Updated Shop to show equipment inventory from the active room and purchase equipment through room-scoped RPCs.
+  - Updated Home to load available equipment from the active room and fetch equipped slots with both pet and room ids.
+  - Updated active memory notes for the room-scoped equipment contract.
+- Verification:
+  - Supabase MCP live check: latest migration is `20260430090000`; `pet_equipment_unique_room_pet_slot` is `UNIQUE (room_id, pet_id, slot)`.
+  - `dart format lib/features/shop/services/economy_purchase_adapter.dart lib/features/shop/shop_view.dart lib/features/home/home_view.dart lib/features/shop/services/shop_purchase_handler.dart test/features/shop/economy_purchase_adapter_test.dart`
+  - `flutter test test/features/shop/economy_purchase_adapter_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-30 Pet PNG Flashing)
 - [x] Trace PNG sequence playback from source GIF asset id through timeline sampling and widget rendering.
 - [x] Identify why pet action transitions can briefly flash after GIF-to-PNG migration.

@@ -40,11 +40,14 @@ migration that rewrites the object before proposing or applying changes.
   furniture/equipment `asset_path`, equipment `equipment_slot`,
   `visibility_mode`, `min_app_version`, `shop_visibility`, and fallback
   metadata.
-- `pet_equipment` stores one equipped item per `(pet_id, slot)` with room scope,
-  audit timestamps, and `equipped_by`; live slots are `head`, `body`, and
+- `pet_equipment` stores one equipped item per `(room_id, pet_id, slot)` with
+  audit timestamps and `equipped_by`; live slots are `head`, `body`, and
   `back`, and the table is on the `supabase_realtime` publication.
-- `room_item_inventories` is still buyer-attributed; shared furniture totals use
-  `get_room_furniture_inventory`.
+- `room_item_inventories` is still buyer-attributed. Shared furniture totals use
+  `get_room_furniture_inventory`; pet equipment ownership is also room-scoped
+  through `get_room_equipment_inventory` and room equipment purchase RPCs.
+  `equip_pet_item` can claim one legacy user-owned equipment inventory row into
+  the active room for old generic-purchase clients before equipping it.
 - `room_item_inventory_revisions` is the room-level realtime signal for shared
   furniture count changes.
 - `room_furniture.scale` is clamped to `0.8..2.0`, positions are normalized
@@ -71,11 +74,14 @@ migration that rewrites the object before proposing or applying changes.
   `tick_pet_state_as_system`, `refresh_pet_hunger_tick_schedule`,
   `claim_feed_double_reward`
 - Shop/economy: `get_visible_shop_items`, coin/diamond purchase RPCs for items,
-  furniture, backgrounds, pet equipment, plus `grant_iap_coins`,
+  furniture, backgrounds, room-scoped pet equipment, plus `grant_iap_coins`,
   `grant_iap_diamonds`
 - Pet equipment: `equip_pet_item(p_pet_id, p_room_id, p_item_id, p_slot)`,
   `unequip_pet_item(p_pet_id, p_room_id, p_slot)`,
-  `get_pet_equipment(p_pet_id)`
+  `get_pet_equipment(p_pet_id, p_room_id)`,
+  `get_room_equipment_inventory(p_room_id)`,
+  `purchase_room_equipment_with_coins(p_room_id, p_item_id)`,
+  `purchase_room_equipment_with_diamonds(p_room_id, p_item_id)`
 - Furniture: `get_room_furniture_inventory`, `place_room_furniture`,
   `update_room_furniture_transform`, `update_room_furniture_flip`, and legacy
   scale/position helpers

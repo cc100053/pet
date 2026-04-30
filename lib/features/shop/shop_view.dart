@@ -447,9 +447,14 @@ class _ShopViewState extends State<ShopView> {
 
       final roomId = widget.roomId;
       List<dynamic> roomFurnitureInventoryRows = const [];
+      List<dynamic> roomEquipmentInventoryRows = const [];
       if (roomId != null) {
         roomFurnitureInventoryRows = await Supabase.instance.client.rpc(
           'get_room_furniture_inventory',
+          params: {'p_room_id': roomId},
+        );
+        roomEquipmentInventoryRows = await Supabase.instance.client.rpc(
+          'get_room_equipment_inventory',
           params: {'p_room_id': roomId},
         );
       }
@@ -487,11 +492,25 @@ class _ShopViewState extends State<ShopView> {
         }
       }
 
-      for (final item in items) {
-        if (!item.isFurniture) {
+      final roomEquipmentInventory = <String, int>{};
+      for (final row in roomEquipmentInventoryRows) {
+        if (row is! Map<String, dynamic>) {
           continue;
         }
-        inventory[item.id] = roomFurnitureInventory[item.id] ?? 0;
+        final itemId = row['id'] as String?;
+        final quantity = row['total_quantity'] as int?;
+        if (itemId != null && quantity != null) {
+          roomEquipmentInventory[itemId] = quantity;
+        }
+      }
+
+      for (final item in items) {
+        if (!item.isFurniture && !item.isEquipment) {
+          continue;
+        }
+        inventory[item.id] = item.isFurniture
+            ? roomFurnitureInventory[item.id] ?? 0
+            : roomEquipmentInventory[item.id] ?? 0;
       }
 
       final ownedBackgrounds = <String>{};
