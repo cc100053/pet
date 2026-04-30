@@ -37,6 +37,58 @@ extension _HomeUnreadManager on _HomeViewState {
     }
   }
 
+  void _syncRoomSelectionEquipmentSubscription(List<String> roomIds) {
+    if (roomIds.isEmpty) {
+      final channel = _roomSelectionEquipmentChannel;
+      _roomSelectionEquipmentChannel = null;
+      unawaited(_removeRealtimeChannel(channel));
+      return;
+    }
+    if (_roomSelectionEquipmentChannel != null) {
+      return;
+    }
+
+    final channel = Supabase.instance.client.channel(
+      'room_selection_pet_equipment',
+    );
+    _roomSelectionEquipmentChannel = channel;
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'pet_equipment',
+      callback: (payload) {
+        if (_roomSelectionEquipmentChannel != channel) {
+          return;
+        }
+        final roomId =
+            (payload.newRecord['room_id'] as String?) ??
+            (payload.oldRecord['room_id'] as String?);
+        if (roomId == null || !_myRooms.any((room) => room['id'] == roomId)) {
+          return;
+        }
+        unawaited(_refreshRoomEquipmentPreview(roomId));
+      },
+    );
+    channel.subscribe();
+  }
+
+  Future<void> _refreshRoomEquipmentPreview(String roomId) async {
+    try {
+      final equippedByRoom = await _fetchRoomEquippedSkus([roomId]);
+      final equipped = equippedByRoom[roomId] ?? const <String, String>{};
+      _precacheEquippedAssets(equipped.values);
+      if (!mounted) {
+        _roomEquippedSkusBySlot[roomId] = Map<String, String>.from(equipped);
+        return;
+      }
+      _setStateForRoomManager(() {
+        _roomEquippedSkusBySlot[roomId] = Map<String, String>.from(equipped);
+      });
+    } catch (_) {
+      // Best-effort visual refresh only.
+    }
+  }
+
   int _totalUnreadCount([List<Map<String, dynamic>>? rooms]) {
     if (rooms == null) {
       return ref.read(homeTotalUnreadCountProvider);

@@ -1490,7 +1490,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      'Long-press furniture to edit. Tap an item to place, drag to move, select placed furniture to resize with the bottom controls. Tap empty space to exit.';
+      'Tap furniture to place it. Select placed furniture to move, resize, or flip.';
 
   @override
   String get furnitureScaleLabel => 'Size';

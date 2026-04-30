@@ -2688,7 +2688,7 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Long-press furniture to edit. Tap an item to place, drag to move, select placed furniture to resize with the bottom controls. Tap empty space to exit.'**
+  /// **'Tap furniture to place it. Select placed furniture to move, resize, or flip.'**
   String get furnitureInventoryHint;
 
   /// No description provided for @furnitureScaleLabel.

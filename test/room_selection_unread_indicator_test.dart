@@ -9,6 +9,7 @@ void main() {
     String? currentAppVersion,
     String petType = 'ghost',
     String? petName = 'Mochi',
+    Map<String, Map<String, String>> roomEquippedSkusBySlot = const {},
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -33,6 +34,7 @@ void main() {
           joiningRoom: false,
           userAvatarById: const {},
           userNameById: const {},
+          roomEquippedSkusBySlot: roomEquippedSkusBySlot,
           selectedRoomId: 'room-1',
           userAvatarUrl: null,
           currentAppVersion: currentAppVersion,
@@ -75,5 +77,41 @@ void main() {
 
     expect(find.text('Ghost'), findsOneWidget);
     expect(find.text('Tiger'), findsNothing);
+  });
+
+  testWidgets('renders equipped pet item in room selection preview', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      buildView(
+        unreadCount: 0,
+        roomEquippedSkusBySlot: const {
+          'room-1': {'head': 'equip_straw_hat'},
+        },
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('pet-equipment-frontPet-head-equip_straw_hat')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('ignores unknown equipped pet item in room selection preview', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      buildView(
+        unreadCount: 0,
+        roomEquippedSkusBySlot: const {
+          'room-1': {'head': 'equip_unknown'},
+        },
+      ),
+    );
+
+    expect(
+      find.byKey(const ValueKey('pet-equipment-frontPet-head-equip_unknown')),
+      findsNothing,
+    );
   });
 }

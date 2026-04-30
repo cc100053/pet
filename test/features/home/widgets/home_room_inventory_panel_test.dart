@@ -98,9 +98,13 @@ void main() {
       ),
     );
 
+    expect(
+      find.byKey(const Key('furniture_inventory_item_sofa')),
+      findsOneWidget,
+    );
+    expect(find.text('x2'), findsOneWidget);
     expect(find.text('Sofa'), findsOneWidget);
-    expect(find.text('Owned x2'), findsOneWidget);
-    expect(find.text('Available x1'), findsOneWidget);
+    expect(find.text('Owned x2  ·  Available x1'), findsOneWidget);
   });
 
   testWidgets('disables furniture placement when no copies are available', (
@@ -138,10 +142,9 @@ void main() {
       ),
     );
 
-    expect(find.text('Owned x2'), findsOneWidget);
-    expect(find.text('Available x0'), findsOneWidget);
+    expect(find.text('Owned x2  ·  Available x0'), findsOneWidget);
 
-    await tester.tap(find.text('Sofa'));
+    await tester.tap(find.byKey(const Key('furniture_inventory_item_sofa')));
     await tester.pump();
 
     expect(tapCount, 0);

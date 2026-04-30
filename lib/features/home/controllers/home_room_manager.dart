@@ -55,6 +55,8 @@ extension _HomeRoomManager on _HomeViewState {
           .whereType<String>()
           .toList(growable: false);
       final unreadCountsByRoom = <String, int>{};
+      final equippedSkusByRoom = <String, Map<String, String>>{};
+      var equippedSkusFetched = false;
       final senderIds = <String>{};
       if (roomIds.isNotEmpty) {
         final petSummaries = await _withNetworkTimeout(
@@ -67,6 +69,14 @@ extension _HomeRoomManager on _HomeViewState {
         final unreadCounts = await _withNetworkTimeout(
           _fetchRoomUnreadCounts(roomIds, userId),
         );
+        try {
+          equippedSkusByRoom.addAll(
+            await _withNetworkTimeout(_fetchRoomEquippedSkus(roomIds)),
+          );
+          equippedSkusFetched = true;
+        } catch (_) {
+          // Best-effort: room cards still render the pet without equipment.
+        }
         unreadCountsByRoom.addAll(unreadCounts);
         for (final room in rooms) {
           final roomId = room['id'] as String?;
@@ -105,13 +115,20 @@ extension _HomeRoomManager on _HomeViewState {
       }
 
       _syncMessageSubscriptions(roomIds);
+      _syncRoomSelectionEquipmentSubscription(roomIds);
       final sortedRooms = _applyLegacyRoomLocking(rooms);
 
       _setStateForRoomManager(() {
         _myRooms = sortedRooms;
+        if (equippedSkusFetched) {
+          _roomEquippedSkusBySlot
+            ..clear()
+            ..addAll(equippedSkusByRoom);
+        }
         if (rooms.isEmpty) {
           _showRoomSelection = true;
           _roomSelectionId = null;
+          _roomEquippedSkusBySlot.clear();
         } else {
           _roomSelectionId ??= _roomId ?? sortedRooms.first['id'] as String?;
         }
@@ -1110,6 +1127,49 @@ extension _HomeRoomManager on _HomeViewState {
       existing.imageMessageIds.add(row['id'] as String?);
     }
     return feeds;
+  }
+
+  Future<Map<String, Map<String, String>>> _fetchRoomEquippedSkus(
+    List<String> roomIds,
+  ) async {
+    if (roomIds.isEmpty) {
+      return {};
+    }
+    final rows = await Supabase.instance.client
+        .from('pet_equipment')
+        .select('room_id, slot, items(sku)')
+        .inFilter('room_id', roomIds);
+
+    final result = <String, Map<String, String>>{};
+    for (final row in rows) {
+      final roomId = row['room_id'] as String?;
+      final slot = row['slot'] as String?;
+      final sku = _skuFromEquipmentRow(row);
+      if (roomId == null ||
+          roomId.isEmpty ||
+          slot == null ||
+          slot.isEmpty ||
+          sku == null ||
+          EquipmentCatalog.bySku(sku) == null) {
+        continue;
+      }
+      (result[roomId] ??= <String, String>{})[slot] = sku;
+    }
+    return result;
+  }
+
+  String? _skuFromEquipmentRow(Map<String, dynamic> row) {
+    final item = row['items'];
+    if (item is Map) {
+      return item['sku'] as String?;
+    }
+    if (item is List && item.isNotEmpty) {
+      final first = item.first;
+      if (first is Map) {
+        return first['sku'] as String?;
+      }
+    }
+    return null;
   }
 
   Future<Map<String, int>> _fetchRoomMemberCounts(List<String> roomIds) async {

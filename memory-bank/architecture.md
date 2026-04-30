@@ -41,7 +41,9 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   animation frames. Equipment ownership and equip state are room-scoped:
   Shop buys equipment through room equipment purchase RPCs,
   Home loads available equipment through `get_room_equipment_inventory`, and
-  equipped slots are fetched with both `p_pet_id` and `p_room_id`.
+  equipped slots are fetched with both `p_pet_id` and `p_room_id`. Home also
+  keeps a room-id keyed equipped-sku cache so room selection cards can render
+  the actual equipped pet preview without entering the room.
   Socket coordinates live in Dart (`PetSocketCatalog`), equipment assets
   and optional per-pet/per-state fit overrides live in `EquipmentCatalog`, and shared
   placement math keeps Home overlays and the admin fit tool aligned without

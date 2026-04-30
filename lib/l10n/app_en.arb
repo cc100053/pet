@@ -761,7 +761,7 @@
   "furnitureInventoryTitle": "Room Inventory",
   "furnitureInventorySubtitle": "Manage furniture and backgrounds for this room.",
   "furnitureInventoryEmpty": "No furniture yet. Buy some in the shop.",
-  "furnitureInventoryHint": "Long-press furniture to edit. Tap an item to place, drag to move, select placed furniture to resize with the bottom controls. Tap empty space to exit.",
+  "furnitureInventoryHint": "Tap furniture to place it. Select placed furniture to move, resize, or flip.",
   "furnitureScaleLabel": "Size",
   "furnitureScaleDecrease": "Make smaller",
   "furnitureScaleIncrease": "Make larger",

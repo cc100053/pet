@@ -274,7 +274,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _showSocketDebug = false;
   final List<ShopItem> _ownedEquipmentItems = <ShopItem>[];
   final Map<String, _EquippedPetItem> _equippedItemsBySlot = {};
+  final Map<String, Map<String, String>> _roomEquippedSkusBySlot = {};
   RealtimeChannel? _petEquipmentChannel;
+  RealtimeChannel? _roomSelectionEquipmentChannel;
   String? _petEquipmentSubscriptionRoomId;
 
   // Background State
@@ -440,18 +442,21 @@ class _HomeViewState extends ConsumerState<HomeView>
     WidgetsBinding.instance.removeObserver(this);
     final petStateChannel = _petStateChannel;
     final petEquipmentChannel = _petEquipmentChannel;
+    final roomSelectionEquipmentChannel = _roomSelectionEquipmentChannel;
     final furnitureChannel = _furnitureChannel;
     final backgroundStateChannel = _backgroundStateChannel;
     final backgroundInventoryChannel = _backgroundInventoryChannel;
     final roomInventoryRevisionChannel = _roomInventoryRevisionChannel;
     _petStateChannel = null;
     _petEquipmentChannel = null;
+    _roomSelectionEquipmentChannel = null;
     _furnitureChannel = null;
     _backgroundStateChannel = null;
     _backgroundInventoryChannel = null;
     _roomInventoryRevisionChannel = null;
     unawaited(_removeRealtimeChannel(petStateChannel));
     unawaited(_removeRealtimeChannel(petEquipmentChannel));
+    unawaited(_removeRealtimeChannel(roomSelectionEquipmentChannel));
     unawaited(_removeRealtimeChannel(furnitureChannel));
     unawaited(_removeRealtimeChannel(backgroundStateChannel));
     unawaited(_removeRealtimeChannel(backgroundInventoryChannel));
@@ -535,8 +540,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  Map<String, String> _equippedSkusFromItemsBySlot(
+    Map<String, _EquippedPetItem> itemsBySlot,
+  ) {
+    return itemsBySlot.map((slot, item) => MapEntry(slot, item.sku));
+  }
+
   Map<String, String> get _equippedSkusBySlot =>
-      _equippedItemsBySlot.map((slot, item) => MapEntry(slot, item.sku));
+      _equippedSkusFromItemsBySlot(_equippedItemsBySlot);
 
   Map<String, String> get _equippedItemIdsBySlot =>
       _equippedItemsBySlot.map((slot, item) => MapEntry(slot, item.itemId));
@@ -2127,6 +2138,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         _equippedItemsBySlot
           ..clear()
           ..addAll(equipped);
+        _roomEquippedSkusBySlot[expectedRoomId] = _equippedSkusFromItemsBySlot(
+          equipped,
+        );
         _equipmentLoading = false;
         return;
       }
@@ -2138,6 +2152,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         _equippedItemsBySlot
           ..clear()
           ..addAll(equipped);
+        _roomEquippedSkusBySlot[expectedRoomId] = _equippedSkusFromItemsBySlot(
+          equipped,
+        );
       });
     } catch (error) {
       if (!mounted) {
@@ -5354,6 +5371,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 userNameById: _profileByUserId.map(
                   (key, value) => MapEntry(key, value.nickname),
                 ),
+                roomEquippedSkusBySlot: _roomEquippedSkusBySlot,
                 selectedRoomId: roomSelectionId,
                 userAvatarUrl: _myAvatarUrl,
                 currentAppVersion: _currentAppVersion,

@@ -23,6 +23,9 @@ Active progress stays current-state focused. Full snapshots:
   shared equipment/catalog pipeline. Equipment ownership and equip state are
   scoped to the active room through `room_item_inventories`,
   `get_room_equipment_inventory`, and room equipment purchase RPCs.
+  Room selection cards also render the actual equipped pet preview from
+  room-scoped `pet_equipment` rows, ignoring unknown equipment skus through the
+  local `EquipmentCatalog`.
 - Pet rendering now prefers bundled PNG frame sequences across current pet/state
   surfaces. Runtime code resolves old GIF asset ids through
   `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`, so
@@ -51,7 +54,9 @@ Active progress stays current-state focused. Full snapshots:
   owns success/error UI, analytics, and when notification delivery is requested.
 - Furniture editing supports tap-select, drag, scale controls, and per-instance
   horizontal flip, with shared owned counts refreshed through
-  `room_item_inventory_revisions` realtime signals.
+  `room_item_inventory_revisions` realtime signals. The room inventory panel
+  keeps furniture, backgrounds, and equipment as tabs; furniture uses a compact
+  two-row tray plus a selected-item summary instead of long repeated item cards.
 - Chat uses only `ChatRoomViewV2`: latest-20 open, 20-message older pages,
   80-message visible cap, newest-20 Hive cache, edit/delete, replies/reactions,
   mention display, and the focused long-press overlay.

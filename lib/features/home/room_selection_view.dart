@@ -13,6 +13,7 @@ import '../../shared/ui/adaptive_layout.dart';
 import '../../shared/ui/pet_name_text_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'widgets/home_responsive.dart';
+import 'widgets/pet_equipment_overlay.dart';
 
 class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
@@ -28,6 +29,7 @@ class RoomSelectionView extends StatelessWidget {
     this.refreshingRooms = false,
     this.userAvatarById = const {},
     this.userNameById = const {},
+    this.roomEquippedSkusBySlot = const {},
     this.selectedRoomId,
     this.userAvatarUrl,
     this.currentAppVersion,
@@ -49,6 +51,7 @@ class RoomSelectionView extends StatelessWidget {
   final bool refreshingRooms;
   final Map<String, String?> userAvatarById;
   final Map<String, String?> userNameById;
+  final Map<String, Map<String, String>> roomEquippedSkusBySlot;
   final String? selectedRoomId;
   final String? userAvatarUrl;
   final String? currentAppVersion;
@@ -493,6 +496,9 @@ class RoomSelectionView extends StatelessWidget {
     final unreadText = '${unreadCount.clamp(1, 99)}';
     final healthValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
     final petLevel = (room['pet_level'] as num?)?.toInt();
+    final equippedSkusBySlot = roomId == null
+        ? const <String, String>{}
+        : (roomEquippedSkusBySlot[roomId] ?? const <String, String>{});
     final memoryFrameAspectRatio = _memoryFrameAspectRatio(responsive);
     return Material(
       color: Colors.transparent,
@@ -578,7 +584,9 @@ class RoomSelectionView extends StatelessWidget {
                               uiScale,
                         ),
                         _RoomPetIconWithFloatingLevel(
+                          petId: petDefinition.id,
                           assetPath: petDefinition.stayAsset,
+                          equippedSkusBySlot: equippedSkusBySlot,
                           level: petLevel,
                           size:
                               responsive.pick(
@@ -1232,13 +1240,17 @@ class _RoomFramePlaceholder extends StatelessWidget {
 
 class _RoomPetIconWithFloatingLevel extends StatelessWidget {
   const _RoomPetIconWithFloatingLevel({
+    required this.petId,
     required this.assetPath,
+    required this.equippedSkusBySlot,
     required this.level,
     this.size = 28,
     this.badgeFontSize = 10,
   });
 
+  final String petId;
   final String assetPath;
+  final Map<String, String> equippedSkusBySlot;
   final int? level;
   final double size;
   final double badgeFontSize;
@@ -1256,11 +1268,38 @@ class _RoomPetIconWithFloatingLevel extends StatelessWidget {
           SizedBox(
             width: imageSize,
             height: imageSize,
-            child: PetAnimatedImage(
+            child: PetAnimationFrameBuilder(
               sourceAsset: assetPath,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-              gaplessPlayback: true,
+              builder: (context, petAsset, animationProgress, _) {
+                final previewSize = Size.square(imageSize);
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    PetEquipmentOverlay(
+                      petId: petId,
+                      equippedSkusBySlot: equippedSkusBySlot,
+                      petSize: previewSize,
+                      layer: PetEquipmentOverlayLayer.behindPet,
+                      animationProgress: animationProgress,
+                    ),
+                    Image.asset(
+                      petAsset,
+                      width: previewSize.width,
+                      height: previewSize.height,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      gaplessPlayback: true,
+                    ),
+                    PetEquipmentOverlay(
+                      petId: petId,
+                      equippedSkusBySlot: equippedSkusBySlot,
+                      petSize: previewSize,
+                      layer: PetEquipmentOverlayLayer.frontPet,
+                      animationProgress: animationProgress,
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           Positioned(

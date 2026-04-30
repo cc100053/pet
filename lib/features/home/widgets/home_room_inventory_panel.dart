@@ -326,23 +326,47 @@ class _FurnitureTab extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const SizedBox(width: 10),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final total = totalCount(item.id);
-        final available = availableCount(item.id);
-        final isSelected = selectedItemId == item.id;
-        return _FurnitureInventoryItem(
-          item: item,
-          total: total,
-          available: available,
-          isSelected: isSelected,
-          onTap: () => onItemTap(item.id),
-        );
-      },
+    final selectedItem = items.cast<ShopItem?>().firstWhere(
+      (item) => item?.id == selectedItemId,
+      orElse: () => items.first,
+    )!;
+
+    return Column(
+      children: [
+        Expanded(
+          child: GridView.builder(
+            scrollDirection: Axis.horizontal,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              mainAxisExtent: 88,
+            ),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              final total = totalCount(item.id);
+              final available = availableCount(item.id);
+              final isSelected = selectedItemId == item.id;
+              return _FurnitureInventoryItem(
+                item: item,
+                total: total,
+                available: available,
+                isSelected: isSelected,
+                onTap: () => onItemTap(item.id),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        _FurnitureSelectionSummary(
+          item: selectedItem,
+          total: totalCount(selectedItem.id),
+          available: availableCount(selectedItem.id),
+          selected: selectedItem.id == selectedItemId,
+          onTap: () => onItemTap(selectedItem.id),
+        ),
+      ],
     );
   }
 }
@@ -860,21 +884,25 @@ class _FurnitureInventoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final canSelect = available > 0;
-    return GestureDetector(
+    return JuicyScaleButton(
       onTap: canSelect ? onTap : null,
       child: AnimatedContainer(
+        key: Key('furniture_inventory_item_${item.id}'),
         duration: 150.ms,
-        width: 76,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFFFFF2D6)
-              : Colors.white.withValues(alpha: 0.9),
+              : (canSelect
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.55)),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? const Color(0xFFFFB74D) : Colors.black12,
+            color: isSelected
+                ? const Color(0xFFFFB74D)
+                : (canSelect ? Colors.black12 : Colors.black26),
+            width: isSelected ? 1.8 : 1,
           ),
           boxShadow: [
             BoxShadow(
@@ -884,55 +912,156 @@ class _FurnitureInventoryItem extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            ShopFurnitureVisual(item: item, size: 32),
-            const SizedBox(height: 3),
-            Text(
-              item.localizedName(l10n),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                height: 1.0,
+            Center(
+              child: Opacity(
+                opacity: canSelect ? 1 : 0.45,
+                child: ShopFurnitureVisual(item: item, size: 38),
               ),
             ),
-            const SizedBox(height: 2),
-            if (total == available)
-              Text(
-                l10n.storeOwnedCount(total),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.0,
-                  color: canSelect ? Colors.black87 : Colors.black38,
+            Positioned(
+              top: -2,
+              right: -2,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 26, minHeight: 22),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: canSelect
+                      ? const Color(0xFF5ABCA5)
+                      : Colors.black.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.white, width: 1.2),
                 ),
-              )
-            else ...[
-              Text(
-                l10n.storeOwnedCount(total),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 10,
-                  height: 1.0,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                l10n.furnitureAvailableCount(available),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10,
-                  height: 1.0,
-                  color: canSelect ? Colors.black87 : Colors.black38,
+                child: Text(
+                  'x$total',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1,
+                    fontWeight: FontWeight.w900,
+                    color: canSelect ? Colors.white : Colors.black45,
+                  ),
                 ),
               ),
-            ],
+            ),
+            if (isSelected)
+              const Positioned(
+                left: -2,
+                bottom: -2,
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  size: 18,
+                  color: Color(0xFFFFB74D),
+                ),
+              ),
+            if (!canSelect)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.36),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.block_rounded,
+                      size: 18,
+                      color: Colors.black38,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FurnitureSelectionSummary extends StatelessWidget {
+  const _FurnitureSelectionSummary({
+    required this.item,
+    required this.total,
+    required this.available,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final ShopItem item;
+  final int total;
+  final int available;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final canPlace = available > 0;
+    return JuicyScaleButton(
+      onTap: canPlace ? onTap : null,
+      child: AnimatedContainer(
+        duration: 150.ms,
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Colors.white, Color(0xFFFFF7EA)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? const Color(0xFFFFB74D) : Colors.black12,
+            width: selected ? 1.8 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ShopFurnitureVisual(item: item, size: 32),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.localizedName(l10n),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${l10n.storeOwnedCount(total)}  ·  ${l10n.furnitureAvailableCount(available)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      height: 1.0,
+                      color: canPlace ? Colors.black54 : Colors.black38,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              canPlace ? Icons.add_circle_rounded : Icons.block_rounded,
+              color: canPlace ? const Color(0xFF5ABCA5) : Colors.black38,
+              size: 22,
+            ),
           ],
         ),
       ),

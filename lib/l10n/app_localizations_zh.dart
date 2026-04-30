@@ -3205,8 +3205,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
-  String get furnitureInventoryHint =>
-      '長按家具可編輯，點擊道具放置，拖曳移動，選取已放置家具後可用底部控制列調整大小，點空白退出。';
+  String get furnitureInventoryHint => '點擊家具即可放置。選取已放置家具後可移動、調整大小或左右反轉。';
 
   @override
   String get furnitureScaleLabel => '大小';

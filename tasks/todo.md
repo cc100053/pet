@@ -1,5 +1,28 @@
 # TODO
 
+# Plan (2026-04-30 Actual Pet Room Preview + Compact Inventory UI)
+- [x] Add room-selection equipped-pet preview data flow without changing Supabase schema/RPCs.
+- [x] Render room card pet previews with PNG frame playback and equipment overlays.
+- [x] Redesign the furniture inventory tab into a compact 2-row tray with clearer selected/unavailable states.
+- [x] Update focused widget tests for room preview equipment and compact inventory behavior.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record review summary and update active memory notes if behavior contracts change.
+
+# Review (2026-04-30 Actual Pet Room Preview + Compact Inventory UI)
+- [x] Implemented.
+- Scope:
+  - Room selection now receives a room-id keyed equipped-sku cache, fetches visible room equipment through a batched `pet_equipment` select joined to `items.sku`, and refreshes the preview cache from `pet_equipment` realtime changes.
+  - Room cards replaced the small pet image path with the shared PNG-frame builder plus front/behind `PetEquipmentOverlay`, preserving unsupported-pet fallback and ignoring unknown equipment skus.
+  - Furniture inventory now uses a compact two-row horizontal tray with `JuicyScaleButton` cells, count badges, disabled overlays, selected styling, and a selected-item summary row for owned/available counts.
+  - Shortened localized furniture hints and regenerated Flutter localization outputs.
+  - Updated active memory notes for the room-selection equipment preview and compact inventory contract.
+- Verification:
+  - `flutter gen-l10n`
+  - `dart format lib/features/home/room_selection_view.dart lib/features/home/home_view.dart lib/features/home/controllers/home_room_manager.dart lib/features/home/controllers/home_unread_manager.dart lib/features/home/widgets/home_room_inventory_panel.dart test/room_selection_unread_indicator_test.dart test/features/home/widgets/home_room_inventory_panel_test.dart`
+  - `flutter test test/room_selection_unread_indicator_test.dart test/features/home/widgets/home_room_inventory_panel_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-30 Room-Scoped Equipment)
 - [x] Confirm the current equipment ownership/equipped-state boundaries in Flutter and Supabase.
 - [x] Add a Supabase migration that scopes equipment ownership and equipment fetches to the active room without changing old generic purchase RPC signatures.

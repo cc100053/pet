@@ -751,7 +751,7 @@
   "furnitureInventoryTitle": "房間背包",
   "furnitureInventorySubtitle": "管理這個房間的家具與背景。",
   "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
-  "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，選取已放置家具後可用底部控制列調整大小，點空白退出。",
+  "furnitureInventoryHint": "點擊家具即可放置。選取已放置家具後可移動、調整大小或左右反轉。",
   "furnitureScaleLabel": "大小",
   "furnitureScaleDecrease": "縮小",
   "furnitureScaleIncrease": "放大",

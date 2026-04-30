@@ -761,7 +761,7 @@
   "furnitureInventoryTitle": "ルーム在庫",
   "furnitureInventorySubtitle": "このルームの家具と背景を管理します。",
   "furnitureInventoryEmpty": "まだ家具がありません。ショップで購入してください。",
-  "furnitureInventoryHint": "家具を長押しで編集。アイテムをタップして配置、ドラッグで移動。配置済みの家具を選ぶと下部コントロールでサイズ調整できます。空白をタップで終了。",
+  "furnitureInventoryHint": "家具をタップして配置。配置済みの家具を選ぶと移動、サイズ調整、反転ができます。",
   "furnitureScaleLabel": "サイズ",
   "furnitureScaleDecrease": "小さくする",
   "furnitureScaleIncrease": "大きくする",
