@@ -1,5 +1,29 @@
 # TODO
 
+# Plan (2026-04-30 Pet PNG Flashing)
+- [x] Trace PNG sequence playback from source GIF asset id through timeline sampling and widget rendering.
+- [x] Identify why pet action transitions can briefly flash after GIF-to-PNG migration.
+- [x] Patch the smallest playback/rendering layer that prevents transient blank or wrong-frame paints without changing animation timing.
+- [x] Add focused regression coverage for the flashing root cause.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record the review summary and update active memory notes only if behavior/architecture contracts change.
+
+# Review (2026-04-30 Pet PNG Flashing)
+- [x] Implemented.
+- Root cause:
+  - PNG frame playback changed the `Image.asset` provider frequently, but the pet image widgets were keyed by the source action asset. On stay/walk/sleep transitions that key changed, so Flutter remounted the image and could not keep the previous frame through `gaplessPlayback`.
+  - Home also replaced `frame == null` loads with the pet fallback/loading UI, which made transient PNG decode gaps visible as a flash.
+- Scope:
+  - Removed action-derived keys from shared `PetAnimatedImage` and Home pet rendering so image provider changes can stay gapless.
+  - Removed the Home pet frame-null loading fallback from the normal image path while keeping the error fallback for actual asset failures.
+  - Added a focused widget test that verifies `PetAnimatedImage` remains unkeyed across action swaps and still resolves source GIF ids to PNG sequence frames.
+  - Active memory-bank notes did not need updates; the PNG sequence architecture contract is unchanged.
+- Verification:
+  - `dart format lib/features/pet/pet_animated_image.dart lib/features/home/home_view.dart test/features/pet/pet_animated_image_test.dart`
+  - `flutter test test/features/pet/pet_animated_image_test.dart test/features/pet/pet_animation_frames_test.dart`: passed.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
 # Plan (2026-04-29 Shop Purchase Notification Adapter)
 - [x] Add a `ShopPurchaseNotifier` Module for best-effort store purchase notification delivery through `notify_friend`.
 - [x] Route `ShopView` purchase notification dispatch through the notifier without changing payload shape, auth refresh behavior, or non-blocking failure semantics.

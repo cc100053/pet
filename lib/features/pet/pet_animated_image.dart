@@ -113,10 +113,8 @@ class PetAnimatedImage extends StatelessWidget {
     return PetAnimationFrameBuilder(
       sourceAsset: sourceAsset,
       builder: (context, asset, _, sequence) {
-        final keyAsset = sequence?.sourceAsset ?? asset;
         return Image.asset(
           asset,
-          key: ValueKey('$keyAsset-${width}x$height'),
           width: width,
           height: height,
           fit: fit,

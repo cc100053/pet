@@ -5624,7 +5624,6 @@ class _HomeViewState extends ConsumerState<HomeView>
             ),
             Image.asset(
               petAsset,
-              key: ValueKey('$asset-${size.width}x${size.height}'),
               width: size.width,
               height: size.height,
               fit: BoxFit.contain,
@@ -5633,12 +5632,6 @@ class _HomeViewState extends ConsumerState<HomeView>
               filterQuality: FilterQuality.high,
               errorBuilder: (context, error, stackTrace) =>
                   _buildPetFallback(petFallbackColor),
-              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                if (frame == null) {
-                  return _buildPetFallback(petFallbackColor, loading: true);
-                }
-                return child;
-              },
             ),
             PetEquipmentOverlay(
               petId: petId,
