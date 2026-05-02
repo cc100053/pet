@@ -47,7 +47,11 @@
 - Crash reporting: Firebase Crashlytics
 - Ratings prompt: Apple In-App Review (`in_app_review`)
 - IAP/Subscriptions: RevenueCat (`purchases_flutter`)
-- Ads: Google AdMob (`google_mobile_ads`) for iOS banner + rewarded placements
+- Ads: Google AdMob (`google_mobile_ads` 8.x) for iOS banner + rewarded placements
 
 ## Tooling
 - CI: GitHub Actions (flutter analyze/test)
+- Apple dependency resolution: Flutter Swift Package Manager integration is enabled
+  for iOS/macOS. Firebase/FlutterFire and SPM-capable Apple plugins resolve
+  through checked-in `Package.resolved` files; CocoaPods remains only for Apple
+  plugins without SPM support.

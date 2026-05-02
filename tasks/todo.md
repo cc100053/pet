@@ -1,5 +1,89 @@
 # TODO
 
+# Plan (2026-05-02 Repo Documentation Cleanup)
+- [x] Read active memory-bank notes and lessons before non-trivial changes.
+- [x] Inventory Markdown docs, references, and stale/duplicated content.
+- [x] Remove or consolidate stale docs that are superseded by current memory/docs/code.
+- [x] Update README/current docs so remaining entry points point at current workflows.
+- [x] Run documentation-focused verification and record review notes.
+
+# Review (2026-05-02 Repo Documentation Cleanup)
+- [x] Implemented.
+- Scope:
+  - Removed stale docs that were completed, superseded, or misleading compared with current code/memory-bank state: old implementation plans, old GDD snapshots, old refactor/design plans, resolved findings, and the Krita anchor trial artifacts.
+  - Kept current operational docs only: Crashlytics MCP, Godot PNG/socket workflow, hunger tick schedule report, label mapping, and testing helpers.
+  - Replaced duplicated `CLAUDE.md` guidance with a short pointer to canonical `AGENTS.md`.
+  - Updated `README.md` into a current doc index and removed stale Phase 0/device-command notes.
+  - Added `.firebase-mcp.env.example`, allowed it through `.gitignore`, and updated `AGENTS.md`/`memory-bank/progress.md` so Crashlytics MCP setup no longer points at a missing file.
+  - Removed ignored local junk under `docs/.DS_Store` and `tool/__pycache__`.
+- Verification:
+  - Current-file grep found no remaining references to removed docs outside historical `tasks/todo.md` entries.
+  - `flutter analyze`: passed.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+
+# Plan (2026-05-01 Feed Reward Compensation)
+- [x] Confirm live Supabase target and read active memory notes.
+- [x] Verify target user, current candy balance, locale, active room, and push token presence.
+- [x] Grant 40 candy with an idempotent ledger marker.
+- [x] Send the approved Traditional Chinese explanation push.
+- [x] Verify balance/ledger and push delivery log, then record review notes.
+
+# Review (2026-05-01 Feed Reward Compensation)
+- [x] Compensation applied.
+- Result:
+  - User `435e0685-ee35-4827-91c7-8da8e4f211be` (`shiny030230@gmail.com`) balance increased from `304` to `344`.
+  - Inserted `coin_ledger` row `73a32c56-ca0c-45e0-abe7-6c3bf2d0e773`, source `ad_reward`, amount `40`, with idempotency metadata `support_compensation_id = feed_cooldown_feedback_2026_05_01_shiny030230`.
+  - Verified the post-grant balance and ledger marker in live Supabase.
+- Push status:
+  - Not sent yet. Existing `notify_friend` cannot send arbitrary support copy to the same user; it only sends canonical message/feed/hunger/store notifications.
+  - A new generic admin push function was blocked by safety review because it would create a long-lived privileged endpoint for arbitrary push delivery.
+  - Firebase Console test message was filled with the approved `zh-TW` copy and sent to the developer Apple-login account `開発者` using its latest iOS FCM token for validation before sending to the affected user.
+  - After developer validation, Firebase Console test message was sent to `shiny030230@gmail.com` using the user's latest iOS FCM token.
+
+# Plan (2026-05-01 Firebase Apple SPM Migration + v1.4.0)
+- [x] Read active memory-bank notes and relevant task lessons.
+- [x] Inspect current Firebase Apple dependency resolution and Flutter SPM support.
+- [x] Enable Flutter Swift Package Manager integration for Apple targets.
+- [x] Bump app version from `1.3.0+1` to `1.4.0+1`.
+- [x] Update Crashlytics dSYM upload so it works after Firebase moves away from CocoaPods.
+- [x] Run package/build regeneration, `flutter analyze`, and `flutter test`.
+- [x] Record review summary and any remaining manual release checks.
+
+# Review (2026-05-01 Firebase Apple SPM Migration + v1.4.0)
+- [x] Implemented.
+- Scope:
+  - Enabled Flutter Swift Package Manager integration for iOS and macOS.
+  - Migrated Firebase/FlutterFire Apple SDK resolution out of CocoaPods and into checked-in SPM lockfiles.
+  - Upgraded `google_mobile_ads` from `5.3.1` to `8.0.0` because the old CocoaPods-only plugin blocked mixed SPM/Pods resolution through `webview_flutter_wkwebview`.
+  - Kept CocoaPods only for remaining Apple plugins that still require it.
+  - Bumped app version to `1.4.0+1` and aligned Apple test/extension marketing versions to `1.4.0`.
+  - Updated Crashlytics dSYM upload to find `upload-symbols` from either CocoaPods or SPM SourcePackages.
+  - Excluded generated `build/**` output from analyzer so SPM checkouts under `build/macos/SourcePackages` are not analyzed as app source.
+- Verification:
+  - `flutter build ios --debug --simulator`: passed.
+  - `flutter build macos --debug`: passed; third-party `sign_in_with_apple` emitted an existing Swift exhaustive-switch warning.
+  - `flutter analyze`: passed after excluding generated build output.
+  - `flutter test`: passed; `test/feed_flow_integration_test.dart` skipped due missing `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN`.
+- Manual release checks:
+  - [USER ACTION REQUIRED] Before shipping, create a TestFlight/archive build and confirm Crashlytics receives dSYMs from the SPM path.
+  - [USER ACTION REQUIRED] Smoke-test iOS banner/rewarded ads after the `google_mobile_ads` 8.0.0 upgrade.
+
+# Plan (2026-05-01 Feed Reward Incident Investigation)
+- [x] Read active memory-bank notes and relevant task lessons.
+- [x] Trace app/backend feed reward flow for version 1.2.0.
+- [x] Query live Supabase for `shiny030230@gmail.com` feed messages, reward ledger, and room/pet state around the report.
+- [x] Inspect available Edge Function/log evidence for upload/validation failures or retries.
+- [x] Summarize likely cause, evidence, and any gaps without changing production behavior.
+
+# Review (2026-05-01 Feed Reward Incident Investigation)
+- [x] Investigation complete.
+- Findings:
+  - The live user is `435e0685-ee35-4827-91c7-8da8e4f211be`, active on iOS, locale `zh-TW`, last seen `2026-05-01 01:33:27 UTC`.
+  - Latest feed upload in room `❤️` at `2026-05-01 00:58:22 UTC` awarded `10` coins and has matching `coin_ledger` source `feed`.
+  - Recent zero-reward feed messages are persisted successful feed messages with `coins_awarded = 0`, not missing uploads; they align with the server-side 10-minute per-user/per-room feed reward cooldown.
+  - There is evidence of queue/background upload completion after delays on some older messages, but delayed completion did not prevent rewards when the cooldown was eligible.
+  - Supabase MCP exposed Edge Function deployment/source but not per-invocation Function logs; DB side effects were used as the reliable audit trail.
+
 # Plan (2026-04-30 v1.3.0 Release Notes)
 - [x] Read active memory-bank notes and release-note/ASC workflow skills.
 - [x] Add bundled v1.3.0 What's New catalog and localized ARB keys.

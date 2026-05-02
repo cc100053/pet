@@ -107,7 +107,8 @@ object, and live Supabase state. Memory-bank text is a map, not canonical source
   bridges native iOS memory warnings into Flutter so the existing
   Crashlytics/memory diagnostics pipeline can record low-memory context before a
   possible jetsam kill. Crashlytics dSYM upload runs through
-  `ios/scripts/upload_crashlytics_symbols.sh`.
+  `ios/scripts/upload_crashlytics_symbols.sh`, which supports both CocoaPods and
+  Swift Package Manager Firebase SDK layouts.
 - Firebase Hosting serves the invite fallback page plus `.well-known`
   association files for App Links/Universal Links. Production release still
   needs verified platform entitlement/signing setup.

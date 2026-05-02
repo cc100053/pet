@@ -75,8 +75,8 @@ Active progress stays current-state focused. Full snapshots:
   sequence directories, then confirm the generated bundle contains the assets.
 - Use `docs/firebase_crashlytics_mcp_workflow.md` plus
   `scripts/start_firebase_mcp_crashlytics.sh` for Crashlytics MCP setup and
-  triage. The doc still references `.firebase-mcp.env.example`, which is absent
-  in this checkout.
+  triage. Copy `.firebase-mcp.env.example` to the gitignored
+  `.firebase-mcp.env` and point it at the local service-account key.
 - Use `docs/godot-png-sequence-socket-workflow.md` before changing pet PNG
   sequences, socket exports, or equipment preview metadata.
 
@@ -84,8 +84,6 @@ Active progress stays current-state focused. Full snapshots:
 - Ensure Edge Function secrets/config are set in Supabase for `delete_account`
   and `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion.
-- Restore or verify `.firebase-mcp.env.example`; Crashlytics MCP docs and
-  `README.md` reference it, but the file is missing in this checkout.
 
 ## Read More
 - Historical detail: `memory-bank/archive/progress_20260425_pre_compaction.md`

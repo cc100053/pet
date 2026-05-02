@@ -1,19 +1,10 @@
-## Testing Helpers (Phase 1)
-
-### In-app tools (temporary)
-- Create Test Room: calls `create_room` RPC and displays `room_id` + invite code.
-- Run Feed Test: calls `functions.invoke('feed_validate')` with a sample payload.
-
-Remove these UI controls once Phase 1 testing is complete.
-
-### Debug logs
-- `main.dart` logs `JWT` + `UID` on `AuthChangeEvent.signedIn`.
-- Keep only if needed for auth debugging; remove before release.
+## Testing Helpers
 
 ### Edge Function auth
-- `feed_validate` currently has `verify_jwt = false` due to Edge gateway JWT rejection.
-- Function still validates requests with `auth.getUser()` using the Authorization header.
-- Re-enable `verify_jwt` after resolving Edge JWT verification.
+- `feed_validate` and `avatar_upload` validate callers inside the function with
+  `auth.getUser()` using the Authorization header.
+- `notify_friend` uses function-level auth checks because it also supports
+  server/webhook-style notification dispatch.
 
 ### Integration test: feed -> Edge -> DB -> chat
 - Required env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_TEST_REFRESH_TOKEN`.

@@ -15,8 +15,9 @@
 ## Supabase
 - Migrations live in `supabase/migrations/`.
 - Seed data lives in `supabase/seed.sql`.
-- Run the SQL in the Supabase SQL editor before first app launch.
-- Run `codex mcp login supabase` to login to Supabase.
+- Repo target project: `ilxzpszgirhwxpeocygs`.
+- For schema/RPC/policy work, use the Supabase MCP workflow described in
+  `AGENTS.md`; do not rely on manually running SQL from README.
 
 ## Firebase Crashlytics MCP
 - Repo Firebase project: `pet-app-702be`
@@ -35,13 +36,14 @@ flutter run
 If `pod install` fails with cache permission errors, clear the CocoaPods cache
 or run it with elevated permissions.
 
-## Real Iphone
-flutter run --release
-
-## Notes
-- OAuth providers (Google/Apple) must be configured in Supabase.
-- The current UI is a Phase 0 scaffold: auth gate + profile stub.
-- Testing helpers: see `docs/testing.md`.
+## Current Docs
+- Agent workflow and repo rules: `AGENTS.md`
+- Current architecture/state map: `memory-bank/*.md`
+- Testing helpers: `docs/testing.md`
+- Pet PNG sequence/socket workflow: `docs/godot-png-sequence-socket-workflow.md`
+- Hunger tick cron/runbook: `docs/hunger_tick_schedule_report.md`
+- Crashlytics MCP setup: `docs/firebase_crashlytics_mcp_workflow.md`
+- Label mapping seed notes: `docs/label-mapping.md`
 
 ## App Update Prompt (Soft/Hard)
 
@@ -98,5 +100,3 @@ To update the HTML pages (privacy policy, support), run:
 ```bash
 firebase deploy --only hosting
 ```
-
-flutter run -d 00008130-000C51913AA0001C --release
