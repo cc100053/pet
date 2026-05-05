@@ -55,7 +55,10 @@ import 'widgets/chat_reaction_details_sheet.dart';
 import 'widgets/chat_reply_preview_panel.dart';
 import 'widgets/chat_keyboard_dismiss_shell.dart';
 
-part 'chat_room_view_v2_widgets.dart';
+part 'chat_room_view_v2_overlays.dart';
+part 'chat_room_view_v2_composer.dart';
+part 'chat_room_view_v2_messages.dart';
+part 'chat_room_view_v2_chrome.dart';
 
 bool canSwipeReplyToMessage(ChatMessage message) =>
     !message.isSystem && !message.isDeleted;

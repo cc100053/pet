@@ -39,6 +39,33 @@ purpose-specific archive if they are still useful.
   `flutter test` passed with the existing feed integration test skipped due
   missing Supabase test env vars.
 
+## Plan (2026-05-05 Deeper Route UI Refactor)
+- [x] Inspect extracted Chat/Home UI parts for smaller ownership boundaries.
+- [x] Split Chat UI widgets into focused part files for overlays/composer,
+  message bubbles/feed cards, and top-bar/reply chrome.
+- [x] Extract Home drawer/debug UI into a focused route UI part file.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`.
+- [x] Record review notes with updated file-size impact and verification.
+
+## Review (2026-05-05 Deeper Route UI Refactor)
+- Replaced the single large Chat UI part with focused route-private parts:
+  `chat_room_view_v2_overlays.dart`,
+  `chat_room_view_v2_composer.dart`,
+  `chat_room_view_v2_messages.dart`, and
+  `chat_room_view_v2_chrome.dart`.
+- Extracted Home drawer/debug UI to `home_view_drawer.dart`; kept the actual
+  socket-debug state mutation in `_HomeViewState` via `_setShowSocketDebug`.
+- Updated file sizes:
+  `chat_room_view_v2.dart` is 3916 lines, Chat UI parts are
+  143/445/1109/302 lines, `home_view.dart` is 5124 lines,
+  `home_view_drawer.dart` is 202 lines, and
+  `home_view_pet_scene_builders.dart` remains 890 lines.
+- Verification:
+  `dart format` passed for changed Dart files,
+  `flutter analyze` passed,
+  `flutter test` passed with the existing feed integration test skipped due
+  missing Supabase test env vars.
+
 ## Plan (2026-05-02 AGENTS.md & Memory-Bank Optimization)
 - [x] Read `AGENTS.md`, active `memory-bank/*.md`, `tasks/todo.md`, and
   `tasks/lessons.md`.
