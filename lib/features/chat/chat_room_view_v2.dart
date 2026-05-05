@@ -59,6 +59,7 @@ part 'chat_room_view_v2_overlays.dart';
 part 'chat_room_view_v2_composer.dart';
 part 'chat_room_view_v2_messages.dart';
 part 'chat_room_view_v2_chrome.dart';
+part 'chat_room_view_v2_data_helpers.dart';
 
 bool canSwipeReplyToMessage(ChatMessage message) =>
     !message.isSystem && !message.isDeleted;
@@ -753,44 +754,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     );
   }
 
-  Future<void> _persistCache() async {
-    if (!_repository.isReady || !_window.isLiveMode) {
-      return;
-    }
-    final cacheable = _window.latestVisibleCanonicalSlice(
-      includeMessage: (message) => !_optimisticIds.contains(message.id),
-    );
-    await _repository.cacheMessages(widget.roomId, cacheable);
-  }
-
-  List<ChatMessage> _toAscendingMessages(List<ChatMessage> messages) {
-    final filtered = messages.where(_isVisibleMessage).toList();
-    filtered.sort(_sortByCreatedAtAsc);
-    return filtered;
-  }
-
-  bool _isVisibleMessage(ChatMessage message) {
-    final senderId = message.senderId;
-    return senderId == null || !_blockedUserIds.contains(senderId);
-  }
-
-  Future<_FetchedMessagePage> _fetchMessagePage({
-    String? beforeCreatedAt,
-    String? beforeId,
-  }) async {
-    final page = await _repository.fetchMessages(
-      roomId: widget.roomId,
-      beforeCreatedAt: beforeCreatedAt,
-      beforeId: beforeId,
-      limit: _pageSize,
-    );
-    return _FetchedMessagePage(
-      messages: page.where(_isVisibleMessage).toList()
-        ..sort(_sortByCreatedAtAsc),
-      hasMoreOlder: page.length == _pageSize,
-    );
-  }
-
   Future<void> _ensureProfilesForMessages(List<ChatMessage> messages) async {
     final userIds = <String>{};
     for (final message in messages) {
@@ -838,23 +801,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     } catch (_) {
       // Best-effort profile loading in the spike view.
     }
-  }
-
-  ChatReplyPreview? _resolvedReplyPreview(ChatMessage message) {
-    final preview = message.replyPreview;
-    if (preview != null && preview.id.isNotEmpty) {
-      return preview;
-    }
-
-    final replyId = message.replyToMessageId;
-    if (replyId == null || replyId.isEmpty) {
-      return null;
-    }
-    final target = _messagesById[replyId];
-    if (target != null) {
-      return ChatReplyPreview.fromMessage(target);
-    }
-    return null;
   }
 
   Future<void> _ensureReplyPreviewsForMessages(
@@ -996,28 +942,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
   }
 
-  bool _sameReactions(
-    List<ChatMessageReactionSummary> a,
-    List<ChatMessageReactionSummary> b,
-  ) {
-    if (identical(a, b)) {
-      return true;
-    }
-    if (a.length != b.length) {
-      return false;
-    }
-    for (var index = 0; index < a.length; index += 1) {
-      final left = a[index];
-      final right = b[index];
-      if (left.emoji != right.emoji ||
-          left.count != right.count ||
-          left.reactedByMe != right.reactedByMe) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   void _subscribeToMessages() {
     final generation = ++_realtimeGeneration;
     if (_runtime?.incomingMessages != null ||
@@ -1136,30 +1060,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     channel.subscribe();
   }
 
-  bool _isRealtimeGenerationActive(int generation) {
-    return mounted && generation == _realtimeGeneration;
-  }
-
-  Future<Map<String, ChatReplyPreview>> _fetchReplyPreviewMap(
-    Set<String> replyIds,
-  ) async {
-    final response = await Supabase.instance.client
-        .from('messages')
-        .select(
-          'id,sender_id,type,body,image_url,caption,deleted_at,deleted_by',
-        )
-        .filter('id', 'in', '(${replyIds.join(',')})');
-    final rows = response as List<dynamic>;
-    final previewById = <String, ChatReplyPreview>{};
-    for (final row in rows) {
-      final preview = ChatReplyPreview.fromJson(Map<String, dynamic>.from(row));
-      if (preview.id.isNotEmpty) {
-        previewById[preview.id] = preview;
-      }
-    }
-    return previewById;
-  }
-
   void _handleReactionRefreshMessageId(String messageId) {
     if (!mounted ||
         messageId.isEmpty ||
@@ -1242,41 +1142,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     if (mounted) {
       setState(() {});
     }
-  }
-
-  String? _findMatchingOptimisticMessageId(ChatMessage incoming) {
-    for (final message in _messages) {
-      if (!_optimisticIds.contains(message.id)) {
-        continue;
-      }
-      if (message.senderId != incoming.senderId) {
-        continue;
-      }
-      if (message.type == 'image_feed' && incoming.type == 'image_feed') {
-        final optimisticClient = message.clientCreatedAt;
-        if (optimisticClient != null &&
-            matchesFeedIdentity(
-              expectedRoomId: message.roomId,
-              expectedSenderId: message.senderId,
-              expectedCaption: message.caption,
-              expectedClientCreatedAt: optimisticClient,
-              roomId: incoming.roomId,
-              senderId: incoming.senderId,
-              caption: incoming.caption,
-              messageId: incoming.id,
-              clientCreatedAt: incoming.clientCreatedAt,
-              createdAt: incoming.createdAt,
-            )) {
-          return message.id;
-        }
-      }
-      final sameText = message.body == incoming.body;
-      final sameReply = message.replyToMessageId == incoming.replyToMessageId;
-      if (sameText && sameReply) {
-        return message.id;
-      }
-    }
-    return null;
   }
 
   Future<void> _insertMessage(
@@ -1377,27 +1242,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     if (mounted) {
       setState(() {});
     }
-  }
-
-  List<fc.Message> _toUiMessages(List<ChatMessage> messages) {
-    final l10n = AppLocalizations.of(context)!;
-    return messages
-        .map(
-          (message) => PetChatMessageAdapter.toUiMessage(
-            message,
-            l10n,
-            isOptimistic: _optimisticIds.contains(message.id),
-          ),
-        )
-        .toList();
-  }
-
-  fc.Message _toUiMessage(ChatMessage message) {
-    return PetChatMessageAdapter.toUiMessage(
-      message,
-      AppLocalizations.of(context)!,
-      isOptimistic: _optimisticIds.contains(message.id),
-    );
   }
 
   Future<void> _updateVisibleChatMessage(ChatMessage message) async {
@@ -1605,34 +1449,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return;
     }
     setState(apply);
-  }
-
-  bool _sameMentionState(
-    ChatMentionToken? token,
-    List<ChatMentionCandidate> suggestions,
-  ) {
-    final currentToken = _activeMentionToken;
-    if ((currentToken == null) != (token == null)) {
-      return false;
-    }
-    if (currentToken != null && token != null) {
-      if (currentToken.start != token.start ||
-          currentToken.end != token.end ||
-          currentToken.query != token.query) {
-        return false;
-      }
-    }
-    if (_mentionSuggestions.length != suggestions.length) {
-      return false;
-    }
-    for (var index = 0; index < suggestions.length; index += 1) {
-      if (_mentionSuggestions[index].userId != suggestions[index].userId ||
-          _mentionSuggestions[index].displayName !=
-              suggestions[index].displayName) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void _selectMentionCandidate(ChatMentionCandidate candidate) {
@@ -2001,19 +1817,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     _composerFocusNode.requestFocus();
   }
 
-  String? _copyTextForMessage(ChatMessage message) {
-    if (message.isDeleted) {
-      return null;
-    }
-    if ((message.body ?? '').trim().isNotEmpty) {
-      return message.body!.trim();
-    }
-    if ((message.caption ?? '').trim().isNotEmpty) {
-      return message.caption!.trim();
-    }
-    return null;
-  }
-
   Future<String?> _promptEditMessageText(ChatMessage message) async {
     final controller = TextEditingController(text: (message.body ?? '').trim());
     final l10n = AppLocalizations.of(context)!;
@@ -2302,85 +2105,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         ),
       );
     }
-  }
-
-  String? _defaultReactionSheetFilterEmoji(
-    ChatMessage message, {
-    String? preferredEmoji,
-  }) {
-    final preferred = preferredEmoji?.trim();
-    if (preferred != null && preferred.isNotEmpty) {
-      return preferred;
-    }
-    final currentReaction = _selectedReactionEmoji(
-      _messagesById[message.id] ?? message,
-    );
-    if (currentReaction != null && currentReaction.isNotEmpty) {
-      return currentReaction;
-    }
-    final reactions = (_messagesById[message.id] ?? message).reactions;
-    if (reactions.isNotEmpty) {
-      return reactions.first.emoji;
-    }
-    return null;
-  }
-
-  Future<void> _primeProfilesForReactionUserIds(
-    Iterable<String> userIds,
-  ) async {
-    final idsToLoad = userIds
-        .map((id) => id.trim())
-        .where((id) => id.isNotEmpty && !_profilesById.containsKey(id))
-        .toSet();
-    if (idsToLoad.isEmpty) {
-      return;
-    }
-    try {
-      final profiles = await ProfileCacheService.instance.getProfiles(
-        idsToLoad,
-      );
-      for (final entry in profiles.entries) {
-        _profilesById[entry.key] = entry.value;
-      }
-    } catch (_) {
-      // Best-effort reaction profile loading.
-    }
-  }
-
-  Future<List<ChatReactionDetailsSheetEntry>> _loadReactionSheetEntries(
-    String messageId,
-  ) async {
-    final details = await _repository.fetchReactionDetails(
-      roomId: widget.roomId,
-      messageId: messageId,
-    );
-    await _primeProfilesForReactionUserIds(
-      details.map((detail) => detail.userId),
-    );
-    if (!mounted) {
-      return const <ChatReactionDetailsSheetEntry>[];
-    }
-    final l10n = AppLocalizations.of(context)!;
-    return details
-        .map((detail) {
-          final isCurrentUser = detail.userId == _currentUserId;
-          final profile = _profilesById[detail.userId];
-          final nickname = profile?.nickname?.trim();
-          final displayName = isCurrentUser
-              ? l10n.chatRoomMemberYou
-              : ((nickname != null && nickname.isNotEmpty)
-                    ? nickname
-                    : l10n.chatPartnerLabel);
-          return ChatReactionDetailsSheetEntry(
-            userId: detail.userId,
-            displayName: displayName,
-            emoji: detail.emoji,
-            createdAt: detail.createdAt,
-            avatarUrl: profile?.avatarUrl,
-            isCurrentUser: isCurrentUser,
-          );
-        })
-        .toList(growable: false);
   }
 
   Future<ChatReactionDetailsSheetUpdate?> _toggleReactionFromSheet(
@@ -3138,21 +2862,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     );
   }
 
-  bool _canGroupPreviewMessages(ChatMessage a, ChatMessage b) {
-    if (a.isSystem || b.isSystem) {
-      return false;
-    }
-    final aSender = a.senderId?.trim();
-    final bSender = b.senderId?.trim();
-    if (aSender == null ||
-        aSender.isEmpty ||
-        bSender == null ||
-        bSender.isEmpty) {
-      return false;
-    }
-    return aSender == bSender && isSameLocalChatDay(a.createdAt, b.createdAt);
-  }
-
   _MessagePreviewPresentation _previewPresentationForMessage(
     ChatMessage message,
   ) {
@@ -3301,22 +3010,32 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     unawaited(_showMessageActions(domainMessage, details: details));
   }
 
-  double? _replyTargetCenterOffset(GlobalKey targetKey) {
-    final targetContext = targetKey.currentContext;
-    if (targetContext == null) {
-      return null;
-    }
-    final renderObject = targetContext.findRenderObject();
-    if (renderObject == null || !renderObject.attached) {
-      return null;
-    }
-    final viewport = RenderAbstractViewport.of(renderObject);
-    final position = _chatScrollController.position;
-    return viewport
-        .getOffsetToReveal(renderObject, 0.5)
-        .offset
-        .clamp(position.minScrollExtent, position.maxScrollExtent)
-        .toDouble();
+  fc.ChatTheme _chatTheme(BuildContext context) {
+    final base = fc.ChatTheme.fromThemeData(Theme.of(context));
+    return base.copyWith(
+      colors: base.colors.copyWith(
+        primary: AppTheme.primaryColor,
+        onPrimary: Colors.white,
+        surface: widget.backgroundDecoration == null
+            ? (widget.isDarkBackground
+                  ? const Color(0xFF111111)
+                  : AppTheme.backgroundColor)
+            : Colors.transparent,
+        onSurface: widget.isDarkBackground
+            ? Colors.white
+            : AppTheme.textPrimary,
+        surfaceContainer: widget.isDarkBackground
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.88),
+        surfaceContainerLow: widget.isDarkBackground
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.white.withValues(alpha: 0.72),
+        surfaceContainerHigh: widget.isDarkBackground
+            ? Colors.white.withValues(alpha: 0.18)
+            : const Color(0xFFF1ECE4),
+      ),
+      shape: BorderRadius.circular(18),
+    );
   }
 
   Future<fc.User?> _resolveUser(String id) async {
@@ -3346,48 +3065,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       id: id,
       name: profile?.nickname,
       imageSource: profile?.avatarUrl,
-    );
-  }
-
-  String? _displayNameForSenderId(String? senderId) {
-    if (senderId == null || senderId.isEmpty) {
-      return null;
-    }
-    if (senderId == _currentUserId) {
-      return AppLocalizations.of(context)!.chatRoomMemberYou;
-    }
-    final nickname = _profilesById[senderId]?.nickname?.trim();
-    if (nickname == null || nickname.isEmpty) {
-      return null;
-    }
-    return nickname;
-  }
-
-  fc.ChatTheme _chatTheme(BuildContext context) {
-    final base = fc.ChatTheme.fromThemeData(Theme.of(context));
-    return base.copyWith(
-      colors: base.colors.copyWith(
-        primary: AppTheme.primaryColor,
-        onPrimary: Colors.white,
-        surface: widget.backgroundDecoration == null
-            ? (widget.isDarkBackground
-                  ? const Color(0xFF111111)
-                  : AppTheme.backgroundColor)
-            : Colors.transparent,
-        onSurface: widget.isDarkBackground
-            ? Colors.white
-            : AppTheme.textPrimary,
-        surfaceContainer: widget.isDarkBackground
-            ? Colors.white.withValues(alpha: 0.12)
-            : Colors.white.withValues(alpha: 0.88),
-        surfaceContainerLow: widget.isDarkBackground
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.white.withValues(alpha: 0.72),
-        surfaceContainerHigh: widget.isDarkBackground
-            ? Colors.white.withValues(alpha: 0.18)
-            : const Color(0xFFF1ECE4),
-      ),
-      shape: BorderRadius.circular(18),
     );
   }
 
@@ -3886,31 +3563,4 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       ),
     );
   }
-
-  String? _selectedReactionEmoji(ChatMessage message) {
-    for (final reaction in message.reactions) {
-      if (reaction.reactedByMe && reaction.emoji.isNotEmpty) {
-        return reaction.emoji;
-      }
-    }
-    return null;
-  }
-
-  int _sortByCreatedAtAsc(ChatMessage a, ChatMessage b) {
-    final createdCompare = a.createdAt.compareTo(b.createdAt);
-    if (createdCompare != 0) {
-      return createdCompare;
-    }
-    return a.id.compareTo(b.id);
-  }
-}
-
-class _FetchedMessagePage {
-  const _FetchedMessagePage({
-    required this.messages,
-    required this.hasMoreOlder,
-  });
-
-  final List<ChatMessage> messages;
-  final bool hasMoreOlder;
 }

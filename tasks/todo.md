@@ -66,6 +66,30 @@ purpose-specific archive if they are still useful.
   `flutter test` passed with the existing feed integration test skipped due
   missing Supabase test env vars.
 
+## Plan (2026-05-05 Chat Behavior Helper Refactor)
+- [x] Re-read active `memory-bank/*.md`, `tasks/todo.md`, and `tasks/lessons.md`.
+- [x] Identify Chat helpers that can move without direct `setState` usage.
+- [x] Extract Chat data/profile/reaction/format helpers into a focused part
+  file while keeping state transitions in `chat_room_view_v2.dart`.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`.
+- [x] Record review notes with updated file-size impact and verification.
+
+## Review (2026-05-05 Chat Behavior Helper Refactor)
+- Added `lib/features/chat/chat_room_view_v2_data_helpers.dart` for route-private
+  data helpers: message sorting/filtering/fetch page wrapping, reply preview
+  resolution, cache persistence, reaction/profile display helpers, grouping
+  checks, and UI message conversion.
+- Kept direct UI state transitions, realtime handling, send/edit/delete actions,
+  and viewport synchronization in `chat_room_view_v2.dart`.
+- File-size impact:
+  `chat_room_view_v2.dart` is now 3566 lines, down from 3916 after the previous
+  split; the new data helper part is 354 lines.
+- Verification:
+  `dart format` passed for changed Dart files,
+  `flutter analyze` passed,
+  `flutter test` passed with the existing feed integration test skipped due
+  missing Supabase test env vars.
+
 ## Plan (2026-05-02 AGENTS.md & Memory-Bank Optimization)
 - [x] Read `AGENTS.md`, active `memory-bank/*.md`, `tasks/todo.md`, and
   `tasks/lessons.md`.
