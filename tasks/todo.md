@@ -11,6 +11,34 @@ purpose-specific archive if they are still useful.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
   8.0.0 upgrade.
 
+## Plan (2026-05-05 Codebase Maintainability Refactor)
+- [x] Read active `memory-bank/*.md`, `tasks/todo.md`, and `tasks/lessons.md`.
+- [x] Identify oversized Dart files and low-risk extraction boundaries.
+- [x] Split `chat_room_view_v2.dart` private UI widgets into a focused part
+  file without changing runtime behavior.
+- [x] Split Home pet-scene rendering helpers out of `home_view.dart` without
+  changing state ownership or RPC behavior.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`.
+- [x] Record review notes with file-size impact and verification results.
+
+## Review (2026-05-05 Codebase Maintainability Refactor)
+- Split Chat route-only UI widgets into
+  `lib/features/chat/chat_room_view_v2_widgets.dart`; kept message loading,
+  realtime, cache, send/edit/delete, and scroll-window logic in
+  `chat_room_view_v2.dart`.
+- Split Home pet-scene rendering helpers into
+  `lib/features/home/home_view_pet_scene_builders.dart`; kept state mutation
+  and Supabase write actions inside `home_view.dart`.
+- File-size impact:
+  `chat_room_view_v2.dart` 5906 -> 3913 lines, with 1996 lines in the new UI
+  part; `home_view.dart` 6202 -> 5318 lines, with 890 lines in the new pet
+  scene part.
+- Verification:
+  `dart format` passed for changed Dart files,
+  `flutter analyze` passed,
+  `flutter test` passed with the existing feed integration test skipped due
+  missing Supabase test env vars.
+
 ## Plan (2026-05-02 AGENTS.md & Memory-Bank Optimization)
 - [x] Read `AGENTS.md`, active `memory-bank/*.md`, `tasks/todo.md`, and
   `tasks/lessons.md`.
