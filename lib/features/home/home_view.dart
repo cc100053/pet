@@ -350,6 +350,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _decorCompatibilityPromptShowing = false;
   StreamSubscription<String>? _inviteLinkSubscription;
   bool _pendingInviteJoinRunning = false;
+  final Set<String> _handledFeedUploadTerminalTempIds = <String>{};
 
   @override
   void initState() {
@@ -418,6 +419,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_feedUploadQueue.resumePendingJobs());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _replayUnacknowledgedFeedUploadEvents();
+      }
       if (AdMobIds.isSupported) {
         unawaited(_initializeRewardedAds());
       }
@@ -505,6 +509,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
     unawaited(_feedUploadQueue.resumePendingJobs());
+    _replayUnacknowledgedFeedUploadEvents();
     unawaited(_fcmService.refreshTokenSync());
     unawaited(_reconcileUnreadStateFromServer());
     _scheduleUnreadReconcile();

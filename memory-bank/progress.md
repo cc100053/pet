@@ -29,7 +29,9 @@ Active progress stays current-state focused. Full snapshot:
 - Chat is fully on `ChatRoomViewV2` with bounded history, replies/reactions,
   edit/delete, and local queue reconciliation for feed uploads.
 - Feed uploads run through the durable queue; Home owns global refresh and Chat
-  only handles local optimistic replacement.
+  only handles local optimistic replacement. Home replays unacknowledged terminal
+  feed jobs after lifecycle resume and refreshes the original feed room's pet
+  state even when the user has switched rooms.
 - Force update, What's New, crash fallback, and ATT-aware AdMob remain separate
   flows.
 

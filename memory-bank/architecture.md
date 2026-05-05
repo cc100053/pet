@@ -45,7 +45,9 @@ Use this file as a map, not as canonical source.
 - Chat opens on the latest 20 messages, loads 20-message older pages, caps the
   visible window at 80, and caches the newest 20 canonical messages in Hive.
 - Feed uploads are queue-owned. Home owns global completion/failure side
-  effects; Chat only reconciles optimistic rows locally.
+  effects, replays unacknowledged terminal jobs after lifecycle resume, and
+  refreshes the feed's original room state; Chat only reconciles optimistic rows
+  locally.
 - Force update and What's New remain separate gates: hard update first, then
   eligible bundled release notes once.
 - Invite links use `invite_code` in the URL and complete joining through

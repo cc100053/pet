@@ -262,6 +262,24 @@ void main() {
       expect((event as FeedUploadCompleted).result.messageId, 'message-1');
     });
 
+    test('emits completed event for persisted completed job replay', () {
+      final completed = _buildJob(status: FeedUploadJobStatus.completed)
+          .copyWith(
+            result: const FeedUploadResult(
+              tempId: 'temp-1',
+              coinsAwarded: 10,
+              messageId: 'message-1',
+            ),
+          );
+
+      final events = FeedUploadQueueEvents.between(null, _stateWith(completed));
+
+      expect(events, hasLength(1));
+      final event = events.single;
+      expect(event, isA<FeedUploadCompleted>());
+      expect((event as FeedUploadCompleted).result.messageId, 'message-1');
+    });
+
     test('emits failed event with retryable error', () {
       final previous = _buildJob(status: FeedUploadJobStatus.uploading);
       final next = previous.copyWith(
@@ -273,6 +291,23 @@ void main() {
         _stateWith(previous),
         _stateWith(next),
       );
+
+      expect(events, hasLength(1));
+      final event = events.single;
+      expect(event, isA<FeedUploadFailed>());
+      expect(
+        (event as FeedUploadFailed).error.toString(),
+        contains('network_timeout'),
+      );
+    });
+
+    test('emits failed event for persisted failed job replay', () {
+      final failed = _buildJob(
+        status: FeedUploadJobStatus.failed,
+        lastError: 'network_timeout',
+      );
+
+      final events = FeedUploadQueueEvents.between(null, _stateWith(failed));
 
       expect(events, hasLength(1));
       final event = events.single;

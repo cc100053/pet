@@ -11,6 +11,35 @@ purpose-specific archive if they are still useful.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
   8.0.0 upgrade.
 
+## Plan (2026-05-05 Durable Feed Completion)
+- [x] Trace the feed upload queue, `feed_validate`, and Home/Chat completion
+  side effects for app-background and room-switch cases.
+- [x] Keep unacknowledged completed/failed feed jobs replayable after lifecycle
+  resume without double-applying UI side effects.
+- [x] Refresh the original feed room's pet state after completion, even if the
+  user has switched rooms or returned to room selection.
+- [x] Add focused tests for persisted terminal queue events.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`.
+- [x] Record review notes and verification results.
+
+## Review (2026-05-05 Durable Feed Completion)
+- Home now replays loaded, unacknowledged completed/failed feed jobs on startup
+  post-frame and app resume, with temp-id de-duping. Replayed completions are
+  treated as reconciliation so server balance/state are reloaded without local
+  duplicate coin animations.
+- Feed completion refreshes the room that originated the upload instead of the
+  currently selected room, so room switches and room-selection exits still
+  update the correct pet health snapshot.
+- Verified the live Supabase `feed_validate` project ref from Edge Function
+  paths (`ilxzpszgirhwxpeocygs`) and confirmed `process_feed_event` remains the
+  atomic server path for feed action, reward, and message insertion.
+- Verification:
+  `dart format` passed for changed Dart files,
+  `flutter analyze` passed,
+  `flutter test test/features/feed/feed_upload_queue_test.dart` passed,
+  `flutter test` passed with the existing feed integration test skipped due
+  missing Supabase test env vars.
+
 ## Plan (2026-05-05 Codebase Maintainability Refactor)
 - [x] Read active `memory-bank/*.md`, `tasks/todo.md`, and `tasks/lessons.md`.
 - [x] Identify oversized Dart files and low-risk extraction boundaries.

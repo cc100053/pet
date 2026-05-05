@@ -231,16 +231,39 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     FeedUploadQueueState? previous,
     FeedUploadQueueState next,
   ) {
+    _handleFeedUploadQueueTransitionInternal(previous, next);
+  }
+
+  void _handleFeedUploadQueueTransitionInternal(
+    FeedUploadQueueState? previous,
+    FeedUploadQueueState next, {
+    bool replayTerminalEvents = false,
+  }) {
     for (final event in FeedUploadQueueEvents.between(previous, next)) {
       switch (event) {
         case FeedUploadOptimisticReady():
           _handleQueuedFeedPending(event.job);
         case FeedUploadCompleted():
-          _handleQueuedFeedCompleted(event);
+          _handleQueuedFeedCompleted(
+            event,
+            replayTerminalEvent: replayTerminalEvents,
+          );
         case FeedUploadFailed():
           _handleQueuedFeedFailed(event);
       }
     }
+  }
+
+  void _replayUnacknowledgedFeedUploadEvents() {
+    final queueState = ref.read(feedUploadQueueProvider);
+    if (!queueState.loaded) {
+      return;
+    }
+    _handleFeedUploadQueueTransitionInternal(
+      null,
+      queueState,
+      replayTerminalEvents: true,
+    );
   }
 
   void _handleQueuedFeedPending(FeedUploadJob job) {
@@ -250,8 +273,17 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     _handleOptimisticFeed(job.toOptimisticMessage());
   }
 
-  void _handleQueuedFeedCompleted(FeedUploadCompleted event) {
-    _handleFeedUploadCompleted(event.result);
+  void _handleQueuedFeedCompleted(
+    FeedUploadCompleted event, {
+    bool replayTerminalEvent = false,
+  }) {
+    if (_handledFeedUploadTerminalTempIds.add(event.job.tempId)) {
+      _handleFeedUploadCompleted(
+        replayTerminalEvent
+            ? event.result.copyWith(reconciled: true)
+            : event.result,
+      );
+    }
     unawaited(
       Future<void>.delayed(
         Duration.zero,
@@ -261,7 +293,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   void _handleQueuedFeedFailed(FeedUploadFailed event) {
-    _handleFeedUploadFailed(event.job.tempId, event.error);
+    if (_handledFeedUploadTerminalTempIds.add(event.job.tempId)) {
+      _handleFeedUploadFailed(event.job.tempId, event.error);
+    }
     unawaited(
       Future<void>.delayed(
         Duration.zero,
@@ -357,15 +391,49 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (refreshRoomId != null) {
       unawaited(_refreshLatestRoomPhoto(refreshRoomId));
       unawaited(_refreshLatestFeed(refreshRoomId));
-      unawaited(_refreshPetState());
+      unawaited(_refreshFeedRoomPetState(refreshRoomId));
       unawaited(() async {
-        final petId = _petId ?? await _loadPetId(refreshRoomId);
+        final petId = await _loadPetId(refreshRoomId);
         if (petId != null) {
           await _loadPetInfo(petId, roomId: refreshRoomId);
         }
       }());
     }
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
+  }
+
+  Future<void> _refreshFeedRoomPetState(String roomId) async {
+    if (roomId == _roomId) {
+      await _refreshPetState();
+      return;
+    }
+    try {
+      final petId = _petIdByRoom[roomId] ?? await _loadPetId(roomId);
+      if (petId == null) {
+        return;
+      }
+      final state = await _fetchPetState(petId);
+      if (state == null) {
+        return;
+      }
+      _cachePetState(roomId, petId, state);
+      final hunger = state['hunger'] as num?;
+      final healthValue = _healthValueFromHunger(hunger);
+      if (!mounted) {
+        return;
+      }
+      _setStateForFeedOrchestrator(() {
+        _myRooms = _myRooms
+            .map(
+              (room) => room['id'] == roomId
+                  ? {...room, 'pet_health': healthValue}
+                  : room,
+            )
+            .toList(growable: false);
+      });
+    } catch (_) {
+      // Best-effort; room entry and room-selection refresh also reload state.
+    }
   }
 
   Future<void> _maybePromptFeedDoubleReward(
