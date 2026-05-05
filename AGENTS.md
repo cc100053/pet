@@ -172,6 +172,8 @@ flutter run
 - Repo Firebase project: `pet-app-702be`; prefer the iOS app ID unless Android is explicitly requested.
 - Setup and wrapper details live in `docs/firebase_crashlytics_mcp_workflow.md` and `scripts/start_firebase_mcp_crashlytics.sh`.
 - Copy `.firebase-mcp.env.example` to the gitignored `.firebase-mcp.env` and point it at the local service-account JSON key before using the wrapper.
+- Prefer ADC via the local `.firebase-mcp.env` service-account path over `firebase login` for long-lived MCP access.
+- If Crashlytics stacks are unsymbolicated, inspect `ios/scripts/upload_crashlytics_symbols.sh` before debugging app logic.
 
 ### Pet PNG sequence / socket workflow
 - Use `docs/godot-png-sequence-socket-workflow.md` for the current Godot-to-Flutter authoring flow.

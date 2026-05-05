@@ -1,57 +1,34 @@
 # Tech Stack
 
-## Core
-- Frontend: Flutter (Dart)
-- State management: Riverpod
-- Animation: Lottie (`lottie`) + asset images (GIF/PNG)
-- UI micro-animations: `flutter_animate` (duration extensions, `moveX`/`moveY`)
-- SFX playback: `audioplayers` (one-shot local asset effects)
-- Local storage/cache: Hive
-- Client SDK: `supabase_flutter`
-- Env config: `flutter_dotenv`
-- Device timezone lookup: `flutter_timezone`
+Active summary only. See source files and `pubspec.yaml` for exact versions.
 
-## Backend & Realtime
-- Backend: Supabase (Auth, Postgres, Realtime)
-- Server logic: Supabase Edge Functions
-- DB logic: Postgres RPC (SQL functions)
-- Media storage: Cloudflare R2 (S3 compatible)
-- Security: Supabase RLS policies (Row Level Security)
-- Auth JWT signing: Edge Functions `verify_jwt` expects HS256 (legacy secret); ES256/asymmetric tokens will 401 at the gateway.
+## Core App
+- Flutter/Dart
+- Riverpod state management
+- Hive local cache
+- `supabase_flutter` client SDK
+- `flutter_dotenv` env loading
+- `flutter_timezone` timezone lookup
 
-## AI & Media
-- Image understanding: Google ML Kit
-  - Image Labeling
-  - Object Detection
-  - ⚠️ **Simulator Limitation**: MLKit binary frameworks don't support iOS Simulator on Xcode 26+
-  
-  ### MLKit Build Toggle (pubspec.yaml)
-  | Build Target | Action | Result |
-  |-------------|--------|--------|
-  | **Simulator** | Comment out `google_mlkit_image_labeling` | Uses mock labels (Food, Pet food, Bowl...) |
-  | **Real Device / TestFlight** | Uncomment `google_mlkit_image_labeling` | Real ML image analysis |
-  
-  > After toggling, run: `flutter clean && flutter pub get && cd ios && pod install`
-  
-  See `lib/services/image_labeling/` for implementation details.
-  
-- Label mapping: Client or backend mapping layer for EN -> ZH/JA labels (based on User Preference)
-- Mapping data: `label_mappings` + `quests` seed dictionary
-- Color DNA extraction: `palette_generator`
-- Image delivery: `cached_network_image`
-- Media format: WebP on upload (target ~100KB)
+## Media And UI
+- Lottie + image assets (GIF/PNG sequence runtime)
+- `flutter_animate` micro-animations
+- `audioplayers` for local SFX
+- `cached_network_image` for remote media
+- `palette_generator` for color extraction
 
-## Notifications & Analytics
-- Push notifications: Firebase Cloud Messaging (FCM)
-- Analytics: Firebase Analytics
-- Crash reporting: Firebase Crashlytics
-- Ratings prompt: Apple In-App Review (`in_app_review`)
-- IAP/Subscriptions: RevenueCat (`purchases_flutter`)
-- Ads: Google AdMob (`google_mobile_ads` 8.x) for iOS banner + rewarded placements
+## Backend And Platform
+- Supabase Auth, Postgres, Realtime, Edge Functions
+- Cloudflare R2 for feed/avatar media
+- Firebase Cloud Messaging, Analytics, Crashlytics
+- RevenueCat for IAP/subscriptions
+- Google AdMob 8.x for iOS banner/rewarded ads
 
-## Tooling
-- CI: GitHub Actions (flutter analyze/test)
-- Apple dependency resolution: Flutter Swift Package Manager integration is enabled
-  for iOS/macOS. Firebase/FlutterFire and SPM-capable Apple plugins resolve
-  through checked-in `Package.resolved` files; CocoaPods remains only for Apple
-  plugins without SPM support.
+## Repo-Specific Notes
+- Edge Function gateway `verify_jwt=true` expects HS256 Supabase Auth JWTs; old
+  `notify_friend` webhook compatibility still relies on `verify_jwt=false` plus
+  function-level auth checks.
+- Flutter SPM integration is enabled for iOS/macOS; checked-in
+  `Package.resolved` files are part of the Apple dependency flow.
+- Google ML Kit image-labeling binaries do not support iOS Simulator on Xcode
+  26+; follow the toggle note in the archived/full docs before simulator work.
