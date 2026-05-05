@@ -90,6 +90,30 @@ purpose-specific archive if they are still useful.
   `flutter test` passed with the existing feed integration test skipped due
   missing Supabase test env vars.
 
+## Plan (2026-05-05 Home Data Helper Refactor)
+- [x] Re-read active `memory-bank/*.md`, `tasks/todo.md`, and `tasks/lessons.md`.
+- [x] Identify Home helpers that can move without direct `setState` usage.
+- [x] Extract Home read-only/data/geometry helpers into a focused part file
+  while keeping state transitions in `home_view.dart`.
+- [x] Run `dart format`, `flutter analyze`, and `flutter test`.
+- [x] Record review notes with updated file-size impact and verification.
+
+## Review (2026-05-05 Home Data Helper Refactor)
+- Added `lib/features/home/home_view_data_helpers.dart` for route-private helper
+  logic: reward parsing, poop position normalization, pet exp/health display
+  math, departed-pet display resolution, shared decor compatibility checks,
+  furniture sizing/geometry, and transform response parsing.
+- Kept direct `setState` calls, Supabase writes/RPC orchestration, subscriptions,
+  and UI builders in `home_view.dart`.
+- File-size impact:
+  `home_view.dart` is now 4785 lines, down from 5124 after the previous split;
+  the new data helper part is 343 lines.
+- Verification:
+  `dart format` passed for changed Dart files,
+  `flutter analyze` passed,
+  `flutter test` passed with the existing feed integration test skipped due
+  missing Supabase test env vars.
+
 ## Plan (2026-05-02 AGENTS.md & Memory-Bank Optimization)
 - [x] Read `AGENTS.md`, active `memory-bank/*.md`, `tasks/todo.md`, and
   `tasks/lessons.md`.
