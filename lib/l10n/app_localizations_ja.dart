@@ -1378,6 +1378,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemNameEquipmentStrawHat => '麦わら帽子';
 
   @override
+  String get storeItemNameEquipmentCrown => '王冠';
+
+  @override
   String get shopSignInPrompt => 'ショップを利用するにはサインインしてください。';
 
   @override

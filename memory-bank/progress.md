@@ -14,6 +14,9 @@ Active progress stays current-state focused. Full snapshot:
   `.codex/skills/shared-item-rollout/SKILL.md`.
 - Pet dress-up is live with room-scoped equipment ownership/equip state and
   room selection previews that render equipped items from room data.
+- Crown head equipment is wired app-side and live catalog-side with a
+  version-gated 1.4.0 shop migration; it reuses existing head sockets until
+  Godot fine-tuning.
 - Pet rendering now prefers bundled PNG sequences while preserving GIF asset
   ids as stable source/fallback references during migration.
 - Godot is the current socket/equipment authoring path. The exported JSON feeds

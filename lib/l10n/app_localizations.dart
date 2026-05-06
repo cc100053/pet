@@ -2561,6 +2561,12 @@ abstract class AppLocalizations {
   /// **'Straw Hat'**
   String get storeItemNameEquipmentStrawHat;
 
+  /// No description provided for @storeItemNameEquipmentCrown.
+  ///
+  /// In en, this message translates to:
+  /// **'Crown'**
+  String get storeItemNameEquipmentCrown;
+
   /// No description provided for @shopSignInPrompt.
   ///
   /// In en, this message translates to:

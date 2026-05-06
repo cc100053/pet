@@ -1418,6 +1418,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemNameEquipmentStrawHat => 'Straw Hat';
 
   @override
+  String get storeItemNameEquipmentCrown => 'Crown';
+
+  @override
   String get shopSignInPrompt => 'Please sign in to access the shop.';
 
   @override

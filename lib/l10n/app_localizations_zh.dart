@@ -1372,6 +1372,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemNameEquipmentStrawHat => '草帽';
 
   @override
+  String get storeItemNameEquipmentCrown => '皇冠';
+
+  @override
   String get shopSignInPrompt => '请先登录才能使用商店。';
 
   @override
@@ -3149,6 +3152,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
+
+  @override
+  String get storeItemNameEquipmentCrown => '皇冠';
 
   @override
   String get shopSignInPrompt => '請先登入才能使用商店。';

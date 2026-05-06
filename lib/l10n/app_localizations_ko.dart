@@ -1387,6 +1387,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemNameEquipmentStrawHat => 'Straw Hat';
 
   @override
+  String get storeItemNameEquipmentCrown => '왕관';
+
+  @override
   String get shopSignInPrompt => '샵을 이용하려면 로그인해 주세요.';
 
   @override

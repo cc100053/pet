@@ -77,4 +77,14 @@ void main() {
     expect(definition.sizeRatio.w, closeTo(0.8, 0.001));
     expect(definition.sizeRatio.h, closeTo(0.8 / (1821 / 700), 0.001));
   });
+
+  test('crown catalog values use head socket with square source aspect', () {
+    final definition = EquipmentCatalog.bySku('equip_crown');
+
+    expect(definition, isNotNull);
+    expect(definition!.anchor.x, closeTo(0.5, 0.001));
+    expect(definition.anchor.y, closeTo(0.82, 0.001));
+    expect(definition.sizeRatio.w, closeTo(0.34, 0.001));
+    expect(definition.sizeRatio.h, closeTo(0.34, 0.001));
+  });
 }

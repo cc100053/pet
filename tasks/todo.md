@@ -11,6 +11,49 @@ purpose-specific archive if they are still useful.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
   8.0.0 upgrade.
 
+## Plan (2026-05-07 GEOFlow Integration)
+- [ ] Confirm GEOFlow's deployment/runtime shape and the safest app boundary.
+- [ ] Add a configurable GEOFlow URL path for the Flutter app.
+- [ ] Add a localized in-app entry point that opens the deployed GEOFlow site.
+- [ ] Document install/deploy/use steps for PicPet.
+- [ ] Run `dart format`, `flutter analyze`, and `flutter test`.
+
+## Plan (2026-05-06 Crown Equipment)
+- [x] Reuse the existing head socket/motion pipeline and add `equip_crown` as a
+  new head equipment definition.
+- [x] Add localized shop-name lookup and a version-gated catalog migration for
+  the crown item without changing existing equipment behavior.
+- [x] Add focused catalog/layout tests for the crown defaults.
+- [x] Run formatting, localization generation, analyzer, and tests.
+- [x] Record review notes and verification results.
+
+## Review (2026-05-06 Crown Equipment)
+- Added `equip_crown` as a head-slot equipment definition using the existing
+  pet head socket/motion tracks. Initial fit is bottom-center anchored
+  (`x=0.5`, `y=0.82`) with square source sizing at `0.34` pet width.
+- Added localized shop-name lookup for Crown/王冠/皇冠/왕관 and generated
+  Flutter localization files.
+- Added and applied migration `20260506144656_add_crown_equipment.sql` with
+  `visibility_mode = version_gated`, `min_app_version = 1.4.0`, and
+  `is_active = false`, matching the existing compatibility rollout style.
+- Verified the live Supabase target through Edge Function paths before applying:
+  `mcp__supabase_pet__` points at repo project `ilxzpszgirhwxpeocygs`; the
+  other available MCP project is unrelated.
+- Verified live catalog behavior: `equip_crown` is hidden from
+  `get_visible_shop_items('1.3.9')` and visible from
+  `get_visible_shop_items('1.4.0')`.
+- Verification:
+  `dart format` passed for changed Dart/test files,
+  `flutter gen-l10n` completed with existing ko/zh_TW untranslated-message
+  warnings,
+  focused equipment tests passed,
+  `flutter analyze` passed,
+  `flutter test` passed with the existing feed integration test skipped due
+  missing Supabase test env vars,
+  `flutter build bundle` passed and `AssetManifest.bin` contains
+  `assets/equipment/hats/crown.png`,
+  `git diff --check` passed.
+
 ## Plan (2026-05-05 Durable Feed Completion)
 - [x] Trace the feed upload queue, `feed_validate`, and Home/Chat completion
   side effects for app-background and room-switch cases.

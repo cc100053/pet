@@ -177,6 +177,17 @@ class EquipmentCatalog {
       },
       zOrder: 1,
     ),
+    EquipmentDefinition(
+      sku: 'equip_crown',
+      slot: PetEquipmentSlot.head,
+      anchor: EquipmentAnchor(x: 0.5, y: 0.82),
+      sizeRatio: EquipmentSize.fromWidthAspect(
+        widthRatio: 0.34,
+        aspectRatio: 1,
+      ),
+      assetPath: 'assets/equipment/hats/crown.png',
+      zOrder: 1,
+    ),
   ];
 
   static EquipmentDefinition? bySku(String sku) {
