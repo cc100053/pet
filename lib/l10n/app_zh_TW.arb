@@ -724,7 +724,10 @@
   "storeItemDescFurnitureToilet": "乾淨的小浴室家具。",
   "storeItemNameFurnitureTub": "浴缸",
   "storeItemDescFurnitureTub": "適合泡澡的舒適浴缸。",
+  "storeItemNameEquipmentStrawHat": "草帽",
   "storeItemNameEquipmentCrown": "皇冠",
+  "storeItemNameEquipmentSunglasses": "太陽眼鏡",
+  "storeItemNameEquipmentRibbon": "緞帶",
   "shopSignInPrompt": "請先登入才能使用商店。",
   "storeSubscribe": "訂閱",
   "storeSubscriptionActive": "已啟用",
@@ -777,6 +780,27 @@
   "backgroundGalleryTab": "背景圖庫",
   "backgroundInventoryEmpty": "還沒有背景，去商店看看吧。",
   "backgroundInventoryHint": "點擊背景即可套用到房間所有成員。",
+  "inventoryTabEquipment": "裝扮",
+  "equipmentInventoryHint": "先在這裡預覽造型，再為共享寵物穿上或卸下裝備。",
+  "equipmentNoneOwned": "你還沒有這個部位可用的裝備。",
+  "equipmentSlotHead": "頭部",
+  "equipmentSlotFace": "面部",
+  "equipmentSlotBody": "身體",
+  "equipmentSlotBack": "背部",
+  "equipmentEquipCta": "穿上",
+  "equipmentUnequipCta": "卸下",
+  "equipmentEquipSuccess": "已穿上 {itemName}！",
+  "@equipmentEquipSuccess": {
+    "placeholders": {
+      "itemName": {}
+    }
+  },
+  "equipmentUnequipSuccess": "已卸下{slotName}。",
+  "@equipmentUnequipSuccess": {
+    "placeholders": {
+      "slotName": {}
+    }
+  },
   "backgroundApply": "套用",
   "backgroundAppliedLabel": "已套用",
   "backgroundApplyFailed": "套用背景失敗：{error}",
@@ -939,5 +963,9 @@
   "whatsNew130Title": "寵物裝扮登場",
   "whatsNew130Bullet1": "現在可以為寵物穿戴裝備。",
   "whatsNew130Bullet2": "商店新增草帽裝備。",
-  "whatsNew130Bullet3": "寵物預覽與房間庫存顯示更加順暢清楚。"
+  "whatsNew130Bullet3": "寵物預覽與房間庫存顯示更加順暢清楚。",
+  "whatsNew140Title": "更多寵物造型",
+  "whatsNew140Bullet1": "商店新增皇冠、太陽眼鏡與緞帶裝備。",
+  "whatsNew140Bullet2": "裝備預覽會依照不同寵物顯示得更自然。",
+  "whatsNew140Bullet3": "共享房間、庫存與商店的裝備顯示更加清楚。"
 }

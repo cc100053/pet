@@ -83,8 +83,8 @@ void main() {
 
     expect(definition, isNotNull);
     expect(definition!.anchor.x, closeTo(0.5, 0.001));
-    expect(definition.anchor.y, closeTo(0.82, 0.001));
-    expect(definition.sizeRatio.w, closeTo(0.34, 0.001));
-    expect(definition.sizeRatio.h, closeTo(0.34, 0.001));
+    expect(definition.anchor.y, closeTo(0.55, 0.001));
+    expect(definition.sizeRatio.w, closeTo(0.32, 0.001));
+    expect(definition.sizeRatio.h, closeTo(0.32, 0.001));
   });
 }

@@ -187,7 +187,7 @@ class EquipmentCatalog {
     // Default (ghost): anchor(0.6, 0.0), size 0.45
     EquipmentDefinition(
       sku: 'equip_sunglasses',
-      slot: PetEquipmentSlot.head,
+      slot: PetEquipmentSlot.face,
       anchor: EquipmentAnchor(x: 0.6, y: 0.0),
       sizeRatio: EquipmentSize.fromWidthAspect(
         widthRatio: 0.45,

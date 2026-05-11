@@ -548,6 +548,8 @@ class _EquipmentTab extends StatelessWidget {
     switch (slot) {
       case PetEquipmentSlot.head:
         return l10n.equipmentSlotHead;
+      case PetEquipmentSlot.face:
+        return l10n.equipmentSlotFace;
       case PetEquipmentSlot.body:
         return l10n.equipmentSlotBody;
       case PetEquipmentSlot.back:

@@ -722,6 +722,8 @@
   "storeItemDescFurnitureTub": "適合泡澡的舒適浴缸。",
   "storeItemNameEquipmentStrawHat": "草帽",
   "storeItemNameEquipmentCrown": "皇冠",
+  "storeItemNameEquipmentSunglasses": "太阳眼镜",
+  "storeItemNameEquipmentRibbon": "缎带",
   "shopSignInPrompt": "请先登录才能使用商店。",
   "storeSubscribe": "訂閱",
   "storeSubscriptionActive": "已啟用",
@@ -778,6 +780,7 @@
   "equipmentInventoryHint": "先在這裡預覽造型，再為共享寵物穿上或卸下裝備。",
   "equipmentNoneOwned": "你還沒有這個部位可用的裝備。",
   "equipmentSlotHead": "頭部",
+  "equipmentSlotFace": "面部",
   "equipmentSlotBody": "身體",
   "equipmentSlotBack": "背部",
   "equipmentEquipCta": "穿上",
@@ -970,5 +973,9 @@
   "whatsNew130Title": "宠物装扮登场",
   "whatsNew130Bullet1": "现在可以为宠物穿戴装备。",
   "whatsNew130Bullet2": "商店新增草帽装备。",
-  "whatsNew130Bullet3": "宠物预览与房间库存显示更加顺畅清楚。"
+  "whatsNew130Bullet3": "宠物预览与房间库存显示更加顺畅清楚。",
+  "whatsNew140Title": "更多宠物造型",
+  "whatsNew140Bullet1": "商店新增皇冠、太阳眼镜与缎带装备。",
+  "whatsNew140Bullet2": "装备预览会依照不同宠物显示得更自然。",
+  "whatsNew140Bullet3": "共享房间、库存与商店的装备显示更加清楚。"
 }

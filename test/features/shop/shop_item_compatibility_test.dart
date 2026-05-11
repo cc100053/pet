@@ -120,4 +120,51 @@ void main() {
     expect(item.isSupportedOnAppVersion('1.1.1'), isFalse);
     expect(item.isSupportedOnAppVersion('1.1.2'), isTrue);
   });
+
+  test('parses V1.4.0 version-gated equipment metadata', () {
+    final cases = <({String sku, String slot, String assetPath})>[
+      (
+        sku: 'equip_crown',
+        slot: 'head',
+        assetPath: 'assets/equipment/hats/crown.png',
+      ),
+      (
+        sku: 'equip_sunglasses',
+        slot: 'face',
+        assetPath: 'assets/equipment/sunglasses.png',
+      ),
+      (
+        sku: 'equip_ribbon',
+        slot: 'body',
+        assetPath: 'assets/equipment/ribbon.png',
+      ),
+    ];
+
+    for (final entry in cases) {
+      final item = ShopItem.fromJson({
+        'id': 'item-${entry.sku}',
+        'sku': entry.sku,
+        'type': 'cosmetic',
+        'name': entry.sku,
+        'price_coins': 160,
+        'price_diamonds': null,
+        'metadata': {
+          'category': 'equipment',
+          'equipment_slot': entry.slot,
+          'asset_path': entry.assetPath,
+          'price_jpy': 160,
+          'visibility_mode': 'version_gated',
+          'min_app_version': '1.4.0',
+        },
+      });
+
+      expect(item.isEquipment, isTrue);
+      expect(item.priceCoins, 160);
+      expect(item.priceJpy, 160);
+      expect(item.equipmentSlot, entry.slot);
+      expect(item.equipmentAssetPath, entry.assetPath);
+      expect(item.isSupportedOnAppVersion('1.3.9'), isFalse);
+      expect(item.isSupportedOnAppVersion('1.4.0'), isTrue);
+    }
+  });
 }

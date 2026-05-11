@@ -1384,10 +1384,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurnitureTub => '목욕 시간에 어울리는 아늑한 욕조.';
 
   @override
-  String get storeItemNameEquipmentStrawHat => 'Straw Hat';
+  String get storeItemNameEquipmentStrawHat => '밀짚모자';
 
   @override
   String get storeItemNameEquipmentCrown => '왕관';
+
+  @override
+  String get storeItemNameEquipmentSunglasses => '선글라스';
+
+  @override
+  String get storeItemNameEquipmentRibbon => '리본';
 
   @override
   String get shopSignInPrompt => '샵을 이용하려면 로그인해 주세요.';
@@ -1500,7 +1506,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get inventoryTabFurniture => '가구';
 
   @override
-  String get inventoryTabEquipment => 'Equipment';
+  String get inventoryTabEquipment => '꾸미기';
 
   @override
   String get backgroundGalleryTab => '배경 갤러리';
@@ -1513,35 +1519,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get equipmentInventoryHint =>
-      'Preview outfits here, then equip or remove items on the shared pet.';
+      '여기서 스타일을 미리 보고 공유 펫에게 장비를 착용하거나 해제할 수 있어요.';
 
   @override
-  String get equipmentNoneOwned =>
-      'You don\'t own any items for this slot yet.';
+  String get equipmentNoneOwned => '아직 이 부위에 사용할 수 있는 장비가 없습니다.';
 
   @override
-  String get equipmentSlotHead => 'Head';
+  String get equipmentSlotHead => '머리';
 
   @override
-  String get equipmentSlotBody => 'Body';
+  String get equipmentSlotFace => '얼굴';
 
   @override
-  String get equipmentSlotBack => 'Back';
+  String get equipmentSlotBody => '몸';
 
   @override
-  String get equipmentEquipCta => 'Equip';
+  String get equipmentSlotBack => '등';
 
   @override
-  String get equipmentUnequipCta => 'Remove';
+  String get equipmentEquipCta => '착용';
+
+  @override
+  String get equipmentUnequipCta => '해제';
 
   @override
   String equipmentEquipSuccess(Object itemName) {
-    return 'Equipped $itemName!';
+    return '$itemName 착용 완료!';
   }
 
   @override
   String equipmentUnequipSuccess(Object slotName) {
-    return 'Removed equipment from $slotName.';
+    return '$slotName 해제됨.';
   }
 
   @override
@@ -1814,4 +1822,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew130Bullet3 => '펫 미리보기와 방 인벤토리가 더 보기 쉬워졌어요.';
+
+  @override
+  String get whatsNew140Title => '더 다양해진 펫 스타일';
+
+  @override
+  String get whatsNew140Bullet1 => '상점에 왕관, 선글라스, 리본 장비가 새로 추가되었습니다.';
+
+  @override
+  String get whatsNew140Bullet2 => '장비 미리보기가 펫마다 더 자연스럽게 보이도록 개선되었습니다.';
+
+  @override
+  String get whatsNew140Bullet3 => '공유 방, 인벤토리, 상점에서 장비 표시가 더 명확해졌습니다.';
 }

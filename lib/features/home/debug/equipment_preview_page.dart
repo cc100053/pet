@@ -250,8 +250,7 @@ class _EquipmentPreviewPageState extends State<EquipmentPreviewPage> {
               ChoiceChip(
                 label: const Text('None'),
                 selected: _equippedBySlot[slot] == null,
-                onSelected: (_) =>
-                    setState(() => _equippedBySlot[slot] = null),
+                onSelected: (_) => setState(() => _equippedBySlot[slot] = null),
                 visualDensity: VisualDensity.compact,
               ),
               ...items.map(
@@ -282,6 +281,7 @@ class _EquipmentPreviewPageState extends State<EquipmentPreviewPage> {
 
   String _slotLabel(String slot) => switch (slot) {
     PetEquipmentSlot.head => 'Head',
+    PetEquipmentSlot.face => 'Face',
     PetEquipmentSlot.body => 'Body',
     PetEquipmentSlot.back => 'Back',
     _ => slot,

@@ -1421,6 +1421,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemNameEquipmentCrown => 'Crown';
 
   @override
+  String get storeItemNameEquipmentSunglasses => 'Sunglasses';
+
+  @override
+  String get storeItemNameEquipmentRibbon => 'Ribbon';
+
+  @override
   String get shopSignInPrompt => 'Please sign in to access the shop.';
 
   @override
@@ -1558,6 +1564,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipmentSlotHead => 'Head';
+
+  @override
+  String get equipmentSlotFace => 'Face';
 
   @override
   String get equipmentSlotBody => 'Body';
@@ -1869,4 +1878,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew130Bullet3 =>
       'Pet previews and room inventory are smoother and clearer.';
+
+  @override
+  String get whatsNew140Title => 'More Pet Style';
+
+  @override
+  String get whatsNew140Bullet1 =>
+      'New Crown, Sunglasses, and Ribbon equipment is available in the Shop.';
+
+  @override
+  String get whatsNew140Bullet2 =>
+      'Equipment previews now fit each pet more naturally.';
+
+  @override
+  String get whatsNew140Bullet3 =>
+      'Shared room, inventory, and shop displays are clearer.';
 }

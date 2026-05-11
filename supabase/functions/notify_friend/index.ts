@@ -117,6 +117,10 @@ const localizedStoreItemNames: Record<string, Record<string, string>> = {
     furniture_emoji_tv: "TV",
     furniture_emoji_bath: "Bath",
     furniture_emoji_ribbon: "Ribbon",
+    equip_straw_hat: "Straw Hat",
+    equip_crown: "Crown",
+    equip_sunglasses: "Sunglasses",
+    equip_ribbon: "Ribbon",
   },
   ja: {
     background_default: "デフォルト背景",
@@ -133,6 +137,10 @@ const localizedStoreItemNames: Record<string, Record<string, string>> = {
     furniture_emoji_tv: "テレビ",
     furniture_emoji_bath: "バス",
     furniture_emoji_ribbon: "リボン",
+    equip_straw_hat: "麦わら帽子",
+    equip_crown: "王冠",
+    equip_sunglasses: "サングラス",
+    equip_ribbon: "リボン",
   },
   ko: {
     background_default: "기본 배경",
@@ -149,6 +157,10 @@ const localizedStoreItemNames: Record<string, Record<string, string>> = {
     furniture_emoji_tv: "TV",
     furniture_emoji_bath: "욕조",
     furniture_emoji_ribbon: "리본",
+    equip_straw_hat: "밀짚모자",
+    equip_crown: "왕관",
+    equip_sunglasses: "선글라스",
+    equip_ribbon: "리본",
   },
   zh: {
     background_default: "默认背景",
@@ -165,6 +177,10 @@ const localizedStoreItemNames: Record<string, Record<string, string>> = {
     furniture_emoji_tv: "电视",
     furniture_emoji_bath: "浴缸",
     furniture_emoji_ribbon: "缎带",
+    equip_straw_hat: "草帽",
+    equip_crown: "皇冠",
+    equip_sunglasses: "太阳眼镜",
+    equip_ribbon: "缎带",
   },
   "zh-TW": {
     background_default: "預設背景",
@@ -181,6 +197,10 @@ const localizedStoreItemNames: Record<string, Record<string, string>> = {
     furniture_emoji_tv: "電視",
     furniture_emoji_bath: "浴缸",
     furniture_emoji_ribbon: "緞帶",
+    equip_straw_hat: "草帽",
+    equip_crown: "皇冠",
+    equip_sunglasses: "太陽眼鏡",
+    equip_ribbon: "緞帶",
   },
 };
 

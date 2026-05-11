@@ -2567,6 +2567,18 @@ abstract class AppLocalizations {
   /// **'Crown'**
   String get storeItemNameEquipmentCrown;
 
+  /// No description provided for @storeItemNameEquipmentSunglasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunglasses'**
+  String get storeItemNameEquipmentSunglasses;
+
+  /// No description provided for @storeItemNameEquipmentRibbon.
+  ///
+  /// In en, this message translates to:
+  /// **'Ribbon'**
+  String get storeItemNameEquipmentRibbon;
+
   /// No description provided for @shopSignInPrompt.
   ///
   /// In en, this message translates to:
@@ -2804,6 +2816,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Head'**
   String get equipmentSlotHead;
+
+  /// No description provided for @equipmentSlotFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Face'**
+  String get equipmentSlotFace;
 
   /// No description provided for @equipmentSlotBody.
   ///
@@ -3326,6 +3344,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pet previews and room inventory are smoother and clearer.'**
   String get whatsNew130Bullet3;
+
+  /// No description provided for @whatsNew140Title.
+  ///
+  /// In en, this message translates to:
+  /// **'More Pet Style'**
+  String get whatsNew140Title;
+
+  /// No description provided for @whatsNew140Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'New Crown, Sunglasses, and Ribbon equipment is available in the Shop.'**
+  String get whatsNew140Bullet1;
+
+  /// No description provided for @whatsNew140Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment previews now fit each pet more naturally.'**
+  String get whatsNew140Bullet2;
+
+  /// No description provided for @whatsNew140Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared room, inventory, and shop displays are clearer.'**
+  String get whatsNew140Bullet3;
 }
 
 class _AppLocalizationsDelegate

@@ -30,7 +30,9 @@ applied migration that rewrites the object.
   `visibility_mode`, `min_app_version`, `shop_visibility`, fallback metadata,
   and asset/slot fields.
 - `pet_equipment` stores one equipped item per `(room_id, pet_id, slot)`;
-  supported slots are `head`, `body`, `back`.
+  supported slots are `head`, `face`, `body`, `back`. The `face` slot is for
+  sunglasses and shares the app-side head socket anchor while staying a separate
+  mutual-exclusion group from hats.
 - Shared furniture counts and equipment ownership are room-scoped, though some
   legacy inventory rows remain buyer-attributed for compatibility.
 - `room_furniture` keeps normalized positions, clamped scale, and `flip_x`.

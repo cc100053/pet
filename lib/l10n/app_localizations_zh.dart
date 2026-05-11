@@ -1375,6 +1375,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemNameEquipmentCrown => '皇冠';
 
   @override
+  String get storeItemNameEquipmentSunglasses => '太阳眼镜';
+
+  @override
+  String get storeItemNameEquipmentRibbon => '缎带';
+
+  @override
   String get shopSignInPrompt => '请先登录才能使用商店。';
 
   @override
@@ -1502,6 +1508,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipmentSlotHead => '頭部';
+
+  @override
+  String get equipmentSlotFace => '面部';
 
   @override
   String get equipmentSlotBody => '身體';
@@ -1793,6 +1802,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew130Bullet3 => '宠物预览与房间库存显示更加顺畅清楚。';
+
+  @override
+  String get whatsNew140Title => '更多宠物造型';
+
+  @override
+  String get whatsNew140Bullet1 => '商店新增皇冠、太阳眼镜与缎带装备。';
+
+  @override
+  String get whatsNew140Bullet2 => '装备预览会依照不同宠物显示得更自然。';
+
+  @override
+  String get whatsNew140Bullet3 => '共享房间、库存与商店的装备显示更加清楚。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3154,7 +3175,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
 
   @override
+  String get storeItemNameEquipmentStrawHat => '草帽';
+
+  @override
   String get storeItemNameEquipmentCrown => '皇冠';
+
+  @override
+  String get storeItemNameEquipmentSunglasses => '太陽眼鏡';
+
+  @override
+  String get storeItemNameEquipmentRibbon => '緞帶';
 
   @override
   String get shopSignInPrompt => '請先登入才能使用商店。';
@@ -3264,6 +3294,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get inventoryTabFurniture => '家具';
 
   @override
+  String get inventoryTabEquipment => '裝扮';
+
+  @override
   String get backgroundGalleryTab => '背景圖庫';
 
   @override
@@ -3271,6 +3304,40 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get backgroundInventoryHint => '點擊背景即可套用到房間所有成員。';
+
+  @override
+  String get equipmentInventoryHint => '先在這裡預覽造型，再為共享寵物穿上或卸下裝備。';
+
+  @override
+  String get equipmentNoneOwned => '你還沒有這個部位可用的裝備。';
+
+  @override
+  String get equipmentSlotHead => '頭部';
+
+  @override
+  String get equipmentSlotFace => '面部';
+
+  @override
+  String get equipmentSlotBody => '身體';
+
+  @override
+  String get equipmentSlotBack => '背部';
+
+  @override
+  String get equipmentEquipCta => '穿上';
+
+  @override
+  String get equipmentUnequipCta => '卸下';
+
+  @override
+  String equipmentEquipSuccess(Object itemName) {
+    return '已穿上 $itemName！';
+  }
+
+  @override
+  String equipmentUnequipSuccess(Object slotName) {
+    return '已卸下$slotName。';
+  }
 
   @override
   String get backgroundApply => '套用';
@@ -3537,4 +3604,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew130Bullet3 => '寵物預覽與房間庫存顯示更加順暢清楚。';
+
+  @override
+  String get whatsNew140Title => '更多寵物造型';
+
+  @override
+  String get whatsNew140Bullet1 => '商店新增皇冠、太陽眼鏡與緞帶裝備。';
+
+  @override
+  String get whatsNew140Bullet2 => '裝備預覽會依照不同寵物顯示得更自然。';
+
+  @override
+  String get whatsNew140Bullet3 => '共享房間、庫存與商店的裝備顯示更加清楚。';
 }

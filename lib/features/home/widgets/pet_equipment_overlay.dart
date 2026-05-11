@@ -149,6 +149,8 @@ class PetEquipmentOverlay extends StatelessWidget {
     switch (slot) {
       case PetEquipmentSlot.head:
         return const Color(0xFFFF6B6B);
+      case PetEquipmentSlot.face:
+        return const Color(0xFFAB47BC);
       case PetEquipmentSlot.body:
         return const Color(0xFF4CAF50);
       case PetEquipmentSlot.back:

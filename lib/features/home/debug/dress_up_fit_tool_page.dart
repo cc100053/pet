@@ -895,6 +895,8 @@ class _DressUpFitToolPageState extends State<DressUpFitToolPage>
     switch (slot) {
       case PetEquipmentSlot.head:
         return 'head';
+      case PetEquipmentSlot.face:
+        return 'face';
       case PetEquipmentSlot.body:
         return 'body';
       case PetEquipmentSlot.back:

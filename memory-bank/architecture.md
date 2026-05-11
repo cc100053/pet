@@ -32,6 +32,10 @@ Use this file as a map, not as canonical source.
   compatibility prompt; `SharedDecorCompatibility` is the app-side hub.
 - Pet equipment is room-scoped end to end: purchase, inventory, equip state, and
   preview rendering key off `room_id`.
+- Equipment slots are logical equip groups, not always distinct socket anchors:
+  `head` hats are mutually exclusive with other hats, `face` sunglasses can
+  coexist with hats while resolving through the head socket anchor, and `body`
+  ribbons can coexist with both.
 - Pet rendering prefers bundled PNG frame sequences while keeping GIF paths as
   stable source/fallback ids. Runtime sequence playback flows through
   `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`.

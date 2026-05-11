@@ -44,6 +44,10 @@ String localizedShopItemNameForSku(String sku, AppLocalizations l10n) {
       return l10n.storeItemNameEquipmentStrawHat;
     case 'equip_crown':
       return l10n.storeItemNameEquipmentCrown;
+    case 'equip_sunglasses':
+      return l10n.storeItemNameEquipmentSunglasses;
+    case 'equip_ribbon':
+      return l10n.storeItemNameEquipmentRibbon;
     case 'diamond_candy_pack_500':
       return l10n.storeItemNameCandyPack500;
     default:

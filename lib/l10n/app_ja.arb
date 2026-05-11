@@ -735,6 +735,8 @@
   "storeItemDescFurnitureTub": "おふろ時間にぴったりのバスタブ。",
   "storeItemNameEquipmentStrawHat": "麦わら帽子",
   "storeItemNameEquipmentCrown": "王冠",
+  "storeItemNameEquipmentSunglasses": "サングラス",
+  "storeItemNameEquipmentRibbon": "リボン",
   "shopSignInPrompt": "ショップを利用するにはサインインしてください。",
   "storeSubscribe": "購読する",
   "storeSubscriptionActive": "有効",
@@ -791,6 +793,7 @@
   "equipmentInventoryHint": "ここで見た目をプレビューして、共有ペットに装備したり外したりできます。",
   "equipmentNoneOwned": "この部位に装備できるアイテムをまだ持っていません。",
   "equipmentSlotHead": "頭",
+  "equipmentSlotFace": "顔",
   "equipmentSlotBody": "体",
   "equipmentSlotBack": "背中",
   "equipmentEquipCta": "装備する",
@@ -970,5 +973,9 @@
   "whatsNew130Title": "ペット着せ替えが登場",
   "whatsNew130Bullet1": "ペットに装備を着せ替えられるようになりました。",
   "whatsNew130Bullet2": "ショップに麦わら帽子が登場しました。",
-  "whatsNew130Bullet3": "ペットのプレビューとルーム在庫がより見やすくなりました。"
+  "whatsNew130Bullet3": "ペットのプレビューとルーム在庫がより見やすくなりました。",
+  "whatsNew140Title": "もっと楽しいペットコーデ",
+  "whatsNew140Bullet1": "ショップに王冠、サングラス、リボンの新しい装備が登場しました。",
+  "whatsNew140Bullet2": "装備プレビューがペットごとにより自然に見えるようになりました。",
+  "whatsNew140Bullet3": "共有ルーム、在庫、ショップで装備がより見やすくなりました。"
 }

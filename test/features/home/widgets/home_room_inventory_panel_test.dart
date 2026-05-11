@@ -29,12 +29,18 @@ void main() {
     );
   }
 
-  ShopItem buildEquipmentItem() {
+  ShopItem buildEquipmentItem({
+    String id = 'hat',
+    String sku = 'equip_straw_hat',
+    String name = 'Straw Hat',
+    String slot = 'head',
+    String assetPath = 'assets/equipment/hats/straw_hat.png',
+  }) {
     return ShopItem(
-      id: 'hat',
-      sku: 'equip_straw_hat',
+      id: id,
+      sku: sku,
       type: 'cosmetic',
-      name: 'Straw Hat',
+      name: name,
       priceCoins: 120,
       priceDiamonds: null,
       priceJpy: 120,
@@ -48,8 +54,8 @@ void main() {
       catalogCurrencyCode: 'JPY',
       category: 'equipment',
       emoji: '👒',
-      furnitureAssetPath: 'assets/equipment/hats/straw_hat.png',
-      equipmentSlotValue: 'head',
+      furnitureAssetPath: assetPath,
+      equipmentSlotValue: slot,
       backgroundKey: null,
     );
   }
@@ -242,5 +248,69 @@ void main() {
 
     expect(equippedItemId, 'hat:head');
     expect(unequippedSlot, isNull);
+  });
+
+  testWidgets('equipment tab treats face and head as separate slots', (
+    tester,
+  ) async {
+    final hat = buildEquipmentItem();
+    final sunglasses = buildEquipmentItem(
+      id: 'sunglasses',
+      sku: 'equip_sunglasses',
+      name: 'Sunglasses',
+      slot: 'face',
+      assetPath: 'assets/equipment/sunglasses.png',
+    );
+    final equipped = <String>[];
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          petType: 'ghost',
+          furnitureCatalog: const {},
+          furnitureInventory: const {},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (_) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          equipmentItems: [hat, sunglasses],
+          equippedItemIdsBySlot: const {'head': 'hat'},
+          equippedItemSkusBySlot: const {'head': 'equip_straw_hat'},
+          equipmentLoading: false,
+          equipmentErrorText: null,
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+          onEquipItem: (itemId, slot) async {
+            equipped.add('$itemId:$slot');
+          },
+          onUnequipItem: (_) async {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Straw Hat'), findsOneWidget);
+    expect(find.text('Sunglasses'), findsNothing);
+
+    await tester.tap(find.text('Face'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Straw Hat'), findsNothing);
+    expect(find.text('Sunglasses'), findsOneWidget);
+
+    await tester.tap(find.text('Sunglasses'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Equip'));
+    await tester.pumpAndSettle();
+
+    expect(equipped, ['sunglasses:face']);
   });
 }

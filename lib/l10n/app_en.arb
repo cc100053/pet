@@ -735,6 +735,8 @@
   "storeItemDescFurnitureTub": "A cozy tub for bath time.",
   "storeItemNameEquipmentStrawHat": "Straw Hat",
   "storeItemNameEquipmentCrown": "Crown",
+  "storeItemNameEquipmentSunglasses": "Sunglasses",
+  "storeItemNameEquipmentRibbon": "Ribbon",
   "shopSignInPrompt": "Please sign in to access the shop.",
   "storeSubscribe": "Subscribe",
   "storeSubscriptionActive": "Active",
@@ -791,6 +793,7 @@
   "equipmentInventoryHint": "Preview outfits here, then equip or remove items on the shared pet.",
   "equipmentNoneOwned": "You don't own any items for this slot yet.",
   "equipmentSlotHead": "Head",
+  "equipmentSlotFace": "Face",
   "equipmentSlotBody": "Body",
   "equipmentSlotBack": "Back",
   "equipmentEquipCta": "Equip",
@@ -970,5 +973,9 @@
   "whatsNew130Title": "Pet Dress-Up Arrives",
   "whatsNew130Bullet1": "Dress up your pet with new equipment.",
   "whatsNew130Bullet2": "The straw hat is now available in the Shop.",
-  "whatsNew130Bullet3": "Pet previews and room inventory are smoother and clearer."
+  "whatsNew130Bullet3": "Pet previews and room inventory are smoother and clearer.",
+  "whatsNew140Title": "More Pet Style",
+  "whatsNew140Bullet1": "New Crown, Sunglasses, and Ribbon equipment is available in the Shop.",
+  "whatsNew140Bullet2": "Equipment previews now fit each pet more naturally.",
+  "whatsNew140Bullet3": "Shared room, inventory, and shop displays are clearer."
 }

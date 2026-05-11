@@ -7,12 +7,20 @@ enum PetMotionSampling { linear, stepped }
 
 class PetEquipmentSlot {
   static const String head = 'head';
+  static const String face = 'face';
   static const String body = 'body';
   static const String back = 'back';
 
-  static const List<String> values = [head, body, back];
+  static const List<String> values = [head, face, body, back];
 
   static bool isValid(String slot) => values.contains(slot);
+
+  static String socketAnchorFor(String slot) {
+    return switch (slot) {
+      face => head,
+      _ => slot,
+    };
+  }
 }
 
 class PetSocket {
@@ -141,16 +149,17 @@ class PetSocketConfig {
     bool isWalking = false,
     bool isSleeping = false,
   }) {
-    if (isSleeping && sleepHiddenSlots.contains(slot)) {
+    final socketSlot = PetEquipmentSlot.socketAnchorFor(slot);
+    if (isSleeping && sleepHiddenSlots.contains(socketSlot)) {
       return null;
     }
-    if (isWalking && walkOverrides.containsKey(slot)) {
-      return walkOverrides[slot];
+    if (isWalking && walkOverrides.containsKey(socketSlot)) {
+      return walkOverrides[socketSlot];
     }
-    if (isSleeping && sleepOverrides.containsKey(slot)) {
-      return sleepOverrides[slot];
+    if (isSleeping && sleepOverrides.containsKey(socketSlot)) {
+      return sleepOverrides[socketSlot];
     }
-    return sockets[slot];
+    return sockets[socketSlot];
   }
 
   Offset resolveMotion({
@@ -159,15 +168,24 @@ class PetSocketConfig {
     bool isWalking = false,
     bool isSleeping = false,
   }) {
+    final socketSlot = slot == null
+        ? null
+        : PetEquipmentSlot.socketAnchorFor(slot);
     if (isWalking) {
-      final slotTrack = slot == null ? null : walkMotionTracksBySlot[slot];
+      final slotTrack = socketSlot == null
+          ? null
+          : walkMotionTracksBySlot[socketSlot];
       return slotTrack?.sample(animationProgress) ?? Offset.zero;
     }
     if (isSleeping) {
-      final slotTrack = slot == null ? null : sleepMotionTracksBySlot[slot];
+      final slotTrack = socketSlot == null
+          ? null
+          : sleepMotionTracksBySlot[socketSlot];
       return slotTrack?.sample(animationProgress) ?? Offset.zero;
     }
-    final slotTrack = slot == null ? null : idleMotionTracksBySlot[slot];
+    final slotTrack = socketSlot == null
+        ? null
+        : idleMotionTracksBySlot[socketSlot];
     if (slotTrack != null) {
       return slotTrack.sample(animationProgress);
     }

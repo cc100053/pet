@@ -42,6 +42,52 @@ void main() {
     expect(positioned.top, closeTo(-6.888889, 0.001));
   });
 
+  testWidgets('renders face and head equipment at the head socket together', (
+    tester,
+  ) async {
+    const hatDefinition = EquipmentDefinition(
+      sku: 'test_hat',
+      slot: PetEquipmentSlot.head,
+      anchor: EquipmentAnchor(x: 0.5, y: 1.0),
+      sizeRatio: EquipmentSize(w: 0.4, h: 0.2),
+      assetPath: 'assets/equipment/hats/straw_hat.png',
+    );
+    const sunglassesDefinition = EquipmentDefinition(
+      sku: 'test_sunglasses',
+      slot: PetEquipmentSlot.face,
+      anchor: EquipmentAnchor(x: 0.5, y: 1.0),
+      sizeRatio: EquipmentSize(w: 0.2, h: 0.1),
+      assetPath: 'assets/equipment/sunglasses.png',
+    );
+
+    await tester.pumpWidget(
+      buildHarness(
+        const PetEquipmentOverlay(
+          petId: 'ghost',
+          equippedSkusBySlot: {
+            PetEquipmentSlot.head: 'test_hat',
+            PetEquipmentSlot.face: 'test_sunglasses',
+          },
+          petSize: Size(100, 100),
+          layer: PetEquipmentOverlayLayer.frontPet,
+          definitions: [hatDefinition, sunglassesDefinition],
+        ),
+      ),
+    );
+
+    final hat = tester.widget<Positioned>(
+      find.byKey(const ValueKey('pet-equipment-frontPet-head-test_hat')),
+    );
+    final sunglasses = tester.widget<Positioned>(
+      find.byKey(const ValueKey('pet-equipment-frontPet-face-test_sunglasses')),
+    );
+
+    expect(hat.left, closeTo(28.444444, 0.001));
+    expect(hat.top, closeTo(-6.888889, 0.001));
+    expect(sunglasses.left, closeTo(38.444444, 0.001));
+    expect(sunglasses.top, closeTo(3.111111, 0.001));
+  });
+
   testWidgets('routes negative z-order items to the behind layer', (
     tester,
   ) async {

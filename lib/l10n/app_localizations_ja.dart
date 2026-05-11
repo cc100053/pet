@@ -1381,6 +1381,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemNameEquipmentCrown => '王冠';
 
   @override
+  String get storeItemNameEquipmentSunglasses => 'サングラス';
+
+  @override
+  String get storeItemNameEquipmentRibbon => 'リボン';
+
+  @override
   String get shopSignInPrompt => 'ショップを利用するにはサインインしてください。';
 
   @override
@@ -1510,6 +1516,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get equipmentSlotHead => '頭';
+
+  @override
+  String get equipmentSlotFace => '顔';
 
   @override
   String get equipmentSlotBody => '体';
@@ -1803,4 +1812,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew130Bullet3 => 'ペットのプレビューとルーム在庫がより見やすくなりました。';
+
+  @override
+  String get whatsNew140Title => 'もっと楽しいペットコーデ';
+
+  @override
+  String get whatsNew140Bullet1 => 'ショップに王冠、サングラス、リボンの新しい装備が登場しました。';
+
+  @override
+  String get whatsNew140Bullet2 => '装備プレビューがペットごとにより自然に見えるようになりました。';
+
+  @override
+  String get whatsNew140Bullet3 => '共有ルーム、在庫、ショップで装備がより見やすくなりました。';
 }
