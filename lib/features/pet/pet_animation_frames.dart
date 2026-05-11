@@ -178,7 +178,7 @@ class PetAnimationFrames {
   static const PetFrameSequence catSleep = PetFrameSequence(
     petId: 'cat',
     sourceAsset: 'assets/pet/cat/cat_sleep.gif',
-    frameDurationsMs: [200, 300, 200, 300, 200, 200],
+    frameDurationsMs: [200, 200, 200, 200, 200, 200],
     frameAssets: [
       'assets/pet_sequences/cat/sleep/cat_sleep-01.png',
       'assets/pet_sequences/cat/sleep/cat_sleep-02.png',

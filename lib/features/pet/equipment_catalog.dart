@@ -95,6 +95,8 @@ class EquipmentDefinition {
 
 class EquipmentCatalog {
   static const List<EquipmentDefinition> items = [
+    // ── Straw Hat ──────────────────────────────────────────
+    // Default (ghost): anchor(0.5, 0.55), size 0.8
     EquipmentDefinition(
       sku: 'equip_straw_hat',
       slot: PetEquipmentSlot.head,
@@ -104,88 +106,117 @@ class EquipmentCatalog {
         aspectRatio: 1821 / 700,
       ),
       assetPath: 'assets/equipment/hats/straw_hat.png',
-      petStateOverrides: {
-        'cat': EquipmentStateFitOverrides(
-          idle: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.5, y: 0.7),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.8,
-              aspectRatio: 1821 / 700,
-            ),
-          ),
-          walk: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.5, y: 0.7),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.8,
-              aspectRatio: 1821 / 700,
-            ),
-          ),
-          sleep: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.5, y: 0.7),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.8,
-              aspectRatio: 1821 / 700,
-            ),
+      petOverrides: {
+        'cat': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.75),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.8,
+            aspectRatio: 1821 / 700,
           ),
         ),
-        'fish': EquipmentStateFitOverrides(
-          idle: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.45, y: 0.6),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.76,
-              aspectRatio: 1821 / 700,
-            ),
-          ),
-          walk: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.45, y: 0.6),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.76,
-              aspectRatio: 1821 / 700,
-            ),
-          ),
-          sleep: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.45, y: 0.6),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.76,
-              aspectRatio: 1821 / 700,
-            ),
+        'fish': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.45, y: 0.65),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.65,
+            aspectRatio: 1821 / 700,
           ),
         ),
-        'tiger': EquipmentStateFitOverrides(
-          idle: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.5, y: 0.9),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.8,
-              aspectRatio: 1821 / 700,
-            ),
-          ),
-          walk: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.5, y: 0.9),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.8,
-              aspectRatio: 1821 / 700,
-            ),
-          ),
-          sleep: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.5, y: 0.7),
-            sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.8,
-              aspectRatio: 1821 / 700,
-            ),
+        'tiger': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.9),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.8,
+            aspectRatio: 1821 / 700,
           ),
         ),
       },
       zOrder: 1,
     ),
+
+    // ── Crown ──────────────────────────────────────────────
+    // Default (ghost): anchor(0.5, 0.55), size 0.32
     EquipmentDefinition(
       sku: 'equip_crown',
       slot: PetEquipmentSlot.head,
-      anchor: EquipmentAnchor(x: 0.5, y: 0.82),
+      anchor: EquipmentAnchor(x: 0.5, y: 0.55),
       sizeRatio: EquipmentSize.fromWidthAspect(
-        widthRatio: 0.34,
+        widthRatio: 0.32,
         aspectRatio: 1,
       ),
       assetPath: 'assets/equipment/hats/crown.png',
+      petOverrides: {
+        'cat': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.7),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
+        'fish': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.4, y: 0.6),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
+        'tiger': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.9),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
+      },
+      zOrder: 1,
+    ),
+
+    // ── Ribbon ─────────────────────────────────────────────
+    // All configured pets share the same anchor/size; tiger body hidden during sleep
+    EquipmentDefinition(
+      sku: 'equip_ribbon',
+      slot: PetEquipmentSlot.body,
+      anchor: EquipmentAnchor(x: 0.5, y: 0.2),
+      sizeRatio: EquipmentSize.fromWidthAspect(
+        widthRatio: 0.32,
+        aspectRatio: 1,
+      ),
+      assetPath: 'assets/equipment/ribbon.png',
+      zOrder: 1,
+    ),
+
+    // ── Sunglasses ─────────────────────────────────────────
+    // Default (ghost): anchor(0.6, 0.0), size 0.45
+    EquipmentDefinition(
+      sku: 'equip_sunglasses',
+      slot: PetEquipmentSlot.head,
+      anchor: EquipmentAnchor(x: 0.6, y: 0.0),
+      sizeRatio: EquipmentSize.fromWidthAspect(
+        widthRatio: 0.45,
+        aspectRatio: 1,
+      ),
+      assetPath: 'assets/equipment/sunglasses.png',
+      petOverrides: {
+        'cat': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.2),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.45,
+            aspectRatio: 1,
+          ),
+        ),
+        'fish': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.05),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.36,
+            aspectRatio: 1,
+          ),
+        ),
+        'tiger': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.2),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.45,
+            aspectRatio: 1,
+          ),
+        ),
+      },
       zOrder: 1,
     ),
   ];

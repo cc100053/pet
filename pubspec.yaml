@@ -119,6 +119,7 @@ flutter:
     - assets/bg/free/
     - assets/bg/paid/
     - assets/furniture/
+    - assets/equipment/
     - assets/equipment/hats/
     - assets/pet/ghost/ghost_stay.gif
     - assets/pet/ghost/ghost_sleep.gif

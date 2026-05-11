@@ -135,6 +135,19 @@ extension _HomeDrawerBuilder on _HomeViewState {
                         );
                       },
                     ),
+                    ListTile(
+                      leading: const Icon(Icons.checkroom_rounded),
+                      title: const Text('Equipment Preview'),
+                      subtitle: const Text('Test all pets × equipment combos'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const EquipmentPreviewPage(),
+                          ),
+                        );
+                      },
+                    ),
                     if (_petError != null)
                       ListTile(
                         title: Text(l10n.drawerPetError),
