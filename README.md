@@ -77,26 +77,24 @@ Each `value` can be either:
 
 These debug actions trigger the same modern dialogs used by production logic, without changing server config.
 
-## HTML pages are now live on Firebase Hosting.
+## Firebase Hosting / GEO Marketing Pages
 
-- Privacy Policy (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/privacy_policy.html
-- Terms of Use (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/terms_of_use.html
-- Support (Canonical URL with language switch/auto-detect): https://pet-app-702be.web.app/support.html
+PetTomo's live HTML pages are served from Firebase Hosting, but this Flutter app
+repo is no longer the website source of truth. Static marketing pages, legal /
+support pages, invite fallback pages, `.well-known` files, GEOFlow guides, and
+the Firebase Hosting config now live in:
 
-- Privacy Policy (Traditional Chinese): https://pet-app-702be.web.app/privacy_policy_zh_TW.html
-- Terms of Use (Traditional Chinese): https://pet-app-702be.web.app/terms_of_use_zh_TW.html
-- Support (Traditional Chinese): https://pet-app-702be.web.app/support_zh_TW.html
-
-- Privacy Policy (Japanese): https://pet-app-702be.web.app/privacy_policy_ja.html
-- Terms of Use (Japanese): https://pet-app-702be.web.app/terms_of_use_ja.html
-- Support (Japanese): https://pet-app-702be.web.app/support_ja.html
-
-- Privacy Policy (Korean): https://pet-app-702be.web.app/privacy_policy_ko.html
-- Terms of Use (Korean): https://pet-app-702be.web.app/terms_of_use_ko.html
-- Support (Korean): https://pet-app-702be.web.app/support_ko.html
-
-## Deploying Web Pages
-To update the HTML pages (privacy policy, support), run:
-```bash
-firebase deploy --only hosting
+```text
+/Users/fatboy/geo-marketing/projects/pettomo
 ```
+
+Do not recreate or deploy `html/`, `.firebase/`, `.firebaserc`, or
+`firebase.json` from this repo. To update or deploy those pages, use the
+geo-marketing workspace workflow.
+
+Live pages include:
+
+- Privacy Policy: https://pet-app-702be.web.app/privacy_policy.html
+- Terms of Use: https://pet-app-702be.web.app/terms_of_use.html
+- Support: https://pet-app-702be.web.app/support.html
+- Guides: https://pet-app-702be.web.app/guides/

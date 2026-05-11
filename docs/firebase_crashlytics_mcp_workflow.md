@@ -1,6 +1,10 @@
 # Firebase Crashlytics MCP Workflow
 
-This repo already points at Firebase project `pet-app-702be` through [firebase.json](/Users/fatboy/pet/firebase.json) and [.firebaserc](/Users/fatboy/pet/.firebaserc). The preferred setup for long-lived Crashlytics MCP access is **ADC via a service account**, not `firebase login`.
+This repo's Crashlytics workflow targets Firebase project `pet-app-702be`.
+Firebase Hosting config now lives in `/Users/fatboy/geo-marketing`, so do not
+expect `firebase.json` or `.firebaserc` in this Flutter app repo. The preferred
+setup for long-lived Crashlytics MCP access is **ADC via a service account**,
+not `firebase login`.
 
 ## What this gives you
 - Ask Codex for the latest crashes or non-fatals in Firebase Crashlytics

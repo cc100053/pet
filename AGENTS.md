@@ -118,6 +118,7 @@ This file is for agentic coding agents working in this repo.
 - Apple client secret (Sign in with Apple):
   - Generate and update reminder: `./tool/generate_secret.sh` (Reads `APPLE_*` vars from `.env`)
   - Manual override: `./tool/generate_secret.sh --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
+  - Raw JWT generator: `node scripts/generate_apple_client_secret.mjs --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
   - Reminder system: `.github/workflows/apple_key_reminder.yml` checks `LAST_UPDATED_APPLE_SECRET.txt` monthly and alerts if expiry (< 60 days) is near.
   - Never commit `.p8` files or generated secrets.
 
@@ -174,6 +175,11 @@ flutter run
 - Copy `.firebase-mcp.env.example` to the gitignored `.firebase-mcp.env` and point it at the local service-account JSON key before using the wrapper.
 - Prefer ADC via the local `.firebase-mcp.env` service-account path over `firebase login` for long-lived MCP access.
 - If Crashlytics stacks are unsymbolicated, inspect `ios/scripts/upload_crashlytics_symbols.sh` before debugging app logic.
+
+### Firebase Hosting / GEO marketing
+- Static marketing, GEOFlow guides, support/legal pages, invite fallback pages, and app/universal-link files live outside this Flutter app repo in `/Users/fatboy/geo-marketing`.
+- Do not recreate `html/`, `.firebase/`, `.firebaserc`, or `firebase.json` here for GEO/hosting work; use `/Users/fatboy/geo-marketing/projects/pettomo`.
+- Keep this repo focused on the Flutter app and its runtime/backend integration docs.
 
 ### Pet PNG sequence / socket workflow
 - Use `docs/godot-png-sequence-socket-workflow.md` for the current Godot-to-Flutter authoring flow.

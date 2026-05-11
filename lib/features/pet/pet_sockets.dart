@@ -119,6 +119,7 @@ class PetSocketConfig {
     required this.sockets,
     this.walkOverrides = const <String, PetSocket>{},
     this.sleepOverrides = const <String, PetSocket>{},
+    this.sleepHiddenSlots = const <String>{},
     this.idleMotionTrack,
     this.idleMotionTracksBySlot = const <String, PetMotionTrack>{},
     this.walkMotionTracksBySlot = const <String, PetMotionTrack>{},
@@ -129,6 +130,7 @@ class PetSocketConfig {
   final Map<String, PetSocket> sockets;
   final Map<String, PetSocket> walkOverrides;
   final Map<String, PetSocket> sleepOverrides;
+  final Set<String> sleepHiddenSlots;
   final PetMotionTrack? idleMotionTrack;
   final Map<String, PetMotionTrack> idleMotionTracksBySlot;
   final Map<String, PetMotionTrack> walkMotionTracksBySlot;
@@ -139,6 +141,9 @@ class PetSocketConfig {
     bool isWalking = false,
     bool isSleeping = false,
   }) {
+    if (isSleeping && sleepHiddenSlots.contains(slot)) {
+      return null;
+    }
     if (isWalking && walkOverrides.containsKey(slot)) {
       return walkOverrides[slot];
     }
@@ -367,6 +372,7 @@ class PetSocketCatalog {
       sleepOverrides: {
         PetEquipmentSlot.head: PetSocket(x: 0.315555556, y: 0.38),
       },
+      sleepHiddenSlots: {PetEquipmentSlot.body},
       walkMotionTracksBySlot: {
         PetEquipmentSlot.head: PetMotionTrack.timed(
           frameDurationsMs: PetAnimationFrames.tigerWalk.frameDurationsMs,
