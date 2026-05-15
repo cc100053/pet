@@ -14,6 +14,28 @@ Historical snapshot before this compaction:
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
   8.0.0 upgrade.
 
+## Plan (2026-05-15 Supabase Data API Grants)
+- [x] Audit `public` table creation migrations for explicit Data API grants.
+- [x] Add a migration/workflow fix so future `public` tables get explicit
+  `anon`, `authenticated`, and `service_role` grants.
+- [x] Update compact schema memory if the migration contract changes.
+- [x] Run verification and record results.
+
+## Review (2026-05-15 Supabase Data API Grants)
+- Added local migration
+  `20260515010910_make_data_api_table_grants_explicit.sql` to grant Data API
+  table access explicitly for app-facing public tables and to set migration-role
+  default privileges for future public tables/sequences.
+- Kept `pet_hunger_tick_schedule` service-role-only for scheduler internals.
+- Applied the migration to the live `pet` Supabase MCP target as
+  `20260515010910_make_data_api_table_grants_explicit`.
+- Verified live grants: no missing `anon` select, `authenticated` table DML, or
+  `service_role` table DML grants for app-facing tables; scheduler table remains
+  inaccessible to `anon`/`authenticated` and accessible to `service_role`.
+- Verification: `git diff --check`, `flutter analyze`, and `flutter test`
+  passed. `test/feed_flow_integration_test.dart` was skipped because Supabase
+  test env vars were not set.
+
 ## Plan (2026-05-11 Equipment Slot Taxonomy)
 - [x] Read `shared-item-rollout`, active `memory-bank/*.md`,
   `tasks/lessons.md`, and the Godot socket/equipment workflow.

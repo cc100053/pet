@@ -38,6 +38,9 @@ applied migration that rewrites the object.
 - `room_furniture` keeps normalized positions, clamped scale, and `flip_x`.
 
 ## Compatibility Rules
+- Public tables that the app exposes through supabase-js/PostgREST need explicit
+  Data API grants in migrations. Keep RLS/policies as the real access boundary;
+  `pet_hunger_tick_schedule` remains service-role-only.
 - Legacy catalog readers only see `items.is_active = true`.
 - Version-gated shared decor should stay `is_active = false` and surface through
   `get_visible_shop_items(p_app_version)`.
