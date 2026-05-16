@@ -31,3 +31,7 @@ for exact historical versions.
   function-level auth checks.
 - Flutter SPM integration is enabled for iOS/macOS; checked-in
   `Package.resolved` files are part of the Apple dependency flow.
+- iOS Runner points Xcode's `FlutterGeneratedPluginSwiftPackage` reference at
+  tracked `ios/Flutter/GeneratedPluginSwiftPackage` so Flutter SPM plugins
+  resolve with the repo minimum iOS 15.0; Flutter still generates plugin
+  symlinks under ignored `ios/Flutter/ephemeral/Packages/.packages/`.

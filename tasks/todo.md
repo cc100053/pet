@@ -17,6 +17,60 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Plan (2026-05-16 Persistent Firebase SPM Target Fix)
+- [x] Re-read active memory-bank files, task notes, and lessons.
+- [x] Confirm the ignored Flutter-generated SPM manifest can revert to
+  `.iOS("13.0")` before Xcode resolves packages.
+- [x] Add a tracked Xcode local package manifest that pins the generated plugin
+  package platform to iOS 15.0 while pointing at Flutter's generated plugin
+  symlinks.
+- [x] Repoint the Runner Xcode project package reference from ignored
+  `Flutter/ephemeral/...` to the tracked manifest.
+- [x] Verify Xcode package resolution/build and rerun Flutter checks.
+
+## Review (2026-05-16 Persistent Firebase SPM Target Fix)
+- Added tracked `ios/Flutter/GeneratedPluginSwiftPackage/Package.swift` with
+  `.iOS("15.0")` while keeping dependencies pointed at Flutter's generated
+  plugin symlinks under `ios/Flutter/ephemeral/Packages/.packages/`.
+- Added a placeholder Swift source so Xcode treats the tracked local package as
+  a valid non-empty target.
+- Repointed `Runner.xcodeproj` local package references from the ignored
+  generated manifest to `Flutter/GeneratedPluginSwiftPackage`.
+- The ignored ephemeral manifest may still regenerate with `.iOS("13.0")`, but
+  Xcode no longer references that package wrapper.
+- Documented the tracked-package iOS SPM flow in `memory-bank/tech-stack.md`.
+- Verification:
+  `xcodebuild -resolvePackageDependencies -workspace ios/Runner.xcworkspace ...`
+  passed and resolved `FlutterGeneratedPluginSwiftPackage` from the tracked
+  path,
+  `xcodebuild -workspace ios/Runner.xcworkspace ... CODE_SIGNING_ALLOWED=NO build`
+  passed,
+  `flutter analyze` passed,
+  `flutter test` passed with `test/feed_flow_integration_test.dart` skipped for
+  missing Supabase env vars.
+
+## Plan (2026-05-16 Firebase iOS Deployment Target Fix)
+- [x] Read active memory-bank files, task notes, and lessons.
+- [x] Locate every iOS deployment target source that could drive Flutter's SPM
+  package generation.
+- [x] Make the Runner iOS target minimum explicit at 15.0 so Firebase SPM
+  products and generated plugin package agree.
+- [x] Regenerate/check iOS dependency files and verify the generated package no
+  longer advertises iOS 13.0.
+- [x] Run `flutter analyze` and `flutter test`, then record results.
+
+## Review (2026-05-16 Firebase iOS Deployment Target Fix)
+- Added explicit `IPHONEOS_DEPLOYMENT_TARGET = 15.0` to the Runner and
+  RunnerTests target build configurations in
+  `ios/Runner.xcodeproj/project.pbxproj`.
+- Ran `flutter build ios --config-only --no-codesign`; Flutter regenerated
+  `ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift`
+  with `.iOS("15.0")` instead of `.iOS("13.0")`.
+- Verification:
+  `flutter analyze` passed,
+  `flutter test` passed with `test/feed_flow_integration_test.dart` skipped for
+  missing Supabase env vars.
+
 ## Plan (2026-05-16 V1.4.0 Equipment Price Change)
 - [x] Read shared item rollout guidance, active memory-bank files, task notes,
   and lessons.
