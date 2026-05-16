@@ -2,22 +2,24 @@
 
 Active memory files stay compact because agents must read them before
 non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260516_pre_compaction.md`.
+`memory-bank/archive/architecture_20260509_pre_compaction.md`.
 
 ## Source Of Truth
-- App/runtime: `lib/`, `test/`
-- DB/RPC/RLS/functions: `supabase/migrations/`, `supabase/functions/`
-- Workflows: `docs/`, `.codex/skills/`
-- History: `memory-bank/archive/`
+- App/runtime behavior: `lib/`, `test/`
+- DB/RPC/RLS/Edge Functions: `supabase/migrations/`, `supabase/functions/`
+- Workflow/runbooks: `docs/`
+- Historical notes: `memory-bank/archive/`
+
+Use this file as a map, not as canonical source.
 
 ## App Shape
-- `lib/features/home/`: signed-in shell, rooms, shared rendering, pet HUD,
-  decor, invites, compatibility prompts, and equipment UI.
+- `lib/features/home/`: signed-in shell, rooms, shared-room rendering, pet HUD,
+  decor, invites, compatibility prompts, and pet equipment UI.
 - `lib/features/chat/`: `ChatRoomViewV2` owns bounded history, realtime, Hive
   cache, replies/reactions, edit/delete, and keyboard behavior.
-- `lib/features/feed/`: capture and durable upload queue.
-- `lib/features/shop/`: decor, consumables, room equipment, RevenueCat, and
-  purchase feedback.
+- `lib/features/feed/`: capture and durable Hive/Riverpod upload queue.
+- `lib/features/shop/`: decor, consumables, room-scoped pet equipment,
+  RevenueCat, and purchase feedback.
 - `lib/features/profile/`, `gallery/`, `pet`, `ads`: avatar/profile, memory
   photos, pet visuals/selection, and ATT-aware AdMob.
 - `lib/services/`, `lib/shared/`: Supabase/FCM/IAP/config/crash services,
@@ -25,8 +27,9 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 
 ## Current Decisions
 - Profile bootstrap is centralized in `ProfileBootstrapService`.
-- Shared room content is mixed-version safe: new backgrounds, furniture, and
-  pets need version gates, fallback rendering, and the compatibility prompt.
+- Shared room content is mixed-version safe. New shared backgrounds, furniture,
+  and pets need version-gated visibility, old-client fallback, and the existing
+  compatibility prompt; `SharedDecorCompatibility` is the app-side hub.
 - Pet equipment is room-scoped end to end: purchase, inventory, equip state, and
   preview rendering key off `room_id`.
 - Equipment slots are logical equip groups, not always distinct socket anchors:
@@ -34,13 +37,18 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   coexist with hats while resolving through the head socket anchor, and `body`
   ribbons can coexist with both.
 - Pet rendering prefers bundled PNG frame sequences while keeping GIF paths as
-  stable source/fallback ids.
+  stable source/fallback ids. Runtime sequence playback flows through
+  `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`.
 - Socket placement is authored in Godot, then translated into
   `PetSocketCatalog` and `EquipmentCatalog`; the Flutter fit tool is debug-only.
+- `PetSocketConfig.sleepHiddenSlots` controls which equipment slots are suppressed
+  during the sleep animation for a given pet (e.g. tiger hides `body` because the
+  sleeping pose occludes the torso). `resolve()` returns `null` for hidden slots;
+  `PetEquipmentOverlay` already skips `null` sockets, so no overlay changes are needed.
 - Shop economy RPC calls and parsing are behind `EconomyPurchaseAdapter`; UI
   state deltas land in `ShopEconomyState`.
-- Chat opens on latest 20, pages by 20, caps visible history at 80, and caches
-  newest canonical messages in Hive.
+- Chat opens on the latest 20 messages, pages older messages by 20, caps visible
+  history at 80, and caches newest canonical messages in Hive.
 - Feed uploads are queue-owned. Home owns global completion/failure effects and
   refreshes the feed's original room; Chat reconciles optimistic rows locally.
 - Force update and What's New remain separate gates.

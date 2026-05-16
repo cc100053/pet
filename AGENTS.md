@@ -16,6 +16,7 @@ This file is for agentic coding agents working in this repo.
   - Crashlytics triage: `.codex/skills/firebase-crashlytics-triage/SKILL.md`
   - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
   - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
+  - UI/UX implementation or review: `.codex/skills/ui-ux-pro-max/SKILL.md`
 - For pet PNG sequence / socket / equipment-preview work, read `docs/godot-png-sequence-socket-workflow.md` before editing `assets/pet_sequences/`, `lib/features/pet/`, or related equipment placement code.
 
 # Agent Workflows & Core Principles
@@ -154,6 +155,9 @@ flutter run
 - Functions live in `supabase/functions/`.
 - If an edge function uses auth quirks, document it in `docs/testing.md` and keep security tradeoffs explicit.
 - Hunger tick scheduling is server-side: see `docs/hunger_tick_schedule_report.md` for the `pg_cron` job, `hunger_tick_dispatch` behavior, and manual verification SQL.
+- Function config/secrets are not centralized in a checked-in `supabase/config.toml`; verify deployed `verify_jwt` settings and required env vars before changing or redeploying functions.
+- R2-backed functions (`notify_friend/feed_validate`, `avatar_upload`) require `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `R2_PUBLIC_BASE_URL`.
+- Push/scheduler functions use `NOTIFY_WEBHOOK_SECRET`; `notify_friend` also needs FCM service-account config, and `hunger_tick_dispatch` uses the vault `hunger_tick_secret` or `HUNGER_TICK_SECRET` fallback.
 
 ## Repo-specific workflows
 

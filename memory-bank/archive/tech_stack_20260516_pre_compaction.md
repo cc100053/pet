@@ -1,7 +1,6 @@
 # Tech Stack
 
-Active summary only. See source files, `pubspec.yaml`, and archived snapshots
-for exact historical versions.
+Active summary only. See source files and `pubspec.yaml` for exact versions.
 
 ## Core App
 - Flutter/Dart
@@ -31,3 +30,5 @@ for exact historical versions.
   function-level auth checks.
 - Flutter SPM integration is enabled for iOS/macOS; checked-in
   `Package.resolved` files are part of the Apple dependency flow.
+- Google ML Kit image-labeling binaries do not support iOS Simulator on Xcode
+  26+; follow the toggle note in the archived/full docs before simulator work.
