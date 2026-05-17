@@ -8,6 +8,8 @@ String localizedShopItemNameForSku(String sku, AppLocalizations l10n) {
       return l10n.storeItemNameDiamondPack300;
     case 'return_letter':
       return l10n.storeItemNameReturnLetter;
+    case 'pet_ticket':
+      return l10n.storeItemNamePetTicket;
     case 'background_default':
       return l10n.storeItemNameBackgroundDefault;
     case 'background_test1':

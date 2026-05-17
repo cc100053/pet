@@ -6,6 +6,7 @@ class ShopGridItemCard extends StatelessWidget {
     required this.item,
     required this.isOwned,
     required this.ownedQuantity,
+    required this.maxOwnedQuantity,
     required this.isIap,
     required this.priceString,
     required this.canAffordCoins,
@@ -17,11 +18,13 @@ class ShopGridItemCard extends StatelessWidget {
     required this.onBuyCoins,
     required this.onBuyDiamonds,
     required this.onHandleLetter,
+    required this.onUsePetTicket,
   });
 
   final ShopItem item;
   final bool isOwned;
   final int ownedQuantity;
+  final int maxOwnedQuantity;
   final bool isIap;
   final String priceString;
   final bool canAffordCoins;
@@ -33,9 +36,16 @@ class ShopGridItemCard extends StatelessWidget {
   final VoidCallback onBuyCoins;
   final VoidCallback onBuyDiamonds;
   final VoidCallback onHandleLetter;
+  final VoidCallback onUsePetTicket;
 
   VoidCallback? _resolveBuyAction() {
-    if (isOwned && !item.isFurniture) {
+    if (item.isPetTicket && ownedQuantity > 0) {
+      return onUsePetTicket;
+    }
+
+    final canBuyAdditionalEquipment =
+        item.isEquipment && ownedQuantity < maxOwnedQuantity;
+    if (isOwned && !item.isFurniture && !canBuyAdditionalEquipment) {
       return null;
     }
     if (isIap) {
@@ -69,7 +79,11 @@ class ShopGridItemCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final itemEmoji =
         item.emoji ??
-        (item.isBackground ? '🖼️' : (item.isRecoveryLetter ? '💌' : '🎁'));
+        (item.isBackground
+            ? '🖼️'
+            : (item.isRecoveryLetter
+                  ? '💌'
+                  : (item.isPetTicket ? '🎟️' : '🎁')));
 
     final int colorIndex = item.id.hashCode.abs() % 3;
     final List<List<Color>> gradientPairs = [
@@ -79,8 +93,16 @@ class ShopGridItemCard extends StatelessWidget {
     ];
     final List<Color> bgGradient = gradientPairs[colorIndex];
     final onBuy = _resolveBuyAction();
-    final isOwnedLocked = isOwned && !item.isFurniture;
-    final buyActionLabel = item.isFurniture && ownedQuantity > 0
+    final canBuyMore =
+        (item.isFurniture || item.isEquipment) &&
+        ownedQuantity > 0 &&
+        ownedQuantity < maxOwnedQuantity;
+    final canUsePetTicket = item.isPetTicket && ownedQuantity > 0;
+    final isOwnedLocked =
+        isOwned && !item.isFurniture && !canBuyMore && !canUsePetTicket;
+    final buyActionLabel = canUsePetTicket
+        ? l10n.petTicketUseCta
+        : canBuyMore
         ? l10n.commonBuyMore
         : (isOwnedLocked ? l10n.commonOwned : l10n.commonBuy);
 
@@ -171,7 +193,10 @@ class ShopGridItemCard extends StatelessWidget {
                               onPressed: onOpenThemePreview,
                             ),
                           ),
-                        if (item.isFurniture && ownedQuantity > 0)
+                        if ((item.isFurniture ||
+                                item.isEquipment ||
+                                item.isPetTicket) &&
+                            ownedQuantity > 0)
                           Positioned(
                             left: 4,
                             bottom: 4,
@@ -243,6 +268,9 @@ extension _ShopItemCards on _ShopViewState {
   }
 
   bool _isItemOwned(ShopItem item) {
+    if (item.isPetTicket) {
+      return (_inventory[item.id] ?? 0) > 0;
+    }
     if (item.type != 'cosmetic') {
       return false;
     }
@@ -256,7 +284,7 @@ extension _ShopItemCards on _ShopViewState {
   }
 
   int _ownedQuantityForItem(ShopItem item) {
-    if (!item.isFurniture) {
+    if (!item.isFurniture && !item.isEquipment && !item.isPetTicket) {
       return 0;
     }
     return _inventory[item.id] ?? 0;
@@ -265,6 +293,7 @@ extension _ShopItemCards on _ShopViewState {
   Widget _buildGridItemCard(ShopItem item, AppLocalizations l10n) {
     final isOwned = _isItemOwned(item);
     final ownedQuantity = _ownedQuantityForItem(item);
+    final maxOwnedQuantity = item.isEquipment ? _roomPetCount : 999999;
     final isIap = item.isIap;
     final productId = item.iapProductId;
     final package = productId == null
@@ -284,6 +313,7 @@ extension _ShopItemCards on _ShopViewState {
       item: item,
       isOwned: isOwned,
       ownedQuantity: ownedQuantity,
+      maxOwnedQuantity: maxOwnedQuantity,
       isIap: isIap,
       priceString: priceString,
       canAffordCoins: canAffordCoins,
@@ -293,8 +323,11 @@ extension _ShopItemCards on _ShopViewState {
       onOpenThemePreview: () => _openThemePreview(item),
       onBuyIap: () => _purchaseIapItem(item),
       onBuyCoins: () => _purchaseItem(item),
-      onBuyDiamonds: () => _purchaseDiamondItem(item),
+      onBuyDiamonds: item.isPetTicket
+          ? () => _handlePetTicketPurchase(item)
+          : () => _purchaseDiamondItem(item),
       onHandleLetter: () => _handleLetterPurchase(item),
+      onUsePetTicket: () => _handlePetTicketUse(item),
     );
   }
 }

@@ -67,6 +67,9 @@ class ShopItem {
   bool get isEquipment => category == 'equipment';
   bool get isFurniture => category == 'furniture';
   bool get isUtility => category == 'utility';
+  bool get isPetTicket =>
+      sku.toLowerCase() == 'pet_ticket' ||
+      (category ?? '').toLowerCase() == 'pet_ticket';
   bool get isDefaultBackground => sku == 'background_default';
   bool get isVersionGated =>
       (visibilityMode ?? '').trim().toLowerCase() == 'version_gated';
@@ -147,6 +150,8 @@ class ShopItem {
         return l10n.storeItemDescCandyPack500;
       case 'return_letter':
         return l10n.storeItemDescReturnLetter;
+      case 'pet_ticket':
+        return l10n.storeItemDescPetTicket;
       case 'background_default':
         return l10n.storeItemDescBackgroundDefault;
       case 'background_test1':

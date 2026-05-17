@@ -701,6 +701,8 @@
   "storeItemDescCandyPack500": "50ダイヤを500キャンディに交換します。",
   "storeItemNameReturnLetter": "おかえりの手紙",
   "storeItemDescReturnLetter": "旅立ったペットを呼び戻します。",
+  "storeItemNamePetTicket": "ペット券",
+  "storeItemDescPetTicket": "このルームにもう1匹ペットを招待します。",
   "storeItemNameBackgroundDefault": "デフォルト背景",
   "storeItemDescBackgroundDefault": "元の落ち着いた部屋の背景。",
   "storeItemNameBackgroundMoonlight": "銀河",
@@ -846,6 +848,18 @@
     }
   },
   "petSelectionConfirm": "ルームを始める",
+  "petTicketUseCta": "使う",
+  "petTicketSelectionTitle": "ペットを招待",
+  "petTicketSelectionSubtitle": "このルームに参加する新しい相棒を選びましょう。",
+  "petTicketSelectionConfirm": "招待する",
+  "petTicketUseSuccess": "{petName} がルームに参加しました！",
+  "@petTicketUseSuccess": {
+    "description": "Success message after using a pet ticket.",
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petTicketRoomFull": "このルームはペット数の上限に達しています。",
   "petSelectionStarterBadge": "スターター",
   "petSelectionFailed": "ペットの選択に失敗しました：{error}",
   "@petSelectionFailed": {

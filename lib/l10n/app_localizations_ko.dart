@@ -1284,6 +1284,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescReturnLetter => '떠난 펫을 다시 불러옵니다.';
 
   @override
+  String get storeItemNamePetTicket => '펫 티켓';
+
+  @override
+  String get storeItemDescPetTicket => '이 방에 다른 펫을 초대합니다.';
+
+  @override
   String get storeItemNameBackgroundDefault => '기본 배경';
 
   @override
@@ -1604,6 +1610,26 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get petSelectionConfirm => '방 시작';
+
+  @override
+  String get petTicketUseCta => '사용';
+
+  @override
+  String get petTicketSelectionTitle => '펫 초대';
+
+  @override
+  String get petTicketSelectionSubtitle => '이 방에 함께할 새 친구를 선택하세요.';
+
+  @override
+  String get petTicketSelectionConfirm => '펫 초대';
+
+  @override
+  String petTicketUseSuccess(Object petName) {
+    return '$petName이(가) 방에 들어왔어요!';
+  }
+
+  @override
+  String get petTicketRoomFull => '이 방은 이미 펫 수가 최대입니다.';
 
   @override
   String get petSelectionStarterBadge => '기본';

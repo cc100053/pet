@@ -10,9 +10,21 @@ Active progress stays current-state focused. Full snapshots live in
 - Shared room content is mixed-version aware. New backgrounds, furniture, and
   pets must ship with version-gated visibility, old-client fallback, and the
   existing compatibility prompt. Use `.codex/skills/shared-item-rollout/SKILL.md`.
+- Multi-pet v2.0.0 backend foundation is live: `rooms.main_pet_id`,
+  multi-row `pets` per room, shared `room_pet_state`, and room-pet RPCs are in
+  place. Pet tickets are live as a v2.0.0-gated 150-diamond consumable; new
+  purchases use one atomic buy-and-add RPC, while owned tickets can still be
+  consumed through a recovery RPC. Full Home multi-pet rendering is still
+  pending.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.
+- Equipment is now quantity-aware for multi-pet: Shop can buy more copies up to
+  room pet count, and the live equip RPC prevents one copy from being worn by
+  multiple pets simultaneously.
+- Shop pet-ticket flow is Return Letter-style: rooms at 5 pets cannot buy/use;
+  otherwise Buy opens pet selection and atomically deducts diamonds plus adds
+  the selected pet. Same pet types are allowed.
 - V1.4.0 equipment live prices are crown 260, sunglasses 240, and ribbon 170
   coins, still hidden from pre-1.4.0 catalog readers.
 - Pet rendering prefers bundled PNG sequences while preserving GIF asset ids.

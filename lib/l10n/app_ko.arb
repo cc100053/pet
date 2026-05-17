@@ -696,6 +696,8 @@
   "storeItemDescCandyPack500": "다이아몬드 50개를 캔디 500개로 교환합니다.",
   "storeItemNameReturnLetter": "귀환 편지",
   "storeItemDescReturnLetter": "떠난 펫을 다시 불러옵니다.",
+  "storeItemNamePetTicket": "펫 티켓",
+  "storeItemDescPetTicket": "이 방에 다른 펫을 초대합니다.",
   "storeItemNameBackgroundDefault": "기본 배경",
   "storeItemDescBackgroundDefault": "원래의 아늑한 방 배경입니다.",
   "storeItemNameBackgroundMoonlight": "은하 배경",
@@ -840,6 +842,18 @@
     }
   },
   "petSelectionConfirm": "방 시작",
+  "petTicketUseCta": "사용",
+  "petTicketSelectionTitle": "펫 초대",
+  "petTicketSelectionSubtitle": "이 방에 함께할 새 친구를 선택하세요.",
+  "petTicketSelectionConfirm": "펫 초대",
+  "petTicketUseSuccess": "{petName}이(가) 방에 들어왔어요!",
+  "@petTicketUseSuccess": {
+    "description": "Success message after using a pet ticket.",
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petTicketRoomFull": "이 방은 이미 펫 수가 최대입니다.",
   "petSelectionStarterBadge": "기본",
   "petSelectionFailed": "펫 선택 실패: {error}",
   "@petSelectionFailed": {

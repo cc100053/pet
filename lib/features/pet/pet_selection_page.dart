@@ -30,22 +30,38 @@ class PetSelectionPage extends StatefulWidget {
     super.key,
     this.initialSelectionId,
     this.maxPetNameLength = 20,
+    this.titleText,
+    this.subtitleText,
+    this.confirmText,
+    this.submittingText,
     this.onSubmitSelection,
   });
 
   final String? initialSelectionId;
   final int maxPetNameLength;
+  final String? titleText;
+  final String? subtitleText;
+  final String? confirmText;
+  final String? submittingText;
   final PetSelectionSubmitHandler? onSubmitSelection;
 
   static Route<PetSelectionResult> route({
     String? initialSelectionId,
     int maxPetNameLength = 20,
+    String? titleText,
+    String? subtitleText,
+    String? confirmText,
+    String? submittingText,
     PetSelectionSubmitHandler? onSubmitSelection,
   }) {
     return PageRouteBuilder<PetSelectionResult>(
       pageBuilder: (context, animation, secondaryAnimation) => PetSelectionPage(
         initialSelectionId: initialSelectionId,
         maxPetNameLength: maxPetNameLength,
+        titleText: titleText,
+        subtitleText: subtitleText,
+        confirmText: confirmText,
+        submittingText: submittingText,
         onSubmitSelection: onSubmitSelection,
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -214,6 +230,10 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final pets = PetCatalog.visiblePetsForAppVersion(_currentAppVersion);
+    final titleText = widget.titleText ?? l10n.petSelectionTitle;
+    final subtitleText = widget.subtitleText ?? l10n.petSelectionSubtitle;
+    final confirmText = widget.confirmText ?? l10n.petSelectionConfirm;
+    final submittingText = widget.submittingText ?? l10n.roomSelectionCreating;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppStatusBarStyles.light,
@@ -258,7 +278,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    l10n.petSelectionTitle,
+                                    titleText,
                                     style: theme.textTheme.headlineSmall
                                         ?.copyWith(
                                           fontWeight: FontWeight.bold,
@@ -272,7 +292,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                             child: Text(
-                              l10n.petSelectionSubtitle,
+                              subtitleText,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.textSecondary,
                                 fontWeight: FontWeight.w600,
@@ -405,10 +425,10 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                           ),
                                         ),
                                         const SizedBox(width: 10),
-                                        Text(l10n.roomSelectionCreating),
+                                        Text(submittingText),
                                       ],
                                     )
-                                  : Text(l10n.petSelectionConfirm),
+                                  : Text(confirmText),
                             ),
                           ),
                         ],
@@ -451,7 +471,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  l10n.roomSelectionCreating,
+                                  submittingText,
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     color: AppTheme.textPrimary,
                                     fontWeight: FontWeight.w800,

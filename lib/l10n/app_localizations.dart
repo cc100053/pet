@@ -2363,6 +2363,18 @@ abstract class AppLocalizations {
   /// **'Call back a departed pet.'**
   String get storeItemDescReturnLetter;
 
+  /// No description provided for @storeItemNamePetTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet Ticket'**
+  String get storeItemNamePetTicket;
+
+  /// No description provided for @storeItemDescPetTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite another pet to this room.'**
+  String get storeItemDescPetTicket;
+
   /// No description provided for @storeItemNameBackgroundDefault.
   ///
   /// In en, this message translates to:
@@ -2948,6 +2960,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start room'**
   String get petSelectionConfirm;
+
+  /// No description provided for @petTicketUseCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get petTicketUseCta;
+
+  /// No description provided for @petTicketSelectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite a pet'**
+  String get petTicketSelectionTitle;
+
+  /// No description provided for @petTicketSelectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new buddy to join this room.'**
+  String get petTicketSelectionSubtitle;
+
+  /// No description provided for @petTicketSelectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite pet'**
+  String get petTicketSelectionConfirm;
+
+  /// Success message after using a pet ticket.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName} joined the room!'**
+  String petTicketUseSuccess(Object petName);
+
+  /// No description provided for @petTicketRoomFull.
+  ///
+  /// In en, this message translates to:
+  /// **'This room already has the maximum number of pets.'**
+  String get petTicketRoomFull;
 
   /// No description provided for @petSelectionStarterBadge.
   ///

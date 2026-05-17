@@ -80,6 +80,230 @@ extension _ShopPurchaseHandler on _ShopViewState {
     }
   }
 
+  Future<void> _handlePetTicketUse(ShopItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final roomId = widget.roomId;
+    if (_purchasing) {
+      return;
+    }
+    if (roomId == null) {
+      showJuiceToast(
+        context: context,
+        message: l10n.storeBackgroundRoomRequired,
+        tone: AppDialogTone.warning,
+      );
+      return;
+    }
+    if ((_inventory[item.id] ?? 0) <= 0) {
+      showJuiceToast(
+        context: context,
+        message: l10n.storeProductUnavailable,
+        tone: AppDialogTone.warning,
+      );
+      return;
+    }
+    if (_roomPetCount >= 5) {
+      showJuiceToast(
+        context: context,
+        message: l10n.petTicketRoomFull,
+        tone: AppDialogTone.warning,
+      );
+      return;
+    }
+
+    final selection = await Navigator.of(context).push<PetSelectionResult>(
+      PetSelectionPage.route(
+        maxPetNameLength: 20,
+        titleText: l10n.petTicketSelectionTitle,
+        subtitleText: l10n.petTicketSelectionSubtitle,
+        confirmText: l10n.petTicketSelectionConfirm,
+        submittingText: l10n.roomSelectionCreating,
+        onSubmitSelection: (selection) async {
+          _setStoreState(() {
+            _purchasing = true;
+          });
+          try {
+            final response = await Supabase.instance.client.rpc(
+              'use_pet_ticket',
+              params: {
+                'p_room_id': roomId,
+                'p_pet_type': selection.pet.id,
+                'p_pet_name': selection.petName,
+              },
+            );
+            if (response is! List || response.isEmpty) {
+              return l10n.commonTryAgain;
+            }
+            final row = response.first;
+            if (row is! Map) {
+              return l10n.commonTryAgain;
+            }
+            final remainingTickets =
+                _intFromJson(row['remaining_tickets']) ?? 0;
+            final roomPetCount =
+                _intFromJson(row['room_pet_count']) ?? _roomPetCount;
+            if (!mounted) {
+              return null;
+            }
+            _setStoreState(() {
+              if (remainingTickets > 0) {
+                _inventory[item.id] = remainingTickets;
+              } else {
+                _inventory.remove(item.id);
+              }
+              _roomPetCount = roomPetCount;
+            });
+            AnalyticsService.instance.logEvent(
+              'pet_ticket_used',
+              parameters: {'sku': item.sku, 'room_pet_count': roomPetCount},
+            );
+            return null;
+          } catch (error) {
+            final rawError = error.toString();
+            if (rawError.contains('room_pet_capacity_reached')) {
+              return l10n.petTicketRoomFull;
+            }
+            return l10n.storePurchaseFailed(userFacingError(context, error));
+          } finally {
+            if (mounted) {
+              _setStoreState(() {
+                _purchasing = false;
+              });
+            }
+          }
+        },
+      ),
+    );
+
+    if (!mounted || selection == null) {
+      return;
+    }
+    showJuiceSnackbar(
+      context: context,
+      message: l10n.petTicketUseSuccess(selection.petName),
+      tone: AppDialogTone.success,
+    );
+    unawaited(_loadStore(silent: true));
+  }
+
+  Future<void> _handlePetTicketPurchase(ShopItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final roomId = widget.roomId;
+    if (_purchasing) {
+      return;
+    }
+    if (roomId == null) {
+      showJuiceToast(
+        context: context,
+        message: l10n.storeBackgroundRoomRequired,
+        tone: AppDialogTone.warning,
+      );
+      return;
+    }
+    if (_roomPetCount >= 5) {
+      showJuiceToast(
+        context: context,
+        message: l10n.petTicketRoomFull,
+        tone: AppDialogTone.warning,
+      );
+      return;
+    }
+    if (!_ensureCurrencyPurchasable(item, ShopCurrency.diamonds)) {
+      return;
+    }
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    final selection = await Navigator.of(context).push<PetSelectionResult>(
+      PetSelectionPage.route(
+        maxPetNameLength: 20,
+        titleText: l10n.petTicketSelectionTitle,
+        subtitleText: l10n.petTicketSelectionSubtitle,
+        confirmText: l10n.petTicketSelectionConfirm,
+        submittingText: l10n.roomSelectionCreating,
+        onSubmitSelection: (selection) async {
+          _setStoreState(() {
+            _purchasing = true;
+          });
+          try {
+            final response = await Supabase.instance.client.rpc(
+              'purchase_and_use_pet_ticket',
+              params: {
+                'p_room_id': roomId,
+                'p_item_id': item.id,
+                'p_pet_type': selection.pet.id,
+                'p_pet_name': selection.petName,
+              },
+            );
+            if (response is! List || response.isEmpty) {
+              return l10n.commonTryAgain;
+            }
+            final row = response.first;
+            if (row is! Map) {
+              return l10n.commonTryAgain;
+            }
+            final remainingDiamonds =
+                _intFromJson(row['remaining_diamonds']) ?? _diamonds;
+            final roomPetCount =
+                _intFromJson(row['room_pet_count']) ?? _roomPetCount;
+            if (!mounted) {
+              return null;
+            }
+            _setStoreState(() {
+              _diamonds = remainingDiamonds;
+              _roomPetCount = roomPetCount;
+            });
+            AnalyticsService.instance.logEvent(
+              'pet_ticket_purchased_used',
+              parameters: {'sku': item.sku, 'room_pet_count': roomPetCount},
+            );
+            return null;
+          } catch (error) {
+            final rawError = error.toString();
+            if (rawError.contains('room_pet_capacity_reached')) {
+              return l10n.petTicketRoomFull;
+            }
+            if (rawError.contains('insufficient_diamonds')) {
+              return l10n.storeNotEnoughDiamonds;
+            }
+            return l10n.storePurchaseFailed(userFacingError(context, error));
+          } finally {
+            if (mounted) {
+              _setStoreState(() {
+                _purchasing = false;
+              });
+            }
+          }
+        },
+      ),
+    );
+
+    if (!mounted || selection == null) {
+      return;
+    }
+    showJuiceSnackbar(
+      context: context,
+      message: l10n.petTicketUseSuccess(selection.petName),
+      tone: AppDialogTone.success,
+    );
+    unawaited(_loadStore(silent: true));
+  }
+
+  int? _intFromJson(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is double) {
+      return value.round();
+    }
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    return null;
+  }
+
   Future<void> _consumePurchasedItem(String itemId) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -299,6 +523,10 @@ extension _ShopPurchaseHandler on _ShopViewState {
   }
 
   Future<bool> _purchaseDiamondItem(ShopItem item) async {
+    if (item.isPetTicket) {
+      await _handlePetTicketPurchase(item);
+      return false;
+    }
     if (_purchasing) {
       return false;
     }

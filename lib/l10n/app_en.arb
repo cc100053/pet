@@ -701,6 +701,8 @@
   "storeItemDescCandyPack500": "Exchange 50 diamonds for 500 candy.",
   "storeItemNameReturnLetter": "Return Letter",
   "storeItemDescReturnLetter": "Call back a departed pet.",
+  "storeItemNamePetTicket": "Pet Ticket",
+  "storeItemDescPetTicket": "Invite another pet to this room.",
   "storeItemNameBackgroundDefault": "Default Background",
   "storeItemDescBackgroundDefault": "Original cozy room backdrop.",
   "storeItemNameBackgroundMoonlight": "Galaxy Background",
@@ -846,6 +848,18 @@
     }
   },
   "petSelectionConfirm": "Start room",
+  "petTicketUseCta": "Use",
+  "petTicketSelectionTitle": "Invite a pet",
+  "petTicketSelectionSubtitle": "Choose a new buddy to join this room.",
+  "petTicketSelectionConfirm": "Invite pet",
+  "petTicketUseSuccess": "{petName} joined the room!",
+  "@petTicketUseSuccess": {
+    "description": "Success message after using a pet ticket.",
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petTicketRoomFull": "This room already has the maximum number of pets.",
   "petSelectionStarterBadge": "Starter",
   "petSelectionFailed": "Pet selection failed: {error}",
   "@petSelectionFailed": {

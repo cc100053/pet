@@ -27,8 +27,17 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Profile bootstrap is centralized in `ProfileBootstrapService`.
 - Shared room content is mixed-version safe: new backgrounds, furniture, and
   pets need version gates, fallback rendering, and the compatibility prompt.
+- Multi-pet v2.0.0 foundation is additive: rooms can have multiple `pets`,
+  `rooms.main_pet_id` drives one-pet summaries, and `room_pet_state` stores
+  shared room hunger/mood while old `pet_state` remains for compatibility.
+- New room pets are added through a v2.0.0-gated pet ticket flow. New ticket
+  purchases use `purchase_and_use_pet_ticket` so the 150-diamond charge and pet
+  insert commit together; already-owned tickets use `use_pet_ticket`. Same pet
+  types are intentionally allowed.
 - Pet equipment is room-scoped end to end: purchase, inventory, equip state, and
   preview rendering key off `room_id`.
+- Equipment ownership is a shared closet with quantity; one owned copy can only
+  be equipped on one pet at a time.
 - Equipment slots are logical equip groups, not always distinct socket anchors:
   `head` hats are mutually exclusive with other hats, `face` sunglasses can
   coexist with hats while resolving through the head socket anchor, and `body`

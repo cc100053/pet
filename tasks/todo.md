@@ -17,6 +17,87 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Plan (2026-05-17 Multi-Pet System Review)
+- [x] Read active memory-bank files, task notes, local shared-item rollout
+  guidance, and the multi-pet design draft.
+- [x] Inspect current pet, room, pet_state, equipment, room selection, and Home
+  assumptions that are affected by allowing more than one pet per room.
+- [x] Identify planning gaps, compatibility risks, and equipment ownership /
+  equip-target decisions.
+- [x] Produce a detailed phased execution plan for implementation review before
+  any schema or app changes begin.
+
+## Review (2026-05-17 Multi-Pet System Review)
+- Current schema and UI are still one-pet-per-room in critical places:
+  `pets.room_id` is unique, Home tracks one active pet, pet state is keyed by
+  pet, room cards collapse pets to one summary, and equipment summaries ignore
+  `pet_id`.
+- Existing equipment ownership is room-scoped, while equip state is
+  `(room_id, pet_id, slot)`. Multi-pet should preserve that split and make the
+  selected equip target explicit in all UI/RPC paths.
+- The main open product decision is whether hunger/affection become truly
+  room-scoped shared state or remain stored on a representative pet for old
+  client compatibility. The safer path is additive room-scoped state plus
+  compatibility mirroring until old versions age out.
+
+## Plan (2026-05-17 Multi-Pet v2.0.0 Implementation)
+- [x] Bump app version and all rollout gates to `2.0.0`.
+- [x] Add additive multi-pet schema:
+  remove one-pet-per-room uniqueness, add `rooms.main_pet_id`, seed
+  `room_pet_state`, and keep old `pet_state` available for old clients.
+- [x] Add backend RPCs for v2.0.0:
+  room pet list, add pet with capacity checks, set main pet, and room-scoped
+  pet actions that mirror the main pet state for compatibility.
+- [x] Update equipment backend:
+  room inventory quantity can grow up to active pet count; equip is limited by
+  owned copy count; one copy cannot be equipped on two pets at the same time.
+- [x] Update Shop:
+  equipment cards show owned count and allow Buy More until owned quantity
+  reaches the room's pet count.
+- [x] Add v2.0.0 pet-ticket purchase/consume flow:
+  catalog item at 150 diamonds, atomic buy-and-add RPC, owned-ticket recovery
+  consume, and Shop entry point for inviting another room pet.
+- [ ] Update Home:
+  load room pet list, render multiple pets, use main pet for room summaries and
+  chat/avatar surfaces, and add per-pet equipment target selection.
+- [ ] Add tests for capacity, equipment copy limits, main-pet summaries,
+  room-scoped hunger, and version gates.
+- [x] Run `flutter analyze` and `flutter test`.
+
+## Review (2026-05-17 Multi-Pet v2.0.0 Foundation)
+- Bumped app version to `2.0.0+1`.
+- Added and applied live Supabase migrations:
+  `multi_pet_v200_foundation` and `add_room_pet_action_rpc`.
+- Live schema now has `rooms.main_pet_id`, non-unique `pets.room_id`,
+  `room_pet_state`, and v2 RPCs:
+  `get_room_pets`, `add_room_pet`, `set_room_main_pet`,
+  `apply_room_pet_action`.
+- Updated equipment RPC behavior:
+  equipment quantity can grow up to room pet count, and `equip_pet_item`
+  rejects wearing an item when all owned copies are already equipped.
+- Updated Shop equipment cards to show owned count and allow `Buy more` until
+  owned count reaches room pet count.
+- Added widget tests for equipment buy-more and capacity lock behavior.
+- Pet ticket flow is now wired:
+  live `pet_ticket` catalog item costs 150 diamonds, is hidden from pre-2.0.0
+  clients, and `purchase_and_use_pet_ticket` atomically checks room capacity,
+  deducts diamonds, writes the ledger, and adds the selected pet. Same pet types
+  are allowed.
+- Shop now treats pet-ticket buy like Return Letter:
+  rooms with 5 pets are blocked before purchase, otherwise Buy opens pet
+  selection and submits the atomic buy-and-add RPC. Already-owned tickets still
+  show `Use` and call `use_pet_ticket` as a recovery path.
+- Remaining implementation: Home multi-pet rendering, per-pet equipment target
+  picker, main-pet switcher UI, and room-scoped state reads in Home.
+- Verification:
+  live migration sanity checks passed,
+  `flutter analyze` passed,
+  `flutter test --concurrency=1` passed with
+  `test/feed_flow_integration_test.dart` skipped for missing Supabase env vars.
+  A default parallel `flutter test` run hit a transient
+  `feed_upload_queue_test.dart` failure; that test file passed when rerun
+  directly.
+
 ## Plan (2026-05-16 Persistent Firebase SPM Target Fix)
 - [x] Re-read active memory-bank files, task notes, and lessons.
 - [x] Confirm the ignored Flutter-generated SPM manifest can revert to

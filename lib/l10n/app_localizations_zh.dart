@@ -1273,6 +1273,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescReturnLetter => '召回离开的宠物。';
 
   @override
+  String get storeItemNamePetTicket => '宠物券';
+
+  @override
+  String get storeItemDescPetTicket => '邀请另一只宠物加入这个房间。';
+
+  @override
   String get storeItemNameBackgroundDefault => '預設背景';
 
   @override
@@ -1586,6 +1592,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get petSelectionConfirm => '開始房间';
+
+  @override
+  String get petTicketUseCta => '使用';
+
+  @override
+  String get petTicketSelectionTitle => '邀请宠物';
+
+  @override
+  String get petTicketSelectionSubtitle => '选一位新伙伴加入这个房间。';
+
+  @override
+  String get petTicketSelectionConfirm => '邀请宠物';
+
+  @override
+  String petTicketUseSuccess(Object petName) {
+    return '$petName 已加入房间！';
+  }
+
+  @override
+  String get petTicketRoomFull => '这个房间的宠物数量已达上限。';
 
   @override
   String get petSelectionStarterBadge => '入門';
@@ -3079,6 +3105,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemDescReturnLetter => '召回離開的寵物。';
 
   @override
+  String get storeItemNamePetTicket => '寵物券';
+
+  @override
+  String get storeItemDescPetTicket => '邀請另一隻寵物加入這個房間。';
+
+  @override
   String get storeItemNameBackgroundDefault => '預設背景';
 
   @override
@@ -3388,6 +3420,26 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get petSelectionConfirm => '開始房間';
+
+  @override
+  String get petTicketUseCta => '使用';
+
+  @override
+  String get petTicketSelectionTitle => '邀請寵物';
+
+  @override
+  String get petTicketSelectionSubtitle => '選一位新夥伴加入這個房間。';
+
+  @override
+  String get petTicketSelectionConfirm => '邀請寵物';
+
+  @override
+  String petTicketUseSuccess(Object petName) {
+    return '$petName 已加入房間！';
+  }
+
+  @override
+  String get petTicketRoomFull => '這個房間的寵物數量已達上限。';
 
   @override
   String get petSelectionStarterBadge => '入門';

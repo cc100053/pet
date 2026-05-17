@@ -688,6 +688,8 @@
   "storeItemDescCandyPack500": "使用 50 鑽石兌換 500 糖果。",
   "storeItemNameReturnLetter": "回家信",
   "storeItemDescReturnLetter": "召回离开的宠物。",
+  "storeItemNamePetTicket": "宠物券",
+  "storeItemDescPetTicket": "邀请另一只宠物加入这个房间。",
   "storeItemNameBackgroundDefault": "預設背景",
   "storeItemDescBackgroundDefault": "原始溫馨房间背景。",
   "storeItemNameBackgroundMoonlight": "银河背景",
@@ -833,6 +835,18 @@
     }
   },
   "petSelectionConfirm": "開始房间",
+  "petTicketUseCta": "使用",
+  "petTicketSelectionTitle": "邀请宠物",
+  "petTicketSelectionSubtitle": "选一位新伙伴加入这个房间。",
+  "petTicketSelectionConfirm": "邀请宠物",
+  "petTicketUseSuccess": "{petName} 已加入房间！",
+  "@petTicketUseSuccess": {
+    "description": "Success message after using a pet ticket.",
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "petTicketRoomFull": "这个房间的宠物数量已达上限。",
   "petSelectionStarterBadge": "入門",
   "petSelectionFailed": "选择宠物失敗：{error}",
   "@petSelectionFailed": {

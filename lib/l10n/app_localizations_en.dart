@@ -1315,6 +1315,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescReturnLetter => 'Call back a departed pet.';
 
   @override
+  String get storeItemNamePetTicket => 'Pet Ticket';
+
+  @override
+  String get storeItemDescPetTicket => 'Invite another pet to this room.';
+
+  @override
   String get storeItemNameBackgroundDefault => 'Default Background';
 
   @override
@@ -1643,6 +1649,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petSelectionConfirm => 'Start room';
+
+  @override
+  String get petTicketUseCta => 'Use';
+
+  @override
+  String get petTicketSelectionTitle => 'Invite a pet';
+
+  @override
+  String get petTicketSelectionSubtitle =>
+      'Choose a new buddy to join this room.';
+
+  @override
+  String get petTicketSelectionConfirm => 'Invite pet';
+
+  @override
+  String petTicketUseSuccess(Object petName) {
+    return '$petName joined the room!';
+  }
+
+  @override
+  String get petTicketRoomFull =>
+      'This room already has the maximum number of pets.';
 
   @override
   String get petSelectionStarterBadge => 'Starter';

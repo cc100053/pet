@@ -1276,6 +1276,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescReturnLetter => '旅立ったペットを呼び戻します。';
 
   @override
+  String get storeItemNamePetTicket => 'ペット券';
+
+  @override
+  String get storeItemDescPetTicket => 'このルームにもう1匹ペットを招待します。';
+
+  @override
   String get storeItemNameBackgroundDefault => 'デフォルト背景';
 
   @override
@@ -1594,6 +1600,26 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get petSelectionConfirm => 'ルームを始める';
+
+  @override
+  String get petTicketUseCta => '使う';
+
+  @override
+  String get petTicketSelectionTitle => 'ペットを招待';
+
+  @override
+  String get petTicketSelectionSubtitle => 'このルームに参加する新しい相棒を選びましょう。';
+
+  @override
+  String get petTicketSelectionConfirm => '招待する';
+
+  @override
+  String petTicketUseSuccess(Object petName) {
+    return '$petName がルームに参加しました！';
+  }
+
+  @override
+  String get petTicketRoomFull => 'このルームはペット数の上限に達しています。';
 
   @override
   String get petSelectionStarterBadge => 'スターター';

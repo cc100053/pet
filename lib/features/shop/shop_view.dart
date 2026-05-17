@@ -25,6 +25,7 @@ import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../home/room_backgrounds.dart';
 import '../pet/pet_departure.dart';
+import '../pet/pet_selection_page.dart';
 import 'models/shop_item.dart';
 import 'services/economy_purchase_adapter.dart';
 import 'services/shop_economy_state.dart';
@@ -145,6 +146,7 @@ class _ShopViewState extends State<ShopView> {
   List<ShopItem> _items = [];
   final Map<String, int> _inventory = {};
   final Set<String> _roomBackgroundOwned = {};
+  int _roomPetCount = 1;
   bool _iapConfigured = false;
   bool _iapLoading = false;
   String? _iapError;
@@ -448,6 +450,7 @@ class _ShopViewState extends State<ShopView> {
       final roomId = widget.roomId;
       List<dynamic> roomFurnitureInventoryRows = const [];
       List<dynamic> roomEquipmentInventoryRows = const [];
+      var roomPetCount = 1;
       if (roomId != null) {
         roomFurnitureInventoryRows = await Supabase.instance.client.rpc(
           'get_room_furniture_inventory',
@@ -457,6 +460,11 @@ class _ShopViewState extends State<ShopView> {
           'get_room_equipment_inventory',
           params: {'p_room_id': roomId},
         );
+        final petRows = await Supabase.instance.client
+            .from('pets')
+            .select('id')
+            .eq('room_id', roomId);
+        roomPetCount = math.max(1, (petRows as List<dynamic>).length);
       }
 
       List<dynamic> roomBackgroundRows = const [];
@@ -541,6 +549,7 @@ class _ShopViewState extends State<ShopView> {
         _roomBackgroundOwned
           ..clear()
           ..addAll(ownedBackgrounds);
+        _roomPetCount = roomPetCount;
       });
 
       await _loadIap(user.id);
