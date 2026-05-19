@@ -36,4 +36,24 @@ void main() {
     expect(sceneSource, contains('!pet.isMain && pet.petId != _petId'));
     expect(sceneSource, contains('_buildRoomPetAvatar'));
   });
+
+  test('Home subscribes to pets/rooms realtime for the active room', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final roomManagerSource = File(
+      'lib/features/home/controllers/home_room_manager.dart',
+    ).readAsStringSync();
+
+    expect(homeSource, contains('_subscribeToRoomPets'));
+    expect(homeSource, contains("channel('room_pets_"));
+    expect(homeSource, contains("table: 'pets'"));
+    expect(homeSource, contains("table: 'rooms'"));
+    // Room manager must not double-call _loadRoomPets; _refreshPetState
+    // already triggers it.
+    expect(
+      roomManagerSource,
+      isNot(contains('unawaited(_loadRoomPets(roomId));')),
+    );
+  });
 }

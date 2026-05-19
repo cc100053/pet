@@ -208,6 +208,8 @@ class _HomeViewState extends ConsumerState<HomeView>
   List<Map<String, dynamic>> _myRooms = []; // Stores room info
   RealtimeChannel? _petStateChannel;
   String? _petSubscriptionPetId;
+  RealtimeChannel? _roomPetsChannel;
+  String? _roomPetsSubscriptionRoomId;
   final GlobalKey _petFieldKey = GlobalKey();
   final TextEditingController _onboardingProfileNicknameController =
       TextEditingController();
@@ -456,6 +458,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final backgroundStateChannel = _backgroundStateChannel;
     final backgroundInventoryChannel = _backgroundInventoryChannel;
     final roomInventoryRevisionChannel = _roomInventoryRevisionChannel;
+    final roomPetsChannel = _roomPetsChannel;
     _petStateChannel = null;
     _petEquipmentChannel = null;
     _roomSelectionEquipmentChannel = null;
@@ -463,6 +466,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     _backgroundStateChannel = null;
     _backgroundInventoryChannel = null;
     _roomInventoryRevisionChannel = null;
+    _roomPetsChannel = null;
+    _roomPetsSubscriptionRoomId = null;
     unawaited(_removeRealtimeChannel(petStateChannel));
     unawaited(_removeRealtimeChannel(petEquipmentChannel));
     unawaited(_removeRealtimeChannel(roomSelectionEquipmentChannel));
@@ -470,6 +475,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_removeRealtimeChannel(backgroundStateChannel));
     unawaited(_removeRealtimeChannel(backgroundInventoryChannel));
     unawaited(_removeRealtimeChannel(roomInventoryRevisionChannel));
+    unawaited(_removeRealtimeChannel(roomPetsChannel));
     _overfedBubbleTimer?.cancel();
     for (final channel in _messageChannels.values) {
       unawaited(_removeRealtimeChannel(channel));
@@ -1804,6 +1810,65 @@ class _HomeViewState extends ConsumerState<HomeView>
     return null;
   }
 
+  void _subscribeToRoomPets(String roomId) {
+    if (_roomPetsSubscriptionRoomId == roomId && _roomPetsChannel != null) {
+      return;
+    }
+
+    final previousChannel = _roomPetsChannel;
+    _roomPetsChannel = null;
+    unawaited(_removeRealtimeChannel(previousChannel));
+    _roomPetsSubscriptionRoomId = roomId;
+
+    final channel = Supabase.instance.client.channel('room_pets_$roomId');
+    _roomPetsChannel = channel;
+
+    void handleChange() {
+      if (!mounted || _roomPetsSubscriptionRoomId != roomId) {
+        return;
+      }
+      unawaited(_loadRoomPets(roomId));
+    }
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.insert,
+      schema: 'public',
+      table: 'pets',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => handleChange(),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'pets',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'room_id',
+        value: roomId,
+      ),
+      callback: (_) => handleChange(),
+    );
+
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'rooms',
+      filter: PostgresChangeFilter(
+        type: PostgresChangeFilterType.eq,
+        column: 'id',
+        value: roomId,
+      ),
+      callback: (_) => handleChange(),
+    );
+
+    channel.subscribe();
+  }
+
   Future<void> _loadRoomPets(String roomId) async {
     try {
       final response = await Supabase.instance.client.rpc(
@@ -1869,6 +1934,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       unawaited(_loadRoomPets(roomId));
+      _subscribeToRoomPets(roomId);
       _subscribeToPetState(petId);
       _subscribeToPetEquipment(roomId);
       unawaited(_loadPetInfo(petId, roomId: roomId));
