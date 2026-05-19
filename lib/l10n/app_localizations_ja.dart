@@ -1640,6 +1640,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mainPetSwitcherTitle => 'メインのペットを選ぶ';
 
   @override
+  String get equipTargetPickerTitle => 'どのペットに装備しますか？';
+
+  @override
+  String equipTargetPickerCurrentlyWearing(Object sku) {
+    return '現在の装備: $sku';
+  }
+
+  @override
   String get petSelectionStarterBadge => 'スターター';
 
   @override

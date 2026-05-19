@@ -3033,6 +3033,18 @@ abstract class AppLocalizations {
   /// **'Choose your main pet'**
   String get mainPetSwitcherTitle;
 
+  /// No description provided for @equipTargetPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equip on which pet?'**
+  String get equipTargetPickerTitle;
+
+  /// Subtitle showing the SKU a pet currently wears in this slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently wearing: {sku}'**
+  String equipTargetPickerCurrentlyWearing(Object sku);
+
   /// No description provided for @petSelectionStarterBadge.
   ///
   /// In en, this message translates to:

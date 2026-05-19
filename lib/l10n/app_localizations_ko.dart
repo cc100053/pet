@@ -1650,6 +1650,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mainPetSwitcherTitle => '메인 펫 선택';
 
   @override
+  String get equipTargetPickerTitle => '어느 펫에게 장착할까요?';
+
+  @override
+  String equipTargetPickerCurrentlyWearing(Object sku) {
+    return '현재 장착: $sku';
+  }
+
+  @override
   String get petSelectionStarterBadge => '기본';
 
   @override

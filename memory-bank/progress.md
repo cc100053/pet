@@ -30,7 +30,10 @@ Active progress stays current-state focused. Full snapshots live in
   members without a manual room switch. Feeding triggers all extras to
   converge on the food in a tight ring around the main pet, and wander
   targets keep a small breathing distance from other pets for lightweight
-  collision avoidance. Per-pet equipment target selection is still pending.
+  collision avoidance. Equip action prompts a per-pet target picker when
+  the room has 2+ pets (annotated with each pet's currently equipped SKU
+  in that slot); unequip still targets the main pet by design — switch
+  main pet first to unequip from another.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.

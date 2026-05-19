@@ -853,6 +853,14 @@
   "multiPetNamingFirstPetLabel": "第一只宠物名称",
   "multiPetNamingFirstPetHint": "默认沿用旧的房间名",
   "mainPetSwitcherTitle": "选择主宠物",
+  "equipTargetPickerTitle": "给哪只宠物装备？",
+  "equipTargetPickerCurrentlyWearing": "目前穿戴：{sku}",
+  "@equipTargetPickerCurrentlyWearing": {
+    "description": "Subtitle showing the SKU a pet currently wears in this slot.",
+    "placeholders": {
+      "sku": {}
+    }
+  },
   "petSelectionStarterBadge": "入門",
   "petSelectionFailed": "选择宠物失敗：{error}",
   "@petSelectionFailed": {

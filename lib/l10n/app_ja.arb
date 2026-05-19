@@ -866,6 +866,14 @@
   "multiPetNamingFirstPetLabel": "最初のペットの名前",
   "multiPetNamingFirstPetHint": "以前のルーム名を引き継ぎます",
   "mainPetSwitcherTitle": "メインのペットを選ぶ",
+  "equipTargetPickerTitle": "どのペットに装備しますか？",
+  "equipTargetPickerCurrentlyWearing": "現在の装備: {sku}",
+  "@equipTargetPickerCurrentlyWearing": {
+    "description": "Subtitle showing the SKU a pet currently wears in this slot.",
+    "placeholders": {
+      "sku": {}
+    }
+  },
   "petSelectionStarterBadge": "スターター",
   "petSelectionFailed": "ペットの選択に失敗しました：{error}",
   "@petSelectionFailed": {

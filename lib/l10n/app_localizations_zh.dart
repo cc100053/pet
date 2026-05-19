@@ -1632,6 +1632,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mainPetSwitcherTitle => '选择主宠物';
 
   @override
+  String get equipTargetPickerTitle => '给哪只宠物装备？';
+
+  @override
+  String equipTargetPickerCurrentlyWearing(Object sku) {
+    return '目前穿戴：$sku';
+  }
+
+  @override
   String get petSelectionStarterBadge => '入門';
 
   @override
@@ -3476,6 +3484,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get mainPetSwitcherTitle => '選擇主寵物';
+
+  @override
+  String get equipTargetPickerTitle => '幫邊隻寵物著裝？';
+
+  @override
+  String equipTargetPickerCurrentlyWearing(Object sku) {
+    return '目前著緊：$sku';
+  }
 
   @override
   String get petSelectionStarterBadge => '入門';

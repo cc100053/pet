@@ -37,6 +37,19 @@ void main() {
     expect(sceneSource, contains('_buildRoomPetAvatar'));
   });
 
+  test('Equip action prompts pet picker when room has 2+ pets', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    expect(homeSource, contains('_resolveEquipTargetPetId'));
+    expect(homeSource, contains('equipTargetPickerTitle'));
+    // The equip RPC must use the picker's chosen pet, not always _petId.
+    expect(
+      homeSource,
+      contains("'p_pet_id': targetPetId,"),
+    );
+  });
+
   test('Feed action summons all extra pets to the food location', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',

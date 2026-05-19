@@ -866,6 +866,14 @@
   "multiPetNamingFirstPetLabel": "First pet name",
   "multiPetNamingFirstPetHint": "Inherits your old room name by default",
   "mainPetSwitcherTitle": "Choose your main pet",
+  "equipTargetPickerTitle": "Equip on which pet?",
+  "equipTargetPickerCurrentlyWearing": "Currently wearing: {sku}",
+  "@equipTargetPickerCurrentlyWearing": {
+    "description": "Subtitle showing the SKU a pet currently wears in this slot.",
+    "placeholders": {
+      "sku": {}
+    }
+  },
   "petSelectionStarterBadge": "Starter",
   "petSelectionFailed": "Pet selection failed: {error}",
   "@petSelectionFailed": {

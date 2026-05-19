@@ -2266,6 +2266,103 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  Future<String?> _resolveEquipTargetPetId({
+    required String roomId,
+    required String defaultPetId,
+    required String slot,
+  }) async {
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    if (pets.length < 2) {
+      return defaultPetId;
+    }
+    if (!mounted) return null;
+    // Look up what each pet currently wears in this slot for context.
+    Map<String, String> currentSkuByPetId = const {};
+    try {
+      final rows = await Supabase.instance.client
+          .from('pet_equipment')
+          .select('pet_id, item_id, items(sku)')
+          .eq('room_id', roomId)
+          .eq('slot', slot);
+      final map = <String, String>{};
+      for (final row in rows) {
+        final petId = row['pet_id'] as String?;
+        final items = row['items'];
+        if (petId == null || items is! Map) continue;
+        final sku = items['sku'] as String?;
+        if (sku != null) {
+          map[petId] = sku;
+        }
+      }
+      currentSkuByPetId = map;
+    } catch (_) {
+      // Best-effort enrichment; fall back to no annotations.
+    }
+    if (!mounted) return null;
+    final l10n = AppLocalizations.of(context)!;
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    l10n.equipTargetPickerTitle,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 1),
+                for (final pet in pets)
+                  ListTile(
+                    leading: SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: _buildPetVisualForAsset(
+                        petId: pet.petType,
+                        asset: PetCatalog.byId(pet.petType).stayAsset,
+                        size: const Size(42, 42),
+                        petFallbackColor: PetCatalog.byId(pet.petType).accent,
+                        equippedSkusBySlot: const {},
+                      ),
+                    ),
+                    title: Text(
+                      pet.name ?? PetCatalog.byId(pet.petType).name(l10n),
+                    ),
+                    subtitle: currentSkuByPetId.containsKey(pet.petId)
+                        ? Text(
+                            l10n.equipTargetPickerCurrentlyWearing(
+                              currentSkuByPetId[pet.petId]!,
+                            ),
+                            style: const TextStyle(fontSize: 11),
+                          )
+                        : null,
+                    trailing: pet.isMain
+                        ? const Icon(Icons.star_rounded, color: Colors.amber)
+                        : null,
+                    onTap: () => Navigator.of(context).pop(pet.petId),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _showMainPetSwitcher() async {
     final roomId = _roomId;
     if (roomId == null) return;
@@ -2720,16 +2817,24 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _equipItem(String itemId, String slot) async {
-    final petId = _petId;
+    final mainPetId = _petId;
     final roomId = _roomId;
-    if (petId == null || roomId == null) {
+    if (mainPetId == null || roomId == null) {
+      return;
+    }
+    final targetPetId = await _resolveEquipTargetPetId(
+      roomId: roomId,
+      defaultPetId: mainPetId,
+      slot: slot,
+    );
+    if (targetPetId == null) {
       return;
     }
     try {
       final response = await Supabase.instance.client.rpc(
         'equip_pet_item',
         params: {
-          'p_pet_id': petId,
+          'p_pet_id': targetPetId,
           'p_room_id': roomId,
           'p_item_id': itemId,
           'p_slot': slot,

@@ -1693,6 +1693,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mainPetSwitcherTitle => 'Choose your main pet';
 
   @override
+  String get equipTargetPickerTitle => 'Equip on which pet?';
+
+  @override
+  String equipTargetPickerCurrentlyWearing(Object sku) {
+    return 'Currently wearing: $sku';
+  }
+
+  @override
   String get petSelectionStarterBadge => 'Starter';
 
   @override
