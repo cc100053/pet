@@ -37,6 +37,18 @@ void main() {
     expect(sceneSource, contains('_buildRoomPetAvatar'));
   });
 
+  test('Feed action summons all extra pets to the food location', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final feedSource = File(
+      'lib/features/home/controllers/home_feed_orchestrator.dart',
+    ).readAsStringSync();
+    expect(homeSource, contains('_summonExtraPetsToFood'));
+    expect(homeSource, contains('_pickWanderTargetAvoiding'));
+    expect(feedSource, contains('_summonExtraPetsToFood(foodTarget, fieldSize)'));
+  });
+
   test('Extra room pets are interactive (drag + tap name tag + wander)', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',

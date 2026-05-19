@@ -1945,6 +1945,31 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
+  /// Picks a wander target that keeps a small breathing distance from all
+  /// other pets' positions. "Lightweight" per design doc: pets may get close
+  /// (almost-touching) but never spawn directly on top of each other.
+  Offset _pickWanderTargetAvoiding(List<Offset> avoidPositions) {
+    const minDistance = 0.08;
+    Offset best = _randomExtraPetTarget();
+    var bestMinDist = -1.0;
+    for (var attempt = 0; attempt < 8; attempt++) {
+      final candidate = _randomExtraPetTarget();
+      var nearest = double.infinity;
+      for (final other in avoidPositions) {
+        final d = (candidate - other).distance;
+        if (d < nearest) nearest = d;
+      }
+      if (nearest >= minDistance) {
+        return candidate;
+      }
+      if (nearest > bestMinDist) {
+        bestMinDist = nearest;
+        best = candidate;
+      }
+    }
+    return best;
+  }
+
   _ExtraPetRuntime _ensureExtraPetRuntime(String petId, int seedIndex) {
     final existing = _extraPetRuntime[petId];
     if (existing != null) {
@@ -1975,25 +2000,71 @@ class _HomeViewState extends ConsumerState<HomeView>
     return Duration(milliseconds: max(_HomeViewState._minMoveMs, ms));
   }
 
-  void _wanderExtraPetsIfIdle() {
+  void _summonExtraPetsToFood(Offset foodTarget, Size fieldSize) {
     if (!mounted) return;
     final roomId = _roomId;
     if (roomId == null) return;
     final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
-    final extras = pets.where((p) => !p.isMain && p.petId != _petId);
+    final extras = pets.where((p) => !p.isMain && p.petId != _petId).toList();
+    if (extras.isEmpty) return;
+
+    // Stagger extras around the food in a tight ring so they cluster without
+    // exact overlap. Main pet eats the food at center; extras hover nearby.
+    const ringRadius = 0.10;
+    var changed = false;
+    for (var i = 0; i < extras.length; i++) {
+      final pet = extras[i];
+      final runtime = _ensureExtraPetRuntime(pet.petId, i);
+      if (runtime.isDragging) continue;
+      final angle = (2 * pi * (i + 1)) / (extras.length + 1);
+      var scattered = Offset(
+        foodTarget.dx + ringRadius * cos(angle),
+        foodTarget.dy + ringRadius * sin(angle),
+      );
+      scattered = _clampNormalized(scattered);
+      final duration = _extraPetTravelDuration(
+        runtime.normalizedPosition,
+        scattered,
+        fieldSize,
+      );
+      runtime
+        ..normalizedPosition = runtime.normalizedTarget
+        ..normalizedTarget = scattered
+        ..animDuration = duration
+        ..facingRight = scattered.dx < runtime.normalizedPosition.dx;
+      changed = true;
+    }
+    if (changed) {
+      setState(() {});
+    }
+  }
+
+  void _wanderExtraPetsIfIdle() {
+    if (!mounted) return;
+    if (_petEating || _photoFoodImageSource != null) return;
+    final roomId = _roomId;
+    if (roomId == null) return;
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    final extras = pets.where((p) => !p.isMain && p.petId != _petId).toList();
     final fieldSize = _petFieldSize();
     if (fieldSize == null || fieldSize.isEmpty) {
       return;
     }
     var changed = false;
-    var index = 0;
-    for (final pet in extras) {
-      final runtime = _ensureExtraPetRuntime(pet.petId, index);
-      index += 1;
+    for (var i = 0; i < extras.length; i++) {
+      final pet = extras[i];
+      final runtime = _ensureExtraPetRuntime(pet.petId, i);
       if (runtime.isDragging) continue;
       // Each extra pet has ~50% chance to wander on each tick.
       if (_random.nextDouble() < 0.5) continue;
-      final newTarget = _randomExtraPetTarget();
+      // Avoid spawning on top of other pets (main + other extras).
+      final occupied = <Offset>[_currentPetNormalized()];
+      for (var j = 0; j < extras.length; j++) {
+        if (j == i) continue;
+        final other = _extraPetRuntime[extras[j].petId];
+        if (other != null) occupied.add(other.normalizedTarget);
+      }
+      final newTarget = _pickWanderTargetAvoiding(occupied);
       final duration = _extraPetTravelDuration(
         runtime.normalizedPosition,
         newTarget,

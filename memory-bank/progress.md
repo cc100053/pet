@@ -27,8 +27,10 @@ Active progress stays current-state focused. Full snapshots live in
   prompts an atomic rename via `apply_multi_pet_room_naming` (new room name
   + first pet name auto-inherited from old room name). Home subscribes to
   `pets`/`rooms` realtime for the active room so all the above sync across
-  members without a manual room switch. Per-pet equipment target selection
-  and feed-all/light-collision are still pending.
+  members without a manual room switch. Feeding triggers all extras to
+  converge on the food in a tight ring around the main pet, and wander
+  targets keep a small breathing distance from other pets for lightweight
+  collision avoidance. Per-pet equipment target selection is still pending.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.

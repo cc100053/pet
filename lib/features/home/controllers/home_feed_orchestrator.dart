@@ -882,6 +882,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       hunger: hunger,
     );
 
+    // Extras converge on the food at the same time as the main pet.
+    _summonExtraPetsToFood(foodTarget, fieldSize);
+
     await _animatePetToAndWait(
       foodTarget,
       fieldSize,
