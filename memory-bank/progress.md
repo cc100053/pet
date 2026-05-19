@@ -14,11 +14,12 @@ Active progress stays current-state focused. Full snapshots live in
   multi-row `pets` per room, shared `room_pet_state`, and room-pet RPCs are in
   place. Pet tickets are live as a v2.0.0-gated 150-diamond consumable; new
   purchases use one atomic buy-and-add RPC, while owned tickets can still be
-  consumed through a recovery RPC. Home's active-pet fallback resolves through
-  `rooms.main_pet_id` so multi-pet rooms do not trigger object-query 406s. Home
-  also loads `get_room_pets` and renders non-main room pets as visual-only
-  companions; main-pet switching and per-pet equipment target selection are
-  still pending.
+  consumed through a recovery RPC (`use_pet_ticket`, now SECURITY DEFINER so
+  non-owner room members can correctly set `main_pet_id`). Home's active-pet
+  fallback resolves through `rooms.main_pet_id` so multi-pet rooms do not
+  trigger object-query 406s. Home also loads `get_room_pets` and renders
+  non-main room pets as visual-only companions; main-pet switching and per-pet
+  equipment target selection are still pending.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.
