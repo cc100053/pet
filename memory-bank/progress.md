@@ -14,8 +14,11 @@ Active progress stays current-state focused. Full snapshots live in
   multi-row `pets` per room, shared `room_pet_state`, and room-pet RPCs are in
   place. Pet tickets are live as a v2.0.0-gated 150-diamond consumable; new
   purchases use one atomic buy-and-add RPC, while owned tickets can still be
-  consumed through a recovery RPC. Full Home multi-pet rendering is still
-  pending.
+  consumed through a recovery RPC. Home's active-pet fallback resolves through
+  `rooms.main_pet_id` so multi-pet rooms do not trigger object-query 406s. Home
+  also loads `get_room_pets` and renders non-main room pets as visual-only
+  companions; main-pet switching and per-pet equipment target selection are
+  still pending.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.
@@ -24,7 +27,8 @@ Active progress stays current-state focused. Full snapshots live in
   multiple pets simultaneously.
 - Shop pet-ticket flow is Return Letter-style: rooms at 5 pets cannot buy/use;
   otherwise Buy opens pet selection and atomically deducts diamonds plus adds
-  the selected pet. Same pet types are allowed.
+  the selected pet. Same pet types are allowed. A follow-up migration fixed the
+  `pet_id` PL/pgSQL output-column ambiguity in the ticket RPCs.
 - V1.4.0 equipment live prices are crown 260, sunglasses 240, and ribbon 170
   coins, still hidden from pre-1.4.0 catalog readers.
 - Pet rendering prefers bundled PNG sequences while preserving GIF asset ids.

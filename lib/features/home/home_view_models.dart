@@ -36,6 +36,18 @@ class _RoomPetSummary {
   final int? petLevel;
 }
 
+class _RoomPet {
+  const _RoomPet({
+    required this.petId,
+    required this.petType,
+    required this.isMain,
+  });
+
+  final String petId;
+  final String petType;
+  final bool isMain;
+}
+
 class _PlacedFurniture {
   _PlacedFurniture({
     required this.id,

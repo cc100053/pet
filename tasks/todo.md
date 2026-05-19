@@ -17,6 +17,77 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Plan (2026-05-19 Home Multi-Pet Rendering)
+- [x] Read active memory-bank files and UI guidance.
+- [x] Confirm backend `get_room_pets` exists but Home rendering still only uses
+  one `_petId/_petType`.
+- [x] Load room pet lists in Home and refresh them after returning from Shop.
+- [x] Render non-main room pets in the room scene without changing the main-pet
+  interaction model.
+- [x] Add focused regression coverage and rerun `flutter analyze` /
+  `flutter test`.
+
+## Review (2026-05-19 Home Multi-Pet Rendering)
+- Root cause: Home still had a single `_petId` / `_petType` rendering path.
+  Even though the backend can now return multiple pets through `get_room_pets`,
+  the room scene only drew the representative main pet.
+- Added Home room-pet loading through `get_room_pets`, cached by room id, and
+  refreshed it during pet-state refreshes, room switches, and after returning
+  from Shop.
+- Rendered non-main room pets as visual-only companions in the Home room scene,
+  while keeping feed/status/equipment interactions tied to the current main pet.
+- Added focused source regression coverage for the Home multi-pet query and
+  rendering path.
+- Remaining scope: main-pet switcher UI and per-pet equipment target selection
+  are still pending.
+- Verification: `flutter analyze` passed; `flutter test` passed with
+  `test/feed_flow_integration_test.dart` skipped for missing Supabase env vars.
+
+## Plan (2026-05-19 Post-Pet-Purchase 406)
+- [x] Read active memory-bank files and locate multi-pet `.single()` /
+  `.maybeSingle()` assumptions.
+- [x] Identify Home `_loadPetId(roomId)` as the post-purchase 406 source.
+- [x] Resolve room pet id through `rooms.main_pet_id` with a deterministic
+  fallback instead of querying `pets` by `room_id` as one row.
+- [x] Add focused regression coverage and rerun `flutter analyze` /
+  `flutter test`.
+
+## Review (2026-05-19 Post-Pet-Purchase 406)
+- Root cause: Home still resolved the current pet with
+  `pets.eq('room_id', roomId).maybeSingle()`. After a successful pet-ticket
+  purchase, the room legitimately has 2+ pet rows, so PostgREST returned 406
+  for the object-shaped request.
+- Fixed `_loadPetId(roomId)` to read `rooms.main_pet_id` first and fall back to
+  the first room pet ordered by `created_at, id` only when the room has no main
+  pet id.
+- Added a focused Home multi-pet query regression test.
+- Verification: `flutter analyze` passed; `flutter test` passed with
+  `test/feed_flow_integration_test.dart` skipped for missing Supabase env vars.
+
+## Plan (2026-05-19 Pet Ticket Purchase Failure)
+- [x] Read active memory-bank files, lessons, and Supabase SQL guidance.
+- [x] Confirm the failing path is the v2.0.0 pet-ticket purchase RPC.
+- [x] Add a forward Supabase migration that removes the `pet_id` PL/pgSQL
+  ambiguity without changing RPC signatures.
+- [x] Apply the migration to the intended PetTomo Supabase project.
+- [x] Add focused regression coverage and run `flutter analyze` /
+  `flutter test`.
+
+## Review (2026-05-19 Pet Ticket Purchase Failure)
+- Root cause: `use_pet_ticket` and `purchase_and_use_pet_ticket` return a
+  column named `pet_id`, which becomes a PL/pgSQL output variable. Their
+  `insert into public.pet_state ... on conflict (pet_id)` clauses therefore
+  conflicted with `pet_state.pet_id` at runtime.
+- Added and applied live migration
+  `fix_pet_ticket_pet_id_conflict` (live version `20260519002602`), rewriting
+  both RPCs to use `on conflict on constraint pet_state_pkey do nothing` while
+  keeping the same parameters and return tables.
+- Verified live function definitions no longer contain
+  `on conflict (pet_id)` and both contain the fixed constraint conflict target.
+- Added a focused migration regression test.
+- Verification: `flutter analyze` passed; `flutter test` passed with
+  `test/feed_flow_integration_test.dart` skipped for missing Supabase env vars.
+
 ## Plan (2026-05-17 Multi-Pet System Review)
 - [x] Read active memory-bank files, task notes, local shared-item rollout
   guidance, and the multi-pet design draft.

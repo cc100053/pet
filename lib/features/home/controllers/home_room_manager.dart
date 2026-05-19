@@ -348,6 +348,7 @@ extension _HomeRoomManager on _HomeViewState {
     }
     unawaited(_refreshLatestFeed(roomId));
     unawaited(_loadFurnitureInventory());
+    unawaited(_loadRoomPets(roomId));
     unawaited(_loadRoomFurniture(roomId));
     _subscribeToFurniture(roomId);
     unawaited(_loadRoomBackgrounds(roomId));

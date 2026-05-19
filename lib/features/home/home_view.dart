@@ -173,6 +173,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, DepartedPetInfo> _departedPetsByRoom = {};
   final Map<String, Map<String, dynamic>> _petStateByRoom = {};
   final Map<String, String> _petIdByRoom = {};
+  final Map<String, List<_RoomPet>> _roomPetsByRoom = {};
   String? _petError;
   DateTime? _lastOverfedAt;
   DateTime? _overfedFeedEventArmedAt;
@@ -1780,12 +1781,69 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<String?> _loadPetId(String roomId) async {
+    final room = await Supabase.instance.client
+        .from('rooms')
+        .select('main_pet_id')
+        .eq('id', roomId)
+        .maybeSingle();
+    final mainPetId = room?['main_pet_id'] as String?;
+    if (mainPetId != null && mainPetId.isNotEmpty) {
+      return mainPetId;
+    }
+
     final response = await Supabase.instance.client
         .from('pets')
         .select('id')
         .eq('room_id', roomId)
-        .maybeSingle();
-    return response?['id'] as String?;
+        .order('created_at', ascending: true)
+        .order('id', ascending: true)
+        .limit(1);
+    if (response.isNotEmpty) {
+      return response.first['id'] as String?;
+    }
+    return null;
+  }
+
+  Future<void> _loadRoomPets(String roomId) async {
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'get_room_pets',
+        params: {'p_room_id': roomId},
+      );
+      if (response is! List) {
+        return;
+      }
+      final pets = <_RoomPet>[];
+      for (final row in response) {
+        if (row is! Map) {
+          continue;
+        }
+        final petId = row['pet_id'] as String?;
+        if (petId == null || petId.isEmpty) {
+          continue;
+        }
+        final rawType = PetCatalog.typeFromColorDna(row['color_dna']);
+        final resolvedType = PetCatalog.resolveIdForAppVersion(
+          rawType,
+          appVersion: _currentAppVersion,
+        );
+        pets.add(
+          _RoomPet(
+            petId: petId,
+            petType: resolvedType,
+            isMain: row['is_main'] == true,
+          ),
+        );
+      }
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      setState(() {
+        _roomPetsByRoom[roomId] = pets;
+      });
+    } catch (_) {
+      // Best-effort: the main pet path can still render the room.
+    }
   }
 
   Future<void> _refreshPetState({
@@ -1810,6 +1868,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
 
+      unawaited(_loadRoomPets(roomId));
       _subscribeToPetState(petId);
       _subscribeToPetEquipment(roomId);
       unawaited(_loadPetInfo(petId, roomId: roomId));
@@ -2729,6 +2788,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     await _refreshProPlanStatus();
     await _loadCoins();
     await _loadFurnitureInventory();
+    final roomId = _roomId;
+    if (roomId != null) {
+      await _loadRoomPets(roomId);
+    }
   }
 
   Future<bool> _returnDepartedPet(DepartedPetInfo pet) async {

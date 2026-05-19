@@ -40,6 +40,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                   ).dy,
                   child: _buildPoopEmoji(spot.index),
                 ),
+              ..._buildAdditionalRoomPets(fieldSize),
               AnimatedBuilder(
                 animation: _petMoveController,
                 builder: (context, child) {
@@ -375,6 +376,54 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
+  List<Widget> _buildAdditionalRoomPets(Size fieldSize) {
+    if (_effectivePetDeparted || !_effectivePetStateReady) {
+      return const [];
+    }
+    final roomId = _roomId;
+    if (roomId == null) {
+      return const [];
+    }
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    final extraPets = pets
+        .where((pet) => !pet.isMain && pet.petId != _petId)
+        .take(4)
+        .toList();
+    if (extraPets.isEmpty) {
+      return const [];
+    }
+
+    final positions = _additionalPetPositions(extraPets.length);
+    final visualScale = _petVisualScale(MediaQuery.sizeOf(context).width);
+    final size = Size(
+      _HomeViewState._petAvatarSize.width * 0.86,
+      _HomeViewState._petAvatarSize.height * 0.86,
+    );
+    return List.generate(extraPets.length, (i) {
+      final pos = _positionFromNormalizedSized(positions[i], fieldSize, size);
+      return Positioned(
+        left: pos.dx,
+        top: pos.dy,
+        child: IgnorePointer(
+          child: Transform.scale(
+            scale: visualScale,
+            child: _buildRoomPetAvatar(extraPets[i], size: size),
+          ),
+        ),
+      );
+    });
+  }
+
+  List<Offset> _additionalPetPositions(int count) {
+    const positions = [
+      Offset(0.32, 0.73),
+      Offset(0.70, 0.72),
+      Offset(0.50, 0.60),
+      Offset(0.22, 0.58),
+    ];
+    return positions.take(count).toList(growable: false);
+  }
+
   double _petVisualScale(double screenWidth) {
     final responsive = HomeResponsiveSpec.fromWidth(screenWidth);
     return responsive.pick(
@@ -689,6 +738,19 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
+  Widget _buildRoomPetAvatar(_RoomPet pet, {required Size size}) {
+    final petDefinition = PetCatalog.byId(pet.petType);
+    return RepaintBoundary(
+      child: _buildPetVisualForAsset(
+        petId: pet.petType,
+        asset: petDefinition.stayAsset,
+        size: size,
+        petFallbackColor: petDefinition.accent,
+        equippedSkusBySlot: const {},
+      ),
+    );
+  }
+
   Widget _buildStatusBarPetAvatar(PetDefinition petDefinition) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -714,8 +776,9 @@ extension _HomePetSceneBuilders on _HomeViewState {
     bool isWalking = false,
     bool isSleeping = false,
     bool showSocketDebug = false,
+    Map<String, String>? equippedSkusBySlot,
   }) {
-    final equippedSkus = _equippedSkusBySlot;
+    final equippedSkus = equippedSkusBySlot ?? _equippedSkusBySlot;
     Widget buildStack(String petAsset, double animationProgress) {
       return SizedBox(
         width: size.width,
