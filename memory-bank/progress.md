@@ -11,8 +11,13 @@ Active progress stays current-state focused. Full snapshots live in
   pets must ship with version-gated visibility, old-client fallback, and the
   existing compatibility prompt. Use `.codex/skills/shared-item-rollout/SKILL.md`.
 - Multi-pet v2.0.0 backend foundation is live: `rooms.main_pet_id`,
-  multi-row `pets` per room, shared `room_pet_state`, and room-pet RPCs are in
-  place. Pet tickets are live as a v2.0.0-gated 150-diamond consumable; new
+  `room_extra_pets` table, shared `room_pet_state`, and room-pet RPCs are in
+  place. `pets` table remains 1-row-per-room (unique constraint restored)
+  so legacy clients' `from('pets').eq('room_id', X).maybeSingle()` keeps
+  working; extras live in `room_extra_pets` and surface only through the
+  v2.0.0 `get_room_pets` RPC. Level/exp also moved to `room_pet_state` as
+  source of truth — triggers cascade changes to every pet row in the room,
+  and new pets inherit the room's current level on insert. Pet tickets are live as a v2.0.0-gated 150-diamond consumable; new
   purchases use one atomic buy-and-add RPC, while owned tickets can still be
   consumed through a recovery RPC (`use_pet_ticket`, `set_room_main_pet`, and
   `add_room_pet` are now SECURITY DEFINER so non-owner room members can

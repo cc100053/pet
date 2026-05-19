@@ -1835,29 +1835,41 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_loadRoomPets(roomId));
     }
 
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.insert,
-      schema: 'public',
-      table: 'pets',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'room_id',
-        value: roomId,
-      ),
-      callback: (_) => handleChange(),
-    );
-
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.update,
-      schema: 'public',
-      table: 'pets',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'room_id',
-        value: roomId,
-      ),
-      callback: (_) => handleChange(),
-    );
+    for (final table in const ['pets', 'room_extra_pets']) {
+      channel.onPostgresChanges(
+        event: PostgresChangeEvent.insert,
+        schema: 'public',
+        table: table,
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'room_id',
+          value: roomId,
+        ),
+        callback: (_) => handleChange(),
+      );
+      channel.onPostgresChanges(
+        event: PostgresChangeEvent.update,
+        schema: 'public',
+        table: table,
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'room_id',
+          value: roomId,
+        ),
+        callback: (_) => handleChange(),
+      );
+      channel.onPostgresChanges(
+        event: PostgresChangeEvent.delete,
+        schema: 'public',
+        table: table,
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'room_id',
+          value: roomId,
+        ),
+        callback: (_) => handleChange(),
+      );
+    }
 
     channel.onPostgresChanges(
       event: PostgresChangeEvent.update,

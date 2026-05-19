@@ -10,8 +10,8 @@ applied migration that rewrites the object.
 ## Core Tables
 - Identity/devices: `profiles`, `device_tokens`
 - Rooms/pets/chat: `rooms`, `room_invite_codes`, `room_members`, `pets`,
-  `pet_state`, `room_pet_state`, `pet_hunger_tick_schedule`, `messages`,
-  `message_reactions`
+  `room_extra_pets`, `pet_state`, `room_pet_state`,
+  `pet_hunger_tick_schedule`, `messages`, `message_reactions`
 - Economy/shared room: `items`, inventories, purchases, subscriptions,
   ledgers, `pet_equipment`, room furniture/background tables
 - Config/safety: `app_config`, `reports`, `blocks`,
@@ -22,11 +22,18 @@ applied migration that rewrites the object.
 - `rooms.invite_code` is legacy; normal sharing reuses
   `get_or_create_room_invite_code(...)`.
 - `pet_hunger_tick_schedule.next_check_at` is the server-side due cursor.
-- `rooms.main_pet_id` is the representative pet for room summaries; `pets` is
-  no longer unique by `room_id` for v2.0.0 multi-pet support.
-- `room_pet_state` is the v2.0.0 shared room hunger/mood state. Old `pet_state`
-  remains available and is mirrored from `room_pet_state` for main-pet
-  compatibility paths.
+- `rooms.main_pet_id` points at the canonical main pet, which always lives in
+  `pets` (unique by `room_id` so legacy clients' `.maybeSingle()` works).
+  Additional pets live in `room_extra_pets` and only surface via the v2.0.0
+  `get_room_pets` RPC. `set_room_main_pet` swaps rows between the two tables
+  to promote/demote.
+- `room_pet_state` is the v2.0.0 shared room hunger/mood/level/exp state.
+  `pet_state` is mirrored from `room_pet_state` for main-pet compatibility
+  paths; pets' `level` and `exp` columns mirror `room_pet_state` via
+  triggers so all pets in a room — and legacy clients reading `pets.level`
+  — see the same room level. `pet_equipment.pet_id` no longer has an FK so
+  it can reference either `pets.id` or `room_extra_pets.id`; cleanup is
+  done via delete triggers on both source tables.
 - `messages.sender_id` can be null for room-wide system events; reply/edit/delete
   state lives on additive row fields.
 - `items.metadata` is the compatibility contract for decor/equipment:

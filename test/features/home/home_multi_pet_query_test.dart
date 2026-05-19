@@ -112,7 +112,7 @@ void main() {
 
     expect(homeSource, contains('_subscribeToRoomPets'));
     expect(homeSource, contains("channel('room_pets_"));
-    expect(homeSource, contains("table: 'pets'"));
+    expect(homeSource, contains("['pets', 'room_extra_pets']"));
     expect(homeSource, contains("table: 'rooms'"));
     // Room manager must not double-call _loadRoomPets; _refreshPetState
     // already triggers it.
