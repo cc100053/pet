@@ -19,11 +19,16 @@ Active progress stays current-state focused. Full snapshots live in
   correctly mutate `main_pet_id`; `rooms_update` RLS only allows the owner).
   Home's active-pet fallback resolves through `rooms.main_pet_id` so multi-pet
   rooms do not trigger object-query 406s. Home loads `get_room_pets` and
-  renders non-main room pets as visual-only companions, and subscribes to
-  `pets`/`rooms` realtime for the active room so additions, removals, and
-  main-pet switches sync across members without a manual room switch.
-  Main-pet switching UI and per-pet equipment target selection are still
-  pending.
+  renders non-main room pets as independently wandering, tappable, and
+  draggable companions (own AnimatedPositioned per pet, shared wander timer,
+  per-pet drag state). Tap on any pet briefly shows its name tag (2.5s).
+  Top-left status-bar avatar tap opens a main-pet switcher sheet when the
+  room has 2+ pets and calls `set_room_main_pet`. First 1->2 pet transition
+  prompts an atomic rename via `apply_multi_pet_room_naming` (new room name
+  + first pet name auto-inherited from old room name). Home subscribes to
+  `pets`/`rooms` realtime for the active room so all the above sync across
+  members without a manual room switch. Per-pet equipment target selection
+  and feed-all/light-collision are still pending.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.

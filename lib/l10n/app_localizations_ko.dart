@@ -1632,6 +1632,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get petTicketRoomFull => '이 방은 이미 펫 수가 최대입니다.';
 
   @override
+  String get multiPetNamingTitle => '새 가족을 환영해요!';
+
+  @override
+  String get multiPetNamingSubtitle => '방에 새 이름을 정하고, 첫 번째 펫의 이름도 확인하세요.';
+
+  @override
+  String get multiPetNamingRoomLabel => '방 이름';
+
+  @override
+  String get multiPetNamingFirstPetLabel => '첫 번째 펫 이름';
+
+  @override
+  String get multiPetNamingFirstPetHint => '기존 방 이름을 그대로 사용합니다';
+
+  @override
+  String get mainPetSwitcherTitle => '메인 펫 선택';
+
+  @override
   String get petSelectionStarterBadge => '기본';
 
   @override

@@ -860,6 +860,12 @@
     }
   },
   "petTicketRoomFull": "This room already has the maximum number of pets.",
+  "multiPetNamingTitle": "Welcome the new family!",
+  "multiPetNamingSubtitle": "Give your home a fresh name, and confirm what to call your first pet.",
+  "multiPetNamingRoomLabel": "Room name",
+  "multiPetNamingFirstPetLabel": "First pet name",
+  "multiPetNamingFirstPetHint": "Inherits your old room name by default",
+  "mainPetSwitcherTitle": "Choose your main pet",
   "petSelectionStarterBadge": "Starter",
   "petSelectionFailed": "Pet selection failed: {error}",
   "@petSelectionFailed": {

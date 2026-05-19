@@ -37,6 +37,46 @@ void main() {
     expect(sceneSource, contains('_buildRoomPetAvatar'));
   });
 
+  test('Extra room pets are interactive (drag + tap name tag + wander)', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final sceneSource = File(
+      'lib/features/home/home_view_pet_scene_builders.dart',
+    ).readAsStringSync();
+
+    expect(homeSource, contains('_ExtraPetRuntime'));
+    expect(homeSource, contains('_handleExtraPetDragStart'));
+    expect(homeSource, contains('_handleExtraPetDragUpdate'));
+    expect(homeSource, contains('_handleExtraPetDragEnd'));
+    expect(homeSource, contains('_showPetNameTag'));
+    expect(homeSource, contains('_wanderExtraPetsIfIdle'));
+    expect(sceneSource, contains('AnimatedPositioned'));
+    expect(sceneSource, contains('onPanStart: (details) =>'));
+    expect(sceneSource, contains('_buildPetNameTag'));
+  });
+
+  test('Top-left avatar opens main-pet switcher when room has 2+ pets', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final sceneSource = File(
+      'lib/features/home/home_view_pet_scene_builders.dart',
+    ).readAsStringSync();
+    expect(homeSource, contains('_showMainPetSwitcher'));
+    expect(homeSource, contains("'set_room_main_pet'"));
+    expect(sceneSource, contains('canSwitch ? () => _showMainPetSwitcher()'));
+  });
+
+  test('First 1->2 pet transition prompts room rename + first-pet name', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    expect(homeSource, contains('_maybeShowMultiPetNamingPrompt'));
+    expect(homeSource, contains("'apply_multi_pet_room_naming'"));
+    expect(homeSource, contains('multiPetNamingTitle'));
+  });
+
   test('Home subscribes to pets/rooms realtime for the active room', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',

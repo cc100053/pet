@@ -1622,6 +1622,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petTicketRoomFull => 'このルームはペット数の上限に達しています。';
 
   @override
+  String get multiPetNamingTitle => '新しい家族を歓迎しよう！';
+
+  @override
+  String get multiPetNamingSubtitle => 'ルームに新しい名前を付けて、最初のペットの呼び方も決めましょう。';
+
+  @override
+  String get multiPetNamingRoomLabel => 'ルーム名';
+
+  @override
+  String get multiPetNamingFirstPetLabel => '最初のペットの名前';
+
+  @override
+  String get multiPetNamingFirstPetHint => '以前のルーム名を引き継ぎます';
+
+  @override
+  String get mainPetSwitcherTitle => 'メインのペットを選ぶ';
+
+  @override
   String get petSelectionStarterBadge => 'スターター';
 
   @override

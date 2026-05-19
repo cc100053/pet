@@ -1673,6 +1673,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'This room already has the maximum number of pets.';
 
   @override
+  String get multiPetNamingTitle => 'Welcome the new family!';
+
+  @override
+  String get multiPetNamingSubtitle =>
+      'Give your home a fresh name, and confirm what to call your first pet.';
+
+  @override
+  String get multiPetNamingRoomLabel => 'Room name';
+
+  @override
+  String get multiPetNamingFirstPetLabel => 'First pet name';
+
+  @override
+  String get multiPetNamingFirstPetHint =>
+      'Inherits your old room name by default';
+
+  @override
+  String get mainPetSwitcherTitle => 'Choose your main pet';
+
+  @override
   String get petSelectionStarterBadge => 'Starter';
 
   @override

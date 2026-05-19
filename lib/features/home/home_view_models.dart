@@ -41,11 +41,28 @@ class _RoomPet {
     required this.petId,
     required this.petType,
     required this.isMain,
+    this.name,
   });
 
   final String petId;
   final String petType;
   final bool isMain;
+  final String? name;
+}
+
+class _ExtraPetRuntime {
+  _ExtraPetRuntime({
+    required this.normalizedPosition,
+    required this.normalizedTarget,
+    required this.animDuration,
+  });
+
+  Offset normalizedPosition;
+  Offset normalizedTarget;
+  Duration animDuration;
+  bool isDragging = false;
+  Offset dragOffset = Offset.zero;
+  bool facingRight = true;
 }
 
 class _PlacedFurniture {

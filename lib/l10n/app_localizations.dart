@@ -2997,6 +2997,42 @@ abstract class AppLocalizations {
   /// **'This room already has the maximum number of pets.'**
   String get petTicketRoomFull;
 
+  /// No description provided for @multiPetNamingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome the new family!'**
+  String get multiPetNamingTitle;
+
+  /// No description provided for @multiPetNamingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your home a fresh name, and confirm what to call your first pet.'**
+  String get multiPetNamingSubtitle;
+
+  /// No description provided for @multiPetNamingRoomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Room name'**
+  String get multiPetNamingRoomLabel;
+
+  /// No description provided for @multiPetNamingFirstPetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First pet name'**
+  String get multiPetNamingFirstPetLabel;
+
+  /// No description provided for @multiPetNamingFirstPetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Inherits your old room name by default'**
+  String get multiPetNamingFirstPetHint;
+
+  /// No description provided for @mainPetSwitcherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your main pet'**
+  String get mainPetSwitcherTitle;
+
   /// No description provided for @petSelectionStarterBadge.
   ///
   /// In en, this message translates to:

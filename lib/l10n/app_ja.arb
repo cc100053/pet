@@ -860,6 +860,12 @@
     }
   },
   "petTicketRoomFull": "このルームはペット数の上限に達しています。",
+  "multiPetNamingTitle": "新しい家族を歓迎しよう！",
+  "multiPetNamingSubtitle": "ルームに新しい名前を付けて、最初のペットの呼び方も決めましょう。",
+  "multiPetNamingRoomLabel": "ルーム名",
+  "multiPetNamingFirstPetLabel": "最初のペットの名前",
+  "multiPetNamingFirstPetHint": "以前のルーム名を引き継ぎます",
+  "mainPetSwitcherTitle": "メインのペットを選ぶ",
   "petSelectionStarterBadge": "スターター",
   "petSelectionFailed": "ペットの選択に失敗しました：{error}",
   "@petSelectionFailed": {

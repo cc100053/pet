@@ -174,6 +174,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, Map<String, dynamic>> _petStateByRoom = {};
   final Map<String, String> _petIdByRoom = {};
   final Map<String, List<_RoomPet>> _roomPetsByRoom = {};
+  final Map<String, _ExtraPetRuntime> _extraPetRuntime = {};
+  String? _visibleNameTagPetId;
+  Timer? _nameTagFadeTimer;
+  bool _multiPetNamingShown = false;
   String? _petError;
   DateTime? _lastOverfedAt;
   DateTime? _overfedFeedEventArmedAt;
@@ -483,6 +487,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _messageChannels.clear();
     _wanderTimer?.cancel();
     _petTickTimer?.cancel();
+    _nameTagFadeTimer?.cancel();
     _roomSelectionRefreshTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
@@ -1892,22 +1897,387 @@ class _HomeViewState extends ConsumerState<HomeView>
           rawType,
           appVersion: _currentAppVersion,
         );
+        final rawName = row['name'];
         pets.add(
           _RoomPet(
             petId: petId,
             petType: resolvedType,
             isMain: row['is_main'] == true,
+            name: rawName is String && rawName.trim().isNotEmpty
+                ? rawName.trim()
+                : null,
           ),
         );
       }
       if (!mounted || _roomId != roomId) {
         return;
       }
+      final livePetIds = pets.map((p) => p.petId).toSet();
       setState(() {
         _roomPetsByRoom[roomId] = pets;
+        _extraPetRuntime.removeWhere((id, _) => !livePetIds.contains(id));
       });
+      _maybeShowMultiPetNamingPrompt(pets);
     } catch (_) {
       // Best-effort: the main pet path can still render the room.
+    }
+  }
+
+  void _showPetNameTag(String petId) {
+    _nameTagFadeTimer?.cancel();
+    setState(() {
+      _visibleNameTagPetId = petId;
+    });
+    _nameTagFadeTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (!mounted || _visibleNameTagPetId != petId) {
+        return;
+      }
+      setState(() {
+        _visibleNameTagPetId = null;
+      });
+    });
+  }
+
+  Offset _randomExtraPetTarget() {
+    return Offset(
+      0.05 + _random.nextDouble() * 0.90,
+      0.20 + _random.nextDouble() * 0.70,
+    );
+  }
+
+  _ExtraPetRuntime _ensureExtraPetRuntime(String petId, int seedIndex) {
+    final existing = _extraPetRuntime[petId];
+    if (existing != null) {
+      return existing;
+    }
+    // Spawn at a default scattered position so first paint is not (0,0).
+    const defaults = [
+      Offset(0.32, 0.73),
+      Offset(0.70, 0.72),
+      Offset(0.50, 0.60),
+      Offset(0.22, 0.58),
+    ];
+    final seed = defaults[seedIndex % defaults.length];
+    final runtime = _ExtraPetRuntime(
+      normalizedPosition: seed,
+      normalizedTarget: seed,
+      animDuration: Duration.zero,
+    );
+    _extraPetRuntime[petId] = runtime;
+    return runtime;
+  }
+
+  Duration _extraPetTravelDuration(Offset from, Offset to, Size fieldSize) {
+    final fromPx = _positionFromNormalized(from, fieldSize);
+    final toPx = _positionFromNormalized(to, fieldSize);
+    final distance = (toPx - fromPx).distance;
+    final ms = (distance / _HomeViewState._petMoveSpeed * 1000).round();
+    return Duration(milliseconds: max(_HomeViewState._minMoveMs, ms));
+  }
+
+  void _wanderExtraPetsIfIdle() {
+    if (!mounted) return;
+    final roomId = _roomId;
+    if (roomId == null) return;
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    final extras = pets.where((p) => !p.isMain && p.petId != _petId);
+    final fieldSize = _petFieldSize();
+    if (fieldSize == null || fieldSize.isEmpty) {
+      return;
+    }
+    var changed = false;
+    var index = 0;
+    for (final pet in extras) {
+      final runtime = _ensureExtraPetRuntime(pet.petId, index);
+      index += 1;
+      if (runtime.isDragging) continue;
+      // Each extra pet has ~50% chance to wander on each tick.
+      if (_random.nextDouble() < 0.5) continue;
+      final newTarget = _randomExtraPetTarget();
+      final duration = _extraPetTravelDuration(
+        runtime.normalizedPosition,
+        newTarget,
+        fieldSize,
+      );
+      runtime
+        ..normalizedPosition = runtime.normalizedTarget
+        ..normalizedTarget = newTarget
+        ..animDuration = duration
+        ..facingRight = newTarget.dx < runtime.normalizedPosition.dx;
+      changed = true;
+    }
+    if (changed) {
+      setState(() {});
+    }
+  }
+
+  void _handleExtraPetDragStart(
+    String petId,
+    DragStartDetails details,
+    Size fieldSize,
+  ) {
+    final runtime = _extraPetRuntime[petId];
+    if (runtime == null) return;
+    final local = _globalToPetField(details.globalPosition);
+    if (local == null) return;
+    _markUserInteraction();
+    final currentTopLeft = _positionFromNormalized(
+      runtime.normalizedPosition,
+      fieldSize,
+    );
+    setState(() {
+      runtime
+        ..isDragging = true
+        ..dragOffset = local - currentTopLeft
+        ..normalizedTarget = runtime.normalizedPosition
+        ..animDuration = Duration.zero;
+    });
+  }
+
+  void _handleExtraPetDragUpdate(
+    String petId,
+    DragUpdateDetails details,
+    Size fieldSize,
+  ) {
+    final runtime = _extraPetRuntime[petId];
+    if (runtime == null || !runtime.isDragging) return;
+    final local = _globalToPetField(details.globalPosition);
+    if (local == null) return;
+    _markUserInteraction();
+    final desiredTopLeft = local - runtime.dragOffset;
+    final clamped = _clampTopLeft(desiredTopLeft, fieldSize);
+    final normalized = _normalizedFromTopLeft(clamped, fieldSize);
+    setState(() {
+      runtime
+        ..normalizedPosition = normalized
+        ..normalizedTarget = normalized
+        ..animDuration = Duration.zero
+        ..facingRight = normalized.dx < runtime.normalizedPosition.dx;
+    });
+  }
+
+  void _handleExtraPetDragEnd(String petId) {
+    final runtime = _extraPetRuntime[petId];
+    if (runtime == null || !runtime.isDragging) return;
+    setState(() {
+      runtime.isDragging = false;
+    });
+  }
+
+  Future<void> _maybeShowMultiPetNamingPrompt(List<_RoomPet> pets) async {
+    if (_multiPetNamingShown) return;
+    if (pets.length < 2) return;
+    // Show only if no other pet besides the first one has a name yet — i.e.,
+    // first time we see two pets where the secondary pet was just added.
+    final extras = pets.where((p) => !p.isMain).toList();
+    final hasNamedExtra = extras.any((p) => (p.name ?? '').isNotEmpty);
+    if (!hasNamedExtra) return;
+    final firstPet = pets.firstWhere(
+      (p) => p.isMain,
+      orElse: () => pets.first,
+    );
+    if ((firstPet.name ?? '').isNotEmpty) {
+      _multiPetNamingShown = true;
+      return;
+    }
+    _multiPetNamingShown = true;
+    if (!mounted) return;
+    final roomId = _roomId;
+    if (roomId == null) return;
+    final currentRoomName = (() {
+      for (final room in _myRooms) {
+        if (room['id'] == roomId) {
+          return (room['name'] as String?) ?? '';
+        }
+      }
+      return '';
+    })();
+    await _showMultiPetNamingDialog(
+      roomId: roomId,
+      defaultRoomName: currentRoomName,
+      inheritedFirstPetName: currentRoomName,
+    );
+  }
+
+  Future<void> _showMultiPetNamingDialog({
+    required String roomId,
+    required String defaultRoomName,
+    required String inheritedFirstPetName,
+  }) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final roomController = TextEditingController(text: defaultRoomName);
+    final petController = TextEditingController(text: inheritedFirstPetName);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.multiPetNamingTitle),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.multiPetNamingSubtitle,
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: roomController,
+                  maxLength: 30,
+                  decoration: InputDecoration(
+                    labelText: l10n.multiPetNamingRoomLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: petController,
+                  maxLength: 20,
+                  decoration: InputDecoration(
+                    labelText: l10n.multiPetNamingFirstPetLabel,
+                    hintText: l10n.multiPetNamingFirstPetHint,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.commonSkip),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.commonSave),
+            ),
+          ],
+        );
+      },
+    );
+    final roomName = roomController.text.trim();
+    final petName = petController.text.trim();
+    roomController.dispose();
+    petController.dispose();
+    if (confirmed != true || !mounted) return;
+    if (roomName.isEmpty && petName.isEmpty) return;
+    try {
+      await Supabase.instance.client.rpc(
+        'apply_multi_pet_room_naming',
+        params: {
+          'p_room_id': roomId,
+          'p_room_name': roomName.isEmpty ? null : roomName,
+          'p_first_pet_name': petName.isEmpty ? null : petName,
+        },
+      );
+      if (!mounted) return;
+      if (roomName.isNotEmpty) {
+        setState(() {
+          _myRooms = _myRooms
+              .map(
+                (room) =>
+                    room['id'] == roomId ? {...room, 'name': roomName} : room,
+              )
+              .toList();
+        });
+      }
+      unawaited(_loadRoomPets(roomId));
+    } catch (error) {
+      if (!mounted) return;
+      showJuiceToast(
+        context: context,
+        message: l10n.commonTryAgain,
+        tone: AppDialogTone.danger,
+      );
+    }
+  }
+
+  Future<void> _showMainPetSwitcher() async {
+    final roomId = _roomId;
+    if (roomId == null) return;
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    if (pets.length < 2) return;
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final selectedId = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    l10n.mainPetSwitcherTitle,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 1),
+                for (final pet in pets)
+                  ListTile(
+                    leading: SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: _buildPetVisualForAsset(
+                        petId: pet.petType,
+                        asset: PetCatalog.byId(pet.petType).stayAsset,
+                        size: const Size(42, 42),
+                        petFallbackColor: PetCatalog.byId(pet.petType).accent,
+                        equippedSkusBySlot: const {},
+                      ),
+                    ),
+                    title: Text(
+                      pet.name ?? PetCatalog.byId(pet.petType).name(l10n),
+                    ),
+                    trailing: pet.isMain
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : null,
+                    onTap: () => Navigator.of(context).pop(pet.petId),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (selectedId == null || !mounted) return;
+    final selectedPet = pets.firstWhere(
+      (p) => p.petId == selectedId,
+      orElse: () => pets.first,
+    );
+    if (selectedPet.isMain) return;
+    try {
+      await Supabase.instance.client.rpc(
+        'set_room_main_pet',
+        params: {'p_room_id': roomId, 'p_pet_id': selectedId},
+      );
+      if (!mounted) return;
+      // Triggers cascade: realtime will fire, _loadRoomPets/_refreshPetState
+      // will re-run. Force immediate refresh too for snappy UX.
+      unawaited(_loadRoomPets(roomId));
+      await _refreshPetState();
+    } catch (error) {
+      if (!mounted) return;
+      showJuiceToast(
+        context: context,
+        message: AppLocalizations.of(context)!.commonTryAgain,
+        tone: AppDialogTone.danger,
+      );
     }
   }
 

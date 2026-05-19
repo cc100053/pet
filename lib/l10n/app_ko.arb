@@ -854,6 +854,12 @@
     }
   },
   "petTicketRoomFull": "이 방은 이미 펫 수가 최대입니다.",
+  "multiPetNamingTitle": "새 가족을 환영해요!",
+  "multiPetNamingSubtitle": "방에 새 이름을 정하고, 첫 번째 펫의 이름도 확인하세요.",
+  "multiPetNamingRoomLabel": "방 이름",
+  "multiPetNamingFirstPetLabel": "첫 번째 펫 이름",
+  "multiPetNamingFirstPetHint": "기존 방 이름을 그대로 사용합니다",
+  "mainPetSwitcherTitle": "메인 펫 선택",
   "petSelectionStarterBadge": "기본",
   "petSelectionFailed": "펫 선택 실패: {error}",
   "@petSelectionFailed": {

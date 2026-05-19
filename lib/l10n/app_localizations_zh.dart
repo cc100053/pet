@@ -1614,6 +1614,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petTicketRoomFull => '这个房间的宠物数量已达上限。';
 
   @override
+  String get multiPetNamingTitle => '欢迎新家人！';
+
+  @override
+  String get multiPetNamingSubtitle => '为房间取个新名字，并确认第一只宠物的名字。';
+
+  @override
+  String get multiPetNamingRoomLabel => '房间名称';
+
+  @override
+  String get multiPetNamingFirstPetLabel => '第一只宠物名称';
+
+  @override
+  String get multiPetNamingFirstPetHint => '默认沿用旧的房间名';
+
+  @override
+  String get mainPetSwitcherTitle => '选择主宠物';
+
+  @override
   String get petSelectionStarterBadge => '入門';
 
   @override
@@ -3440,6 +3458,24 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get petTicketRoomFull => '這個房間的寵物數量已達上限。';
+
+  @override
+  String get multiPetNamingTitle => '歡迎新家人！';
+
+  @override
+  String get multiPetNamingSubtitle => '為房間取個新名字，並確認第一隻寵物的名字。';
+
+  @override
+  String get multiPetNamingRoomLabel => '房間名稱';
+
+  @override
+  String get multiPetNamingFirstPetLabel => '第一隻寵物名稱';
+
+  @override
+  String get multiPetNamingFirstPetHint => '預設沿用舊的房間名';
+
+  @override
+  String get mainPetSwitcherTitle => '選擇主寵物';
 
   @override
   String get petSelectionStarterBadge => '入門';

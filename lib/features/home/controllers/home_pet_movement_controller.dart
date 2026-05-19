@@ -3,10 +3,10 @@ part of '../home_view.dart';
 extension _HomePetMovementController on _HomeViewState {
   void _startWanderTimer() {
     _wanderTimer?.cancel();
-    _wanderTimer = Timer.periodic(
-      _HomeViewState._wanderCheckInterval,
-      (_) => _maybeTriggerWander(),
-    );
+    _wanderTimer = Timer.periodic(_HomeViewState._wanderCheckInterval, (_) {
+      _maybeTriggerWander();
+      _wanderExtraPetsIfIdle();
+    });
   }
 
   void _maybeTriggerWander() {

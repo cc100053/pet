@@ -355,6 +355,10 @@ extension _HomePetSceneBuilders on _HomeViewState {
                   ? null
                   : () {
                       _markUserInteraction();
+                      final id = _petId;
+                      if (id != null) {
+                        _showPetNameTag(id);
+                      }
                       _applyPetAction('touch');
                     },
               child: Transform(
@@ -370,7 +374,61 @@ extension _HomePetSceneBuilders on _HomeViewState {
                 ),
               ),
             ),
+            if (_petId != null && _visibleNameTagPetId == _petId)
+              _buildMainPetNameTag(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainPetNameTag() {
+    final l10n = AppLocalizations.of(context)!;
+    final roomId = _roomId;
+    String label = '';
+    if (roomId != null) {
+      final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+      final main = pets.firstWhere(
+        (p) => p.petId == _petId,
+        orElse: () => const _RoomPet(petId: '', petType: '', isMain: false),
+      );
+      label = main.name ?? '';
+      if (label.isEmpty && main.petType.isNotEmpty) {
+        label = PetCatalog.byId(main.petType).name(l10n);
+      }
+    }
+    if (label.isEmpty) return const SizedBox.shrink();
+    return Positioned(
+      left: -8,
+      top: -22,
+      right: -8,
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.black87, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ),
       ),
     );
@@ -393,35 +451,101 @@ extension _HomePetSceneBuilders on _HomeViewState {
       return const [];
     }
 
-    final positions = _additionalPetPositions(extraPets.length);
     final visualScale = _petVisualScale(MediaQuery.sizeOf(context).width);
     final size = Size(
       _HomeViewState._petAvatarSize.width * 0.86,
       _HomeViewState._petAvatarSize.height * 0.86,
     );
     return List.generate(extraPets.length, (i) {
-      final pos = _positionFromNormalizedSized(positions[i], fieldSize, size);
-      return Positioned(
+      final pet = extraPets[i];
+      final runtime = _ensureExtraPetRuntime(pet.petId, i);
+      final pos = _positionFromNormalizedSized(
+        runtime.normalizedPosition,
+        fieldSize,
+        size,
+      );
+      final isFurnitureBlocking = _furnitureMode;
+      return AnimatedPositioned(
+        key: ValueKey('extra_pet_${pet.petId}'),
+        duration: runtime.animDuration,
+        curve: Curves.easeOutCubic,
         left: pos.dx,
         top: pos.dy,
         child: IgnorePointer(
-          child: Transform.scale(
-            scale: visualScale,
-            child: _buildRoomPetAvatar(extraPets[i], size: size),
+          ignoring: isFurnitureBlocking,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _showPetNameTag(pet.petId),
+            onPanStart: (details) =>
+                _handleExtraPetDragStart(pet.petId, details, fieldSize),
+            onPanUpdate: (details) =>
+                _handleExtraPetDragUpdate(pet.petId, details, fieldSize),
+            onPanEnd: (_) => _handleExtraPetDragEnd(pet.petId),
+            onPanCancel: () => _handleExtraPetDragEnd(pet.petId),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Transform.scale(
+                  scale: visualScale,
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.diagonal3Values(
+                      runtime.facingRight ? 1.0 : -1.0,
+                      1.0,
+                      1.0,
+                    ),
+                    child: _buildRoomPetAvatar(pet, size: size),
+                  ),
+                ),
+                if (_visibleNameTagPetId == pet.petId)
+                  _buildPetNameTag(pet, size: size),
+              ],
+            ),
           ),
         ),
       );
     });
   }
 
-  List<Offset> _additionalPetPositions(int count) {
-    const positions = [
-      Offset(0.32, 0.73),
-      Offset(0.70, 0.72),
-      Offset(0.50, 0.60),
-      Offset(0.22, 0.58),
-    ];
-    return positions.take(count).toList(growable: false);
+  Widget _buildPetNameTag(_RoomPet pet, {required Size size}) {
+    final l10n = AppLocalizations.of(context)!;
+    final label = (pet.name?.trim().isNotEmpty ?? false)
+        ? pet.name!.trim()
+        : PetCatalog.byId(pet.petType).name(l10n);
+    return Positioned(
+      left: -8,
+      top: -22,
+      right: -8,
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.black87, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   double _petVisualScale(double screenWidth) {
@@ -756,12 +880,21 @@ extension _HomePetSceneBuilders on _HomeViewState {
       builder: (context, constraints) {
         final side = constraints.biggest.shortestSide;
         final resolvedSide = side.isFinite && side > 0 ? side : 54.0;
+        final roomId = _roomId;
+        final petCount = roomId == null
+            ? 0
+            : (_roomPetsByRoom[roomId] ?? const <_RoomPet>[]).length;
+        final canSwitch = petCount >= 2;
         return Center(
-          child: _buildPetVisualForAsset(
-            petId: _petType,
-            asset: petDefinition.stayAsset,
-            size: Size.square(resolvedSide),
-            petFallbackColor: petDefinition.accent,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: canSwitch ? () => _showMainPetSwitcher() : null,
+            child: _buildPetVisualForAsset(
+              petId: _petType,
+              asset: petDefinition.stayAsset,
+              size: Size.square(resolvedSide),
+              petFallbackColor: petDefinition.accent,
+            ),
           ),
         );
       },
