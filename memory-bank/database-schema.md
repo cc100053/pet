@@ -27,13 +27,28 @@ applied migration that rewrites the object.
   Additional pets live in `room_extra_pets` and only surface via the v2.0.0
   `get_room_pets` RPC. `set_room_main_pet` swaps rows between the two tables
   to promote/demote.
+- `room_extra_pets` mirrors the `pets` shape (no `room_id` uniqueness),
+  RLS-scoped to room members, and is in the `supabase_realtime` publication.
+  It holds every non-main pet. Home subscribes to both `pets` and
+  `room_extra_pets` for the active room.
 - `room_pet_state` is the v2.0.0 shared room hunger/mood/level/exp state.
   `pet_state` is mirrored from `room_pet_state` for main-pet compatibility
-  paths; pets' `level` and `exp` columns mirror `room_pet_state` via
-  triggers so all pets in a room — and legacy clients reading `pets.level`
-  — see the same room level. `pet_equipment.pet_id` no longer has an FK so
-  it can reference either `pets.id` or `room_extra_pets.id`; cleanup is
-  done via delete triggers on both source tables.
+  paths. `tick_pet_state` (passive decay) writes its result into BOTH the
+  main pet's `pet_state` and `room_pet_state`, so the shared state never goes
+  stale (a stale value previously made a freshly-switched main pet appear to
+  starve). pets'/`room_extra_pets`' `level`/`exp` mirror `room_pet_state` via
+  triggers (bounded by `pg_trigger_depth`); new pets inherit the room's
+  current level on insert, so all pets — and legacy clients reading
+  `pets.level` — see the same room level.
+- Naming model B: `rooms.name` mirrors the main pet's name.
+  `sync_main_pet_name_to_room` updates `rooms.name` when the main pet is
+  renamed, and `set_room_main_pet` copies the promoted pet's name into
+  `rooms.name`. Each pet keeps its own `name`. `rooms.name` stays populated
+  for legacy clients. (`apply_multi_pet_room_naming` exists but is unused by
+  the client under model B.)
+- `pet_equipment.pet_id` no longer has an FK so it can reference either
+  `pets.id` or `room_extra_pets.id`; cleanup is done via AFTER DELETE
+  triggers on both source tables.
 - `messages.sender_id` can be null for room-wide system events; reply/edit/delete
   state lives on additive row fields.
 - `items.metadata` is the compatibility contract for decor/equipment:
@@ -66,10 +81,13 @@ applied migration that rewrites the object.
 ## RPC Watchlist
 - Room lifecycle: `create_room`, `join_room_by_code`, invite-code RPCs,
   `leave_room`, `regenerate_invite_code`
-- Pet/gameplay: `apply_pet_action`, `claim_action_reward`, tick/schedule RPCs,
-  `claim_feed_double_reward`, v2 `get_room_pets`, `add_room_pet`,
-  `set_room_main_pet`, `apply_room_pet_action`, `use_pet_ticket`,
-  `purchase_and_use_pet_ticket`
+- Pet/gameplay: `apply_pet_action`, `claim_action_reward`, tick/schedule RPCs
+  (`tick_pet_state` mirrors decay into `room_pet_state`),
+  `claim_feed_double_reward`, v2 `get_room_pets` (UNIONs `pets` +
+  `room_extra_pets`), `add_room_pet`, `set_room_main_pet` (swaps rows across
+  the two tables + syncs room name), `apply_room_pet_action`, `use_pet_ticket`,
+  `purchase_and_use_pet_ticket`, `equip_pet_item` (validates pet in either
+  table)
 - Shop/equipment/furniture: `get_visible_shop_items`, purchase/grant RPCs,
   equip/unequip/get inventory RPCs, furniture transform helpers
 - Chat/unread: `edit_message`, `delete_message`, unread-count RPCs
