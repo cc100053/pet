@@ -39,11 +39,17 @@ Active progress stays current-state focused. Full snapshots live in
   freely while wandering (no repulsion/collision system). Extras run the same
   walk/sleep/stay animation state
   machine and full avatar size as the main pet (extra avatars render at
-  `normalizedTarget` so facing always matches travel direction). Equip
-  action prompts a per-pet target picker when the room has 2+ pets
-  (annotated with each pet's currently equipped SKU in that slot); unequip
-  still targets the main pet by design — switch main pet first to unequip
-  from another.
+  `normalizedTarget` so facing always matches travel direction). The equipment
+  panel shows a persistent pet selector row (when the room has 2+ pets) so the
+  user picks the dress-up target up front; the preview, equipped state, and
+  equip/unequip all act on `_selectedEquipPetId` (defaults to the main pet).
+  The selected pet's gear loads into `_panelEquippedItemsBySlot` for non-main
+  targets so the on-screen main pet avatar is untouched. Every room pet now
+  renders its own gear: `_loadAllPetEquipment` populates `_equippedSkusByPetId`
+  (whole-room `pet_equipment` query) which feeds extras on screen, the selector
+  chips, and the main-pet switcher avatars. Long-pressing an on-screen extra
+  pet opens the rename dialog (`_openPetNameEditor(targetPet:)` reuses one
+  prompt for main + extras; extra rename just reloads room pets).
 - Hunger/level are room-shared. `tick_pet_state` now mirrors its decay
   result back into `room_pet_state` (not just the main pet's `pet_state`),
   so switching the main pet no longer copies stale un-decayed hunger onto

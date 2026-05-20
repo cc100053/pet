@@ -476,6 +476,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => _showPetNameTag(pet.petId),
+            onLongPress: () => unawaited(_openPetNameEditor(targetPet: pet)),
             onPanStart: (details) =>
                 _handleExtraPetDragStart(pet.petId, details, fieldSize),
             onPanUpdate: (details) =>
@@ -887,7 +888,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
         isWalking: isWalking,
         isSleeping: isSleeping,
         petFallbackColor: petDefinition.accent,
-        equippedSkusBySlot: const {},
+        equippedSkusBySlot: _equippedSkusByPetId[pet.petId] ?? const {},
       ),
     );
   }

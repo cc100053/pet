@@ -175,6 +175,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, String> _petIdByRoom = {};
   final Map<String, List<_RoomPet>> _roomPetsByRoom = {};
   final Map<String, _ExtraPetRuntime> _extraPetRuntime = {};
+  // Which pet the equipment panel is currently dressing. Persisted across the
+  // panel session so users pick the target pet up front instead of via a
+  // per-tap picker. Defaults to the main pet.
+  String? _selectedEquipPetId;
   String? _visibleNameTagPetId;
   Timer? _nameTagFadeTimer;
   String? _petError;
@@ -284,7 +288,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _showSocketDebug = false;
   final List<ShopItem> _ownedEquipmentItems = <ShopItem>[];
   final Map<String, _EquippedPetItem> _equippedItemsBySlot = {};
+  // Equipment of the panel's selected pet when it is NOT the main pet. The main
+  // pet keeps using _equippedItemsBySlot so the on-screen avatar is untouched.
+  final Map<String, _EquippedPetItem> _panelEquippedItemsBySlot = {};
   final Map<String, Map<String, String>> _roomEquippedSkusBySlot = {};
+  // Per-pet equipped SKUs by slot for the active room (all pets), so every pet
+  // renders its own gear on screen and in the equipment selector.
+  final Map<String, Map<String, String>> _equippedSkusByPetId = {};
   RealtimeChannel? _petEquipmentChannel;
   RealtimeChannel? _roomSelectionEquipmentChannel;
   String? _petEquipmentSubscriptionRoomId;
@@ -572,8 +582,21 @@ class _HomeViewState extends ConsumerState<HomeView>
   Map<String, String> get _equippedSkusBySlot =>
       _equippedSkusFromItemsBySlot(_equippedItemsBySlot);
 
-  Map<String, String> get _equippedItemIdsBySlot =>
-      _equippedItemsBySlot.map((slot, item) => MapEntry(slot, item.itemId));
+  bool get _isEquipTargetMain =>
+      _selectedEquipPetId == null || _selectedEquipPetId == _petId;
+
+  // Source of equipment shown in the inventory panel: the main pet's live map
+  // when the selected target is the main pet, otherwise the dedicated panel map.
+  Map<String, _EquippedPetItem> get _panelTargetEquippedItemsBySlot =>
+      _isEquipTargetMain ? _equippedItemsBySlot : _panelEquippedItemsBySlot;
+
+  Map<String, String> get _panelEquippedSkusBySlot =>
+      _equippedSkusFromItemsBySlot(_panelTargetEquippedItemsBySlot);
+
+  Map<String, String> get _panelEquippedItemIdsBySlot =>
+      _panelTargetEquippedItemsBySlot.map(
+        (slot, item) => MapEntry(slot, item.itemId),
+      );
 
   Future<void> _warmDepartureNoteFonts() {
     if (_departureFontsWarmed) {
@@ -1934,6 +1957,12 @@ class _HomeViewState extends ConsumerState<HomeView>
           if (stale) runtime.disposeTimers();
           return stale;
         });
+        // Keep the equipment target valid; fall back to the main pet if the
+        // previously selected pet left the room.
+        if (_selectedEquipPetId == null ||
+            !livePetIds.contains(_selectedEquipPetId)) {
+          _selectedEquipPetId = _petId;
+        }
       });
     } catch (_) {
       // Best-effort: the main pet path can still render the room.
@@ -2160,103 +2189,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     });
   }
 
-  Future<String?> _resolveEquipTargetPetId({
-    required String roomId,
-    required String defaultPetId,
-    required String slot,
-  }) async {
-    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
-    if (pets.length < 2) {
-      return defaultPetId;
-    }
-    if (!mounted) return null;
-    // Look up what each pet currently wears in this slot for context.
-    Map<String, String> currentSkuByPetId = const {};
-    try {
-      final rows = await Supabase.instance.client
-          .from('pet_equipment')
-          .select('pet_id, item_id, items(sku)')
-          .eq('room_id', roomId)
-          .eq('slot', slot);
-      final map = <String, String>{};
-      for (final row in rows) {
-        final petId = row['pet_id'] as String?;
-        final items = row['items'];
-        if (petId == null || items is! Map) continue;
-        final sku = items['sku'] as String?;
-        if (sku != null) {
-          map[petId] = sku;
-        }
-      }
-      currentSkuByPetId = map;
-    } catch (_) {
-      // Best-effort enrichment; fall back to no annotations.
-    }
-    if (!mounted) return null;
-    final l10n = AppLocalizations.of(context)!;
-    return showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    l10n.equipTargetPickerTitle,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const Divider(height: 1),
-                for (final pet in pets)
-                  ListTile(
-                    leading: SizedBox(
-                      width: 42,
-                      height: 42,
-                      child: _buildPetVisualForAsset(
-                        petId: pet.petType,
-                        asset: PetCatalog.byId(pet.petType).stayAsset,
-                        size: const Size(42, 42),
-                        petFallbackColor: PetCatalog.byId(pet.petType).accent,
-                        equippedSkusBySlot: const {},
-                      ),
-                    ),
-                    title: Text(
-                      pet.name ?? PetCatalog.byId(pet.petType).name(l10n),
-                    ),
-                    subtitle: currentSkuByPetId.containsKey(pet.petId)
-                        ? Text(
-                            l10n.equipTargetPickerCurrentlyWearing(
-                              currentSkuByPetId[pet.petId]!,
-                            ),
-                            style: const TextStyle(fontSize: 11),
-                          )
-                        : null,
-                    trailing: pet.isMain
-                        ? const Icon(Icons.star_rounded, color: Colors.amber)
-                        : null,
-                    onTap: () => Navigator.of(context).pop(pet.petId),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showMainPetSwitcher() async {
     final roomId = _roomId;
     if (roomId == null) return;
@@ -2300,7 +2232,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                         asset: PetCatalog.byId(pet.petType).stayAsset,
                         size: const Size(42, 42),
                         petFallbackColor: PetCatalog.byId(pet.petType).accent,
-                        equippedSkusBySlot: const {},
+                        equippedSkusBySlot:
+                            _equippedSkusByPetId[pet.petId] ?? const {},
                       ),
                     ),
                     title: Text(
@@ -2335,6 +2268,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       _petSubscriptionPetId = null;
       setState(() {
         _petId = selectedId;
+        _selectedEquipPetId = selectedId;
+        _panelEquippedItemsBySlot.clear();
         _petState = null;
         _petStateReady = false;
       });
@@ -2379,6 +2314,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       unawaited(_loadRoomPets(roomId));
+      unawaited(_loadAllPetEquipment(roomId));
       _subscribeToRoomPets(roomId);
       _subscribeToPetState(petId);
       _subscribeToPetEquipment(roomId);
@@ -2613,6 +2549,117 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  // Loads the equipment of the panel's selected pet into _panelEquippedItemsBySlot.
+  // No-op when the selected target is the main pet (it reuses _equippedItemsBySlot).
+  Future<void> _loadPanelEquipmentForSelectedPet() async {
+    final petId = _selectedEquipPetId;
+    final roomId = _roomId;
+    if (petId == null || roomId == null || petId == _petId) {
+      return;
+    }
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'get_pet_equipment',
+        params: {'p_pet_id': petId, 'p_room_id': roomId},
+      );
+      final equipped = <String, _EquippedPetItem>{};
+      for (final row in response as List<dynamic>) {
+        if (row is! Map<String, dynamic>) {
+          continue;
+        }
+        final slot = row['slot'] as String?;
+        final itemId = row['item_id'] as String?;
+        final sku = row['item_sku'] as String?;
+        if (slot == null || itemId == null || sku == null) {
+          continue;
+        }
+        equipped[slot] = _EquippedPetItem(itemId: itemId, sku: sku);
+      }
+      _precacheEquippedAssets(equipped.values.map((item) => item.sku));
+      // Bail if the target moved while the request was in flight.
+      if (!mounted || _roomId != roomId || _selectedEquipPetId != petId) {
+        return;
+      }
+      setState(() {
+        _panelEquippedItemsBySlot
+          ..clear()
+          ..addAll(equipped);
+      });
+    } catch (_) {
+      // Best-effort: the panel falls back to an empty equipped state.
+    }
+  }
+
+  // Loads every room pet's equipment in one query so each pet (main + extras)
+  // can render its own gear on screen and in the equipment selector.
+  Future<void> _loadAllPetEquipment(String roomId) async {
+    try {
+      final rows = await Supabase.instance.client
+          .from('pet_equipment')
+          .select('pet_id, slot, items(sku)')
+          .eq('room_id', roomId);
+      final map = <String, Map<String, String>>{};
+      for (final row in rows) {
+        final petId = row['pet_id'] as String?;
+        final slot = row['slot'] as String?;
+        final items = row['items'];
+        if (petId == null || slot == null || items is! Map) {
+          continue;
+        }
+        final sku = items['sku'] as String?;
+        if (sku == null) {
+          continue;
+        }
+        (map[petId] ??= <String, String>{})[slot] = sku;
+      }
+      for (final skus in map.values) {
+        _precacheEquippedAssets(skus.values);
+      }
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      setState(() {
+        _equippedSkusByPetId
+          ..clear()
+          ..addAll(map);
+      });
+    } catch (_) {
+      // Best-effort: pets fall back to rendering without gear.
+    }
+  }
+
+  List<RoomPetOption> _equipPetOptionsForRoom(String? roomId) {
+    if (roomId == null) {
+      return const <RoomPetOption>[];
+    }
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    return pets
+        .map(
+          (pet) => RoomPetOption(
+            petId: pet.petId,
+            petType: pet.petType,
+            isMain: pet.isMain,
+            name: pet.name,
+            equippedSkusBySlot:
+                _equippedSkusByPetId[pet.petId] ?? const <String, String>{},
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  void _onSelectEquipPet(String petId) {
+    if (_selectedEquipPetId == petId) {
+      return;
+    }
+    setState(() {
+      _selectedEquipPetId = petId;
+      if (petId != _petId) {
+        _panelEquippedItemsBySlot.clear();
+      }
+    });
+    unawaited(_loadPanelEquipmentForSelectedPet());
+  }
+
   Future<void> _loadOwnedEquipment({bool silent = false}) async {
     final roomId = _roomId;
     if (Supabase.instance.client.auth.currentUser == null || roomId == null) {
@@ -2706,6 +2753,8 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       unawaited(_loadPetEquipment(roomId: roomId, silent: true));
+      unawaited(_loadPanelEquipmentForSelectedPet());
+      unawaited(_loadAllPetEquipment(roomId));
     }
 
     channel.onPostgresChanges(
@@ -2724,17 +2773,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _equipItem(String itemId, String slot) async {
-    final mainPetId = _petId;
+    final targetPetId = _selectedEquipPetId ?? _petId;
     final roomId = _roomId;
-    if (mainPetId == null || roomId == null) {
-      return;
-    }
-    final targetPetId = await _resolveEquipTargetPetId(
-      roomId: roomId,
-      defaultPetId: mainPetId,
-      slot: slot,
-    );
-    if (targetPetId == null) {
+    if (targetPetId == null || roomId == null) {
       return;
     }
     try {
@@ -2748,6 +2789,8 @@ class _HomeViewState extends ConsumerState<HomeView>
         },
       );
       await _loadPetEquipment(roomId: roomId, silent: true);
+      await _loadPanelEquipmentForSelectedPet();
+      await _loadAllPetEquipment(roomId);
       if (!mounted) {
         return;
       }
@@ -2781,7 +2824,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _unequipItem(String slot) async {
-    final petId = _petId;
+    final petId = _selectedEquipPetId ?? _petId;
     final roomId = _roomId;
     if (petId == null || roomId == null) {
       return;
@@ -2792,6 +2835,8 @@ class _HomeViewState extends ConsumerState<HomeView>
         params: {'p_pet_id': petId, 'p_room_id': roomId, 'p_slot': slot},
       );
       await _loadPetEquipment(roomId: roomId, silent: true);
+      await _loadPanelEquipmentForSelectedPet();
+      await _loadAllPetEquipment(roomId);
       if (!mounted) {
         return;
       }
@@ -2974,8 +3019,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Future<void> _openPetNameEditor() async {
-    final petId = _petId;
+  Future<void> _openPetNameEditor({_RoomPet? targetPet}) async {
+    final isMain = targetPet == null;
+    final petId = isMain ? _petId : targetPet.petId;
     final roomId = _roomId;
     if (petId == null) {
       if (!mounted) {
@@ -2988,9 +3034,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       );
       return;
     }
+    final currentName = (isMain ? _petName : targetPet.name)?.trim() ?? '';
 
     final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(text: _petName?.trim() ?? '');
+    final controller = TextEditingController(text: currentName);
     String? errorText;
 
     Future<void> submit(StateSetter setState) async {
@@ -3123,7 +3170,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     final trimmed = newName.trim();
-    if (trimmed.isEmpty || trimmed == _petName?.trim()) {
+    if (trimmed.isEmpty || trimmed == currentName) {
       return;
     }
 
@@ -3135,20 +3182,25 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
-      setState(() {
-        _petName = trimmed;
-        final roomId = _roomId;
-        if (roomId != null) {
-          _myRooms = _myRooms
-              .map(
-                (entry) => entry['id'] == roomId
-                    ? {...entry, 'pet_name': trimmed}
-                    : entry,
-              )
-              .toList(growable: false);
-        }
-      });
-      unawaited(_loadPetInfo(petId, roomId: roomId));
+      if (isMain) {
+        setState(() {
+          _petName = trimmed;
+          if (roomId != null) {
+            _myRooms = _myRooms
+                .map(
+                  (entry) => entry['id'] == roomId
+                      ? {...entry, 'pet_name': trimmed}
+                      : entry,
+                )
+                .toList(growable: false);
+          }
+        });
+        unawaited(_loadPetInfo(petId, roomId: roomId));
+      } else if (roomId != null) {
+        // Extra pets only carry their own identity name; reload so the on-screen
+        // name tag and selector reflect the change.
+        await _loadRoomPets(roomId);
+      }
     } catch (error) {
       if (!mounted) {
         return;
@@ -4027,10 +4079,18 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     _dismissRoomDecorHint();
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    final selectionValid =
+        _selectedEquipPetId != null &&
+        pets.any((p) => p.petId == _selectedEquipPetId);
     setState(() {
       _furnitureMode = true;
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
+      if (!selectionValid) {
+        _selectedEquipPetId = _petId;
+        _panelEquippedItemsBySlot.clear();
+      }
       _clearFurnitureDragGesture();
       _clearFurnitureScaleInteraction();
     });
@@ -4042,6 +4102,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_loadRoomBackgroundState(roomId));
     unawaited(_loadOwnedEquipment());
     unawaited(_loadPetEquipment(roomId: roomId, silent: true));
+    unawaited(_loadPanelEquipmentForSelectedPet());
   }
 
   void _closeFurnitureInventory() {
@@ -5132,10 +5193,13 @@ class _HomeViewState extends ConsumerState<HomeView>
                   backgroundErrorText: _backgroundError,
                   applyingBackgroundId: _backgroundApplyingItemId,
                   equipmentItems: _ownedEquipmentItems,
-                  equippedItemIdsBySlot: _equippedItemIdsBySlot,
-                  equippedItemSkusBySlot: _equippedSkusBySlot,
+                  equippedItemIdsBySlot: _panelEquippedItemIdsBySlot,
+                  equippedItemSkusBySlot: _panelEquippedSkusBySlot,
                   equipmentLoading: _equipmentLoading,
                   equipmentErrorText: _equipmentError,
+                  equipPets: _equipPetOptionsForRoom(activeRoomId),
+                  selectedEquipPetId: _selectedEquipPetId,
+                  onSelectEquipPet: _onSelectEquipPet,
                   onClose: _closeFurnitureInventory,
                   onFurnitureTap: (itemId) {
                     setState(() {

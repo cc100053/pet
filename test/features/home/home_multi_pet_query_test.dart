@@ -37,16 +37,58 @@ void main() {
     expect(sceneSource, contains('_buildRoomPetAvatar'));
   });
 
-  test('Equip action prompts pet picker when room has 2+ pets', () {
+  test('Equip targets the persistently selected pet, not a per-tap picker', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',
     ).readAsStringSync();
-    expect(homeSource, contains('_resolveEquipTargetPetId'));
-    expect(homeSource, contains('equipTargetPickerTitle'));
-    // The equip RPC must use the picker's chosen pet, not always _petId.
+    final panelSource = File(
+      'lib/features/home/widgets/home_room_inventory_panel.dart',
+    ).readAsStringSync();
+    // The old per-tap picker is gone; selection is persistent state instead.
+    expect(homeSource, isNot(contains('_resolveEquipTargetPetId')));
+    expect(homeSource, contains('_selectedEquipPetId'));
+    expect(homeSource, contains('_onSelectEquipPet'));
+    // The equip RPC must use the selected pet, not always _petId.
     expect(
       homeSource,
       contains("'p_pet_id': targetPetId,"),
+    );
+    expect(homeSource, contains('final targetPetId = _selectedEquipPetId ?? _petId;'));
+    // The panel renders a persistent selector when the room has 2+ pets.
+    expect(panelSource, contains('_EquipPetSelector'));
+    expect(panelSource, contains('equipPets.length >= 2'));
+  });
+
+  test('Every room pet renders its own gear on screen and in the selector', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final sceneSource = File(
+      'lib/features/home/home_view_pet_scene_builders.dart',
+    ).readAsStringSync();
+    // Per-pet equipment is loaded for the whole room.
+    expect(homeSource, contains('_equippedSkusByPetId'));
+    expect(homeSource, contains('_loadAllPetEquipment'));
+    // Extras render their own gear instead of an empty map.
+    expect(
+      sceneSource,
+      contains('_equippedSkusByPetId[pet.petId] ?? const {}'),
+    );
+    expect(sceneSource, isNot(contains('equippedSkusBySlot: const {},')));
+  });
+
+  test('Extra pets can be renamed directly via long-press', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final sceneSource = File(
+      'lib/features/home/home_view_pet_scene_builders.dart',
+    ).readAsStringSync();
+    expect(homeSource, contains('_openPetNameEditor({_RoomPet? targetPet})'));
+    expect(homeSource, contains("'update_pet_name'"));
+    expect(
+      sceneSource,
+      contains('_openPetNameEditor(targetPet: pet)'),
     );
   });
 

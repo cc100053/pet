@@ -13,6 +13,23 @@ import '../../shop/models/shop_item.dart';
 import '../../shop/widgets/shop_item_visual.dart';
 import 'pet_equipment_overlay.dart';
 
+/// A pet that can be picked as the equipment dress-up target.
+class RoomPetOption {
+  const RoomPetOption({
+    required this.petId,
+    required this.petType,
+    required this.isMain,
+    this.name,
+    this.equippedSkusBySlot = const <String, String>{},
+  });
+
+  final String petId;
+  final String petType;
+  final bool isMain;
+  final String? name;
+  final Map<String, String> equippedSkusBySlot;
+}
+
 class HomeRoomInventoryPanel extends StatefulWidget {
   const HomeRoomInventoryPanel({
     super.key,
@@ -33,6 +50,9 @@ class HomeRoomInventoryPanel extends StatefulWidget {
     required this.equippedItemSkusBySlot,
     required this.equipmentLoading,
     required this.equipmentErrorText,
+    required this.equipPets,
+    required this.selectedEquipPetId,
+    required this.onSelectEquipPet,
     required this.onClose,
     required this.onFurnitureTap,
     required this.onBackgroundApply,
@@ -57,6 +77,9 @@ class HomeRoomInventoryPanel extends StatefulWidget {
   final Map<String, String> equippedItemSkusBySlot;
   final bool equipmentLoading;
   final String? equipmentErrorText;
+  final List<RoomPetOption> equipPets;
+  final String? selectedEquipPetId;
+  final ValueChanged<String> onSelectEquipPet;
   final VoidCallback onClose;
   final void Function(String itemId) onFurnitureTap;
   final void Function(String itemId) onBackgroundApply;
@@ -98,6 +121,15 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  String _selectedEquipPetType() {
+    for (final pet in widget.equipPets) {
+      if (pet.petId == widget.selectedEquipPetId) {
+        return pet.petType;
+      }
+    }
+    return widget.petType;
   }
 
   List<ShopItem> _equipmentItemsForSelectedSlot() {
@@ -215,7 +247,9 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 246,
+              // The equipment tab grows when the persistent pet selector shows;
+              // the furniture/background grids simply reveal more rows.
+              height: widget.equipPets.length >= 2 ? 348 : 246,
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -238,7 +272,16 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
                     onApply: widget.onBackgroundApply,
                   ),
                   _EquipmentTab(
-                    petType: widget.petType,
+                    petType: _selectedEquipPetType(),
+                    equipPets: widget.equipPets,
+                    selectedEquipPetId: widget.selectedEquipPetId,
+                    onSelectEquipPet: (petId) {
+                      if (petId == widget.selectedEquipPetId) {
+                        return;
+                      }
+                      setState(() => _previewEquipmentItemId = null);
+                      widget.onSelectEquipPet(petId);
+                    },
                     previewSkusBySlot: _previewSkusBySlot(),
                     selectedSlot: _selectedEquipmentSlot,
                     onSelectSlot: (slot) {
@@ -433,6 +476,9 @@ class _BackgroundTab extends StatelessWidget {
 class _EquipmentTab extends StatelessWidget {
   const _EquipmentTab({
     required this.petType,
+    required this.equipPets,
+    required this.selectedEquipPetId,
+    required this.onSelectEquipPet,
     required this.previewSkusBySlot,
     required this.selectedSlot,
     required this.onSelectSlot,
@@ -448,6 +494,9 @@ class _EquipmentTab extends StatelessWidget {
   });
 
   final String petType;
+  final List<RoomPetOption> equipPets;
+  final String? selectedEquipPetId;
+  final ValueChanged<String> onSelectEquipPet;
   final Map<String, String> previewSkusBySlot;
   final String selectedSlot;
   final ValueChanged<String> onSelectSlot;
@@ -475,6 +524,15 @@ class _EquipmentTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (equipPets.length >= 2) ...[
+          _EquipPetSelector(
+            pets: equipPets,
+            selectedPetId: selectedEquipPetId,
+            enabled: !submitting,
+            onSelect: onSelectEquipPet,
+          ),
+          const SizedBox(height: 10),
+        ],
         Row(
           children: [
             Expanded(
@@ -556,6 +614,172 @@ class _EquipmentTab extends StatelessWidget {
         return l10n.equipmentSlotBack;
     }
     return slot;
+  }
+}
+
+class _EquipPetSelector extends StatelessWidget {
+  const _EquipPetSelector({
+    required this.pets,
+    required this.selectedPetId,
+    required this.enabled,
+    required this.onSelect,
+  });
+
+  final List<RoomPetOption> pets;
+  final String? selectedPetId;
+  final bool enabled;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.equipTargetPickerTitle,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 76,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: pets.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final pet = pets[index];
+              return _EquipPetChip(
+                pet: pet,
+                selected: pet.petId == selectedPetId,
+                onTap: enabled ? () => onSelect(pet.petId) : null,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EquipPetChip extends StatelessWidget {
+  const _EquipPetChip({
+    required this.pet,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final RoomPetOption pet;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final definition = PetCatalog.byId(pet.petType);
+    final label = (pet.name?.trim().isNotEmpty ?? false)
+        ? pet.name!.trim()
+        : definition.name(l10n);
+    return JuicyScaleButton(
+      onTap: onTap ?? () {},
+      child: Container(
+        width: 64,
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFFFF1C9) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? const Color(0xFFFFB74D) : Colors.black26,
+            width: selected ? 2.5 : 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _ChipPetAvatar(
+                  petType: pet.petType,
+                  stayAsset: definition.stayAsset,
+                  equippedSkusBySlot: pet.equippedSkusBySlot,
+                ),
+                if (pet.isMain)
+                  const Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Icon(
+                      Icons.star_rounded,
+                      size: 14,
+                      color: Colors.amber,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChipPetAvatar extends StatelessWidget {
+  const _ChipPetAvatar({
+    required this.petType,
+    required this.stayAsset,
+    required this.equippedSkusBySlot,
+  });
+
+  final String petType;
+  final String stayAsset;
+  final Map<String, String> equippedSkusBySlot;
+
+  @override
+  Widget build(BuildContext context) {
+    const avatarSize = Size(38, 38);
+    return SizedBox(
+      width: avatarSize.width,
+      height: avatarSize.height,
+      child: PetAnimationFrameBuilder(
+        sourceAsset: stayAsset,
+        builder: (context, petAsset, animationProgress, _) {
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              PetEquipmentOverlay(
+                petId: petType,
+                equippedSkusBySlot: equippedSkusBySlot,
+                petSize: avatarSize,
+                layer: PetEquipmentOverlayLayer.behindPet,
+                animationProgress: animationProgress,
+              ),
+              Image.asset(
+                petAsset,
+                width: avatarSize.width,
+                height: avatarSize.height,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+              ),
+              PetEquipmentOverlay(
+                petId: petType,
+                equippedSkusBySlot: equippedSkusBySlot,
+                petSize: avatarSize,
+                layer: PetEquipmentOverlayLayer.frontPet,
+                animationProgress: animationProgress,
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 

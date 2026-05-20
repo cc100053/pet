@@ -95,6 +95,9 @@ void main() {
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
           equipmentErrorText: null,
+          equipPets: const [],
+          selectedEquipPetId: null,
+          onSelectEquipPet: (_) {},
           onClose: () {},
           onFurnitureTap: (_) {},
           onBackgroundApply: (_) {},
@@ -139,6 +142,9 @@ void main() {
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
           equipmentErrorText: null,
+          equipPets: const [],
+          selectedEquipPetId: null,
+          onSelectEquipPet: (_) {},
           onClose: () {},
           onFurnitureTap: (_) => tapCount++,
           onBackgroundApply: (_) {},
@@ -181,6 +187,9 @@ void main() {
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
           equipmentErrorText: null,
+          equipPets: const [],
+          selectedEquipPetId: null,
+          onSelectEquipPet: (_) {},
           onClose: () {},
           onFurnitureTap: (_) {},
           onBackgroundApply: (_) {},
@@ -222,6 +231,9 @@ void main() {
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
           equipmentErrorText: null,
+          equipPets: const [],
+          selectedEquipPetId: null,
+          onSelectEquipPet: (_) {},
           onClose: () {},
           onFurnitureTap: (_) {},
           onBackgroundApply: (_) {},
@@ -283,6 +295,9 @@ void main() {
           equippedItemSkusBySlot: const {'head': 'equip_straw_hat'},
           equipmentLoading: false,
           equipmentErrorText: null,
+          equipPets: const [],
+          selectedEquipPetId: null,
+          onSelectEquipPet: (_) {},
           onClose: () {},
           onFurnitureTap: (_) {},
           onBackgroundApply: (_) {},
@@ -312,5 +327,107 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(equipped, ['sunglasses:face']);
+  });
+
+  testWidgets('shows persistent pet selector and reports target changes', (
+    tester,
+  ) async {
+    final item = buildEquipmentItem();
+    final selected = <String>[];
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          petType: 'ghost',
+          furnitureCatalog: const {},
+          furnitureInventory: const {},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (_) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          equipmentItems: [item],
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
+          equipPets: const [
+            RoomPetOption(petId: 'p1', petType: 'ghost', isMain: true),
+            RoomPetOption(
+              petId: 'p2',
+              petType: 'ghost',
+              isMain: false,
+              name: 'Buddy',
+            ),
+          ],
+          selectedEquipPetId: 'p1',
+          onSelectEquipPet: selected.add,
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+          onEquipItem: (_, _) async {},
+          onUnequipItem: (_) async {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Equipment'));
+    await tester.pumpAndSettle();
+
+    // The selector header and the non-main pet's name chip are shown.
+    expect(find.text('Equip on which pet?'), findsOneWidget);
+    expect(find.text('Buddy'), findsOneWidget);
+
+    await tester.tap(find.text('Buddy'));
+    await tester.pumpAndSettle();
+
+    expect(selected, ['p2']);
+  });
+
+  testWidgets('hides pet selector for single-pet rooms', (tester) async {
+    final item = buildEquipmentItem();
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          petType: 'ghost',
+          furnitureCatalog: const {},
+          furnitureInventory: const {},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (_) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          equipmentItems: [item],
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
+          equipPets: const [
+            RoomPetOption(petId: 'p1', petType: 'ghost', isMain: true),
+          ],
+          selectedEquipPetId: 'p1',
+          onSelectEquipPet: (_) {},
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+          onEquipItem: (_, _) async {},
+          onUnequipItem: (_) async {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Equip on which pet?'), findsNothing);
   });
 }

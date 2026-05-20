@@ -45,7 +45,11 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   tap-to-show name
   tag, full avatar size, and the same walk/sleep/stay animation state machine
   as the main pet. Feeding summons all pets to the food. The top-left avatar
-  opens a main-pet switcher; equip prompts a per-pet target picker.
+  opens a main-pet switcher; the equipment panel has a persistent pet selector
+  (shown when 2+ pets) so the dress-up target is chosen up front rather than via
+  a per-tap picker. Every pet renders its own equipment (on screen, selector
+  chips, switcher) via room-wide `_equippedSkusByPetId`. Long-pressing an extra
+  pet renames it directly.
 - New room pets are added through a v2.0.0-gated pet ticket flow. New ticket
   purchases use `purchase_and_use_pet_ticket` so the 150-diamond charge and pet
   insert commit together; already-owned tickets use `use_pet_ticket`. Both
