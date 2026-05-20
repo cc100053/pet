@@ -58,8 +58,9 @@ void main() {
       'lib/features/home/controllers/home_feed_orchestrator.dart',
     ).readAsStringSync();
     expect(homeSource, contains('_summonExtraPetsToFood'));
-    expect(homeSource, contains('_pickWanderTargetAvoiding'));
     expect(feedSource, contains('_summonExtraPetsToFood(foodTarget, fieldSize)'));
+    // Pet repulsion/collision avoidance was removed; pets may overlap freely.
+    expect(homeSource, isNot(contains('_pickWanderTargetAvoiding')));
   });
 
   test('Extra room pets are interactive (drag + tap name tag + wander)', () {

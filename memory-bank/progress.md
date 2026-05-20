@@ -35,9 +35,9 @@ Active progress stays current-state focused. Full snapshots live in
   room-rename dialog. Home subscribes to
   `pets`/`rooms` realtime for the active room so all the above sync across
   members without a manual room switch. Feeding triggers all extras to
-  converge on the food in a tight ring around the main pet, and wander
-  targets keep a small breathing distance from other pets for lightweight
-  collision avoidance. Extras run the same walk/sleep/stay animation state
+  converge on the food in a tight ring around the main pet. Pets may overlap
+  freely while wandering (no repulsion/collision system). Extras run the same
+  walk/sleep/stay animation state
   machine and full avatar size as the main pet (extra avatars render at
   `normalizedTarget` so facing always matches travel direction). Equip
   action prompts a per-pet target picker when the room has 2+ pets

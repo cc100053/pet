@@ -41,7 +41,8 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   rename + name copy in `set_room_main_pet`). Each pet still has its own name
   for identity; there is no separate room-rename flow.
 - Extra pets are first-class on screen: each has its own AnimatedPositioned
-  wander (shared timer, lightweight collision spacing), drag, tap-to-show name
+  wander (shared timer; pets may overlap freely, no repulsion), drag,
+  tap-to-show name
   tag, full avatar size, and the same walk/sleep/stay animation state machine
   as the main pet. Feeding summons all pets to the food. The top-left avatar
   opens a main-pet switcher; equip prompts a per-pet target picker.
