@@ -460,11 +460,15 @@ class _ShopViewState extends State<ShopView> {
           'get_room_equipment_inventory',
           params: {'p_room_id': roomId},
         );
-        final petRows = await Supabase.instance.client
-            .from('pets')
-            .select('id')
-            .eq('room_id', roomId);
-        roomPetCount = math.max(1, (petRows as List<dynamic>).length);
+        // Count both the canonical main pet and room_extra_pets (multi-pet
+        // v2.0.0). get_room_pets UNIONs both tables.
+        final petRows = await Supabase.instance.client.rpc(
+          'get_room_pets',
+          params: {'p_room_id': roomId},
+        );
+        roomPetCount = petRows is List
+            ? math.max(1, petRows.length)
+            : 1;
       }
 
       List<dynamic> roomBackgroundRows = const [];

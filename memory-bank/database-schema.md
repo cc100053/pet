@@ -60,8 +60,9 @@ applied migration that rewrites the object.
   `use_pet_ticket(...)` remains for any already-owned ticket inventory.
 - `pet_equipment` stores one equipped item per `(room_id, pet_id, slot)`;
   supported slots are `head`, `face`, `body`, `back`. Room equipment inventory
-  quantity is capped by room pet count, and one item copy cannot be equipped on
-  two pets at the same time.
+  quantity is capped by room pet count (`room_pet_count(p_room_id)` counts both
+  `pets` + `room_extra_pets`; `purchase_room_equipment_with_coins/diamonds` use
+  it), and one item copy cannot be equipped on two pets at the same time.
 - Shared furniture counts and equipment ownership are room-scoped, though some
   legacy inventory rows remain buyer-attributed for compatibility.
 - `room_furniture` keeps normalized positions, clamped scale, and `flip_x`.

@@ -50,6 +50,19 @@ void main() {
     );
   });
 
+  test('Shop counts pets across both tables for equipment capacity', () {
+    final shopSource = File(
+      'lib/features/shop/shop_view.dart',
+    ).readAsStringSync();
+    // Pet count for equipment capacity must use get_room_pets (UNIONs pets +
+    // room_extra_pets), not a raw count of the pets table (always 1).
+    expect(shopSource, contains("'get_room_pets'"));
+    expect(
+      shopSource,
+      isNot(contains(".from('pets')\n            .select('id')\n            .eq('room_id', roomId)")),
+    );
+  });
+
   test('Feed action summons all extra pets to the food location', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',
