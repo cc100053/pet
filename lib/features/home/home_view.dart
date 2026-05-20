@@ -488,6 +488,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     _wanderTimer?.cancel();
     _petTickTimer?.cancel();
     _nameTagFadeTimer?.cancel();
+    for (final runtime in _extraPetRuntime.values) {
+      runtime.disposeTimers();
+    }
     _roomSelectionRefreshTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
@@ -1927,7 +1930,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       final livePetIds = pets.map((p) => p.petId).toSet();
       setState(() {
         _roomPetsByRoom[roomId] = pets;
-        _extraPetRuntime.removeWhere((id, _) => !livePetIds.contains(id));
+        _extraPetRuntime.removeWhere((id, runtime) {
+          final stale = !livePetIds.contains(id);
+          if (stale) runtime.disposeTimers();
+          return stale;
+        });
       });
       _maybeShowMultiPetNamingPrompt(pets);
     } catch (_) {
@@ -2012,6 +2019,32 @@ class _HomeViewState extends ConsumerState<HomeView>
     return Duration(milliseconds: max(_HomeViewState._minMoveMs, ms));
   }
 
+  _PetStationaryState _pickStationaryStateForNow() {
+    final probability = _sleepProbabilityForLocalHour(DateTime.now().hour);
+    return _random.nextDouble() < probability
+        ? _PetStationaryState.sleeping
+        : _PetStationaryState.staying;
+  }
+
+  /// Marks an extra pet as walking toward its current target, then flips it
+  /// back to a stationary (stay/sleep) state once the travel duration elapses
+  /// — mirroring the main pet's walk → idle behavior.
+  void _beginExtraPetWalk(String petId, Duration duration) {
+    final runtime = _extraPetRuntime[petId];
+    if (runtime == null) return;
+    runtime.isWalking = true;
+    runtime.arrivalTimer?.cancel();
+    runtime.arrivalTimer = Timer(duration, () {
+      if (!mounted) return;
+      final rt = _extraPetRuntime[petId];
+      if (rt == null || rt.isDragging) return;
+      setState(() {
+        rt.isWalking = false;
+        rt.stationaryState = _pickStationaryStateForNow();
+      });
+    });
+  }
+
   void _summonExtraPetsToFood(Offset foodTarget, Size fieldSize) {
     if (!mounted) return;
     final roomId = _roomId;
@@ -2044,6 +2077,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         ..normalizedTarget = scattered
         ..animDuration = duration
         ..facingRight = scattered.dx < runtime.normalizedPosition.dx;
+      _beginExtraPetWalk(pet.petId, duration);
       changed = true;
     }
     if (changed) {
@@ -2087,6 +2121,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         ..normalizedTarget = newTarget
         ..animDuration = duration
         ..facingRight = newTarget.dx < runtime.normalizedPosition.dx;
+      _beginExtraPetWalk(pet.petId, duration);
       changed = true;
     }
     if (changed) {
@@ -2108,9 +2143,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       runtime.normalizedPosition,
       fieldSize,
     );
+    runtime.arrivalTimer?.cancel();
     setState(() {
       runtime
         ..isDragging = true
+        ..isWalking = true
         ..dragOffset = local - currentTopLeft
         ..normalizedTarget = runtime.normalizedPosition
         ..animDuration = Duration.zero;
@@ -2143,7 +2180,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     final runtime = _extraPetRuntime[petId];
     if (runtime == null || !runtime.isDragging) return;
     setState(() {
-      runtime.isDragging = false;
+      runtime
+        ..isDragging = false
+        ..isWalking = false
+        ..stationaryState = _pickStationaryStateForNow();
     });
   }
 

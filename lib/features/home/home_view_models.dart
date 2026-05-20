@@ -63,6 +63,14 @@ class _ExtraPetRuntime {
   bool isDragging = false;
   Offset dragOffset = Offset.zero;
   bool facingRight = true;
+  bool isWalking = false;
+  _PetStationaryState stationaryState = _PetStationaryState.staying;
+  Timer? arrivalTimer;
+
+  void disposeTimers() {
+    arrivalTimer?.cancel();
+    arrivalTimer = null;
+  }
 }
 
 class _PlacedFurniture {

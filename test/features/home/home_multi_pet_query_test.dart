@@ -81,6 +81,25 @@ void main() {
     expect(sceneSource, contains('_buildPetNameTag'));
   });
 
+  test('Extra pets animate walk/sleep/stay at full size like the main pet', () {
+    final homeSource = File(
+      'lib/features/home/home_view.dart',
+    ).readAsStringSync();
+    final sceneSource = File(
+      'lib/features/home/home_view_pet_scene_builders.dart',
+    ).readAsStringSync();
+    // Avatar builder selects walk/sleep/stay assets from runtime state.
+    expect(sceneSource, contains('petDefinition.walkAsset'));
+    expect(sceneSource, contains('petDefinition.sleepAsset'));
+    expect(sceneSource, contains('_buildRoomPetAvatar(pet, runtime'));
+    // Full size (no 0.86 shrink factor).
+    expect(sceneSource, contains('final size = _HomeViewState._petAvatarSize;'));
+    expect(sceneSource, isNot(contains('_petAvatarSize.width * 0.86')));
+    // Walk state machine wired through arrival timer.
+    expect(homeSource, contains('_beginExtraPetWalk'));
+    expect(homeSource, contains('_pickStationaryStateForNow'));
+  });
+
   test('Top-left avatar opens main-pet switcher when room has 2+ pets', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',

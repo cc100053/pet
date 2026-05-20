@@ -452,10 +452,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
     }
 
     final visualScale = _petVisualScale(MediaQuery.sizeOf(context).width);
-    final size = Size(
-      _HomeViewState._petAvatarSize.width * 0.86,
-      _HomeViewState._petAvatarSize.height * 0.86,
-    );
+    final size = _HomeViewState._petAvatarSize;
     return List.generate(extraPets.length, (i) {
       final pet = extraPets[i];
       final runtime = _ensureExtraPetRuntime(pet.petId, i);
@@ -494,7 +491,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                       1.0,
                       1.0,
                     ),
-                    child: _buildRoomPetAvatar(pet, size: size),
+                    child: _buildRoomPetAvatar(pet, runtime, size: size),
                   ),
                 ),
                 if (_visibleNameTagPetId == pet.petId)
@@ -862,13 +859,30 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
-  Widget _buildRoomPetAvatar(_RoomPet pet, {required Size size}) {
+  Widget _buildRoomPetAvatar(
+    _RoomPet pet,
+    _ExtraPetRuntime runtime, {
+    required Size size,
+  }) {
     final petDefinition = PetCatalog.byId(pet.petType);
+    final isWalking = runtime.isWalking || runtime.isDragging;
+    final isSleeping =
+        !isWalking && runtime.stationaryState == _PetStationaryState.sleeping;
+    final String asset;
+    if (isWalking) {
+      asset = petDefinition.walkAsset;
+    } else if (isSleeping) {
+      asset = petDefinition.sleepAsset;
+    } else {
+      asset = petDefinition.stayAsset;
+    }
     return RepaintBoundary(
       child: _buildPetVisualForAsset(
         petId: pet.petType,
-        asset: petDefinition.stayAsset,
+        asset: asset,
         size: size,
+        isWalking: isWalking,
+        isSleeping: isSleeping,
         petFallbackColor: petDefinition.accent,
         equippedSkusBySlot: const {},
       ),
