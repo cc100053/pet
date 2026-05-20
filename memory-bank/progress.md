@@ -28,17 +28,26 @@ Active progress stays current-state focused. Full snapshots live in
   draggable companions (own AnimatedPositioned per pet, shared wander timer,
   per-pet drag state). Tap on any pet briefly shows its name tag (2.5s).
   Top-left status-bar avatar tap opens a main-pet switcher sheet when the
-  room has 2+ pets and calls `set_room_main_pet`. First 1->2 pet transition
-  prompts an atomic rename via `apply_multi_pet_room_naming` (new room name
-  + first pet name auto-inherited from old room name). Home subscribes to
+  room has 2+ pets and calls `set_room_main_pet`. Naming model B:
+  `rooms.name` mirrors the main pet's name (trigger syncs main pet rename →
+  room name; `set_room_main_pet` copies the promoted pet's name into the
+  room). Each pet keeps its own name for identity; there is no separate
+  room-rename dialog. Home subscribes to
   `pets`/`rooms` realtime for the active room so all the above sync across
   members without a manual room switch. Feeding triggers all extras to
   converge on the food in a tight ring around the main pet, and wander
   targets keep a small breathing distance from other pets for lightweight
-  collision avoidance. Equip action prompts a per-pet target picker when
-  the room has 2+ pets (annotated with each pet's currently equipped SKU
-  in that slot); unequip still targets the main pet by design — switch
-  main pet first to unequip from another.
+  collision avoidance. Extras run the same walk/sleep/stay animation state
+  machine and full avatar size as the main pet (extra avatars render at
+  `normalizedTarget` so facing always matches travel direction). Equip
+  action prompts a per-pet target picker when the room has 2+ pets
+  (annotated with each pet's currently equipped SKU in that slot); unequip
+  still targets the main pet by design — switch main pet first to unequip
+  from another.
+- Hunger/level are room-shared. `tick_pet_state` now mirrors its decay
+  result back into `room_pet_state` (not just the main pet's `pet_state`),
+  so switching the main pet no longer copies stale un-decayed hunger onto
+  the promoted pet (which previously made it appear to suddenly starve).
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.

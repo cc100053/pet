@@ -112,13 +112,15 @@ void main() {
     expect(sceneSource, contains('canSwitch ? () => _showMainPetSwitcher()'));
   });
 
-  test('First 1->2 pet transition prompts room rename + first-pet name', () {
+  test('Room name follows the main pet (model B): no separate rename dialog', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',
     ).readAsStringSync();
-    expect(homeSource, contains('_maybeShowMultiPetNamingPrompt'));
-    expect(homeSource, contains("'apply_multi_pet_room_naming'"));
-    expect(homeSource, contains('multiPetNamingTitle'));
+    // The two-name rename dialog is gone; room name mirrors the main pet
+    // server-side via trigger + set_room_main_pet.
+    expect(homeSource, isNot(contains('_maybeShowMultiPetNamingPrompt')));
+    expect(homeSource, isNot(contains('_showMultiPetNamingDialog')));
+    expect(homeSource, isNot(contains("'apply_multi_pet_room_naming'")));
   });
 
   test('Home subscribes to pets/rooms realtime for the active room', () {

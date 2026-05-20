@@ -177,7 +177,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, _ExtraPetRuntime> _extraPetRuntime = {};
   String? _visibleNameTagPetId;
   Timer? _nameTagFadeTimer;
-  bool _multiPetNamingShown = false;
   String? _petError;
   DateTime? _lastOverfedAt;
   DateTime? _overfedFeedEventArmedAt;
@@ -1936,7 +1935,6 @@ class _HomeViewState extends ConsumerState<HomeView>
           return stale;
         });
       });
-      _maybeShowMultiPetNamingPrompt(pets);
     } catch (_) {
       // Best-effort: the main pet path can still render the room.
     }
@@ -2139,8 +2137,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     final local = _globalToPetField(details.globalPosition);
     if (local == null) return;
     _markUserInteraction();
+    // The pet renders at normalizedTarget, so anchor the drag there to avoid
+    // a snap-back to a stale departure point.
     final currentTopLeft = _positionFromNormalized(
-      runtime.normalizedPosition,
+      runtime.normalizedTarget,
       fieldSize,
     );
     runtime.arrivalTimer?.cancel();
@@ -2149,7 +2149,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         ..isDragging = true
         ..isWalking = true
         ..dragOffset = local - currentTopLeft
-        ..normalizedTarget = runtime.normalizedPosition
+        ..normalizedPosition = runtime.normalizedTarget
         ..animDuration = Duration.zero;
     });
   }
@@ -2167,12 +2167,17 @@ class _HomeViewState extends ConsumerState<HomeView>
     final desiredTopLeft = local - runtime.dragOffset;
     final clamped = _clampTopLeft(desiredTopLeft, fieldSize);
     final normalized = _normalizedFromTopLeft(clamped, fieldSize);
+    // Compute facing against the previous position before overwriting it
+    // (matching the main pet's convention: moving left ⇒ facingRight/no flip).
+    final dx = normalized.dx - runtime.normalizedTarget.dx;
     setState(() {
+      if (dx.abs() > 0.001) {
+        runtime.facingRight = dx < 0;
+      }
       runtime
         ..normalizedPosition = normalized
         ..normalizedTarget = normalized
-        ..animDuration = Duration.zero
-        ..facingRight = normalized.dx < runtime.normalizedPosition.dx;
+        ..animDuration = Duration.zero;
     });
   }
 
@@ -2185,137 +2190,6 @@ class _HomeViewState extends ConsumerState<HomeView>
         ..isWalking = false
         ..stationaryState = _pickStationaryStateForNow();
     });
-  }
-
-  Future<void> _maybeShowMultiPetNamingPrompt(List<_RoomPet> pets) async {
-    if (_multiPetNamingShown) return;
-    if (pets.length < 2) return;
-    // Show only if no other pet besides the first one has a name yet — i.e.,
-    // first time we see two pets where the secondary pet was just added.
-    final extras = pets.where((p) => !p.isMain).toList();
-    final hasNamedExtra = extras.any((p) => (p.name ?? '').isNotEmpty);
-    if (!hasNamedExtra) return;
-    final firstPet = pets.firstWhere(
-      (p) => p.isMain,
-      orElse: () => pets.first,
-    );
-    if ((firstPet.name ?? '').isNotEmpty) {
-      _multiPetNamingShown = true;
-      return;
-    }
-    _multiPetNamingShown = true;
-    if (!mounted) return;
-    final roomId = _roomId;
-    if (roomId == null) return;
-    final currentRoomName = (() {
-      for (final room in _myRooms) {
-        if (room['id'] == roomId) {
-          return (room['name'] as String?) ?? '';
-        }
-      }
-      return '';
-    })();
-    await _showMultiPetNamingDialog(
-      roomId: roomId,
-      defaultRoomName: currentRoomName,
-      inheritedFirstPetName: currentRoomName,
-    );
-  }
-
-  Future<void> _showMultiPetNamingDialog({
-    required String roomId,
-    required String defaultRoomName,
-    required String inheritedFirstPetName,
-  }) async {
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context)!;
-    final roomController = TextEditingController(text: defaultRoomName);
-    final petController = TextEditingController(text: inheritedFirstPetName);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(l10n.multiPetNamingTitle),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  l10n.multiPetNamingSubtitle,
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: roomController,
-                  maxLength: 30,
-                  decoration: InputDecoration(
-                    labelText: l10n.multiPetNamingRoomLabel,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: petController,
-                  maxLength: 20,
-                  decoration: InputDecoration(
-                    labelText: l10n.multiPetNamingFirstPetLabel,
-                    hintText: l10n.multiPetNamingFirstPetHint,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(l10n.commonSkip),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(l10n.commonSave),
-            ),
-          ],
-        );
-      },
-    );
-    final roomName = roomController.text.trim();
-    final petName = petController.text.trim();
-    roomController.dispose();
-    petController.dispose();
-    if (confirmed != true || !mounted) return;
-    if (roomName.isEmpty && petName.isEmpty) return;
-    try {
-      await Supabase.instance.client.rpc(
-        'apply_multi_pet_room_naming',
-        params: {
-          'p_room_id': roomId,
-          'p_room_name': roomName.isEmpty ? null : roomName,
-          'p_first_pet_name': petName.isEmpty ? null : petName,
-        },
-      );
-      if (!mounted) return;
-      if (roomName.isNotEmpty) {
-        setState(() {
-          _myRooms = _myRooms
-              .map(
-                (room) =>
-                    room['id'] == roomId ? {...room, 'name': roomName} : room,
-              )
-              .toList();
-        });
-      }
-      unawaited(_loadRoomPets(roomId));
-    } catch (error) {
-      if (!mounted) return;
-      showJuiceToast(
-        context: context,
-        message: l10n.commonTryAgain,
-        tone: AppDialogTone.danger,
-      );
-    }
   }
 
   Future<String?> _resolveEquipTargetPetId({

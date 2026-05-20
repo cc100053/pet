@@ -456,8 +456,11 @@ extension _HomePetSceneBuilders on _HomeViewState {
     return List.generate(extraPets.length, (i) {
       final pet = extraPets[i];
       final runtime = _ensureExtraPetRuntime(pet.petId, i);
+      // Position at the destination so AnimatedPositioned interpolates toward
+      // it. facingRight is computed against the departure point at the same
+      // moment the target is set, so facing always matches travel direction.
       final pos = _positionFromNormalizedSized(
-        runtime.normalizedPosition,
+        runtime.normalizedTarget,
         fieldSize,
         size,
       );
