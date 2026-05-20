@@ -48,6 +48,13 @@ Active progress stays current-state focused. Full snapshots live in
   result back into `room_pet_state` (not just the main pet's `pet_state`),
   so switching the main pet no longer copies stale un-decayed hunger onto
   the promoted pet (which previously made it appear to suddenly starve).
+- Main-pet switch: after `set_room_main_pet`, Home repoints `_petId` to the
+  promoted pet (clearing the stale subscription) so `_refreshPetState` loads
+  the correct pet; a `pet_not_found` from a stale switcher list is recovered
+  silently by reloading. `set_room_main_pet` sets a transaction-local flag
+  (`app.skip_pet_equipment_cleanup`) while it hops rows between `pets` and
+  `room_extra_pets`, so the pet-delete cleanup trigger does not wipe a pet's
+  equipment during a swap.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.

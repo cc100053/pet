@@ -2329,12 +2329,25 @@ class _HomeViewState extends ConsumerState<HomeView>
         params: {'p_room_id': roomId, 'p_pet_id': selectedId},
       );
       if (!mounted) return;
-      // Triggers cascade: realtime will fire, _loadRoomPets/_refreshPetState
-      // will re-run. Force immediate refresh too for snappy UX.
-      unawaited(_loadRoomPets(roomId));
+      // The promoted pet is now the canonical main row. Point active pet
+      // state at it explicitly — otherwise _refreshPetState keeps using the
+      // stale _petId (the old main, now an extra) and loads the wrong pet.
+      _petSubscriptionPetId = null;
+      setState(() {
+        _petId = selectedId;
+        _petState = null;
+        _petStateReady = false;
+      });
+      await _loadRoomPets(roomId);
       await _refreshPetState();
     } catch (error) {
       if (!mounted) return;
+      // A stale switcher list can reference a pet that already moved; recover
+      // by reloading instead of surfacing a scary error.
+      if (error.toString().contains('pet_not_found')) {
+        await _loadRoomPets(roomId);
+        return;
+      }
       showJuiceToast(
         context: context,
         message: AppLocalizations.of(context)!.commonTryAgain,

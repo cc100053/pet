@@ -111,6 +111,10 @@ void main() {
     expect(homeSource, contains('_showMainPetSwitcher'));
     expect(homeSource, contains("'set_room_main_pet'"));
     expect(sceneSource, contains('canSwitch ? () => _showMainPetSwitcher()'));
+    // After switching, active pet must repoint to the promoted pet (not keep
+    // the stale old-main _petId) and recover gracefully if the list was stale.
+    expect(homeSource, contains('_petId = selectedId'));
+    expect(homeSource, contains("error.toString().contains('pet_not_found')"));
   });
 
   test('Room name follows the main pet (model B): no separate rename dialog', () {
