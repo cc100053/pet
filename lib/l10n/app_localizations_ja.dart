@@ -1886,4 +1886,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew140Bullet3 => '共有ルーム、在庫、ショップで装備がより見やすくなりました。';
+
+  @override
+  String get whatsNew200Title => 'もっとたくさん一緒に育てよう';
+
+  @override
+  String get whatsNew200Bullet1 => 'ペットチケットで共有ルームに新しいペットを追加できます。';
+
+  @override
+  String get whatsNew200Bullet2 => 'メインに表示するペットをいつでも切り替えられます。';
+
+  @override
+  String get whatsNew200Bullet3 => 'ペットごとに個別の着せ替えができます。';
 }

@@ -3482,6 +3482,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared room, inventory, and shop displays are clearer.'**
   String get whatsNew140Bullet3;
+
+  /// No description provided for @whatsNew200Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise more pets together'**
+  String get whatsNew200Title;
+
+  /// No description provided for @whatsNew200Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Add extra pets to your shared room with pet tickets.'**
+  String get whatsNew200Bullet1;
+
+  /// No description provided for @whatsNew200Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch your main pet anytime.'**
+  String get whatsNew200Bullet2;
+
+  /// No description provided for @whatsNew200Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Dress up each pet separately.'**
+  String get whatsNew200Bullet3;
 }
 
 class _AppLocalizationsDelegate

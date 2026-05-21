@@ -1876,6 +1876,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew140Bullet3 => '共享房间、库存与商店的装备显示更加清楚。';
+
+  @override
+  String get whatsNew200Title => '一起养更多宠物';
+
+  @override
+  String get whatsNew200Bullet1 => '使用宠物票券在共享房间加入新宠物。';
+
+  @override
+  String get whatsNew200Bullet2 => '随时切换目前显示的主宠物。';
+
+  @override
+  String get whatsNew200Bullet3 => '为每只宠物分别穿搭装备。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3740,4 +3752,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew140Bullet3 => '共享房間、庫存與商店的裝備顯示更加清楚。';
+
+  @override
+  String get whatsNew200Title => '一起養更多寵物';
+
+  @override
+  String get whatsNew200Bullet1 => '使用寵物票券在共享房間加入新寵物。';
+
+  @override
+  String get whatsNew200Bullet2 => '隨時切換目前顯示的主寵物。';
+
+  @override
+  String get whatsNew200Bullet3 => '為每隻寵物分別穿搭裝備。';
 }

@@ -1959,4 +1959,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew140Bullet3 =>
       'Shared room, inventory, and shop displays are clearer.';
+
+  @override
+  String get whatsNew200Title => 'Raise more pets together';
+
+  @override
+  String get whatsNew200Bullet1 =>
+      'Add extra pets to your shared room with pet tickets.';
+
+  @override
+  String get whatsNew200Bullet2 => 'Switch your main pet anytime.';
+
+  @override
+  String get whatsNew200Bullet3 => 'Dress up each pet separately.';
 }

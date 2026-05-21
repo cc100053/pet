@@ -1896,4 +1896,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew140Bullet3 => '공유 방, 인벤토리, 상점에서 장비 표시가 더 명확해졌습니다.';
+
+  @override
+  String get whatsNew200Title => '더 많은 펫을 함께 키워요';
+
+  @override
+  String get whatsNew200Bullet1 => '펫 티켓으로 공유 방에 새 펫을 추가할 수 있습니다.';
+
+  @override
+  String get whatsNew200Bullet2 => '메인으로 보이는 펫을 언제든 전환할 수 있습니다.';
+
+  @override
+  String get whatsNew200Bullet3 => '각 펫을 따로 꾸밀 수 있습니다.';
 }
