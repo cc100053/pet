@@ -50,6 +50,21 @@ Active progress stays current-state focused. Full snapshots live in
   chips, and the main-pet switcher avatars. Long-pressing an on-screen extra
   pet opens the rename dialog (`_openPetNameEditor(targetPet:)` reuses one
   prompt for main + extras; extra rename just reloads room pets).
+- Home loading is latency-tuned. `_fetchRooms` runs its five per-room queries
+  (pet summaries, latest feeds, member counts, unread counts, equipped skus)
+  concurrently via `Future.wait` instead of serially; equipped skus stay
+  best-effort via `.catchError`. `_bootstrapHome` fetches rooms concurrently
+  with the profile/coins reads and fires `_refreshProPlanStatus` unawaited
+  (RevenueCat never gates first paint). Cold start no longer double-fetches the
+  room list: bootstrap calls `_refreshRoomSelectionHealthBars(summariesOnly:
+  true)`, which ticks decay then patches only health/level via
+  `_patchRoomSelectionPetSummaries` (full `_fetchRooms` is reserved for
+  resume/nav-back/periodic refresh). Room entry is warm-aware: `_switchRoom`
+  pre-paints `_petId`/`_petState` from the in-session `_petIdByRoom`/
+  `_petStateByRoom` caches and skips the loading overlay + 550ms min-duration
+  when a room was visited earlier; only cold first entries show the overlay.
+  `_refreshPetState` awaits the `tick_pet_state` decay (health read depends on
+  it) but dispatches hunger alerts unawaited so they never hold first paint.
 - Hunger/level are room-shared. `tick_pet_state` now mirrors its decay
   result back into `room_pet_state` (not just the main pet's `pet_state`),
   so switching the main pet no longer copies stale un-decayed hunger onto

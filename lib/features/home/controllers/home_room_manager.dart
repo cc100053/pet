@@ -59,23 +59,27 @@ extension _HomeRoomManager on _HomeViewState {
       var equippedSkusFetched = false;
       final senderIds = <String>{};
       if (roomIds.isNotEmpty) {
-        final petSummaries = await _withNetworkTimeout(
-          _fetchRoomPetSummaries(roomIds),
-        );
-        final feeds = await _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds));
-        final memberCounts = await _withNetworkTimeout(
-          _fetchRoomMemberCounts(roomIds),
-        );
-        final unreadCounts = await _withNetworkTimeout(
-          _fetchRoomUnreadCounts(roomIds, userId),
-        );
-        try {
-          equippedSkusByRoom.addAll(
-            await _withNetworkTimeout(_fetchRoomEquippedSkus(roomIds)),
-          );
+        // Equipment is best-effort: never let it fail or block the others.
+        final equippedSkusFuture =
+            _withNetworkTimeout(_fetchRoomEquippedSkus(roomIds))
+                .then<Map<String, Map<String, String>>?>((value) => value)
+                .catchError((_) => null);
+        // Fetch the independent per-room summaries concurrently instead of in
+        // five serial round-trips.
+        final results = await Future.wait<Object>([
+          _withNetworkTimeout(_fetchRoomPetSummaries(roomIds)),
+          _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds)),
+          _withNetworkTimeout(_fetchRoomMemberCounts(roomIds)),
+          _withNetworkTimeout(_fetchRoomUnreadCounts(roomIds, userId)),
+        ]);
+        final petSummaries = results[0] as Map<String, _RoomPetSummary>;
+        final feeds = results[1] as Map<String, _RoomLatestFeed>;
+        final memberCounts = results[2] as Map<String, int>;
+        final unreadCounts = results[3] as Map<String, int>;
+        final equippedSkus = await equippedSkusFuture;
+        if (equippedSkus != null) {
+          equippedSkusByRoom.addAll(equippedSkus);
           equippedSkusFetched = true;
-        } catch (_) {
-          // Best-effort: room cards still render the pet without equipment.
         }
         unreadCountsByRoom.addAll(unreadCounts);
         for (final room in rooms) {
@@ -277,15 +281,25 @@ extension _HomeRoomManager on _HomeViewState {
       appVersion: _currentAppVersion,
     );
     final likelyDeparted = _isRoomLikelyDeparted(roomId);
+    // Warm entry: a room visited earlier this session still has its pet id and
+    // last state cached, so we can paint it instantly and refresh in the
+    // background instead of holding the entry-loading overlay.
+    final cachedPetId = _petIdByRoom[roomId];
+    final cachedPetState = _petStateByRoom[roomId];
+    final warmEntry =
+        showEntryLoading &&
+        !likelyDeparted &&
+        cachedPetId != null &&
+        cachedPetState != null;
     _setStateForRoomManager(() {
       _roomId = roomId;
-      _petState = null;
-      _petId = null;
+      _petState = warmEntry ? cachedPetState : null;
+      _petId = warmEntry ? cachedPetId : null;
       _equippedItemsBySlot.clear();
       _ownedEquipmentItems.clear();
       _equipmentError = null;
       _equipmentLoading = false;
-      _petStateReady = false;
+      _petStateReady = warmEntry;
       _lastOverfedAt = null;
       _overfedFeedEventArmedAt = null;
       _showOverfedBubble = false;
@@ -296,7 +310,7 @@ extension _HomeRoomManager on _HomeViewState {
       _petLevel = null;
       _petExp = null;
       _petType = nextPetType;
-      _roomEntryLoading = showEntryLoading;
+      _roomEntryLoading = showEntryLoading && !warmEntry;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
       _photoFoodImageSource = null;
@@ -336,7 +350,7 @@ extension _HomeRoomManager on _HomeViewState {
         roomId: roomId,
       ),
     );
-    if (showEntryLoading) {
+    if (showEntryLoading && !warmEntry) {
       unawaited(
         _loadRoomEntryCore(
           roomEntryToken: roomEntryToken,
@@ -344,6 +358,8 @@ extension _HomeRoomManager on _HomeViewState {
         ),
       );
     } else {
+      // Cold non-loading switches and warm entries both just refresh in the
+      // background; the room is already (or about to be) visible.
       unawaited(_refreshPetState(tick: true));
     }
     unawaited(_refreshLatestFeed(roomId));

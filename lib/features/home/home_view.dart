@@ -672,12 +672,18 @@ class _HomeViewState extends ConsumerState<HomeView>
   // --- Logic Methods ---
   Future<void> _bootstrapHome() async {
     await _restoreHomeBootstrapCache();
+    // Pro-plan status only drives room locking, which re-applies reactively via
+    // setState — don't let RevenueCat gate first paint.
+    unawaited(_refreshProPlanStatus());
+    // Rooms are the slow part and don't depend on the profile/coins reads, so
+    // fetch them concurrently instead of after them.
+    final roomsFuture = _fetchRooms();
     await _ensureProfile();
-    await _refreshProPlanStatus();
     await _loadCoins();
-    await _fetchRooms();
+    await roomsFuture;
     if (mounted && _showRoomSelection) {
-      await _refreshRoomSelectionHealthBars();
+      // The fetch above is authoritative; only tick decay + patch health here.
+      await _refreshRoomSelectionHealthBars(summariesOnly: true);
     }
     _homeBootstrapCompleted = true;
     unawaited(_processPendingInviteLink());
@@ -2321,7 +2327,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_loadPetInfo(petId, roomId: roomId));
 
       if (tick) {
-        await _tickPetStateAndDispatchAlerts(petId: petId, roomId: roomId);
+        // Decay must land before we read health, but alert dispatch is a pure
+        // side effect — don't keep the room-entry overlay up for it.
+        await _tickPetStateRpc(petId);
+        unawaited(_dispatchNewHungerAlerts(petId: petId, roomId: roomId));
       }
 
       final state = await Supabase.instance.client
@@ -3427,7 +3436,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_refreshRoomSelectionHealthBars());
   }
 
-  Future<void> _refreshRoomSelectionHealthBars() async {
+  Future<void> _refreshRoomSelectionHealthBars({
+    bool summariesOnly = false,
+  }) async {
     if (_roomSelectionRefreshInFlight) {
       return;
     }
@@ -3480,7 +3491,13 @@ class _HomeViewState extends ConsumerState<HomeView>
         // Best-effort: still reload rooms below.
       }
 
-      await _fetchRooms();
+      if (summariesOnly) {
+        // Cold start already ran a full _fetchRooms; only the freshly-ticked
+        // health/level needs patching, so skip the second full room fetch.
+        await _patchRoomSelectionPetSummaries(roomIds);
+      } else {
+        await _fetchRooms();
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -3492,6 +3509,35 @@ class _HomeViewState extends ConsumerState<HomeView>
         _showRoomSelectionRefreshIndicator = false;
       }
     }
+  }
+
+  /// Re-reads only the per-room pet summaries (health, level, name, type) and
+  /// patches them into `_myRooms`, leaving feeds/unread/members untouched.
+  Future<void> _patchRoomSelectionPetSummaries(List<String> roomIds) async {
+    if (roomIds.isEmpty) {
+      return;
+    }
+    final summaries = await _fetchRoomPetSummaries(roomIds);
+    if (!mounted || summaries.isEmpty) {
+      return;
+    }
+    setState(() {
+      _myRooms = _myRooms.map((room) {
+        final roomId = room['id'] as String?;
+        final summary = roomId == null ? null : summaries[roomId];
+        if (summary == null) {
+          return room;
+        }
+        return {
+          ...room,
+          'pet_type': summary.petType,
+          'pet_health': summary.healthValue,
+          'pet_name': summary.petName,
+          'pet_level': summary.petLevel,
+        };
+      }).toList();
+    });
+    _syncRoomProviders();
   }
 
   Future<void> _openStoreFromNav() async {
@@ -3648,6 +3694,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     required String petId,
     required String roomId,
   }) async {
+    await _tickPetStateRpc(petId);
+    await _dispatchNewHungerAlerts(petId: petId, roomId: roomId);
+  }
+
+  Future<void> _tickPetStateRpc(String petId) async {
     await Supabase.instance.client.rpc(
       'tick_pet_state',
       params: {
@@ -3655,7 +3706,6 @@ class _HomeViewState extends ConsumerState<HomeView>
         'p_now': DateTime.now().toUtc().toIso8601String(),
       },
     );
-    await _dispatchNewHungerAlerts(petId: petId, roomId: roomId);
   }
 
   Future<void> _dispatchNewHungerAlerts({
