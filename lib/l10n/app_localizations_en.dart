@@ -632,6 +632,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get feedRecallPhotoAction => 'Recall';
+
+  @override
+  String get feedRecallPhotoTitle => 'Recall photo';
+
+  @override
+  String get feedRecallPhotoConfirm =>
+      'This photo will be removed for everyone. Coins and your pet\'s meal are kept.';
+
+  @override
+  String feedRecallPhotoFailed(Object error) {
+    return 'Recall failed: $error';
+  }
+
+  @override
   String get feedRewardPending => 'Reward pending...';
 
   @override

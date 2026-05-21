@@ -334,6 +334,15 @@
       "error": {}
     }
   },
+  "feedRecallPhotoAction": "取り消す",
+  "feedRecallPhotoTitle": "写真を取り消す",
+  "feedRecallPhotoConfirm": "この写真は全員から削除されます。コインとペットのごはんはそのまま残ります。",
+  "feedRecallPhotoFailed": "取り消しに失敗しました: {error}",
+  "@feedRecallPhotoFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "feedRewardPending": "報酬を計算中...",
   "crashRecoveryAction": "わかりました",
   "crashRecoveryMessage": "ゲームが予期せず中断したようです。Appを閉じてからもう一度開いてお試しください。問題が続く場合は、しばらくしてから再度お試しください。",

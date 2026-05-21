@@ -329,6 +329,15 @@
       "error": {}
     }
   },
+  "feedRecallPhotoAction": "撤回",
+  "feedRecallPhotoTitle": "撤回照片",
+  "feedRecallPhotoConfirm": "这张照片将对所有人删除。金币和宠物吃的饭都会保留。",
+  "feedRecallPhotoFailed": "撤回失败：{error}",
+  "@feedRecallPhotoFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "feedRewardPending": "獎勵計算中...",
   "crashRecoveryAction": "知道了",
   "crashRecoveryMessage": "游戏刚才似乎异常中断，请关闭 App 后重新打开再试一次。如果问题持续，请稍后再试。",

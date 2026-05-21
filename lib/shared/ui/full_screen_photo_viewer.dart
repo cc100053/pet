@@ -23,6 +23,7 @@ typedef PhotoViewerReactionHandler =
       String emoji,
       String? currentReactionEmoji,
     );
+typedef PhotoViewerDeleteHandler = Future<void> Function(PhotoViewerItem item);
 
 /// iPhone-style full-screen photo viewer with:
 /// - Double-tap to zoom
@@ -38,6 +39,8 @@ class FullScreenPhotoViewer extends StatefulWidget {
     this.cacheManager,
     this.onSendReply,
     this.onToggleReaction,
+    this.onDeletePhoto,
+    this.currentUserId,
   });
 
   final List<PhotoViewerItem> items;
@@ -47,6 +50,14 @@ class FullScreenPhotoViewer extends StatefulWidget {
   final PhotoViewerReplyHandler? onSendReply;
   final PhotoViewerReactionHandler? onToggleReaction;
 
+  /// Invoked when the viewer recalls (un-sends) the user's own photo. The
+  /// caller is responsible for the server delete and refreshing its own state;
+  /// the viewer closes itself after this completes.
+  final PhotoViewerDeleteHandler? onDeletePhoto;
+
+  /// Current signed-in user id; recall is only offered on this user's photos.
+  final String? currentUserId;
+
   static Future<int?> open(
     BuildContext context, {
     required List<PhotoViewerItem> items,
@@ -55,6 +66,8 @@ class FullScreenPhotoViewer extends StatefulWidget {
     BaseCacheManager? cacheManager,
     PhotoViewerReplyHandler? onSendReply,
     PhotoViewerReactionHandler? onToggleReaction,
+    PhotoViewerDeleteHandler? onDeletePhoto,
+    String? currentUserId,
   }) {
     if (items.isEmpty) {
       return Future<int?>.value(null);
@@ -72,6 +85,8 @@ class FullScreenPhotoViewer extends StatefulWidget {
               cacheManager: cacheManager,
               onSendReply: onSendReply,
               onToggleReaction: onToggleReaction,
+              onDeletePhoto: onDeletePhoto,
+              currentUserId: currentUserId,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -111,6 +126,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
   bool _savingToGallery = false;
   bool _showDownloadedIcon = false;
   bool _showReplySentState = false;
+  bool _recalling = false;
   final Map<String, String?> _selectedReactionByMessageId = <String, String?>{};
   Timer? _downloadedIconTimer;
   Timer? _replySentTimer;
@@ -421,6 +437,67 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
       _currentItem.canChatInteract &&
       (widget.onSendReply != null || widget.onToggleReaction != null);
 
+  bool get _canRecallCurrent {
+    if (widget.onDeletePhoto == null) {
+      return false;
+    }
+    final messageId = _currentItem.messageId?.trim();
+    final senderId = _currentItem.senderId?.trim();
+    final currentUserId = widget.currentUserId?.trim();
+    return messageId != null &&
+        messageId.isNotEmpty &&
+        senderId != null &&
+        senderId.isNotEmpty &&
+        currentUserId != null &&
+        senderId == currentUserId;
+  }
+
+  Future<void> _recallCurrentPhoto() async {
+    if (_recalling || !_canRecallCurrent) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final item = _currentItem;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.feedRecallPhotoTitle),
+        content: Text(l10n.feedRecallPhotoConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.feedRecallPhotoAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    setState(() => _recalling = true);
+    try {
+      await widget.onDeletePhoto!(item);
+      if (!mounted) {
+        return;
+      }
+      navigator.pop(_currentIndex);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _recalling = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.feedRecallPhotoFailed(error.toString()))),
+      );
+    }
+  }
+
   String? get _currentReactionEmoji {
     final messageId = _currentItem.messageId?.trim();
     if (messageId == null || messageId.isEmpty) {
@@ -679,6 +756,24 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
                       : null,
                 ),
                 const Spacer(),
+                if (_canRecallCurrent)
+                  _buildTopCircleIconButton(
+                    onPressed: _recalling ? null : _recallCurrentPhoto,
+                    icon: Icons.delete_outline_rounded,
+                    tooltip: l10n.feedRecallPhotoAction,
+                    iconChild: _recalling
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
                 _buildTopCircleIconButton(
                   onPressed: _closeWithCurrentIndex,
                   icon: Icons.close,

@@ -84,6 +84,26 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     return null;
   }
 
+  void _handleFeedPhotoRecalled(String messageId) {
+    final trimmed = messageId.trim();
+    if (trimmed.isEmpty || !mounted) {
+      return;
+    }
+    // Drop the recalled photo from the active room's gallery immediately, then
+    // reconcile against the server (also catches the room snapshot).
+    if (_latestFeedMessageIds.contains(trimmed)) {
+      _setStateForFeedOrchestrator(() {
+        final data = _currentLatestFeedData().removeByMessageId(trimmed);
+        _applyLatestFeedData(data);
+      });
+    }
+    final roomId = _roomId;
+    if (roomId != null) {
+      unawaited(_refreshLatestRoomPhoto(roomId));
+      unawaited(_refreshLatestFeed(roomId));
+    }
+  }
+
   Future<void> _refreshLatestRoomPhoto(String roomId) async {
     try {
       final rows = await Supabase.instance.client

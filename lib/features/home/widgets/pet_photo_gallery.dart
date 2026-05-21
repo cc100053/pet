@@ -22,11 +22,13 @@ class PetPhotoGallery extends StatefulWidget {
     required this.captions,
     required this.sentAts,
     required this.messageIds,
+    this.senderIds = const <String?>[],
     this.isRefreshing = false,
     this.jumpToLatestEventId = 0,
     required this.senderAvatars,
     required this.senderFallbackTexts,
     required this.onPlaceholderTap,
+    this.onPhotoRecalled,
   });
 
   final String? roomId;
@@ -34,11 +36,16 @@ class PetPhotoGallery extends StatefulWidget {
   final List<String?> captions;
   final List<DateTime?> sentAts;
   final List<String?> messageIds;
+  final List<String?> senderIds;
   final bool isRefreshing;
   final int jumpToLatestEventId;
   final List<String?> senderAvatars;
   final List<String?> senderFallbackTexts;
   final VoidCallback onPlaceholderTap;
+
+  /// Called after a photo the current user sent is recalled (un-sent), so the
+  /// host can drop it locally and refresh.
+  final ValueChanged<String>? onPhotoRecalled;
 
   @override
   State<PetPhotoGallery> createState() => _PetPhotoGalleryState();
@@ -112,6 +119,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
     if (!mounted) {
       return;
     }
+    final currentUserId = _currentUserIdOrNull();
     final items = List<PhotoViewerItem>.generate(
       urls.length,
       (i) => PhotoViewerItem(
@@ -120,6 +128,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
         senderName: i < widget.senderFallbackTexts.length
             ? widget.senderFallbackTexts[i]
             : null,
+        senderId: i < widget.senderIds.length ? widget.senderIds[i] : null,
         sentAt: i < widget.sentAts.length ? widget.sentAts[i] : null,
         localImagePath: urls[i].startsWith('http') ? null : urls[i],
         roomId: widget.roomId,
@@ -139,6 +148,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
       context,
       items: items,
       initialIndex: index,
+      currentUserId: currentUserId,
       onSendReply: (item, text) =>
           ChatMessageActionService.instance.sendTextReply(
             roomId: item.roomId!,
@@ -152,6 +162,15 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
             emoji: emoji,
             currentReactionEmoji: currentReactionEmoji,
           ),
+      onDeletePhoto: (item) async {
+        // Reuses delete_message (extended server-side to image_feed); recalling
+        // keeps coins and the pet's meal, only removing the photo.
+        await ChatMessageActionService.instance.deleteTextMessageRow(
+          roomId: item.roomId!,
+          messageId: item.messageId!,
+        );
+        widget.onPhotoRecalled?.call(item.messageId!);
+      },
     );
     if (!mounted || resultIndex == null || !_pageController.hasClients) {
       return;
@@ -166,6 +185,15 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
       return;
     }
     setState(() => _page = target.toDouble());
+  }
+
+  String? _currentUserIdOrNull() {
+    try {
+      return Supabase.instance.client.auth.currentUser?.id;
+    } catch (_) {
+      // Supabase may be uninitialized (e.g. widget tests); recall just hides.
+      return null;
+    }
   }
 
   Future<Map<String, String>> _loadSelectedReactions() async {

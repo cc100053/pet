@@ -120,6 +120,36 @@ void main() {
       expect(mapped.metadata?[PetChatMessageAdapter.coinsAwardedKey], 40);
     });
 
+    test('maps recalled (deleted) feed photos to deleted placeholder', () {
+      final message = ChatMessage(
+        id: 'feed-deleted',
+        roomId: 'room',
+        senderId: 'user-a',
+        type: 'image_feed',
+        body: null,
+        imageUrl: null,
+        caption: null,
+        coinsAwarded: 40,
+        createdAt: DateTime.utc(2026, 3, 10, 13),
+        clientCreatedAt: DateTime.utc(2026, 3, 10, 13),
+        labels: const [],
+        localImagePath: null,
+        deletedAt: DateTime.utc(2026, 5, 21, 12),
+        deletedBy: 'user-a',
+      );
+
+      final mapped = PetChatMessageAdapter.toUiMessage(message, l10n);
+
+      // A recalled photo must render as the tombstone text, not an image card.
+      expect(mapped, isA<fc.TextMessage>());
+      expect((mapped as fc.TextMessage).text, l10n.chatMessageDeleted);
+      expect(mapped.metadata?[PetChatMessageAdapter.isDeletedKey], isTrue);
+      expect(
+        PetChatMessageAdapter.previewTextForMessage(message, l10n),
+        l10n.chatMessageDeleted,
+      );
+    });
+
     test('formats feed reward labels with localized candy text', () {
       final zh = lookupAppLocalizations(const Locale('zh'));
 

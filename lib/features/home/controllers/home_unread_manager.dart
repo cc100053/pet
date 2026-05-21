@@ -32,6 +32,22 @@ extension _HomeUnreadManager on _HomeViewState {
           _handleMessageInsert(payload.newRecord);
         },
       );
+      channel.onPostgresChanges(
+        event: PostgresChangeEvent.update,
+        schema: 'public',
+        table: 'messages',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'room_id',
+          value: roomId,
+        ),
+        callback: (payload) {
+          if (_messageChannels[roomId] != channel) {
+            return;
+          }
+          _handleMessageUpdate(payload.newRecord);
+        },
+      );
       channel.subscribe();
       _messageChannels[roomId] = channel;
     }
@@ -346,6 +362,42 @@ extension _HomeUnreadManager on _HomeViewState {
     if (senderId != null && senderId.isNotEmpty) {
       unawaited(_ensureProfileSummary(senderId));
     }
+  }
+
+  void _handleMessageUpdate(Map<String, dynamic> record) {
+    // Currently only recalled feed photos need a gallery refresh: an image_feed
+    // row whose deleted_at is now set should drop out of the gallery + room
+    // snapshot for every member.
+    if (record['type'] != 'image_feed') {
+      return;
+    }
+    if (_parseOptionalDate(record['deleted_at']) == null) {
+      return;
+    }
+    final messageId = (record['id'] as String?)?.trim();
+    final roomId = (record['room_id'] as String?)?.trim();
+    if (messageId == null ||
+        messageId.isEmpty ||
+        roomId == null ||
+        roomId.isEmpty) {
+      return;
+    }
+    _setStateForUnreadMutation(() {
+      if (roomId == _roomId) {
+        _applyLatestFeedData(
+          _currentLatestFeedData().removeByMessageId(messageId),
+        );
+      }
+      _myRooms = _myRooms.map((room) {
+        if (room['id'] != roomId) {
+          return room;
+        }
+        final next = PetHomeGalleryFeedData.fromRoomSnapshot(
+          room,
+        ).removeByMessageId(messageId);
+        return next.applyToRoomSnapshot(room);
+      }).toList();
+    });
   }
 
   void _handleSystemMessageInsert(Map<String, dynamic> record) {

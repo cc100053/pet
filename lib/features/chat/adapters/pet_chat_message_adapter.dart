@@ -47,7 +47,10 @@ class PetChatMessageAdapter {
       );
     }
 
-    if (message.isImageFeed) {
+    // A recalled photo (deleted image_feed) must render as the tombstone, not
+    // an empty image card, so the deleted check takes priority over the
+    // image_feed branch below.
+    if (message.isImageFeed && !message.isDeleted) {
       return fc.Message.custom(
         id: message.id,
         authorId: authorId,
@@ -87,12 +90,12 @@ class PetChatMessageAdapter {
     if (message.isSystem) {
       return localizedSystemText(message, l10n);
     }
+    if (message.isDeleted) {
+      return l10n.chatMessageDeleted;
+    }
     if (message.isImageFeed) {
       final caption = (message.caption ?? '').trim();
       return caption.isNotEmpty ? caption : l10n.feedTitle;
-    }
-    if (message.isDeleted) {
-      return l10n.chatMessageDeleted;
     }
     final body = (message.body ?? '').trim();
     return body.isNotEmpty ? body : l10n.chatMessageHint;
@@ -102,12 +105,12 @@ class PetChatMessageAdapter {
     ChatReplyPreview preview,
     AppLocalizations l10n,
   ) {
+    if (preview.isDeleted) {
+      return l10n.chatMessageDeleted;
+    }
     if (preview.isImageFeed) {
       final caption = (preview.caption ?? '').trim();
       return caption.isNotEmpty ? caption : l10n.feedTitle;
-    }
-    if (preview.isDeleted) {
-      return l10n.chatMessageDeleted;
     }
     final body = (preview.body ?? '').trim();
     return body.isNotEmpty ? body : l10n.chatMessageHint;

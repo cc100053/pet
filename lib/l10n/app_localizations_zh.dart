@@ -605,6 +605,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get feedRecallPhotoAction => '撤回';
+
+  @override
+  String get feedRecallPhotoTitle => '撤回照片';
+
+  @override
+  String get feedRecallPhotoConfirm => '这张照片将对所有人删除。金币和宠物吃的饭都会保留。';
+
+  @override
+  String feedRecallPhotoFailed(Object error) {
+    return '撤回失败：$error';
+  }
+
+  @override
   String get feedRewardPending => '獎勵計算中...';
 
   @override
@@ -2482,6 +2496,20 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String feedUploadFailed(Object error) {
     return '餵食上傳失敗：$error';
+  }
+
+  @override
+  String get feedRecallPhotoAction => '收回';
+
+  @override
+  String get feedRecallPhotoTitle => '收回照片';
+
+  @override
+  String get feedRecallPhotoConfirm => '這張照片將對所有人刪除。金幣和寵物吃的飯都會保留。';
+
+  @override
+  String feedRecallPhotoFailed(Object error) {
+    return '收回失敗：$error';
   }
 
   @override

@@ -1171,6 +1171,30 @@ abstract class AppLocalizations {
   /// **'Feed upload failed: {error}'**
   String feedUploadFailed(Object error);
 
+  /// No description provided for @feedRecallPhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Recall'**
+  String get feedRecallPhotoAction;
+
+  /// No description provided for @feedRecallPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recall photo'**
+  String get feedRecallPhotoTitle;
+
+  /// No description provided for @feedRecallPhotoConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo will be removed for everyone. Coins and your pet\'s meal are kept.'**
+  String get feedRecallPhotoConfirm;
+
+  /// No description provided for @feedRecallPhotoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recall failed: {error}'**
+  String feedRecallPhotoFailed(Object error);
+
   /// No description provided for @feedRewardPending.
   ///
   /// In en, this message translates to:

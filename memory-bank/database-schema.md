@@ -102,7 +102,10 @@ applied migration that rewrites the object.
   `room_extra_pets`; the one-arg legacy `get_pet_equipment` has no pet check)
 - Shop/equipment/furniture: `get_visible_shop_items`, purchase/grant RPCs,
   equip/unequip/get inventory RPCs, furniture transform helpers
-- Chat/unread: `edit_message`, `delete_message`, unread-count RPCs
+- Chat/unread: `edit_message` (text-only), `delete_message` (sender soft-delete
+  of own `text` OR `image_feed`; image_feed recall also nulls `image_url` +
+  `caption`, keeps `coins_awarded`, does not reverse pet feeding — migration
+  `20260521104158_delete_message_allow_image_feed`), unread-count RPCs
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use `(select auth.uid())`,

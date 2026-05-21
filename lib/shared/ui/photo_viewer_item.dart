@@ -3,6 +3,7 @@ class PhotoViewerItem {
     required this.imageUrl,
     this.caption,
     this.senderName,
+    this.senderId,
     this.sentAt,
     this.localImagePath,
     this.roomId,
@@ -13,6 +14,7 @@ class PhotoViewerItem {
   final String imageUrl;
   final String? caption;
   final String? senderName;
+  final String? senderId;
   final DateTime? sentAt;
   final String? localImagePath;
   final String? roomId;

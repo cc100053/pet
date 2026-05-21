@@ -614,6 +614,21 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get feedRecallPhotoAction => '회수';
+
+  @override
+  String get feedRecallPhotoTitle => '사진 회수';
+
+  @override
+  String get feedRecallPhotoConfirm =>
+      '이 사진은 모두에게서 삭제됩니다. 코인과 반려동물의 먹이는 그대로 유지됩니다.';
+
+  @override
+  String feedRecallPhotoFailed(Object error) {
+    return '회수 실패: $error';
+  }
+
+  @override
   String get feedRewardPending => '보상 계산 중...';
 
   @override

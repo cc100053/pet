@@ -29,6 +29,28 @@ void main() {
       expect(next.imageUrls, isNot(contains('https://example.com/0.jpg')));
     });
 
+    test('removeByMessageId drops the recalled photo and keeps the rest', () {
+      var data = const PetHomeGalleryFeedData.empty();
+      for (var i = 0; i < 3; i++) {
+        data = data.prependEntry(
+          imageUrl: 'https://example.com/$i.jpg',
+          caption: 'caption $i',
+          senderId: 'sender-$i',
+          sentAt: DateTime.utc(2026, 5, 21, 0, i),
+          messageId: 'message-$i',
+        );
+      }
+
+      final next = data.removeByMessageId('message-1');
+
+      expect(next.messageIds, isNot(contains('message-1')));
+      expect(next.imageUrls, isNot(contains('https://example.com/1.jpg')));
+      expect(next.messageIds, hasLength(2));
+      expect(next.messageIds, containsAll(<String>['message-0', 'message-2']));
+      // Unknown ids leave the data untouched.
+      expect(identical(next.removeByMessageId('missing'), next), isTrue);
+    });
+
     test('reconciles optimistic local image with canonical remote image', () {
       final pending = PendingPetHomeOptimisticFeed(
         tempId: 'temp-1',

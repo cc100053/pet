@@ -334,6 +334,15 @@
       "error": {}
     }
   },
+  "feedRecallPhotoAction": "Recall",
+  "feedRecallPhotoTitle": "Recall photo",
+  "feedRecallPhotoConfirm": "This photo will be removed for everyone. Coins and your pet's meal are kept.",
+  "feedRecallPhotoFailed": "Recall failed: {error}",
+  "@feedRecallPhotoFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "feedRewardPending": "Reward pending...",
   "crashRecoveryAction": "Got it",
   "crashRecoveryMessage": "The game seems to have stopped unexpectedly. Please close the app and open it again. If the problem continues, try again later.",

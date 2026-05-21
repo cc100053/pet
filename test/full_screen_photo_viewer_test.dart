@@ -15,6 +15,8 @@ Future<void> _pumpViewer(
   BaseCacheManager? cacheManager,
   PhotoViewerReplyHandler? onSendReply,
   PhotoViewerReactionHandler? onToggleReaction,
+  PhotoViewerDeleteHandler? onDeletePhoto,
+  String? currentUserId,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -31,6 +33,8 @@ Future<void> _pumpViewer(
         cacheManager: cacheManager,
         onSendReply: onSendReply,
         onToggleReaction: onToggleReaction,
+        onDeletePhoto: onDeletePhoto,
+        currentUserId: currentUserId,
       ),
     ),
   );
@@ -341,6 +345,57 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(selectedEmoji, '😀');
+  });
+
+  testWidgets('shows recall only on the current user\'s own photo', (
+    tester,
+  ) async {
+    await _pumpViewer(
+      tester,
+      items: <PhotoViewerItem>[
+        const PhotoViewerItem(
+          imageUrl: '',
+          roomId: 'room-1',
+          messageId: 'message-1',
+          senderId: 'other-user',
+        ),
+      ],
+      onDeletePhoto: (item) async {},
+      currentUserId: 'me',
+    );
+
+    expect(find.byIcon(Icons.delete_outline_rounded), findsNothing);
+  });
+
+  testWidgets('recalls own photo and forwards the delete', (tester) async {
+    PhotoViewerItem? recalledItem;
+
+    await _pumpViewer(
+      tester,
+      items: <PhotoViewerItem>[
+        const PhotoViewerItem(
+          imageUrl: '',
+          roomId: 'room-1',
+          messageId: 'message-1',
+          senderId: 'me',
+        ),
+      ],
+      onDeletePhoto: (item) async {
+        recalledItem = item;
+      },
+      currentUserId: 'me',
+    );
+
+    await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+    await tester.pumpAndSettle();
+
+    // Confirm in the recall dialog.
+    await tester.tap(find.text('Recall'));
+    await tester.pumpAndSettle();
+
+    expect(recalledItem?.messageId, 'message-1');
+    // Viewer pops itself after a successful recall.
+    expect(find.byType(FullScreenPhotoViewer), findsNothing);
   });
 }
 

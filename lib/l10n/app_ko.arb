@@ -332,6 +332,15 @@
       "error": {}
     }
   },
+  "feedRecallPhotoAction": "회수",
+  "feedRecallPhotoTitle": "사진 회수",
+  "feedRecallPhotoConfirm": "이 사진은 모두에게서 삭제됩니다. 코인과 반려동물의 먹이는 그대로 유지됩니다.",
+  "feedRecallPhotoFailed": "회수 실패: {error}",
+  "@feedRecallPhotoFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "feedRewardPending": "보상 계산 중...",
   "crashRecoveryAction": "확인",
   "crashRecoveryMessage": "게임이 방금 예상치 못하게 중단된 것 같아요. 앱을 닫았다가 다시 열어 시도해 주세요. 문제가 계속되면 잠시 후 다시 시도해 주세요.",

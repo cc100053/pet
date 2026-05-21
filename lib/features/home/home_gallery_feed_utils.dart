@@ -312,6 +312,22 @@ class PetHomeGalleryFeedData {
   bool containsImageUrl(String imageUrl) =>
       imageUrl.isNotEmpty && imageUrls.contains(imageUrl);
 
+  /// Drops the entry whose message id matches (used when a sent photo is
+  /// recalled). Returns the same instance when nothing matches.
+  PetHomeGalleryFeedData removeByMessageId(
+    String messageId, {
+    int maxItems = kPetHomeGalleryMaxPhotos,
+  }) {
+    final trimmed = messageId.trim();
+    if (trimmed.isEmpty || !messageIds.contains(trimmed)) {
+      return this;
+    }
+    final entries = _entries
+        .where((entry) => entry.messageId != trimmed)
+        .toList(growable: false);
+    return _fromEntries(entries, maxItems: maxItems);
+  }
+
   PetHomeGalleryRealtimeReconcileResult reconcilePendingRealtime({
     required PendingPetHomeOptimisticFeed pending,
     required String roomId,

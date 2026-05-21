@@ -607,6 +607,20 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get feedRecallPhotoAction => '取り消す';
+
+  @override
+  String get feedRecallPhotoTitle => '写真を取り消す';
+
+  @override
+  String get feedRecallPhotoConfirm => 'この写真は全員から削除されます。コインとペットのごはんはそのまま残ります。';
+
+  @override
+  String feedRecallPhotoFailed(Object error) {
+    return '取り消しに失敗しました: $error';
+  }
+
+  @override
   String get feedRewardPending => '報酬を計算中...';
 
   @override

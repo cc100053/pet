@@ -325,6 +325,15 @@
       "error": {}
     }
   },
+  "feedRecallPhotoAction": "收回",
+  "feedRecallPhotoTitle": "收回照片",
+  "feedRecallPhotoConfirm": "這張照片將對所有人刪除。金幣和寵物吃的飯都會保留。",
+  "feedRecallPhotoFailed": "收回失敗：{error}",
+  "@feedRecallPhotoFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "feedRewardPending": "獎勵計算中...",
   "crashRecoveryAction": "知道了",
   "crashRecoveryMessage": "遊戲剛才似乎異常中斷，請關閉 App 後重新開啟再試一次。若問題持續，請稍後再試。",

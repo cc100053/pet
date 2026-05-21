@@ -1930,13 +1930,15 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     return result;
   }
 
-  Future<bool> _confirmDeleteMessage() async {
+  Future<bool> _confirmDeleteMessage({bool isPhoto = false}) async {
     final l10n = AppLocalizations.of(context)!;
     final result = await showJuiceToast<bool>(
       context: context,
       position: JuicePosition.center,
       tone: AppDialogTone.danger,
-      message: l10n.chatDeleteMessageTitle,
+      message: isPhoto
+          ? l10n.feedRecallPhotoTitle
+          : l10n.chatDeleteMessageTitle,
       body: Builder(
         builder: (dialogContext) {
           void close(bool value) {
@@ -1949,7 +1951,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.chatDeleteMessageConfirm,
+                isPhoto
+                    ? l10n.feedRecallPhotoConfirm
+                    : l10n.chatDeleteMessageConfirm,
                 style: GoogleFonts.mPlusRounded1c(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1992,7 +1996,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
                         ),
                         child: Center(
                           child: Text(
-                            l10n.chatDeleteAction,
+                            isPhoto
+                                ? l10n.feedRecallPhotoAction
+                                : l10n.chatDeleteAction,
                             style: GoogleFonts.mPlusRounded1c(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
@@ -2059,10 +2065,11 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   Future<void> _deleteMessage(ChatMessage message) async {
-    if (message.isDeleted || message.type != 'text') {
+    final isImageFeed = message.type == 'image_feed';
+    if (message.isDeleted || !(message.type == 'text' || isImageFeed)) {
       return;
     }
-    if (!await _confirmDeleteMessage() || !mounted) {
+    if (!await _confirmDeleteMessage(isPhoto: isImageFeed) || !mounted) {
       return;
     }
 
@@ -2070,8 +2077,13 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         _runtime?.currentUserId ??
         Supabase.instance.client.auth.currentUser?.id;
     final previous = _messagesById[message.id] ?? message;
+    // Recalling a photo also drops its image + caption so the tombstone shows
+    // nothing leaked; the server applies the same change.
     final optimistic = previous.copyWith(
       clearBody: true,
+      clearImageUrl: isImageFeed,
+      clearLocalImagePath: isImageFeed,
+      clearCaption: isImageFeed,
       deletedAt: DateTime.now().toUtc(),
       deletedBy: userId,
       reactions: const <ChatMessageReactionSummary>[],
@@ -2150,7 +2162,11 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
 
     final isMine = senderId == _currentUserId;
-    final canEditDelete = isMine && message.type == 'text';
+    // Editing stays text-only; recall (delete) also covers the user's own
+    // photos so a sent photo can be un-sent.
+    final canEdit = isMine && message.type == 'text';
+    final canDelete =
+        isMine && (message.type == 'text' || message.type == 'image_feed');
     final isBlocked = _blockedUserIds.contains(senderId);
     final copyText = _copyTextForMessage(message);
     ChatMessageReactionSummary? myReaction;
@@ -2185,8 +2201,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         reactionOptions: kChatQuickReactionOptions,
         selectedReaction: myReaction?.emoji,
         copyEnabled: copyText != null,
-        editEnabled: canEditDelete,
-        deleteEnabled: canEditDelete,
+        editEnabled: canEdit,
+        deleteEnabled: canDelete,
         isMine: isMine,
         isBlocked: isBlocked,
         onReactionSelected: (emoji) => Navigator.pop(

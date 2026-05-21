@@ -17,6 +17,41 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Review (2026-05-21 Recall Sent Photo)
+Recall = soft-delete the sender's own `image_feed` photo. Tombstone in chat,
+gone from home feed. NO coin claw-back, NO pet un-feed. Recallable anytime by
+the sender. Surfaces: chat + home feed.
+
+- Server: migration `20260521104158_delete_message_allow_image_feed` extends
+  `delete_message` to `type in ('text','image_feed')`; image_feed recall also
+  nulls `image_url` + `caption` (keeps `coins_awarded`). Owner + active-member
+  guard, SECURITY DEFINER, `search_path=''` preserved; `edit_message` untouched.
+  Applied via MCP after verifying the live def + project ref; file saved to
+  `supabase/migrations/`.
+- Backward-compat: recalled image_feed has null `image_url`; old home feed
+  queries already filter `.not(image_url,is,null)`, old chat clients fall back
+  to a grey placeholder card (no crash). Accepted by user.
+- Adapter (`pet_chat_message_adapter`): deleted check now precedes the
+  image_feed branch in `toUiMessage` + both preview helpers, so a recalled
+  photo shows the tombstone.
+- Chat: `_deleteMessage` accepts image_feed (optimistic clears
+  image/caption/local-path + sets deletedAt/By); `ChatMessage.copyWith` gained
+  `clearImageUrl/clearCaption/clearLocalImagePath`. Action sheet splits
+  `canEdit` (text) vs `canDelete` (text|image_feed); confirm dialog uses
+  photo-specific copy.
+- Home: `PhotoViewerItem.senderId` added; `FullScreenPhotoViewer` gained
+  `onDeletePhoto` + `currentUserId` and a recall button shown only on the
+  user's own photo (with confirm). `PetPhotoGallery` threads `senderIds`,
+  `onPhotoRecalled`, and a null-safe current-user read; recall reuses
+  `delete_message`. Home drops the photo locally
+  (`PetHomeGalleryFeedData.removeByMessageId`) and via a new `messages` UPDATE
+  realtime handler so other members refresh.
+- l10n: added `feedRecallPhotoAction/Title/Confirm/Failed` in
+  en/ja/ko/zh/zh_TW; regenerated.
+- Tests: adapter tombstone for recalled photo, viewer recall visibility +
+  forwarding, `removeByMessageId`. `flutter analyze` clean; `flutter test`
+  426 passed / 1 skipped; `dart format` applied.
+
 ## Review (2026-05-21 Multi-Pet Equipment & Hunger Fixes)
 - Equipping onto an extra pet failed with RLS 42501: `pet_equipment`
   INSERT/UPDATE `WITH CHECK` only validated `pets`. Migration
@@ -277,6 +312,34 @@ Latest historical snapshot before compaction:
   products and generated plugin package agree.
 - [x] Regenerate/check iOS dependency files and verify the generated package no
   longer advertises iOS 13.0.
+## Plan (2026-05-21 V2.0.0 Release Notes)
+- [x] Read release-notes workflow, active memory-bank files, current app version,
+  existing What's New catalog, ASC localization files, and recent git history.
+- [x] Draft localized ASC and bundled What's New copy for approval.
+- [x] Add approved V2.0.0 bundled What's New entries and localization keys.
+- [x] Update local ASC version localization `.strings` files.
+- [x] Run localization generation, analyzer, and tests.
+- [x] Record results and ASC sync.
+
+## Review (2026-05-21 V2.0.0 Release Notes)
+- Added bundled What's New entry `2.0.0` with localized copy in
+  `app_whats_new_catalog.dart` and `lib/l10n/app_*.arb`, then regenerated
+  Flutter localization files.
+- Updated local ASC version localization files for `en-US`, `ja`, `ko`, and
+  `zh-Hant` with V2.0.0 `promotionalText` and `whatsNew`.
+- Created App Store Connect version `2.0.0` for app `6757725650` by copying
+  metadata from `1.4.0`; new version ID:
+  `1fc934d6-90c8-4b94-802c-e35d0c5e0230`.
+- Uploaded and verified ASC localizations:
+  `en-US`, `ja`, `ko`, `zh-Hant`.
+- Verification:
+  `flutter gen-l10n` passed via `/opt/homebrew/bin/flutter` with pre-existing
+  untranslated-message notices for `ko` and `zh_TW`,
+  `git diff --check` passed,
+  `flutter analyze` passed,
+  `flutter test` passed with `test/feed_flow_integration_test.dart` skipped
+  for missing Supabase env vars.
+
 - [x] Run `flutter analyze` and `flutter test`, then record results.
 
 ## Review (2026-05-16 Firebase iOS Deployment Target Fix)

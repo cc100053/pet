@@ -5297,6 +5297,8 @@ class _HomeViewState extends ConsumerState<HomeView>
                   captions: _latestFeedCaptions,
                   sentAts: _latestFeedSentAts,
                   messageIds: _latestFeedMessageIds,
+                  senderIds: _latestFeedSenderIds,
+                  onPhotoRecalled: _handleFeedPhotoRecalled,
                   isRefreshing: _latestFeedRefreshInFlight,
                   jumpToLatestEventId: _latestFeedJumpToLatestEventId,
                   senderAvatars: List<String?>.generate(

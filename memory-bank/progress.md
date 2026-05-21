@@ -143,6 +143,18 @@ Active progress stays current-state focused. Full snapshots live in
 - Furniture editing supports selection, drag, scale, horizontal flip, and
   realtime shared-count refresh.
 - Chat is on `ChatRoomViewV2`; feed uploads run through the durable queue.
+- Sent photos are recallable by the sender (un-send). `delete_message` now
+  accepts `text` OR `image_feed`; recalling a photo soft-deletes it and nulls
+  `image_url`/`caption` while keeping `coins_awarded` and NOT reverting the
+  pet's feeding (the feed reward is already 10-min cooldown-gated). The chat
+  long-press sheet shows Delete for the user's own photo (edit stays
+  text-only); the home full-screen photo viewer shows a recall button only on
+  the current user's own photo (`onDeletePhoto` + `currentUserId`). The chat
+  adapter renders a deleted `image_feed` as the "deleted" tombstone (deleted
+  check now precedes the image branch). Home drops a recalled photo from the
+  gallery locally and via a new `messages` UPDATE realtime handler so other
+  members refresh too; old clients filter null-image feeds and fall back to a
+  grey placeholder card (no crash).
 - GEOFlow, multilingual SEO/GEO guides, Firebase Hosting static pages, invite
   fallbacks, app/universal-link files, and related automation live in
   `/Users/fatboy/geo-marketing`, not this Flutter app repo.
