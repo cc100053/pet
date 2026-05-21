@@ -17,6 +17,47 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Plan (2026-05-21 iOS Export Symbol Upload Warning)
+- [x] Add a repo-tracked App Store export options plist with Apple's immediate
+  symbol upload disabled.
+- [x] Add a repeatable archive export/upload script that uses the plist.
+- [x] Document the release workflow and verification steps.
+- [x] Run syntax/plist checks plus Flutter verification.
+
+## Review (2026-05-21 iOS Export Symbol Upload Warning)
+- Root cause: Xcode Organizer-generated App Store export options set
+  `uploadSymbols=true`, so `IDEDistributionSymbolsStep` tries Apple's immediate
+  symbol upload during export/upload. This can fail non-fatally even when the
+  archive contains dSYMs and App Store Connect later processes the build.
+- Added `ios/ExportOptions.app-store-nosymbols.plist` with the same App Store
+  Connect export settings but `uploadSymbols=false`.
+- Added `scripts/export_ios_appstore_no_apple_symbols.sh` to export/upload an
+  existing `.xcarchive` with the tracked plist.
+- Documented the release path in `docs/ios_app_store_export.md`, including ASC
+  validation and manual Crashlytics dSYM upload if needed.
+- Verification: `plutil -lint` passed, `sh -n` passed, `/opt/homebrew/bin/flutter
+  analyze` passed, and `/opt/homebrew/bin/flutter test` passed with the
+  feed-flow integration test skipped for missing Supabase env vars.
+
+## Review (2026-05-22 Calendar Day-Sheet Invisible Photos)
+- Symptom: calendar previews (grid cells, latest/recent cards) showed photos,
+  but tapping a day opened the day sheet where all photos were invisible.
+- Root cause: `_MemoryDaySheet` thumbnails pass `width: double.infinity,
+  height: 200` to `CachedNetworkImageView`. With the default
+  `relativeZoom` mode + both dims non-null, `_PortraitAwareImage` entered the
+  circular-avatar framing path; `_safeViewport` clamped the infinite width to
+  `1.0`, so `_baseImageSizeForContain` produced a ~1px image (effectively
+  blank). Preview cards pass no width/height, so they skipped that branch.
+- Fix: extracted the branch decision into `shouldUseAvatarFraming(...)` in
+  `lib/shared/ui/cached_network_image_view.dart`, now requiring `width`/`height`
+  to be FINITE. Non-finite dims fall through to the plain `BoxFit` path that
+  honors the caller's `fit` (full-width letterbox). Zero impact on legitimate
+  finite-size avatar callers (e.g. `home_latest_photo_card`, `user_avatar`).
+- Tests: added `shouldUseAvatarFraming` unit tests (infinite w/h → no framing;
+  finite → framing; legacyAbsolute/null → no framing). Verified they fail
+  against the pre-fix predicate. `flutter analyze` clean, `flutter test` green
+  (431 pass, feed-flow integration skipped for missing Supabase env vars).
+
 ## Review (2026-05-21 Recall Sent Photo)
 Recall = soft-delete the sender's own `image_feed` photo. Tombstone in chat,
 gone from home feed. NO coin claw-back, NO pet un-feed. Recallable anytime by

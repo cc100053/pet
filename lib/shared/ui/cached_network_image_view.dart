@@ -6,6 +6,25 @@ import '../utils/avatar_display_position.dart';
 import 'image_aspect_cache.dart';
 import 'local_file_image.dart';
 
+/// Whether an image should render through the relative-zoom avatar framing path
+/// (circular crop with pan/zoom) instead of the plain `BoxFit` path.
+///
+/// Framing derives a base image size from a finite viewport, so a non-finite
+/// dimension (e.g. `width: double.infinity` for a full-width letterboxed image)
+/// must not engage it: the math collapses to ~1px and the image disappears.
+@visibleForTesting
+bool shouldUseAvatarFraming({
+  required AvatarScaleMode avatarScaleMode,
+  required double? width,
+  required double? height,
+}) {
+  return avatarScaleMode == AvatarScaleMode.relativeZoom &&
+      width != null &&
+      height != null &&
+      width.isFinite &&
+      height.isFinite;
+}
+
 class CachedNetworkImageView extends StatelessWidget {
   const CachedNetworkImageView({
     super.key,
@@ -258,9 +277,11 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
   Widget build(BuildContext context) {
     final ratio =
         _aspectRatio ?? ImageAspectCache.instance.get(widget.imageUrl) ?? 1.0;
-    if (widget.avatarScaleMode == AvatarScaleMode.relativeZoom &&
-        widget.width != null &&
-        widget.height != null) {
+    if (shouldUseAvatarFraming(
+      avatarScaleMode: widget.avatarScaleMode,
+      width: widget.width,
+      height: widget.height,
+    )) {
       final viewport = Size(widget.width!, widget.height!);
       final transform = AvatarFramingTransform.resolve(
         viewport: viewport,

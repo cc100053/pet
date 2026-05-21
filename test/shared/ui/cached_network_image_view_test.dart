@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/shared/ui/cached_network_image_view.dart';
+import 'package:pet/shared/utils/avatar_display_position.dart';
 
 void main() {
   testWidgets('sizes remote image cache to rendered layout bounds', (
@@ -100,6 +101,67 @@ void main() {
     expect(image.memCacheWidth, 360);
     expect(image.memCacheHeight, 400);
     expect(tester.takeException(), isNull);
+  });
+
+  group('shouldUseAvatarFraming', () {
+    // Regression: a full-width letterboxed image (e.g. the memory calendar day
+    // sheet uses width: double.infinity, height: 200) must NOT engage avatar
+    // framing. The framing path clamps the infinite viewport to ~1px and the
+    // image disappears, so it must fall through to the plain BoxFit path.
+    test('does not frame when width is infinite', () {
+      expect(
+        shouldUseAvatarFraming(
+          avatarScaleMode: AvatarScaleMode.relativeZoom,
+          width: double.infinity,
+          height: 200,
+        ),
+        isFalse,
+      );
+    });
+
+    test('does not frame when height is infinite', () {
+      expect(
+        shouldUseAvatarFraming(
+          avatarScaleMode: AvatarScaleMode.relativeZoom,
+          width: 200,
+          height: double.infinity,
+        ),
+        isFalse,
+      );
+    });
+
+    test('frames finite relative-zoom dimensions (e.g. circular avatars)', () {
+      expect(
+        shouldUseAvatarFraming(
+          avatarScaleMode: AvatarScaleMode.relativeZoom,
+          width: 48,
+          height: 48,
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not frame legacy-absolute mode', () {
+      expect(
+        shouldUseAvatarFraming(
+          avatarScaleMode: AvatarScaleMode.legacyAbsolute,
+          width: 48,
+          height: 48,
+        ),
+        isFalse,
+      );
+    });
+
+    test('does not frame when a dimension is null', () {
+      expect(
+        shouldUseAvatarFraming(
+          avatarScaleMode: AvatarScaleMode.relativeZoom,
+          width: 48,
+          height: null,
+        ),
+        isFalse,
+      );
+    });
   });
 
   testWidgets('skips cache sizing when scale is NaN', (tester) async {
