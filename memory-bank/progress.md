@@ -47,7 +47,10 @@ Active progress stays current-state focused. Full snapshots live in
   targets so the on-screen main pet avatar is untouched. Every room pet now
   renders its own gear: `_loadAllPetEquipment` populates `_equippedSkusByPetId`
   (whole-room `pet_equipment` query) which feeds extras on screen, the selector
-  chips, and the main-pet switcher avatars. Long-pressing an on-screen extra
+  chips, the main-pet switcher avatars, and the on-screen MAIN pet too — it
+  reads `_equippedSkusByPetId[_petId]` first (falling back to the slower
+  per-pet `get_pet_equipment` map `_equippedSkusBySlot`) so its gear appears
+  together with the extras instead of popping on a 1-2s delay after room entry. Long-pressing an on-screen extra
   pet opens the rename dialog (`_openPetNameEditor(targetPet:)` reuses one
   prompt for main + extras; extra rename just reloads room pets). Equipment
   inventory dims items whose copies are all worn by other pets: home_view

@@ -847,6 +847,18 @@ extension _HomePetSceneBuilders on _HomeViewState {
       };
     }
 
+    // Render the main pet's gear from the whole-room equipment map
+    // (_loadAllPetEquipment), the same fast source the extras use, so it appears
+    // together with them. Fall back to _equippedSkusBySlot (the per-pet
+    // get_pet_equipment RPC) until that query lands — this avoids the 1-2s lag
+    // where the main pet popped its gear on a beat after entering the room.
+    final mainPetRoomSkus = _petId != null
+        ? _equippedSkusByPetId[_petId]
+        : null;
+    final mainPetSkus = (mainPetRoomSkus != null && mainPetRoomSkus.isNotEmpty)
+        ? mainPetRoomSkus
+        : _equippedSkusBySlot;
+
     return RepaintBoundary(
       child: _buildPetVisualForAsset(
         petId: _petType,
@@ -859,6 +871,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
             !_petEating,
         petFallbackColor: petColor,
         showSocketDebug: _showSocketDebug,
+        equippedSkusBySlot: mainPetSkus,
       ),
     );
   }
