@@ -91,6 +91,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: const [],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {},
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
@@ -138,6 +139,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: const [],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {},
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
@@ -183,6 +185,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: const [],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {},
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
@@ -227,6 +230,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: [item],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {},
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
@@ -291,6 +295,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: [hat, sunglasses],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {'head': 'hat'},
           equippedItemSkusBySlot: const {'head': 'equip_straw_hat'},
           equipmentLoading: false,
@@ -351,6 +356,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: [item],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {},
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,
@@ -388,6 +394,65 @@ void main() {
     expect(selected, ['p2']);
   });
 
+  testWidgets('dims an item whose copies are all worn by other pets', (
+    tester,
+  ) async {
+    final item = buildEquipmentItem();
+    var equipCalls = 0;
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          petType: 'ghost',
+          furnitureCatalog: const {},
+          furnitureInventory: const {},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (_) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          equipmentItems: [item],
+          // No free copies for this slot's item, and the selected pet isn't
+          // the one wearing it.
+          availableEquipmentCount: (_) => 0,
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
+          equipPets: const [],
+          selectedEquipPetId: null,
+          onSelectEquipPet: (_) {},
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+          onEquipItem: (_, _) async {
+            equipCalls++;
+          },
+          onUnequipItem: (_) async {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Equipment'));
+    await tester.pumpAndSettle();
+
+    // The strip swaps the item name for the "in use elsewhere" hint.
+    expect(find.text('On another pet'), findsOneWidget);
+    expect(find.text('Straw Hat'), findsNothing);
+
+    // Tapping the dimmed item does not preview it, so Equip stays disabled.
+    await tester.tap(find.text('On another pet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Equip'));
+    await tester.pumpAndSettle();
+
+    expect(equipCalls, 0);
+  });
+
   testWidgets('hides pet selector for single-pet rooms', (tester) async {
     final item = buildEquipmentItem();
 
@@ -407,6 +472,7 @@ void main() {
           backgroundErrorText: null,
           applyingBackgroundId: null,
           equipmentItems: [item],
+          availableEquipmentCount: (_) => 1,
           equippedItemIdsBySlot: const {},
           equippedItemSkusBySlot: const {},
           equipmentLoading: false,

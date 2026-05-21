@@ -49,7 +49,32 @@ Active progress stays current-state focused. Full snapshots live in
   (whole-room `pet_equipment` query) which feeds extras on screen, the selector
   chips, and the main-pet switcher avatars. Long-pressing an on-screen extra
   pet opens the rename dialog (`_openPetNameEditor(targetPet:)` reuses one
-  prompt for main + extras; extra rename just reloads room pets).
+  prompt for main + extras; extra rename just reloads room pets). Equipment
+  inventory dims items whose copies are all worn by other pets: home_view
+  tracks per-item room quantity (`_ownedEquipmentQtyById`, from
+  `get_room_equipment_inventory.total_quantity`) and computes
+  `_availableEquipmentCopies` (quantity minus copies worn across
+  `_equippedSkusByPetId`), passed to the panel so a fully-used item shows a
+  lock + "in use" label and can't be previewed/equipped; if a copy is grabbed
+  concurrently, `equip_pet_item`'s `equipment_copy_unavailable` is caught and
+  surfaced as a friendly snackbar instead of a raw error.
+- Room-selection preview gear is scoped to each room's `main_pet_id`:
+  `_fetchRoomEquippedSkus` first reads `rooms.id/main_pet_id` for the requested
+  rooms and keeps only `pet_equipment` rows whose `pet_id` matches the main pet
+  (it previously took all pets' rows, last-per-slot wins, so the preview showed
+  a mix and went stale after a main-pet switch). `set_room_main_pet` updates
+  `rooms.main_pet_id`, so a later `_fetchRooms` reflects the new main pet; the
+  active room is also corrected immediately via `_loadPetEquipment` writing the
+  new main pet's gear into `_roomEquippedSkusBySlot`.
+- Extra-pet equipment parity: `pet_equipment` INSERT/UPDATE RLS `WITH CHECK`
+  (migration `20260521120000_pet_equipment_policies_allow_extra_pets`) and the
+  `equip_pet_item` / `unequip_pet_item` / two-arg `get_pet_equipment` RPCs
+  (migration `20260521130000_equipment_rpcs_allow_extra_pets`) all validate the
+  pet against BOTH `pets` and `room_extra_pets`. Earlier versions only checked
+  `pets`, so equipping onto an extra pet hit RLS 42501, and reading/removing an
+  extra pet's gear raised `pet_not_found` (swallowed by
+  `_loadPanelEquipmentForSelectedPet`, leaving the panel preview blank and the
+  item locked/un-removable).
 - Home loading is latency-tuned. `_fetchRooms` runs its five per-room queries
   (pet summaries, latest feeds, member counts, unread counts, equipped skus)
   concurrently via `Future.wait` instead of serially; equipped skus stay
@@ -65,17 +90,35 @@ Active progress stays current-state focused. Full snapshots live in
   when a room was visited earlier; only cold first entries show the overlay.
   `_refreshPetState` awaits the `tick_pet_state` decay (health read depends on
   it) but dispatches hunger alerts unawaited so they never hold first paint.
-- Hunger/level are room-shared. `tick_pet_state` now mirrors its decay
-  result back into `room_pet_state` (not just the main pet's `pet_state`),
-  so switching the main pet no longer copies stale un-decayed hunger onto
-  the promoted pet (which previously made it appear to suddenly starve).
+- Hunger/level are room-shared. `tick_pet_state` mirrors its decay result back
+  into `room_pet_state` (not just the main pet's `pet_state`), and
+  `apply_pet_action` (the client feed/clean/touch path) likewise mirrors its
+  result into `room_pet_state` (migration
+  `20260521150000_apply_pet_action_mirrors_room_pet_state`). Both keep the
+  shared state authoritative, so switching the main pet — which syncs FROM
+  `room_pet_state` — no longer reverts hunger to a stale pre-feed/pre-decay
+  value.
+- Debug admins can freeze hunger decay per room through
+  `set_room_hunger_decay_paused(...)`. The override is expiring and
+  room-scoped, keeps both `pet_state` and `room_pet_state` alive, advances
+  `last_decay_at` while frozen so unfreezing does not trigger catch-up decay,
+  and parks the server hunger schedule until the freeze expires.
 - Main-pet switch: after `set_room_main_pet`, Home repoints `_petId` to the
   promoted pet (clearing the stale subscription) so `_refreshPetState` loads
   the correct pet; a `pet_not_found` from a stale switcher list is recovered
   silently by reloading. `set_room_main_pet` sets a transaction-local flag
   (`app.skip_pet_equipment_cleanup`) while it hops rows between `pets` and
   `room_extra_pets`, so the pet-delete cleanup trigger does not wipe a pet's
-  equipment during a swap.
+  equipment during a swap. The switch also re-materializes the promoted pet's
+  `pet_state` (via `sync_room_pet_state_to_main_pet_state`): the new row is
+  inserted at the default hunger (100) then dropped to the shared low room
+  hunger, which the `handle_pet_hunger_alerts` BEFORE-UPDATE trigger used to
+  read as a fresh downward crossing — spawning a bogus `hunger_alert` system
+  message (chat entry + toast + `notify_friend` push) on every switch. Migration
+  `20260521140000_suppress_hunger_alert_on_main_pet_swap` gates that trigger
+  behind a transaction-local `app.skip_hunger_alerts` flag and sets it around
+  the swap's sync call, so a swap can't manufacture a false alert; genuine
+  `tick_pet_state` decay still alerts normally.
 - Pet dress-up is live with room-scoped ownership/equip state. V1.4.0 slots are
   live-backed as `head` hats, `face` sunglasses, and `body` ribbon; `face`
   shares the app-side head socket anchor while staying independently equip-able.

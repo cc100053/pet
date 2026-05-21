@@ -468,6 +468,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugHungerDown => '펫 배고픔 -10';
 
   @override
+  String get drawerDebugHungerUp => '펫 배고픔 +20';
+
+  @override
   String get drawerDebugAddExp => 'EXP +10';
 
   @override
@@ -1529,6 +1532,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get equipmentNoneOwned => '아직 이 부위에 사용할 수 있는 장비가 없습니다.';
+
+  @override
+  String get equipmentCopyInUse => '다른 펫이 착용 중';
+
+  @override
+  String get equipmentCopyUnavailable =>
+      '이 아이템은 모두 다른 펫이 착용 중입니다. 여러 펫에게 입히려면 하나 더 구매하세요.';
 
   @override
   String get equipmentSlotHead => '머리';

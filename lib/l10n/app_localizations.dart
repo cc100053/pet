@@ -907,6 +907,12 @@ abstract class AppLocalizations {
   /// **'-10 Pet Hunger'**
   String get drawerDebugHungerDown;
 
+  /// No description provided for @drawerDebugHungerUp.
+  ///
+  /// In en, this message translates to:
+  /// **'+20 Pet Hunger'**
+  String get drawerDebugHungerUp;
+
   /// No description provided for @drawerDebugAddExp.
   ///
   /// In en, this message translates to:
@@ -2822,6 +2828,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You don\'t own any items for this slot yet.'**
   String get equipmentNoneOwned;
+
+  /// No description provided for @equipmentCopyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'On another pet'**
+  String get equipmentCopyInUse;
+
+  /// No description provided for @equipmentCopyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Every copy of this item is already worn by another pet. Buy another to dress up more than one pet.'**
+  String get equipmentCopyUnavailable;
 
   /// No description provided for @equipmentSlotHead.
   ///

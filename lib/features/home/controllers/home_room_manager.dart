@@ -1151,18 +1151,41 @@ extension _HomeRoomManager on _HomeViewState {
     if (roomIds.isEmpty) {
       return {};
     }
+    // The room-selection preview renders the room's MAIN pet, so scope the
+    // equipped skus to each room's main_pet_id. A room can hold several pets
+    // with their own gear; without this filter the preview shows a mix of
+    // whichever rows came last and goes stale after a main-pet switch.
+    final roomRows = await Supabase.instance.client
+        .from('rooms')
+        .select('id, main_pet_id')
+        .inFilter('id', roomIds);
+    final mainPetIdByRoom = <String, String>{};
+    for (final row in roomRows) {
+      final roomId = row['id'] as String?;
+      final mainPetId = row['main_pet_id'] as String?;
+      if (roomId != null && mainPetId != null) {
+        mainPetIdByRoom[roomId] = mainPetId;
+      }
+    }
+    if (mainPetIdByRoom.isEmpty) {
+      return {};
+    }
+
     final rows = await Supabase.instance.client
         .from('pet_equipment')
-        .select('room_id, slot, items(sku)')
+        .select('room_id, pet_id, slot, items(sku)')
         .inFilter('room_id', roomIds);
 
     final result = <String, Map<String, String>>{};
     for (final row in rows) {
       final roomId = row['room_id'] as String?;
+      final petId = row['pet_id'] as String?;
       final slot = row['slot'] as String?;
       final sku = _skuFromEquipmentRow(row);
       if (roomId == null ||
           roomId.isEmpty ||
+          petId == null ||
+          petId != mainPetIdByRoom[roomId] ||
           slot == null ||
           slot.isEmpty ||
           sku == null ||

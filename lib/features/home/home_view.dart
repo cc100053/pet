@@ -287,6 +287,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _equipmentError;
   bool _showSocketDebug = false;
   final List<ShopItem> _ownedEquipmentItems = <ShopItem>[];
+  // How many copies of each equipment item the room owns (item id -> quantity).
+  // Mirrors the capacity the equip_pet_item RPC enforces.
+  final Map<String, int> _ownedEquipmentQtyById = {};
   final Map<String, _EquippedPetItem> _equippedItemsBySlot = {};
   // Equipment of the panel's selected pet when it is NOT the main pet. The main
   // pet keeps using _equippedItemsBySlot so the on-screen avatar is untouched.
@@ -1080,6 +1083,61 @@ class _HomeViewState extends ConsumerState<HomeView>
       await _dispatchNewHungerAlerts(petId: petId, roomId: roomId);
       final updatedState = await _fetchPetState(petId);
       _applyPetStateUpdate(roomId, petId, updatedState);
+    } catch (error) {
+      setState(
+        () => _petError = AppLocalizations.of(
+          context,
+        )!.petActionFailed(userFacingError(context, error)),
+      );
+    } finally {
+      if (mounted) setState(() => _petBusy = false);
+    }
+  }
+
+  Future<void> _debugSetRoomHungerFreeze(bool enabled) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    setState(() {
+      _petBusy = true;
+      _petError = null;
+    });
+    try {
+      final pausedUntil = enabled
+          ? DateTime.now()
+                .toUtc()
+                .add(const Duration(days: 365))
+                .toIso8601String()
+          : null;
+      await Supabase.instance.client.rpc(
+        'set_room_hunger_decay_paused',
+        params: {
+          'p_room_id': roomId,
+          'p_paused_until': pausedUntil,
+          'p_reason': enabled ? 'debug_drawer_hunger_freeze' : null,
+        },
+      );
+
+      final petId = _petId ?? await _loadPetId(roomId);
+      if (petId != null) {
+        final updatedState = await _fetchPetState(petId);
+        _applyPetStateUpdate(roomId, petId, updatedState);
+      }
+      if (mounted) {
+        showJuiceSnackbar(
+          context: context,
+          message: enabled
+              ? 'Hunger frozen for this room'
+              : 'Hunger decay restored for this room',
+        );
+      }
     } catch (error) {
       setState(
         () => _petError = AppLocalizations.of(
@@ -2696,6 +2754,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         params: {'p_room_id': roomId},
       );
       final items = <ShopItem>[];
+      final quantities = <String, int>{};
       for (final row in response as List<dynamic>) {
         if (row is! Map<String, dynamic>) {
           continue;
@@ -2708,12 +2767,16 @@ class _HomeViewState extends ConsumerState<HomeView>
           continue;
         }
         items.add(item);
+        quantities[item.id] = (row['total_quantity'] as num?)?.toInt() ?? 0;
       }
       items.sort((a, b) => a.sku.compareTo(b.sku));
       if (!mounted) {
         _ownedEquipmentItems
           ..clear()
           ..addAll(items);
+        _ownedEquipmentQtyById
+          ..clear()
+          ..addAll(quantities);
         _equipmentLoading = false;
         return;
       }
@@ -2721,6 +2784,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         _ownedEquipmentItems
           ..clear()
           ..addAll(items);
+        _ownedEquipmentQtyById
+          ..clear()
+          ..addAll(quantities);
       });
     } catch (error) {
       if (!mounted) {
@@ -2781,6 +2847,32 @@ class _HomeViewState extends ConsumerState<HomeView>
     channel.subscribe();
   }
 
+  /// Free copies of [itemId] available to equip on another pet/slot: the
+  /// room-owned quantity minus the copies already worn across all pets in the
+  /// active room. Mirrors the capacity check inside the equip_pet_item RPC so
+  /// the UI can dim fully-used items instead of failing with
+  /// equipment_copy_unavailable.
+  int _availableEquipmentCopies(String itemId) {
+    final total = _ownedEquipmentQtyById[itemId] ?? 0;
+    if (total <= 0) {
+      return 0;
+    }
+    final sku = _ownedEquipmentItems
+        .cast<ShopItem?>()
+        .firstWhere((item) => item?.id == itemId, orElse: () => null)
+        ?.sku;
+    if (sku == null) {
+      return total;
+    }
+    var equipped = 0;
+    for (final skusBySlot in _equippedSkusByPetId.values) {
+      if (skusBySlot.values.contains(sku)) {
+        equipped++;
+      }
+    }
+    return total - equipped;
+  }
+
   Future<void> _equipItem(String itemId, String slot) async {
     final targetPetId = _selectedEquipPetId ?? _petId;
     final roomId = _roomId;
@@ -2822,6 +2914,17 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
+      // Refresh so the strip dims the now-unavailable copy if another member
+      // grabbed the last one while this panel was open.
+      unawaited(_loadAllPetEquipment(roomId));
+      if (_isEquipmentCopyUnavailable(error)) {
+        showJuiceSnackbar(
+          context: context,
+          message: AppLocalizations.of(context)!.equipmentCopyUnavailable,
+          tone: AppDialogTone.warning,
+        );
+        return;
+      }
       showJuiceToast(
         context: context,
         message: AppLocalizations.of(
@@ -2830,6 +2933,13 @@ class _HomeViewState extends ConsumerState<HomeView>
         tone: AppDialogTone.danger,
       );
     }
+  }
+
+  bool _isEquipmentCopyUnavailable(Object error) {
+    if (error is PostgrestException) {
+      return error.message.contains('equipment_copy_unavailable');
+    }
+    return error.toString().contains('equipment_copy_unavailable');
   }
 
   Future<void> _unequipItem(String slot) async {
@@ -5243,6 +5353,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   backgroundErrorText: _backgroundError,
                   applyingBackgroundId: _backgroundApplyingItemId,
                   equipmentItems: _ownedEquipmentItems,
+                  availableEquipmentCount: _availableEquipmentCopies,
                   equippedItemIdsBySlot: _panelEquippedItemIdsBySlot,
                   equippedItemSkusBySlot: _panelEquippedSkusBySlot,
                   equipmentLoading: _equipmentLoading,

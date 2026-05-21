@@ -46,6 +46,7 @@ class HomeRoomInventoryPanel extends StatefulWidget {
     required this.backgroundErrorText,
     required this.applyingBackgroundId,
     required this.equipmentItems,
+    required this.availableEquipmentCount,
     required this.equippedItemIdsBySlot,
     required this.equippedItemSkusBySlot,
     required this.equipmentLoading,
@@ -73,6 +74,10 @@ class HomeRoomInventoryPanel extends StatefulWidget {
   final String? backgroundErrorText;
   final String? applyingBackgroundId;
   final List<ShopItem> equipmentItems;
+
+  /// Free copies of an item available to equip on the selected pet/slot
+  /// (room-owned quantity minus copies already worn across all pets).
+  final int Function(String itemId) availableEquipmentCount;
   final Map<String, String> equippedItemIdsBySlot;
   final Map<String, String> equippedItemSkusBySlot;
   final bool equipmentLoading;
@@ -291,6 +296,7 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
                       });
                     },
                     items: _equipmentItemsForSelectedSlot(),
+                    availableCount: widget.availableEquipmentCount,
                     equippedItemId: _equippedItemIdForSelectedSlot(),
                     previewItemId: _previewEquipmentItemId,
                     loading: widget.equipmentLoading,
@@ -483,6 +489,7 @@ class _EquipmentTab extends StatelessWidget {
     required this.selectedSlot,
     required this.onSelectSlot,
     required this.items,
+    required this.availableCount,
     required this.equippedItemId,
     required this.previewItemId,
     required this.loading,
@@ -501,6 +508,7 @@ class _EquipmentTab extends StatelessWidget {
   final String selectedSlot;
   final ValueChanged<String> onSelectSlot;
   final List<ShopItem> items;
+  final int Function(String itemId) availableCount;
   final String? equippedItemId;
   final String? previewItemId;
   final bool loading;
@@ -517,6 +525,7 @@ class _EquipmentTab extends StatelessWidget {
     final canEquip =
         previewItemId != null &&
         previewItemId != equippedItemId &&
+        availableCount(previewItemId!) > 0 &&
         !submitting &&
         !loading;
     final canUnequip = hasEquipped && !submitting && !loading;
@@ -562,6 +571,7 @@ class _EquipmentTab extends StatelessWidget {
                     height: 90,
                     child: _EquipmentItemStrip(
                       items: items,
+                      availableCount: availableCount,
                       equippedItemId: equippedItemId,
                       previewItemId: previewItemId,
                       loading: loading,
@@ -903,6 +913,7 @@ class _EquipmentSlotChip extends StatelessWidget {
 class _EquipmentItemStrip extends StatelessWidget {
   const _EquipmentItemStrip({
     required this.items,
+    required this.availableCount,
     required this.equippedItemId,
     required this.previewItemId,
     required this.loading,
@@ -911,6 +922,7 @@ class _EquipmentItemStrip extends StatelessWidget {
   });
 
   final List<ShopItem> items;
+  final int Function(String itemId) availableCount;
   final String? equippedItemId;
   final String? previewItemId;
   final bool loading;
@@ -948,11 +960,16 @@ class _EquipmentItemStrip extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(width: 10),
       itemBuilder: (context, index) {
         final item = items[index];
+        final isEquipped = item.id == equippedItemId;
+        // A copy is unavailable when every owned copy is already worn by
+        // another pet and this pet/slot isn't the one wearing it.
+        final isUnavailable = !isEquipped && availableCount(item.id) <= 0;
         return _EquipmentInventoryItem(
           item: item,
-          isEquipped: item.id == equippedItemId,
+          isEquipped: isEquipped,
           isPreviewed: item.id == previewItemId,
-          onTap: () => onItemTap(item.id),
+          isUnavailable: isUnavailable,
+          onTap: isUnavailable ? null : () => onItemTap(item.id),
         );
       },
     );
@@ -964,13 +981,15 @@ class _EquipmentInventoryItem extends StatelessWidget {
     required this.item,
     required this.isEquipped,
     required this.isPreviewed,
+    required this.isUnavailable,
     required this.onTap,
   });
 
   final ShopItem item;
   final bool isEquipped;
   final bool isPreviewed;
-  final VoidCallback onTap;
+  final bool isUnavailable;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -984,7 +1003,7 @@ class _EquipmentInventoryItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isPreviewed
               ? const Color(0xFFFFF2D6)
-              : Colors.white.withValues(alpha: 0.92),
+              : Colors.white.withValues(alpha: isUnavailable ? 0.6 : 0.92),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isEquipped
@@ -1000,42 +1019,56 @@ class _EquipmentInventoryItem extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ShopCatalogItemVisual(
-                  item: item,
-                  size: 36,
-                  fallbackEmoji: item.emoji ?? '👒',
-                ),
-                if (isEquipped)
-                  const Positioned(
-                    top: -4,
-                    right: -8,
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      size: 16,
-                      color: Color(0xFF5ABCA5),
-                    ),
+        child: Opacity(
+          opacity: isUnavailable ? 0.55 : 1,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ShopCatalogItemVisual(
+                    item: item,
+                    size: 36,
+                    fallbackEmoji: item.emoji ?? '👒',
                   ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              item.localizedName(l10n),
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                height: 1.1,
+                  if (isEquipped)
+                    const Positioned(
+                      top: -4,
+                      right: -8,
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        size: 16,
+                        color: Color(0xFF5ABCA5),
+                      ),
+                    ),
+                  if (isUnavailable && !isEquipped)
+                    const Positioned(
+                      top: -4,
+                      right: -8,
+                      child: Icon(
+                        Icons.lock_rounded,
+                        size: 15,
+                        color: Colors.black45,
+                      ),
+                    ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                isUnavailable ? l10n.equipmentCopyInUse : item.localizedName(l10n),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
+                  color: isUnavailable ? Colors.black54 : Colors.black,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

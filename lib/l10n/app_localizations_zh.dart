@@ -459,6 +459,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugHungerDown => '宠物飢餓度 -10';
 
   @override
+  String get drawerDebugHungerUp => '宠物飽食度 +20';
+
+  @override
   String get drawerDebugAddExp => '+10 經驗';
 
   @override
@@ -1513,6 +1516,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentNoneOwned => '你還沒有這個部位可用的裝備。';
 
   @override
+  String get equipmentCopyInUse => '其他宠物使用中';
+
+  @override
+  String get equipmentCopyUnavailable =>
+      '这件装备的所有数量都已装在其他宠物身上。想同时给多只宠物打扮，请再购买一件。';
+
+  @override
   String get equipmentSlotHead => '頭部';
 
   @override
@@ -2321,6 +2331,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugHungerDown => '寵物飢餓度 -10';
+
+  @override
+  String get drawerDebugHungerUp => '寵物飽食度 +20';
 
   @override
   String get drawerDebugAddExp => '+10 經驗';
@@ -3368,6 +3381,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get equipmentNoneOwned => '你還沒有這個部位可用的裝備。';
+
+  @override
+  String get equipmentCopyInUse => '其他寵物使用中';
+
+  @override
+  String get equipmentCopyUnavailable =>
+      '這件裝備的所有數量都已裝在其他寵物身上。想同時幫多隻寵物打扮，請再購買一件。';
 
   @override
   String get equipmentSlotHead => '頭部';

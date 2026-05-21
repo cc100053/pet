@@ -95,6 +95,27 @@ extension _HomeDrawerBuilder on _HomeViewState {
                           : () => _debugAdjustPetHunger(-10),
                     ),
                     ListTile(
+                      title: Text(l10n.drawerDebugHungerUp),
+                      onTap: (_petBusy || _roomId == null)
+                          ? null
+                          : () => _debugAdjustPetHunger(20),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.pause_circle_outline_rounded),
+                      title: const Text('Freeze room hunger'),
+                      subtitle: const Text('Keep this room alive for 1 year'),
+                      onTap: (_petBusy || _roomId == null)
+                          ? null
+                          : () => _debugSetRoomHungerFreeze(true),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.play_circle_outline_rounded),
+                      title: const Text('Restore room hunger decay'),
+                      onTap: (_petBusy || _roomId == null)
+                          ? null
+                          : () => _debugSetRoomHungerFreeze(false),
+                    ),
+                    ListTile(
                       title: Text(l10n.drawerDebugAddExp),
                       onTap: (_petBusy || _roomId == null)
                           ? null

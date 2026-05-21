@@ -17,6 +17,74 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Review (2026-05-21 Multi-Pet Equipment & Hunger Fixes)
+- Equipping onto an extra pet failed with RLS 42501: `pet_equipment`
+  INSERT/UPDATE `WITH CHECK` only validated `pets`. Migration
+  `pet_equipment_policies_allow_extra_pets` (live `20260521013422`) now allows
+  `pets` OR `room_extra_pets`.
+- Reading/removing an extra pet's gear raised `pet_not_found`: the two-arg
+  `get_pet_equipment` and `unequip_pet_item` only checked `pets`. Migration
+  `equipment_rpcs_allow_extra_pets` (live `20260521014910`) validates both
+  tables. Fixed the blank dress-up preview and the locked/un-removable item
+  when selecting the pet actually wearing it.
+- `equipment_copy_unavailable` UX: home_view tracks per-item room quantity
+  (`_ownedEquipmentQtyById`) + `_availableEquipmentCopies`; the panel dims and
+  locks items whose copies are all worn by other pets (label
+  `equipmentCopyInUse`), and the equip RPC error falls back to a friendly
+  `equipmentCopyUnavailable` snackbar. Added a panel test + 5-language ARB keys.
+- Room-selection preview gear is now scoped to each room's `main_pet_id`
+  (`_fetchRoomEquippedSkus`), so it matches the actual main pet after a switch
+  instead of a last-write-wins mix of all pets.
+- Spurious low-hunger alert on main-pet switch (chat msg + toast + push):
+  `set_room_main_pet` re-materialized the promoted pet's `pet_state` at default
+  hunger 100 then synced down, which `handle_pet_hunger_alerts` read as a fresh
+  downward crossing. Migration `suppress_hunger_alert_on_main_pet_swap` (live
+  `20260521020952`) gates that trigger behind `app.skip_hunger_alerts` set
+  around the swap sync.
+- Feed-then-switch reverted hunger: the client feed (`apply_pet_action`) only
+  wrote `pet_state`, so the swap synced a stale `room_pet_state`. Migration
+  `apply_pet_action_mirrors_room_pet_state` (live `20260521022742`) mirrors the
+  action result into `room_pet_state`, matching `tick_pet_state`.
+- Verification: `flutter analyze` passed; equipment/home widget tests passed;
+  live function/policy definitions verified via MCP.
+
+## Plan (2026-05-21 Room Hunger Freeze)
+- [x] Read active memory-bank files and Supabase SQL guidance.
+- [x] Add an additive, room-scoped, expiring Supabase debug override for hunger
+  decay.
+- [x] Update tick/schedule RPC behavior so frozen rooms do not decay or build up
+  catch-up decay when unfrozen.
+- [x] Add debug-admin Flutter controls for freezing/unfreezing the active room
+  and refreshing state.
+- [x] Add focused regression coverage and run `flutter analyze` /
+  `flutter test`.
+
+## Review (2026-05-21 Room Hunger Freeze)
+- Added local migration
+  `20260521143000_add_room_hunger_freeze_debug_override.sql` with
+  `room_debug_overrides`, `is_debug_admin()`, and
+  `set_room_hunger_decay_paused(...)`.
+- Updated `tick_pet_state` so active freezes keep hunger unchanged while
+  advancing `last_decay_at`, and updated `compute_pet_hunger_next_check_at` so
+  the server schedule sleeps until the freeze expiry.
+- Added debug drawer actions to freeze the active room's hunger for one year or
+  restore normal decay, then refresh the active pet state.
+- Added `room_hunger_freeze_migration_test.dart` to lock the SQL invariants.
+- Verification: focused migration test passed; `flutter analyze` passed;
+  `flutter test` passed with `feed_flow_integration_test.dart` skipped for
+  missing Supabase env vars.
+- Live apply status: applied to Supabase project `ilxzpszgirhwxpeocygs`
+  through MCP as migration `20260521021312 add_room_hunger_freeze_debug_override`.
+  Sanity checks confirmed the debug table/RPCs exist, `tick_pet_state` checks
+  the freeze override and advances `last_decay_at`, and
+  `compute_pet_hunger_next_check_at` returns the freeze expiry for paused rooms.
+- Follow-up fix: live RPC hit Postgres 42702 because
+  `set_room_hunger_decay_paused(...) returns table (room_id ...)` made
+  `on conflict (room_id)` ambiguous between the output variable and table
+  column. Added/applied migration
+  `20260521021817 fix_room_hunger_freeze_room_id_conflict`, rewriting the
+  upsert to `on conflict on constraint room_debug_overrides_pkey do update`.
+
 ## Plan (2026-05-19 Home Multi-Pet Rendering)
 - [x] Read active memory-bank files and UI guidance.
 - [x] Confirm backend `get_room_pets` exists but Home rendering still only uses

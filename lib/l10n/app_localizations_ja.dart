@@ -461,6 +461,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugHungerDown => 'ペット空腹度 -10';
 
   @override
+  String get drawerDebugHungerUp => 'ペット空腹度 +20';
+
+  @override
   String get drawerDebugAddExp => '経験値 +10';
 
   @override
@@ -1519,6 +1522,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get equipmentNoneOwned => 'この部位に装備できるアイテムをまだ持っていません。';
+
+  @override
+  String get equipmentCopyInUse => '別のペットが装備中';
+
+  @override
+  String get equipmentCopyUnavailable =>
+      'このアイテムはすべて別のペットが装備中です。複数のペットに着せるにはもう1つ購入してください。';
 
   @override
   String get equipmentSlotHead => '頭';

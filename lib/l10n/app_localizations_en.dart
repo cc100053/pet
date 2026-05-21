@@ -483,6 +483,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugHungerDown => '-10 Pet Hunger';
 
   @override
+  String get drawerDebugHungerUp => '+20 Pet Hunger';
+
+  @override
   String get drawerDebugAddExp => '+10 EXP';
 
   @override
@@ -1567,6 +1570,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipmentNoneOwned =>
       'You don\'t own any items for this slot yet.';
+
+  @override
+  String get equipmentCopyInUse => 'On another pet';
+
+  @override
+  String get equipmentCopyUnavailable =>
+      'Every copy of this item is already worn by another pet. Buy another to dress up more than one pet.';
 
   @override
   String get equipmentSlotHead => 'Head';
