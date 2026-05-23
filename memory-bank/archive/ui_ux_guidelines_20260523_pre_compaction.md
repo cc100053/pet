@@ -1,7 +1,6 @@
 # UI/UX Design Guidelines
 
-Compact current-state summary. Keep product UI playful and game-like. Latest
-snapshot: `memory-bank/archive/ui_ux_guidelines_20260523_pre_compaction.md`.
+Compact current-state summary. Keep product UI playful and game-like.
 
 ## Interaction
 - Use `JuicyScaleButton` for clickable elements.

@@ -1,8 +1,7 @@
 # Tech Stack
 
 Active summary only. See source files, `pubspec.yaml`, and archived snapshots
-for exact historical versions. Latest snapshot:
-`memory-bank/archive/tech_stack_20260523_pre_compaction.md`.
+for exact historical versions.
 
 ## Core App
 - Flutter/Dart

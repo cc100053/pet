@@ -29,6 +29,10 @@ Keep bundled `What's New` copy and App Store Connect `whatsNew` / `promotionalTe
   - optional CTA label (e.g., `whatsNewContinueAction`)
 - ASC `whatsNew` is verbatim long-form release-note text.
 - ASC `promotionalText` is short, SEO-optimized marketing copy (max 170 chars).
+- ASC `description` must retain a functional `Terms of Use / EULA` URL footer.
+  This app has auto-renewable subscriptions; do not upload version metadata
+  where `.asc/version-localizations/*.strings` descriptions omit `EULA` and the
+  direct Apple Standard EULA URL.
 - Never upload shortened bundled bullets to ASC `whatsNew`.
 - Never copy long-form ASC prose directly into bundled bullets without rewriting.
 - Never fabricate missing translations.
@@ -68,6 +72,7 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Upload the local `.strings` files using `asc localizations upload`.
 5. **Validation & Verification:**
    - Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+   - Confirm `test/app_store_metadata_terms_test.dart` passes before ASC upload.
    - Confirm the ASC update via `asc localizations list`.
 6. **Preserve History:** Never delete older bundled version entries or ARB keys.
 
@@ -83,6 +88,11 @@ Once the user approves the drafts, perform the following steps autonomously:
   - Japanese (ja): `https://pet-app-702be.web.app/privacy_policy_ja.html`
   - Korean (ko): `https://pet-app-702be.web.app/privacy_policy_ko.html`
   - Traditional Chinese (zh-Hant): `https://pet-app-702be.web.app/privacy_policy_zh_TW.html`
+- **Terms of Use / EULA URL footer in version descriptions**:
+  - English (en-US): `Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
+  - Japanese (ja): `利用規約（Terms of Use / EULA）: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
+  - Korean (ko): `이용약관(Terms of Use / EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
+  - Traditional Chinese (zh-Hant): `使用條款（Terms of Use / EULA）：https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
 
 ## ASC CLI Workflow
 Do not guess subcommands from memory. **Always refer to `asc-metadata-sync` and `asc-cli-usage` for detailed flags and formatting rules.**

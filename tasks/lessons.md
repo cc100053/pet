@@ -147,3 +147,6 @@
 
 ## 2026-04-03
 - For new shared room decor (backgrounds/furniture), do not activate the catalog rows globally by default. Treat them as mixed-version compatibility work: gate Shop visibility by app version, add client-side fallback rendering for unsupported shared state, and prompt unsupported clients to update when the room is using newer decor.
+
+## 2026-05-22
+- For App Store submissions with auto-renewable subscriptions, treat the direct Apple Standard EULA link in version metadata as a release-blocking invariant. Keep the URL footer in every `.asc/version-localizations/*.strings` description and verify it with `test/app_store_metadata_terms_test.dart` before uploading metadata.

@@ -2,7 +2,7 @@
 
 Active memory files stay compact because agents must read them before
 non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260523_pre_compaction.md`.
+`memory-bank/archive/architecture_20260516_pre_compaction.md`.
 
 ## Source Of Truth
 - App/runtime: `lib/`, `test/`

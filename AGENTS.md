@@ -116,6 +116,8 @@ This file is for agentic coding agents working in this repo.
 ### Scripts
 - Notify webhook test: `scripts/test_notify_friend.sh` (see env vars in `docs/testing.md`).
 - Firebase Crashlytics MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
+- iOS App Store export/upload without Apple's immediate symbol-upload step:
+  `scripts/export_ios_appstore_no_apple_symbols.sh "/path/to/Runner.xcarchive"` (see `docs/ios_app_store_export.md`).
 - Apple client secret (Sign in with Apple):
   - Generate and update reminder: `./tool/generate_secret.sh` (Reads `APPLE_*` vars from `.env`)
   - Manual override: `./tool/generate_secret.sh --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
@@ -127,6 +129,9 @@ This file is for agentic coding agents working in this repo.
 - List versions: `asc versions list --app 6757725650`
 - Upload localized version metadata from `.strings`: `asc localizations upload --version <VERSION_ID> --locale ja --path .asc/version-localizations/ja.strings`
 - Verify localized metadata: `asc localizations list --version <VERSION_ID> --output table`
+- Auto-renewable subscription submissions require a functional Terms of Use /
+  EULA footer in every `.asc/version-localizations/*.strings` description; run
+  `flutter test test/app_store_metadata_terms_test.dart` before ASC upload.
 
 ### Build
 - Debug builds are usually done via `flutter run`.
@@ -170,6 +175,8 @@ flutter run
 ### Release notes and App Store metadata
 - Use `.codex/skills/release-notes-sync/SKILL.md` when adding bundled What's New entries or syncing App Store Connect release notes.
 - Keep bundled in-app What's New copy separate from ASC `whatsNew` / `promotionalText`; do not upload shortened in-app bullets as ASC release notes.
+- Preserve the direct Apple Standard EULA footer in ASC descriptions for every
+  locale; App Review treats it as required for auto-renewable subscriptions.
 - Present localized drafts for approval before applying local release-note files and ASC metadata changes.
 
 ### Firebase Crashlytics triage
