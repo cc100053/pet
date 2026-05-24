@@ -16,11 +16,17 @@ class AdMobBannerSlot extends StatefulWidget {
 class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
   BannerAd? _bannerAd;
   bool _loaded = false;
+  Orientation? _loadedOrientation;
 
   @override
-  void initState() {
-    super.initState();
-    unawaited(_loadBanner());
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final orientation = MediaQuery.of(context).orientation;
+    if (_loadedOrientation != orientation) {
+      _loadedOrientation = orientation;
+      final width = MediaQuery.of(context).size.width.truncate();
+      unawaited(_loadBanner(width));
+    }
   }
 
   @override
@@ -47,8 +53,22 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
     );
   }
 
-  Future<void> _loadBanner() async {
+  Future<void> _loadBanner(int width) async {
     if (!AdMobIds.isBannerViewSupported) {
+      return;
+    }
+
+    final previousAd = _bannerAd;
+    if (mounted) {
+      setState(() {
+        _bannerAd = null;
+        _loaded = false;
+      });
+    }
+    await previousAd?.dispose();
+
+    final adSize = await AdSize.getLargeAnchoredAdaptiveBannerAdSize(width);
+    if (adSize == null || !mounted) {
       return;
     }
 
@@ -59,7 +79,7 @@ class _AdMobBannerSlotState extends State<AdMobBannerSlot> {
 
     final bannerAd = BannerAd(
       adUnitId: AdMobIds.bannerAdUnitId,
-      size: AdSize.banner,
+      size: adSize,
       request: AdMobStartupService.instance.createAdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {

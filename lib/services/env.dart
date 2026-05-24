@@ -12,6 +12,11 @@ class Env {
       _optional('ADMOB_IOS_REWARDED_AD_UNIT_ID');
   static bool get adMobEnableDebugBannerViews =>
       _optionalBool('ADMOB_ENABLE_DEBUG_BANNER_VIEWS') ?? false;
+  static List<String> get adMobTestDeviceIds {
+    final raw = _optional('ADMOB_TEST_DEVICE_IDS');
+    if (raw == null) return const [];
+    return raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  }
   static int get adRewardCoins => _optionalInt('AD_REWARD_COINS') ?? 10;
   static String get privacyPolicyUrl => _require('PRIVACY_POLICY_URL');
   static String get termsOfUseUrl =>

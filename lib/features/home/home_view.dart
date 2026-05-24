@@ -5177,6 +5177,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         value: overlayStyle,
         child: Scaffold(
           drawer: _buildSideDrawer(),
+          bottomNavigationBar:
+              AdMobIds.isBannerViewSupported && !_hasProPlanAccess
+              ? const AdMobBannerSlot()
+              : null,
           body: Stack(
             children: [
               RoomSelectionView(
@@ -5203,9 +5207,6 @@ class _HomeViewState extends ConsumerState<HomeView>
                 createRoomCtaKey: _onboardingCreateRoomCtaKey,
                 highlightJoinRoomCta: _isCreatePetOnboardingStepActive,
                 joinRoomCtaKey: _onboardingJoinRoomCtaKey,
-                topBanner: AdMobIds.isBannerViewSupported && !_hasProPlanAccess
-                    ? const AdMobBannerSlot()
-                    : null,
               ),
               if (_isProfileSetupOnboardingStepActive)
                 _buildProfileSetupOnboardingOverlay(),

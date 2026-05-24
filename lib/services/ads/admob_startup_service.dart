@@ -20,12 +20,18 @@ class AdMobStartupService {
   AdMobStartupService({
     Future<bool> Function()? allowPersonalizedAdsResolver,
     Future<void> Function()? mobileAdsInitializer,
+    Future<void> Function()? requestConfigurationUpdater,
     bool? adsSupported,
   }) : _allowPersonalizedAdsResolver =
            allowPersonalizedAdsResolver ??
            TrackingConsentService.instance.ensureTrackingAuthorization,
        _mobileAdsInitializer =
            mobileAdsInitializer ?? (() => MobileAds.instance.initialize()),
+       _requestConfigurationUpdater =
+           requestConfigurationUpdater ??
+           (() => MobileAds.instance.updateRequestConfiguration(
+             RequestConfiguration(testDeviceIds: AdMobIds.testDeviceIds),
+           )),
        _adsSupported = adsSupported ?? AdMobIds.isSupported;
 
   AdMobStartupService._() : this();
@@ -34,6 +40,7 @@ class AdMobStartupService {
 
   final Future<bool> Function() _allowPersonalizedAdsResolver;
   final Future<void> Function() _mobileAdsInitializer;
+  final Future<void> Function() _requestConfigurationUpdater;
   final bool _adsSupported;
 
   Future<AdMobStartupResult>? _inFlightInitialization;
@@ -79,6 +86,7 @@ class AdMobStartupService {
   Future<AdMobStartupResult> _initializeInternal() async {
     try {
       final allowPersonalizedAds = await _allowPersonalizedAdsResolver();
+      await _requestConfigurationUpdater();
       await _mobileAdsInitializer();
       final result = AdMobStartupResult(
         initialized: true,

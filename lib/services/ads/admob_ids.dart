@@ -15,6 +15,8 @@ class AdMobIds {
 
   static bool get isSupported => !kIsWeb && Platform.isIOS;
 
+  static List<String> get testDeviceIds => Env.adMobTestDeviceIds;
+
   static bool get isBannerViewSupported => shouldEnableBannerViews(
     adsSupported: isSupported,
     isDebugMode: kDebugMode,
