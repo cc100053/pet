@@ -1902,6 +1902,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew200Bullet3 => '为每只宠物分别穿搭装备。';
+
+  @override
+  String get whatsNew201Title => '照片分享更顺畅';
+
+  @override
+  String get whatsNew201Bullet1 => '可撤回已发出的动态照片。';
+
+  @override
+  String get whatsNew201Bullet2 => '改善头像与照片显示。';
+
+  @override
+  String get whatsNew201Bullet3 => '提升稳定性与操作手感。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3792,4 +3804,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew200Bullet3 => '為每隻寵物分別穿搭裝備。';
+
+  @override
+  String get whatsNew201Title => '照片分享更順暢';
+
+  @override
+  String get whatsNew201Bullet1 => '可收回已送出的動態照片。';
+
+  @override
+  String get whatsNew201Bullet2 => '改善頭像與照片顯示。';
+
+  @override
+  String get whatsNew201Bullet3 => '提升穩定性與操作手感。';
 }

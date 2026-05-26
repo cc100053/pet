@@ -1923,4 +1923,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew200Bullet3 => '각 펫을 따로 꾸밀 수 있습니다.';
+
+  @override
+  String get whatsNew201Title => '더 부드러운 사진 공유';
+
+  @override
+  String get whatsNew201Bullet1 => '보낸 피드 사진을 취소할 수 있습니다.';
+
+  @override
+  String get whatsNew201Bullet2 => '아바타와 사진 표시를 개선했습니다.';
+
+  @override
+  String get whatsNew201Bullet3 => '안정성과 사용성을 다듬었습니다.';
 }

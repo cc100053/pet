@@ -3530,6 +3530,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dress up each pet separately.'**
   String get whatsNew200Bullet3;
+
+  /// No description provided for @whatsNew201Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoother sharing'**
+  String get whatsNew201Title;
+
+  /// No description provided for @whatsNew201Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Recall sent feed photos.'**
+  String get whatsNew201Bullet1;
+
+  /// No description provided for @whatsNew201Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoother avatar and photo display.'**
+  String get whatsNew201Bullet2;
+
+  /// No description provided for @whatsNew201Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Stability fixes and polish.'**
+  String get whatsNew201Bullet3;
 }
 
 class _AppLocalizationsDelegate

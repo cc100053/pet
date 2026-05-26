@@ -1912,4 +1912,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew200Bullet3 => 'ペットごとに個別の着せ替えができます。';
+
+  @override
+  String get whatsNew201Title => '写真共有をより快適に';
+
+  @override
+  String get whatsNew201Bullet1 => '送信したフィード写真を取り消せるようになりました。';
+
+  @override
+  String get whatsNew201Bullet2 => 'アバターと写真の表示を改善しました。';
+
+  @override
+  String get whatsNew201Bullet3 => '安定性と使いやすさを向上しました。';
 }

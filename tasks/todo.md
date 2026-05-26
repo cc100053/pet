@@ -8,6 +8,9 @@ Latest historical snapshot before compaction:
 `tasks/archive/todo_20260523_pre_compaction.md`.
 
 ## Active Follow-ups
+- [ ] App Store Connect version `2.0.1`
+  (`ee8f35e8-fda1-4d15-b6cd-440a96409986`) is
+  `PREPARE_FOR_SUBMISSION`; attach the matching build and submit when ready.
 - [ ] Before shipping the Firebase Apple SPM / v1.4.0 changes, create a
   TestFlight/archive build and confirm Crashlytics receives dSYMs from the SPM
   path.
@@ -16,10 +19,17 @@ Latest historical snapshot before compaction:
 - [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
-- [ ] App Store Connect version `2.0.0`
-  (`1fc934d6-90c8-4b94-802c-e35d0c5e0230`) remains `REJECTED` with
-  `UNRESOLVED_ISSUES` after the EULA metadata fix; resolve/resubmit the App
-  Review issue in App Store Connect.
+
+## Plan (2026-05-24 v2.0.1 Release Notes)
+- [x] Read release-note workflow, active memory-bank files, current version, and
+  existing bundled/ASC release-note assets.
+- [x] Bump the app public version to `2.0.1` and build number to `3`.
+- [x] Add bundled What's New copy for `2.0.1` with short, clear bullets and no
+  ad mention.
+- [x] Update App Store Connect localization files for `2.0.1` while preserving
+  the EULA footer in descriptions.
+- [x] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+- [x] Sync and verify App Store Connect metadata after local validation.
 
 ## Plan (2026-05-23 AGENTS.md + Memory-bank Optimization)
 - [x] Read AGENTS.md, active memory-bank files, task notes, local skills,
@@ -30,6 +40,12 @@ Latest historical snapshot before compaction:
 - [x] Run line-count/diff checks plus `flutter analyze` and `flutter test`.
 
 ## Recent Review Highlights
+- v2.0.1 release notes (2026-05-24): bumped `pubspec.yaml` to `2.0.1+3`,
+  added concise bundled What's New copy for English, Japanese, Korean,
+  Traditional Chinese, and Simplified Chinese, updated ASC release metadata for
+  `en-US`, `ja`, `ko`, and `zh-Hant`, created ASC version
+  `ee8f35e8-fda1-4d15-b6cd-440a96409986`, uploaded and verified localizations,
+  and left the version in `PREPARE_FOR_SUBMISSION` for build attachment.
 - App Store EULA metadata rejection (2026-05-22): added direct Apple Standard
   EULA footer to every `.asc/version-localizations/*.strings` description,
   added `test/app_store_metadata_terms_test.dart`, updated release-note
@@ -77,3 +93,17 @@ Latest historical snapshot before compaction:
 - Skipped test reason: `test/feed_flow_integration_test.dart` requires
   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
   `SUPABASE_TEST_REFRESH_TOKEN`.
+
+## Review (2026-05-24 v2.0.1 Release Notes)
+- Updated local version from `2.0.0+2` to `2.0.1+3`.
+- Added `2.0.1` bundled What's New catalog entry and localized ARB/generated
+  l10n strings.
+- Updated `.asc/version-localizations/*.strings` `promotionalText` and
+  `whatsNew` fields only; EULA-bearing descriptions were preserved.
+- Created ASC iOS version `2.0.1`
+  (`ee8f35e8-fda1-4d15-b6cd-440a96409986`) from `2.0.0`, uploaded all four ASC
+  locales, and verified newline-formatted live `whatsNew` JSON values.
+- Verification: `flutter gen-l10n` passed with pre-existing untranslated-key
+  warnings for `ko` and `zh_TW`; `flutter analyze` passed; focused App Store
+  metadata terms test passed; full `flutter test` passed (433 passed, 1
+  skipped).

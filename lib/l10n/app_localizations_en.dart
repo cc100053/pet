@@ -1987,4 +1987,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew200Bullet3 => 'Dress up each pet separately.';
+
+  @override
+  String get whatsNew201Title => 'Smoother sharing';
+
+  @override
+  String get whatsNew201Bullet1 => 'Recall sent feed photos.';
+
+  @override
+  String get whatsNew201Bullet2 => 'Smoother avatar and photo display.';
+
+  @override
+  String get whatsNew201Bullet3 => 'Stability fixes and polish.';
 }
