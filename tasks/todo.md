@@ -74,6 +74,15 @@ Latest historical snapshot before compaction:
   rejoin the latest window when the user scrolls back to the newest end.
 - [x] Add predicate unit tests; `dart format`, `flutter analyze`, `flutter test`.
 
+## Plan (2026-05-27 OOM audit follow-up)
+- [x] Audit app for other crash/OOM vectors (images, timers, subscriptions,
+  realtime casts, global error handling).
+- [x] Bound decode size in `photo_food.dart` (Home food photo) and the
+  `feed_capture_view.dart` preview (`Image.memory`) via cacheWidth/cacheHeight.
+- [x] `dart format`, `flutter analyze`, `flutter test`.
+- Noted (not changed): full-screen photo viewer (`photo_view` gallery) decodes
+  full-res across multiple live pages; deferred — touches zoom UX.
+
 ## Recent Review Highlights
 - v2.0.1 iOS archive (2026-05-26): built
   `build/ios/archive/Runner.xcarchive` and `build/ios/ipa/PetTomo.ipa` using

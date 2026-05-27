@@ -28,7 +28,7 @@ class PhotoFood extends StatelessWidget {
       _ => 0.0,
     };
 
-    final image = _buildImage();
+    final image = _buildImage(context);
 
     Widget framed = Container(
       width: size.width,
@@ -64,12 +64,21 @@ class PhotoFood extends StatelessWidget {
     return framed;
   }
 
-  Widget _buildImage() {
+  Widget _buildImage(BuildContext context) {
+    // The food photo renders inside a small framed box, so cap the decode to
+    // the display size in physical pixels. A user-uploaded full-resolution
+    // photo otherwise decodes at full size on the always-present Home screen.
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final cacheWidth = (size.width * devicePixelRatio).round().clamp(1, 1024);
+    final cacheHeight = (size.height * devicePixelRatio).round().clamp(1, 1024);
+
     final local = buildLocalFileImage(
       imageSource,
       fit: BoxFit.cover,
       width: size.width,
       height: size.height,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
     );
     if (local != null) {
       return local;
@@ -85,6 +94,8 @@ class PhotoFood extends StatelessWidget {
       return Image.network(
         imageSource,
         fit: BoxFit.cover,
+        cacheWidth: cacheWidth,
+        cacheHeight: cacheHeight,
         errorBuilder: (context, error, stackTrace) => _fallback(),
       );
     }

@@ -48,6 +48,11 @@ Active progress stays current-state focused. Full snapshots live in
   messages) auto-rejoins the latest window via `shouldRejoinLatestOnScroll` in
   `_handleChatScroll`, so users no longer need the jump-to-latest button to see
   recent messages.
+- Image decodes are size-bounded to curb OOM: chat bubbles, Home food photo
+  (`photo_food.dart`), and the feed capture preview (`feed_capture_view.dart`)
+  all pass cacheWidth/cacheHeight. Known remaining risk: the full-screen
+  `photo_view` gallery decodes full-res across live pages (left as-is to
+  preserve zoom quality).
 - `ForceUpdateGate` shows the What's New sheet at most once per app session:
   `_checkForUpdate` is re-entrancy guarded and `_whatsNewShownThisSession`
   blocks a duplicate sheet when `AppLifecycleState.resumed` re-fires before

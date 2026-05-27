@@ -308,21 +308,44 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                           child: _previewBytes == null
                                               ? const _EmptyPreviewState()
                                               : LayoutBuilder(
-                                                  builder:
-                                                      (context, constraints) {
-                                                        return DecoratedBox(
-                                                          decoration:
-                                                              const BoxDecoration(
-                                                                color: Color(
-                                                                  0xFFF8F4EF,
-                                                                ),
-                                                              ),
-                                                          child: Image.memory(
-                                                            _previewBytes!,
-                                                            fit: BoxFit.contain,
-                                                          ),
+                                                  builder: (context, constraints) {
+                                                    // Cap the decode to the
+                                                    // preview width: picked
+                                                    // photos can be full
+                                                    // sensor resolution and
+                                                    // decoding them whole
+                                                    // can exhaust memory.
+                                                    final dpr =
+                                                        MediaQuery.devicePixelRatioOf(
+                                                          context,
                                                         );
-                                                      },
+                                                    final maxWidth =
+                                                        constraints
+                                                                .maxWidth
+                                                                .isFinite &&
+                                                            constraints
+                                                                    .maxWidth >
+                                                                0
+                                                        ? constraints.maxWidth
+                                                        : 360.0;
+                                                    final cacheWidth =
+                                                        (maxWidth * dpr)
+                                                            .round()
+                                                            .clamp(1, 1080);
+                                                    return DecoratedBox(
+                                                      decoration:
+                                                          const BoxDecoration(
+                                                            color: Color(
+                                                              0xFFF8F4EF,
+                                                            ),
+                                                          ),
+                                                      child: Image.memory(
+                                                        _previewBytes!,
+                                                        fit: BoxFit.contain,
+                                                        cacheWidth: cacheWidth,
+                                                      ),
+                                                    );
+                                                  },
                                                 ),
                                         ),
                                       ),
