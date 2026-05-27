@@ -135,31 +135,33 @@ class DeterministicChatList extends StatelessWidget {
       }
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListViewObserver(
-          controller: observerController,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onBackgroundTap,
-            child: ListView.builder(
-              key: const ValueKey('chatTimelineList'),
-              controller: scrollController,
-              physics: physics,
-              reverse: true, // Key to anchoring at the bottom
-              // Keep a modest off-screen buffer to smooth load-more without
-              // holding many full-size image bubbles decoded in memory at once.
-              // A large extent (e.g. 2500) kept ~14 image bubbles live and
-              // could trip the iOS memory limit while scrolling long history.
-              cacheExtent: 600,
-              padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-              keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
-              itemCount: items.length,
-              itemBuilder: (context, index) => items[index],
-            ),
-          ),
-        );
-      },
+    // NOTE: Do not wrap this in a LayoutBuilder. Its `constraints` are not
+    // needed here, and a LayoutBuilder builds its child during the layout
+    // phase. When the chat route is popped (returning to Home), tearing down
+    // that subtree can leave an InheritedElement below the LayoutBuilder with
+    // live dependents, tripping framework.dart's `_dependents.isEmpty`
+    // assertion during deactivation.
+    return ListViewObserver(
+      controller: observerController,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onBackgroundTap,
+        child: ListView.builder(
+          key: const ValueKey('chatTimelineList'),
+          controller: scrollController,
+          physics: physics,
+          reverse: true, // Key to anchoring at the bottom
+          // Keep a modest off-screen buffer to smooth load-more without
+          // holding many full-size image bubbles decoded in memory at once.
+          // A large extent (e.g. 2500) kept ~14 image bubbles live and
+          // could trip the iOS memory limit while scrolling long history.
+          cacheExtent: 600,
+          padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
+          keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
+          itemCount: items.length,
+          itemBuilder: (context, index) => items[index],
+        ),
+      ),
     );
   }
 

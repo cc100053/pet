@@ -247,6 +247,25 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   @override
+  void deactivate() {
+    // If the chat list is still gliding from a fling when this route is popped
+    // (returning to Home), the in-flight ballistic scroll activity can dispatch
+    // a ScrollNotification after the subtree is deactivated. That notification
+    // bubbles into an ancestor Material's ink handler, which calls
+    // findRenderObject() on an inactive element ("Cannot get renderObject of
+    // inactive element") and corrupts the deactivation pass — surfacing as the
+    // framework `_dependents.isEmpty` assertion and "wrong build scope" errors.
+    // Settle the scroll to current offset to cancel the ballistic activity (and
+    // its ticker) before the subtree goes inactive. A same-offset jump emits no
+    // scroll notifications.
+    if (_chatScrollController.hasClients) {
+      final position = _chatScrollController.position;
+      position.jumpTo(position.pixels);
+    }
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     _realtimeGeneration += 1;
     unawaited(_setChatCrashContext(lastAction: 'chat_dispose'));

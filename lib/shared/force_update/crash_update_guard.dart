@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../../services/crash/crash_reporting_service.dart';
@@ -27,6 +28,7 @@ class AppCrashSignal {
   static final AppCrashSignal instance = AppCrashSignal._();
 
   final ValueNotifier<AppCrashSnapshot?> _crash = ValueNotifier(null);
+  AppCrashSnapshot? _pending;
 
   ValueListenable<AppCrashSnapshot?> get listenable => _crash;
 
@@ -35,17 +37,37 @@ class AppCrashSignal {
     required StackTrace stackTrace,
     required String source,
   }) {
-    if (_crash.value != null) {
+    // De-dupe against both the active crash and a deferred one still pending.
+    if (_crash.value != null || _pending != null) {
       return;
     }
-    _crash.value = AppCrashSnapshot(
+    final snapshot = AppCrashSnapshot(
       error: error,
       stackTrace: stackTrace,
       source: source,
     );
+    // This is frequently invoked from ErrorWidget.builder / FlutterError.onError,
+    // which run *during* a build/layout pass. Mutating the notifier there would
+    // swap the live subtree for the recovery screen in the wrong build scope —
+    // tearing down LayoutBuilder children mid-frame trips InheritedElement's
+    // `_dependents.isEmpty` assertion. Defer the swap to a clean post-frame.
+    final phase = WidgetsBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.idle) {
+      _crash.value = snapshot;
+      return;
+    }
+    _pending = snapshot;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final next = _pending;
+      _pending = null;
+      if (next != null && _crash.value == null) {
+        _crash.value = next;
+      }
+    });
   }
 
   void clear() {
+    _pending = null;
     _crash.value = null;
   }
 

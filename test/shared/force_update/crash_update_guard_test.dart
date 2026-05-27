@@ -42,6 +42,46 @@ void main() {
     expect(find.text('Game home'), findsOneWidget);
     expect(find.text('遊戲發生錯誤'), findsNothing);
   });
+
+  testWidgets(
+    'reporting during a build/layout pass defers the recovery swap to a '
+    'clean build scope',
+    (tester) async {
+      // Reproduces the crash path: ErrorWidget.builder / FlutterError.onError
+      // call report() while a build/layout pass is in progress. Mutating the
+      // notifier synchronously there would swap the live subtree mid-frame and
+      // trip "wrong build scope" / InheritedElement `_dependents.isEmpty`.
+      await tester.pumpWidget(
+        _buildApp(
+          CrashUpdateGuard(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Establish an inherited dependency in the subtree, then report
+                // while still inside the build phase.
+                MediaQuery.of(context);
+                AppCrashSignal.instance.report(
+                  error: StateError('boom during build'),
+                  stackTrace: StackTrace.current,
+                  source: 'error_widget_builder',
+                );
+                return const Text('Game home');
+              },
+            ),
+          ),
+          locale: const Locale('zh', 'TW'),
+        ),
+      );
+
+      // The swap is deferred: the original subtree finished its frame cleanly.
+      expect(tester.takeException(), isNull);
+      expect(find.text('Game home'), findsOneWidget);
+
+      // The deferred post-frame callback swaps in the recovery screen safely.
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('遊戲發生錯誤'), findsOneWidget);
+    },
+  );
 }
 
 Widget _buildApp(Widget child, {required Locale locale}) {
