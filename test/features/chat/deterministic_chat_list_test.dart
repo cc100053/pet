@@ -53,6 +53,59 @@ void main() {
     );
   });
 
+  group('shouldRejoinLatestOnScroll', () {
+    test('rejoins when scrolled to the newest end in history mode', () {
+      expect(
+        shouldRejoinLatestOnScroll(
+          pixels: 0,
+          minScrollExtent: 0,
+          isHistoryMode: true,
+          pendingLiveMessageCount: 0,
+        ),
+        true,
+      );
+    });
+
+    test(
+      'rejoins when buffered live messages exist and back at the bottom',
+      () {
+        expect(
+          shouldRejoinLatestOnScroll(
+            pixels: 10,
+            minScrollExtent: 0,
+            isHistoryMode: false,
+            pendingLiveMessageCount: 3,
+          ),
+          true,
+        );
+      },
+    );
+
+    test('does not rejoin while still scrolled up in history', () {
+      expect(
+        shouldRejoinLatestOnScroll(
+          pixels: 400,
+          minScrollExtent: 0,
+          isHistoryMode: true,
+          pendingLiveMessageCount: 0,
+        ),
+        false,
+      );
+    });
+
+    test('does not rejoin in live mode with nothing buffered', () {
+      expect(
+        shouldRejoinLatestOnScroll(
+          pixels: 0,
+          minScrollExtent: 0,
+          isHistoryMode: false,
+          pendingLiveMessageCount: 0,
+        ),
+        false,
+      );
+    });
+  });
+
   testWidgets('deterministic list forwards long press for rendered messages', (
     tester,
   ) async {

@@ -44,6 +44,10 @@ Active progress stays current-state focused. Full snapshots live in
   Chat history scrolling is memory-tuned: the reversed list keeps a small
   `cacheExtent` (600) so few full-size image bubbles stay decoded at once, and
   the global image cache is capped at 64MB/80 entries (`lib/main.dart`).
+  Scrolling back to the newest end while in history mode (or with buffered live
+  messages) auto-rejoins the latest window via `shouldRejoinLatestOnScroll` in
+  `_handleChatScroll`, so users no longer need the jump-to-latest button to see
+  recent messages.
 - `ForceUpdateGate` shows the What's New sheet at most once per app session:
   `_checkForUpdate` is re-entrancy guarded and `_whatsNewShownThisSession`
   blocks a duplicate sheet when `AppLifecycleState.resumed` re-fires before

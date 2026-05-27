@@ -19,6 +19,24 @@ bool shouldShowChatScrollToLatestButton({
   return pixels > threshold;
 }
 
+/// Whether scrolling back down to the newest end should rejoin the live latest
+/// window. Once history mode trims the live tail (or new messages are buffered
+/// while reading history), the bottom of the loaded window is no longer the
+/// real latest, so the user otherwise has to tap the jump-to-latest button.
+bool shouldRejoinLatestOnScroll({
+  required double pixels,
+  required double minScrollExtent,
+  required bool isHistoryMode,
+  required int pendingLiveMessageCount,
+  double threshold = 24,
+}) {
+  if (!isHistoryMode && pendingLiveMessageCount <= 0) {
+    return false;
+  }
+  // In a reversed list, minScrollExtent (~0) is the newest end (bottom).
+  return pixels <= minScrollExtent + threshold;
+}
+
 bool isSameLocalChatDay(DateTime a, DateTime b) {
   final localA = a.toLocal();
   final localB = b.toLocal();

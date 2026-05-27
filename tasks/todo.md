@@ -19,6 +19,17 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Plan (2026-05-27 v2.0.2 Bug Fix Release Notes)
+- [x] Read release-note workflow, active memory-bank files, current version, and
+  existing bundled/ASC release-note assets.
+- [ ] Get approval for localized `2.0.2` bug-fix release-note drafts.
+- [ ] Bump the app public version to `2.0.2` and choose the next build number.
+- [ ] Add bundled What's New copy for `2.0.2`.
+- [ ] Update App Store Connect localization files for `2.0.2` while preserving
+  required EULA footer descriptions.
+- [ ] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+- [ ] Sync and verify App Store Connect metadata after local validation.
+
 ## Plan (2026-05-26 v2.0.1 iOS Archive)
 - [x] Read active memory-bank files, task notes, ASC/Xcode build workflow, and
   iOS export workflow.
@@ -55,6 +66,13 @@ Latest historical snapshot before compaction:
 - [x] Add `ForceUpdateGate` What's New regression widget test; verify it fails
   without the guards.
 - [x] `dart format`, `flutter analyze`, `flutter test`.
+
+## Plan (2026-05-27 Rejoin latest on scroll-down)
+- [x] Diagnose why scrolling down from history needed the jump-to-latest button
+  (history window trims the live tail; no load-newer/rejoin on scroll).
+- [x] Add `shouldRejoinLatestOnScroll` predicate + wire `_handleChatScroll` to
+  rejoin the latest window when the user scrolls back to the newest end.
+- [x] Add predicate unit tests; `dart format`, `flutter analyze`, `flutter test`.
 
 ## Recent Review Highlights
 - v2.0.1 iOS archive (2026-05-26): built

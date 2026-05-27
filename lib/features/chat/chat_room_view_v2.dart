@@ -181,6 +181,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   int _viewportSyncRequestId = 0;
   bool _isAnimatingExplicitLatest = false;
   bool _needsLatestCorrectionAfterAnimation = false;
+  bool _returningToLatest = false;
 
   ChatMessageRepository get _repository =>
       widget.repository ?? ChatMessageRepository.instance;
@@ -2698,12 +2699,43 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       setState(() => _showScrollToLatestButton = showJumpButton);
     }
 
+    // Scrolling back down to the newest end while reading history should bring
+    // the user back to the live latest, so they don't have to tap the
+    // jump-to-latest button to see recent messages.
+    if (!_returningToLatest &&
+        !_isAnimatingExplicitLatest &&
+        shouldRejoinLatestOnScroll(
+          pixels: position.pixels,
+          minScrollExtent: position.minScrollExtent,
+          isHistoryMode: _isHistoryMode,
+          pendingLiveMessageCount: _pendingLiveMessageCount,
+        )) {
+      unawaited(_returnToLatestFromScroll());
+      return;
+    }
+
     if (_loadingMore || _loading || !_hasMore) {
       return;
     }
     // In a reversed list, older messages are at the maxScrollExtent.
     if (position.pixels >= position.maxScrollExtent - 120) {
       unawaited(_loadMore());
+    }
+  }
+
+  Future<void> _returnToLatestFromScroll() async {
+    if (_returningToLatest) {
+      return;
+    }
+    _returningToLatest = true;
+    try {
+      await _refreshLatest(resetWindow: true);
+      if (!mounted) {
+        return;
+      }
+      _scheduleViewportSync(stickToLatest: true, animated: false);
+    } finally {
+      _returningToLatest = false;
     }
   }
 
