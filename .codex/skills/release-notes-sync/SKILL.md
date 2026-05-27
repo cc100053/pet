@@ -14,7 +14,7 @@ Keep bundled `What's New` copy and App Store Connect `whatsNew` / `promotionalTe
   - `lib/l10n/app_ja.arb`
   - `lib/l10n/app_ko.arb`
   - `lib/l10n/app_zh_TW.arb`
-  - `lib/l10n/app_zh.arb` (Simplified Chinese, only if provided)
+  - `lib/l10n/app_zh.arb` (Simplified Chinese; maintained bundled locale)
 - App Store Connect version metadata:
   - `.asc/version-localizations/en-US.strings`
   - `.asc/version-localizations/ja.strings`
@@ -48,6 +48,8 @@ Keep bundled `What's New` copy and App Store Connect `whatsNew` / `promotionalTe
   - bundle `ja` -> ASC `ja`
   - bundle `ko` -> ASC `ko`
   - bundle `zh_TW` -> ASC `zh-Hant`
+  - bundle `zh` (Simplified) has no ASC locale counterpart in this repo; keep it
+    bundled-only and do not invent an ASC `zh-Hans` file.
 - If the user supplies locales that are not present in repo assets, stop and report the gap instead of inventing text.
 
 ## Repo Update Workflow
@@ -70,11 +72,33 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Check if the version (e.g., `1.0.6`) exists in ASC via `asc versions list`.
    - If missing, create it via `asc versions create --copy-metadata-from <PREVIOUS_VERSION>`.
    - Upload the local `.strings` files using `asc localizations upload`.
-5. **Validation & Verification:**
+5. **Archive, Upload, And Build Processing:**
+   - When the user asks to archive/upload the release build as part of this flow,
+     archive with the repo's existing Flutter/Xcode Runner settings; do not add
+     iPad support or change device-family settings.
+   - Preflight the active iOS target settings before archiving and preserve:
+     `TARGETED_DEVICE_FAMILY = 1`, `SUPPORTED_PLATFORMS = iphoneos iphonesimulator`,
+     and `SUPPORTS_MACCATALYST = NO`.
+   - If building through Flutter, pass the intended public version and build
+     number explicitly, e.g.
+     `flutter build ipa --release --build-name=<VERSION> --build-number=<BUILD>`.
+   - Verify the packaged IPA before upload: `CFBundleShortVersionString`,
+     `CFBundleVersion`, `UIDeviceFamily`, `UISupportedInterfaceOrientations`, and
+     `UIRequiresFullScreen`.
+   - Creating an archive/IPA is not enough. Upload the IPA with
+     `asc builds upload --app 6757725650 --ipa <IPA_PATH>`.
+   - After upload, wait for App Store Connect processing with a 10-minute
+     timeout because ASC build discovery/processing can take several minutes:
+     `asc builds wait --app 6757725650 --build-number <BUILD> --version <VERSION> --platform IOS --timeout 10m --poll-interval 30s`.
+   - If the build is not discoverable immediately after upload, check
+     `asc builds uploads list --app 6757725650 --output table`; an upload row in
+     `PROCESSING` means Apple accepted the IPA but has not exposed the build
+     entity yet. Keep polling until `VALID`, `FAILED`, or timeout.
+6. **Validation & Verification:**
    - Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
    - Confirm `test/app_store_metadata_terms_test.dart` passes before ASC upload.
    - Confirm the ASC update via `asc localizations list`.
-6. **Preserve History:** Never delete older bundled version entries or ARB keys.
+7. **Preserve History:** Never delete older bundled version entries or ARB keys.
 
 ## Static Metadata URL Rules
 - **Marketing URL**: Always use `https://pet-app-702be.web.app/`.

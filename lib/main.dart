@@ -26,8 +26,8 @@ import 'shared/force_update/crash_update_guard.dart';
 
 RawReceivePort? _isolateErrorPort;
 
-const int _maxImageCacheEntries = 120;
-const int _maxImageCacheBytes = 128 * 1024 * 1024;
+const int _maxImageCacheEntries = 80;
+const int _maxImageCacheBytes = 64 * 1024 * 1024;
 
 Future<void> main() async {
   runZonedGuarded(

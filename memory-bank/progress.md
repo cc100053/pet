@@ -41,6 +41,13 @@ Active progress stays current-state focused. Full snapshots live in
 - Chat is on `ChatRoomViewV2`; feed uploads run through the durable queue.
   Sender photo recall is implemented as a soft-delete of `image_feed`, leaving
   reward/feeding state intact and removing the photo from Home/gallery views.
+  Chat history scrolling is memory-tuned: the reversed list keeps a small
+  `cacheExtent` (600) so few full-size image bubbles stay decoded at once, and
+  the global image cache is capped at 64MB/80 entries (`lib/main.dart`).
+- `ForceUpdateGate` shows the What's New sheet at most once per app session:
+  `_checkForUpdate` is re-entrancy guarded and `_whatsNewShownThisSession`
+  blocks a duplicate sheet when `AppLifecycleState.resumed` re-fires before
+  `markShown` persists (e.g. an ATT/push prompt right after a fresh update).
 - Home first paint is latency-tuned: key room/profile reads run concurrently,
   warm room switches skip the loading overlay, and hunger alert dispatch is
   unawaited after the state read.

@@ -129,8 +129,11 @@ class DeterministicChatList extends StatelessWidget {
               controller: scrollController,
               physics: physics,
               reverse: true, // Key to anchoring at the bottom
-              cacheExtent:
-                  2500, // Pre-render items to prevent jitter on load-more
+              // Keep a modest off-screen buffer to smooth load-more without
+              // holding many full-size image bubbles decoded in memory at once.
+              // A large extent (e.g. 2500) kept ~14 image bubbles live and
+              // could trip the iOS memory limit while scrolling long history.
+              cacheExtent: 600,
               padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
               keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
               itemCount: items.length,

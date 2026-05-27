@@ -49,6 +49,8 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   bool _checking = true;
   bool _hardUpdateRequired = false;
   bool _dialogShowing = false;
+  bool _checkInProgress = false;
+  bool _whatsNewShownThisSession = false;
   String? _skippedSoftUpdateVersion;
   ForceUpdateConfig? _config;
 
@@ -83,6 +85,14 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
   }
 
   Future<void> _checkForUpdate() async {
+    // Guard against re-entry. `didChangeAppLifecycleState(resumed)` can fire
+    // while a previous pass is still awaiting an update/What's New dialog (e.g.
+    // an ATT/push permission prompt right after a fresh update); without this
+    // guard the second pass would stack a duplicate dialog.
+    if (_checkInProgress) {
+      return;
+    }
+    _checkInProgress = true;
     unawaited(
       _setCrashContextSafe(
         feature: 'force_update_gate',
@@ -177,6 +187,8 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
         _checking = false;
         _hardUpdateRequired = false;
       });
+    } finally {
+      _checkInProgress = false;
     }
   }
 
@@ -218,6 +230,13 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     if (!decision.shouldShow || decision.entry == null) {
       return;
     }
+    // Show the What's New sheet at most once per app session. `markShown`
+    // persists only after the user dismisses the toast, so without this flag a
+    // re-evaluation during that window could surface a duplicate sheet.
+    if (_whatsNewShownThisSession) {
+      return;
+    }
+    _whatsNewShownThisSession = true;
     await _showWhatsNewDialog(
       version: decision.currentVersion,
       releaseSignature: decision.currentReleaseSignature,
