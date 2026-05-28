@@ -1097,13 +1097,35 @@ class _FeedCard extends StatelessWidget {
   }
 }
 
+// Bubble timestamps render at minute resolution (hh:mm), so formatted strings
+// can be cached by (minute, 24h flag, locale) to skip per-row, per-frame
+// `formatTimeOfDay` work while scrolling. Insertion-ordered map gives LRU.
+final Map<String, String> _bubbleTimeCache = <String, String>{};
+const int _bubbleTimeCacheMaxEntries = 512;
+
 String? _formatBubbleTime(BuildContext context, DateTime? time) {
   if (time == null) {
     return null;
   }
   final local = time.toLocal();
-  return MaterialLocalizations.of(context).formatTimeOfDay(
+  final use24h = MediaQuery.of(context).alwaysUse24HourFormat;
+  final locale = Localizations.localeOf(context).toString();
+  final minuteStamp = local.millisecondsSinceEpoch ~/ Duration.millisecondsPerMinute;
+  final key = '$minuteStamp|$use24h|$locale';
+
+  final cached = _bubbleTimeCache.remove(key);
+  if (cached != null) {
+    _bubbleTimeCache[key] = cached; // touch: mark as most-recently used
+    return cached;
+  }
+
+  final formatted = MaterialLocalizations.of(context).formatTimeOfDay(
     TimeOfDay.fromDateTime(local),
-    alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat,
+    alwaysUse24HourFormat: use24h,
   );
+  if (_bubbleTimeCache.length >= _bubbleTimeCacheMaxEntries) {
+    _bubbleTimeCache.remove(_bubbleTimeCache.keys.first); // evict oldest
+  }
+  _bubbleTimeCache[key] = formatted;
+  return formatted;
 }

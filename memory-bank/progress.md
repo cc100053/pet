@@ -5,6 +5,10 @@ Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/progress_20260523_pre_compaction.md`.
 
 ## Current State
+- Local release metadata is prepared for `2.0.2+4`. App Store Connect version
+  `2.0.2` (`cb96407b-2767-4889-a3de-212be7b9289c`) has build `4`
+  (`97147cec-14a9-4890-b50c-abedf93fc61f`) attached and submission
+  `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
 - Profile bootstrap is centralized in `ProfileBootstrapService`; avatar uploads
   use the deployed `avatar_upload` Edge Function and shared framing editor.
 - Shared room content is mixed-version aware. New backgrounds, furniture, and
@@ -47,7 +51,16 @@ Active progress stays current-state focused. Full snapshots live in
   Scrolling back to the newest end while in history mode (or with buffered live
   messages) auto-rejoins the latest window via `shouldRejoinLatestOnScroll` in
   `_handleChatScroll`, so users no longer need the jump-to-latest button to see
-  recent messages.
+  recent messages. Rejoin is local-first: `ChatWindowState` buffers live
+  message objects (not just ids) and `flushBufferedToLatest()` merges them into
+  the window (still trimmed to `maxVisibleMessages`), so
+  `_returnToLatestFromScroll` applies instantly with no refetch/content-swap
+  flash, then runs an unawaited `_refreshLatest()` (merge mode) to reconcile any
+  realtime gap. Scroll smoothness is also render-tuned: mention segmentation is
+  cached and the whitespace `RegExp` hoisted in `chat_mentions.dart` (dropped via
+  `invalidateChatMentionCache()` when candidates change), bubble time strings are
+  cached by minute/locale, and older-message prefetch triggers ~1.5 viewports
+  before the edge.
 - Image decodes are size-bounded to curb OOM: chat bubbles, Home food photo
   (`photo_food.dart`), and the feed capture preview (`feed_capture_view.dart`)
   all pass cacheWidth/cacheHeight. Known remaining risk: the full-screen

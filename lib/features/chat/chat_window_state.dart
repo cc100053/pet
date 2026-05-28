@@ -6,14 +6,17 @@ class ChatWindowState {
   final int pageSize;
   final int maxVisibleMessages;
   final List<ChatMessage> _visibleMessages = <ChatMessage>[];
-  final Set<String> _pendingLiveMessageIds = <String>{};
+  // Live messages that arrived while in history mode. We keep the full message
+  // objects (not just ids) so we can flush them into the window locally on
+  // rejoin without a network refetch or a hard content swap.
+  final Map<String, ChatMessage> _pendingLiveMessages = <String, ChatMessage>{};
 
   List<ChatMessage> get visibleMessages =>
       List<ChatMessage>.unmodifiable(_visibleMessages);
   bool get isHistoryMode => _mode == ChatWindowMode.history;
   bool get isLiveMode => _mode == ChatWindowMode.live;
   bool get hasMoreOlder => _hasMoreOlder;
-  int get pendingLiveMessageCount => _pendingLiveMessageIds.length;
+  int get pendingLiveMessageCount => _pendingLiveMessages.length;
 
   ChatMessage? get oldestMessage =>
       _visibleMessages.isEmpty ? null : _visibleMessages.first;
@@ -25,7 +28,7 @@ class ChatWindowState {
 
   void hydrateCache(List<ChatMessage> messages) {
     _mode = ChatWindowMode.live;
-    _pendingLiveMessageIds.clear();
+    _pendingLiveMessages.clear();
     _setVisibleMessages(_takeLatest(messages, pageSize));
   }
 
@@ -35,7 +38,7 @@ class ChatWindowState {
   }) {
     _mode = ChatWindowMode.live;
     _hasMoreOlder = hasMoreOlder;
-    _pendingLiveMessageIds.clear();
+    _pendingLiveMessages.clear();
     _setVisibleMessages(_takeLatest(messages, pageSize));
   }
 
@@ -45,7 +48,7 @@ class ChatWindowState {
   }) {
     _mode = ChatWindowMode.live;
     _hasMoreOlder = hasMoreOlder;
-    _pendingLiveMessageIds.clear();
+    _pendingLiveMessages.clear();
     final merged = _mergeSortedUnique(_visibleMessages, messages);
     _setVisibleMessages(_trimKeepLatest(merged, maxVisibleMessages));
   }
@@ -56,8 +59,26 @@ class ChatWindowState {
   }) {
     _mode = ChatWindowMode.live;
     _hasMoreOlder = hasMoreOlder;
-    _pendingLiveMessageIds.clear();
+    _pendingLiveMessages.clear();
     final merged = _mergeSortedUnique(_visibleMessages, messages);
+    _setVisibleMessages(_trimKeepLatest(merged, maxVisibleMessages));
+  }
+
+  /// Flush buffered live messages into the visible window and return to live
+  /// mode, entirely from local state. Keeps the newest [maxVisibleMessages] so
+  /// the in-memory cap is preserved. When nothing is buffered this is just a
+  /// mode flip with no content change, so rejoining the latest end while
+  /// reading history no longer forces a refetch or a visible content swap.
+  void flushBufferedToLatest() {
+    _mode = ChatWindowMode.live;
+    if (_pendingLiveMessages.isEmpty) {
+      return;
+    }
+    final merged = _mergeSortedUnique(
+      _visibleMessages,
+      _pendingLiveMessages.values.toList(growable: false),
+    );
+    _pendingLiveMessages.clear();
     _setVisibleMessages(_trimKeepLatest(merged, maxVisibleMessages));
   }
 
@@ -75,7 +96,7 @@ class ChatWindowState {
     if (_containsVisibleMessage(message.id)) {
       return;
     }
-    _pendingLiveMessageIds.add(message.id);
+    _pendingLiveMessages[message.id] = message;
   }
 
   void upsertVisibleMessage(
@@ -87,7 +108,7 @@ class ChatWindowState {
         ? _trimKeepLatest(merged, maxVisibleMessages)
         : _trimKeepOldest(merged, maxVisibleMessages);
     _setVisibleMessages(trimmed);
-    _pendingLiveMessageIds.remove(message.id);
+    _pendingLiveMessages.remove(message.id);
   }
 
   void replaceVisibleMessage(ChatMessage message) {
@@ -103,14 +124,14 @@ class ChatWindowState {
 
   void removeVisibleMessage(String messageId) {
     _visibleMessages.removeWhere((message) => message.id == messageId);
-    _pendingLiveMessageIds.remove(messageId);
+    _pendingLiveMessages.remove(messageId);
   }
 
   bool containsVisibleMessage(String messageId) =>
       _containsVisibleMessage(messageId);
 
   void clearPendingLiveMessages() {
-    _pendingLiveMessageIds.clear();
+    _pendingLiveMessages.clear();
   }
 
   List<ChatMessage> latestVisibleCanonicalSlice({

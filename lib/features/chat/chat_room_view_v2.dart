@@ -505,6 +505,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       _mentionCandidates
         ..clear()
         ..addAll(candidates.where(_isMentionCandidateVisible));
+      // Candidate list changed: drop cached mention segmentation so bubbles
+      // re-resolve mentions against the new members.
+      invalidateChatMentionCache();
       _updateMentionSuggestions(setStateIfChanged: true);
     } catch (_) {
       // Mention autocomplete is best-effort; the composer remains usable.
@@ -2736,8 +2739,13 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     if (_loadingMore || _loading || !_hasMore) {
       return;
     }
-    // In a reversed list, older messages are at the maxScrollExtent.
-    if (position.pixels >= position.maxScrollExtent - 120) {
+    // In a reversed list, older messages are at the maxScrollExtent. Prefetch
+    // before the user actually reaches the edge (~1.5 viewports of lead, with a
+    // 600px floor) so older pages are usually ready and scrolling back stays
+    // smooth instead of stalling at the boundary.
+    final viewportLead = position.viewportDimension * 1.5;
+    final prefetchLead = viewportLead > 600.0 ? viewportLead : 600.0;
+    if (position.pixels >= position.maxScrollExtent - prefetchLead) {
       unawaited(_loadMore());
     }
   }
@@ -2748,11 +2756,21 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
     _returningToLatest = true;
     try {
-      await _refreshLatest(resetWindow: true);
+      // Flush buffered live messages into the window locally and apply right
+      // away — no network round-trip, no content swap — so scrolling back to
+      // the newest end stays smooth. When nothing is buffered this is just a
+      // mode flip with no visible change (no more needless refetch flash).
+      _historyGroupingBoundaryMessageId = null;
+      _window.flushBufferedToLatest();
+      await _applyWindowToChat(animated: false);
       if (!mounted) {
         return;
       }
       _scheduleViewportSync(stickToLatest: true, animated: false);
+      // Reconcile against the server in the background to recover any live
+      // event realtime might have missed. Merge mode (not resetWindow) keeps
+      // the current window in place, so reconciliation does not flash.
+      unawaited(_refreshLatest());
     } finally {
       _returningToLatest = false;
     }
