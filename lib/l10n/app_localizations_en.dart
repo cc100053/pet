@@ -1999,4 +1999,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew201Bullet3 => 'Stability fixes and polish.';
+
+  @override
+  String get whatsNew202Title => 'Bug Fixes';
+
+  @override
+  String get whatsNew202Bullet1 => 'Fixed bugs and improved stability.';
 }

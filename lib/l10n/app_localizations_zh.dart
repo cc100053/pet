@@ -1914,6 +1914,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew201Bullet3 => '提升稳定性与操作手感。';
+
+  @override
+  String get whatsNew202Title => '问题修复';
+
+  @override
+  String get whatsNew202Bullet1 => '修复问题并提升稳定性。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3816,4 +3822,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew201Bullet3 => '提升穩定性與操作手感。';
+
+  @override
+  String get whatsNew202Title => '錯誤修復';
+
+  @override
+  String get whatsNew202Bullet1 => '修復錯誤並提升穩定性。';
 }

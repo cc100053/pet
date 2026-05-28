@@ -3554,6 +3554,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stability fixes and polish.'**
   String get whatsNew201Bullet3;
+
+  /// No description provided for @whatsNew202Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Fixes'**
+  String get whatsNew202Title;
+
+  /// No description provided for @whatsNew202Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed bugs and improved stability.'**
+  String get whatsNew202Bullet1;
 }
 
 class _AppLocalizationsDelegate

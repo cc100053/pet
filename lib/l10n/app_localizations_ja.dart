@@ -1924,4 +1924,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew201Bullet3 => '安定性と使いやすさを向上しました。';
+
+  @override
+  String get whatsNew202Title => '不具合の修正';
+
+  @override
+  String get whatsNew202Bullet1 => '不具合を修正し、安定性を向上しました。';
 }

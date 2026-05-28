@@ -8,10 +8,9 @@ Latest historical snapshot before compaction:
 `tasks/archive/todo_20260523_pre_compaction.md`.
 
 ## Active Follow-ups
-- [ ] App Store Connect version `2.0.1`
-  (`ee8f35e8-fda1-4d15-b6cd-440a96409986`) is
-  `PREPARE_FOR_SUBMISSION`; attach uploaded valid build `3` and submit when
-  ready.
+- [ ] Monitor App Store review for `2.0.2`
+  (`cb96407b-2767-4889-a3de-212be7b9289c`); latest submission
+  `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
 - [ ] Confirm Crashlytics receives dSYMs from the SPM path for build `3`.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
   8.0.0 upgrade.
@@ -22,13 +21,63 @@ Latest historical snapshot before compaction:
 ## Plan (2026-05-27 v2.0.2 Bug Fix Release Notes)
 - [x] Read release-note workflow, active memory-bank files, current version, and
   existing bundled/ASC release-note assets.
-- [ ] Get approval for localized `2.0.2` bug-fix release-note drafts.
-- [ ] Bump the app public version to `2.0.2` and choose the next build number.
-- [ ] Add bundled What's New copy for `2.0.2`.
-- [ ] Update App Store Connect localization files for `2.0.2` while preserving
+- [x] Get approval for localized `2.0.2` bug-fix release-note drafts.
+- [x] Bump the app public version to `2.0.2` and choose the next build number.
+- [x] Add bundled What's New copy for `2.0.2`.
+- [x] Update App Store Connect localization files for `2.0.2` while preserving
   required EULA footer descriptions.
-- [ ] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
-- [ ] Sync and verify App Store Connect metadata after local validation.
+- [x] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+- [x] Sync and verify App Store Connect metadata after local validation.
+
+## Plan (2026-05-27 v2.0.2 iOS Archive)
+- [x] Read iOS export workflow and preflight Runner target settings.
+- [x] Build the App Store IPA with explicit build name `2.0.2` and build number
+  `4`.
+- [x] Verify packaged IPA metadata keeps version/build and iPhone-only settings.
+- [x] Upload the IPA to App Store Connect.
+- [x] Wait for build `4` processing and confirm it becomes valid.
+- [x] Attach valid build `4` to ASC version `2.0.2`.
+- [x] Submit ASC version `2.0.2` for App Review if readiness checks pass.
+
+## Review (2026-05-27 v2.0.2 iOS Archive)
+- Preflight confirmed the Runner target keeps `TARGETED_DEVICE_FAMILY = 1`,
+  `SUPPORTED_PLATFORMS = iphoneos iphonesimulator`, `SUPPORTS_MACCATALYST = NO`,
+  deployment target `15.0`, and team `QRLFBRL2J2`.
+- Ran `flutter build ipa --release --build-name=2.0.2 --build-number=4`, which
+  archived with existing Xcode project signing/settings.
+- Outputs:
+  `build/ios/archive/Runner.xcarchive` (323.4 MB) and
+  `build/ios/ipa/PetTomo.ipa` (78 MB).
+- IPA verification: `CFBundleShortVersionString = 2.0.2`,
+  `CFBundleVersion = 4`, `UIDeviceFamily = [1]`,
+  `UISupportedInterfaceOrientations = ["UIInterfaceOrientationPortrait"]`, and
+  `UIRequiresFullScreen = true`.
+- Uploaded `build/ios/ipa/PetTomo.ipa` to App Store Connect; upload/build ID
+  `97147cec-14a9-4890-b50c-abedf93fc61f` reached `VALID`, expired `false`,
+  encryption `exempt`.
+- Attached build `4` to ASC version `2.0.2`
+  (`cb96407b-2767-4889-a3de-212be7b9289c`), ran `asc validate` with `0` errors
+  and `0` blocking issues, then submitted for App Review. Submission
+  `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
+
+## Review (2026-05-27 v2.0.2 Bug Fix Release Notes)
+- Updated local version from `2.0.1+3` to `2.0.2+4`.
+- Added bundled `2.0.2` What's New copy for English, Japanese, Korean,
+  Traditional Chinese, and Simplified Chinese.
+- Updated `.asc/version-localizations/*.strings` `promotionalText` and
+  `whatsNew` fields only; EULA-bearing descriptions were preserved.
+- Created ASC iOS version `2.0.2`
+  (`cb96407b-2767-4889-a3de-212be7b9289c`) in `PREPARE_FOR_SUBMISSION`.
+  `asc versions create` and `asc localizations upload` returned Apple's generic
+  `-50` error, so version creation and localization updates were completed via
+  direct App Store Connect API calls using the same ASC key credentials.
+- Live ASC read-back confirmed all four locales (`en-US`, `ja`, `ko`,
+  `zh-Hant`) have the approved `2.0.2` release notes/promotional text and
+  preserved EULA descriptions.
+- Verification: `flutter gen-l10n` passed with pre-existing untranslated-key
+  warnings for `ko` and `zh_TW`; `flutter analyze` passed; focused App Store
+  metadata terms test passed; full `flutter test` passed (439 passed, 1
+  skipped).
 
 ## Plan (2026-05-26 v2.0.1 iOS Archive)
 - [x] Read active memory-bank files, task notes, ASC/Xcode build workflow, and

@@ -1935,4 +1935,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew201Bullet3 => '안정성과 사용성을 다듬었습니다.';
+
+  @override
+  String get whatsNew202Title => '버그 수정';
+
+  @override
+  String get whatsNew202Bullet1 => '버그를 수정하고 안정성을 개선했습니다.';
 }
