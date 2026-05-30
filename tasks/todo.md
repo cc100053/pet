@@ -5,7 +5,7 @@ plan/review only; historical task logs should stay in git history or move to a
 purpose-specific archive if they are still useful.
 
 Latest historical snapshot before compaction:
-`tasks/archive/todo_20260523_pre_compaction.md`.
+`tasks/archive/todo_20260530_pre_compaction.md`.
 
 ## Active Follow-ups
 - [ ] Monitor App Store review for `2.0.2`
@@ -18,296 +18,96 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
-## Plan (2026-05-30 Plan A — Fixed Virtual Room Canvas for furniture sync)
-
-Goal: placed furniture appears in the same relative spot + relative size for every
-room member regardless of device size. Ship behind a backward-compatible gate.
-Decisions: scope = furniture only; canvas aspect = (see Open question below).
-
-Findings (2026-05-30):
-- `room_furniture` stores `position_x/y` normalized [0,1] + `scale` [0.8,2.0] +
-  `flip_x`. Render maps `pixel = normalized * (field - itemSize)` with FIXED
-  `42x42` item -> furniture is fixed px while the room scales, and the
-  `(field-itemSize)` denominator varies per device. Root cause confirmed.
-- Background is FULL-SCREEN (`HomeRoomBackground` in Scaffold body), art is all
-  `1206x2622` (aspect 0.46), `BoxFit.cover`. Furniture lives in a SEPARATE card
-  sub-rect (`_buildPetHomeCard`, field = `constraints.biggest`). So furniture is
-  NOT pixel-locked to the art today; a literal 0.46 canvas inside the card would
-  squeeze furniture into a narrow vertical strip. -> Open question below.
-- Persist already uses try-new-RPC-then-`_persistFurnitureTransformLegacy`
-  fallback, so additive optional RPC params fit cleanly.
-
-Approach (additive, zero old-client impact):
-- New nullable cols `room_furniture.canvas_position_x/y` (center fraction in a
-  fixed canvas rect). Optional RPC params `p_canvas_position_x/y DEFAULT NULL`.
-- New clients dual-write canvas + best-effort legacy `position_x/y`; read canvas
-  if present else derive from legacy. Old clients untouched.
-- Client: `lib/features/home/room_canvas.dart` (constants + center-fraction <->
-  pixel math within a fixed-aspect `contain` rect inset in the field); furniture
-  size = `canvasContentWidth * (42/canvasW) * scale`.
-
-Steps:
-- [ ] Confirm canvas aspect (Open question) + Supabase MCP login (user action).
-- [ ] DB migration via MCP: add cols + optional RPC params + clamps + grants.
-- [ ] `room_canvas.dart` + unit tests (round-trip across sizes; size scales).
-- [ ] `_PlacedFurniture` canvas fields; render/place/drag/scale in canvas space.
-- [ ] `_loadRoomFurniture` read canvas w/ legacy fallback; persist dual-write.
-- [ ] `dart format`, `flutter analyze`, `flutter test`.
-- [ ] Apply migration, then push main.
-
-Decisions (confirmed): canvas aspect locked to play-card shape
-(`RoomCanvas.aspectRatio = 1.2`); scope furniture-only.
-
-### Review (2026-05-30)
-- SDK: project pinned to fvm Flutter `3.44.0` (Dart 3.12.0) via `.fvmrc`
-  (the version `flutter pub get` suggested; satisfies `^3.11.0-235.0.dev`).
-  `.gitignore` updated with `.fvm/`. Build/test must use `fvm flutter ...`.
-- New `lib/features/home/room_canvas.dart`: fixed-aspect contain-rect +
-  center-fraction<->pixel + canvas-fraction sizing + legacy fallback.
-- `_PlacedFurniture` gained `canvasPosition`/`persistedCanvasPosition`
-  (center fraction). Render/place/drag/scale now run in canvas space; legacy
-  `normalizedPosition` kept and dual-written for old clients.
-- `_loadRoomFurniture` selects + reads `canvas_position_x/y` with legacy
-  fallback; place/transform RPCs dual-write canvas + legacy with a
-  pre-migration legacy fallback on place.
-- Removed now-unused `_furnitureItemSize`, `_furnitureSizeForScale`,
-  `_normalizedFromTopLeftSized`, `_clampTopLeftSized` (home_furniture_math.dart
-  funcs left intact; still covered by their own tests).
-- Tests: `test/features/home/room_canvas_test.dart` (7 cases) +
-  full suite: `fvm flutter analyze` clean, `fvm flutter test` 439 pass / 1 skip.
-
-### REMAINING (blocked on user)
-1. DB migration NOT yet applied. The client `.select()` now requests
-   `canvas_position_x/y`; PostgREST errors if those columns don't exist, so the
-   migration MUST be applied BEFORE this app build runs against prod. Migration
-   file ready: `supabase/migrations/20260530120000_add_room_furniture_canvas_coords.sql`.
-   Apply path = Supabase Management API with `SUPABASE_PAT_PET` (Codex pattern),
-   but applying a prod schema change needs explicit user authorization.
-2. Push to main pending (migration-first ordering + branch choice).
-
-## Plan (2026-05-27 v2.0.2 Bug Fix Release Notes)
-- [x] Read release-note workflow, active memory-bank files, current version, and
-  existing bundled/ASC release-note assets.
-- [x] Get approval for localized `2.0.2` bug-fix release-note drafts.
-- [x] Bump the app public version to `2.0.2` and choose the next build number.
-- [x] Add bundled What's New copy for `2.0.2`.
-- [x] Update App Store Connect localization files for `2.0.2` while preserving
-  required EULA footer descriptions.
-- [x] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
-- [x] Sync and verify App Store Connect metadata after local validation.
-
-## Plan (2026-05-27 v2.0.2 iOS Archive)
-- [x] Read iOS export workflow and preflight Runner target settings.
-- [x] Build the App Store IPA with explicit build name `2.0.2` and build number
-  `4`.
-- [x] Verify packaged IPA metadata keeps version/build and iPhone-only settings.
-- [x] Upload the IPA to App Store Connect.
-- [x] Wait for build `4` processing and confirm it becomes valid.
-- [x] Attach valid build `4` to ASC version `2.0.2`.
-- [x] Submit ASC version `2.0.2` for App Review if readiness checks pass.
-
-## Review (2026-05-27 v2.0.2 iOS Archive)
-- Preflight confirmed the Runner target keeps `TARGETED_DEVICE_FAMILY = 1`,
-  `SUPPORTED_PLATFORMS = iphoneos iphonesimulator`, `SUPPORTS_MACCATALYST = NO`,
-  deployment target `15.0`, and team `QRLFBRL2J2`.
-- Ran `flutter build ipa --release --build-name=2.0.2 --build-number=4`, which
-  archived with existing Xcode project signing/settings.
-- Outputs:
-  `build/ios/archive/Runner.xcarchive` (323.4 MB) and
-  `build/ios/ipa/PetTomo.ipa` (78 MB).
-- IPA verification: `CFBundleShortVersionString = 2.0.2`,
-  `CFBundleVersion = 4`, `UIDeviceFamily = [1]`,
-  `UISupportedInterfaceOrientations = ["UIInterfaceOrientationPortrait"]`, and
-  `UIRequiresFullScreen = true`.
-- Uploaded `build/ios/ipa/PetTomo.ipa` to App Store Connect; upload/build ID
-  `97147cec-14a9-4890-b50c-abedf93fc61f` reached `VALID`, expired `false`,
-  encryption `exempt`.
-- Attached build `4` to ASC version `2.0.2`
-  (`cb96407b-2767-4889-a3de-212be7b9289c`), ran `asc validate` with `0` errors
-  and `0` blocking issues, then submitted for App Review. Submission
-  `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
-
-## Review (2026-05-27 v2.0.2 Bug Fix Release Notes)
-- Updated local version from `2.0.1+3` to `2.0.2+4`.
-- Added bundled `2.0.2` What's New copy for English, Japanese, Korean,
-  Traditional Chinese, and Simplified Chinese.
-- Updated `.asc/version-localizations/*.strings` `promotionalText` and
-  `whatsNew` fields only; EULA-bearing descriptions were preserved.
-- Created ASC iOS version `2.0.2`
-  (`cb96407b-2767-4889-a3de-212be7b9289c`) in `PREPARE_FOR_SUBMISSION`.
-  `asc versions create` and `asc localizations upload` returned Apple's generic
-  `-50` error, so version creation and localization updates were completed via
-  direct App Store Connect API calls using the same ASC key credentials.
-- Live ASC read-back confirmed all four locales (`en-US`, `ja`, `ko`,
-  `zh-Hant`) have the approved `2.0.2` release notes/promotional text and
-  preserved EULA descriptions.
-- Verification: `flutter gen-l10n` passed with pre-existing untranslated-key
-  warnings for `ko` and `zh_TW`; `flutter analyze` passed; focused App Store
-  metadata terms test passed; full `flutter test` passed (439 passed, 1
-  skipped).
-
-## Plan (2026-05-26 v2.0.1 iOS Archive)
-- [x] Read active memory-bank files, task notes, ASC/Xcode build workflow, and
-  iOS export workflow.
-- [x] Inspect current iOS project settings before archiving; keep existing
-  `TARGETED_DEVICE_FAMILY = 1` and avoid iPad setting changes.
-- [x] Archive the existing Flutter/Xcode project for iOS App Store release.
-- [x] Verify archive/export output and record the result.
-
-## Plan (2026-05-24 v2.0.1 Release Notes)
-- [x] Read release-note workflow, active memory-bank files, current version, and
-  existing bundled/ASC release-note assets.
-- [x] Bump the app public version to `2.0.1` and build number to `3`.
-- [x] Add bundled What's New copy for `2.0.1` with short, clear bullets and no
-  ad mention.
-- [x] Update App Store Connect localization files for `2.0.1` while preserving
-  the EULA footer in descriptions.
-- [x] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
-- [x] Sync and verify App Store Connect metadata after local validation.
-
-## Plan (2026-05-23 AGENTS.md + Memory-bank Optimization)
+## Plan (2026-05-30 AGENTS.md + Memory-bank Optimization)
 - [x] Read AGENTS.md, active memory-bank files, task notes, local skills,
   referenced docs, scripts, Edge Functions, and relevant migrations.
-- [x] Archive current active memory/task snapshots before compaction.
+- [x] Measure active memory-bank line counts before editing.
+- [x] Archive current memory/task snapshots before compaction.
 - [x] Add only repo-grounded workflow updates to AGENTS.md.
 - [x] Compact active memory-bank and task notes into current-state summaries.
 - [x] Run line-count/diff checks plus `flutter analyze` and `flutter test`.
 
-## Plan (2026-05-27 Duplicate What's New + chat history OOM)
-- [x] Read AGENTS.md + active memory-bank, trace both bug paths.
-- [x] Bug 1: guard `ForceUpdateGate` against duplicate What's New on lifecycle
-  resume (re-entrancy guard on `_checkForUpdate` + per-session show guard).
-- [x] Bug 2: cut chat list `cacheExtent` 2500 -> 600 and global image cache
-  128MB/120 -> 64MB/80 to lower history-scroll memory footprint.
-- [x] Add `ForceUpdateGate` What's New regression widget test; verify it fails
-  without the guards.
-- [x] `dart format`, `flutter analyze`, `flutter test`.
+## Plan (2026-05-30 Fixed Virtual Room Canvas)
+- [x] DB migration is confirmed live on target Supabase project
+  `ilxzpszgirhwxpeocygs`.
+- [x] Legacy furniture RPC compatibility restored by live migration
+  `20260530125134_fix_room_furniture_canvas_rpc_overloads`.
+- [x] Verification checks completed for the furniture RPC hotfix.
 
-## Plan (2026-05-27 Rejoin latest on scroll-down)
-- [x] Diagnose why scrolling down from history needed the jump-to-latest button
-  (history window trims the live tail; no load-newer/rejoin on scroll).
-- [x] Add `shouldRejoinLatestOnScroll` predicate + wire `_handleChatScroll` to
-  rejoin the latest window when the user scrolls back to the newest end.
-- [x] Add predicate unit tests; `dart format`, `flutter analyze`, `flutter test`.
+## Plan (2026-05-30 Furniture RPC Backward Compatibility)
+- [x] Verify target Supabase project and current furniture RPC signatures.
+- [x] Add a migration that keeps legacy 4-arg furniture RPC calls unambiguous
+  while preserving the new 6-arg canvas-coordinate calls.
+- [x] Apply the migration to the target project through Supabase MCP.
+- [x] Run focused verification SQL plus Flutter analyzer/tests.
+- [x] Document the outcome and any remaining rollout risk.
 
-## Plan (2026-05-27 OOM audit follow-up)
-- [x] Audit app for other crash/OOM vectors (images, timers, subscriptions,
-  realtime casts, global error handling).
-- [x] Bound decode size in `photo_food.dart` (Home food photo) and the
-  `feed_capture_view.dart` preview (`Image.memory`) via cacheWidth/cacheHeight.
-- [x] `dart format`, `flutter analyze`, `flutter test`.
-- Noted (not changed): full-screen photo viewer (`photo_view` gallery) decodes
-  full-res across multiple live pages; deferred — touches zoom UX.
+## Plan (2026-05-30 FVM Flutter Run SPM Fix)
+- [x] Compare Flutter-generated iOS SwiftPM package paths with the tracked
+  package mirror used by Xcode.
+- [x] Update the tracked mirror so package paths match FVM/Flutter 3.44.0
+  generated `ios/Flutter/ephemeral/Packages/.packages/*-version` folders.
+- [x] Verify Swift Package dependency resolution and run required Flutter
+  checks where the sandbox allows it.
 
 ## Recent Review Highlights
-- v2.0.1 iOS archive (2026-05-26): built
-  `build/ios/archive/Runner.xcarchive` and `build/ios/ipa/PetTomo.ipa` using
-  the existing Runner scheme/settings with explicit Flutter build name
-  `2.0.1` and build number `3`; verified packaged `UIDeviceFamily = [1]`;
-  uploaded build `3` to App Store Connect and waited until it became `VALID`.
-- v2.0.1 release notes (2026-05-24): bumped `pubspec.yaml` to `2.0.1+3`,
-  added concise bundled What's New copy for English, Japanese, Korean,
-  Traditional Chinese, and Simplified Chinese, updated ASC release metadata for
-  `en-US`, `ja`, `ko`, and `zh-Hant`, created ASC version
-  `ee8f35e8-fda1-4d15-b6cd-440a96409986`, uploaded and verified localizations,
-  and left the version in `PREPARE_FOR_SUBMISSION` for build attachment.
-- App Store EULA metadata rejection (2026-05-22): added direct Apple Standard
-  EULA footer to every `.asc/version-localizations/*.strings` description,
-  added `test/app_store_metadata_terms_test.dart`, updated release-note
-  workflow guardrails, uploaded and verified ASC metadata, and left the
-  unresolved App Review issue for App Store Connect resubmission.
-- iOS export symbol warning (2026-05-21): added
-  `ios/ExportOptions.app-store-nosymbols.plist`,
-  `scripts/export_ios_appstore_no_apple_symbols.sh`, and
-  `docs/ios_app_store_export.md` so existing archives can be exported/uploaded
-  with Apple's immediate symbol upload disabled while retaining dSYMs.
-- Calendar day-sheet invisible photos (2026-05-22): fixed
-  `CachedNetworkImageView` avatar-framing selection for infinite dimensions and
-  added focused predicate tests.
-- Recall sent photo (2026-05-21): `delete_message` now soft-deletes sender-owned
-  `image_feed` rows, chat shows tombstones, Home removes recalled photos, and
-  feed rewards are not reversed.
-- Multi-pet/equipment/hunger fixes (2026-05-21): extra-pet equipment RLS/RPCs
-  validate `pets` and `room_extra_pets`; main-pet switch suppresses false
-  hunger alerts; `apply_pet_action` mirrors room hunger; room gear previews use
-  `main_pet_id`; equipment inventory is copy-aware.
-- Room hunger freeze (2026-05-21): added admin-only expiring room freeze via
-  `room_debug_overrides` and `set_room_hunger_decay_paused(...)`; applied live
-  and fixed the output-column upsert ambiguity.
-
-## Review (2026-05-27 Duplicate What's New + chat history OOM)
-- Bug 1 (release notes shown twice): `_checkForUpdate` runs on `initState` and
-  every `AppLifecycleState.resumed`. `prepareForLaunch` only persists when
-  `shouldShow == false`; on a real "show" nothing persists until `markShown`
-  (after the user dismisses the toast). A resume during that open window
-  (ATT/push prompt or App Store return) re-evaluated `shouldShow == true` and
-  stacked a second sheet. Fixed in
-  `lib/shared/force_update/force_update_gate.dart` with `_checkInProgress`
-  (re-entrancy guard, reset in `finally`) and `_whatsNewShownThisSession`
-  (per-session show guard in `_maybeShowWhatsNewDialog`). Debug-forced What's New
-  is unaffected.
-- Bug 2 (chat history scroll crash): reversed chat list used `cacheExtent: 2500`,
-  keeping ~14 full-size image bubbles decoded/live and tripping the iOS memory
-  limit. Reduced to `600` in
-  `lib/features/chat/widgets/deterministic_chat_list.dart`; lowered global
-  `_maxImageCacheBytes`/`_maxImageCacheEntries` 128MB/120 -> 64MB/80 in
-  `lib/main.dart`. Message window stays capped at 80.
-- Added `test/shared/force_update/force_update_gate_whats_new_test.dart`
-  (one-sheet-per-session); confirmed it fails with both guards disabled.
-- Verification: `dart format` (no diffs), `flutter analyze` clean,
-  `flutter test` 434 passed / 1 skipped (env-gated feed integration test).
-
-## Review (2026-05-23 AGENTS.md + Memory-bank Optimization)
-- Updated `AGENTS.md` with two grounded workflow notes: the iOS archive
-  export/upload helper from `docs/ios_app_store_export.md`, and the ASC EULA
-  footer/test requirement from the release-note workflow.
-- Archived active memory snapshots to:
-  `memory-bank/archive/architecture_20260523_pre_compaction.md`,
-  `memory-bank/archive/database_schema_20260523_pre_compaction.md`,
-  `memory-bank/archive/progress_20260523_pre_compaction.md`,
-  `memory-bank/archive/tech_stack_20260523_pre_compaction.md`, and
-  `memory-bank/archive/ui_ux_guidelines_20260523_pre_compaction.md`.
-- Archived the long task log to
-  `tasks/archive/todo_20260523_pre_compaction.md`, then compacted
-  `tasks/todo.md` from 510 lines to 58 lines.
-- Active memory-bank line counts before -> after:
-  `architecture.md` 95 -> 95, `database-schema.md` 122 -> 89,
-  `progress.md` 185 -> 86, `tech-stack.md` 37 -> 38,
-  `ui-ux-guidelines.md` 30 -> 31, total 469 -> 339.
-- Verification: `wc -l memory-bank/*.md` run, `git diff --check` passed,
-  `git diff --stat` inspected, `flutter analyze` passed, and `flutter test`
-  passed (432 passed, 1 skipped).
-- Skipped test reason: `test/feed_flow_integration_test.dart` requires
-  `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
-  `SUPABASE_TEST_REFRESH_TOKEN`.
-
-## Review (2026-05-24 v2.0.1 Release Notes)
-- Updated local version from `2.0.0+2` to `2.0.1+3`.
-- Added `2.0.1` bundled What's New catalog entry and localized ARB/generated
-  l10n strings.
-- Updated `.asc/version-localizations/*.strings` `promotionalText` and
-  `whatsNew` fields only; EULA-bearing descriptions were preserved.
-- Created ASC iOS version `2.0.1`
-  (`ee8f35e8-fda1-4d15-b6cd-440a96409986`) from `2.0.0`, uploaded all four ASC
-  locales, and verified newline-formatted live `whatsNew` JSON values.
-- Verification: `flutter gen-l10n` passed with pre-existing untranslated-key
-  warnings for `ko` and `zh_TW`; `flutter analyze` passed; focused App Store
-  metadata terms test passed; full `flutter test` passed (433 passed, 1
+- Furniture RPC compatibility hotfix (2026-05-30): live project
+  `ilxzpszgirhwxpeocygs` had both 4-arg and 6-arg
+  `place_room_furniture` / `update_room_furniture_transform` overloads, but the
+  6-arg overloads had `DEFAULT NULL` canvas params. That made old 4-param
+  PostgREST calls ambiguous and broke legacy furniture movement. Added/applied
+  `20260530125134_fix_room_furniture_canvas_rpc_overloads`, recreating the
+  6-arg overloads without defaults, keeping the legacy 4-arg functions, and
+  aligning 6-arg placement with room-scoped inventory/version-gated furniture
+  predicates. Live verification shows all four overloads now have
+  `pronargdefaults = 0`; `notify pgrst, 'reload schema'` sent; `git diff
+  --check`, `fvm flutter analyze`, and `fvm flutter test` passed (446 passed, 1
   skipped).
+- FVM Flutter run SPM fix (2026-05-30): root cause was the tracked
+  `ios/Flutter/GeneratedPluginSwiftPackage/Package.swift` mirror still pointing
+  at unversioned Flutter ephemeral plugin package paths, while Flutter 3.44.0
+  generates version-suffixed folders such as `url_launcher_ios-6.3.6`. Updated
+  the mirror paths, added the generated `FlutterFramework` package dependency,
+  fixed the Flutter 3.44.0 `cacheExtent` deprecation, verified Xcode package
+  resolution, `flutter analyze`, `flutter test`, and `flutter run` on the
+  `iPhone 17 Pro Max` simulator.
+- v2.0.2 release/archive (2026-05-27): bumped local version to `2.0.2+4`,
+  updated bundled What's New and ASC release metadata while preserving EULA
+  descriptions, built/uploaded iOS build `4`, attached it to ASC version
+  `2.0.2`, validated, and submitted for review.
+- Chat/What's New/OOM follow-up (2026-05-27): guarded duplicate What's New
+  sheets, reduced chat/global image cache pressure, bounded Home/feed preview
+  image decodes, and made history scroll rejoin latest locally before refresh.
+- Furniture canvas implementation (2026-05-30): added fixed-aspect room canvas
+  math and dual-write client support for `canvas_position_x/y`; full tests
+  passed with `fvm flutter test` before this docs compaction, but live DB
+  migration remains the blocker.
 
-## Review (2026-05-26 v2.0.1 iOS Archive)
-- Preflight confirmed the Runner target keeps `TARGETED_DEVICE_FAMILY = 1`,
-  `SUPPORTED_PLATFORMS = iphoneos iphonesimulator`, `SUPPORTS_MACCATALYST = NO`,
-  deployment target `15.0`, and team `QRLFBRL2J2`.
-- Ran `flutter build ipa --release --build-name=2.0.1 --build-number=3`, which
-  archived with existing Xcode project signing/settings.
-- Outputs:
-  `build/ios/archive/Runner.xcarchive` (323.4 MB) and
-  `build/ios/ipa/PetTomo.ipa` (78 MB).
-- IPA verification: `CFBundleShortVersionString = 2.0.1`,
-  `CFBundleVersion = 3`, `UIDeviceFamily = [1]`,
-  `UISupportedInterfaceOrientations = ["UIInterfaceOrientationPortrait"]`, and
-  `UIRequiresFullScreen = true`.
-- Uploaded `build/ios/ipa/PetTomo.ipa` to App Store Connect; upload/build ID
-  `592b786d-b38c-4f2f-ae96-436923a6bbc5` reached `VALID`, expired `false`,
-  encryption `exempt`.
+## Review (2026-05-30 AGENTS.md + Memory-bank Optimization)
+- Updated `AGENTS.md` with the repo `.fvmrc` Flutter pin and the current
+  room-furniture canvas-coordinate migration guardrail.
+- Archived active memory snapshots to:
+  `memory-bank/archive/architecture_20260530_pre_compaction.md`,
+  `memory-bank/archive/database_schema_20260530_pre_compaction.md`,
+  `memory-bank/archive/progress_20260530_pre_compaction.md`,
+  `memory-bank/archive/tech_stack_20260530_pre_compaction.md`, and
+  `memory-bank/archive/ui_ux_guidelines_20260530_pre_compaction.md`.
+- Archived task notes to `tasks/archive/todo_20260530_pre_compaction.md`.
+- Active memory-bank line counts before -> after:
+  `architecture.md` 95 -> 99, `database-schema.md` 89 -> 93,
+  `progress.md` 115 -> 73, `tech-stack.md` 38 -> 40,
+  `ui-ux-guidelines.md` 31 -> 31, total 368 -> 336.
+- `tasks/todo.md` was compacted from 322 -> 50 lines.
+- Verification: `wc -l memory-bank/*.md` run, `git diff --check` passed, and
+  `git diff --stat` inspected.
+- `flutter analyze` and `flutter test` with the default Flutter failed before
+  verification because system Dart is `3.10.7` while `pubspec.yaml` requires
+  `^3.11.0-235.0.dev`.
+- A writable Flutter `3.44.0` copy was used from `/private/tmp/flutter_3.44.0`.
+  Analyze then failed on an existing SDK deprecation info:
+  `lib/features/chat/widgets/deterministic_chat_list.dart:158:11`
+  (`cacheExtent` -> `scrollCacheExtent`). This appears unrelated to the
+  documentation-only changes.
+- `flutter test` with the writable SDK could not run in this sandbox because
+  Flutter test workers cannot bind `127.0.0.1:0` (`Operation not permitted`);
+  no test bodies reached the env-gated feed integration skip.

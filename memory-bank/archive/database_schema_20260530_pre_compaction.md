@@ -1,7 +1,7 @@
 # Database Schema
 
 Compact map only. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/database_schema_20260530_pre_compaction.md`.
+`memory-bank/archive/database_schema_20260523_pre_compaction.md`.
 Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
 
 Before any DB claim/change, confirm the live target and inspect the latest
@@ -43,10 +43,6 @@ applied migration that rewrites the object.
 - `items.metadata` is the compatibility contract for decor/equipment:
   `visibility_mode`, `min_app_version`, `shop_visibility`, fallback, assets,
   and slots.
-- `room_furniture.canvas_position_x/y` are nullable fixed-canvas center
-  fractions for new furniture placement. New clients dual-write these plus
-  legacy `position_x/y`; live RPC compatibility depends on keeping the 4-arg
-  legacy furniture RPCs and 6-arg canvas overloads without defaulted args.
 - `pet_ticket` is a v2.0.0 version-gated 150-diamond consumable. New purchases
   call `purchase_and_use_pet_ticket(...)`; already-owned tickets use
   `use_pet_ticket(...)`.

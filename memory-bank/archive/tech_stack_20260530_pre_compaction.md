@@ -2,7 +2,7 @@
 
 Active summary only. See source files, `pubspec.yaml`, and archived snapshots
 for exact historical versions. Latest snapshot:
-`memory-bank/archive/tech_stack_20260530_pre_compaction.md`.
+`memory-bank/archive/tech_stack_20260523_pre_compaction.md`.
 
 ## Core App
 - Flutter/Dart
@@ -27,8 +27,6 @@ for exact historical versions. Latest snapshot:
 - Google AdMob 8.x for iOS banner/rewarded ads
 
 ## Repo-Specific Notes
-- `.fvmrc` pins Flutter `3.44.0`; use `fvm flutter ...` when the default
-  Flutter SDK is mismatched.
 - Edge Function gateway `verify_jwt=true` expects HS256 Supabase Auth JWTs; old
   `notify_friend` webhook compatibility still relies on `verify_jwt=false` plus
   function-level auth checks.
@@ -36,6 +34,5 @@ for exact historical versions. Latest snapshot:
   `Package.resolved` files are part of the Apple dependency flow.
 - iOS Runner points Xcode's `FlutterGeneratedPluginSwiftPackage` reference at
   tracked `ios/Flutter/GeneratedPluginSwiftPackage` so Flutter SPM plugins
-  resolve with the repo minimum iOS 15.0; keep that tracked mirror aligned with
-  Flutter 3.44.0's version-suffixed package folders under ignored
-  `ios/Flutter/ephemeral/Packages/.packages/`.
+  resolve with the repo minimum iOS 15.0; Flutter still generates plugin
+  symlinks under ignored `ios/Flutter/ephemeral/Packages/.packages/`.

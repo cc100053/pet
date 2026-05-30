@@ -90,6 +90,9 @@ This file is for agentic coding agents working in this repo.
 ### Install / bootstrap
 - Install deps: `flutter pub get`
 - Run app: `flutter run`
+- Repo pins Flutter via `.fvmrc` (`3.44.0`); if the default `flutter`
+  binary does not satisfy `pubspec.yaml`, use `fvm flutter ...` for get,
+  analyze, test, build, and run commands.
 
 ### Lint / typecheck
 - Analyzer (required before shipping): `flutter analyze`
@@ -171,6 +174,15 @@ flutter run
 - Do not expose new shared items to old app versions by default; add version-gated visibility plus old-client render fallbacks.
 - For shop-backed decor, keep catalog visibility, purchase RPC predicates, and table RLS policies aligned.
 - If notification payloads include item-specific names or assets, update the related Edge Function/native notification handling too.
+
+### Room furniture canvas coordinates
+- Furniture placement is moving to a fixed virtual room canvas using
+  nullable `room_furniture.canvas_position_x/y` plus optional RPC params in
+  `supabase/migrations/20260530120000_add_room_furniture_canvas_coords.sql`.
+- New clients dual-write canvas coordinates and legacy `position_x/y`; old
+  clients keep using the legacy columns.
+- TODO: Confirm the migration has been applied to the target Supabase project
+  before running/shipping an app build that selects `canvas_position_x/y`.
 
 ### Release notes and App Store metadata
 - Use `.codex/skills/release-notes-sync/SKILL.md` when adding bundled What's New entries or syncing App Store Connect release notes.

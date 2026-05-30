@@ -2,7 +2,7 @@
 
 Active memory files stay compact because agents must read them before
 non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260530_pre_compaction.md`.
+`memory-bank/archive/architecture_20260523_pre_compaction.md`.
 
 ## Source Of Truth
 - App/runtime: `lib/`, `test/`
@@ -59,12 +59,6 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   preview rendering key off `room_id`.
 - Equipment ownership is a shared closet with quantity; one owned copy can only
   be equipped on one pet at a time.
-- Furniture placement is moving to fixed virtual-canvas coordinates:
-  `canvas_position_x/y` are the new nullable, dual-written source for new
-  clients, while legacy `position_x/y` remains for old clients. Keep the
-  legacy 4-arg furniture RPCs separate from the 6-arg canvas overloads; do not
-  add default values to the canvas overloads because old PostgREST calls then
-  become ambiguous.
 - Equipment slots are logical equip groups, not always distinct socket anchors:
   `head` hats are mutually exclusive with other hats, `face` sunglasses can
   coexist with hats while resolving through the head socket anchor, and `body`
