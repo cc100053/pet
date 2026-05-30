@@ -18,6 +18,73 @@ Latest historical snapshot before compaction:
   deployment config; current `verify_jwt` behavior is documented but no
   `supabase/config.toml` exists.
 
+## Plan (2026-05-30 Plan A — Fixed Virtual Room Canvas for furniture sync)
+
+Goal: placed furniture appears in the same relative spot + relative size for every
+room member regardless of device size. Ship behind a backward-compatible gate.
+Decisions: scope = furniture only; canvas aspect = (see Open question below).
+
+Findings (2026-05-30):
+- `room_furniture` stores `position_x/y` normalized [0,1] + `scale` [0.8,2.0] +
+  `flip_x`. Render maps `pixel = normalized * (field - itemSize)` with FIXED
+  `42x42` item -> furniture is fixed px while the room scales, and the
+  `(field-itemSize)` denominator varies per device. Root cause confirmed.
+- Background is FULL-SCREEN (`HomeRoomBackground` in Scaffold body), art is all
+  `1206x2622` (aspect 0.46), `BoxFit.cover`. Furniture lives in a SEPARATE card
+  sub-rect (`_buildPetHomeCard`, field = `constraints.biggest`). So furniture is
+  NOT pixel-locked to the art today; a literal 0.46 canvas inside the card would
+  squeeze furniture into a narrow vertical strip. -> Open question below.
+- Persist already uses try-new-RPC-then-`_persistFurnitureTransformLegacy`
+  fallback, so additive optional RPC params fit cleanly.
+
+Approach (additive, zero old-client impact):
+- New nullable cols `room_furniture.canvas_position_x/y` (center fraction in a
+  fixed canvas rect). Optional RPC params `p_canvas_position_x/y DEFAULT NULL`.
+- New clients dual-write canvas + best-effort legacy `position_x/y`; read canvas
+  if present else derive from legacy. Old clients untouched.
+- Client: `lib/features/home/room_canvas.dart` (constants + center-fraction <->
+  pixel math within a fixed-aspect `contain` rect inset in the field); furniture
+  size = `canvasContentWidth * (42/canvasW) * scale`.
+
+Steps:
+- [ ] Confirm canvas aspect (Open question) + Supabase MCP login (user action).
+- [ ] DB migration via MCP: add cols + optional RPC params + clamps + grants.
+- [ ] `room_canvas.dart` + unit tests (round-trip across sizes; size scales).
+- [ ] `_PlacedFurniture` canvas fields; render/place/drag/scale in canvas space.
+- [ ] `_loadRoomFurniture` read canvas w/ legacy fallback; persist dual-write.
+- [ ] `dart format`, `flutter analyze`, `flutter test`.
+- [ ] Apply migration, then push main.
+
+Decisions (confirmed): canvas aspect locked to play-card shape
+(`RoomCanvas.aspectRatio = 1.2`); scope furniture-only.
+
+### Review (2026-05-30)
+- SDK: project pinned to fvm Flutter `3.44.0` (Dart 3.12.0) via `.fvmrc`
+  (the version `flutter pub get` suggested; satisfies `^3.11.0-235.0.dev`).
+  `.gitignore` updated with `.fvm/`. Build/test must use `fvm flutter ...`.
+- New `lib/features/home/room_canvas.dart`: fixed-aspect contain-rect +
+  center-fraction<->pixel + canvas-fraction sizing + legacy fallback.
+- `_PlacedFurniture` gained `canvasPosition`/`persistedCanvasPosition`
+  (center fraction). Render/place/drag/scale now run in canvas space; legacy
+  `normalizedPosition` kept and dual-written for old clients.
+- `_loadRoomFurniture` selects + reads `canvas_position_x/y` with legacy
+  fallback; place/transform RPCs dual-write canvas + legacy with a
+  pre-migration legacy fallback on place.
+- Removed now-unused `_furnitureItemSize`, `_furnitureSizeForScale`,
+  `_normalizedFromTopLeftSized`, `_clampTopLeftSized` (home_furniture_math.dart
+  funcs left intact; still covered by their own tests).
+- Tests: `test/features/home/room_canvas_test.dart` (7 cases) +
+  full suite: `fvm flutter analyze` clean, `fvm flutter test` 439 pass / 1 skip.
+
+### REMAINING (blocked on user)
+1. DB migration NOT yet applied. The client `.select()` now requests
+   `canvas_position_x/y`; PostgREST errors if those columns don't exist, so the
+   migration MUST be applied BEFORE this app build runs against prod. Migration
+   file ready: `supabase/migrations/20260530120000_add_room_furniture_canvas_coords.sql`.
+   Apply path = Supabase Management API with `SUPABASE_PAT_PET` (Codex pattern),
+   but applying a prod schema change needs explicit user authorization.
+2. Push to main pending (migration-first ordering + branch choice).
+
 ## Plan (2026-05-27 v2.0.2 Bug Fix Release Notes)
 - [x] Read release-note workflow, active memory-bank files, current version, and
   existing bundled/ASC release-note assets.

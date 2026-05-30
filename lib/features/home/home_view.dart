@@ -82,6 +82,7 @@ import 'providers/home_rooms_provider.dart';
 import 'onboarding_focus_utils.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
+import 'room_canvas.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_furniture_inventory_overlay.dart';
@@ -144,7 +145,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _petTickInterval = Duration(minutes: 5);
   static const Duration _roomSelectionRefreshInterval = Duration(seconds: 45);
   static const Duration _overfedFeedEventWindow = Duration(seconds: 45);
-  static const _furnitureItemSize = Size(42, 42);
   static const _poopEmojiSize = Size(28, 28);
   static const int _profileNicknameMaxLength = 20;
   static const int _onboardingAvatarMaxDimension = 512;
@@ -273,9 +273,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _selectedFurnitureItemId;
   String? _selectedPlacedFurnitureId;
   String? _activeFurnitureDragId;
-  Offset? _activeFurnitureDragStartNormalizedPosition;
+  Offset? _activeFurnitureDragStartCanvasPosition;
   String? _activeFurnitureScaleInteractionItemId;
-  Offset? _activeFurnitureScaleInteractionStartNormalizedPosition;
+  Offset? _activeFurnitureScaleInteractionStartCanvasPosition;
   double? _activeFurnitureScaleInteractionStartScale;
   int _furnitureInstanceSeed = 0;
   final Map<String, ShopItem> _furnitureCatalog = {};
@@ -4059,7 +4059,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       final response = await Supabase.instance.client
           .from('room_furniture')
           .select(
-            'id,item_id,owner_user_id,position_x,position_y,scale,flip_x,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
+            'id,item_id,owner_user_id,position_x,position_y,canvas_position_x,canvas_position_y,scale,flip_x,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
           )
           .eq('room_id', roomId);
 
@@ -4080,6 +4080,11 @@ class _HomeViewState extends ConsumerState<HomeView>
         final ownerUserId = record['owner_user_id'] as String?;
         final posX = (record['position_x'] as num?)?.toDouble() ?? 0;
         final posY = (record['position_y'] as num?)?.toDouble() ?? 0;
+        final canvasX = (record['canvas_position_x'] as num?)?.toDouble();
+        final canvasY = (record['canvas_position_y'] as num?)?.toDouble();
+        final canvasPosition = (canvasX != null && canvasY != null)
+            ? Offset(canvasX, canvasY)
+            : null;
         final scale = _parseFurnitureScale(record['scale']);
         final flipX = record['flip_x'] == true;
         final emoji = _resolveFurnitureEmoji(itemId, record);
@@ -4093,6 +4098,8 @@ class _HomeViewState extends ConsumerState<HomeView>
             assetPath: assetPath,
             normalizedPosition: Offset(posX, posY),
             persistedNormalizedPosition: Offset(posX, posY),
+            canvasPosition: canvasPosition,
+            persistedCanvasPosition: canvasPosition,
             scale: scale,
             persistedScale: scale,
             flipX: flipX,
@@ -4593,19 +4600,20 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    final desiredTopLeft =
-        localPosition -
-        Offset(_furnitureItemSize.width / 2, _furnitureItemSize.height / 2);
-    final clampedTopLeft = _clampTopLeftSized(
-      desiredTopLeft,
-      fieldSize,
-      _furnitureItemSize,
+    // Plan A: store a canvas center fraction (device-independent) plus a legacy
+    // top-left fraction so old app versions still render the piece.
+    final content = RoomCanvas.contentRect(fieldSize);
+    final itemSize = RoomCanvas.furnitureSize(content, 1.0);
+    final canvasPosition = RoomCanvas.clampCenterFraction(
+      centerFraction: RoomCanvas.centerFractionFromCenter(
+        center: localPosition,
+        content: content,
+      ),
+      content: content,
+      itemSize: itemSize,
     );
-    // Store normalized coordinates (0..1) so layout stays consistent across sizes.
-    final normalized = _normalizedFromTopLeftSized(
-      clampedTopLeft,
-      fieldSize,
-      _furnitureItemSize,
+    final normalized = RoomCanvas.legacyPositionFromCenterFraction(
+      canvasPosition,
     );
 
     final placed = _PlacedFurniture(
@@ -4616,6 +4624,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       assetPath: item.furnitureAssetPath,
       normalizedPosition: normalized,
       persistedNormalizedPosition: normalized,
+      canvasPosition: canvasPosition,
+      persistedCanvasPosition: canvasPosition,
       scale: 1.0,
       persistedScale: 1.0,
       flipX: false,
@@ -4659,47 +4669,50 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   void _clearFurnitureDragGesture() {
     _activeFurnitureDragId = null;
-    _activeFurnitureDragStartNormalizedPosition = null;
+    _activeFurnitureDragStartCanvasPosition = null;
   }
 
   void _handleFurnitureDragStart(_PlacedFurniture item) {
+    final startCanvas = _canvasCenterFraction(item);
     setState(() {
       _selectedPlacedFurnitureId = item.id;
       _selectedFurnitureItemId = null;
       _activeFurnitureDragId = item.id;
-      _activeFurnitureDragStartNormalizedPosition = item.normalizedPosition;
+      item.canvasPosition = startCanvas;
+      _activeFurnitureDragStartCanvasPosition = startCanvas;
     });
   }
 
   void _handleFurnitureDragUpdate(
     _PlacedFurniture item,
     DragUpdateDetails details,
-    Size fieldSize,
+    Rect content,
   ) {
     if (_activeFurnitureDragId != item.id) {
       return;
     }
-    final itemSize = _furnitureSizeForScale(item.scale);
-    final currentTopLeft = _positionFromNormalizedSized(
-      item.normalizedPosition,
-      fieldSize,
-      itemSize,
+    final itemSize = RoomCanvas.furnitureSize(content, item.scale);
+    final current = _canvasCenterFraction(item);
+    final currentCenter = Offset(
+      content.left + current.dx * content.width,
+      content.top + current.dy * content.height,
     );
-    final clampedTopLeft = _clampTopLeftSized(
-      currentTopLeft + details.delta,
-      fieldSize,
-      itemSize,
-    );
-    final normalized = _normalizedFromTopLeftSized(
-      clampedTopLeft,
-      fieldSize,
-      itemSize,
+    final nextCanvas = RoomCanvas.clampCenterFraction(
+      centerFraction: RoomCanvas.centerFractionFromCenter(
+        center: currentCenter + details.delta,
+        content: content,
+      ),
+      content: content,
+      itemSize: itemSize,
     );
 
     setState(() {
       _selectedPlacedFurnitureId = item.id;
       _selectedFurnitureItemId = null;
-      item.normalizedPosition = normalized;
+      item.canvasPosition = nextCanvas;
+      item.normalizedPosition = RoomCanvas.legacyPositionFromCenterFraction(
+        nextCanvas,
+      );
     });
   }
 
@@ -4708,13 +4721,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
-    final startPosition = _activeFurnitureDragStartNormalizedPosition;
+    final startPosition = _activeFurnitureDragStartCanvasPosition;
     _clearFurnitureDragGesture();
     if (item.isPending || startPosition == null) {
       return;
     }
     final positionChanged =
-        (item.normalizedPosition - startPosition).distance > 0.001;
+        (_canvasCenterFraction(item) - startPosition).distance > 0.001;
     if (!positionChanged) {
       return;
     }
@@ -4728,14 +4741,15 @@ class _HomeViewState extends ConsumerState<HomeView>
   void _beginFurnitureScaleInteraction(_PlacedFurniture item) {
     _activeFurnitureScaleInteractionItemId = item.id;
     _activeFurnitureScaleInteractionStartScale = item.scale;
-    _activeFurnitureScaleInteractionStartNormalizedPosition =
-        item.normalizedPosition;
+    _activeFurnitureScaleInteractionStartCanvasPosition = _canvasCenterFraction(
+      item,
+    );
   }
 
   void _clearFurnitureScaleInteraction() {
     _activeFurnitureScaleInteractionItemId = null;
     _activeFurnitureScaleInteractionStartScale = null;
-    _activeFurnitureScaleInteractionStartNormalizedPosition = null;
+    _activeFurnitureScaleInteractionStartCanvasPosition = null;
   }
 
   void _applyFurnitureScale(
@@ -4747,20 +4761,24 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (fieldSize == null) {
       return;
     }
-    final currentSize = _furnitureSizeForScale(item.scale);
+    final content = RoomCanvas.contentRect(fieldSize);
     final roundedScale = roundRoomFurnitureScaleToStep(nextScale);
-    final nextSize = _furnitureSizeForScale(roundedScale);
-    final nextNormalized = normalizedPositionAfterFurnitureResize(
-      normalized: item.normalizedPosition,
-      fieldSize: fieldSize,
-      currentSize: currentSize,
-      nextSize: nextSize,
+    final nextSize = RoomCanvas.furnitureSize(content, roundedScale);
+    // Anchored at the item center, so scaling keeps the center fixed; only
+    // re-clamp so a larger piece stays fully inside the canvas.
+    final nextCanvas = RoomCanvas.clampCenterFraction(
+      centerFraction: _canvasCenterFraction(item),
+      content: content,
+      itemSize: nextSize,
     );
     setState(() {
       _selectedPlacedFurnitureId = item.id;
       _selectedFurnitureItemId = null;
       item.scale = roundedScale;
-      item.normalizedPosition = nextNormalized;
+      item.canvasPosition = nextCanvas;
+      item.normalizedPosition = RoomCanvas.legacyPositionFromCenterFraction(
+        nextCanvas,
+      );
     });
     if (persist) {
       unawaited(_persistFurnitureTransform(item));
@@ -4802,8 +4820,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     final item = _selectedPlacedFurniture();
     final startItemId = _activeFurnitureScaleInteractionItemId;
     final startScale = _activeFurnitureScaleInteractionStartScale;
-    final startPosition =
-        _activeFurnitureScaleInteractionStartNormalizedPosition;
+    final startPosition = _activeFurnitureScaleInteractionStartCanvasPosition;
     _clearFurnitureScaleInteraction();
     if (item == null ||
         item.isPending ||
@@ -4814,7 +4831,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     final scaleChanged = (item.scale - startScale).abs() > 0.001;
     final positionChanged =
-        (item.normalizedPosition - startPosition).distance > 0.001;
+        (_canvasCenterFraction(item) - startPosition).distance > 0.001;
     if (!scaleChanged && !positionChanged) {
       return;
     }
@@ -4842,20 +4859,46 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (roomId == null) {
       return;
     }
+    final canvas = item.canvasPosition;
     try {
-      final response = await Supabase.instance.client
-          .rpc(
-            'place_room_furniture',
-            params: {
-              'p_room_id': roomId,
-              'p_item_id': item.itemId,
-              'p_position_x': item.normalizedPosition.dx,
-              'p_position_y': item.normalizedPosition.dy,
-            },
-          )
-          .single();
+      Map<String, dynamic> response;
+      try {
+        response = await Supabase.instance.client
+            .rpc(
+              'place_room_furniture',
+              params: {
+                'p_room_id': roomId,
+                'p_item_id': item.itemId,
+                'p_position_x': item.normalizedPosition.dx,
+                'p_position_y': item.normalizedPosition.dy,
+                if (canvas != null) 'p_canvas_position_x': canvas.dx,
+                if (canvas != null) 'p_canvas_position_y': canvas.dy,
+              },
+            )
+            .single();
+      } catch (error) {
+        // Pre-migration safety: if the canvas-aware overload isn't deployed yet,
+        // fall back to the legacy 4-arg placement.
+        if (canvas != null &&
+            _shouldFallbackToLegacyFurniturePlacement(error)) {
+          response = await Supabase.instance.client
+              .rpc(
+                'place_room_furniture',
+                params: {
+                  'p_room_id': roomId,
+                  'p_item_id': item.itemId,
+                  'p_position_x': item.normalizedPosition.dx,
+                  'p_position_y': item.normalizedPosition.dy,
+                },
+              )
+              .single();
+        } else {
+          rethrow;
+        }
+      }
 
       final newId = response['id'] as String?;
+      final responseCanvas = _canvasOffsetFromRow(response);
       if (!mounted) {
         return;
       }
@@ -4876,6 +4919,8 @@ class _HomeViewState extends ConsumerState<HomeView>
             ..ownerUserId = response['owner_user_id'] as String?
             ..persistedScale = persistedScale
             ..persistedNormalizedPosition = persistedPosition
+            ..persistedCanvasPosition =
+                responseCanvas ?? list[index].canvasPosition
             ..isPending = false;
           list[index].scale = needsFollowUpPersist
               ? localScale
@@ -4906,6 +4951,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
     try {
+      final canvas = item.canvasPosition;
       final response = await Supabase.instance.client.rpc(
         'update_room_furniture_transform',
         params: {
@@ -4913,6 +4959,8 @@ class _HomeViewState extends ConsumerState<HomeView>
           'p_scale': item.scale,
           'p_position_x': item.normalizedPosition.dx,
           'p_position_y': item.normalizedPosition.dy,
+          if (canvas != null) 'p_canvas_position_x': canvas.dx,
+          if (canvas != null) 'p_canvas_position_y': canvas.dy,
         },
       );
       _applyPersistedFurnitureTransformResponse(item, response);
@@ -5027,6 +5075,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             (row['position_y'] as num?)?.toDouble() ??
                 item.normalizedPosition.dy,
           );
+    final nextCanvas = _canvasOffsetFromRow(row);
 
     if (!mounted) {
       item
@@ -5034,6 +5083,13 @@ class _HomeViewState extends ConsumerState<HomeView>
         ..normalizedPosition = nextPosition
         ..persistedScale = nextScale
         ..persistedNormalizedPosition = nextPosition;
+      if (nextCanvas != null) {
+        item
+          ..canvasPosition = nextCanvas
+          ..persistedCanvasPosition = nextCanvas;
+      } else {
+        item.persistedCanvasPosition = item.canvasPosition;
+      }
       return;
     }
 
@@ -5043,6 +5099,13 @@ class _HomeViewState extends ConsumerState<HomeView>
         ..normalizedPosition = nextPosition
         ..persistedScale = nextScale
         ..persistedNormalizedPosition = nextPosition;
+      if (nextCanvas != null) {
+        item
+          ..canvasPosition = nextCanvas
+          ..persistedCanvasPosition = nextCanvas;
+      } else {
+        item.persistedCanvasPosition = item.canvasPosition;
+      }
     });
   }
 

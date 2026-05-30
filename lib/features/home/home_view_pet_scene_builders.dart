@@ -646,36 +646,41 @@ extension _HomePetSceneBuilders on _HomeViewState {
     if (placed.isEmpty) {
       return const [];
     }
+    // Plan A: lay furniture out inside a fixed-aspect canvas so every member
+    // sees the same relative position and size regardless of device size.
+    final content = RoomCanvas.contentRect(fieldSize);
     return [
       for (final item in placed)
         Positioned(
-          left: _positionFromNormalizedSized(
-            item.normalizedPosition,
-            fieldSize,
-            _furnitureSizeForScale(item.scale),
+          left: RoomCanvas.topLeftFromCenterFraction(
+            centerFraction: _canvasCenterFraction(item),
+            content: content,
+            itemSize: RoomCanvas.furnitureSize(content, item.scale),
           ).dx,
-          top: _positionFromNormalizedSized(
-            item.normalizedPosition,
-            fieldSize,
-            _furnitureSizeForScale(item.scale),
+          top: RoomCanvas.topLeftFromCenterFraction(
+            centerFraction: _canvasCenterFraction(item),
+            content: content,
+            itemSize: RoomCanvas.furnitureSize(content, item.scale),
           ).dy,
-          child: _buildFurniturePiece(item, fieldSize),
+          child: _buildFurniturePiece(item, content),
         ),
     ];
   }
 
-  Widget _buildFurniturePiece(_PlacedFurniture item, Size fieldSize) {
+  Widget _buildFurniturePiece(_PlacedFurniture item, Rect content) {
     final canEdit = _furnitureMode;
     final isSelected = _isPlacedFurnitureSelected(item);
-    final itemSize = _furnitureSizeForScale(item.scale);
-    final iconSize = 26 * _clampFurnitureScale(item.scale);
+    final itemSize = RoomCanvas.furnitureSize(content, item.scale);
+    // Keep the icon/emoji proportional to the (now canvas-relative) footprint;
+    // legacy ratio was 26pt glyph inside a 42px box.
+    final iconSize = itemSize.width * (26 / 42);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onLongPress: _openFurnitureInventory,
       onTap: canEdit ? () => _selectPlacedFurniture(item) : null,
       onPanStart: canEdit ? (_) => _handleFurnitureDragStart(item) : null,
       onPanUpdate: canEdit
-          ? (details) => _handleFurnitureDragUpdate(item, details, fieldSize)
+          ? (details) => _handleFurnitureDragUpdate(item, details, content)
           : null,
       onPanEnd: canEdit ? (_) => _handleFurnitureDragEnd(item) : null,
       onPanCancel: canEdit ? _handleFurnitureDragCancel : null,
