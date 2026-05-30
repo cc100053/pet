@@ -87,6 +87,8 @@ class _PlacedFurniture {
     required this.flipX,
     required this.persistedFlipX,
     required this.isPending,
+    this.canvasPosition,
+    this.persistedCanvasPosition,
   });
 
   String id;
@@ -94,8 +96,14 @@ class _PlacedFurniture {
   String? ownerUserId;
   String emoji;
   String? assetPath;
+  // Legacy top-left fraction (0..1) against `field - itemSize`. Kept for
+  // backward-compatible dual-write so old app versions still place the piece.
   Offset normalizedPosition;
   Offset persistedNormalizedPosition;
+  // Plan A: center fraction (0..1) inside the fixed RoomCanvas. Authoritative
+  // for new clients; null means "derive from legacy" (old rows / old writers).
+  Offset? canvasPosition;
+  Offset? persistedCanvasPosition;
   double scale;
   double persistedScale;
   bool flipX;

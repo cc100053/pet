@@ -248,10 +248,17 @@ extension _HomeDataHelpers on _HomeViewState {
     return 1.0;
   }
 
-  Size _furnitureSizeForScale(double scale) {
-    return roomFurnitureSizeForScale(
-      baseSize: _HomeViewState._furnitureItemSize,
-      scale: scale,
+  /// Center fraction (0..1) of a placed piece inside the fixed RoomCanvas.
+  /// Prefers the authoritative canvas coord; falls back to the legacy top-left
+  /// fraction for old rows (a close approximation for small items).
+  Offset _canvasCenterFraction(_PlacedFurniture item) {
+    final canvas = item.canvasPosition;
+    if (canvas != null) {
+      return canvas;
+    }
+    return Offset(
+      item.normalizedPosition.dx.clamp(0.0, 1.0),
+      item.normalizedPosition.dy.clamp(0.0, 1.0),
     );
   }
 
@@ -284,26 +291,6 @@ extension _HomeDataHelpers on _HomeViewState {
     final maxX = max(0.0, fieldSize.width - itemSize.width);
     final maxY = max(0.0, fieldSize.height - itemSize.height);
     return Offset(normalized.dx * maxX, normalized.dy * maxY);
-  }
-
-  Offset _normalizedFromTopLeftSized(
-    Offset topLeft,
-    Size fieldSize,
-    Size itemSize,
-  ) {
-    final maxX = max(0.0, fieldSize.width - itemSize.width);
-    final maxY = max(0.0, fieldSize.height - itemSize.height);
-    final normalizedX = maxX == 0 ? 0.0 : topLeft.dx / maxX;
-    final normalizedY = maxY == 0 ? 0.0 : topLeft.dy / maxY;
-    return Offset(normalizedX, normalizedY);
-  }
-
-  Offset _clampTopLeftSized(Offset topLeft, Size fieldSize, Size itemSize) {
-    final maxX = max(0.0, fieldSize.width - itemSize.width);
-    final maxY = max(0.0, fieldSize.height - itemSize.height);
-    final clampedX = topLeft.dx.clamp(0.0, maxX);
-    final clampedY = topLeft.dy.clamp(0.0, maxY);
-    return Offset(clampedX, clampedY);
   }
 
   Map<String, dynamic>? _coerceFurnitureTransformResponse(dynamic response) {
@@ -339,5 +326,33 @@ extension _HomeDataHelpers on _HomeViewState {
         (summary.contains('does not exist') ||
             summary.contains('could not find') ||
             summary.contains('not found in schema cache'));
+  }
+
+  bool _shouldFallbackToLegacyFurniturePlacement(Object error) {
+    if (error is! PostgrestException) {
+      return false;
+    }
+    final summary = [
+      error.message,
+      error.details,
+      error.hint,
+      error.code,
+    ].whereType<String>().join(' ').toLowerCase();
+    return summary.contains('place_room_furniture') &&
+        (summary.contains('does not exist') ||
+            summary.contains('could not find') ||
+            summary.contains('not found in schema cache'));
+  }
+
+  Offset? _canvasOffsetFromRow(Map<String, dynamic>? row) {
+    if (row == null) {
+      return null;
+    }
+    final x = (row['canvas_position_x'] as num?)?.toDouble();
+    final y = (row['canvas_position_y'] as num?)?.toDouble();
+    if (x == null || y == null) {
+      return null;
+    }
+    return Offset(x, y);
   }
 }
