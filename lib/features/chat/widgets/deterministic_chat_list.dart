@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
 import 'package:intl/intl.dart';
 import 'package:pet/l10n/app_localizations.dart';
@@ -155,7 +156,7 @@ class DeterministicChatList extends StatelessWidget {
           // holding many full-size image bubbles decoded in memory at once.
           // A large extent (e.g. 2500) kept ~14 image bubbles live and
           // could trip the iOS memory limit while scrolling long history.
-          cacheExtent: 600,
+          scrollCacheExtent: const ScrollCacheExtent.pixels(600),
           padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
           keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
           itemCount: items.length,

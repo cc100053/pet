@@ -13,28 +13,29 @@ let package = Package(
         .library(name: "FlutterGeneratedPluginSwiftPackage", type: .static, targets: ["FlutterGeneratedPluginSwiftPackage"])
     ],
     dependencies: [
-        .package(name: "url_launcher_ios", path: "../ephemeral/Packages/.packages/url_launcher_ios"),
-        .package(name: "shared_preferences_foundation", path: "../ephemeral/Packages/.packages/shared_preferences_foundation"),
-        .package(name: "path_provider_foundation", path: "../ephemeral/Packages/.packages/path_provider_foundation"),
-        .package(name: "app_links", path: "../ephemeral/Packages/.packages/app_links"),
-        .package(name: "share_plus", path: "../ephemeral/Packages/.packages/share_plus"),
-        .package(name: "purchases_ui_flutter", path: "../ephemeral/Packages/.packages/purchases_ui_flutter"),
-        .package(name: "purchases_flutter", path: "../ephemeral/Packages/.packages/purchases_flutter"),
-        .package(name: "package_info_plus", path: "../ephemeral/Packages/.packages/package_info_plus"),
-        .package(name: "in_app_review", path: "../ephemeral/Packages/.packages/in_app_review"),
-        .package(name: "image_picker_ios", path: "../ephemeral/Packages/.packages/image_picker_ios"),
-        .package(name: "image_cropper", path: "../ephemeral/Packages/.packages/image_cropper"),
-        .package(name: "google_mobile_ads", path: "../ephemeral/Packages/.packages/google_mobile_ads"),
-        .package(name: "webview_flutter_wkwebview", path: "../ephemeral/Packages/.packages/webview_flutter_wkwebview"),
-        .package(name: "flutter_timezone", path: "../ephemeral/Packages/.packages/flutter_timezone"),
-        .package(name: "flutter_local_notifications", path: "../ephemeral/Packages/.packages/flutter_local_notifications"),
-        .package(name: "sqflite_darwin", path: "../ephemeral/Packages/.packages/sqflite_darwin"),
-        .package(name: "firebase_messaging", path: "../ephemeral/Packages/.packages/firebase_messaging"),
-        .package(name: "firebase_core", path: "../ephemeral/Packages/.packages/firebase_core"),
-        .package(name: "firebase_crashlytics", path: "../ephemeral/Packages/.packages/firebase_crashlytics"),
-        .package(name: "firebase_analytics", path: "../ephemeral/Packages/.packages/firebase_analytics"),
-        .package(name: "emoji_picker_flutter", path: "../ephemeral/Packages/.packages/emoji_picker_flutter"),
-        .package(name: "audioplayers_darwin", path: "../ephemeral/Packages/.packages/audioplayers_darwin")
+        .package(name: "url_launcher_ios", path: "../ephemeral/Packages/.packages/url_launcher_ios-6.3.6"),
+        .package(name: "shared_preferences_foundation", path: "../ephemeral/Packages/.packages/shared_preferences_foundation-2.5.6"),
+        .package(name: "path_provider_foundation", path: "../ephemeral/Packages/.packages/path_provider_foundation-2.5.1"),
+        .package(name: "app_links", path: "../ephemeral/Packages/.packages/app_links-6.4.1"),
+        .package(name: "share_plus", path: "../ephemeral/Packages/.packages/share_plus-12.0.2"),
+        .package(name: "purchases_ui_flutter", path: "../ephemeral/Packages/.packages/purchases_ui_flutter-9.10.6"),
+        .package(name: "purchases_flutter", path: "../ephemeral/Packages/.packages/purchases_flutter-9.10.6"),
+        .package(name: "package_info_plus", path: "../ephemeral/Packages/.packages/package_info_plus-9.0.0"),
+        .package(name: "in_app_review", path: "../ephemeral/Packages/.packages/in_app_review-2.0.11"),
+        .package(name: "image_picker_ios", path: "../ephemeral/Packages/.packages/image_picker_ios-0.8.13+6"),
+        .package(name: "image_cropper", path: "../ephemeral/Packages/.packages/image_cropper-9.1.0"),
+        .package(name: "google_mobile_ads", path: "../ephemeral/Packages/.packages/google_mobile_ads-8.0.0"),
+        .package(name: "webview_flutter_wkwebview", path: "../ephemeral/Packages/.packages/webview_flutter_wkwebview-3.23.6"),
+        .package(name: "flutter_timezone", path: "../ephemeral/Packages/.packages/flutter_timezone-4.1.1"),
+        .package(name: "flutter_local_notifications", path: "../ephemeral/Packages/.packages/flutter_local_notifications-20.0.0"),
+        .package(name: "sqflite_darwin", path: "../ephemeral/Packages/.packages/sqflite_darwin-2.4.2"),
+        .package(name: "firebase_messaging", path: "../ephemeral/Packages/.packages/firebase_messaging-16.1.1"),
+        .package(name: "firebase_core", path: "../ephemeral/Packages/.packages/firebase_core-4.4.0"),
+        .package(name: "firebase_crashlytics", path: "../ephemeral/Packages/.packages/firebase_crashlytics-5.0.7"),
+        .package(name: "firebase_analytics", path: "../ephemeral/Packages/.packages/firebase_analytics-12.1.1"),
+        .package(name: "emoji_picker_flutter", path: "../ephemeral/Packages/.packages/emoji_picker_flutter-4.4.0"),
+        .package(name: "audioplayers_darwin", path: "../ephemeral/Packages/.packages/audioplayers_darwin-6.3.0"),
+        .package(name: "FlutterFramework", path: "../ephemeral/Packages/.packages/FlutterFramework")
     ],
     targets: [
         .target(
@@ -61,7 +62,8 @@ let package = Package(
                 .product(name: "firebase-crashlytics", package: "firebase_crashlytics"),
                 .product(name: "firebase-analytics", package: "firebase_analytics"),
                 .product(name: "emoji-picker-flutter", package: "emoji_picker_flutter"),
-                .product(name: "audioplayers-darwin", package: "audioplayers_darwin")
+                .product(name: "audioplayers-darwin", package: "audioplayers_darwin"),
+                .product(name: "FlutterFramework", package: "FlutterFramework")
             ]
         )
     ]
