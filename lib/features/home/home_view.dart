@@ -313,6 +313,16 @@ class _HomeViewState extends ConsumerState<HomeView>
   RealtimeChannel? _roomInventoryRevisionChannel;
   String? _backgroundSubscriptionRoomId;
   RealtimeChannel? _furnitureChannel;
+
+  // Suppress the realtime self-echo that otherwise reloads furniture and makes
+  // a just-dragged/scaled piece flash back to its previous DB position. We skip
+  // a reload when the change is our own very recent write (its authoritative
+  // value is already applied from the RPC response), or while the user is still
+  // manipulating a piece. A remote change that arrives mid-gesture is not lost:
+  // it is replayed once the gesture finishes.
+  static const Duration _furnitureSelfEchoWindow = Duration(seconds: 5);
+  final Map<String, DateTime> _recentFurnitureWriteAt = {};
+  bool _furnitureReloadPendingAfterGesture = false;
   String? _furnitureSubscriptionRoomId;
   String? _roomInventoryRevisionSubscriptionRoomId;
   final Map<String, RealtimeChannel> _messageChannels = {};
@@ -4053,6 +4063,56 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  void _markFurnitureWrite(String id) {
+    _recentFurnitureWriteAt[id] = DateTime.now();
+  }
+
+  bool _isRecentFurnitureWrite(String? id) {
+    if (id == null) {
+      return false;
+    }
+    final at = _recentFurnitureWriteAt[id];
+    if (at == null) {
+      return false;
+    }
+    return DateTime.now().difference(at) <= _furnitureSelfEchoWindow;
+  }
+
+  void _handleFurnitureRealtimeChange(
+    String roomId,
+    PostgresChangePayload payload,
+  ) {
+    // Fix 3: never reload while the user is actively dragging or scaling a
+    // piece; defer any genuine remote change until the gesture ends.
+    if (_activeFurnitureDragId != null ||
+        _activeFurnitureScaleInteractionItemId != null) {
+      _furnitureReloadPendingAfterGesture = true;
+      return;
+    }
+    // Prune stale ids so the map cannot grow unbounded.
+    final cutoff = DateTime.now().subtract(_furnitureSelfEchoWindow);
+    _recentFurnitureWriteAt.removeWhere((_, at) => at.isBefore(cutoff));
+    // Fix 1: ignore the echo of our own recent write; its authoritative value
+    // is already applied from the RPC response.
+    final changedId =
+        (payload.newRecord['id'] ?? payload.oldRecord['id']) as String?;
+    if (_isRecentFurnitureWrite(changedId)) {
+      return;
+    }
+    unawaited(_loadRoomFurniture(roomId));
+  }
+
+  void _flushPendingFurnitureReload() {
+    if (!_furnitureReloadPendingAfterGesture) {
+      return;
+    }
+    _furnitureReloadPendingAfterGesture = false;
+    final roomId = _roomId;
+    if (roomId != null) {
+      unawaited(_loadRoomFurniture(roomId));
+    }
+  }
+
   Future<void> _loadRoomFurniture(String roomId) async {
     try {
       await _ensureCurrentAppVersion();
@@ -4150,7 +4210,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         column: 'room_id',
         value: roomId,
       ),
-      callback: (_) => unawaited(_loadRoomFurniture(roomId)),
+      callback: (payload) => _handleFurnitureRealtimeChange(roomId, payload),
     );
 
     channel.onPostgresChanges(
@@ -4162,7 +4222,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         column: 'room_id',
         value: roomId,
       ),
-      callback: (_) => unawaited(_loadRoomFurniture(roomId)),
+      callback: (payload) => _handleFurnitureRealtimeChange(roomId, payload),
     );
 
     channel.onPostgresChanges(
@@ -4174,7 +4234,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         column: 'room_id',
         value: roomId,
       ),
-      callback: (_) => unawaited(_loadRoomFurniture(roomId)),
+      callback: (payload) => _handleFurnitureRealtimeChange(roomId, payload),
     );
 
     channel.subscribe();
@@ -4670,6 +4730,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   void _clearFurnitureDragGesture() {
     _activeFurnitureDragId = null;
     _activeFurnitureDragStartCanvasPosition = null;
+    _flushPendingFurnitureReload();
   }
 
   void _handleFurnitureDragStart(_PlacedFurniture item) {
@@ -4750,6 +4811,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _activeFurnitureScaleInteractionItemId = null;
     _activeFurnitureScaleInteractionStartScale = null;
     _activeFurnitureScaleInteractionStartCanvasPosition = null;
+    _flushPendingFurnitureReload();
   }
 
   void _applyFurnitureScale(
@@ -4898,6 +4960,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
 
       final newId = response['id'] as String?;
+      if (newId != null) {
+        _markFurnitureWrite(newId);
+      }
       final responseCanvas = _canvasOffsetFromRow(response);
       if (!mounted) {
         return;
@@ -4950,6 +5015,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (item.isPending) {
       return;
     }
+    _markFurnitureWrite(item.id);
     try {
       final canvas = item.canvasPosition;
       final response = await Supabase.instance.client.rpc(
@@ -4987,6 +5053,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (item.isPending) {
       return;
     }
+    _markFurnitureWrite(item.id);
     final requestedFlipX = item.flipX;
     try {
       final response = await Supabase.instance.client.rpc(
@@ -5025,6 +5092,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _persistFurnitureTransformLegacy(_PlacedFurniture item) async {
+    _markFurnitureWrite(item.id);
     try {
       final scaleResponse = await Supabase.instance.client.rpc(
         'update_room_furniture_scale',
@@ -5125,6 +5193,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
+    _markFurnitureWrite(item.id);
     try {
       await Supabase.instance.client.rpc(
         'remove_room_furniture',
