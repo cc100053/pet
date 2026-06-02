@@ -163,6 +163,7 @@ flutter run
 - Functions live in `supabase/functions/`.
 - If an edge function uses auth quirks, document it in `docs/testing.md` and keep security tradeoffs explicit.
 - Hunger tick scheduling is server-side: see `docs/hunger_tick_schedule_report.md` for the `pg_cron` job, `hunger_tick_dispatch` behavior, and manual verification SQL.
+- Abandoned-room R2 photo cleanup is server-side and human-in-the-loop: see `docs/abandoned_room_cleanup.md` for the `cleanup_abandoned_rooms` function (scan/purge modes), the `room_cleanup_review` Studio approval flow, `pg_cron` jobs, and the `cleanup_rooms_secret` vault auth.
 - Function config/secrets are not centralized in a checked-in `supabase/config.toml`; verify deployed `verify_jwt` settings and required env vars before changing or redeploying functions.
 - R2-backed functions (`notify_friend/feed_validate`, `avatar_upload`) require `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `R2_PUBLIC_BASE_URL`.
 - Push/scheduler functions use `NOTIFY_WEBHOOK_SECRET`; `notify_friend` also needs FCM service-account config, and `hunger_tick_dispatch` uses the vault `hunger_tick_secret` or `HUNGER_TICK_SECRET` fallback.

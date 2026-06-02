@@ -16,6 +16,8 @@ applied migration that rewrites the object.
   ledgers, `pet_equipment`, room furniture/background tables
 - Config/safety: `app_config`, `reports`, `blocks`,
   `notification_delivery_logs`, `room_debug_overrides`
+- R2 cleanup: `room_cleanup_candidates` (review queue), `room_cleanup_review`
+  (admin view; not exposed to anon/authenticated)
 
 ## Current Contracts
 - `profiles.avatar_url` is either `preset:<id>` or an R2 URL.
@@ -87,6 +89,15 @@ applied migration that rewrites the object.
   active room members.
 - `hunger_tick_dispatch` reads due rows from `pet_hunger_tick_schedule`, runs
   service-role tick RPCs, and dispatches alert notifications.
+- Room photos live in R2 under `rooms/<room_id>/...` (set by `feed_validate`).
+  `rooms.last_activity_at` is kept fresh by triggers on `messages` insert and
+  `room_members` join/activation; `rooms.status` is `active`/`abandoned`.
+- `cleanup_abandoned_rooms` (verify_jwt off; cron-auth via `cleanup_rooms_secret`
+  vault secret + `get_cleanup_rooms_secret()`) is human-in-the-loop:
+  `mode=scan` records stale rooms into `room_cleanup_candidates` as `pending`
+  (no delete); you set `review_status=approved` in Studio; `mode=purge` deletes
+  R2 photos for approved rooms only, then marks them `abandoned`/`purged`.
+  Crons: `cleanup_abandoned_rooms_scan_daily`, `..._purge_daily`.
 
 ## Read More
 - Source of truth: Supabase MCP plus `supabase/migrations/`
