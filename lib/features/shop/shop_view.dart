@@ -1124,45 +1124,10 @@ class ShopFloatingNoticeCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            accent.withValues(alpha: 0.22),
-                            accent.withValues(alpha: 0.38),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: accent.withValues(alpha: 0.5),
-                          width: 2,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child: Padding(
-                          padding: EdgeInsets.all(isShortage ? 11 : 8),
-                          child: isShortage
-                              ? Image.asset(
-                                  isCandy
-                                      ? 'assets/shop/icon/candy.png'
-                                      : 'assets/shop/icon/diamond.png',
-                                )
-                              : DefaultTextStyle(
-                                  style: TextStyle(color: accent),
-                                  child:
-                                      notice.visual ??
-                                      Icon(
-                                        Icons.check_rounded,
-                                        size: 30,
-                                        color: accent,
-                                      ),
-                                ),
-                        ),
-                      ),
+                    _buildNoticeIcon(
+                      accent: accent,
+                      isShortage: isShortage,
+                      isCandy: isCandy,
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -1282,30 +1247,71 @@ class ShopFloatingNoticeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Positioned(
-                top: -8,
-                left: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Text(
-                    isShortage ? '!' : 'OK',
-                    style: GoogleFonts.mPlusRounded1c(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
+              _buildNoticeBadge(accent: accent, isShortage: isShortage),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoticeIcon({
+    required Color accent,
+    required bool isShortage,
+    required bool isCandy,
+  }) {
+    return Container(
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            accent.withValues(alpha: 0.22),
+            accent.withValues(alpha: 0.38),
+          ],
+        ),
+        border: Border.all(color: accent.withValues(alpha: 0.5), width: 2),
+      ),
+      child: ClipOval(
+        child: Padding(
+          padding: EdgeInsets.all(isShortage ? 11 : 8),
+          child: isShortage
+              ? Image.asset(
+                  isCandy
+                      ? 'assets/shop/icon/candy.png'
+                      : 'assets/shop/icon/diamond.png',
+                )
+              : DefaultTextStyle(
+                  style: TextStyle(color: accent),
+                  child:
+                      notice.visual ??
+                      Icon(Icons.check_rounded, size: 30, color: accent),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoticeBadge({required Color accent, required bool isShortage}) {
+    return Positioned(
+      top: -8,
+      left: 16,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: accent,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+        child: Text(
+          isShortage ? '!' : 'OK',
+          style: GoogleFonts.mPlusRounded1c(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),

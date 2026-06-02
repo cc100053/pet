@@ -36,6 +36,13 @@ Targets (by pain):
   - NOTE: most same-named helpers are NOT true dupes (e.g. `_withNetworkTimeout`
     diverges: home = bare timeout, profile = tagged-exception wrapper). Do not
     force-merge divergent helpers under behavior-preservation.
+- [x] Break up giant `build()` methods (extract verbatim sub-trees to helpers):
+  - [x] chat `build()` 442 -> 167 (`chat_room_view_v2_build.dart`: appBar +
+        fc.Builders)
+  - [x] home `build()` 249 -> 161 (`home_view_build.dart`: room-selection
+        scaffold + status bar)
+  - [x] shop `ShopFloatingNoticeCard.build()` 239 -> 182 (`_buildNoticeIcon`/
+        `_buildNoticeBadge`). NOTE: `_ShopViewState.build()` was already 62 lines.
 
 ## Review (2026-06-02 God-file decomposition — session 1)
 - 6 behavior-preserving `part`-file extractions across the 3 god files; every
