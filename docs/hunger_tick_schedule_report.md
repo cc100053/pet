@@ -147,3 +147,54 @@ select net.http_post(
 
 ## Recommendation for Future Optimization
 If pet count grows substantially beyond current target, consider batching due-pet ticking in SQL (set-based RPC) to reduce per-pet RPC overhead further while preserving notification dedupe guarantees.
+
+## Notification Policy (one-shot, by design)
+Hunger alerts are **one-shot per threshold crossing**. `handle_pet_hunger_alerts`
+(BEFORE UPDATE on `pet_state.hunger`) emits a single `hunger_alert_50/30/10`
+system message the moment hunger crosses each threshold downward, then sets
+`hunger_alert_<level>_sent_at`; it does not re-send until hunger rises back above
+the threshold (which resets the fields). A pet at `hunger <= 10` therefore
+correctly drops out of `pet_hunger_tick_schedule`
+(`compute_pet_hunger_next_check_at` returns NULL) and stays silent until fed.
+
+Consequence: a pet that is already hungry and left unfed will not be re-notified.
+Users only see its hungry state again when they open the app. This is an
+intentional product choice (avoid nagging); there is deliberately no recurring
+"still hungry" reminder.
+
+## 2026-06 Hardening (safety net, no policy change)
+The server-side pipeline was verified healthy (cron dispatches cluster on the
+`*/20` minutes 00/20/40). The remaining risk was *schedule drift*: an eligible
+pet (active, non-archived room, `hunger > 10`) could end up with a stale/NULL
+`next_check_at` and become invisible to the due-only cron, with no server-side
+recovery (it self-healed only on a client `pet_state` write). Pause-window
+changes (`room_debug_overrides.hunger_decay_paused_until`) also didn't refresh
+the schedule.
+
+Migration `20260602130000_harden_hunger_tick_schedule_safety_net.sql` adds:
+- `resweep_pet_hunger_schedules()` + hourly cron `resweep_pet_hunger_schedules_hourly`
+  (`5 * * * *`): recomputes schedules for all eligible pets. Idempotent
+  (deterministic from `last_decay_at`/`hunger`), heals orphans, and refreshes
+  after an un-pause. Terminal pets (`hunger <= 10`) still resolve to NULL, so the
+  one-shot policy is preserved.
+- Trigger `trg_room_pause_refresh_hunger_schedule` on `room_debug_overrides`:
+  refreshes a room's pet schedules immediately when its pause window changes.
+
+Note: a far-future `next_check_at` (e.g. 2027) is not a bug when the room has a
+matching far-future `hunger_decay_paused_until` — `compute_pet_hunger_next_check_at`
+honors the pause. That value is product data and is not altered by this work.
+
+### Verify hardening
+```sql
+-- orphans should be 0 (eligible but unscheduled)
+select count(*) from pets p
+join rooms r on r.id=p.room_id
+join pet_state ps on ps.pet_id=p.id
+left join pet_hunger_tick_schedule s on s.pet_id=p.id
+where not r.is_archived and ps.hunger>10
+  and exists(select 1 from room_members rm where rm.room_id=p.room_id and rm.is_active)
+  and (s.next_check_at is null or s.pet_id is null);
+
+select jobname, schedule, active from cron.job
+where jobname='resweep_pet_hunger_schedules_hourly';
+```
