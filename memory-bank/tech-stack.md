@@ -27,8 +27,10 @@ for exact historical versions. Latest snapshot:
 - Google AdMob 8.x for iOS banner/rewarded ads
 
 ## Repo-Specific Notes
-- `.fvmrc` pins Flutter `3.44.0`; use `fvm flutter ...` when the default
-  Flutter SDK is mismatched.
+- `.fvmrc` pins Flutter `3.44.0` / Dart `3.12.0`; the default/global
+  `flutter` binary should match that pin, so use bare `flutter ...` for
+  normal get/analyze/test/build/run commands. If FVM is used, confirm it
+  resolves to the same SDK.
 - Edge Function gateway `verify_jwt=true` expects HS256 Supabase Auth JWTs; old
   `notify_friend` webhook compatibility still relies on `verify_jwt=false` plus
   function-level auth checks.

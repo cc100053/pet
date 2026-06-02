@@ -1,3 +1,5 @@
+import 'package:pet/shared/utils/date_parsing.dart';
+
 class MemoryFeed {
   MemoryFeed({
     required this.id,
@@ -23,13 +25,5 @@ class MemoryFeed {
     );
   }
 
-  static DateTime _parseDate(dynamic value) {
-    if (value is DateTime) {
-      return value;
-    }
-    if (value is String) {
-      return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
-    }
-    return DateTime.fromMillisecondsSinceEpoch(0);
-  }
+  static DateTime _parseDate(dynamic value) => parseDate(value);
 }

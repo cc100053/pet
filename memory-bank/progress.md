@@ -9,9 +9,10 @@ Active progress stays current-state focused. Full snapshots live in
   (`cb96407b-2767-4889-a3de-212be7b9289c`) has build `4`
   (`97147cec-14a9-4890-b50c-abedf93fc61f`) attached; submission
   `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
-- Flutter is pinned by `.fvmrc` to `3.44.0` (Dart `3.12.0`). Use
-  `fvm flutter ...` when the default Flutter binary does not satisfy
-  `pubspec.yaml`.
+- Flutter is pinned by `.fvmrc` to `3.44.0` (Dart `3.12.0`). The
+  default/global `flutter` binary should match that pin, so normal local and
+  release-sensitive commands use bare `flutter ...`; if FVM is used, confirm it
+  resolves to the same SDK.
 - Multi-pet v2.0.0 remains backward compatible: `pets` is one-row-per-room for
   legacy clients, extra pets live in `room_extra_pets`, room-shared hunger/mood/
   level/exp live in `room_pet_state`, and `rooms.name` mirrors the main pet.
@@ -28,6 +29,12 @@ Active progress stays current-state focused. Full snapshots live in
 - Debug admins can freeze hunger decay per room through
   `set_room_hunger_decay_paused(...)`; the expiring override advances
   `last_decay_at` while frozen and parks the server schedule until expiry.
+- The three god-view files were decomposed (behavior-preserving) on branch
+  `refactor/god-file-decomposition`: `home_view.dart` 5737->~2.1k,
+  `chat_room_view_v2.dart` 3657->~2.5k, `shop_view.dart` 2340->1316, via new
+  `part` extensions; their giant `build()` methods were broken into helpers
+  (chat 442->167, home 249->161, shop notice 239->182). See
+  `memory-bank/architecture.md` "View Layer Structure" for the conventions.
 - Chat runs on `ChatRoomViewV2` with bounded visible history, Hive cache,
   local-first realtime buffering, tuned image cache/decode sizes, and sender
   soft-delete for recalled `image_feed` messages.

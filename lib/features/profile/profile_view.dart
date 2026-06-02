@@ -271,6 +271,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     child: Center(
                       child: Text(
                         l10n.commonCancel,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
@@ -298,6 +299,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     child: Center(
                       child: Text(
                         l10n.commonSave,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
@@ -780,6 +782,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     child: Center(
                       child: Text(
                         l10n.commonCancel,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
@@ -807,6 +810,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     child: Center(
                       child: Text(
                         l10n.profileDeleteAccountConfirmAction,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,

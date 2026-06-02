@@ -90,9 +90,10 @@ This file is for agentic coding agents working in this repo.
 ### Install / bootstrap
 - Install deps: `flutter pub get`
 - Run app: `flutter run`
-- Repo pins Flutter via `.fvmrc` (`3.44.0`); if the default `flutter`
-  binary does not satisfy `pubspec.yaml`, use `fvm flutter ...` for get,
-  analyze, test, build, and run commands.
+- Repo pins Flutter via `.fvmrc` (`3.44.0`); the default/global `flutter`
+  binary should resolve to Flutter `3.44.0` / Dart `3.12.0`. Use bare
+  `flutter ...` for get, analyze, test, build, and run commands; if FVM is
+  used, confirm it resolves to the same pinned SDK.
 
 ### Lint / typecheck
 - Analyzer (required before shipping): `flutter analyze`
@@ -255,6 +256,12 @@ flutter run
 - When an action changes state (Supabase write, RPC, purchase, etc.), refresh the relevant UI state automatically.
 - Prefer `mounted` checks before calling `setState` after `await`.
 - Use `withValues(alpha: ...)` instead of deprecated `withOpacity(...)`.
+- Large views (`home_view`, `chat_room_view_v2`, `shop_view`) are split into
+  `part`/`part of` files with `extension _Xxx on _<View>State`. In those
+  extensions you must call a `_setStateForXxx(...)` wrapper (not the protected
+  `setState`), qualify `static` members as `_<View>State._foo`, and use
+  `part of '../core.dart';` from subdirectories. See
+  `memory-bank/architecture.md` "View Layer Structure".
 
 ### Riverpod
 - Prefer `ref.watch(...)` in `build` and `ref.read(...)` in callbacks.

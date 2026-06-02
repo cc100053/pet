@@ -41,19 +41,24 @@ void main() {
     final homeSource = File(
       'lib/features/home/home_view.dart',
     ).readAsStringSync();
+    // The equipment domain lives in a `part` file of the home_view library.
+    final equipmentSource = File(
+      'lib/features/home/home_view_equipment.dart',
+    ).readAsStringSync();
+    final homeLibrarySource = homeSource + equipmentSource;
     final panelSource = File(
       'lib/features/home/widgets/home_room_inventory_panel.dart',
     ).readAsStringSync();
     // The old per-tap picker is gone; selection is persistent state instead.
-    expect(homeSource, isNot(contains('_resolveEquipTargetPetId')));
-    expect(homeSource, contains('_selectedEquipPetId'));
-    expect(homeSource, contains('_onSelectEquipPet'));
+    expect(homeLibrarySource, isNot(contains('_resolveEquipTargetPetId')));
+    expect(homeLibrarySource, contains('_selectedEquipPetId'));
+    expect(homeLibrarySource, contains('_onSelectEquipPet'));
     // The equip RPC must use the selected pet, not always _petId.
+    expect(homeLibrarySource, contains("'p_pet_id': targetPetId,"));
     expect(
-      homeSource,
-      contains("'p_pet_id': targetPetId,"),
+      homeLibrarySource,
+      contains('final targetPetId = _selectedEquipPetId ?? _petId;'),
     );
-    expect(homeSource, contains('final targetPetId = _selectedEquipPetId ?? _petId;'));
     // The panel renders a persistent selector when the room has 2+ pets.
     expect(panelSource, contains('_EquipPetSelector'));
     expect(panelSource, contains('equipPets.length >= 2'));
@@ -86,10 +91,7 @@ void main() {
     ).readAsStringSync();
     expect(homeSource, contains('_openPetNameEditor({_RoomPet? targetPet})'));
     expect(homeSource, contains("'update_pet_name'"));
-    expect(
-      sceneSource,
-      contains('_openPetNameEditor(targetPet: pet)'),
-    );
+    expect(sceneSource, contains('_openPetNameEditor(targetPet: pet)'));
   });
 
   test('Shop counts pets across both tables for equipment capacity', () {
@@ -101,7 +103,11 @@ void main() {
     expect(shopSource, contains("'get_room_pets'"));
     expect(
       shopSource,
-      isNot(contains(".from('pets')\n            .select('id')\n            .eq('room_id', roomId)")),
+      isNot(
+        contains(
+          ".from('pets')\n            .select('id')\n            .eq('room_id', roomId)",
+        ),
+      ),
     );
   });
 
@@ -113,7 +119,10 @@ void main() {
       'lib/features/home/controllers/home_feed_orchestrator.dart',
     ).readAsStringSync();
     expect(homeSource, contains('_summonExtraPetsToFood'));
-    expect(feedSource, contains('_summonExtraPetsToFood(foodTarget, fieldSize)'));
+    expect(
+      feedSource,
+      contains('_summonExtraPetsToFood(foodTarget, fieldSize)'),
+    );
     // Pet repulsion/collision avoidance was removed; pets may overlap freely.
     expect(homeSource, isNot(contains('_pickWanderTargetAvoiding')));
   });
@@ -149,7 +158,10 @@ void main() {
     expect(sceneSource, contains('petDefinition.sleepAsset'));
     expect(sceneSource, contains('_buildRoomPetAvatar(pet, runtime'));
     // Full size (no 0.86 shrink factor).
-    expect(sceneSource, contains('final size = _HomeViewState._petAvatarSize;'));
+    expect(
+      sceneSource,
+      contains('final size = _HomeViewState._petAvatarSize;'),
+    );
     expect(sceneSource, isNot(contains('_petAvatarSize.width * 0.86')));
     // Walk state machine wired through arrival timer.
     expect(homeSource, contains('_beginExtraPetWalk'));
@@ -172,16 +184,19 @@ void main() {
     expect(homeSource, contains("error.toString().contains('pet_not_found')"));
   });
 
-  test('Room name follows the main pet (model B): no separate rename dialog', () {
-    final homeSource = File(
-      'lib/features/home/home_view.dart',
-    ).readAsStringSync();
-    // The two-name rename dialog is gone; room name mirrors the main pet
-    // server-side via trigger + set_room_main_pet.
-    expect(homeSource, isNot(contains('_maybeShowMultiPetNamingPrompt')));
-    expect(homeSource, isNot(contains('_showMultiPetNamingDialog')));
-    expect(homeSource, isNot(contains("'apply_multi_pet_room_naming'")));
-  });
+  test(
+    'Room name follows the main pet (model B): no separate rename dialog',
+    () {
+      final homeSource = File(
+        'lib/features/home/home_view.dart',
+      ).readAsStringSync();
+      // The two-name rename dialog is gone; room name mirrors the main pet
+      // server-side via trigger + set_room_main_pet.
+      expect(homeSource, isNot(contains('_maybeShowMultiPetNamingPrompt')));
+      expect(homeSource, isNot(contains('_showMultiPetNamingDialog')));
+      expect(homeSource, isNot(contains("'apply_multi_pet_room_naming'")));
+    },
+  );
 
   test('Home subscribes to pets/rooms realtime for the active room', () {
     final homeSource = File(

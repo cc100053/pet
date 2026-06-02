@@ -89,6 +89,7 @@ extension _ShopDepartedPetSelector on _ShopViewState {
                     child: Center(
                       child: Text(
                         l10n.commonCancel,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
@@ -116,6 +117,7 @@ extension _ShopDepartedPetSelector on _ShopViewState {
                     child: Center(
                       child: Text(
                         l10n.petDepartureLetterConfirmAction,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,

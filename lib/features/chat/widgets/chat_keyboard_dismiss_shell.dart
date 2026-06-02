@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet/shared/utils/render_geometry.dart';
+
 const ScrollViewKeyboardDismissBehavior chatTimelineKeyboardDismissBehavior =
     ScrollViewKeyboardDismissBehavior.manual;
 
@@ -60,15 +62,7 @@ class _ChatBackSwipePopLayerState extends State<ChatBackSwipePopLayer> {
   bool _tracking = false;
   bool _popped = false;
 
-  Rect? _globalRectForKey(GlobalKey key) {
-    final context = key.currentContext;
-    final renderObject = context?.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.hasSize) {
-      return null;
-    }
-    final origin = renderObject.localToGlobal(Offset.zero);
-    return origin & renderObject.size;
-  }
+  Rect? _globalRectForKey(GlobalKey key) => globalRectForKey(key);
 
   void _reset() {
     _activePointer = null;
@@ -161,15 +155,7 @@ class _ChatKeyboardSweepDismissLayerState
 
   bool get _canDismiss => widget.keyboardInset > 0 && widget.focusNode.hasFocus;
 
-  Rect? _globalRectForKey(GlobalKey key) {
-    final context = key.currentContext;
-    final renderObject = context?.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.hasSize) {
-      return null;
-    }
-    final origin = renderObject.localToGlobal(Offset.zero);
-    return origin & renderObject.size;
-  }
+  Rect? _globalRectForKey(GlobalKey key) => globalRectForKey(key);
 
   void _resetGesture() {
     _activePointer = null;

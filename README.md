@@ -1,7 +1,8 @@
 # PicPet
 
 ## Setup
-1. Install Flutter (stable channel recommended).
+1. Install/use Flutter `3.44.0` stable with Dart `3.12.0` (the default
+   `flutter` binary should match `.fvmrc`).
 2. Copy `.env.example` to `.env` and fill in Supabase values.
 3. Run dependencies:
    ```sh

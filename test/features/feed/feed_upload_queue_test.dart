@@ -74,7 +74,7 @@ void main() {
     expect(completed.result?.reconciled, isFalse);
   });
 
-  test('failed upload records retryable error state', () async {
+  test('first upload failure auto-retries silently and stays pending', () async {
     client.uploadError = Exception('network_timeout');
 
     final notifier = container.read(feedUploadQueueProvider.notifier);
@@ -88,20 +88,59 @@ void main() {
       initialBytes: Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]),
     );
 
+    // After the first failure the job is scheduled for a backoff retry rather
+    // than surfaced to the user, so it stays pending with the error recorded.
+    await _pumpUntil(
+      () =>
+          (container.read(feedUploadQueueProvider).jobsByTempId[job.tempId]
+                  ?.retryCount ??
+              0) >=
+          1,
+    );
+
+    final pending = container
+        .read(feedUploadQueueProvider)
+        .jobsByTempId[job.tempId]!;
+    expect(pending.status, FeedUploadJobStatus.pending);
+    expect(pending.retryCount, 1);
+    expect(pending.lastError, contains('network_timeout'));
+  });
+
+  test('upload fails terminally once the auto-retry budget is exhausted', () async {
+    // Persist a job that has already consumed its auto-retry budget so the next
+    // failed attempt flips it straight to failed without scheduling a timer.
+    final exhausted = FeedUploadJob(
+      tempId: 'temp-exhausted',
+      roomId: 'room-1',
+      senderId: 'user-1',
+      localImagePath: '/tmp/feed.jpg',
+      caption: null,
+      clientCreatedAt: DateTime.utc(2026, 4, 17, 5),
+      labels: const <Map<String, dynamic>>[],
+      status: FeedUploadJobStatus.pending,
+      retryCount: 3,
+      updatedAt: DateTime.utc(2026, 4, 17, 5),
+    );
+    await repository.saveJob(exhausted);
+    client.uploadError = Exception('network_timeout');
+
+    container.read(feedUploadQueueProvider);
+
     await _pumpUntil(
       () =>
           container
               .read(feedUploadQueueProvider)
-              .jobsByTempId[job.tempId]
+              .jobsByTempId['temp-exhausted']
               ?.status ==
           FeedUploadJobStatus.failed,
     );
 
     final failed = container
         .read(feedUploadQueueProvider)
-        .jobsByTempId[job.tempId]!;
-    expect(failed.retryCount, 1);
+        .jobsByTempId['temp-exhausted']!;
+    expect(failed.retryCount, 4);
     expect(failed.lastError, contains('network_timeout'));
+    expect(client.uploadCalls, 1);
   });
 
   test(

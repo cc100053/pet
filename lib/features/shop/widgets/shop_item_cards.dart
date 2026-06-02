@@ -214,40 +214,53 @@ class ShopGridItemCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 2, 8, 6),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (isIap)
-                  _GridCurrencyPrice(
-                    label: priceString,
-                    fillColor: const Color(0xFFFFD700),
-                    strokeColor: const Color(0xFF795548),
-                  )
-                else ...[
-                  if (item.priceCoins != null)
-                    _GridCurrencyPrice(
-                      label: '${item.priceCoins}',
-                      icon: Image.asset(
-                        'assets/shop/icon/candy.png',
-                        width: 24,
-                        height: 24,
-                      ),
-                      fillColor: const Color(0xFFFFB1C6),
-                      strokeColor: Colors.black,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isIap)
+                          _GridCurrencyPrice(
+                            label: priceString,
+                            fillColor: const Color(0xFFFFD700),
+                            strokeColor: const Color(0xFF795548),
+                          )
+                        else ...[
+                          if (item.priceCoins != null)
+                            _GridCurrencyPrice(
+                              label: '${item.priceCoins}',
+                              icon: Image.asset(
+                                'assets/shop/icon/candy.png',
+                                width: 24,
+                                height: 24,
+                              ),
+                              fillColor: const Color(0xFFFFB1C6),
+                              strokeColor: Colors.black,
+                            ),
+                          if (item.priceCoins != null &&
+                              item.priceDiamonds != null)
+                            const SizedBox(width: 4),
+                          if (item.priceDiamonds != null)
+                            _GridCurrencyPrice(
+                              label: '${item.priceDiamonds}',
+                              icon: Image.asset(
+                                'assets/shop/icon/diamond.png',
+                                width: 24,
+                                height: 24,
+                              ),
+                              fillColor: const Color(0xFF91DBF9),
+                              strokeColor: Colors.black,
+                            ),
+                        ],
+                      ],
                     ),
-                  if (item.priceCoins != null && item.priceDiamonds != null)
-                    const SizedBox(width: 4),
-                  if (item.priceDiamonds != null)
-                    _GridCurrencyPrice(
-                      label: '${item.priceDiamonds}',
-                      icon: Image.asset(
-                        'assets/shop/icon/diamond.png',
-                        width: 24,
-                        height: 24,
-                      ),
-                      fillColor: const Color(0xFF91DBF9),
-                      strokeColor: Colors.black,
-                    ),
-                ],
-                const Spacer(),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 _GridBuyAction(
                   onPressed: onBuy,
                   isOwnedLocked: isOwnedLocked,
@@ -390,6 +403,7 @@ Future<void> showStoreThemePreviewDialog({
             child: Center(
               child: Text(
                 l10n.commonClose,
+                textAlign: TextAlign.center,
                 style: GoogleFonts.mPlusRounded1c(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
