@@ -14,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
+import 'package:pet/shared/utils/render_geometry.dart';
 import 'package:pet/shared/utils/supabase_realtime.dart';
 import 'package:pet/shared/ui/juice_wrappers.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';

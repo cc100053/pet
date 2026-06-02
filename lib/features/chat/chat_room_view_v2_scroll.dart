@@ -211,15 +211,7 @@ extension _ChatScrollViewport on _ChatRoomViewV2State {
     await _scrollLatestMessageToVisibleBottom(animated: animated);
   }
 
-  Rect? _globalRectForKey(GlobalKey key) {
-    final context = key.currentContext;
-    final renderObject = context?.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.hasSize) {
-      return null;
-    }
-    final origin = renderObject.localToGlobal(Offset.zero);
-    return origin & renderObject.size;
-  }
+  Rect? _globalRectForKey(GlobalKey key) => globalRectForKey(key);
 
   Future<void> _scrollLatestMessageToVisibleBottom({
     required bool animated,

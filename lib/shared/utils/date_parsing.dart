@@ -14,3 +14,15 @@ DateTime? parseOptionalDate(dynamic value) {
   }
   return null;
 }
+
+/// Parses a required date value, falling back to the Unix epoch for null,
+/// unparseable, or unexpected inputs. Use when a non-null `DateTime` is needed.
+DateTime parseDate(dynamic value) {
+  if (value is DateTime) {
+    return value;
+  }
+  if (value is String) {
+    return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
+  }
+  return DateTime.fromMillisecondsSinceEpoch(0);
+}

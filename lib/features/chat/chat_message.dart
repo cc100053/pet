@@ -147,15 +147,7 @@ class ChatMessage {
     };
   }
 
-  static DateTime _parseDate(dynamic value) {
-    if (value is DateTime) {
-      return value;
-    }
-    if (value is String) {
-      return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
-    }
-    return DateTime.fromMillisecondsSinceEpoch(0);
-  }
+  static DateTime _parseDate(dynamic value) => parseDate(value);
 
   static DateTime? _parseOptionalDate(dynamic value) =>
       parseOptionalDate(value);

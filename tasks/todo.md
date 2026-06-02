@@ -25,10 +25,14 @@ Targets (by pain):
 - [x] `shop_view.dart` 2340 -> 1316: inline widgets/painters
       -> `widgets/shop_view_decorations.dart` (1024 lines)
 - [~] Consistency sweep (behavior-preserving):
-  - [x] dedup byte-identical helpers -> shared utils:
+  - [x] dedup byte-identical helpers -> shared utils (locals delegate):
         `removeRealtimeChannelSafely` (home+chat; shop intentionally LEFT — it
-        lacks the unsubscribe fallback => different behavior) and
-        `parseOptionalDate` (home+chat_message+blocked_users). Locals delegate.
+        lacks the unsubscribe fallback => different behavior);
+        `parseOptionalDate` (home+chat_message+blocked_users);
+        `parseDate` (chat_message+memory_feed);
+        `globalRectForKey` (chat scroll + keyboard shell x2).
+        SKIPPED `_ensureCurrentAppVersion` (identical but state-entangled —
+        _currentAppVersion/mounted/setState; clean extraction = over-engineering).
   - NOTE: most same-named helpers are NOT true dupes (e.g. `_withNetworkTimeout`
     diverges: home = bare timeout, profile = tagged-exception wrapper). Do not
     force-merge divergent helpers under behavior-preservation.
