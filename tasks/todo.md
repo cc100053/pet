@@ -14,12 +14,11 @@ extension idiom (same library => no privacy/import/API change). Verify
 `flutter analyze` + `flutter test` after EVERY extraction.
 
 Targets (by pain):
-- [~] `home_view.dart` 5737 -> 3852; extract `_HomeViewState` domains:
+- [x] `home_view.dart` 5737 -> 3282; extracted `_HomeViewState` domains:
   - [x] room-decor (furniture + backgrounds) -> `home_view_room_decor.dart` (1268 lines)
   - [x] equipment domain -> `home_view_equipment.dart` (467 lines)
   - [x] pet-tick/hunger domain -> `home_view_pet_tick.dart` (158 lines)
-  - [ ] debug tools (`_debug*`/`_setDebug*`/memory/admin) -> `home_view_debug.dart`
-        (NOTE: interleaved with non-debug methods, not one contiguous block)
+  - [x] debug tools (interleaved, multi-range cut) -> `home_view_debug.dart` (577 lines)
 - [~] `chat_room_view_v2.dart` 3657 -> 2538:
   - [x] scroll/viewport -> `chat_room_view_v2_scroll.dart` (327 lines)
   - [x] message-actions/moderation -> `chat_room_view_v2_actions.dart` (798 lines)
