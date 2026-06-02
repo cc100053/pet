@@ -90,9 +90,10 @@ This file is for agentic coding agents working in this repo.
 ### Install / bootstrap
 - Install deps: `flutter pub get`
 - Run app: `flutter run`
-- Repo pins Flutter via `.fvmrc` (`3.44.0`); if the default `flutter`
-  binary does not satisfy `pubspec.yaml`, use `fvm flutter ...` for get,
-  analyze, test, build, and run commands.
+- Repo pins Flutter via `.fvmrc` (`3.44.0`); the default/global `flutter`
+  binary should resolve to Flutter `3.44.0` / Dart `3.12.0`. Use bare
+  `flutter ...` for get, analyze, test, build, and run commands; if FVM is
+  used, confirm it resolves to the same pinned SDK.
 
 ### Lint / typecheck
 - Analyzer (required before shipping): `flutter analyze`

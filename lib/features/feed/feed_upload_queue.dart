@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -122,12 +123,23 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
       ref.read(feedUploadRepositoryProvider);
   FeedUploadClient get _client => ref.read(feedUploadClientProvider);
 
+  /// Number of transparent auto-retries (with exponential backoff) before a
+  /// job is marked [FeedUploadJobStatus.failed] and surfaced to the user.
+  static const int _maxAutoRetries = 3;
+
   final Set<String> _inFlightTempIds = <String>{};
   final Map<String, Uint8List> _initialBytesByTempId = <String, Uint8List>{};
+  final Map<String, Timer> _autoRetryTimers = <String, Timer>{};
   bool _loadStarted = false;
 
   @override
   FeedUploadQueueState build() {
+    ref.onDispose(() {
+      for (final timer in _autoRetryTimers.values) {
+        timer.cancel();
+      }
+      _autoRetryTimers.clear();
+    });
     if (!_loadStarted) {
       _loadStarted = true;
       unawaited(_loadPersistedJobs());
@@ -205,6 +217,7 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
     if (job == null) {
       return;
     }
+    _cancelAutoRetry(tempId);
     final next = job.copyWith(
       status: FeedUploadJobStatus.pending,
       clearLastError: true,
@@ -215,6 +228,7 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
   }
 
   Future<void> acknowledge(String tempId) async {
+    _cancelAutoRetry(tempId);
     final nextJobs = Map<String, FeedUploadJob>.from(state.jobsByTempId)
       ..remove(tempId);
     state = state.copyWith(
@@ -268,15 +282,52 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
       if (job == null) {
         return;
       }
-      final failed = job.copyWith(
-        status: FeedUploadJobStatus.failed,
-        retryCount: job.retryCount + 1,
-        lastError: error.toString(),
-      );
-      await _upsertJob(failed);
+      final attempts = job.retryCount + 1;
+      if (attempts <= _maxAutoRetries) {
+        // Keep the optimistic photo visible as "sending" and retry silently
+        // with exponential backoff. Staying in [pending] avoids firing a
+        // user-facing FeedUploadFailed event for transient failures.
+        final backingOff = job.copyWith(
+          status: FeedUploadJobStatus.pending,
+          retryCount: attempts,
+          lastError: error.toString(),
+        );
+        await _upsertJob(backingOff);
+        _scheduleAutoRetry(tempId, attempts);
+      } else {
+        // Auto-retry budget exhausted: surface the failure to the user.
+        final failed = job.copyWith(
+          status: FeedUploadJobStatus.failed,
+          retryCount: attempts,
+          lastError: error.toString(),
+        );
+        await _upsertJob(failed);
+      }
     } finally {
       _inFlightTempIds.remove(tempId);
     }
+  }
+
+  void _scheduleAutoRetry(String tempId, int attempt) {
+    _autoRetryTimers.remove(tempId)?.cancel();
+    _autoRetryTimers[tempId] = Timer(_backoffDelay(attempt), () {
+      _autoRetryTimers.remove(tempId);
+      final job = state.jobsByTempId[tempId];
+      if (job == null || job.status != FeedUploadJobStatus.pending) {
+        return;
+      }
+      unawaited(_processJob(tempId));
+    });
+  }
+
+  void _cancelAutoRetry(String tempId) {
+    _autoRetryTimers.remove(tempId)?.cancel();
+  }
+
+  /// Exponential backoff: ~2s, 4s, 8s, capped at 30s.
+  Duration _backoffDelay(int attempt) {
+    final seconds = math.min(1 << attempt, 30);
+    return Duration(seconds: seconds);
   }
 
   Future<void> _completeJob(FeedUploadJob job, FeedUploadResult result) async {

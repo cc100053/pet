@@ -837,6 +837,7 @@ extension _HomeRoomManager on _HomeViewState {
                         child: Center(
                           child: Text(
                             l10n.commonCancel,
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.mPlusRounded1c(
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
@@ -876,6 +877,7 @@ extension _HomeRoomManager on _HomeViewState {
                         child: Center(
                           child: Text(
                             l10n.commonJoin,
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.mPlusRounded1c(
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
@@ -951,6 +953,7 @@ extension _HomeRoomManager on _HomeViewState {
                     child: Center(
                       child: Text(
                         l10n.commonCancel,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
@@ -978,6 +981,7 @@ extension _HomeRoomManager on _HomeViewState {
                     child: Center(
                       child: Text(
                         l10n.roomLeaveConfirm,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,

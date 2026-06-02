@@ -451,6 +451,7 @@ Future<T?> showJuiceToast<T>({
                                   child: Center(
                                     child: Text(
                                       secondaryActionLabel,
+                                      textAlign: TextAlign.center,
                                       style: GoogleFonts.mPlusRounded1c(
                                         fontWeight: FontWeight.w900,
                                         color: accent,
@@ -496,6 +497,7 @@ Future<T?> showJuiceToast<T>({
                                   child: Center(
                                     child: Text(
                                       actionLabel,
+                                      textAlign: TextAlign.center,
                                       style: GoogleFonts.mPlusRounded1c(
                                         fontWeight: FontWeight.w900,
                                         color: Colors.black,
@@ -693,14 +695,14 @@ class _DialogActions extends StatelessWidget {
             AppDialogActionStyle.primary => FilledButton(
               onPressed: action.onPressed,
               style: FilledButton.styleFrom(backgroundColor: accent),
-              child: Text(action.label),
+              child: Text(action.label, textAlign: TextAlign.center),
             ),
             AppDialogActionStyle.destructive => FilledButton(
               onPressed: action.onPressed,
               style: FilledButton.styleFrom(
                 backgroundColor: theme.colorScheme.error,
               ),
-              child: Text(action.label),
+              child: Text(action.label, textAlign: TextAlign.center),
             ),
             AppDialogActionStyle.secondary => OutlinedButton(
               onPressed: action.onPressed,
@@ -712,11 +714,11 @@ class _DialogActions extends StatelessWidget {
                   ),
                 ),
               ),
-              child: Text(action.label),
+              child: Text(action.label, textAlign: TextAlign.center),
             ),
             AppDialogActionStyle.ghost => TextButton(
               onPressed: action.onPressed,
-              child: Text(action.label),
+              child: Text(action.label, textAlign: TextAlign.center),
             ),
           };
         }).toList(),

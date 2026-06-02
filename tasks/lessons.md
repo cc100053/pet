@@ -150,3 +150,21 @@
 
 ## 2026-05-22
 - For App Store submissions with auto-renewable subscriptions, treat the direct Apple Standard EULA link in version metadata as a release-blocking invariant. Keep the URL footer in every `.asc/version-localizations/*.strings` description and verify it with `test/app_store_metadata_terms_test.dart` before uploading metadata.
+
+## 2026-06-02
+- When decomposing god files via the `part`/`part of` extension idiom: (1)
+  extensions cannot call `State.setState` directly (warns
+  `invalid_use_of_protected_member`) — route through a plain
+  `_setStateForXxx(VoidCallback)` wrapper on the State class, matching the
+  existing convention; (2) references to `static` members of the extended
+  class must be qualified (`_HomeViewState._foo`); (3) several tests are
+  source-introspection tests (`File('.../home_view.dart').readAsStringSync()`)
+  that assert symbol LOCATION, so moving code to a new part file breaks them —
+  update the test to also read the new part file (same library, behavior
+  unchanged). Always `flutter analyze` + `flutter test` after each extraction.
+- Part files in a SUBDIRECTORY must use a relative `part of '../parent.dart';`
+  directive (not `part of 'parent.dart';`). A wrong path yields
+  `part_of_different_library` which cascades into hundreds of bogus
+  "undefined Widget/Colors/..." errors. NOTE: `flutter analyze <partfile>`
+  alone is misleading (a part has no imports of its own) — always analyze the
+  whole project.

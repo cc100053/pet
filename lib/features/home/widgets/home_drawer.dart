@@ -108,7 +108,10 @@ class HomeDrawer extends ConsumerWidget {
                         _DrawerItem(
                           icon: Icons.language_outlined,
                           title: l10n.languageTitle,
-                          subtitle: _languageOptionLabel(localeState.option, l10n),
+                          subtitle: _languageOptionLabel(
+                            localeState.option,
+                            l10n,
+                          ),
                           onTap: () {
                             Navigator.pop(context);
                             showModalBottomSheet<void>(
@@ -131,10 +134,15 @@ class HomeDrawer extends ConsumerWidget {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: AppTheme.textSecondary.withValues(alpha: 0.12),
+                                color: AppTheme.textSecondary.withValues(
+                                  alpha: 0.12,
+                                ),
                               ),
                             ),
-                            child: debugActions!,
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: debugActions!,
+                            ),
                           ),
                       ],
                     ),
@@ -213,45 +221,55 @@ class _DrawerItem extends StatelessWidget {
                 color: AppTheme.textSecondary.withValues(alpha: 0.12),
               ),
             ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(
-            color: isPrimary
-                ? const Color(0xFFFFC670).withValues(alpha: 0.25)
-                : const Color(0xFFFFF2DE),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: isPrimary
+                  ? const Color(0xFFFFC670).withValues(alpha: 0.25)
+                  : const Color(0xFFFFF2DE),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color:
+                  iconColor ??
+                  (isPrimary
+                      ? const Color(0xFF8A4D1D)
+                      : AppTheme.textSecondary),
+              size: 20,
+            ),
           ),
-          child: Icon(
-            icon,
-            color:
-                iconColor ??
-                (isPrimary ? const Color(0xFF8A4D1D) : AppTheme.textSecondary),
-            size: 20,
+          title: Text(
+            title,
+            style: TextStyle(
+              color: textColor ?? const Color(0xFF2F261F),
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
+          ),
+          subtitle: subtitle != null
+              ? Text(
+                  subtitle!,
+                  style: TextStyle(
+                    color:
+                        textColor?.withValues(alpha: 0.7) ??
+                        const Color(0xFF7B6955),
+                    fontSize: 12,
+                  ),
+                )
+              : null,
+          onTap: onTap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 4,
           ),
         ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: textColor ?? const Color(0xFF2F261F),
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
-          ),
-        ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: TextStyle(
-                  color:
-                      textColor?.withValues(alpha: 0.7) ??
-                      const Color(0xFF7B6955),
-                  fontSize: 12,
-                ),
-              )
-            : null,
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       ),
     );
   }

@@ -102,6 +102,7 @@ class WhatsNewDialog extends StatelessWidget {
                                     showFeatureRequestSheet(context),
                                 child: Text(
                                   l10n.whatsNewSuggestFeatureAction,
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(color: accent),
                                 ),
                               ),
