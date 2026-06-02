@@ -14,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_dialog.dart';
+import 'package:pet/shared/utils/supabase_realtime.dart';
 import 'package:pet/shared/ui/juice_wrappers.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
 import 'package:pet/shared/ui/photo_viewer_item.dart';
@@ -422,20 +423,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     );
   }
 
-  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) async {
-    if (channel == null) {
-      return;
-    }
-    try {
-      await Supabase.instance.client.removeChannel(channel);
-    } catch (_) {
-      try {
-        await channel.unsubscribe();
-      } catch (_) {
-        // Best-effort cleanup; route disposal must not fail user flows.
-      }
-    }
-  }
+  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) =>
+      removeRealtimeChannelSafely(channel);
 
   Future<void> _initialize() async {
     await _loadBlockedUsers();

@@ -41,6 +41,8 @@ import '../../services/performance/memory_diagnostics_service.dart';
 import '../../shared/compatibility/shared_decor_compatibility.dart';
 import '../../shared/debug/memory_diagnostics_sheet.dart';
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/utils/date_parsing.dart';
+import '../../shared/utils/supabase_realtime.dart';
 import '../../shared/force_update/force_update_debug_tool.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -528,20 +530,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     super.dispose();
   }
 
-  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) async {
-    if (channel == null) {
-      return;
-    }
-    try {
-      await Supabase.instance.client.removeChannel(channel);
-    } catch (_) {
-      try {
-        await channel.unsubscribe();
-      } catch (_) {
-        // Best-effort cleanup; widget disposal must not fail user flows.
-      }
-    }
-  }
+  Future<void> _removeRealtimeChannel(RealtimeChannel? channel) =>
+      removeRealtimeChannelSafely(channel);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

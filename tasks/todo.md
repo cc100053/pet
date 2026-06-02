@@ -24,7 +24,14 @@ Targets (by pain):
   - [x] message-actions/moderation -> `chat_room_view_v2_actions.dart` (798 lines)
 - [x] `shop_view.dart` 2340 -> 1316: inline widgets/painters
       -> `widgets/shop_view_decorations.dart` (1024 lines)
-- [ ] Consistency sweep: dup helpers, naming, ordering (behavior-preserving)
+- [~] Consistency sweep (behavior-preserving):
+  - [x] dedup byte-identical helpers -> shared utils:
+        `removeRealtimeChannelSafely` (home+chat; shop intentionally LEFT — it
+        lacks the unsubscribe fallback => different behavior) and
+        `parseOptionalDate` (home+chat_message+blocked_users). Locals delegate.
+  - NOTE: most same-named helpers are NOT true dupes (e.g. `_withNetworkTimeout`
+    diverges: home = bare timeout, profile = tagged-exception wrapper). Do not
+    force-merge divergent helpers under behavior-preservation.
 
 ## Review (2026-06-02 God-file decomposition — session 1)
 - 6 behavior-preserving `part`-file extractions across the 3 god files; every

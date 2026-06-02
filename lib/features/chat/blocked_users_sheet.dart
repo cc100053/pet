@@ -3,6 +3,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/errors/user_facing_error.dart';
+import '../../shared/utils/date_parsing.dart';
 import '../../shared/ui/user_avatar.dart';
 
 class BlockedUsersSheet extends StatefulWidget {
@@ -112,18 +113,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
     }
   }
 
-  DateTime? _parseOptionalDate(dynamic value) {
-    if (value == null) {
-      return null;
-    }
-    if (value is DateTime) {
-      return value;
-    }
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
-    return null;
-  }
+  DateTime? _parseOptionalDate(dynamic value) => parseOptionalDate(value);
 
   Future<void> _unblockUser(_BlockedUserEntry entry) async {
     if (_unblockingIds.contains(entry.userId)) {

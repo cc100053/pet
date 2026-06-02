@@ -151,16 +151,5 @@ extension _HomePetTick on _HomeViewState {
     }
   }
 
-  DateTime? _parseOptionalDate(dynamic value) {
-    if (value == null) {
-      return null;
-    }
-    if (value is DateTime) {
-      return value;
-    }
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
-    return null;
-  }
+  DateTime? _parseOptionalDate(dynamic value) => parseOptionalDate(value);
 }
