@@ -255,6 +255,12 @@ flutter run
 - When an action changes state (Supabase write, RPC, purchase, etc.), refresh the relevant UI state automatically.
 - Prefer `mounted` checks before calling `setState` after `await`.
 - Use `withValues(alpha: ...)` instead of deprecated `withOpacity(...)`.
+- Large views (`home_view`, `chat_room_view_v2`, `shop_view`) are split into
+  `part`/`part of` files with `extension _Xxx on _<View>State`. In those
+  extensions you must call a `_setStateForXxx(...)` wrapper (not the protected
+  `setState`), qualify `static` members as `_<View>State._foo`, and use
+  `part of '../core.dart';` from subdirectories. See
+  `memory-bank/architecture.md` "View Layer Structure".
 
 ### Riverpod
 - Prefer `ref.watch(...)` in `build` and `ref.read(...)` in callbacks.
