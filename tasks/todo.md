@@ -7,6 +7,23 @@ purpose-specific archive if they are still useful.
 Latest historical snapshot before compaction:
 `tasks/archive/todo_20260530_pre_compaction.md`.
 
+## Plan (2026-06-03 Room inventory UX)
+B2 (bottom dock + collapse feed + expand room) was built then **reverted** per
+user: changing the room canvas size between edit/real view broke position
+prediction. Requirement: the pet activity area must be byte-identical in edit
+and real view; inventory stays a TOP overlay at its original size; no
+auto-collapse on move. Revert restored original behavior (room untouched).
+- [x] Reverted all B2 changes (git checkout); back to original main behavior.
+- [x] Option B: `HomeFurnitureInventoryOverlay` now caps the panel to
+      `screenHeight*0.6` (bounded by available height) and wraps it in a
+      `SingleChildScrollView`. Room layout + item sizes untouched; on normal
+      phones it shows in full, on short windows it scrolls and never reaches the
+      room floor. `flutter analyze` clean; `flutter test` 447 pass / 1 skip.
+- [x] Scroll hint: overlay is now stateful with a `ScrollController` +
+      `Scrollbar` whose thumb is always visible *only when scrollable*
+      (detected via `ScrollMetricsNotification.maxScrollExtent > 0`), so short
+      windows get a visible bar and normal screens stay clean.
+
 ## Plan (2026-06-02 God-file decomposition + consistency sweep)
 Scope: god files + full-codebase consistency. Nature: STRICTLY
 behavior-preserving (structural only). Mechanism: existing `part`/`part of`

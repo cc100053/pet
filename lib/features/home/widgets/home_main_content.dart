@@ -74,81 +74,49 @@ class HomeMainContent extends StatelessWidget {
                   statusBar,
                   Gap(topGap * uiScale),
                   Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: LayoutBuilder(
-                            builder: (context, bodyConstraints) {
-                              final splitGap = middleGap * uiScale;
-                              final splitAvailableHeight =
-                                  bodyConstraints.maxHeight - splitGap;
-                              final safeSplitHeight =
-                                  splitAvailableHeight.isFinite
-                                  ? splitAvailableHeight.clamp(
-                                      0.0,
-                                      double.infinity,
-                                    )
-                                  : 0.0;
-                              final galleryHeight =
-                                  (safeSplitHeight * gallerySplitRatio).clamp(
-                                    minGalleryHeight * uiScale,
-                                    maxGalleryHeight * uiScale,
-                                  );
-                              final petAreaHeight =
-                                  (safeSplitHeight - galleryHeight).clamp(
-                                    0.0,
-                                    double.infinity,
-                                  );
-                              return Column(
-                                children: [
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: galleryHeight,
-                                    child: photoGallery,
-                                  ),
-                                  Gap(splitGap),
-                                  SizedBox(
-                                    height: petAreaHeight,
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: horizontalPadding * uiScale,
-                                      ),
-                                      child: petHomeCard,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                        // Float the furniture scale bar over the bottom of the
-                        // play field so selecting a piece never resizes the
-                        // canvas (which used to make the whole scene jump).
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: navTopGap * uiScale,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 180),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            transitionBuilder: (child, animation) =>
-                                FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.25),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
+                    child: LayoutBuilder(
+                      builder: (context, bodyConstraints) {
+                        final splitGap = middleGap * uiScale;
+                        final splitAvailableHeight =
+                            bodyConstraints.maxHeight - splitGap;
+                        final safeSplitHeight = splitAvailableHeight.isFinite
+                            ? splitAvailableHeight.clamp(0.0, double.infinity)
+                            : 0.0;
+                        final galleryHeight =
+                            (safeSplitHeight * gallerySplitRatio).clamp(
+                              minGalleryHeight * uiScale,
+                              maxGalleryHeight * uiScale,
+                            );
+                        final petAreaHeight =
+                            (safeSplitHeight - galleryHeight).clamp(
+                              0.0,
+                              double.infinity,
+                            );
+                        return Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              height: galleryHeight,
+                              child: photoGallery,
+                            ),
+                            Gap(splitGap),
+                            SizedBox(
+                              height: petAreaHeight,
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding * uiScale,
                                 ),
-                            child: bottomOverlay ?? const SizedBox.shrink(),
-                          ),
-                        ),
-                      ],
+                                child: petHomeCard,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
+                  // When a placed piece is selected the size controls take over
+                  // the bottom nav bar's slot (and hide it) so they never cover
+                  // the pet's play area.
                   Padding(
                     padding: EdgeInsets.fromLTRB(
                       0,
@@ -156,7 +124,30 @@ class HomeMainContent extends StatelessWidget {
                       0,
                       bottomInset + 8,
                     ),
-                    child: bottomNavBar,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.2),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: bottomOverlay != null
+                          ? KeyedSubtree(
+                              key: const ValueKey('home-furniture-scale'),
+                              child: bottomOverlay!,
+                            )
+                          : KeyedSubtree(
+                              key: const ValueKey('home-bottom-nav'),
+                              child: bottomNavBar,
+                            ),
+                    ),
                   ),
                 ],
               ),

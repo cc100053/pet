@@ -389,7 +389,7 @@ class _FurnitureTab extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
-              mainAxisExtent: 88,
+              mainAxisExtent: 74,
             ),
             itemCount: items.length,
             itemBuilder: (context, index) {
@@ -467,12 +467,16 @@ class _BackgroundTab extends StatelessWidget {
         final isActive = item.id == activeBackgroundId;
         final isApplying = item.id == applyingBackgroundId;
         final definition = RoomBackgrounds.resolve(item.backgroundKey);
-        return _BackgroundInventoryItem(
-          item: item,
-          definition: definition,
-          isActive: isActive,
-          isApplying: isApplying,
-          onTap: isActive ? null : () => onApply(item.id),
+        // Center the fixed-size card so the preview stays a normal thumbnail
+        // instead of stretching to the full panel height.
+        return Center(
+          child: _BackgroundInventoryItem(
+            item: item,
+            definition: definition,
+            isActive: isActive,
+            isApplying: isApplying,
+            onTap: isActive ? null : () => onApply(item.id),
+          ),
         );
       },
     );
@@ -1177,7 +1181,7 @@ class _FurnitureInventoryItem extends StatelessWidget {
             Center(
               child: Opacity(
                 opacity: canSelect ? 1 : 0.45,
-                child: ShopFurnitureVisual(item: item, size: 38),
+                child: ShopFurnitureVisual(item: item, size: 30),
               ),
             ),
             Positioned(
@@ -1350,7 +1354,7 @@ class _BackgroundInventoryItem extends StatelessWidget {
       onTap: isApplying ? null : onTap,
       child: AnimatedContainer(
         duration: 150.ms,
-        width: 128,
+        width: 104,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1368,9 +1372,11 @@ class _BackgroundInventoryItem extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            SizedBox(
+              height: 116,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Stack(
