@@ -5,10 +5,19 @@ Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/progress_20260530_pre_compaction.md`.
 
 ## Current State
-- App metadata is prepared for `2.0.2+4`. App Store Connect version `2.0.2`
-  (`cb96407b-2767-4889-a3de-212be7b9289c`) has build `4`
-  (`97147cec-14a9-4890-b50c-abedf93fc61f`) attached; submission
-  `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
+- Local app metadata is prepared for `2.1.0+5` with bundled What's New and
+  synced ASC version-localization metadata.
+- App Store Connect version `2.1.0`
+  (`37897d26-cc47-492c-867f-c7bc3ee4d44b`) is
+  `PREPARE_FOR_SUBMISSION`; localized `promotionalText` / `whatsNew` are live
+  for en-US, ja, ko, and zh-Hant with EULA descriptions preserved.
+- iOS build `2.1.0+5` was built from Flutter and uploaded to App Store Connect.
+  Build `67f39308-02eb-4a9a-9d32-64698ea4d99b` is `VALID`, encryption
+  `exempt`, uploaded `2026-06-03T08:58:19-07:00`. Attach it to version
+  `37897d26-cc47-492c-867f-c7bc3ee4d44b` before submission.
+- App Store Connect version `2.0.2`
+  (`cb96407b-2767-4889-a3de-212be7b9289c`) is public on the JP storefront, but
+  `asc versions list` still labels it `READY_FOR_DISTRIBUTION`.
 - Flutter is pinned by `.fvmrc` to `3.44.0` (Dart `3.12.0`). The
   default/global `flutter` binary should match that pin, so normal local and
   release-sensitive commands use bare `flutter ...`; if FVM is used, confirm it
@@ -65,7 +74,9 @@ Active progress stays current-state focused. Full snapshots live in
   `supabase/config.toml`; verify live config before redeploying.
 
 ## Open Items
-- Monitor App Store review for `2.0.2`.
+- Attach ASC build `67f39308-02eb-4a9a-9d32-64698ea4d99b` to version `2.1.0`
+  (`37897d26-cc47-492c-867f-c7bc3ee4d44b`) and continue App Store submission
+  preflight.
 - Confirm Supabase secrets/config are set for `delete_account` and
   `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion.

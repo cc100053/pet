@@ -1920,6 +1920,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew202Bullet1 => '修复问题并提升稳定性。';
+
+  @override
+  String get whatsNew210Title => '家具摆放更顺手';
+
+  @override
+  String get whatsNew210Bullet1 => '在不同设备上，家具位置会更稳定地显示。';
+
+  @override
+  String get whatsNew210Bullet2 => '较短的屏幕也能更轻松操作房间库存。';
+
+  @override
+  String get whatsNew210Bullet3 => '改善宠物照顾时间与整体稳定性。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3828,4 +3840,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew202Bullet1 => '修復錯誤並提升穩定性。';
+
+  @override
+  String get whatsNew210Title => '家具擺放更順手';
+
+  @override
+  String get whatsNew210Bullet1 => '在不同裝置上，家具位置會更穩定地顯示。';
+
+  @override
+  String get whatsNew210Bullet2 => '較短的螢幕也能更輕鬆操作房間庫存。';
+
+  @override
+  String get whatsNew210Bullet3 => '改善寵物照顧時間與整體穩定性。';
 }

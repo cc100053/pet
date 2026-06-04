@@ -3566,6 +3566,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fixed bugs and improved stability.'**
   String get whatsNew202Bullet1;
+
+  /// No description provided for @whatsNew210Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture feels better'**
+  String get whatsNew210Title;
+
+  /// No description provided for @whatsNew210Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture placement now stays more consistent across devices.'**
+  String get whatsNew210Bullet1;
+
+  /// No description provided for @whatsNew210Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Room inventory is easier to use on shorter screens.'**
+  String get whatsNew210Bullet2;
+
+  /// No description provided for @whatsNew210Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet care timing and overall stability have been improved.'**
+  String get whatsNew210Bullet3;
 }
 
 class _AppLocalizationsDelegate

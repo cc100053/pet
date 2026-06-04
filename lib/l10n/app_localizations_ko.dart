@@ -1941,4 +1941,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew202Bullet1 => '버그를 수정하고 안정성을 개선했습니다.';
+
+  @override
+  String get whatsNew210Title => '가구 배치가 더 편해졌어요';
+
+  @override
+  String get whatsNew210Bullet1 => '기기가 달라도 가구 위치가 더 안정적으로 보입니다.';
+
+  @override
+  String get whatsNew210Bullet2 => '짧은 화면에서도 방 인벤토리를 더 쉽게 사용할 수 있습니다.';
+
+  @override
+  String get whatsNew210Bullet3 => '펫 케어 타이밍과 전반적인 안정성을 개선했습니다.';
 }

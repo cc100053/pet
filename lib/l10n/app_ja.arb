@@ -1027,5 +1027,9 @@
   "whatsNew201Bullet2": "アバターと写真の表示を改善しました。",
   "whatsNew201Bullet3": "安定性と使いやすさを向上しました。",
   "whatsNew202Title": "不具合の修正",
-  "whatsNew202Bullet1": "不具合を修正し、安定性を向上しました。"
+  "whatsNew202Bullet1": "不具合を修正し、安定性を向上しました。",
+  "whatsNew210Title": "家具配置がより快適に",
+  "whatsNew210Bullet1": "端末が変わっても家具の配置がより安定して表示されます。",
+  "whatsNew210Bullet2": "短い画面でもルーム在庫を操作しやすくなりました。",
+  "whatsNew210Bullet3": "ペットのお世話タイミングと全体的な安定性を改善しました。"
 }

@@ -7,6 +7,34 @@ purpose-specific archive if they are still useful.
 Latest historical snapshot before compaction:
 `tasks/archive/todo_20260530_pre_compaction.md`.
 
+## Plan (2026-06-04 2.1.0 Release Notes Sync)
+- [x] Read active memory-bank files and the `release-notes-sync`,
+      `asc-metadata-sync`, and `asc-cli-usage` skills.
+- [x] Draft localized bundled What's New, ASC `whatsNew`, and
+      `promotionalText` copy for review.
+- [x] Bump local public version to `2.1.0+5`.
+- [x] Update bundled What's New catalog and all maintained ARB locales.
+- [x] Update ASC version-localization `.strings` assets while preserving EULA
+      descriptions.
+- [x] Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
+- [x] Create/find ASC version `2.1.0`, upload localizations, and verify.
+
+## Review (2026-06-04 2.1.0 Release Notes Sync)
+- Local app version bumped to `2.1.0+5`; bundled What's New and generated l10n
+  now include localized `whatsNew210*` entries for en, ja, ko, zh-Hant, and zh.
+- Local ASC `.strings` files now contain reviewed 2.1.0 `promotionalText` and
+  `whatsNew` copy while preserving existing EULA descriptions and URLs.
+- Verification passed: ARB JSON parse, `flutter gen-l10n`,
+  `flutter test test/app_store_metadata_terms_test.dart`, `flutter analyze`,
+  `flutter test` (447 passed / 1 skipped), and `git diff --check`.
+- ASC version `2.1.0`
+  (`37897d26-cc47-492c-867f-c7bc3ee4d44b`) is now
+  `PREPARE_FOR_SUBMISSION`. `asc versions create` and
+  `asc localizations upload` returned Apple error `-50`, so the version and
+  localization rows were created/updated through Apple’s REST API using the same
+  App Store Connect key. Live verification confirmed all four locales have
+  2.1.0 `promotionalText`, 2.1.0 `whatsNew`, and the EULA URL.
+
 ## Plan (2026-06-03 Room inventory UX)
 B2 (bottom dock + collapse feed + expand room) was built then **reverted** per
 user: changing the room canvas size between edit/real view broke position
@@ -76,9 +104,11 @@ Targets (by pain):
   block cut), then the codebase-wide consistency sweep.
 
 ## Active Follow-ups
-- [ ] Monitor App Store review for `2.0.2`
-  (`cb96407b-2767-4889-a3de-212be7b9289c`); latest submission
-  `5653be07-b377-43f7-b675-06affede8ed0` is `WAITING_FOR_REVIEW`.
+- [~] Build/upload/attach the `2.1.0+5` iOS release build.
+      Built `build/ios/ipa/PetTomo.ipa`, verified packaged Info.plist, uploaded
+      build `67f39308-02eb-4a9a-9d32-64698ea4d99b`, and waited until `VALID`.
+      Attach was not run because escalation was blocked by the environment
+      usage limit.
 - [ ] Confirm Crashlytics receives dSYMs from the SPM path for build `3`.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
   8.0.0 upgrade.

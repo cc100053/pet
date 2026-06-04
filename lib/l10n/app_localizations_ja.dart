@@ -1930,4 +1930,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew202Bullet1 => '不具合を修正し、安定性を向上しました。';
+
+  @override
+  String get whatsNew210Title => '家具配置がより快適に';
+
+  @override
+  String get whatsNew210Bullet1 => '端末が変わっても家具の配置がより安定して表示されます。';
+
+  @override
+  String get whatsNew210Bullet2 => '短い画面でもルーム在庫を操作しやすくなりました。';
+
+  @override
+  String get whatsNew210Bullet3 => 'ペットのお世話タイミングと全体的な安定性を改善しました。';
 }

@@ -2005,4 +2005,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew202Bullet1 => 'Fixed bugs and improved stability.';
+
+  @override
+  String get whatsNew210Title => 'Furniture feels better';
+
+  @override
+  String get whatsNew210Bullet1 =>
+      'Furniture placement now stays more consistent across devices.';
+
+  @override
+  String get whatsNew210Bullet2 =>
+      'Room inventory is easier to use on shorter screens.';
+
+  @override
+  String get whatsNew210Bullet3 =>
+      'Pet care timing and overall stability have been improved.';
 }
