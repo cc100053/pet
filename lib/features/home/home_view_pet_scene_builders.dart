@@ -28,6 +28,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                 _buildPhotoFood(fieldSize),
               for (final spot in _poopSpots())
                 Positioned(
+                  key: ValueKey('poop_${spot.key}'),
                   left: _positionFromNormalizedSized(
                     spot.normalized,
                     fieldSize,
@@ -38,7 +39,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                     fieldSize,
                     _HomeViewState._poopEmojiSize,
                   ).dy,
-                  child: _buildPoopEmoji(spot.index),
+                  child: _buildPoopEmoji(spot),
                 ),
               ..._buildAdditionalRoomPets(fieldSize),
               AnimatedBuilder(
@@ -177,6 +178,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
             _PoopSpot(
               index: i,
               normalized: Offset(x.clamp(0.05, 0.95), y.clamp(0.05, 0.95)),
+              key: _poopKeyFromXY(x, y),
             ),
           );
         }
@@ -185,21 +187,63 @@ extension _HomePetSceneBuilders on _HomeViewState {
     if (spots.isEmpty) {
       final poopAt = _parseOptionalDate(petState?['poop_at'])?.toUtc();
       if (poopAt != null && !poopAt.isAfter(DateTime.now().toUtc())) {
-        spots.add(const _PoopSpot(index: 0, normalized: Offset(0.62, 0.72)));
+        spots.add(
+          const _PoopSpot(
+            index: 0,
+            normalized: Offset(0.62, 0.72),
+            key: 'poop:fallback',
+          ),
+        );
       }
     }
     return spots;
   }
 
-  Widget _buildPoopEmoji(int index) {
+  /// Position-stable key for a poop. The server prunes `poop_positions` by
+  /// index, so identical poops can swap indices between a tap and the realtime
+  /// update — keying by rounded coordinates keeps optimistic state aligned.
+  String _poopKeyFromXY(double x, double y) =>
+      'poop:${x.toStringAsFixed(4)},${y.toStringAsFixed(4)}';
+
+  /// Resolve the position-stable key for the poop currently at [index] in the
+  /// effective pet state, falling back to the index when positions are absent.
+  String _poopKeyForIndex(int index) {
+    final raw = _effectivePetState?['poop_positions'];
+    if (raw is List && index >= 0 && index < raw.length) {
+      final entry = raw[index];
+      if (entry is Map) {
+        final x = (entry['x'] as num?)?.toDouble();
+        final y = (entry['y'] as num?)?.toDouble();
+        if (x != null && y != null) {
+          return _poopKeyFromXY(x, y);
+        }
+      }
+    }
+    return 'poop:fallback';
+  }
+
+  Widget _buildPoopEmoji(_PoopSpot spot) {
     final isPetDeparted = _effectivePetDeparted;
+    final isCleaning = _cleaningPoopKeys.contains(spot.key);
+    final disabled = _petBusy || isPetDeparted || isCleaning;
+    // Pop the poop out the instant it's tapped (optimistic), then let the real
+    // state settle in the background. The scene stays interactive so adjacent
+    // poops can still be tapped while this one animates away.
     return IgnorePointer(
-      ignoring: _petBusy || isPetDeparted,
-      child: GestureDetector(
-        onTap: (_petBusy || isPetDeparted)
-            ? null
-            : () => unawaited(_cleanPoopAt(index)),
-        child: const Text('💩', style: TextStyle(fontSize: 24)),
+      ignoring: disabled,
+      child: AnimatedScale(
+        scale: isCleaning ? 0.0 : 1.0,
+        duration: 200.ms,
+        curve: isCleaning ? Curves.easeInBack : Curves.easeOutBack,
+        child: AnimatedOpacity(
+          opacity: isCleaning ? 0.0 : 1.0,
+          duration: 160.ms,
+          curve: Curves.easeOut,
+          child: GestureDetector(
+            onTap: disabled ? null : () => unawaited(_cleanPoopAt(spot.index)),
+            child: const Text('💩', style: TextStyle(fontSize: 24)),
+          ),
+        ),
       ),
     );
   }

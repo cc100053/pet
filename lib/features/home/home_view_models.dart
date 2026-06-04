@@ -112,10 +112,18 @@ class _PlacedFurniture {
 }
 
 class _PoopSpot {
-  const _PoopSpot({required this.index, required this.normalized});
+  const _PoopSpot({
+    required this.index,
+    required this.normalized,
+    required this.key,
+  });
 
   final int index;
   final Offset normalized;
+
+  /// Position-stable identity, used to keep the optimistic clean hide/animation
+  /// attached to the right poop even as array indices shift on the server.
+  final String key;
 }
 
 class _EquippedPetItem {

@@ -172,6 +172,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _petId;
   String _petType = PetCatalog.defaultPetId;
   bool _petBusy = false;
+  // Poops currently being cleaned. Tracked by a position-stable key (not array
+  // index, which shifts as the server prunes the list) so the optimistic hide
+  // and exit animation survive concurrent cleans and realtime updates.
+  final Set<String> _cleaningPoopKeys = {};
   Map<String, dynamic>? _petState;
   bool _petStateReady = false;
   bool _petDeparted = false;
@@ -2773,20 +2777,33 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       return;
     }
+
+    // Lock onto this specific poop so a double-tap (or a re-render mid-clean)
+    // can't fire a second RPC for the same one.
+    final key = _poopKeyForIndex(index);
+    if (_cleaningPoopKeys.contains(key)) {
+      return;
+    }
+
     if (!await _ensureOnlineForWrite()) {
       return;
     }
 
+    // Optimistic: vanish + haptic right away. We intentionally do NOT flip the
+    // global `_petBusy` flag here, so the pet and any remaining poops stay
+    // interactive while this clean completes in the background.
     setState(() {
-      _petBusy = true;
+      _cleaningPoopKeys.add(key);
       _petError = null;
     });
-
     HapticFeedback.mediumImpact();
 
     try {
       final petId = _petId ?? await _loadPetId(roomId);
-      if (petId == null) return;
+      if (petId == null) {
+        if (mounted) setState(() => _cleaningPoopKeys.remove(key));
+        return;
+      }
 
       // clean_poop returns a table with poop_count and coins_awarded
       final result = await Supabase.instance.client.rpc(
@@ -2797,18 +2814,49 @@ class _HomeViewState extends ConsumerState<HomeView>
       // Extract coins_awarded from the result shape safely.
       final actualReward = _extractRewardAmount(result);
 
-      // Refresh state and rewards immediately after clean action
-      await _refreshPetState(refreshCoins: false);
-      await _loadCoins(expectedReward: actualReward);
-      await _loadPetInfo(petId, roomId: roomId);
+      // Lightweight reconcile: pull just the pet_state row so poop_positions
+      // settles, and refresh coins/info without blocking or churning the whole
+      // scene the way _refreshPetState would.
+      await _reconcilePetStateAfterClean(petId, roomId);
+      unawaited(_loadCoins(expectedReward: actualReward));
+      unawaited(_loadPetInfo(petId, roomId: roomId));
     } catch (error) {
-      setState(
-        () => _petError = AppLocalizations.of(
-          context,
-        )!.petActionFailed(userFacingError(context, error)),
-      );
+      if (mounted) {
+        setState(
+          () => _petError = AppLocalizations.of(
+            context,
+          )!.petActionFailed(userFacingError(context, error)),
+        );
+      }
     } finally {
-      if (mounted) setState(() => _petBusy = false);
+      // Drop the optimistic hold last: by now the reconciled state has already
+      // dropped this poop, so there's no flicker of it reappearing.
+      if (mounted) setState(() => _cleaningPoopKeys.remove(key));
+    }
+  }
+
+  /// Refresh just the pet_state row after a clean, without the heavy
+  /// room/equipment reloads or the `_petBusy` toggle that `_refreshPetState`
+  /// performs. Keeps the clean interaction smooth; realtime would also
+  /// reconcile, this just makes it deterministic.
+  Future<void> _reconcilePetStateAfterClean(String petId, String roomId) async {
+    try {
+      final state = await Supabase.instance.client
+          .from('pet_state')
+          .select()
+          .eq('pet_id', petId)
+          .maybeSingle();
+      if (!mounted || state == null) return;
+      setState(() {
+        _petId = petId;
+        _petState = state;
+        _petStateReady = true;
+      });
+      _syncPetStateProvider();
+      _cachePetState(roomId, petId, state);
+    } catch (_) {
+      // Best-effort only — the pet_state realtime subscription will still
+      // deliver the updated poop list.
     }
   }
 

@@ -53,6 +53,14 @@ Active progress stays current-state focused. Full snapshots live in
   lifecycle resumes before `markShown` persists.
 - Pet rendering prefers bundled PNG sequences while preserving GIF asset ids;
   Godot remains the socket/equipment authoring path.
+- Poop cleaning is optimistic and non-blocking: tapping a poop hides it
+  immediately (scale/opacity exit) without setting `_petBusy`, so the pet and
+  other poops stay interactive. The `clean_poop` RPC then runs in the
+  background with a lightweight `pet_state` reconcile (not full
+  `_refreshPetState`). Optimistic state is keyed by rounded poop x/y
+  (`_cleaningPoopKeys`), not array index, because the server prunes
+  `poop_positions` by index; this also guards against double-firing on the
+  same poop.
 - GEOFlow, SEO/Firebase Hosting pages, invite fallbacks, and app/universal-link
   files live in `/Users/fatboy/geo-marketing`, not this Flutter app repo.
 - App Store metadata for auto-renewable subscriptions must retain the direct
