@@ -39,6 +39,33 @@ class AppConfigService {
   final Future<dynamic> Function(String key)? _configValueLoader;
   final AppStoreVersionLookupService _appStoreVersionLookupService;
 
+  /// Reads a boolean rollout flag from `app_config`. Returns [defaultValue]
+  /// when the key is absent or unparseable, so a missing row keeps a feature
+  /// fully off. Accepts native bools as well as `"true"/"false"/"1"/"0"`.
+  Future<bool> fetchBoolFlag(
+    String key, {
+    bool defaultValue = false,
+  }) async {
+    final value = await _safeFetchConfigValue(key);
+    final resolved = value is Map ? _valueForPlatform(value) : value;
+    if (resolved == null) {
+      return defaultValue;
+    }
+    if (resolved is bool) {
+      return resolved;
+    }
+    switch (resolved.toString().trim().toLowerCase()) {
+      case 'true':
+      case '1':
+        return true;
+      case 'false':
+      case '0':
+        return false;
+      default:
+        return defaultValue;
+    }
+  }
+
   Future<ForceUpdateConfig?> fetchForceUpdateConfig() async {
     if (kIsWeb) {
       return null;

@@ -11,6 +11,7 @@ import {
   EXTENSION_BY_CONTENT_TYPE,
   extractBase64Payload,
   MAX_IMAGE_BYTES,
+  r2PublicBaseUrl,
   uploadToR2,
 } from "../../_shared/images.ts";
 
@@ -293,6 +294,19 @@ serve(async (req) => {
 
   if (!imageUrl) {
     return jsonResponse(400, { error: "missing_image" });
+  }
+
+  // When the client supplies its own image_url (presigned direct-to-R2 upload
+  // path) rather than base64, only accept URLs we issued: they must live under
+  // our R2 public base and this room's prefix. This keeps the client from
+  // recording an arbitrary external URL as the feed image. The base64 path
+  // (uploadedKey set) is server-controlled and always trusted.
+  if (uploadedKey == null) {
+    const base = r2PublicBaseUrl();
+    const expectedPrefix = base ? `${base}/rooms/${roomId}/` : "";
+    if (!expectedPrefix || !imageUrl.startsWith(expectedPrefix)) {
+      return jsonResponse(400, { error: "invalid_image_url" });
+    }
   }
 
   const labelVariants = buildLabelVariants(

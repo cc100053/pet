@@ -120,6 +120,26 @@ export async function uploadToR2(
   return `${r2PublicBaseUrl()}/${key}`;
 }
 
+/// Creates a SigV4 query-signed (presigned) PUT URL so a client can upload an
+/// object to R2 directly, without streaming the bytes through an Edge Function.
+/// Only `host` is signed (Content-Type is intentionally left unsigned) so the
+/// client may PUT with any allowed content type without a signature mismatch.
+export async function presignR2PutUrl(
+  key: string,
+  expiresInSeconds = 300,
+): Promise<string> {
+  if (!isR2Configured()) {
+    throw new Error("r2_not_configured");
+  }
+  const url = new URL(r2ObjectUrl(key));
+  url.searchParams.set("X-Amz-Expires", String(expiresInSeconds));
+  const signed = await r2Client().sign(
+    new Request(url.toString(), { method: "PUT" }),
+    { aws: { signQuery: true } },
+  );
+  return signed.url;
+}
+
 /// Best-effort delete of a previously uploaded object. Never throws so callers
 /// can use it in cleanup paths without masking the original error.
 export async function deleteFromR2(key: string): Promise<boolean> {

@@ -45,6 +45,27 @@ All changes are backward-compatible (no request/response contract change).
       `profiles.avatar_updated_at` (or throttle table) migration — deferred;
       delete-on-replace already removes the storage-accumulation incentive.
 
+## Plan (2026-06-10 Phase 3 — presigned direct-to-R2 feed upload)
+Additive + opt-in (server-controlled flag, default OFF, base64 fallback).
+Production behavior unchanged until the flag is flipped.
+- [x] `_shared/images.ts`: add `presignR2PutUrl` (host-only SigV4 query sign).
+- [x] New `feed_upload_url` edge function (v1, verify_jwt=true): membership-
+      checked, room-scoped key, returns presigned PUT URL + public_url.
+- [x] `feed_validate` v20: reject a client `image_url` not under the room's R2
+      prefix (base64 path untouched → zero impact on current traffic).
+- [x] Client: `AppConfigService.fetchBoolFlag`; `feed_upload_client` presigned
+      path behind `feed_presigned_upload_enabled` with base64 fallback;
+      cross-platform PUT via conditional import (`feed_r2_put_io/_stub`).
+- [x] Seed `app_config.feed_presigned_upload_enabled = false`.
+- [x] Add `test/features/feed/feed_presigned_upload_test.dart`; analyze clean;
+      `flutter test` 481 passed/1 skipped.
+- [x] Deploy `feed_upload_url` (CLI) + `feed_validate` v20 (MCP); smoke-verified
+      boot/imports; both verify_jwt=true.
+- [ ] ROLLOUT GATE: keep the flag false until a client build with the presigned
+      path is released and tested end-to-end (get URL -> PUT R2 -> feed_validate
+      with image_url). Then flip `feed_presigned_upload_enabled` to true and
+      watch feed_validate/feed_upload_url logs.
+
 ## Plan (2026-06-10 Phase 2 — notify_friend decomposition)
 Behavior-preserving refactor of the live push function. No contract change;
 `verify_jwt=false` preserved.

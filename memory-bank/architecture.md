@@ -95,7 +95,13 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Supabase Auth/Postgres/Realtime back room-scoped gameplay and chat.
 - Active Edge Functions: `notify_friend/feed_validate`, `notify_friend`,
   `hunger_tick_dispatch`, `avatar_upload`, `delete_account`,
-  `cleanup_abandoned_rooms`.
+  `cleanup_abandoned_rooms`, `feed_upload_url`.
+- Feed image upload has two paths: base64-through-`feed_validate` (default) and
+  presigned direct-to-R2 (`feed_upload_url` issues the PUT URL; client uploads,
+  then calls `feed_validate` with the `image_url`). The presigned path is gated
+  by `app_config.feed_presigned_upload_enabled` (default false) with base64
+  fallback; `feed_validate` only accepts an `image_url` under the room's R2
+  prefix.
 - `notify_friend` remains `verify_jwt=false` for webhook compatibility and does
   function-level auth checks; `verify_jwt=true` functions expect HS256 Supabase
   Auth JWTs at the gateway. Webhook/scheduler shared-secret checks use

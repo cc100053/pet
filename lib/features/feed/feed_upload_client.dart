@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/app_config/app_config_service.dart';
 import '../../services/auth/session_utils.dart';
 import '../../shared/upload_limits.dart';
+import 'feed_r2_put_stub.dart' if (dart.library.io) 'feed_r2_put_io.dart';
 import 'feed_reconciliation.dart';
 import 'feed_upload_models.dart';
 
@@ -17,8 +19,19 @@ abstract class FeedUploadClient {
 }
 
 class SupabaseFeedUploadClient implements FeedUploadClient {
-  SupabaseFeedUploadClient({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+  SupabaseFeedUploadClient({
+    SupabaseClient? client,
+    Future<bool> Function()? presignedUploadFlagLoader,
+  }) : _client = client ?? Supabase.instance.client,
+       _presignedUploadFlagLoader = presignedUploadFlagLoader;
+
+  /// Server-controlled rollout flag for the direct-to-R2 presigned upload path.
+  /// Defaults off when the `app_config` key is absent, so production keeps
+  /// using the base64 path until the flag is flipped.
+  static const String presignedUploadFlagKey = 'feed_presigned_upload_enabled';
+
+  final Future<bool> Function()? _presignedUploadFlagLoader;
+  bool? _presignedUploadEnabledCache;
 
   static const int _feedCompressionTargetBytes = 5 * 1024 * 1024;
   static const int _feedCompressionMinBytesToAttempt = 512 * 1024;
@@ -110,26 +123,35 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
     if (imageBytes.length > kMaxUploadImageBytes) {
       throw Exception('image_too_large');
     }
-    final dataUri = 'data:$imageContentType;base64,${base64Encode(imageBytes)}';
+
+    final accessToken = await ensureValidAccessToken();
+    if (accessToken == null) {
+      throw Exception('missing_session');
+    }
+
+    // Prefer the direct-to-R2 presigned upload when the rollout flag is on; on
+    // any failure fall back to streaming base64 through feed_validate. The
+    // chosen body is reused on the 401 refresh-retry so a successful R2 upload
+    // is never repeated.
+    final feedBody =
+        await _tryBuildPresignedFeedBody(
+          job: job,
+          imageBytes: imageBytes,
+          imageContentType: imageContentType,
+          accessToken: accessToken,
+        ) ??
+        _base64FeedBody(
+          job: job,
+          imageBytes: imageBytes,
+          imageContentType: imageContentType,
+        );
 
     Future<FunctionResponse> invokeWithToken(String token) {
       return _client.functions.invoke(
         'feed_validate',
         headers: {'Authorization': 'Bearer $token'},
-        body: {
-          'room_id': job.roomId,
-          'labels': job.labels,
-          'caption': job.caption,
-          'image_base64': dataUri,
-          'image_content_type': imageContentType,
-          'client_created_at': job.clientCreatedAt.toUtc().toIso8601String(),
-        },
+        body: feedBody,
       );
-    }
-
-    final accessToken = await ensureValidAccessToken();
-    if (accessToken == null) {
-      throw Exception('missing_session');
     }
 
     FunctionResponse response;
@@ -177,6 +199,96 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
       lastFedAt: _parseString(cooldown['last_fed_at']),
       nextEligibleAt: _parseString(cooldown['next_eligible_at']),
     );
+  }
+
+  Map<String, dynamic> _base64FeedBody({
+    required FeedUploadJob job,
+    required Uint8List imageBytes,
+    required String imageContentType,
+  }) {
+    final dataUri = 'data:$imageContentType;base64,${base64Encode(imageBytes)}';
+    return {
+      'room_id': job.roomId,
+      'labels': job.labels,
+      'caption': job.caption,
+      'image_base64': dataUri,
+      'image_content_type': imageContentType,
+      'client_created_at': job.clientCreatedAt.toUtc().toIso8601String(),
+    };
+  }
+
+  /// Attempts the presigned direct-to-R2 upload and returns the feed_validate
+  /// body referencing the uploaded object's public URL, or null to signal the
+  /// caller should fall back to the base64 path. Never throws.
+  Future<Map<String, dynamic>?> _tryBuildPresignedFeedBody({
+    required FeedUploadJob job,
+    required Uint8List imageBytes,
+    required String imageContentType,
+    required String accessToken,
+  }) async {
+    if (!await _presignedUploadEnabled()) {
+      return null;
+    }
+    try {
+      final urlResponse = await _client.functions.invoke(
+        'feed_upload_url',
+        headers: {'Authorization': 'Bearer $accessToken'},
+        body: {
+          'room_id': job.roomId,
+          'image_content_type': imageContentType,
+        },
+      );
+      if (urlResponse.status < 200 || urlResponse.status >= 300) {
+        return null;
+      }
+      final data = urlResponse.data;
+      if (data is! Map) {
+        return null;
+      }
+      final uploadUrl = data['upload_url'];
+      final publicUrl = data['public_url'];
+      if (uploadUrl is! String ||
+          publicUrl is! String ||
+          uploadUrl.isEmpty ||
+          publicUrl.isEmpty) {
+        return null;
+      }
+      final status = await putBytesToPresignedUrl(
+        uploadUrl,
+        imageBytes,
+        imageContentType,
+      );
+      if (status < 200 || status >= 300) {
+        return null;
+      }
+      return {
+        'room_id': job.roomId,
+        'labels': job.labels,
+        'caption': job.caption,
+        'image_url': publicUrl,
+        'client_created_at': job.clientCreatedAt.toUtc().toIso8601String(),
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> _presignedUploadEnabled() async {
+    final cached = _presignedUploadEnabledCache;
+    if (cached != null) {
+      return cached;
+    }
+    bool enabled;
+    try {
+      final loader = _presignedUploadFlagLoader;
+      enabled = loader != null
+          ? await loader()
+          : await AppConfigService().fetchBoolFlag(presignedUploadFlagKey);
+    } catch (_) {
+      enabled = false;
+    }
+    _presignedUploadEnabledCache = enabled;
+    return enabled;
   }
 
   String _responseErrorSummary(FunctionResponse response) {
