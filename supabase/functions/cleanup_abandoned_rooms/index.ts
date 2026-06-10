@@ -5,9 +5,9 @@
 //   mode = "scan"  (default): find stale active rooms, count their R2 photos,
 //                  and upsert them into room_cleanup_candidates as 'pending'.
 //                  NEVER deletes anything.
-//   mode = "purge": delete R2 photos ONLY for candidates whose review_status
-//                  is 'approved' (set by you in Supabase Studio), then mark the
-//                  room 'abandoned' and the candidate 'purged'.
+//   mode = "purge": delete R2 photos ONLY for still-stale candidates whose
+//                  review_status is 'approved' (set by you in Supabase Studio),
+//                  then mark the room 'abandoned' and the candidate 'purged'.
 //
 // Design notes:
 //   * Room photos live under the R2 key prefix `rooms/<room_id>/`
@@ -45,6 +45,7 @@ const DEFAULT_ROOM_LIMIT = 200;
 const DEFAULT_DELETE_CONCURRENCY = 4;
 const R2_DELETE_BATCH_SIZE = 1000; // S3 DeleteObjects hard cap.
 const R2_LIST_PAGE_SIZE = 1000;
+const ACTIVITY_TIMESTAMP_TOLERANCE_MS = 1000;
 
 type CleanupBody = {
   mode?: "scan" | "purge";
@@ -53,6 +54,26 @@ type CleanupBody = {
   room_limit?: number;
   delete_concurrency?: number;
   source?: string;
+};
+
+type RoomObject = {
+  key: string;
+  size: number;
+  lastModified: string | null;
+  lastModifiedMs: number | null;
+};
+
+type CleanupCandidate = {
+  room_id: string;
+  photo_count: number | null;
+  last_activity_at: string | null;
+  last_scanned_at: string | null;
+  reviewed_at: string | null;
+};
+
+type RoomActivity = {
+  status: string | null;
+  last_activity_at: string | null;
 };
 
 function log(event: string, fields: Record<string, unknown> = {}) {
@@ -72,6 +93,14 @@ function clampInt(input: unknown, fallback: number, min: number, max: number) {
     : (typeof input === "string" ? Number.parseInt(input, 10) : NaN);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, Math.trunc(n)));
+}
+
+function parseTimestampMs(value: unknown): number | null {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return null;
+  }
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function r2Client() {
@@ -109,8 +138,9 @@ function escapeXml(value: string) {
 async function listRoomObjects(
   client: AwsClient,
   prefix: string,
-): Promise<{ keys: string[]; totalBytes: number }> {
+): Promise<{ keys: string[]; objects: RoomObject[]; totalBytes: number }> {
   const keys: string[] = [];
+  const objects: RoomObject[] = [];
   let totalBytes = 0;
   let token: string | undefined;
 
@@ -132,9 +162,19 @@ async function listRoomObjects(
       const inner = block[1];
       const keyMatch = inner.match(/<Key>([\s\S]*?)<\/Key>/);
       const sizeMatch = inner.match(/<Size>(\d+)<\/Size>/);
+      const lastModifiedMatch = inner.match(
+        /<LastModified>([\s\S]*?)<\/LastModified>/,
+      );
       if (keyMatch) {
-        keys.push(decodeXmlEntities(keyMatch[1]));
-        if (sizeMatch) totalBytes += Number.parseInt(sizeMatch[1], 10) || 0;
+        const key = decodeXmlEntities(keyMatch[1]);
+        const size = sizeMatch ? Number.parseInt(sizeMatch[1], 10) || 0 : 0;
+        const lastModified = lastModifiedMatch
+          ? decodeXmlEntities(lastModifiedMatch[1])
+          : null;
+        const lastModifiedMs = parseTimestampMs(lastModified);
+        keys.push(key);
+        objects.push({ key, size, lastModified, lastModifiedMs });
+        totalBytes += size;
       }
     }
 
@@ -147,7 +187,7 @@ async function listRoomObjects(
       : undefined;
   } while (token);
 
-  return { keys, totalBytes };
+  return { keys, objects, totalBytes };
 }
 
 // Batch-delete up to 1000 keys via S3 DeleteObjects. Returns failed keys.
@@ -218,6 +258,118 @@ async function runWithConcurrency<T, R>(
 
 // deno-lint-ignore no-explicit-any
 type AdminClient = ReturnType<typeof createClient<any, "public", any>>;
+
+async function fetchRoomActivity(
+  supabaseAdmin: AdminClient,
+  roomId: string,
+): Promise<{ room: RoomActivity | null; error: string | null }> {
+  const { data, error } = await supabaseAdmin
+    .from("rooms")
+    .select("status,last_activity_at")
+    .eq("id", roomId)
+    .maybeSingle();
+  if (error) {
+    return { room: null, error: error.message };
+  }
+  return {
+    room: data == null
+      ? null
+      : {
+        status: (data.status as string | null) ?? null,
+        last_activity_at: (data.last_activity_at as string | null) ?? null,
+      },
+    error: null,
+  };
+}
+
+function purgeIneligibilityReason(
+  candidate: CleanupCandidate,
+  room: RoomActivity | null,
+  inactiveDays: number,
+): string | null {
+  if (room == null) {
+    return "room_missing";
+  }
+  if (room.status !== "active") {
+    return `room_status_${room.status ?? "missing"}`;
+  }
+
+  const candidateActivityMs = parseTimestampMs(candidate.last_activity_at);
+  const liveActivityMs = parseTimestampMs(room.last_activity_at);
+  if (candidateActivityMs == null || liveActivityMs == null) {
+    return "missing_activity_timestamp";
+  }
+  if (liveActivityMs > candidateActivityMs + ACTIVITY_TIMESTAMP_TOLERANCE_MS) {
+    return "room_activity_after_scan";
+  }
+
+  const staleCutoffMs = Date.now() - inactiveDays * 24 * 60 * 60 * 1000;
+  if (liveActivityMs > staleCutoffMs) {
+    return "room_no_longer_stale";
+  }
+  return null;
+}
+
+function r2SnapshotChangeReason(
+  candidate: CleanupCandidate,
+  objects: RoomObject[],
+): string | null {
+  const scannedAtMs = parseTimestampMs(candidate.last_scanned_at);
+  if (scannedAtMs == null) {
+    return "missing_scan_timestamp";
+  }
+
+  for (const object of objects) {
+    if (object.lastModifiedMs == null) {
+      return "r2_object_missing_last_modified";
+    }
+    if (
+      object.lastModifiedMs >
+        scannedAtMs + ACTIVITY_TIMESTAMP_TOLERANCE_MS
+    ) {
+      return "r2_objects_changed_after_scan";
+    }
+  }
+
+  if (
+    typeof candidate.photo_count === "number" &&
+    objects.length > candidate.photo_count
+  ) {
+    return "r2_object_count_increased_after_scan";
+  }
+
+  return null;
+}
+
+function candidateMatchesSnapshot(
+  candidate: CleanupCandidate,
+  current: CleanupCandidate,
+): boolean {
+  return current.reviewed_at === candidate.reviewed_at &&
+    current.last_activity_at === candidate.last_activity_at &&
+    current.last_scanned_at === candidate.last_scanned_at &&
+    current.photo_count === candidate.photo_count;
+}
+
+async function resetCleanupCandidateApproval(
+  supabaseAdmin: AdminClient,
+  roomId: string,
+  reason: string,
+) {
+  const { error } = await supabaseAdmin
+    .from("room_cleanup_candidates")
+    .update({ review_status: "pending", reviewed_at: null })
+    .eq("room_id", roomId)
+    .eq("review_status", "approved");
+
+  if (error) {
+    log("cleanup_candidate_reset_failed", {
+      room_id: roomId,
+      reason,
+      detail: error.message,
+    });
+  }
+}
 
 async function resolveSchedulerSecret(
   supabaseAdmin: { rpc: (fn: string) => PromiseLike<{ data: unknown; error: { message: string } | null }> },
@@ -304,13 +456,16 @@ async function runScan(
 async function runPurge(
   supabaseAdmin: AdminClient,
   client: AwsClient,
-  opts: { dryRun: boolean; deleteConcurrency: number },
+  opts: { dryRun: boolean; deleteConcurrency: number; inactiveDays: number },
 ) {
-  log("cleanup_purge_started", { dry_run: opts.dryRun });
+  log("cleanup_purge_started", {
+    dry_run: opts.dryRun,
+    inactive_days: opts.inactiveDays,
+  });
 
   const { data: rows, error } = await supabaseAdmin
     .from("room_cleanup_candidates")
-    .select("room_id")
+    .select("room_id,photo_count,last_activity_at,last_scanned_at,reviewed_at")
     .eq("review_status", "approved");
 
   if (error) {
@@ -321,23 +476,114 @@ async function runPurge(
     });
   }
 
-  const approved = (rows ?? []) as Array<{ room_id: string }>;
+  const approved = (rows ?? []) as CleanupCandidate[];
   const results: Array<Record<string, unknown>> = [];
 
-  for (const { room_id } of approved) {
+  for (const candidate of approved) {
+    const room_id = candidate.room_id;
     const result: Record<string, unknown> = {
       room_id,
       objects_found: 0,
       objects_deleted: 0,
       delete_failures: 0,
       purged: false,
+      skipped: false,
     };
     try {
-      const { keys } = await listRoomObjects(client, `rooms/${room_id}/`);
+      const { room, error: roomError } = await fetchRoomActivity(
+        supabaseAdmin,
+        room_id,
+      );
+      if (roomError != null) {
+        result.error = `room_query_failed:${roomError}`;
+        results.push(result);
+        continue;
+      }
+
+      const roomReason = purgeIneligibilityReason(
+        candidate,
+        room,
+        opts.inactiveDays,
+      );
+      if (roomReason != null) {
+        result.skipped = true;
+        result.skip_reason = roomReason;
+        result.live_last_activity_at = room?.last_activity_at ?? null;
+        await resetCleanupCandidateApproval(supabaseAdmin, room_id, roomReason);
+        log("cleanup_purge_room_skipped", { ...result });
+        results.push(result);
+        continue;
+      }
+
+      const { keys, objects } = await listRoomObjects(client, `rooms/${room_id}/`);
       result.objects_found = keys.length;
+
+      const r2Reason = r2SnapshotChangeReason(candidate, objects);
+      if (r2Reason != null) {
+        result.skipped = true;
+        result.skip_reason = r2Reason;
+        await resetCleanupCandidateApproval(supabaseAdmin, room_id, r2Reason);
+        log("cleanup_purge_room_skipped", { ...result });
+        results.push(result);
+        continue;
+      }
 
       if (opts.dryRun) {
         log("cleanup_purge_dry_run", { room_id, objects_found: keys.length });
+        results.push(result);
+        continue;
+      }
+
+      const { room: preDeleteRoom, error: preDeleteRoomError } =
+        await fetchRoomActivity(supabaseAdmin, room_id);
+      if (preDeleteRoomError != null) {
+        result.error = `pre_delete_room_query_failed:${preDeleteRoomError}`;
+        results.push(result);
+        continue;
+      }
+      const preDeleteReason = purgeIneligibilityReason(
+        candidate,
+        preDeleteRoom,
+        opts.inactiveDays,
+      );
+      if (preDeleteReason != null) {
+        result.skipped = true;
+        result.skip_reason = preDeleteReason;
+        await resetCleanupCandidateApproval(
+          supabaseAdmin,
+          room_id,
+          preDeleteReason,
+        );
+        log("cleanup_purge_room_skipped", { ...result });
+        results.push(result);
+        continue;
+      }
+
+      const { data: currentCandidate, error: currentCandidateError } =
+        await supabaseAdmin
+          .from("room_cleanup_candidates")
+          .select(
+            "room_id,photo_count,last_activity_at,last_scanned_at,reviewed_at,review_status",
+          )
+          .eq("room_id", room_id)
+          .maybeSingle();
+      if (currentCandidateError != null) {
+        result.error =
+          `candidate_status_check_failed:${currentCandidateError.message}`;
+        results.push(result);
+        continue;
+      }
+      if (currentCandidate?.review_status !== "approved") {
+        result.skipped = true;
+        result.skip_reason = "candidate_no_longer_approved";
+        log("cleanup_purge_room_skipped", { ...result });
+        results.push(result);
+        continue;
+      }
+      if (!candidateMatchesSnapshot(candidate, currentCandidate)) {
+        result.skipped = true;
+        result.skip_reason = "candidate_snapshot_changed";
+        log("cleanup_purge_room_skipped", { ...result });
         results.push(result);
         continue;
       }
@@ -362,7 +608,7 @@ async function runPurge(
 
       if (failures === 0) {
         const nowIso = new Date().toISOString();
-        await supabaseAdmin
+        const { data: roomMarked, error: roomMarkError } = await supabaseAdmin
           .from("rooms")
           .update({
             status: "abandoned",
@@ -371,17 +617,45 @@ async function runPurge(
             photos_purged_count: deleted,
           })
           .eq("id", room_id)
-          .eq("status", "active");
-        const { error: candErr } = await supabaseAdmin
+          .eq("status", "active")
+          .eq("last_activity_at", candidate.last_activity_at)
+          .select("id")
+          .maybeSingle();
+        if (roomMarkError != null || roomMarked == null) {
+          result.error = roomMarkError == null
+            ? "room_changed_before_mark_purged"
+            : `mark_room_abandoned_failed:${roomMarkError.message}`;
+          await resetCleanupCandidateApproval(
+            supabaseAdmin,
+            room_id,
+            "room_changed_before_mark_purged",
+          );
+          log("cleanup_purge_room_done", { ...result });
+          results.push(result);
+          continue;
+        }
+        let candidateMarkQuery = supabaseAdmin
           .from("room_cleanup_candidates")
           .update({
             review_status: "purged",
             purged_at: nowIso,
             purged_count: deleted,
           })
-          .eq("room_id", room_id);
-        if (candErr) {
+          .eq("room_id", room_id)
+          .eq("review_status", "approved")
+          .eq("last_activity_at", candidate.last_activity_at)
+          .eq("last_scanned_at", candidate.last_scanned_at);
+        candidateMarkQuery = candidate.reviewed_at == null
+          ? candidateMarkQuery.is("reviewed_at", null)
+          : candidateMarkQuery.eq("reviewed_at", candidate.reviewed_at);
+        const { data: candidateMarked, error: candErr } =
+          await candidateMarkQuery
+            .select("room_id")
+            .maybeSingle();
+        if (candErr != null) {
           result.error = `mark_purged_failed:${candErr.message}`;
+        } else if (candidateMarked == null) {
+          result.error = "candidate_changed_before_mark_purged";
         } else {
           result.purged = true;
         }
@@ -402,6 +676,7 @@ async function runPurge(
     dry_run: opts.dryRun,
     approved_rooms: approved.length,
     rooms_purged: results.filter((r) => r.purged).length,
+    rooms_skipped: results.filter((r) => r.skipped).length,
     objects_deleted: results.reduce((a, r) => a + (r.objects_deleted as number), 0),
     delete_failures: results.reduce((a, r) => a + (r.delete_failures as number), 0),
     results,
@@ -455,5 +730,6 @@ serve(async (req) => {
   return await runPurge(supabaseAdmin, client, {
     dryRun: body.dry_run !== false, // default TRUE
     deleteConcurrency: clampInt(body.delete_concurrency, DEFAULT_DELETE_CONCURRENCY, 1, 16),
+    inactiveDays: clampInt(body.inactive_days, DEFAULT_INACTIVE_DAYS, 1, 3650),
   });
 });

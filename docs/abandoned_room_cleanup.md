@@ -70,10 +70,18 @@ Request body:
   `last_activity_at < now() - inactive_days`, lists each room's R2 objects, and
   upserts a candidate via `record_room_cleanup_candidate()` (preserves any
   existing `review_status`).
-- **purge** selects candidates with `review_status='approved'`, batch-deletes
-  their R2 objects (`DeleteObjects`, 1000/batch), then marks the room
-  `abandoned` and the candidate `purged`. If any object fails to delete the room
-  stays approved and is retried next run.
+- **purge** selects candidates with `review_status='approved'`, then fails
+  closed unless the room is still `active`, still older than the inactivity
+  window, and its live `last_activity_at` still matches the scan snapshot.
+  It also skips and resets approval if any R2 object under `rooms/<room_id>/`
+  was modified after `last_scanned_at` or if the object count increased. Only
+  after those guards pass does it batch-delete R2 objects (`DeleteObjects`,
+  1000/batch), mark the room `abandoned`, and mark the candidate `purged`.
+  If any object fails to delete the room stays approved and is retried next run.
+
+Approval is snapshot-scoped. If a reviewed room receives new activity after it
+was approved, migration `20260607135307_guard_cleanup_purge_activity.sql`
+resets that candidate back to `pending` so it must be reviewed again.
 
 ## Scheduling
 
@@ -84,7 +92,9 @@ pg_cron jobs (migration `20260602121000`):
 | `cleanup_abandoned_rooms_scan_daily` | `0 3 * * *` | `{mode:scan, inactive_days:30, room_limit:200}` |
 | `cleanup_abandoned_rooms_purge_daily` | `30 3 * * *` | `{mode:purge, dry_run:false}` |
 
-Purge runs on a schedule but only ever touches `approved` rows, so it is safe.
+Purge runs on a schedule but only ever touches rows that are still `approved`
+and still match their stale scan snapshot. Activity after approval invalidates
+the approval before deletion.
 
 ## Operator workflow
 
@@ -95,6 +105,8 @@ Purge runs on a schedule but only ever touches `approved` rows, so it is safe.
 3. Set `review_status = 'approved'` to delete, or `'rejected'` to keep.
    `reviewed_at` is stamped automatically.
 4. The next purge run (or a manual purge call) deletes approved rooms.
+5. If a room becomes active again before purge, the approval is reset to
+   `pending`; review the refreshed evidence before approving again.
 
 ## Manual invocation
 
