@@ -182,6 +182,23 @@ type WebhookResult = {
   error?: string;
 };
 
+type EdgeRuntimeWithWaitUntil = {
+  waitUntil?: (promise: Promise<unknown>) => void;
+};
+
+function queueBackgroundTask(task: Promise<unknown>): boolean {
+  const guardedTask = task.catch((error) => {
+    console.error("[feed_validate] background task failed", error);
+  });
+  const edgeRuntime = (globalThis as { EdgeRuntime?: EdgeRuntimeWithWaitUntil })
+    .EdgeRuntime;
+  if (typeof edgeRuntime?.waitUntil === "function") {
+    edgeRuntime.waitUntil(guardedTask);
+    return true;
+  }
+  return false;
+}
+
 async function notifyPartner({
   authHeader,
   roomId,
@@ -268,6 +285,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const requestStartedAt = Date.now();
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     return jsonResponse(500, { error: "supabase_env_missing" });
@@ -428,18 +447,28 @@ serve(async (req) => {
     canonical_tag: label.canonical_tag,
   }));
 
-  const { data: processFeedData, error: processFeedError } = await supabase.rpc(
-    "process_feed_event",
-    {
-      p_room_id: roomId,
-      p_image_url: imageUrl,
-      p_caption: payload.caption ?? null,
-      p_labels: labelsPayload,
-      p_client_created_at: payload.client_created_at ?? null,
-    },
-  );
+  const processFeedStartedAt = Date.now();
+  const { data: processFeedData, error: processFeedError } = await supabase
+    .rpc(
+      "process_feed_event",
+      {
+        p_room_id: roomId,
+        p_image_url: imageUrl,
+        p_caption: payload.caption ?? null,
+        p_labels: labelsPayload,
+        p_client_created_at: payload.client_created_at ?? null,
+      },
+    );
+  const processFeedDurationMs = Date.now() - processFeedStartedAt;
 
   if (processFeedError) {
+    console.error(
+      "[feed_validate] process_feed_event failed",
+      JSON.stringify({
+        duration_ms: processFeedDurationMs,
+        code: processFeedError.code ?? null,
+      }),
+    );
     return jsonResponse(500, {
       error: "process_feed_event_failed",
       detail: processFeedError.message,
@@ -550,11 +579,33 @@ serve(async (req) => {
     }
   }
 
-  const webhookResult = await notifyPartner({
-    authHeader,
-    roomId,
-    messageId,
-  });
+  const notifyStartedAt = Date.now();
+  const webhookQueued = queueBackgroundTask(
+    notifyPartner({
+      authHeader,
+      roomId,
+      messageId,
+    }).then((webhookResult) => {
+      console.log(
+        "[feed_validate] notify_partner_complete",
+        JSON.stringify({
+          duration_ms: Date.now() - notifyStartedAt,
+          skipped: webhookResult.skipped,
+          status: webhookResult.status ?? null,
+          has_error: webhookResult.error != null,
+        }),
+      );
+    }),
+  );
+
+  console.log(
+    "[feed_validate] response_ready",
+    JSON.stringify({
+      duration_ms: Date.now() - requestStartedAt,
+      process_feed_duration_ms: processFeedDurationMs,
+      notify_queued: webhookQueued,
+    }),
+  );
 
   return jsonResponse(200, {
     ok: true,
@@ -568,9 +619,10 @@ serve(async (req) => {
     daily_quest_id: dailyQuestId,
     quest_award_error: questAwardError,
     canonical_tags: canonicalTags,
-    webhook_skipped: webhookResult.skipped,
-    webhook_status: webhookResult.status ?? null,
-    webhook_error: webhookResult.error ?? null,
+    webhook_queued: webhookQueued,
+    webhook_skipped: false,
+    webhook_status: null,
+    webhook_error: null,
     reward_status: rewardStatus,
     cooldown_scope: {
       user_id: authData.user.id,
