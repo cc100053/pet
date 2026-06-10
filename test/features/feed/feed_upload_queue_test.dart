@@ -74,74 +74,82 @@ void main() {
     expect(completed.result?.reconciled, isFalse);
   });
 
-  test('first upload failure auto-retries silently and stays pending', () async {
-    client.uploadError = Exception('network_timeout');
+  test(
+    'first upload failure auto-retries silently and stays pending',
+    () async {
+      client.uploadError = Exception('network_timeout');
 
-    final notifier = container.read(feedUploadQueueProvider.notifier);
-    final job = await notifier.enqueue(
-      roomId: 'room-1',
-      senderId: 'user-1',
-      localImagePath: '/tmp/feed.jpg',
-      caption: null,
-      clientCreatedAt: DateTime.utc(2026, 4, 17, 2),
-      labels: const <Map<String, dynamic>>[],
-      initialBytes: Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]),
-    );
+      final notifier = container.read(feedUploadQueueProvider.notifier);
+      final job = await notifier.enqueue(
+        roomId: 'room-1',
+        senderId: 'user-1',
+        localImagePath: '/tmp/feed.jpg',
+        caption: null,
+        clientCreatedAt: DateTime.utc(2026, 4, 17, 2),
+        labels: const <Map<String, dynamic>>[],
+        initialBytes: Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]),
+      );
 
-    // After the first failure the job is scheduled for a backoff retry rather
-    // than surfaced to the user, so it stays pending with the error recorded.
-    await _pumpUntil(
-      () =>
-          (container.read(feedUploadQueueProvider).jobsByTempId[job.tempId]
-                  ?.retryCount ??
-              0) >=
-          1,
-    );
+      // After the first failure the job is scheduled for a backoff retry rather
+      // than surfaced to the user, so it stays pending with the error recorded.
+      await _pumpUntil(
+        () =>
+            (container
+                    .read(feedUploadQueueProvider)
+                    .jobsByTempId[job.tempId]
+                    ?.retryCount ??
+                0) >=
+            1,
+      );
 
-    final pending = container
-        .read(feedUploadQueueProvider)
-        .jobsByTempId[job.tempId]!;
-    expect(pending.status, FeedUploadJobStatus.pending);
-    expect(pending.retryCount, 1);
-    expect(pending.lastError, contains('network_timeout'));
-  });
+      final pending = container
+          .read(feedUploadQueueProvider)
+          .jobsByTempId[job.tempId]!;
+      expect(pending.status, FeedUploadJobStatus.pending);
+      expect(pending.retryCount, 1);
+      expect(pending.lastError, contains('network_timeout'));
+    },
+  );
 
-  test('upload fails terminally once the auto-retry budget is exhausted', () async {
-    // Persist a job that has already consumed its auto-retry budget so the next
-    // failed attempt flips it straight to failed without scheduling a timer.
-    final exhausted = FeedUploadJob(
-      tempId: 'temp-exhausted',
-      roomId: 'room-1',
-      senderId: 'user-1',
-      localImagePath: '/tmp/feed.jpg',
-      caption: null,
-      clientCreatedAt: DateTime.utc(2026, 4, 17, 5),
-      labels: const <Map<String, dynamic>>[],
-      status: FeedUploadJobStatus.pending,
-      retryCount: 3,
-      updatedAt: DateTime.utc(2026, 4, 17, 5),
-    );
-    await repository.saveJob(exhausted);
-    client.uploadError = Exception('network_timeout');
+  test(
+    'upload fails terminally once the auto-retry budget is exhausted',
+    () async {
+      // Persist a job that has already consumed its auto-retry budget so the next
+      // failed attempt flips it straight to failed without scheduling a timer.
+      final exhausted = FeedUploadJob(
+        tempId: 'temp-exhausted',
+        roomId: 'room-1',
+        senderId: 'user-1',
+        localImagePath: '/tmp/feed.jpg',
+        caption: null,
+        clientCreatedAt: DateTime.utc(2026, 4, 17, 5),
+        labels: const <Map<String, dynamic>>[],
+        status: FeedUploadJobStatus.pending,
+        retryCount: 3,
+        updatedAt: DateTime.utc(2026, 4, 17, 5),
+      );
+      await repository.saveJob(exhausted);
+      client.uploadError = Exception('network_timeout');
 
-    container.read(feedUploadQueueProvider);
+      container.read(feedUploadQueueProvider);
 
-    await _pumpUntil(
-      () =>
-          container
-              .read(feedUploadQueueProvider)
-              .jobsByTempId['temp-exhausted']
-              ?.status ==
-          FeedUploadJobStatus.failed,
-    );
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId['temp-exhausted']
+                ?.status ==
+            FeedUploadJobStatus.failed,
+      );
 
-    final failed = container
-        .read(feedUploadQueueProvider)
-        .jobsByTempId['temp-exhausted']!;
-    expect(failed.retryCount, 4);
-    expect(failed.lastError, contains('network_timeout'));
-    expect(client.uploadCalls, 1);
-  });
+      final failed = container
+          .read(feedUploadQueueProvider)
+          .jobsByTempId['temp-exhausted']!;
+      expect(failed.retryCount, 4);
+      expect(failed.lastError, contains('network_timeout'));
+      expect(client.uploadCalls, 1);
+    },
+  );
 
   test(
     'reload reconciles a persisted pending job before retrying upload',
@@ -183,6 +191,53 @@ void main() {
           .jobsByTempId['temp-1']!;
       expect(client.findCalls, greaterThanOrEqualTo(1));
       expect(client.uploadCalls, 0);
+      expect(completed.result?.messageId, 'message-1');
+      expect(completed.result?.reconciled, isTrue);
+    },
+  );
+
+  test(
+    'reload silently retries a persisted failed job instead of replaying error',
+    () async {
+      final persisted = FeedUploadJob(
+        tempId: 'temp-failed',
+        roomId: 'room-1',
+        senderId: 'user-1',
+        localImagePath: '/tmp/feed.jpg',
+        caption: 'Dinner',
+        clientCreatedAt: DateTime.utc(2026, 4, 17, 6),
+        labels: const <Map<String, dynamic>>[],
+        status: FeedUploadJobStatus.failed,
+        retryCount: 4,
+        updatedAt: DateTime.utc(2026, 4, 17, 6),
+        lastError: 'feed_validate_failed:process_feed_event_failed',
+      );
+      await repository.saveJob(persisted);
+      client.reconciledResult = const FeedUploadResult(
+        tempId: 'temp-failed',
+        coinsAwarded: 10,
+        messageId: 'message-1',
+        imageUrl: 'https://example.com/feed.webp',
+        reconciled: true,
+      );
+
+      container.read(feedUploadQueueProvider);
+
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId['temp-failed']
+                ?.status ==
+            FeedUploadJobStatus.completed,
+      );
+
+      final completed = container
+          .read(feedUploadQueueProvider)
+          .jobsByTempId['temp-failed']!;
+      expect(client.findCalls, greaterThanOrEqualTo(1));
+      expect(client.uploadCalls, 0);
+      expect(completed.lastError, isNull);
       expect(completed.result?.messageId, 'message-1');
       expect(completed.result?.reconciled, isTrue);
     },

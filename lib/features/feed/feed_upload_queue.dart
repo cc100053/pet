@@ -162,8 +162,13 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
   }
 
   FeedUploadJob _normalizeLoadedJob(FeedUploadJob job) {
-    if (job.status == FeedUploadJobStatus.uploading) {
-      return job.copyWith(status: FeedUploadJobStatus.pending);
+    if (job.status == FeedUploadJobStatus.uploading ||
+        job.status == FeedUploadJobStatus.failed) {
+      return job.copyWith(
+        status: FeedUploadJobStatus.pending,
+        retryCount: 0,
+        clearLastError: true,
+      );
     }
     return job;
   }
