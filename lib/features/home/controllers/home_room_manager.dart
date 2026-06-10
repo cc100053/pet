@@ -1105,14 +1105,18 @@ extension _HomeRoomManager on _HomeViewState {
     if (roomIds.isEmpty) {
       return {};
     }
-    final rows = await Supabase.instance.client
-        .from('messages')
-        .select('id, room_id, image_url, caption, sender_id, created_at')
-        .inFilter('room_id', roomIds)
-        .eq('type', 'image_feed')
-        .not('image_url', 'is', null)
-        .order('created_at', ascending: false)
-        .limit(roomIds.length * kPetHomeGalleryMaxPhotos * 3);
+    // Server-side per-room top-N (see `get_room_latest_feeds`). The old direct
+    // query used a single global LIMIT across all rooms, so a chatty room could
+    // starve the others of their latest photos; the RPC dedupes by image and
+    // limits independently per room.
+    final response = await Supabase.instance.client.rpc(
+      'get_room_latest_feeds',
+      params: {
+        'p_room_ids': roomIds,
+        'p_per_room_limit': kPetHomeGalleryMaxPhotos,
+      },
+    );
+    final rows = response is List ? response : const [];
 
     final feeds = <String, _RoomLatestFeed>{};
     for (final row in rows) {
@@ -1219,18 +1223,25 @@ extension _HomeRoomManager on _HomeViewState {
     if (roomIds.isEmpty) {
       return {};
     }
-    final rows = await Supabase.instance.client
-        .from('room_members')
-        .select('room_id')
-        .inFilter('room_id', roomIds)
-        .eq('is_active', true);
+    // Aggregated server-side (see `get_room_member_counts`) instead of pulling
+    // every active member row back just to count them.
+    final response = await Supabase.instance.client.rpc(
+      'get_room_member_counts',
+      params: {'p_room_ids': roomIds},
+    );
+    final rows = response is List ? response : const [];
     final counts = <String, int>{};
     for (final row in rows) {
+      if (row is! Map) {
+        continue;
+      }
       final roomId = row['room_id'] as String?;
       if (roomId == null) {
         continue;
       }
-      counts[roomId] = (counts[roomId] ?? 0) + 1;
+      final raw = row['member_count'];
+      final count = raw is int ? raw : (raw is num ? raw.toInt() : 0);
+      counts[roomId] = count < 0 ? 0 : count;
     }
     return counts;
   }

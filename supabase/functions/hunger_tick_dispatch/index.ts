@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 
+import { timingSafeEqual } from "../_shared/auth.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -200,7 +202,7 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   if (
     !expectedSchedulerSecret ||
-    authHeader !== `Bearer ${expectedSchedulerSecret}`
+    !timingSafeEqual(authHeader, `Bearer ${expectedSchedulerSecret}`)
   ) {
     return jsonResponse(401, { error: "unauthorized" });
   }

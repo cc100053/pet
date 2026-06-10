@@ -119,7 +119,6 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
         body: {
           'room_id': job.roomId,
           'labels': job.labels,
-          'canonical_tags': const <String>[],
           'caption': job.caption,
           'image_base64': dataUri,
           'image_content_type': imageContentType,

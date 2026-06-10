@@ -21,6 +21,66 @@ Latest historical snapshot before compaction:
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
 
+## Plan (2026-06-10 Edge Function Hardening — Phase 0/1)
+Server-side interaction/data-flow refactor. Phase 0 = shared infra; Phase 1 =
+R2 orphan cleanup + avatar replacement cleanup + timing-safe secret compare.
+All changes are backward-compatible (no request/response contract change).
+- [x] Add `supabase/functions/_shared/{http,images,auth}.ts` and route
+      `feed_validate` + `avatar_upload` through the shared image/R2 helpers.
+- [x] `feed_validate`: track the uploaded R2 key and `deleteFromR2` it when
+      `process_feed_event` fails (rolled-back txn → no message references it).
+- [x] `avatar_upload`: delete the previous avatar after a successful profile
+      update, and delete the new object if the profile update fails.
+- [x] Use constant-time `timingSafeEqual` for the `notify_friend` webhook secret
+      and `hunger_tick_dispatch` scheduler secret.
+- [x] Add `test/edge_function_storage_safety_test.dart`; preserve existing
+      `feed_validate_function_test.dart` introspection strings.
+- [x] `flutter analyze` clean; `flutter test` green (463 passed, 1 skipped).
+- [x] Deploy the four functions to `ilxzpszgirhwxpeocygs` (verified ref).
+      feed_validate v19, avatar_upload v6, hunger_tick_dispatch v7 via MCP;
+      notify_friend v30 via Supabase CLI `--no-verify-jwt`. `verify_jwt`
+      preserved per function; edge logs all-200, no boot/import errors;
+      `release_status.md` updated.
+- [ ] Follow-up (Phase 1 remainder): per-user avatar upload rate limit needs a
+      `profiles.avatar_updated_at` (or throttle table) migration — deferred;
+      delete-on-replace already removes the storage-accumulation incentive.
+
+## Plan (2026-06-10 Phase 2 — notify_friend decomposition)
+Behavior-preserving refactor of the live push function. No contract change;
+`verify_jwt=false` preserved.
+- [x] Verified the "tiger avatar bug" is actually a deliberate fallback:
+      `tiger_stay.gif` is a real R2 404, so `tiger -> ghost_stay.gif` stays
+      (documented in `pets.ts`). NOT changed (would 404 for tiger pets).
+- [x] Extract `notify_friend/l10n.ts` (push locale templates + store-item names)
+      and `notify_friend/pets.ts` (avatar maps + type resolution); route
+      CORS/JSON through `_shared/http.ts`. index.ts 1310 -> 1063 lines.
+- [x] Deploy via CLI `--no-verify-jwt`; confirmed live v31, `verify_jwt=false`,
+      byte-exact CJK, smoke 401/400 (boots/imports OK), `deno check` clean.
+- [x] Add `test/notify_friend_module_split_test.dart`; `flutter analyze` clean;
+      `flutter test` green (472 passed/1 skipped).
+- [ ] Optional follow-up: FCM auth (`getAccessToken`/`importPrivateKey`) could
+      move to `notify_friend/fcm.ts` too — left in index.ts to avoid touching the
+      crypto/send path in this pass. l10n single-source-of-truth with `lib/l10n`
+      (build-step generation) intentionally deferred — push strings are distinct.
+
+## Plan (2026-06-10 Phase 4b — home query RPCs)
+Additive, backward-compatible DB change. New clients only; old clients keep
+their direct queries.
+- [x] Add migration `20260610120000_add_room_home_summary_rpcs.sql` with
+      `get_room_latest_feeds` (per-room top-N, fixes global-LIMIT starvation) and
+      `get_room_member_counts` (aggregate), both `SECURITY INVOKER`, granted to
+      `authenticated`. Applied via MCP and smoke-tested on live data.
+- [x] Rewire `_fetchRoomLatestFeeds` / `_fetchRoomMemberCounts` internals to call
+      the RPCs (method names + call sites unchanged, so the loading-performance
+      introspection test still holds). `_fetchRoomPetSummaries` left as-is.
+- [x] Client cleanups: chat `message_reactions` uses `.inFilter`; dropped the
+      dead `canonical_tags: []` field from the feed_validate request body.
+- [x] Add `test/room_home_summary_rpc_test.dart`; advisors show 0 new lints;
+      `flutter analyze` clean; `flutter test` green (468 passed/1 skipped).
+- [ ] Follow-up (Phase 4 remainder): consider folding member-count + latest-feed
+      RPCs into the cold-start path metrics; optional further consolidation of
+      pet summaries was intentionally skipped (no defect, reused elsewhere).
+
 ## Plan (2026-06-07 Cleanup Purge Safety Hotfix)
 - [x] Add fail-closed purge guards for live room activity and R2 object changes.
 - [x] Add a DB trigger so new room activity invalidates stale approved cleanup

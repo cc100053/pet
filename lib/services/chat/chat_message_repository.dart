@@ -138,7 +138,7 @@ class ChatMessageRepository {
         .from('message_reactions')
         .select('message_id,emoji,user_id')
         .eq('room_id', roomId)
-        .filter('message_id', 'in', '(${messageIds.join(',')})');
+        .inFilter('message_id', messageIds);
     final rows = response as List<dynamic>;
     final grouped = <String, Map<String, _ReactionAccumulator>>{};
 

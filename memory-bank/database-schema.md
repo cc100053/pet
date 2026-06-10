@@ -78,6 +78,10 @@ applied migration that rewrites the object.
 - Shop/equipment/furniture: `get_visible_shop_items`, purchase/grant RPCs,
   inventory helpers, furniture transform helpers
 - Chat/unread: `edit_message`, `delete_message`, unread-count RPCs
+- Home summaries (additive, `SECURITY INVOKER`, `authenticated`-only):
+  `get_room_latest_feeds(p_room_ids, p_per_room_limit)` (per-room top-N feeds,
+  fixes global-LIMIT starvation), `get_room_member_counts(p_room_ids)`. New
+  clients call these; old clients still read `messages`/`room_members` directly.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use `(select auth.uid())`,

@@ -98,7 +98,18 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   `cleanup_abandoned_rooms`.
 - `notify_friend` remains `verify_jwt=false` for webhook compatibility and does
   function-level auth checks; `verify_jwt=true` functions expect HS256 Supabase
-  Auth JWTs at the gateway.
+  Auth JWTs at the gateway. Webhook/scheduler shared-secret checks use
+  constant-time compare (`_shared/auth.ts` `timingSafeEqual`).
+- Edge Functions share `supabase/functions/_shared/{http,images,auth}.ts`
+  (CORS/JSON, base64+R2 helpers, secret compare). `notify_friend` is further
+  split into `notify_friend/l10n.ts` (push locale templates + store-item names)
+  and `notify_friend/pets.ts` (avatar maps + type resolution); orchestration and
+  the FCM auth/send path stay in `index.ts`. Push l10n is intentionally separate
+  from in-app `lib/l10n`. `pets.ts` documents that `tiger` falls back to the
+  ghost avatar GIF because `tiger_stay.gif` is not published on R2. R2 writes are leak-safe:
+  `feed_validate` deletes its uploaded object if `process_feed_event` rolls
+  back, and `avatar_upload` deletes the previous avatar on replace (and the new
+  object if the profile update fails).
 - Firebase Hosting static pages and GEOFlow work live in
   `/Users/fatboy/geo-marketing`, not this Flutter app repo.
 - iOS Crashlytics dSYM upload goes through

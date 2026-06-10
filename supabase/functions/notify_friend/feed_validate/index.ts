@@ -1,34 +1,24 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
-import { AwsClient } from "https://esm.sh/aws4fetch@1.0.18";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeaders, jsonResponse } from "../../_shared/http.ts";
+import {
+  ALLOWED_IMAGE_CONTENT_TYPES,
+  buildDatePath,
+  decodeBase64,
+  deleteFromR2,
+  estimateDecodedBytesFromBase64,
+  EXTENSION_BY_CONTENT_TYPE,
+  extractBase64Payload,
+  MAX_IMAGE_BYTES,
+  uploadToR2,
+} from "../../_shared/images.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-const R2_ENDPOINT = Deno.env.get("R2_ENDPOINT") ?? "";
-const R2_ACCESS_KEY_ID = Deno.env.get("R2_ACCESS_KEY_ID") ?? "";
-const R2_SECRET_ACCESS_KEY = Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "";
-const R2_BUCKET = Deno.env.get("R2_BUCKET") ?? "";
-const R2_PUBLIC_BASE_URL = Deno.env.get("R2_PUBLIC_BASE_URL") ?? "";
-
 const MIN_CONFIDENCE = 0.6;
 const MAX_LABELS = 20;
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-
-const ALLOWED_IMAGE_CONTENT_TYPES = new Set<string>([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-]);
 
 type LabelInput =
   | string
@@ -56,24 +46,6 @@ type FeedRequest = {
   image_filename?: string;
   client_created_at?: string;
 };
-
-const EXTENSION_BY_CONTENT_TYPE: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/heic": "heic",
-  "image/heif": "heif",
-};
-
-function jsonResponse(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json",
-    },
-  });
-}
 
 function normalizeLabels(input: unknown): NormalizedLabel[] {
   if (!Array.isArray(input)) {
@@ -131,49 +103,6 @@ function buildLabelVariants(labels: string[]) {
     variants.add(toTitleCase(trimmed));
   }
   return Array.from(variants);
-}
-
-function extractBase64Payload(input: string) {
-  if (input.startsWith("data:")) {
-    const [header, data] = input.split(",", 2);
-    const match = header.match(/^data:(.+);base64$/);
-    return {
-      contentType: match?.[1],
-      base64: data ?? "",
-    };
-  }
-  return {
-    contentType: undefined,
-    base64: input,
-  };
-}
-
-function decodeBase64(input: string) {
-  const binary = atob(input);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
-}
-
-function buildDatePath(now: Date) {
-  const yyyy = now.getUTCFullYear();
-  const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(now.getUTCDate()).padStart(2, "0");
-  return `${yyyy}/${mm}/${dd}`;
-}
-
-function estimateDecodedBytesFromBase64(base64: string): number {
-  const sanitized = base64.replace(/\s/g, "");
-  if (!sanitized) {
-    return 0;
-  }
-  const padding = sanitized.endsWith("==")
-    ? 2
-    : (sanitized.endsWith("=") ? 1 : 0);
-  const estimated = Math.floor((sanitized.length * 3) / 4) - padding;
-  return Math.max(estimated, 0);
 }
 
 type WebhookResult = {
@@ -244,43 +173,6 @@ async function notifyPartner({
   }
 }
 
-async function uploadToR2(
-  bytes: Uint8Array,
-  contentType: string,
-  key: string,
-) {
-  if (
-    !R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY ||
-    !R2_BUCKET || !R2_PUBLIC_BASE_URL
-  ) {
-    throw new Error("r2_not_configured");
-  }
-
-  const client = new AwsClient({
-    accessKeyId: R2_ACCESS_KEY_ID,
-    secretAccessKey: R2_SECRET_ACCESS_KEY,
-    service: "s3",
-    region: "auto",
-  });
-
-  const endpoint = R2_ENDPOINT.replace(/\/$/, "");
-  const url = `${endpoint}/${R2_BUCKET}/${key}`;
-
-  const response = await client.fetch(url, {
-    method: "PUT",
-    body: bytes,
-    headers: {
-      "Content-Type": contentType,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`r2_upload_failed:${response.status}`);
-  }
-
-  return `${R2_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -340,6 +232,11 @@ serve(async (req) => {
   );
 
   let imageUrl = payload.image_url ?? "";
+  // Key of an object we uploaded to R2 in this request. Tracked so it can be
+  // removed if a later DB step fails, otherwise the object is orphaned forever
+  // (no message row will ever reference it). Stays null when the client passed
+  // an existing `image_url` that we do not own.
+  let uploadedKey: string | null = null;
   if (!imageUrl && payload.image_base64) {
     const { contentType, base64 } = extractBase64Payload(
       payload.image_base64,
@@ -385,6 +282,7 @@ serve(async (req) => {
         resolvedContentType,
         key,
       );
+      uploadedKey = key;
     } catch (error) {
       return jsonResponse(500, {
         error: "image_upload_failed",
@@ -469,6 +367,11 @@ serve(async (req) => {
         code: processFeedError.code ?? null,
       }),
     );
+    // The RPC runs in a single transaction; on error it is rolled back, so no
+    // message row references the just-uploaded image. Reclaim it.
+    if (uploadedKey) {
+      await deleteFromR2(uploadedKey);
+    }
     return jsonResponse(500, {
       error: "process_feed_event_failed",
       detail: processFeedError.message,
