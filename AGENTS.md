@@ -8,6 +8,13 @@ This file is for agentic coding agents working in this repo.
 - After changes, run: `flutter analyze` and `flutter test`.
 - When instructions require a website/dashboard step, mark it as `[USER ACTION REQUIRED]`.
 - If you touch Supabase schema/functions, prefer the Supabase MCP workflow first (see "Supabase" section).
+- Before any high-risk compatibility task (server/API/RPC/migration/auth/reward/
+  notification/purchase/local durable state), read
+  `docs/ai_collaboration_workflow.md` and follow its contract-inventory,
+  server-vs-app-fix, compatibility-test, and production-verification workflow.
+- Before release, upload, submission, server hotfix, Edge Function deploy, or
+  migration work, read and update `docs/release_status.md`; do not rely on git
+  commit messages as the release-status source of truth.
 - UI should refresh automatically after any action that causes a state transition.
 - Backward-compatibility rule: If a parameter change can affect behavior of old app versions, ask for user approval before implementing/releasing it.
 - Backward-compatibility rule: Before proceeding with such a change, propose alternatives that avoid impacting old versions (e.g., version-gated flags, backward-compatible defaults, new optional params, phased rollout), then wait for approval.
@@ -119,6 +126,8 @@ This file is for agentic coding agents working in this repo.
 
 ### Scripts
 - Notify webhook test: `scripts/test_notify_friend.sh` (see env vars in `docs/testing.md`).
+- Feed upload/reward pipeline and latency debugging: `docs/feed_upload_pipeline.md`.
+- AI collaboration / compatibility workflow: `docs/ai_collaboration_workflow.md`.
 - Firebase Crashlytics MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
 - iOS App Store export/upload without Apple's immediate symbol-upload step:
   `scripts/export_ios_appstore_no_apple_symbols.sh "/path/to/Runner.xcarchive"` (see `docs/ios_app_store_export.md`).
@@ -130,9 +139,16 @@ This file is for agentic coding agents working in this repo.
   - Never commit `.p8` files or generated secrets.
 
 ### App Store Connect metadata
+- Track current release/build/backend deployment state in
+  `docs/release_status.md`; git commit messages are historical evidence, not
+  the release source of truth.
 - List versions: `asc versions list --app 6757725650`
 - Upload localized version metadata from `.strings`: `asc localizations upload --version <VERSION_ID> --locale ja --path .asc/version-localizations/ja.strings`
 - Verify localized metadata: `asc localizations list --version <VERSION_ID> --output table`
+- Upload an IPA: `asc builds upload --app 6757725650 --ipa <IPA_PATH>`
+- Wait for build processing: `asc builds wait --app 6757725650 --build-number <BUILD> --version <VERSION> --platform IOS --timeout 10m --poll-interval 30s`
+- If an uploaded build is not discoverable yet, check processing uploads:
+  `asc builds uploads list --app 6757725650 --output table`
 - Auto-renewable subscription submissions require a functional Terms of Use /
   EULA footer in every `.asc/version-localizations/*.strings` description; run
   `flutter test test/app_store_metadata_terms_test.dart` before ASC upload.
@@ -168,6 +184,10 @@ flutter run
 - Function config/secrets are not centralized in a checked-in `supabase/config.toml`; verify deployed `verify_jwt` settings and required env vars before changing or redeploying functions.
 - R2-backed functions (`notify_friend/feed_validate`, `avatar_upload`) require `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `R2_PUBLIC_BASE_URL`.
 - Push/scheduler functions use `NOTIFY_WEBHOOK_SECRET`; `notify_friend` also needs FCM service-account config, and `hunger_tick_dispatch` uses the vault `hunger_tick_secret` or `HUNGER_TICK_SECRET` fallback.
+- Keep `feed_validate` reward/message writes on the response path, but keep
+  partner push dispatch off that path with `EdgeRuntime.waitUntil(...)`; old
+  response fields such as `webhook_skipped` must keep backward-compatible
+  types. See `docs/feed_upload_pipeline.md`.
 
 ## Repo-specific workflows
 
@@ -178,13 +198,15 @@ flutter run
 - If notification payloads include item-specific names or assets, update the related Edge Function/native notification handling too.
 
 ### Room furniture canvas coordinates
-- Furniture placement is moving to a fixed virtual room canvas using
+- Furniture placement uses a fixed virtual room canvas with
   nullable `room_furniture.canvas_position_x/y` plus optional RPC params in
   `supabase/migrations/20260530120000_add_room_furniture_canvas_coords.sql`.
 - New clients dual-write canvas coordinates and legacy `position_x/y`; old
   clients keep using the legacy columns.
-- TODO: Confirm the migration has been applied to the target Supabase project
-  before running/shipping an app build that selects `canvas_position_x/y`.
+- Keep legacy 4-arg furniture RPCs separate from 6-arg canvas-coordinate
+  overloads. Migration `20260530125134_fix_room_furniture_canvas_rpc_overloads`
+  removed default values from the 6-arg overloads so old PostgREST calls remain
+  unambiguous.
 
 ### Release notes and App Store metadata
 - Use `.codex/skills/release-notes-sync/SKILL.md` when adding bundled What's New entries or syncing App Store Connect release notes.

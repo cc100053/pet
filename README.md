@@ -39,8 +39,11 @@ or run it with elevated permissions.
 
 ## Current Docs
 - Agent workflow and repo rules: `AGENTS.md`
+- AI collaboration / compatibility workflow: `docs/ai_collaboration_workflow.md`
+- Release and backend deployment status: `docs/release_status.md`
 - Current architecture/state map: `memory-bank/*.md`
 - Testing helpers: `docs/testing.md`
+- Feed upload/reward pipeline: `docs/feed_upload_pipeline.md`
 - Pet PNG sequence/socket workflow: `docs/godot-png-sequence-socket-workflow.md`
 - Hunger tick cron/runbook: `docs/hunger_tick_schedule_report.md`
 - Crashlytics MCP setup: `docs/firebase_crashlytics_mcp_workflow.md`

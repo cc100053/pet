@@ -13,6 +13,15 @@
 - Run: `flutter test test/feed_flow_integration_test.dart`.
 - Test creates a room via `create_room`, calls `feed_validate`, asserts the
   message record, then deletes the room to clean up.
+- Feed upload pipeline behavior, response compatibility, latency diagnosis, and
+  existing-user queue reconciliation are documented in
+  `docs/feed_upload_pipeline.md`.
+
+### Feed upload focused tests
+- Edge Function response-path guard:
+  `flutter test test/feed_validate_function_test.dart`.
+- Durable queue retry/reconciliation guard:
+  `flutter test test/features/feed/feed_upload_queue_test.dart`.
 
 ### Notify Friend webhook test
 - Script: `scripts/test_notify_friend.sh`

@@ -2,7 +2,7 @@
 
 Active summary only. See source files, `pubspec.yaml`, and archived snapshots
 for exact historical versions. Latest snapshot:
-`memory-bank/archive/tech_stack_20260606_pre_compaction.md`.
+`memory-bank/archive/tech_stack_20260530_pre_compaction.md`.
 
 ## Core App
 - Flutter/Dart
@@ -35,7 +35,9 @@ for exact historical versions. Latest snapshot:
   `notify_friend` webhook compatibility still relies on `verify_jwt=false` plus
   function-level auth checks.
 - Flutter SPM integration is enabled for iOS/macOS; checked-in
-  `Package.resolved` files and the tracked
-  `ios/Flutter/GeneratedPluginSwiftPackage` mirror are part of the Apple
-  dependency flow. Keep the mirror aligned with Flutter 3.44.0's
-  version-suffixed ephemeral package folders.
+  `Package.resolved` files are part of the Apple dependency flow.
+- iOS Runner points Xcode's `FlutterGeneratedPluginSwiftPackage` reference at
+  tracked `ios/Flutter/GeneratedPluginSwiftPackage` so Flutter SPM plugins
+  resolve with the repo minimum iOS 15.0; keep that tracked mirror aligned with
+  Flutter 3.44.0's version-suffixed package folders under ignored
+  `ios/Flutter/ephemeral/Packages/.packages/`.

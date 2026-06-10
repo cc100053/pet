@@ -2,7 +2,7 @@
 
 Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/`; latest:
-`memory-bank/archive/progress_20260606_pre_compaction.md`.
+`memory-bank/archive/progress_20260530_pre_compaction.md`.
 
 ## Current State
 - Local app metadata is prepared for `2.1.0+5` with bundled What's New and
@@ -15,6 +15,9 @@ Active progress stays current-state focused. Full snapshots live in
   Build `67f39308-02eb-4a9a-9d32-64698ea4d99b` is `VALID`, encryption
   `exempt`, uploaded `2026-06-03T08:58:19-07:00`. Attach it to version
   `37897d26-cc47-492c-867f-c7bc3ee4d44b` before submission.
+- App Store Connect version `2.0.2`
+  (`cb96407b-2767-4889-a3de-212be7b9289c`) is public on the JP storefront, but
+  `asc versions list` still labels it `READY_FOR_DISTRIBUTION`.
 - Flutter is pinned by `.fvmrc` to `3.44.0` (Dart `3.12.0`). The
   default/global `flutter` binary should match that pin, so normal local and
   release-sensitive commands use bare `flutter ...`; if FVM is used, confirm it
@@ -27,43 +30,37 @@ Active progress stays current-state focused. Full snapshots live in
   compatibility prompt. Use `.codex/skills/shared-item-rollout/SKILL.md`.
 - Pet equipment is room-scoped and per-pet with quantity-aware shared closet
   ownership. Supported slots are `head`, `face`, `body`, and `back`.
-- Furniture placement uses fixed-canvas coordinates in prod. Migration
-  `20260530120000` added nullable `canvas_position_x/y`; live hotfix
-  `20260530125134` removes default values from 6-arg canvas RPC overloads so
-  legacy 4-arg clients remain unambiguous.
+- Furniture placement uses fixed-canvas coordinates in prod. The original
+  canvas migration added nullable `canvas_position_x/y`; live hotfix
+  `20260530125134_fix_room_furniture_canvas_rpc_overloads` removes default
+  values from the 6-arg canvas RPC overloads so legacy 4-arg clients remain
+  unambiguous.
 - Debug admins can freeze hunger decay per room through
   `set_room_hunger_decay_paused(...)`; the expiring override advances
   `last_decay_at` while frozen and parks the server schedule until expiry.
-- Feed rewards no longer get eroded by an immediate follow-up hunger tick:
-  migration `20260607005751` anchors successful feed decay at feed time, and
-  `20260607005904` keeps `apply_pet_action` execute grants authenticated-only
-  on the live Supabase project.
-- `feed_validate` v17 returns after feed rewards/messages are written and queues
-  partner push delivery with `EdgeRuntime.waitUntil`; this keeps the Home reward
-  pending state from waiting on slow `notify_friend` calls. v18 preserves the
-  legacy `webhook_skipped: false` response shape for old clients.
-- Persisted failed feed-upload jobs reload as pending for silent
-  reconcile/retry, so existing users with a locally stored timeout from an older
-  feed attempt do not immediately replay a stale upload error.
-- Abandoned-room photo cleanup is human-in-the-loop and fail-closed:
-  `cleanup_abandoned_rooms` v2 plus migration `20260607135307` only purge
-  approved candidates that still match the stale room/R2 scan snapshot; new
-  room activity resets approved candidates back to pending.
-- The three god-view files were decomposed behavior-preservingly with `part`
-  extensions. See `memory-bank/architecture.md` "View Layer Structure" before
-  moving code between parts.
+- The three god-view files were decomposed (behavior-preserving) on branch
+  `refactor/god-file-decomposition`: `home_view.dart` 5737->~2.1k,
+  `chat_room_view_v2.dart` 3657->~2.5k, `shop_view.dart` 2340->1316, via new
+  `part` extensions; their giant `build()` methods were broken into helpers
+  (chat 442->167, home 249->161, shop notice 239->182). See
+  `memory-bank/architecture.md` "View Layer Structure" for the conventions.
 - Chat runs on `ChatRoomViewV2` with bounded visible history, Hive cache,
   local-first realtime buffering, tuned image cache/decode sizes, and sender
   soft-delete for recalled `image_feed` messages.
 - Feed uploads run through the durable queue; Home owns global completion/
   failure effects and refreshes the original room.
-- Pet rendering prefers bundled PNG sequences while preserving GIF asset ids;
-  Godot remains the socket/equipment authoring path.
 - `ForceUpdateGate` shows What's New at most once per app session even if app
   lifecycle resumes before `markShown` persists.
-- Poop cleaning is optimistic and non-blocking; optimistic state is keyed by
-  rounded poop x/y (`_cleaningPoopKeys`) because the server prunes
-  `poop_positions` by index.
+- Pet rendering prefers bundled PNG sequences while preserving GIF asset ids;
+  Godot remains the socket/equipment authoring path.
+- Poop cleaning is optimistic and non-blocking: tapping a poop hides it
+  immediately (scale/opacity exit) without setting `_petBusy`, so the pet and
+  other poops stay interactive. The `clean_poop` RPC then runs in the
+  background with a lightweight `pet_state` reconcile (not full
+  `_refreshPetState`). Optimistic state is keyed by rounded poop x/y
+  (`_cleaningPoopKeys`), not array index, because the server prunes
+  `poop_positions` by index; this also guards against double-firing on the
+  same poop.
 - GEOFlow, SEO/Firebase Hosting pages, invite fallbacks, and app/universal-link
   files live in `/Users/fatboy/geo-marketing`, not this Flutter app repo.
 - App Store metadata for auto-renewable subscriptions must retain the direct
@@ -71,9 +68,6 @@ Active progress stays current-state focused. Full snapshots live in
   description; `test/app_store_metadata_terms_test.dart` locks this.
 
 ## Workflow Notes
-- Use `docs/release_status.md` as the release/build/backend deployment source
-  of truth. `pubspec.yaml` is the local candidate version, ASC/storefront is the
-  live store authority, and git commits are evidence rather than release state.
 - Run `flutter build bundle` after adding nested asset folders or PNG sequence
   directories, then confirm the assets are in the generated bundle.
 - Read `docs/godot-png-sequence-socket-workflow.md` before editing pet PNG
@@ -84,22 +78,18 @@ Active progress stays current-state focused. Full snapshots live in
 - Use `docs/ios_app_store_export.md` and
   `scripts/export_ios_appstore_no_apple_symbols.sh` when uploading an existing
   iOS archive while avoiding Apple's immediate symbol-upload warning.
-- For full ASC release upload flows, build with explicit build-name/number,
-  verify the IPA Info.plist, upload with `asc builds upload`, then wait with
-  `asc builds wait` (see `.codex/skills/release-notes-sync/SKILL.md`).
 - Edge Function `verify_jwt` settings are not in a checked-in
   `supabase/config.toml`; verify live config before redeploying.
 
 ## Open Items
-- Attach ASC build `67f39308-02eb-4a9a-9d32-64698ea4d99b` to App Store Connect
-  version `2.1.0` (`37897d26-cc47-492c-867f-c7bc3ee4d44b`) and continue
-  submission preflight.
+- Attach ASC build `67f39308-02eb-4a9a-9d32-64698ea4d99b` to version `2.1.0`
+  (`37897d26-cc47-492c-867f-c7bc3ee4d44b`) and continue App Store submission
+  preflight.
 - Confirm Supabase secrets/config are set for `delete_account` and
   `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion.
-- Confirm Crashlytics receives dSYMs from the Firebase Apple SPM path.
-- Smoke-test iOS banner and rewarded ads after the `google_mobile_ads` 8.0.0
-  upgrade.
+- Before shipping the Firebase Apple SPM changes, create a TestFlight/archive
+  build and confirm Crashlytics receives dSYMs.
 
 ## Read More
 - Historical snapshots: `memory-bank/archive/`
