@@ -1942,4 +1942,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew210Bullet3 => 'ペットのお世話タイミングと全体的な安定性を改善しました。';
+
+  @override
+  String get whatsNew220Title => '写真共有がよりスムーズに';
+
+  @override
+  String get whatsNew220Bullet1 => 'ごはん写真をより速く送れる新しい仕組みに対応しました。';
+
+  @override
+  String get whatsNew220Bullet2 => '共有ルームの最新写真やメンバー数がより効率よく読み込まれます。';
+
+  @override
+  String get whatsNew220Bullet3 => 'フィード、アバター、通知まわりの信頼性を改善しました。';
 }

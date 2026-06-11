@@ -1953,4 +1953,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew210Bullet3 => '펫 케어 타이밍과 전반적인 안정성을 개선했습니다.';
+
+  @override
+  String get whatsNew220Title => '사진 공유가 더 부드러워졌어요';
+
+  @override
+  String get whatsNew220Bullet1 => '먹이 사진을 더 빠르게 보낼 수 있는 새 흐름을 준비했습니다.';
+
+  @override
+  String get whatsNew220Bullet2 => '공유 방의 최신 사진과 멤버 수를 더 효율적으로 불러옵니다.';
+
+  @override
+  String get whatsNew220Bullet3 => '피드, 아바타, 알림 안정성을 개선했습니다.';
 }

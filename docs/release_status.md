@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | Unknown from current repo snapshot | Unknown | Verify in App Store Connect or App Store lookup | Not freshly verified | App Store Connect / storefront | none |
+| iOS | 2.1.0 | 5 | ASC version state `READY_FOR_DISTRIBUTION` | 2026-06-11 | App Store Connect `asc versions list` | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -31,7 +31,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.1.0 | 5 | `pubspec.yaml` `2.1.0+5` | ASC version is `PREPARE_FOR_SUBMISSION`; uploaded build is `VALID` and encryption `exempt` | ASC version `37897d26-cc47-492c-867f-c7bc3ee4d44b`; build `67f39308-02eb-4a9a-9d32-64698ea4d99b` | Attach build to ASC version, run submission preflight, then submit | `0f07f7f` metadata sync commit | none |
+| iOS | 2.2.0 | 6 | `pubspec.yaml` `2.2.0+6` | ASC version is `WAITING_FOR_REVIEW`; uploaded build is `VALID` and encryption `exempt`; submission is waiting for review | ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58`; build `ef250ff1-c94e-45db-9043-dd9f7942ca1b`; submission `8e1526cd-e1a7-4681-bbba-8490a33d4b53` | Wait for App Store review outcome | working tree v2.2.0 release sync/upload | none |
 
 ## Backend Deployments
 

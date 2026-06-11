@@ -1031,5 +1031,9 @@
   "whatsNew210Title": "Furniture feels better",
   "whatsNew210Bullet1": "Furniture placement now stays more consistent across devices.",
   "whatsNew210Bullet2": "Room inventory is easier to use on shorter screens.",
-  "whatsNew210Bullet3": "Pet care timing and overall stability have been improved."
+  "whatsNew210Bullet3": "Pet care timing and overall stability have been improved.",
+  "whatsNew220Title": "Photo sharing feels smoother",
+  "whatsNew220Bullet1": "Feeding photos is prepared for a faster upload flow.",
+  "whatsNew220Bullet2": "Shared rooms load latest photos and member counts more efficiently.",
+  "whatsNew220Bullet3": "Feed, avatar, and notification reliability has been improved."
 }

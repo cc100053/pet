@@ -8,18 +8,71 @@ Latest historical snapshot before compaction:
 `tasks/archive/todo_20260606_pre_compaction.md`.
 
 ## Active Follow-ups
-- [~] Build/upload/attach the `2.1.0+5` iOS release build.
-      Built `build/ios/ipa/PetTomo.ipa`, verified packaged Info.plist, uploaded
-      build `67f39308-02eb-4a9a-9d32-64698ea4d99b`, and waited until `VALID`.
-      Still attach it to ASC version `2.1.0`
-      (`37897d26-cc47-492c-867f-c7bc3ee4d44b`) before submission.
-      Keep `docs/release_status.md` updated as ASC state changes.
+- [~] Monitor App Store review for iOS `2.2.0+6`.
+      ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58`, build
+      `ef250ff1-c94e-45db-9043-dd9f7942ca1b`, submission
+      `8e1526cd-e1a7-4681-bbba-8490a33d4b53`; state is
+      `WAITING_FOR_REVIEW`.
 - [ ] Confirm Crashlytics receives dSYMs from the Firebase Apple SPM path.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
       8.0.0 upgrade.
 - [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
+
+## Plan (2026-06-11 v2.2.0 Release Notes Sync)
+- [x] Draft localized bundled What's New and ASC release notes for `2.2.0`.
+- [x] Update local app version, bundled What's New catalog, ARB localization
+      keys, and ASC `.strings` assets.
+- [x] Run `flutter gen-l10n`, `test/app_store_metadata_terms_test.dart`,
+      `flutter analyze`, and `flutter test`.
+- [x] Create or locate the App Store Connect `2.2.0` version and upload
+      localized `.strings` metadata.
+- [x] Verify ASC localizations and update `docs/release_status.md` /
+      `memory-bank/progress.md`.
+
+## Review (2026-06-11 v2.2.0 Release Notes Sync)
+- Bumped the local candidate to `2.2.0+6` and added bundled What's New copy for
+  en, ja, ko, zh-Hant, and zh-Hans.
+- Created ASC version `2.2.0`
+  (`ca6b8b89-a99e-4cc7-a23c-886853467b58`) by copying metadata from `2.1.0`.
+- Uploaded v2.2.0 `promotionalText` / `whatsNew` for en-US, ja, ko, and
+  zh-Hant; descriptions and direct Apple Standard EULA footers were preserved.
+- Verification passed: `flutter gen-l10n`,
+  `flutter test test/app_store_metadata_terms_test.dart`, `flutter analyze`,
+  and `flutter test` (481 passed / 1 skipped).
+- Next release step: build and upload `2.2.0+6`, wait for processing, attach
+  the build to the ASC version, then run submission preflight.
+
+## Plan (2026-06-11 v2.2.0 Build Upload And Submission)
+- [x] Preflight iOS target settings and preserve iPhone-only release settings.
+- [x] Build App Store IPA with explicit `--build-name=2.2.0 --build-number=6`.
+- [x] Verify packaged IPA `Info.plist` version, build, device family,
+      supported orientations, and full-screen setting.
+- [x] Upload IPA to App Store Connect and wait for build processing.
+- [x] Attach build to ASC version `2.2.0`.
+- [x] Run ASC validation, review doctor/status, and dry-run submission.
+- [x] Submit v2.2.0 for App Review and verify `WAITING_FOR_REVIEW`.
+- [x] Update release-status and memory docs.
+
+## Review (2026-06-11 v2.2.0 Build Upload And Submission)
+- Built `build/ios/ipa/PetTomo.ipa` from Flutter with `2.2.0+6`; Flutter
+  archive validation confirmed bundle `com.cc100053.pet`, display name
+  `PetTomo`, deployment target `15.0`.
+- Packaged IPA verification: `CFBundleShortVersionString=2.2.0`,
+  `CFBundleVersion=6`, `UIDeviceFamily=[1]`,
+  `UISupportedInterfaceOrientations=[UIInterfaceOrientationPortrait]`, and
+  `UIRequiresFullScreen=true`.
+- Uploaded and processed ASC build
+  `ef250ff1-c94e-45db-9043-dd9f7942ca1b`; state `VALID`,
+  `usesNonExemptEncryption=false`, uploaded `2026-06-10T08:15:08-07:00`.
+- Attached the build to ASC version
+  `ca6b8b89-a99e-4cc7-a23c-886853467b58`.
+- ASC validation: 0 errors, 0 blocking issues; non-blocking warning remains
+  for missing subscription promotional image, and App Privacy publish state is
+  not publicly verifiable through the API.
+- Submitted to App Review. Submission
+  `8e1526cd-e1a7-4681-bbba-8490a33d4b53` is `WAITING_FOR_REVIEW`.
 
 ## Plan (2026-06-10 Edge Function Hardening — Phase 0/1)
 Server-side interaction/data-flow refactor. Phase 0 = shared infra; Phase 1 =

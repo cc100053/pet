@@ -3590,6 +3590,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pet care timing and overall stability have been improved.'**
   String get whatsNew210Bullet3;
+
+  /// No description provided for @whatsNew220Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo sharing feels smoother'**
+  String get whatsNew220Title;
+
+  /// No description provided for @whatsNew220Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Feeding photos is prepared for a faster upload flow.'**
+  String get whatsNew220Bullet1;
+
+  /// No description provided for @whatsNew220Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared rooms load latest photos and member counts more efficiently.'**
+  String get whatsNew220Bullet2;
+
+  /// No description provided for @whatsNew220Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed, avatar, and notification reliability has been improved.'**
+  String get whatsNew220Bullet3;
 }
 
 class _AppLocalizationsDelegate

@@ -1932,6 +1932,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew210Bullet3 => '改善宠物照顾时间与整体稳定性。';
+
+  @override
+  String get whatsNew220Title => '照片分享更顺畅';
+
+  @override
+  String get whatsNew220Bullet1 => '已支持可让喂食照片更快发送的新流程。';
+
+  @override
+  String get whatsNew220Bullet2 => '共享房间的最新照片和成员数读取更高效。';
+
+  @override
+  String get whatsNew220Bullet3 => '改善动态、头像和通知相关的可靠性。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3852,4 +3864,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew210Bullet3 => '改善寵物照顧時間與整體穩定性。';
+
+  @override
+  String get whatsNew220Title => '相片分享更順暢';
+
+  @override
+  String get whatsNew220Bullet1 => '已支援可讓餵食相片更快送出的新流程。';
+
+  @override
+  String get whatsNew220Bullet2 => '共享房間的最新相片與成員數讀取更有效率。';
+
+  @override
+  String get whatsNew220Bullet3 => '改善動態、頭像與通知相關的可靠性。';
 }

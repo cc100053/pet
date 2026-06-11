@@ -2020,4 +2020,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew210Bullet3 =>
       'Pet care timing and overall stability have been improved.';
+
+  @override
+  String get whatsNew220Title => 'Photo sharing feels smoother';
+
+  @override
+  String get whatsNew220Bullet1 =>
+      'Feeding photos is prepared for a faster upload flow.';
+
+  @override
+  String get whatsNew220Bullet2 =>
+      'Shared rooms load latest photos and member counts more efficiently.';
+
+  @override
+  String get whatsNew220Bullet3 =>
+      'Feed, avatar, and notification reliability has been improved.';
 }
