@@ -173,6 +173,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       MaterialPageRoute(
         builder: (_) => FeedCaptureView(
           roomId: roomId,
+          onBeforeEnqueue: _tickPetStateBeforeFeed,
           onOptimisticMessage: _handleOptimisticFeed,
         ),
       ),
@@ -180,6 +181,26 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (!mounted) {
       return;
     }
+  }
+
+  /// Awaited before a feed is enqueued. Blocks only on the hunger-decay tick —
+  /// the one piece the server-side feed must observe — then fires the full
+  /// pet-state refresh in the background so the optimistic enqueue isn't held
+  /// up by equipment/room reloads or the `pet_state` select.
+  Future<void> _tickPetStateBeforeFeed() async {
+    final roomId = _roomId;
+    if (roomId == null) {
+      return;
+    }
+    final petId = _petId ?? await _loadPetId(roomId);
+    if (petId == null || !mounted) {
+      return;
+    }
+    await _tickPetStateRpc(petId);
+    if (!mounted) {
+      return;
+    }
+    unawaited(_refreshPetState(refreshCoins: false));
   }
 
   void _handleOptimisticFeed(FeedOptimisticMessage entry) {

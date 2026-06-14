@@ -36,16 +36,37 @@ void dispatchFeedCaptureCallback({
   }
 }
 
+@visibleForTesting
+Future<void> dispatchFeedCaptureAsyncCallback({
+  required String callbackName,
+  required Future<void> Function() callback,
+}) async {
+  try {
+    await callback();
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'feed_capture_view',
+        context: ErrorDescription('while running $callbackName'),
+      ),
+    );
+  }
+}
+
 class FeedCaptureView extends ConsumerStatefulWidget {
   const FeedCaptureView({
     super.key,
     required this.roomId,
+    this.onBeforeEnqueue,
     this.onOptimisticMessage,
     this.onSendStarted,
     this.pickImage,
   });
 
   final String roomId;
+  final Future<void> Function()? onBeforeEnqueue;
   final ValueChanged<FeedOptimisticMessage>? onOptimisticMessage;
   final ValueChanged<FeedOptimisticMessage>? onSendStarted;
   @visibleForTesting
@@ -159,6 +180,17 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
     });
 
     try {
+      final onBeforeEnqueue = widget.onBeforeEnqueue;
+      if (onBeforeEnqueue != null) {
+        await dispatchFeedCaptureAsyncCallback(
+          callbackName: 'FeedCaptureView.onBeforeEnqueue',
+          callback: onBeforeEnqueue,
+        );
+        if (!mounted) {
+          return;
+        }
+      }
+
       final clientCreatedAt = DateTime.now().toUtc();
       final labelsPayload = <Map<String, dynamic>>[];
 

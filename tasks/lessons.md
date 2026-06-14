@@ -1,5 +1,18 @@
 # Lessons
 
+## 2026-06-15
+- When a user reports a before/after metric like `65 > 65`, do not stop at
+  proving the backend wrote a later value. Trace whether the client displayed a
+  stale pre-action value while the server applied hidden catch-up logic
+  immediately before the action.
+
+## 2026-06-11
+- After the full approved `release-notes-sync` flow completes, treat the target
+  version as the repo's current live release baseline in workflow docs and
+  `release_status.md`, while still recording the exact ASC state and IDs.
+  Do not leave it only as a next release candidate just because ASC still says
+  `WAITING_FOR_REVIEW` or another post-submit state.
+
 ## 2026-04-22
 - When a user names the ship target release for a feature, align every rollout gate to that exact version: repo app version, seeded `min_app_version`, compatibility checks, and user-facing release notes or task notes.
 

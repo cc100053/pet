@@ -8,17 +8,112 @@ Latest historical snapshot before compaction:
 `tasks/archive/todo_20260606_pre_compaction.md`.
 
 ## Active Follow-ups
-- [~] Monitor App Store review for iOS `2.2.0+6`.
+- [~] Monitor App Store review/store outcome for repo-current iOS `2.2.0+6`.
       ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58`, build
       `ef250ff1-c94e-45db-9043-dd9f7942ca1b`, submission
-      `8e1526cd-e1a7-4681-bbba-8490a33d4b53`; state is
-      `WAITING_FOR_REVIEW`.
+      `8e1526cd-e1a7-4681-bbba-8490a33d4b53`; exact ASC state is
+      `WAITING_FOR_REVIEW`, but release workflow treats `2.2.0+6` as the
+      current live baseline.
 - [ ] Confirm Crashlytics receives dSYMs from the Firebase Apple SPM path.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
       8.0.0 upgrade.
 - [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
+
+## Plan (2026-06-14 bulubulu Feed Hunger Investigation)
+- [x] Read active repo memory, Supabase/diagnosis workflow notes, and relevant
+      feed/hunger docs.
+- [x] Inspect the current client/server feed contract and latest live DB/RPC
+      definitions involved in hunger updates.
+- [x] Query production state for room `bulubulu`: room/pet state, recent feed
+      messages, rewards, and hunger schedule/overrides.
+- [x] Check recent Edge/Postgres logs around the reported upload time.
+- [x] Re-check the client-side before/after path after the user observed
+      `65 > 65`.
+- [x] Apply the smallest client fix and add regression coverage.
+- [x] Run required verification and record notes.
+
+## Review (2026-06-14 bulubulu Feed Hunger Investigation)
+- Live target verified as Supabase project `ilxzpszgirhwxpeocygs`
+  (`https://ilxzpszgirhwxpeocygs.supabase.co`); `feed_validate` is ACTIVE v20
+  with `verify_jwt=true`, and the live `apply_pet_action` definition includes
+  the successful-feed `+25` hunger path plus room-state mirroring.
+- Room `bulubulu` had one recent image feed at `2026-06-14 14:36:13 UTC`
+  (`2026-06-14 23:36:13 JST`) with `coins_awarded=10`; matching
+  `feed_upload_url` and `feed_validate` Edge logs were HTTP 200, and
+  `feed_validate` completed in about 713 ms.
+- Current room state showed no debug hunger pause, matching `pet_state` and
+  `room_pet_state`, and a normal future hunger schedule. The feed was not
+  overfed/cooldown-blocked: `feed_burst_count=1`, `last_feed_at` equals the
+  feed timestamp, and `last_overfed_at` is older.
+- Corrected root cause: the backend did increase hunger from the
+  server-authoritative catch-up-decayed value. The room had been shown around
+  `65` before upload, but `process_feed_event -> apply_pet_action` first ran
+  passive decay, bringing effective hunger to about `40`, then added `+25`
+  back to about `65`. That made the visible comparison look like `65 > 65`.
+- Client fix: Home now asks `FeedCaptureView` to run a best-effort
+  `_refreshPetState(tick: true, refreshCoins: false)` before the upload is
+  queued, so the visible Home hunger baseline catches up before the feed RPC
+  applies its reward. This is app-only and leaves the Supabase feed contract
+  unchanged for old clients.
+- Verification passed:
+  `flutter test test/features/feed/feed_capture_view_callback_safety_test.dart`,
+  `flutter analyze`, and `flutter test` (483 passed, 1 skipped env-gated feed
+  integration test).
+
+## Plan (2026-06-13 AGENTS + Memory-bank Optimization)
+- [x] Read automation memory, `AGENTS.md`, active `memory-bank/*.md`,
+      `tasks/todo.md`, and `tasks/lessons.md`.
+- [x] Measure active memory-bank line counts before editing.
+- [x] Inspect repo-local skills, referenced docs, scripts, Edge Functions, and
+      relevant migration references before documenting workflow claims.
+- [x] Archive full active memory-bank snapshots under `memory-bank/archive/`.
+- [x] Compact active memory-bank files into current-state summaries.
+- [x] Update `AGENTS.md` only for newly verified workflow notes or TODOs.
+- [x] Run diff/line-count checks plus `flutter analyze` and `flutter test`.
+- [x] Add review notes with before/after counts, archive paths, and
+      verification results.
+
+## Review (2026-06-13 AGENTS + Memory-bank Optimization)
+- Updated `AGENTS.md` with a narrow TODO for the verified local
+  `ui-ux-pro-max` helper-script path mismatch: use
+  `.codex/skills/ui-ux-pro-max/scripts/search.py` when examples mention the
+  stale `.claude/skills/...` path.
+- Compacted active memory-bank summaries from 420 to 342 lines:
+  `architecture.md` 127 -> 96, `database-schema.md` 107 -> 90,
+  `progress.md` 114 -> 84, `tech-stack.md` 41 -> 41,
+  `ui-ux-guidelines.md` 31 -> 31.
+- Archived exact pre-compaction snapshots:
+  `memory-bank/archive/architecture_20260613_pre_compaction.md`,
+  `memory-bank/archive/database_schema_20260613_pre_compaction.md`,
+  `memory-bank/archive/progress_20260613_pre_compaction.md`,
+  `memory-bank/archive/tech_stack_20260613_pre_compaction.md`,
+  `memory-bank/archive/ui_ux_guidelines_20260613_pre_compaction.md`.
+- Verification passed: `wc -l memory-bank/*.md`, `git diff --check`,
+  `git diff --stat`, `flutter analyze`, and `flutter test` (481 passed,
+  1 skipped). The skipped test was `test/feed_flow_integration_test.dart`
+  because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
+  `SUPABASE_TEST_REFRESH_TOKEN` were unset.
+- Working tree still has pre-existing edits outside this run's scope in
+  `.codex/skills/release-notes-sync/SKILL.md`, `docs/release_status.md`,
+  `supabase/.temp/cli-latest`, `tasks/lessons.md`, and untracked `.claude/`;
+  this run did not revert them.
+
+## Plan (2026-06-11 Release Notes Workflow Update)
+- [x] Update `release-notes-sync` so completed release-note runs treat the
+      target version as the repo's live release baseline.
+- [x] Align `docs/release_status.md` and `memory-bank/progress.md` workflow
+      wording with that rule.
+- [x] Record the correction in `tasks/lessons.md`.
+
+## Review (2026-06-11 Release Notes Workflow Update)
+- Future approved `release-notes-sync` completions now update repo tracking as
+  if the target version is current/live, while still recording exact ASC state,
+  build IDs, version IDs, and submission IDs.
+- Applied that rule to the current `2.2.0+6` tracking: it is now the repo
+  current release baseline, with ASC `WAITING_FOR_REVIEW` preserved as an
+  operational note.
 
 ## Plan (2026-06-11 v2.2.0 Release Notes Sync)
 - [x] Draft localized bundled What's New and ASC release notes for `2.2.0`.
@@ -114,10 +209,14 @@ Production behavior unchanged until the flag is flipped.
       `flutter test` 481 passed/1 skipped.
 - [x] Deploy `feed_upload_url` (CLI) + `feed_validate` v20 (MCP); smoke-verified
       boot/imports; both verify_jwt=true.
-- [ ] ROLLOUT GATE: keep the flag false until a client build with the presigned
-      path is released and tested end-to-end (get URL -> PUT R2 -> feed_validate
-      with image_url). Then flip `feed_presigned_upload_enabled` to true and
-      watch feed_validate/feed_upload_url logs.
+- [x] Flipped `feed_presigned_upload_enabled` -> true (2026-06-11T01:26Z) at
+      user request. Old clients unaffected (don't read the flag); new clients
+      fall back to base64 on failure; reversible by setting it back to false.
+- [ ] FOLLOW-UP: end-to-end verify on a live v2.2.0 build (get URL -> PUT R2 ->
+      feed_validate image_url) and watch `feed_upload_url`/`feed_validate` logs
+      for `presign_failed` / `invalid_image_url` / R2 PUT errors. Roll back the
+      flag if errors spike. (v2.2.0 is still WAITING_FOR_REVIEW; public is
+      2.1.0+5, which has no presigned code.)
 
 ## Plan (2026-06-10 Phase 2 — notify_friend decomposition)
 Behavior-preserving refactor of the live push function. No contract change;

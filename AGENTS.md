@@ -24,6 +24,9 @@ This file is for agentic coding agents working in this repo.
   - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
   - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
   - UI/UX implementation or review: `.codex/skills/ui-ux-pro-max/SKILL.md`
+    - TODO: This local skill's copied examples still mention `.claude/skills/...`;
+      use `.codex/skills/ui-ux-pro-max/scripts/search.py` for this repo unless
+      the skill is corrected.
 - For pet PNG sequence / socket / equipment-preview work, read `docs/godot-png-sequence-socket-workflow.md` before editing `assets/pet_sequences/`, `lib/features/pet/`, or related equipment placement code.
 
 # Agent Workflows & Core Principles

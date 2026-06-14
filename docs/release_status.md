@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.1.0 | 5 | ASC version state `READY_FOR_DISTRIBUTION` | 2026-06-11 | App Store Connect `asc versions list` | none |
+| iOS | 2.2.0 | 6 | Repo workflow assumes live after completed `release-notes-sync`; ASC state `WAITING_FOR_REVIEW` | 2026-06-11 | App Store Connect `asc review status`; release-notes-sync completion rule | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -25,19 +25,21 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
-| iOS | 2.0.2 | 4 | Previously recorded as public in archived release notes; verify before using as current truth | Commit `ce4c85e` (`chore(release): bump to 2.0.2+4 with localized What's New`) | none |
+| iOS | 2.1.0 | 5 | Superseded in repo workflow by completed `2.2.0+6` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-11 | ASC version `37897d26-cc47-492c-867f-c7bc3ee4d44b` | none |
+| iOS | 2.0.2 | 4 | Previously recorded as public in archived release notes | Commit `ce4c85e` (`chore(release): bump to 2.0.2+4 with localized What's New`) | none |
 
 ## Next Release Candidate
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.2.0 | 6 | `pubspec.yaml` `2.2.0+6` | ASC version is `WAITING_FOR_REVIEW`; uploaded build is `VALID` and encryption `exempt`; submission is waiting for review | ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58`; build `ef250ff1-c94e-45db-9043-dd9f7942ca1b`; submission `8e1526cd-e1a7-4681-bbba-8490a33d4b53` | Wait for App Store review outcome | working tree v2.2.0 release sync/upload | none |
+| iOS | None active | - | `pubspec.yaml` `2.2.0+6` is now the repo current release baseline | ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58`; build `ef250ff1-c94e-45db-9043-dd9f7942ca1b`; submission `8e1526cd-e1a7-4681-bbba-8490a33d4b53` are tracked under Current Public Release operational notes | Wait for App Store review outcome for the current baseline; create a new row only for the next target version | working tree v2.2.0 release sync/upload | none |
 
 ## Backend Deployments
 
 | Date | System | Target | Status | Compatibility note | Verification |
 | --- | --- | --- | --- | --- | --- |
-| 2026-06-10 | Supabase Edge Functions + config | `feed_upload_url` v1 (new) + `feed_validate` v20 + `app_config` flag on `ilxzpszgirhwxpeocygs` | Active / Deployed, feature OFF | Phase 3 presigned direct-to-R2 feed upload. Additive + opt-in: new `feed_upload_url` (verify_jwt=true) issues a room-scoped presigned PUT URL; `feed_validate` v20 (verify_jwt=true) now rejects a client `image_url` not under the room's R2 prefix (base64 path unchanged → zero impact on current traffic). Client uses the path only when `app_config.feed_presigned_upload_enabled` is true (seeded **false**) and falls back to base64 on any failure. Ships in a future app build; production behavior unchanged until the flag is flipped | `feed_upload_url` smoke: no-auth→401 (gateway), anon-bearer→`invalid_auth` (boots, imports resolve incl. presign); `feed_validate` v20 deployed (gateway 401 on no-auth); `deno check` parity with prior env quirks; `flutter analyze` clean; `flutter test` 481 passed/1 skipped incl. `test/features/feed/feed_presigned_upload_test.dart`. **Pre-rollout gate: keep flag false until the presigned client build is released and tested.** |
+| 2026-06-11 | Supabase config flag | `app_config.feed_presigned_upload_enabled` on `ilxzpszgirhwxpeocygs` | **Enabled (true)** | Turned the Phase 3 presigned upload path ON for clients that have the code (v2.2.0+). Old clients are unaffected (they never read the flag and keep the base64 path); new clients fall back to base64 on any presigned failure. Instantly reversible by setting the flag back to `false` | SQL `update` confirmed `value=true` at 2026-06-11T01:26Z. **Not yet end-to-end verified on a live build** — watch `feed_upload_url` + `feed_validate` edge logs for `presign_failed` / `invalid_image_url` / R2 PUT errors after real traffic |
+| 2026-06-10 | Supabase Edge Functions + config | `feed_upload_url` v1 (new) + `feed_validate` v20 + `app_config` flag on `ilxzpszgirhwxpeocygs` | Active / Deployed, feature OFF at deploy time | Phase 3 presigned direct-to-R2 feed upload. Additive + opt-in: new `feed_upload_url` (verify_jwt=true) issues a room-scoped presigned PUT URL; `feed_validate` v20 (verify_jwt=true) now rejects a client `image_url` not under the room's R2 prefix (base64 path unchanged → zero impact on current traffic). Client uses the path only when `app_config.feed_presigned_upload_enabled` is true (seeded **false**) and falls back to base64 on any failure. Ships in a future app build; production behavior unchanged until the flag is flipped | `feed_upload_url` smoke: no-auth→401 (gateway), anon-bearer→`invalid_auth` (boots, imports resolve incl. presign); `feed_validate` v20 deployed (gateway 401 on no-auth); `deno check` parity with prior env quirks; `flutter analyze` clean; `flutter test` 481 passed/1 skipped incl. `test/features/feed/feed_presigned_upload_test.dart`. **Pre-rollout gate: keep flag false until the presigned client build is released and tested.** |
 | 2026-06-10 | Supabase Edge Function | `notify_friend` v31 on `ilxzpszgirhwxpeocygs` | Active / Deployed | Behavior-preserving refactor (Phase 2): split the ~1300-line monolith into `notify_friend/l10n.ts` (push locale templates + store-item names) and `notify_friend/pets.ts` (avatar maps + type resolution), routed CORS/JSON through `_shared/http.ts`. No request/response contract change; `verify_jwt` stays false. Investigated the "tiger avatar bug" — `tiger_stay.gif` is a real R2 404, so `tiger -> ghost_stay.gif` is a deliberate fallback and was left unchanged (documented in `pets.ts`) | Deployed via CLI `--no-verify-jwt` (bundled index/l10n/pets/_shared); confirmed live v31 + `verify_jwt=false` and byte-exact CJK l10n via `get_edge_function`; smoke calls return 401/400 (boots, imports resolve); `deno check` clean; `flutter analyze` clean; `flutter test` green (472 passed/1 skipped) incl. `test/notify_friend_module_split_test.dart` |
 | 2026-06-10 | Supabase migration | `20260610120000_add_room_home_summary_rpcs` on `ilxzpszgirhwxpeocygs` | Applied | Backward-compatible: two brand-new additive RPCs (`get_room_latest_feeds`, `get_room_member_counts`), both `SECURITY INVOKER` so existing RLS still governs access (no widened exposure); granted to `authenticated` only. Old app versions keep using their direct PostgREST queries; only new clients call the RPCs. Fixes the per-room latest-feed starvation bug and avoids transferring all member rows to count | MCP `apply_migration` success; smoke-tested both RPCs on live data; advisors show 0 new lints for the functions; `flutter analyze` clean; `flutter test` green (468 passed/1 skipped) incl. `test/room_home_summary_rpc_test.dart` and the home loading-performance introspection test |
 | 2026-06-10 | Supabase Edge Functions | `feed_validate` v19, `avatar_upload` v6, `notify_friend` v30, `hunger_tick_dispatch` v7 on `ilxzpszgirhwxpeocygs` | Active / Deployed | Backward-compatible: no request/response contract change; each function's `verify_jwt` preserved (`feed_validate`/`avatar_upload`=true, `notify_friend`/`hunger_tick_dispatch`=false). Adds shared `_shared/{http,images,auth}.ts`; `feed_validate` reclaims its R2 object if `process_feed_event` rolls back; `avatar_upload` deletes the previous avatar on replace and the new object on failed profile update; webhook/scheduler secrets now use constant-time compare | `flutter analyze` clean; `flutter test` green (463 passed/1 skipped); `test/edge_function_storage_safety_test.dart` + existing introspection tests. Deployed via MCP (feed_validate/avatar_upload/hunger_tick_dispatch) and Supabase CLI `--no-verify-jwt` (notify_friend); confirmed live versions + `verify_jwt` via `list_edge_functions`; edge-function logs show all-200, no boot/import errors |
@@ -73,7 +75,12 @@ Before uploading or submitting an app build:
 After App Store/TestFlight state changes:
 
 - Update the candidate status and next action.
-- When the build becomes public, move it to "Current Public Release".
+- After the full approved `release-notes-sync` flow completes for a target
+  version, treat that target version as the repo's Current Public Release for
+  workflow purposes, even if ASC still reports a post-submit state such as
+  `WAITING_FOR_REVIEW` or `PENDING_DEVELOPER_RELEASE`. Record the exact ASC
+  state and IDs in the tables, but do not leave the completed target tracked
+  only as a next release candidate.
 - Add the release git tag after the shipped state is verified.
 
 After backend deployment or migration:

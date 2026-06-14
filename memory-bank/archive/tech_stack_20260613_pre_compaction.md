@@ -2,7 +2,7 @@
 
 Active summary only. See source files, `pubspec.yaml`, and archived snapshots
 for exact historical versions. Latest snapshot:
-`memory-bank/archive/tech_stack_20260613_pre_compaction.md`.
+`memory-bank/archive/tech_stack_20260606_pre_compaction.md`.
 
 ## Core App
 - Flutter/Dart

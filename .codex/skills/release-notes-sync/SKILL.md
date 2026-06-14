@@ -98,7 +98,22 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
    - Confirm `test/app_store_metadata_terms_test.dart` passes before ASC upload.
    - Confirm the ASC update via `asc localizations list`.
-7. **Preserve History:** Never delete older bundled version entries or ARB keys.
+7. **Release Ledger Completion Rule:**
+   - After the whole approved release-notes-sync flow is complete for a target
+     version (local metadata, ASC localization sync, and any requested
+     archive/upload/submission steps), update `docs/release_status.md`,
+     `memory-bank/progress.md`, and `tasks/todo.md` as if that target version is
+     the live public version for repo workflow purposes.
+   - Move the target version into the Current Public Release / current-state
+     wording, move the previous current version into historical context if
+     needed, and make the next action "monitor review/store outcome" only as an
+     operational note.
+   - Do not leave the completed target version tracked as merely "next release
+     candidate" solely because App Store Connect still says
+     `WAITING_FOR_REVIEW`, `PENDING_DEVELOPER_RELEASE`, or another post-submit
+     state. Record the exact ASC state and IDs, but treat the completed target
+     version as the repo's current release baseline.
+8. **Preserve History:** Never delete older bundled version entries or ARB keys.
 
 ## Static Metadata URL Rules
 - **Marketing URL**: Always use `https://pet-app-702be.web.app/`.

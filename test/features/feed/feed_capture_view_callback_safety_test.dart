@@ -48,6 +48,52 @@ void main() {
     );
   });
 
+  test('dispatchFeedCaptureAsyncCallback swallows callback errors', () async {
+    final reportedErrors = <FlutterErrorDetails>[];
+    final previousOnError = FlutterError.onError;
+    FlutterError.onError = reportedErrors.add;
+    addTearDown(() => FlutterError.onError = previousOnError);
+
+    var called = false;
+
+    await dispatchFeedCaptureAsyncCallback(
+      callbackName: 'test_async_callback',
+      callback: () async {
+        called = true;
+        throw StateError('boom');
+      },
+    );
+
+    expect(called, isTrue);
+    expect(reportedErrors, hasLength(1));
+    expect(reportedErrors.single.exception, isA<StateError>());
+    expect(
+      reportedErrors.single.context!.toDescription(),
+      contains('while running test_async_callback'),
+    );
+  });
+
+  test(
+    'dispatchFeedCaptureAsyncCallback waits for callback completion',
+    () async {
+      final completer = Completer<void>();
+      var completed = false;
+
+      final future = dispatchFeedCaptureAsyncCallback(
+        callbackName: 'test_async_callback',
+        callback: () => completer.future,
+      ).then((_) => completed = true);
+
+      await Future<void>.delayed(Duration.zero);
+      expect(completed, isFalse);
+
+      completer.complete();
+      await future;
+
+      expect(completed, isTrue);
+    },
+  );
+
   testWidgets('ignores picked images after the capture route is disposed', (
     WidgetTester tester,
   ) async {
