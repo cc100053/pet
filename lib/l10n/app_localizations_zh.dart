@@ -1944,6 +1944,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew220Bullet3 => '改善动态、头像和通知相关的可靠性。';
+
+  @override
+  String get whatsNew221Title => '喂食反馈更清楚';
+
+  @override
+  String get whatsNew221Bullet1 => '照片喂食前会先更新饥饿度，变化更容易看懂。';
+
+  @override
+  String get whatsNew221Bullet2 => '即使更新步骤不顺，照片喂食也能更稳定地继续。';
+
+  @override
+  String get whatsNew221Bullet3 => '共享宠物的喂食体验更顺畅、更稳定。';
+
+  @override
+  String get whatsNew222Title => '问题修复';
+
+  @override
+  String get whatsNew222Bullet1 => '照片喂食较慢时，饥饿度现在会更稳定同步。';
+
+  @override
+  String get whatsNew222Bullet2 => '共享宠物的喂食结果会更可靠地更新。';
+
+  @override
+  String get whatsNew222Bullet3 => '加入细节稳定性改善，让照顾宠物更顺畅。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3876,4 +3900,28 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew220Bullet3 => '改善動態、頭像與通知相關的可靠性。';
+
+  @override
+  String get whatsNew221Title => '餵食回饋更清楚';
+
+  @override
+  String get whatsNew221Bullet1 => '相片餵食前會先更新飢餓度，變化更容易看懂。';
+
+  @override
+  String get whatsNew221Bullet2 => '即使更新步驟不順，相片餵食也能更穩定地繼續。';
+
+  @override
+  String get whatsNew221Bullet3 => '共享寵物的餵食體驗更順暢、更穩定。';
+
+  @override
+  String get whatsNew222Title => '錯誤修復';
+
+  @override
+  String get whatsNew222Bullet1 => '相片餵食較慢時，飢餓度現在會更穩定同步。';
+
+  @override
+  String get whatsNew222Bullet2 => '共享寵物的餵食結果會更可靠地更新。';
+
+  @override
+  String get whatsNew222Bullet3 => '加入細節穩定性改善，讓照顧寵物更順暢。';
 }

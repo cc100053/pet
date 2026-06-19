@@ -496,6 +496,41 @@ serve(async (req) => {
     }
   }
 
+  // Authoritative post-feed pet state. The feed reward path historically
+  // returned no hunger, so clients learned the new value only out-of-band via
+  // realtime / refetch, which raced (and lost) on slow uploads and left the
+  // satiety bar looking unchanged. Return the committed room-shared state so the
+  // client can apply it directly. Additive and optional: old clients ignore it.
+  const { data: feedPetStateRow } = await supabase
+    .from("room_pet_state")
+    .select(
+      "hunger, mood, hygiene, last_decay_at, last_feed_at, last_overfed_at, poop_at, poop_count, poop_positions",
+    )
+    .eq("room_id", roomId)
+    .maybeSingle();
+
+  const feedPetState = feedPetStateRow
+    ? {
+      hunger: feedPetStateRow.hunger,
+      mood: feedPetStateRow.mood,
+      hygiene: feedPetStateRow.hygiene,
+      last_decay_at: feedPetStateRow.last_decay_at,
+      last_feed_at: feedPetStateRow.last_feed_at,
+      last_overfed_at: feedPetStateRow.last_overfed_at,
+      poop_at: feedPetStateRow.poop_at,
+      poop_count: feedPetStateRow.poop_count,
+      poop_positions: feedPetStateRow.poop_positions,
+    }
+    : null;
+
+  // Overfed feeds add no hunger: apply_pet_action stamps last_overfed_at at the
+  // feed time (>= the new last_feed_at) only on the overfed branch.
+  const feedOverfed = feedPetState != null &&
+    typeof feedPetState.last_overfed_at === "string" &&
+    typeof feedPetState.last_feed_at === "string" &&
+    new Date(feedPetState.last_overfed_at).getTime() >=
+      new Date(feedPetState.last_feed_at).getTime();
+
   const notifyStartedAt = Date.now();
   const webhookQueued = queueBackgroundTask(
     notifyPartner({
@@ -541,6 +576,8 @@ serve(async (req) => {
     webhook_status: null,
     webhook_error: null,
     reward_status: rewardStatus,
+    pet_state: feedPetState,
+    overfed: feedOverfed,
     cooldown_scope: {
       user_id: authData.user.id,
       room_id: roomId,

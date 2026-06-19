@@ -322,6 +322,13 @@ extension _HomeRoomManager on _HomeViewState {
         PetHomeGalleryFeedData.fromRoomSnapshot(roomSnapshot),
       );
     });
+    // Seed the freshness clock with the warm value we just painted so a stale
+    // refetch/realtime snapshot cannot regress the satiety bar after re-entry.
+    final warmPetId = warmEntry ? cachedPetId : null;
+    final warmPetState = warmEntry ? cachedPetState : null;
+    if (warmPetId != null && warmPetState != null) {
+      _noteAppliedPetStateClock(warmPetId, warmPetState);
+    }
     _overfedBubbleTimer?.cancel();
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;

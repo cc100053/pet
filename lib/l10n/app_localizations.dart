@@ -3614,6 +3614,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Feed, avatar, and notification reliability has been improved.'**
   String get whatsNew220Bullet3;
+
+  /// No description provided for @whatsNew221Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Feeding feedback is clearer'**
+  String get whatsNew221Title;
+
+  /// No description provided for @whatsNew221Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Hunger refreshes before photo feeds so changes feel easier to understand.'**
+  String get whatsNew221Bullet1;
+
+  /// No description provided for @whatsNew221Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo feeding handles refresh hiccups more reliably.'**
+  String get whatsNew221Bullet2;
+
+  /// No description provided for @whatsNew221Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared pet feeding feels smoother and steadier.'**
+  String get whatsNew221Bullet3;
+
+  /// No description provided for @whatsNew222Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug fixes'**
+  String get whatsNew222Title;
+
+  /// No description provided for @whatsNew222Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Hunger now stays in sync after slower photo feeds.'**
+  String get whatsNew222Bullet1;
+
+  /// No description provided for @whatsNew222Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared pet feeding results update more reliably.'**
+  String get whatsNew222Bullet2;
+
+  /// No description provided for @whatsNew222Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Small stability fixes keep pet care smoother.'**
+  String get whatsNew222Bullet3;
 }
 
 class _AppLocalizationsDelegate

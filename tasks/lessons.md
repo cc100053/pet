@@ -1,10 +1,39 @@
 # Lessons
 
+## 2026-06-19
+- "Fed but the satiety bar didn't move" was never a server-write bug: the DB
+  applied +25 each time. Root cause was that the write changing hunger
+  (`process_feed_event`/`feed_validate`) returned NO hunger, so the client
+  learned it out-of-band (realtime/refetch) with last-writer-wins and no
+  ordering. A slow upload (the reported event: 25.5s server-side vs ~2s normal)
+  widened the window for a stale pre-feed snapshot to land last. Each past "fix"
+  patched one ordering/anchor; the durable fix is to (a) make the mutating
+  response authoritative and (b) give the client a monotonic guard.
+- When a value only moves one direction except for one event (hunger only drops
+  via decay, which advances `last_decay_at`), reuse that existing anchor as the
+  ordering clock instead of adding a new `updated_at` column — same correctness,
+  zero migration / zero core-RPC blast radius.
+- Returning authoritative state from an Edge Function can be a pure additive
+  response field (here: read `room_pet_state` after the committed RPC). Prefer it
+  over changing a DB function's `RETURNS TABLE` signature, which needs DROP +
+  CREATE and risks old PostgREST callers.
+- Keep transient server-truth (the returned `pet_state`) OUT of durable Hive
+  result JSON so a stale snapshot is never replayed from disk on a later run and
+  the persisted queue shape stays backward-compatible.
+
 ## 2026-06-15
 - When a user reports a before/after metric like `65 > 65`, do not stop at
   proving the backend wrote a later value. Trace whether the client displayed a
   stale pre-action value while the server applied hidden catch-up logic
   immediately before the action.
+- When an `asc` wrapper returns App Store Connect `-50` for version creation or
+  localization upload, do not assume ASC state is blocking and do not mutate an
+  approved previous version. Use the repo's direct App Store Connect API
+  fallback script and verify by read-back.
+- For `release-notes-sync`, once the user approves the localized draft, the
+  default flow must continue through local metadata updates, ASC metadata sync,
+  IPA build, upload, processing verification, and build attachment. Stop before
+  App Review submission unless the user explicitly asks to submit.
 
 ## 2026-06-11
 - After the full approved `release-notes-sync` flow completes, treat the target

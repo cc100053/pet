@@ -2035,4 +2035,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew220Bullet3 =>
       'Feed, avatar, and notification reliability has been improved.';
+
+  @override
+  String get whatsNew221Title => 'Feeding feedback is clearer';
+
+  @override
+  String get whatsNew221Bullet1 =>
+      'Hunger refreshes before photo feeds so changes feel easier to understand.';
+
+  @override
+  String get whatsNew221Bullet2 =>
+      'Photo feeding handles refresh hiccups more reliably.';
+
+  @override
+  String get whatsNew221Bullet3 =>
+      'Shared pet feeding feels smoother and steadier.';
+
+  @override
+  String get whatsNew222Title => 'Bug fixes';
+
+  @override
+  String get whatsNew222Bullet1 =>
+      'Hunger now stays in sync after slower photo feeds.';
+
+  @override
+  String get whatsNew222Bullet2 =>
+      'Shared pet feeding results update more reliably.';
+
+  @override
+  String get whatsNew222Bullet3 =>
+      'Small stability fixes keep pet care smoother.';
 }

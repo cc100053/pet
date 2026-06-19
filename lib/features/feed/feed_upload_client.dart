@@ -189,6 +189,7 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
         ? cooldownPayload
         : <String, dynamic>{};
 
+    final petStatePayload = data['pet_state'];
     return FeedUploadResult(
       tempId: job.tempId,
       coinsAwarded: _parseInt(data['coins_awarded']),
@@ -198,6 +199,12 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
       cooldownActive: cooldown['is_active'] == true,
       lastFedAt: _parseString(cooldown['last_fed_at']),
       nextEligibleAt: _parseString(cooldown['next_eligible_at']),
+      petState: petStatePayload is Map<String, dynamic>
+          ? petStatePayload
+          : (petStatePayload is Map
+                ? Map<String, dynamic>.from(petStatePayload)
+                : null),
+      overfed: data['overfed'] == true,
     );
   }
 

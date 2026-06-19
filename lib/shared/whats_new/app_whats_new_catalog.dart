@@ -7,6 +7,26 @@ class AppWhatsNewCatalog {
 
   static const List<AppWhatsNewEntry> entries = <AppWhatsNewEntry>[
     AppWhatsNewEntry(
+      version: '2.2.2',
+      titleBuilder: _version222Title,
+      bulletBuilders: <AppWhatsNewTextBuilder>[
+        _version222Bullet1,
+        _version222Bullet2,
+        _version222Bullet3,
+      ],
+      actionLabelBuilder: _continueLabel,
+    ),
+    AppWhatsNewEntry(
+      version: '2.2.1',
+      titleBuilder: _version221Title,
+      bulletBuilders: <AppWhatsNewTextBuilder>[
+        _version221Bullet1,
+        _version221Bullet2,
+        _version221Bullet3,
+      ],
+      actionLabelBuilder: _continueLabel,
+    ),
+    AppWhatsNewEntry(
       version: '2.2.0',
       titleBuilder: _version220Title,
       bulletBuilders: <AppWhatsNewTextBuilder>[
@@ -158,6 +178,24 @@ class AppWhatsNewCatalog {
     }
     return null;
   }
+
+  static String _version222Title(AppLocalizations l10n) =>
+      l10n.whatsNew222Title;
+  static String _version222Bullet1(AppLocalizations l10n) =>
+      l10n.whatsNew222Bullet1;
+  static String _version222Bullet2(AppLocalizations l10n) =>
+      l10n.whatsNew222Bullet2;
+  static String _version222Bullet3(AppLocalizations l10n) =>
+      l10n.whatsNew222Bullet3;
+
+  static String _version221Title(AppLocalizations l10n) =>
+      l10n.whatsNew221Title;
+  static String _version221Bullet1(AppLocalizations l10n) =>
+      l10n.whatsNew221Bullet1;
+  static String _version221Bullet2(AppLocalizations l10n) =>
+      l10n.whatsNew221Bullet2;
+  static String _version221Bullet3(AppLocalizations l10n) =>
+      l10n.whatsNew221Bullet3;
 
   static String _version220Title(AppLocalizations l10n) =>
       l10n.whatsNew220Title;

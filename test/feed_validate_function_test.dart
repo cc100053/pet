@@ -29,4 +29,18 @@ void main() {
     expect(source, contains('process_feed_duration_ms: processFeedDurationMs'));
     expect(source, contains('[feed_validate] notify_partner_complete'));
   });
+
+  test('feed validate returns authoritative post-feed pet state (additive)', () {
+    // Reads the committed room-shared state and returns it so clients no longer
+    // depend on a racy realtime/refetch to learn the new satiety value.
+    expect(source, contains('.from("room_pet_state")'));
+    expect(source, contains('last_decay_at'));
+    expect(source, contains('pet_state: feedPetState'));
+    expect(source, contains('overfed: feedOverfed'));
+    // Backward-compatible: existing response fields must stay present + typed.
+    expect(source, contains('coins_awarded: totalReward'));
+    expect(source, contains('reward_status: rewardStatus'));
+    expect(source, contains('webhook_skipped: false'));
+    expect(source, contains('is_active: cooldownIsActive'));
+  });
 }

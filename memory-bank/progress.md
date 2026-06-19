@@ -5,10 +5,12 @@ Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/progress_20260613_pre_compaction.md`.
 
 ## Current State
-- Repo current release baseline is iOS `2.2.0+6` after the completed
-  `release-notes-sync` flow. ASC still reported `WAITING_FOR_REVIEW` on
-  2026-06-11, but repo workflow treats the completed target as current for
-  tracking; exact IDs and backend deployment history live in
+- Repo current release baseline is iOS `2.2.2+8` after the completed
+  `release-notes-sync` flow. ASC version
+  `1761de51-ec73-46e4-8b6f-134d9c650e1d` is `PREPARE_FOR_SUBMISSION`; build
+  `702c2f8d-770f-40ec-a013-19cab3c1d098` is `VALID`, encryption `exempt`, and
+  attached. Localized release notes were synced via direct App Store Connect
+  API fallback; exact IDs and backend deployment history live in
   `docs/release_status.md`.
 - Flutter is pinned by `.fvmrc` to `3.44.0` / Dart `3.12.0`; normal local and
   release-sensitive commands use bare `flutter ...` after confirming the
@@ -31,6 +33,11 @@ Active progress stays current-state focused. Full snapshots live in
   old timeout state can silently reconcile instead of replaying stale errors.
 - Home refreshes/ticks visible pet state before queueing a feed upload, so the
   hunger bar does not compare a stale pre-decay value with the post-feed value.
+- `feed_validate` v21 returns authoritative post-feed `pet_state` + `overfed`
+  (additive). The client applies it directly, guards all `pet_state` writes with
+  a `last_decay_at` freshness clock (stale snapshots can't regress the satiety
+  bar), and predicts +25 optimistically on enqueue. Root fix for the
+  intermittent "fed but hunger didn't move" race on slow uploads.
 - Presigned direct-to-R2 feed upload is enabled through
   `app_config.feed_presigned_upload_enabled`; new clients fall back to base64
   on failure, and old clients are unaffected.
@@ -64,12 +71,20 @@ Active progress stays current-state focused. Full snapshots live in
   `scripts/export_ios_appstore_no_apple_symbols.sh` when uploading an existing
   iOS archive while avoiding Apple's immediate symbol-upload warning.
 - For ASC release upload flows, build with explicit build name/number, verify
-  the IPA, upload with `asc builds upload`, and wait with `asc builds wait`.
+  the exported IPA is not stale, upload with `asc builds upload`, and wait with
+  `asc builds wait`.
+- If `asc versions create`, `asc versions view`, or
+  `asc localizations upload` returns App Store Connect `-50`, use
+  `scripts/asc_version_localization_sync.py` with the bundled Codex Python as
+  the direct API fallback; it creates/reuses versions, syncs local `.strings`,
+  verifies `whatsNew`/`promotionalText`, and checks direct EULA footers.
 - Edge Function `verify_jwt` settings are not centralized in a checked-in
   `supabase/config.toml`; verify live config before redeploying.
 
 ## Open Items
-- Monitor App Store review/store outcome for iOS `2.2.0+6`.
+- Run ASC submission preflight for iOS `2.2.2+8`, then submit for review if
+  approved.
+- Monitor App Store/store outcome for iOS `2.2.0+6`.
 - End-to-end verify presigned feed upload on a live v2.2.0 build and watch
   `feed_upload_url` / `feed_validate` logs.
 - Confirm Supabase secrets/config are set for `delete_account` and

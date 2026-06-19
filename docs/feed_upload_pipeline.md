@@ -38,6 +38,19 @@ The response fields consumed by clients are:
 - `cooldown.is_active`
 - `cooldown.last_fed_at`
 - `cooldown.next_eligible_at`
+- `pet_state` (optional, v21+): authoritative committed post-feed state read from
+  `room_pet_state` — `hunger`, `mood`, `hygiene`, `last_decay_at`,
+  `last_feed_at`, `last_overfed_at`, `poop_at`, `poop_count`, `poop_positions`.
+- `overfed` (optional, v21+): true when the feed added no hunger (fed again
+  inside the 10-minute burst window).
+
+`pet_state`/`overfed` exist because the reward path historically returned no
+hunger, so the satiety bar depended on a realtime event / refetch that could
+race and lose on slow uploads (intermittent "fed but hunger didn't move"). The
+client now applies `pet_state` directly. They are additive and optional: old
+clients ignore them. New clients also keep a `last_decay_at` freshness guard so
+a stale pre-feed snapshot can never regress a fresher value, plus an optimistic
++25 prediction on enqueue that the authoritative value reconciles.
 
 Compatibility fields should stay stable for old clients and debug tools:
 

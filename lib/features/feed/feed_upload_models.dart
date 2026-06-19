@@ -31,6 +31,8 @@ class FeedUploadResult {
     this.lastFedAt,
     this.nextEligibleAt,
     this.reconciled = false,
+    this.petState,
+    this.overfed = false,
   });
 
   final String tempId;
@@ -43,6 +45,16 @@ class FeedUploadResult {
   final String? nextEligibleAt;
   final bool reconciled;
 
+  /// Authoritative committed pet state (hunger/mood/last_decay_at/…) returned by
+  /// `feed_validate`. Transient only: deliberately excluded from [toJson] so the
+  /// durable queue shape stays stable and a stale snapshot is never replayed
+  /// from disk on a later app run.
+  final Map<String, dynamic>? petState;
+
+  /// True when the server applied no hunger gain (fed again inside the burst
+  /// window). Also transient/not persisted.
+  final bool overfed;
+
   FeedUploadResult copyWith({
     String? tempId,
     int? coinsAwarded,
@@ -53,6 +65,8 @@ class FeedUploadResult {
     String? lastFedAt,
     String? nextEligibleAt,
     bool? reconciled,
+    Map<String, dynamic>? petState,
+    bool? overfed,
   }) {
     return FeedUploadResult(
       tempId: tempId ?? this.tempId,
@@ -64,6 +78,8 @@ class FeedUploadResult {
       lastFedAt: lastFedAt ?? this.lastFedAt,
       nextEligibleAt: nextEligibleAt ?? this.nextEligibleAt,
       reconciled: reconciled ?? this.reconciled,
+      petState: petState ?? this.petState,
+      overfed: overfed ?? this.overfed,
     );
   }
 

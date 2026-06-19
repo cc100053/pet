@@ -1954,4 +1954,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew220Bullet3 => 'フィード、アバター、通知まわりの信頼性を改善しました。';
+
+  @override
+  String get whatsNew221Title => 'ごはんの変化がより分かりやすく';
+
+  @override
+  String get whatsNew221Bullet1 => '写真でごはんをあげる前に空腹度を更新し、変化がより分かりやすくなりました。';
+
+  @override
+  String get whatsNew221Bullet2 => '更新がうまくいかない時も、写真での餌やりがより安定して続きます。';
+
+  @override
+  String get whatsNew221Bullet3 => '共有ペットの餌やり体験をよりスムーズに整えました。';
+
+  @override
+  String get whatsNew222Title => '不具合の修正';
+
+  @override
+  String get whatsNew222Bullet1 => '写真での餌やりが遅い時も、空腹度がより正しく同期されます。';
+
+  @override
+  String get whatsNew222Bullet2 => '共有ペットの餌やり結果がより安定して更新されます。';
+
+  @override
+  String get whatsNew222Bullet3 => 'より快適にお世話できるよう、細かな安定性を改善しました。';
 }

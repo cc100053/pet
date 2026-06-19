@@ -216,6 +216,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _setStateForFeedOrchestrator(() {
         _feedRewardPendingCount += 1;
       });
+      _applyOptimisticFeedHunger(entry.roomId);
     }
     _pendingOptimisticFeedsByTempId[entry.tempId] =
         PendingPetHomeOptimisticFeed(
@@ -429,6 +430,15 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       ),
     );
     final refreshRoomId = optimisticRoomId ?? roomId;
+    // Apply the authoritative committed satiety value straight from the feed
+    // response so the bar reflects the fed value immediately and deterministically,
+    // instead of depending on a realtime event / refetch that can race and lose
+    // on slow uploads. The freshness guard inside makes the follow-up refresh
+    // below harmless (a staler read can no longer regress this value).
+    final authoritativePetState = result.petState;
+    if (authoritativePetState != null && refreshRoomId != null) {
+      _applyAuthoritativeFeedPetState(refreshRoomId, authoritativePetState);
+    }
     if (refreshRoomId != null) {
       unawaited(_refreshLatestRoomPhoto(refreshRoomId));
       unawaited(_refreshLatestFeed(refreshRoomId));
@@ -730,6 +740,15 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         ),
       ),
     );
+    // A "failure" can still mean the server committed the feed (e.g. a slow
+    // upload that exceeded the client retry budget). Reconcile pet state and
+    // coins so the satiety bar / balance recover instead of staying stale; the
+    // freshness guard keeps this from regressing a newer value.
+    final roomId = _roomId;
+    if (roomId != null) {
+      unawaited(_refreshFeedRoomPetState(roomId));
+      unawaited(_loadCoinsInternal());
+    }
   }
 
   Future<void> _refreshLatestFeed(String roomId) async {
@@ -850,6 +869,57 @@ extension _HomeFeedOrchestrator on _HomeViewState {
 
   void _armOverfedBubbleForFeedEvent() {
     _overfedFeedEventArmedAt = DateTime.now().toUtc();
+  }
+
+  /// Predicts the +25 satiety gain locally on enqueue so a slow upload still
+  /// shows immediate feedback. Skipped when the pet was fed within the 10-minute
+  /// burst window (the next feed is likely overfed -> no gain); either way the
+  /// authoritative `feed_validate` value reconciles the true result on
+  /// completion. Deliberately does NOT advance the freshness clock, so a genuine
+  /// newer server snapshot can still apply over this prediction.
+  void _applyOptimisticFeedHunger(String feedRoomId) {
+    if (!mounted) {
+      return;
+    }
+    final roomId = _roomId;
+    if (roomId == null || feedRoomId != roomId) {
+      return;
+    }
+    final petState = _petState;
+    if (petState == null) {
+      return;
+    }
+    final current = (petState['hunger'] as num?)?.toDouble();
+    if (current == null) {
+      return;
+    }
+    final lastFeed = _parseOptionalDate(petState['last_feed_at'])?.toUtc();
+    final recentlyFed =
+        lastFeed != null &&
+        DateTime.now().toUtc().difference(lastFeed) <
+            const Duration(minutes: 10);
+    if (recentlyFed) {
+      return;
+    }
+    final optimistic = min(
+      100,
+      current.round() + _HomeViewState._feedHungerGain,
+    );
+    if (optimistic <= current.round()) {
+      return;
+    }
+    final healthValue = _healthValueFromHunger(optimistic);
+    _setStateForFeedOrchestrator(() {
+      _petState = {...petState, 'hunger': optimistic};
+      _myRooms = _myRooms
+          .map(
+            (room) => room['id'] == roomId
+                ? {...room, 'pet_health': healthValue}
+                : room,
+          )
+          .toList(growable: false);
+    });
+    _syncPetStateProvider();
   }
 
   Offset _pickFoodPlacement(Size fieldSize) {

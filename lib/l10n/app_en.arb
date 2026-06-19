@@ -1035,5 +1035,13 @@
   "whatsNew220Title": "Photo sharing feels smoother",
   "whatsNew220Bullet1": "Feeding photos is prepared for a faster upload flow.",
   "whatsNew220Bullet2": "Shared rooms load latest photos and member counts more efficiently.",
-  "whatsNew220Bullet3": "Feed, avatar, and notification reliability has been improved."
+  "whatsNew220Bullet3": "Feed, avatar, and notification reliability has been improved.",
+  "whatsNew221Title": "Feeding feedback is clearer",
+  "whatsNew221Bullet1": "Hunger refreshes before photo feeds so changes feel easier to understand.",
+  "whatsNew221Bullet2": "Photo feeding handles refresh hiccups more reliably.",
+  "whatsNew221Bullet3": "Shared pet feeding feels smoother and steadier.",
+  "whatsNew222Title": "Bug fixes",
+  "whatsNew222Bullet1": "Hunger now stays in sync after slower photo feeds.",
+  "whatsNew222Bullet2": "Shared pet feeding results update more reliably.",
+  "whatsNew222Bullet3": "Small stability fixes keep pet care smoother."
 }

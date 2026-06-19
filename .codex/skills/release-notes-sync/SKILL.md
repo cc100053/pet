@@ -58,7 +58,7 @@ Keep bundled `What's New` copy and App Store Connect `whatsNew` / `promotionalTe
 When the user provides a version and a summary (e.g., in Cantonese like "v1.0.5 呢個更新主要係一個安全性更新..."):
 1. **Translate & Draft:** Generate localized drafts for all supported locales (`en-US`, `ja`, `ko`, `zh-Hant`).
 2. **Review Formatting:** Ensure the ASC `whatsNew` follows the "Ver X.X.X Update Details" header format used in this repo.
-3. **Present for Approval:** Display the drafts clearly. **Explain that approving these drafts (e.g., "proceed", "OK") will trigger both local file updates AND the App Store Connect sync.**
+3. **Present for Approval:** Display the drafts clearly. **Explain that approving these drafts (e.g., "proceed", "OK") will trigger the full release-notes flow: local file updates, App Store Connect metadata sync, App Store IPA build, IPA upload, build processing wait/check, and build attachment. App Store Review submission still requires an explicit submission request.**
 
 ### Phase 1: Execution (After Approval)
 Once the user approves the drafts, perform the following steps autonomously:
@@ -72,9 +72,27 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Check if the version (e.g., `1.0.6`) exists in ASC via `asc versions list`.
    - If missing, create it via `asc versions create --copy-metadata-from <PREVIOUS_VERSION>`.
    - Upload the local `.strings` files using `asc localizations upload`.
-5. **Archive, Upload, And Build Processing:**
-   - When the user asks to archive/upload the release build as part of this flow,
-     archive with the repo's existing Flutter/Xcode Runner settings; do not add
+   - If `asc versions create`, `asc versions view`, or
+     `asc localizations upload` returns App Store Connect `-50`, treat it as a
+     known `asc` wrapper failure for this repo. Do **not** rename an existing
+     approved version and do not upload new release notes into the previous
+     version. Use the direct API fallback instead:
+     ```bash
+     ASC_KEY_ID="..." ASC_ISSUER_ID="..." ASC_PRIVATE_KEY_PATH="..." \
+       /Users/fatboy/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 \
+       scripts/asc_version_localization_sync.py \
+       --app 6757725650 \
+       --version <VERSION> \
+       --localizations-dir .asc/version-localizations
+     ```
+   - Verify a fallback run with `asc versions list --app 6757725650 --output table`
+     and/or the script's final read-back output. The script refuses to sync
+     descriptions that do not include the direct Apple Standard EULA URL.
+5. **Archive, Upload, And Build Processing (Default After Approval):**
+   - After the user approves the draft, archive/upload is part of the default
+     release-notes-sync execution. Do not stop after ASC metadata sync unless
+     the user explicitly asks for metadata-only / draft-only work.
+   - Archive with the repo's existing Flutter/Xcode Runner settings; do not add
      iPad support or change device-family settings.
    - Preflight the active iOS target settings before archiving and preserve:
      `TARGETED_DEVICE_FAMILY = 1`, `SUPPORTED_PLATFORMS = iphoneos iphonesimulator`,
@@ -94,14 +112,26 @@ Once the user approves the drafts, perform the following steps autonomously:
      `asc builds uploads list --app 6757725650 --output table`; an upload row in
      `PROCESSING` means Apple accepted the IPA but has not exposed the build
      entity yet. Keep polling until `VALID`, `FAILED`, or timeout.
+   - If `asc builds wait` times out while resolving the build selector, do not
+     assume upload failure. Check:
+     ```bash
+     asc builds uploads list --app 6757725650 --output table
+     asc builds info --latest --app 6757725650 --platform IOS --output table
+     ```
+     If the target version/build is `VALID`, attach it to the ASC version with
+     `asc versions attach-build --version-id <VERSION_ID> --build <BUILD_ID>`.
+   - Attaching the processed build is part of the default approved
+     release-notes-sync flow. Submitting for App Review is not; only submit when
+     the user explicitly asks for submission/review.
 6. **Validation & Verification:**
    - Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
    - Confirm `test/app_store_metadata_terms_test.dart` passes before ASC upload.
    - Confirm the ASC update via `asc localizations list`.
 7. **Release Ledger Completion Rule:**
    - After the whole approved release-notes-sync flow is complete for a target
-     version (local metadata, ASC localization sync, and any requested
-     archive/upload/submission steps), update `docs/release_status.md`,
+     version (local metadata, ASC localization sync, archive/upload, build
+     processing verification, build attachment, and any requested submission
+     steps), update `docs/release_status.md`,
      `memory-bank/progress.md`, and `tasks/todo.md` as if that target version is
      the live public version for repo workflow purposes.
    - Move the target version into the Current Public Release / current-state
@@ -150,6 +180,28 @@ asc localizations upload --version <VERSION_ID> --locale ja --path .asc/version-
 ```bash
 asc localizations list --version <VERSION_ID> --output table
 ```
+
+### Direct API Fallback For ASC `-50`
+The `asc` CLI wrappers can return Apple's generic `-50` error even when the
+same operation succeeds through the public App Store Connect API. This repo has
+a checked-in fallback:
+
+```bash
+ASC_KEY_ID="..." ASC_ISSUER_ID="..." ASC_PRIVATE_KEY_PATH="..." \
+  /Users/fatboy/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 \
+  scripts/asc_version_localization_sync.py \
+  --app 6757725650 \
+  --version <VERSION> \
+  --localizations-dir .asc/version-localizations
+```
+
+Use `--dry-run` first when diagnosing. The fallback is idempotent: it reuses an
+existing version if present, creates the version if missing, creates or patches
+the locale records from `.asc/version-localizations/*.strings`, and reads back
+the result to confirm `promotionalText`, `whatsNew`, and the direct EULA footer
+are present. Use the bundled Codex Python shown above because the system
+`python3` available to elevated network commands may not include
+`cryptography`.
 
 ## Content Guardrails
 - Bundled bullets must stay user-facing.

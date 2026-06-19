@@ -62,6 +62,11 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   80, and caches newest canonical messages in Hive.
 - Feed uploads are queue-owned. Home owns global completion/failure effects and
   refreshes the original room; Chat reconciles optimistic rows locally.
+- Feed satiety is authoritative end-to-end: `feed_validate` v21 returns the
+  committed `pet_state`/`overfed`; Home applies it directly and guards every
+  `pet_state` write with a per-pet `last_decay_at` freshness clock
+  (`feed_pet_state_freshness.dart`) so a stale snapshot cannot regress a fresher
+  value. Optimistic +25 on enqueue is reconciled by the authoritative value.
 - Force update and What's New remain separate gates.
 - Invite links use `invite_code`; avoid bare `code` because Supabase Auth can
   treat it as a PKCE callback parameter.

@@ -57,6 +57,7 @@ import '../../shared/utils/avatar_display_position.dart';
 import '../chat/chat_room_view_v2.dart';
 import '../ads/admob_banner_slot.dart';
 import '../feed/feed_capture_view.dart';
+import '../feed/feed_pet_state_freshness.dart';
 import '../feed/feed_upload_queue.dart';
 import '../gallery/memory_calendar_view.dart';
 import '../pet/equipment_catalog.dart';
@@ -142,6 +143,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const double _petExpandedVisualScale = 0.88;
   static const _photoFoodSize = Size(82, 82);
   static const int _optimisticFeedRewardCoins = 10;
+  // Mirrors the server `apply_pet_action('feed')` satiety gain (least(100, +25)).
+  // Used for the optimistic local prediction; the authoritative value reconciles.
+  static const int _feedHungerGain = 25;
   static const double _petMoveSpeed = 30;
   static const int _minMoveMs = 260;
   static const Duration _foodDropDuration = Duration(milliseconds: 760);
@@ -184,6 +188,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, DepartedPetInfo> _departedPetsByRoom = {};
   final Map<String, Map<String, dynamic>> _petStateByRoom = {};
   final Map<String, String> _petIdByRoom = {};
+  // Monotonic freshness clock per pet, keyed by the server `last_decay_at`.
+  // hunger only ever drops when passive decay advances `last_decay_at`, so a
+  // pet_state snapshot whose anchor is strictly older than the last applied one
+  // is stale (e.g. a pre-feed tick read arriving after the fed value) and must
+  // not overwrite a fresher value. This is the root guard against the
+  // intermittent "fed but satiety bar didn't move" race on slow uploads.
+  final Map<String, DateTime> _petStateDecayClockByPetId = {};
   final Map<String, List<_RoomPet>> _roomPetsByRoom = {};
   final Map<String, _ExtraPetRuntime> _extraPetRuntime = {};
   // Which pet the equipment panel is currently dressing. Persisted across the
@@ -1038,6 +1049,66 @@ class _HomeViewState extends ConsumerState<HomeView>
     _petIdByRoom[roomId] = petId;
   }
 
+  /// Whether an incoming `pet_state`/`room_pet_state` snapshot for [petId] is at
+  /// least as fresh as the last one applied. Snapshots with a strictly older
+  /// `last_decay_at` anchor are stale and dropped. Records without an anchor are
+  /// accepted (they cannot be ordered) but do not move the clock.
+  bool _isPetStateRecordFresh(String petId, Map<String, dynamic>? record) {
+    if (record == null) {
+      return false;
+    }
+    return petStateSnapshotIsFresh(
+      held: _petStateDecayClockByPetId[petId],
+      incoming: parseOptionalDate(record['last_decay_at'])?.toUtc(),
+    );
+  }
+
+  void _noteAppliedPetStateClock(String petId, Map<String, dynamic> record) {
+    final incoming = parseOptionalDate(record['last_decay_at'])?.toUtc();
+    if (incoming == null) {
+      return;
+    }
+    final held = _petStateDecayClockByPetId[petId];
+    if (held == null || incoming.isAfter(held)) {
+      _petStateDecayClockByPetId[petId] = incoming;
+    }
+  }
+
+  /// Applies the authoritative committed pet state returned by `feed_validate`
+  /// directly, so the satiety bar reflects the just-fed value without depending
+  /// on a racy realtime event or refetch. Merged (not replaced) so columns the
+  /// edge function does not return (alerts, feed_count, …) are preserved.
+  void _applyAuthoritativeFeedPetState(
+    String roomId,
+    Map<String, dynamic> petState,
+  ) {
+    if (!mounted || roomId != _roomId) {
+      return;
+    }
+    final petId = _petId;
+    if (petId == null || !_isPetStateRecordFresh(petId, petState)) {
+      return;
+    }
+    final merged = <String, dynamic>{...?_petState, ...petState};
+    final hunger = merged['hunger'] as num?;
+    final healthValue = _healthValueFromHunger(hunger);
+    setState(() {
+      _petState = merged;
+      _petStateReady = true;
+      _myRooms = _myRooms
+          .map(
+            (room) => room['id'] == roomId
+                ? {...room, 'pet_health': healthValue}
+                : room,
+          )
+          .toList();
+    });
+    _noteAppliedPetStateClock(petId, merged);
+    _cachePetState(roomId, petId, merged);
+    _syncPetStateProvider();
+    _handleOverfedState();
+  }
+
   void _applyPetStateUpdate(
     String roomId,
     String petId,
@@ -1046,6 +1117,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (state == null) {
       return;
     }
+    if (!_isPetStateRecordFresh(petId, state)) {
+      return;
+    }
+    _noteAppliedPetStateClock(petId, state);
     _cachePetState(roomId, petId, state);
     _subscribeToPetState(petId);
     final hunger = state['hunger'] as num?;
@@ -1855,27 +1930,38 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) {
         return;
       }
+      // A refetch normally returns the freshest value, but if a newer realtime
+      // snapshot already landed, this read can be stale — don't let it clobber.
+      final isStaleSnapshot =
+          state != null && !_isPetStateRecordFresh(petId, state);
       final hunger = state?['hunger'] as num?;
       final healthValue = _healthValueFromHunger(hunger);
 
       setState(() {
         _petId = petId;
-        _petState = state;
+        if (!isStaleSnapshot) {
+          _petState = state;
+          _myRooms = _myRooms
+              .map(
+                (room) => room['id'] == roomId
+                    ? {...room, 'pet_health': healthValue}
+                    : room,
+              )
+              .toList();
+        }
         _petStateReady = true;
-        _myRooms = _myRooms
-            .map(
-              (room) => room['id'] == roomId
-                  ? {...room, 'pet_health': healthValue}
-                  : room,
-            )
-            .toList();
       });
       _syncPetStateProvider();
-      if (state != null) {
+      if (state != null && !isStaleSnapshot) {
+        _noteAppliedPetStateClock(petId, state);
         _cachePetState(roomId, petId, state);
       }
       _handleOverfedState();
-      _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
+      _handlePetDepartureState(
+        roomId: roomId,
+        petId: petId,
+        state: isStaleSnapshot ? _petState : state,
+      );
       unawaited(_loadPetEquipment(petId: petId, roomId: roomId, silent: true));
     } catch (error) {
       if (!mounted) {
@@ -1925,9 +2011,16 @@ class _HomeViewState extends ConsumerState<HomeView>
         _refreshPetState();
         return;
       }
+      // Drop stale realtime snapshots (e.g. a pre-feed decay tick arriving after
+      // the fed value) so they cannot overwrite a fresher satiety reading.
+      if (!_isPetStateRecordFresh(petId, record)) {
+        return;
+      }
+      final nextState = Map<String, dynamic>.from(record);
+      _noteAppliedPetStateClock(petId, nextState);
       setState(() {
         _petId = petId;
-        _petState = Map<String, dynamic>.from(record);
+        _petState = nextState;
         _petStateReady = true;
         final hunger = _petState?['hunger'] as num?;
         final healthValue = _healthValueFromHunger(hunger);
@@ -2847,6 +2940,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           .eq('pet_id', petId)
           .maybeSingle();
       if (!mounted || state == null) return;
+      if (!_isPetStateRecordFresh(petId, state)) {
+        return;
+      }
+      _noteAppliedPetStateClock(petId, state);
       setState(() {
         _petId = petId;
         _petState = state;

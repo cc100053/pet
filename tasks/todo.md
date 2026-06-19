@@ -8,18 +8,166 @@ Latest historical snapshot before compaction:
 `tasks/archive/todo_20260606_pre_compaction.md`.
 
 ## Active Follow-ups
-- [~] Monitor App Store review/store outcome for repo-current iOS `2.2.0+6`.
-      ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58`, build
-      `ef250ff1-c94e-45db-9043-dd9f7942ca1b`, submission
-      `8e1526cd-e1a7-4681-bbba-8490a33d4b53`; exact ASC state is
-      `WAITING_FOR_REVIEW`, but release workflow treats `2.2.0+6` as the
-      current live baseline.
+- [ ] Run ASC submission preflight for repo-current iOS `2.2.2+8`, then submit
+      ASC version `1761de51-ec73-46e4-8b6f-134d9c650e1d` with attached build
+      `702c2f8d-770f-40ec-a013-19cab3c1d098` for review if approved.
 - [ ] Confirm Crashlytics receives dSYMs from the Firebase Apple SPM path.
 - [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
       8.0.0 upgrade.
 - [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
+
+## Review (2026-06-19 Feed satiety "didn't move" root fix)
+- Investigated the reported event in Supabase: pet `雞皮` room
+  `c250fc59-67f9-4302-8cbc-e349b1f6cad6`, feed on 2026-06-18 05:54:33 UTC
+  (13:54 HKT) had a **25.5s** server-vs-client delay vs ~2s for every other
+  feed; not overfed (prior feed >10min before) → server applied +25 and awarded
+  coins. So the DB was correct; the client satiety bar failed to reflect it.
+- Root cause: `process_feed_event`/`feed_validate` returned no hunger, so the
+  client learned it out-of-band (realtime/refetch) with last-writer-wins; slow
+  uploads let a stale pre-feed snapshot land last. Recurring because past fixes
+  patched single orderings, not the missing-authority + no-guard core.
+- Fix (A+B+C, no migration / no core-RPC change):
+  - A: `feed_validate` v21 returns additive `pet_state` + `overfed` (reads
+    `room_pet_state` after the committed RPC). Deployed, `verify_jwt=true`.
+  - B: client applies the authoritative value and guards all `pet_state` writes
+    with a `last_decay_at` freshness clock (`feed_pet_state_freshness.dart`,
+    `_petStateDecayClockByPetId`); failure path now reconciles too.
+  - C: optimistic +25 on enqueue (skipped if fed <10min ago), reconciled by the
+    authoritative value.
+- Verified: `flutter analyze` clean; `flutter test` 493 passed/1 skipped, incl.
+  new `test/features/feed/feed_pet_state_freshness_test.dart` and the additive
+  `feed_validate` contract test. Deploy confirmed v21 ACTIVE.
+- [ ] Live-verify on a real feed: watch `feed_validate` logs for non-200s and
+      confirm `pet_state` is populated; confirm the bar moves on a slow upload.
+
+## Plan (2026-06-19 v2.2.2 Bug-Fix Release Notes Sync)
+- [x] Draft and approve localized bug-fix-only release notes.
+- [x] Update local version, bundled What's New catalog, ARB localization keys,
+      and ASC `.strings` assets for `2.2.2+8`.
+- [x] Run `flutter gen-l10n`, metadata EULA test, `flutter analyze`, and
+      `flutter test`.
+- [x] Create/sync ASC version `2.2.2` and verify localized metadata.
+- [x] Build and verify the `2.2.2+8` archive.
+- [x] Export/upload the IPA, wait for App Store Connect processing, and attach
+      the build.
+
+## Review (2026-06-19 v2.2.2 Bug-Fix Release Notes Sync)
+- Local release-note prep is complete for `2.2.2+8`: `pubspec.yaml`, bundled
+  What's New catalog, ARB keys, generated l10n code, and ASC `.strings` assets.
+- Verification passed: `plutil -lint` for all four ASC `.strings` files,
+  `flutter gen-l10n` (with existing untranslated-message warnings for `ko` and
+  `zh_TW`), `flutter test test/app_store_metadata_terms_test.dart`,
+  `flutter analyze`, and `flutter test` (493 passed / 1 skipped).
+- Created ASC version `2.2.2`
+  (`1761de51-ec73-46e4-8b6f-134d9c650e1d`) via the direct API fallback and
+  synced/read back en-US, ja, ko, and zh-Hant localizations with EULA present.
+- Built `build/ios/archive/Runner.xcarchive` with explicit
+  `--build-name=2.2.2 --build-number=8`; archive validation confirmed bundle
+  `com.cc100053.pet`, display name `PetTomo`, and deployment target `15.0`.
+  Archive plist checks confirmed `CFBundleShortVersionString=2.2.2`,
+  `CFBundleVersion=8`, `UIDeviceFamily=[1]`, portrait orientation, and
+  `UIRequiresFullScreen=true`.
+- First IPA export was blocked by `PLA Update available` and no
+  `iOS Distribution` certificate. After the account/license issue was resolved,
+  `flutter build ipa --release --build-name=2.2.2 --build-number=8` exported a
+  fresh `build/ios/ipa/PetTomo.ipa`.
+- Packaged IPA verification passed:
+  `CFBundleShortVersionString=2.2.2`, `CFBundleVersion=8`,
+  `CFBundleIdentifier=com.cc100053.pet`, `UIDeviceFamily=[1]`,
+  `UISupportedInterfaceOrientations=[UIInterfaceOrientationPortrait]`, and
+  `UIRequiresFullScreen=true`.
+- Uploaded IPA to ASC; upload/build ID
+  `702c2f8d-770f-40ec-a013-19cab3c1d098` committed successfully.
+- `asc builds wait` discovered build `2.2.2+8` after about 4 minutes; build is
+  `VALID`, not expired, encryption `exempt`.
+- Attached valid build `702c2f8d-770f-40ec-a013-19cab3c1d098` to ASC version
+  `1761de51-ec73-46e4-8b6f-134d9c650e1d`; `asc versions attach-build`
+  returned `Attached=true`.
+
+## Plan (2026-06-16 v2.2.1 Build Upload)
+- [x] Preflight local version, iOS target settings, and ASC version/build
+      state.
+- [x] Build App Store IPA for `2.2.1+7` with explicit Flutter build
+      name/number.
+- [x] Verify packaged IPA version, build, bundle ID, device family,
+      orientation, and full-screen settings.
+- [x] Upload IPA to App Store Connect and wait/check processing.
+- [x] Attach processed build to ASC version `2.2.1`.
+
+## Review (2026-06-16 v2.2.1 Build Upload)
+- Built `build/ios/ipa/PetTomo.ipa` from Flutter with
+  `--build-name=2.2.1 --build-number=7`; Flutter archive validation confirmed
+  bundle `com.cc100053.pet`, display name `PetTomo`, and deployment target
+  `15.0`.
+- Packaged IPA verification passed:
+  `CFBundleShortVersionString=2.2.1`, `CFBundleVersion=7`,
+  `CFBundleIdentifier=com.cc100053.pet`, `UIDeviceFamily=[1]`,
+  `UISupportedInterfaceOrientations=[UIInterfaceOrientationPortrait]`, and
+  `UIRequiresFullScreen=true`.
+- Uploaded IPA to ASC; upload/build ID
+  `862423df-2a46-493a-a21e-f8bebf169164` committed successfully.
+- `asc builds wait` timed out resolving the build selector after 10 minutes,
+  but `asc builds uploads list` showed the upload `COMPLETE`, and
+  `asc builds info --latest` showed build `2.2.1+7` as `VALID`, not expired,
+  encryption `exempt`.
+- Attached valid build `862423df-2a46-493a-a21e-f8bebf169164` to ASC version
+  `8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb`; `asc versions attach-build`
+  returned `Attached=true`.
+
+## Plan (2026-06-16 ASC `-50` Root Cause Hardening)
+- [x] Identify whether the ASC failure is release state, auth, or the `asc`
+      wrapper path.
+- [x] Add a repo-local direct App Store Connect API fallback for version
+      creation and version-localization sync.
+- [x] Update the release-notes workflow and lessons so future runs use the
+      fallback instead of mutating an approved previous version.
+- [x] Verify the fallback against existing `2.2.1` without creating duplicates.
+- [x] Run validation checks.
+
+## Review (2026-06-16 ASC `-50` Root Cause Hardening)
+- Root cause: the `asc` wrappers for `versions create` and
+  `localizations upload` returned Apple's generic `-50`, while the same
+  operations succeeded through the public App Store Connect API using the same
+  API key. System `python3` in elevated network commands also lacked
+  `cryptography`, so the fallback must use the bundled Codex Python.
+- Added `scripts/asc_version_localization_sync.py`, an idempotent direct API
+  fallback that creates or reuses the target version, creates or patches
+  localizations from `.asc/version-localizations/*.strings`, refuses missing
+  direct EULA footers, and reads ASC back for verification.
+- Updated `.codex/skills/release-notes-sync/SKILL.md`,
+  `memory-bank/progress.md`, and `tasks/lessons.md` so future release-note runs
+  immediately use the fallback when `asc` returns `-50`.
+- Verified with `--dry-run` and a live idempotent sync against existing ASC
+  version `2.2.1` (`8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb`); all four locale
+  records were patched/read back with `whatsNew` and EULA present.
+
+## Plan (2026-06-16 v2.2.1 Release Notes Sync)
+- [x] Update local app version, bundled What's New catalog, ARB localization
+      keys, and ASC `.strings` assets for `2.2.1+7`.
+- [x] Run `flutter gen-l10n`, `test/app_store_metadata_terms_test.dart`,
+      `flutter analyze`, and `flutter test`.
+- [x] Create or locate the App Store Connect `2.2.1` version and upload
+      localized `.strings` metadata.
+- [x] Verify ASC localizations and update `docs/release_status.md` /
+      `memory-bank/progress.md`.
+
+## Review (2026-06-16 v2.2.1 Release Notes Sync)
+- Local release-note prep is complete for `2.2.1+7`: `pubspec.yaml`, bundled
+  What's New catalog, ARB keys, generated l10n code, and ASC `.strings` assets.
+- Verification passed: `flutter gen-l10n`,
+  `flutter test test/app_store_metadata_terms_test.dart`, `flutter analyze`,
+  `flutter test` (483 passed / 1 skipped), and `plutil -lint` for all four ASC
+  `.strings` files.
+- The `asc` wrappers failed with App Store Connect `-50` for version creation
+  and localization upload, but direct App Store Connect API calls succeeded.
+- Created ASC version `2.2.1`
+  (`8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb`) in `PREPARE_FOR_SUBMISSION`.
+- Synced and read back ASC release notes/promotional text for en-US, ja, ko,
+  and zh-Hant; every locale still has the direct Apple Standard EULA footer.
+- Next release step, if requested: build/upload `2.2.1+7`, attach the
+  processed build, and submit for review.
 
 ## Plan (2026-06-14 bulubulu Feed Hunger Investigation)
 - [x] Read active repo memory, Supabase/diagnosis workflow notes, and relevant

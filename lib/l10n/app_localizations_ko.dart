@@ -1965,4 +1965,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew220Bullet3 => '피드, 아바타, 알림 안정성을 개선했습니다.';
+
+  @override
+  String get whatsNew221Title => '먹이 주기 변화가 더 명확해졌어요';
+
+  @override
+  String get whatsNew221Bullet1 => '사진 먹이 주기 전에 허기 상태를 갱신해 변화가 더 쉽게 보입니다.';
+
+  @override
+  String get whatsNew221Bullet2 => '갱신이 매끄럽지 않아도 사진 먹이 주기가 더 안정적으로 이어집니다.';
+
+  @override
+  String get whatsNew221Bullet3 => '공유 펫 먹이 주기 경험을 더 부드럽고 안정적으로 다듬었습니다.';
+
+  @override
+  String get whatsNew222Title => '버그 수정';
+
+  @override
+  String get whatsNew222Bullet1 => '사진 먹이 주기가 느릴 때도 허기 상태가 더 안정적으로 동기화됩니다.';
+
+  @override
+  String get whatsNew222Bullet2 => '공유 펫의 먹이 주기 결과가 더 안정적으로 갱신됩니다.';
+
+  @override
+  String get whatsNew222Bullet3 => '더 부드러운 펫 돌봄을 위한 작은 안정성 개선을 적용했습니다.';
 }
