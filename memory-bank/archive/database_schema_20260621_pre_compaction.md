@@ -1,7 +1,7 @@
 # Database Schema
 
 Compact current-state map only. Full snapshots live in `memory-bank/archive/`;
-latest: `memory-bank/archive/database_schema_20260621_pre_compaction.md`.
+latest: `memory-bank/archive/database_schema_20260613_pre_compaction.md`.
 Repo target Supabase project: `ilxzpszgirhwxpeocygs`.
 
 Before any DB claim/change, confirm the live target and inspect the latest
@@ -62,13 +62,14 @@ applied migration that rewrites the object.
 - Room lifecycle: `create_room`, `join_room_by_code`, invite-code RPCs,
   `leave_room`, `regenerate_invite_code`
 - Pet/gameplay: `apply_pet_action`, `claim_action_reward`, tick/schedule RPCs,
-  room-pet RPCs, pet-ticket RPCs, and equipment equip/get RPCs
+  `set_room_hunger_decay_paused`, `claim_feed_double_reward`, room-pet RPCs,
+  pet-ticket RPCs, equipment equip/get RPCs
 - Shop/equipment/furniture: `get_visible_shop_items`, purchase/grant RPCs,
   inventory helpers, furniture transform helpers
 - Chat/unread: `edit_message`, `delete_message`, unread-count RPCs
-- Home summaries: `get_room_latest_feeds(...)` and
-  `get_room_member_counts(...)` are additive `SECURITY INVOKER` RPCs; old
-  clients still read tables directly.
+- Home summaries: `get_room_latest_feeds(p_room_ids, p_per_room_limit)` and
+  `get_room_member_counts(p_room_ids)` are additive `SECURITY INVOKER`
+  RPCs for new clients; old clients still read tables directly.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use `(select auth.uid())`,
@@ -79,8 +80,9 @@ applied migration that rewrites the object.
   active room members.
 - `hunger_tick_dispatch` reads due rows, runs service-role tick RPCs, and sends
   alert notifications.
-- Room-photo cleanup is human-in-the-loop and fail-closed; see
-  `docs/abandoned_room_cleanup.md`.
+- Room photos live in R2 under `rooms/<room_id>/...`; cleanup is
+  human-in-the-loop and purge only proceeds when the approved candidate still
+  matches stale room/R2 evidence. See `docs/abandoned_room_cleanup.md`.
 
 ## Read More
 - Source of truth: Supabase MCP plus `supabase/migrations/`

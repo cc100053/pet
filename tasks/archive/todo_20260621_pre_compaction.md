@@ -1,0 +1,577 @@
+# TODO
+
+Keep this file compact. It is for current follow-ups and the active session's
+plan/review only; historical task logs should stay in git history or move to a
+purpose-specific archive if still useful.
+
+Latest historical snapshot before compaction:
+`tasks/archive/todo_20260606_pre_compaction.md`.
+
+## Active Follow-ups
+- [ ] Run ASC submission preflight for repo-current iOS `2.2.2+8`, then submit
+      ASC version `1761de51-ec73-46e4-8b6f-134d9c650e1d` with attached build
+      `702c2f8d-770f-40ec-a013-19cab3c1d098` for review if approved.
+- [ ] Confirm Crashlytics receives dSYMs from the Firebase Apple SPM path.
+- [ ] Smoke-test iOS banner and rewarded ads after the `google_mobile_ads`
+      8.0.0 upgrade.
+- [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
+      deployment config; current `verify_jwt` behavior is documented but no
+      `supabase/config.toml` exists.
+
+## Plan (2026-06-21 AGENTS + Memory-bank Optimization)
+- [ ] Read automation memory, `AGENTS.md`, active `memory-bank/*.md`,
+      `tasks/todo.md`, and `tasks/lessons.md`.
+- [ ] Measure active memory-bank line counts before editing.
+- [ ] Inspect repo-local skills, referenced docs, scripts, Edge Functions, and
+      relevant migration references before documenting workflow claims.
+- [ ] Archive full active memory-bank snapshots under `memory-bank/archive/`.
+- [ ] Compact active memory-bank files into current-state summaries.
+- [ ] Update `AGENTS.md` only for newly verified workflow notes or TODOs.
+- [ ] Run diff/line-count checks plus `flutter analyze` and `flutter test`.
+- [ ] Add review notes with before/after counts, archive paths, and
+      verification results.
+
+## Review (2026-06-19 Feed satiety "didn't move" root fix)
+- Investigated the reported event in Supabase: pet `雞皮` room
+  `c250fc59-67f9-4302-8cbc-e349b1f6cad6`, feed on 2026-06-18 05:54:33 UTC
+  (13:54 HKT) had a **25.5s** server-vs-client delay vs ~2s for every other
+  feed; not overfed (prior feed >10min before) → server applied +25 and awarded
+  coins. So the DB was correct; the client satiety bar failed to reflect it.
+- Root cause: `process_feed_event`/`feed_validate` returned no hunger, so the
+  client learned it out-of-band (realtime/refetch) with last-writer-wins; slow
+  uploads let a stale pre-feed snapshot land last. Recurring because past fixes
+  patched single orderings, not the missing-authority + no-guard core.
+- Fix (A+B+C, no migration / no core-RPC change):
+  - A: `feed_validate` v21 returns additive `pet_state` + `overfed` (reads
+    `room_pet_state` after the committed RPC). Deployed, `verify_jwt=true`.
+  - B: client applies the authoritative value and guards all `pet_state` writes
+    with a `last_decay_at` freshness clock (`feed_pet_state_freshness.dart`,
+    `_petStateDecayClockByPetId`); failure path now reconciles too.
+  - C: optimistic +25 on enqueue (skipped if fed <10min ago), reconciled by the
+    authoritative value.
+- Verified: `flutter analyze` clean; `flutter test` 493 passed/1 skipped, incl.
+  new `test/features/feed/feed_pet_state_freshness_test.dart` and the additive
+  `feed_validate` contract test. Deploy confirmed v21 ACTIVE.
+- [ ] Live-verify on a real feed: watch `feed_validate` logs for non-200s and
+      confirm `pet_state` is populated; confirm the bar moves on a slow upload.
+
+## Plan (2026-06-19 v2.2.2 Bug-Fix Release Notes Sync)
+- [x] Draft and approve localized bug-fix-only release notes.
+- [x] Update local version, bundled What's New catalog, ARB localization keys,
+      and ASC `.strings` assets for `2.2.2+8`.
+- [x] Run `flutter gen-l10n`, metadata EULA test, `flutter analyze`, and
+      `flutter test`.
+- [x] Create/sync ASC version `2.2.2` and verify localized metadata.
+- [x] Build and verify the `2.2.2+8` archive.
+- [x] Export/upload the IPA, wait for App Store Connect processing, and attach
+      the build.
+
+## Review (2026-06-19 v2.2.2 Bug-Fix Release Notes Sync)
+- Local release-note prep is complete for `2.2.2+8`: `pubspec.yaml`, bundled
+  What's New catalog, ARB keys, generated l10n code, and ASC `.strings` assets.
+- Verification passed: `plutil -lint` for all four ASC `.strings` files,
+  `flutter gen-l10n` (with existing untranslated-message warnings for `ko` and
+  `zh_TW`), `flutter test test/app_store_metadata_terms_test.dart`,
+  `flutter analyze`, and `flutter test` (493 passed / 1 skipped).
+- Created ASC version `2.2.2`
+  (`1761de51-ec73-46e4-8b6f-134d9c650e1d`) via the direct API fallback and
+  synced/read back en-US, ja, ko, and zh-Hant localizations with EULA present.
+- Built `build/ios/archive/Runner.xcarchive` with explicit
+  `--build-name=2.2.2 --build-number=8`; archive validation confirmed bundle
+  `com.cc100053.pet`, display name `PetTomo`, and deployment target `15.0`.
+  Archive plist checks confirmed `CFBundleShortVersionString=2.2.2`,
+  `CFBundleVersion=8`, `UIDeviceFamily=[1]`, portrait orientation, and
+  `UIRequiresFullScreen=true`.
+- First IPA export was blocked by `PLA Update available` and no
+  `iOS Distribution` certificate. After the account/license issue was resolved,
+  `flutter build ipa --release --build-name=2.2.2 --build-number=8` exported a
+  fresh `build/ios/ipa/PetTomo.ipa`.
+- Packaged IPA verification passed:
+  `CFBundleShortVersionString=2.2.2`, `CFBundleVersion=8`,
+  `CFBundleIdentifier=com.cc100053.pet`, `UIDeviceFamily=[1]`,
+  `UISupportedInterfaceOrientations=[UIInterfaceOrientationPortrait]`, and
+  `UIRequiresFullScreen=true`.
+- Uploaded IPA to ASC; upload/build ID
+  `702c2f8d-770f-40ec-a013-19cab3c1d098` committed successfully.
+- `asc builds wait` discovered build `2.2.2+8` after about 4 minutes; build is
+  `VALID`, not expired, encryption `exempt`.
+- Attached valid build `702c2f8d-770f-40ec-a013-19cab3c1d098` to ASC version
+  `1761de51-ec73-46e4-8b6f-134d9c650e1d`; `asc versions attach-build`
+  returned `Attached=true`.
+
+## Plan (2026-06-16 v2.2.1 Build Upload)
+- [x] Preflight local version, iOS target settings, and ASC version/build
+      state.
+- [x] Build App Store IPA for `2.2.1+7` with explicit Flutter build
+      name/number.
+- [x] Verify packaged IPA version, build, bundle ID, device family,
+      orientation, and full-screen settings.
+- [x] Upload IPA to App Store Connect and wait/check processing.
+- [x] Attach processed build to ASC version `2.2.1`.
+
+## Review (2026-06-16 v2.2.1 Build Upload)
+- Built `build/ios/ipa/PetTomo.ipa` from Flutter with
+  `--build-name=2.2.1 --build-number=7`; Flutter archive validation confirmed
+  bundle `com.cc100053.pet`, display name `PetTomo`, and deployment target
+  `15.0`.
+- Packaged IPA verification passed:
+  `CFBundleShortVersionString=2.2.1`, `CFBundleVersion=7`,
+  `CFBundleIdentifier=com.cc100053.pet`, `UIDeviceFamily=[1]`,
+  `UISupportedInterfaceOrientations=[UIInterfaceOrientationPortrait]`, and
+  `UIRequiresFullScreen=true`.
+- Uploaded IPA to ASC; upload/build ID
+  `862423df-2a46-493a-a21e-f8bebf169164` committed successfully.
+- `asc builds wait` timed out resolving the build selector after 10 minutes,
+  but `asc builds uploads list` showed the upload `COMPLETE`, and
+  `asc builds info --latest` showed build `2.2.1+7` as `VALID`, not expired,
+  encryption `exempt`.
+- Attached valid build `862423df-2a46-493a-a21e-f8bebf169164` to ASC version
+  `8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb`; `asc versions attach-build`
+  returned `Attached=true`.
+
+## Plan (2026-06-16 ASC `-50` Root Cause Hardening)
+- [x] Identify whether the ASC failure is release state, auth, or the `asc`
+      wrapper path.
+- [x] Add a repo-local direct App Store Connect API fallback for version
+      creation and version-localization sync.
+- [x] Update the release-notes workflow and lessons so future runs use the
+      fallback instead of mutating an approved previous version.
+- [x] Verify the fallback against existing `2.2.1` without creating duplicates.
+- [x] Run validation checks.
+
+## Review (2026-06-16 ASC `-50` Root Cause Hardening)
+- Root cause: the `asc` wrappers for `versions create` and
+  `localizations upload` returned Apple's generic `-50`, while the same
+  operations succeeded through the public App Store Connect API using the same
+  API key. System `python3` in elevated network commands also lacked
+  `cryptography`, so the fallback must use the bundled Codex Python.
+- Added `scripts/asc_version_localization_sync.py`, an idempotent direct API
+  fallback that creates or reuses the target version, creates or patches
+  localizations from `.asc/version-localizations/*.strings`, refuses missing
+  direct EULA footers, and reads ASC back for verification.
+- Updated `.codex/skills/release-notes-sync/SKILL.md`,
+  `memory-bank/progress.md`, and `tasks/lessons.md` so future release-note runs
+  immediately use the fallback when `asc` returns `-50`.
+- Verified with `--dry-run` and a live idempotent sync against existing ASC
+  version `2.2.1` (`8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb`); all four locale
+  records were patched/read back with `whatsNew` and EULA present.
+
+## Plan (2026-06-16 v2.2.1 Release Notes Sync)
+- [x] Update local app version, bundled What's New catalog, ARB localization
+      keys, and ASC `.strings` assets for `2.2.1+7`.
+- [x] Run `flutter gen-l10n`, `test/app_store_metadata_terms_test.dart`,
+      `flutter analyze`, and `flutter test`.
+- [x] Create or locate the App Store Connect `2.2.1` version and upload
+      localized `.strings` metadata.
+- [x] Verify ASC localizations and update `docs/release_status.md` /
+      `memory-bank/progress.md`.
+
+## Review (2026-06-16 v2.2.1 Release Notes Sync)
+- Local release-note prep is complete for `2.2.1+7`: `pubspec.yaml`, bundled
+  What's New catalog, ARB keys, generated l10n code, and ASC `.strings` assets.
+- Verification passed: `flutter gen-l10n`,
+  `flutter test test/app_store_metadata_terms_test.dart`, `flutter analyze`,
+  `flutter test` (483 passed / 1 skipped), and `plutil -lint` for all four ASC
+  `.strings` files.
+- The `asc` wrappers failed with App Store Connect `-50` for version creation
+  and localization upload, but direct App Store Connect API calls succeeded.
+- Created ASC version `2.2.1`
+  (`8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb`) in `PREPARE_FOR_SUBMISSION`.
+- Synced and read back ASC release notes/promotional text for en-US, ja, ko,
+  and zh-Hant; every locale still has the direct Apple Standard EULA footer.
+- Next release step, if requested: build/upload `2.2.1+7`, attach the
+  processed build, and submit for review.
+
+## Plan (2026-06-14 bulubulu Feed Hunger Investigation)
+- [x] Read active repo memory, Supabase/diagnosis workflow notes, and relevant
+      feed/hunger docs.
+- [x] Inspect the current client/server feed contract and latest live DB/RPC
+      definitions involved in hunger updates.
+- [x] Query production state for room `bulubulu`: room/pet state, recent feed
+      messages, rewards, and hunger schedule/overrides.
+- [x] Check recent Edge/Postgres logs around the reported upload time.
+- [x] Re-check the client-side before/after path after the user observed
+      `65 > 65`.
+- [x] Apply the smallest client fix and add regression coverage.
+- [x] Run required verification and record notes.
+
+## Review (2026-06-14 bulubulu Feed Hunger Investigation)
+- Live target verified as Supabase project `ilxzpszgirhwxpeocygs`
+  (`https://ilxzpszgirhwxpeocygs.supabase.co`); `feed_validate` is ACTIVE v20
+  with `verify_jwt=true`, and the live `apply_pet_action` definition includes
+  the successful-feed `+25` hunger path plus room-state mirroring.
+- Room `bulubulu` had one recent image feed at `2026-06-14 14:36:13 UTC`
+  (`2026-06-14 23:36:13 JST`) with `coins_awarded=10`; matching
+  `feed_upload_url` and `feed_validate` Edge logs were HTTP 200, and
+  `feed_validate` completed in about 713 ms.
+- Current room state showed no debug hunger pause, matching `pet_state` and
+  `room_pet_state`, and a normal future hunger schedule. The feed was not
+  overfed/cooldown-blocked: `feed_burst_count=1`, `last_feed_at` equals the
+  feed timestamp, and `last_overfed_at` is older.
+- Corrected root cause: the backend did increase hunger from the
+  server-authoritative catch-up-decayed value. The room had been shown around
+  `65` before upload, but `process_feed_event -> apply_pet_action` first ran
+  passive decay, bringing effective hunger to about `40`, then added `+25`
+  back to about `65`. That made the visible comparison look like `65 > 65`.
+- Client fix: Home now asks `FeedCaptureView` to run a best-effort
+  `_refreshPetState(tick: true, refreshCoins: false)` before the upload is
+  queued, so the visible Home hunger baseline catches up before the feed RPC
+  applies its reward. This is app-only and leaves the Supabase feed contract
+  unchanged for old clients.
+- Verification passed:
+  `flutter test test/features/feed/feed_capture_view_callback_safety_test.dart`,
+  `flutter analyze`, and `flutter test` (483 passed, 1 skipped env-gated feed
+  integration test).
+
+## Plan (2026-06-13 AGENTS + Memory-bank Optimization)
+- [x] Read automation memory, `AGENTS.md`, active `memory-bank/*.md`,
+      `tasks/todo.md`, and `tasks/lessons.md`.
+- [x] Measure active memory-bank line counts before editing.
+- [x] Inspect repo-local skills, referenced docs, scripts, Edge Functions, and
+      relevant migration references before documenting workflow claims.
+- [x] Archive full active memory-bank snapshots under `memory-bank/archive/`.
+- [x] Compact active memory-bank files into current-state summaries.
+- [x] Update `AGENTS.md` only for newly verified workflow notes or TODOs.
+- [x] Run diff/line-count checks plus `flutter analyze` and `flutter test`.
+- [x] Add review notes with before/after counts, archive paths, and
+      verification results.
+
+## Review (2026-06-13 AGENTS + Memory-bank Optimization)
+- Updated `AGENTS.md` with a narrow TODO for the verified local
+  `ui-ux-pro-max` helper-script path mismatch: use
+  `.codex/skills/ui-ux-pro-max/scripts/search.py` when examples mention the
+  stale `.claude/skills/...` path.
+- Compacted active memory-bank summaries from 420 to 342 lines:
+  `architecture.md` 127 -> 96, `database-schema.md` 107 -> 90,
+  `progress.md` 114 -> 84, `tech-stack.md` 41 -> 41,
+  `ui-ux-guidelines.md` 31 -> 31.
+- Archived exact pre-compaction snapshots:
+  `memory-bank/archive/architecture_20260613_pre_compaction.md`,
+  `memory-bank/archive/database_schema_20260613_pre_compaction.md`,
+  `memory-bank/archive/progress_20260613_pre_compaction.md`,
+  `memory-bank/archive/tech_stack_20260613_pre_compaction.md`,
+  `memory-bank/archive/ui_ux_guidelines_20260613_pre_compaction.md`.
+- Verification passed: `wc -l memory-bank/*.md`, `git diff --check`,
+  `git diff --stat`, `flutter analyze`, and `flutter test` (481 passed,
+  1 skipped). The skipped test was `test/feed_flow_integration_test.dart`
+  because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
+  `SUPABASE_TEST_REFRESH_TOKEN` were unset.
+- Working tree still has pre-existing edits outside this run's scope in
+  `.codex/skills/release-notes-sync/SKILL.md`, `docs/release_status.md`,
+  `supabase/.temp/cli-latest`, `tasks/lessons.md`, and untracked `.claude/`;
+  this run did not revert them.
+
+## Plan (2026-06-11 Release Notes Workflow Update)
+- [x] Update `release-notes-sync` so completed release-note runs treat the
+      target version as the repo's live release baseline.
+- [x] Align `docs/release_status.md` and `memory-bank/progress.md` workflow
+      wording with that rule.
+- [x] Record the correction in `tasks/lessons.md`.
+
+## Review (2026-06-11 Release Notes Workflow Update)
+- Future approved `release-notes-sync` completions now update repo tracking as
+  if the target version is current/live, while still recording exact ASC state,
+  build IDs, version IDs, and submission IDs.
+- Applied that rule to the current `2.2.0+6` tracking: it is now the repo
+  current release baseline, with ASC `WAITING_FOR_REVIEW` preserved as an
+  operational note.
+
+## Plan (2026-06-11 v2.2.0 Release Notes Sync)
+- [x] Draft localized bundled What's New and ASC release notes for `2.2.0`.
+- [x] Update local app version, bundled What's New catalog, ARB localization
+      keys, and ASC `.strings` assets.
+- [x] Run `flutter gen-l10n`, `test/app_store_metadata_terms_test.dart`,
+      `flutter analyze`, and `flutter test`.
+- [x] Create or locate the App Store Connect `2.2.0` version and upload
+      localized `.strings` metadata.
+- [x] Verify ASC localizations and update `docs/release_status.md` /
+      `memory-bank/progress.md`.
+
+## Review (2026-06-11 v2.2.0 Release Notes Sync)
+- Bumped the local candidate to `2.2.0+6` and added bundled What's New copy for
+  en, ja, ko, zh-Hant, and zh-Hans.
+- Created ASC version `2.2.0`
+  (`ca6b8b89-a99e-4cc7-a23c-886853467b58`) by copying metadata from `2.1.0`.
+- Uploaded v2.2.0 `promotionalText` / `whatsNew` for en-US, ja, ko, and
+  zh-Hant; descriptions and direct Apple Standard EULA footers were preserved.
+- Verification passed: `flutter gen-l10n`,
+  `flutter test test/app_store_metadata_terms_test.dart`, `flutter analyze`,
+  and `flutter test` (481 passed / 1 skipped).
+- Next release step: build and upload `2.2.0+6`, wait for processing, attach
+  the build to the ASC version, then run submission preflight.
+
+## Plan (2026-06-11 v2.2.0 Build Upload And Submission)
+- [x] Preflight iOS target settings and preserve iPhone-only release settings.
+- [x] Build App Store IPA with explicit `--build-name=2.2.0 --build-number=6`.
+- [x] Verify packaged IPA `Info.plist` version, build, device family,
+      supported orientations, and full-screen setting.
+- [x] Upload IPA to App Store Connect and wait for build processing.
+- [x] Attach build to ASC version `2.2.0`.
+- [x] Run ASC validation, review doctor/status, and dry-run submission.
+- [x] Submit v2.2.0 for App Review and verify `WAITING_FOR_REVIEW`.
+- [x] Update release-status and memory docs.
+
+## Review (2026-06-11 v2.2.0 Build Upload And Submission)
+- Built `build/ios/ipa/PetTomo.ipa` from Flutter with `2.2.0+6`; Flutter
+  archive validation confirmed bundle `com.cc100053.pet`, display name
+  `PetTomo`, deployment target `15.0`.
+- Packaged IPA verification: `CFBundleShortVersionString=2.2.0`,
+  `CFBundleVersion=6`, `UIDeviceFamily=[1]`,
+  `UISupportedInterfaceOrientations=[UIInterfaceOrientationPortrait]`, and
+  `UIRequiresFullScreen=true`.
+- Uploaded and processed ASC build
+  `ef250ff1-c94e-45db-9043-dd9f7942ca1b`; state `VALID`,
+  `usesNonExemptEncryption=false`, uploaded `2026-06-10T08:15:08-07:00`.
+- Attached the build to ASC version
+  `ca6b8b89-a99e-4cc7-a23c-886853467b58`.
+- ASC validation: 0 errors, 0 blocking issues; non-blocking warning remains
+  for missing subscription promotional image, and App Privacy publish state is
+  not publicly verifiable through the API.
+- Submitted to App Review. Submission
+  `8e1526cd-e1a7-4681-bbba-8490a33d4b53` is `WAITING_FOR_REVIEW`.
+
+## Plan (2026-06-10 Edge Function Hardening — Phase 0/1)
+Server-side interaction/data-flow refactor. Phase 0 = shared infra; Phase 1 =
+R2 orphan cleanup + avatar replacement cleanup + timing-safe secret compare.
+All changes are backward-compatible (no request/response contract change).
+- [x] Add `supabase/functions/_shared/{http,images,auth}.ts` and route
+      `feed_validate` + `avatar_upload` through the shared image/R2 helpers.
+- [x] `feed_validate`: track the uploaded R2 key and `deleteFromR2` it when
+      `process_feed_event` fails (rolled-back txn → no message references it).
+- [x] `avatar_upload`: delete the previous avatar after a successful profile
+      update, and delete the new object if the profile update fails.
+- [x] Use constant-time `timingSafeEqual` for the `notify_friend` webhook secret
+      and `hunger_tick_dispatch` scheduler secret.
+- [x] Add `test/edge_function_storage_safety_test.dart`; preserve existing
+      `feed_validate_function_test.dart` introspection strings.
+- [x] `flutter analyze` clean; `flutter test` green (463 passed, 1 skipped).
+- [x] Deploy the four functions to `ilxzpszgirhwxpeocygs` (verified ref).
+      feed_validate v19, avatar_upload v6, hunger_tick_dispatch v7 via MCP;
+      notify_friend v30 via Supabase CLI `--no-verify-jwt`. `verify_jwt`
+      preserved per function; edge logs all-200, no boot/import errors;
+      `release_status.md` updated.
+- [ ] Follow-up (Phase 1 remainder): per-user avatar upload rate limit needs a
+      `profiles.avatar_updated_at` (or throttle table) migration — deferred;
+      delete-on-replace already removes the storage-accumulation incentive.
+
+## Plan (2026-06-10 Phase 3 — presigned direct-to-R2 feed upload)
+Additive + opt-in (server-controlled flag, default OFF, base64 fallback).
+Production behavior unchanged until the flag is flipped.
+- [x] `_shared/images.ts`: add `presignR2PutUrl` (host-only SigV4 query sign).
+- [x] New `feed_upload_url` edge function (v1, verify_jwt=true): membership-
+      checked, room-scoped key, returns presigned PUT URL + public_url.
+- [x] `feed_validate` v20: reject a client `image_url` not under the room's R2
+      prefix (base64 path untouched → zero impact on current traffic).
+- [x] Client: `AppConfigService.fetchBoolFlag`; `feed_upload_client` presigned
+      path behind `feed_presigned_upload_enabled` with base64 fallback;
+      cross-platform PUT via conditional import (`feed_r2_put_io/_stub`).
+- [x] Seed `app_config.feed_presigned_upload_enabled = false`.
+- [x] Add `test/features/feed/feed_presigned_upload_test.dart`; analyze clean;
+      `flutter test` 481 passed/1 skipped.
+- [x] Deploy `feed_upload_url` (CLI) + `feed_validate` v20 (MCP); smoke-verified
+      boot/imports; both verify_jwt=true.
+- [x] Flipped `feed_presigned_upload_enabled` -> true (2026-06-11T01:26Z) at
+      user request. Old clients unaffected (don't read the flag); new clients
+      fall back to base64 on failure; reversible by setting it back to false.
+- [ ] FOLLOW-UP: end-to-end verify on a live v2.2.0 build (get URL -> PUT R2 ->
+      feed_validate image_url) and watch `feed_upload_url`/`feed_validate` logs
+      for `presign_failed` / `invalid_image_url` / R2 PUT errors. Roll back the
+      flag if errors spike. (v2.2.0 is still WAITING_FOR_REVIEW; public is
+      2.1.0+5, which has no presigned code.)
+
+## Plan (2026-06-10 Phase 2 — notify_friend decomposition)
+Behavior-preserving refactor of the live push function. No contract change;
+`verify_jwt=false` preserved.
+- [x] Verified the "tiger avatar bug" is actually a deliberate fallback:
+      `tiger_stay.gif` is a real R2 404, so `tiger -> ghost_stay.gif` stays
+      (documented in `pets.ts`). NOT changed (would 404 for tiger pets).
+- [x] Extract `notify_friend/l10n.ts` (push locale templates + store-item names)
+      and `notify_friend/pets.ts` (avatar maps + type resolution); route
+      CORS/JSON through `_shared/http.ts`. index.ts 1310 -> 1063 lines.
+- [x] Deploy via CLI `--no-verify-jwt`; confirmed live v31, `verify_jwt=false`,
+      byte-exact CJK, smoke 401/400 (boots/imports OK), `deno check` clean.
+- [x] Add `test/notify_friend_module_split_test.dart`; `flutter analyze` clean;
+      `flutter test` green (472 passed/1 skipped).
+- [ ] Optional follow-up: FCM auth (`getAccessToken`/`importPrivateKey`) could
+      move to `notify_friend/fcm.ts` too — left in index.ts to avoid touching the
+      crypto/send path in this pass. l10n single-source-of-truth with `lib/l10n`
+      (build-step generation) intentionally deferred — push strings are distinct.
+
+## Plan (2026-06-10 Phase 4b — home query RPCs)
+Additive, backward-compatible DB change. New clients only; old clients keep
+their direct queries.
+- [x] Add migration `20260610120000_add_room_home_summary_rpcs.sql` with
+      `get_room_latest_feeds` (per-room top-N, fixes global-LIMIT starvation) and
+      `get_room_member_counts` (aggregate), both `SECURITY INVOKER`, granted to
+      `authenticated`. Applied via MCP and smoke-tested on live data.
+- [x] Rewire `_fetchRoomLatestFeeds` / `_fetchRoomMemberCounts` internals to call
+      the RPCs (method names + call sites unchanged, so the loading-performance
+      introspection test still holds). `_fetchRoomPetSummaries` left as-is.
+- [x] Client cleanups: chat `message_reactions` uses `.inFilter`; dropped the
+      dead `canonical_tags: []` field from the feed_validate request body.
+- [x] Add `test/room_home_summary_rpc_test.dart`; advisors show 0 new lints;
+      `flutter analyze` clean; `flutter test` green (468 passed/1 skipped).
+- [ ] Follow-up (Phase 4 remainder): consider folding member-count + latest-feed
+      RPCs into the cold-start path metrics; optional further consolidation of
+      pet summaries was intentionally skipped (no defect, reused elsewhere).
+
+## Plan (2026-06-07 Cleanup Purge Safety Hotfix)
+- [x] Add fail-closed purge guards for live room activity and R2 object changes.
+- [x] Add a DB trigger so new room activity invalidates stale approved cleanup
+      candidates.
+- [x] Add focused source-level regression tests for the cleanup contract.
+- [x] Apply/deploy to Supabase project `ilxzpszgirhwxpeocygs` and verify live
+      config/state.
+- [x] Run `flutter analyze` and `flutter test`; update docs/release status.
+
+## Review (2026-06-07 Cleanup Purge Safety Hotfix)
+- Added `cleanup_abandoned_rooms` v2 fail-closed purge checks: live room
+  status/activity is checked before listing R2 and immediately before delete;
+  R2 object `LastModified` and object-count changes after `last_scanned_at`
+  invalidate the approval; candidate snapshot changes also skip purge.
+- Added/applied migration `20260607135307_guard_cleanup_purge_activity` so new
+  `rooms.last_activity_at` activity resets approved cleanup candidates to
+  `pending` before scheduled purge can reuse old review.
+- Deployed Edge Function v2 to Supabase project `ilxzpszgirhwxpeocygs` with
+  existing `verify_jwt=false` custom bearer-secret auth preserved.
+- Live verification: trigger/function exist; anon/authenticated cannot execute
+  the reset function; service_role can; cleanup scan/purge cron jobs are active;
+  cleanup queue has `pending=88`, `purged=63`, `approved=0`.
+- Verification passed: `flutter test test/cleanup_abandoned_rooms_safety_test.dart`,
+  `flutter analyze`, and `flutter test` (457 passed / 1 skipped, env-gated feed
+  integration test).
+
+## Plan (2026-06-07 Post-Release Change Review)
+- [x] Identify the release baseline and complete diff scope.
+- [x] Review high-risk app/backend/security/compatibility changes since the
+      last repo-known public release.
+- [x] Run required release checks: `flutter analyze` and `flutter test`.
+- [x] Record findings, residual risks, and release recommendation.
+
+## Review (2026-06-07 Post-Release Change Review)
+- Baseline: last repo-known public release is commit `ce4c85e`
+  (`2.0.2+4`). Reviewed committed changes through `0fe82c4` plus the current
+  uncommitted feed/docs/test changes.
+- Release-blocking finding: `cleanup_abandoned_rooms` purge deletes every R2
+  object under `rooms/<room_id>/` for `review_status='approved'` without
+  rechecking live `rooms.last_activity_at` / status or a candidate snapshot.
+  If a room becomes active after approval but before the daily purge, photos can
+  still be deleted. Fix before approving more cleanup candidates or treating
+  the backend as release-ready.
+- Supabase read-only verification: project `ilxzpszgirhwxpeocygs` has
+  `cleanup_abandoned_rooms` ACTIVE, scan/purge cron jobs active, canvas
+  furniture columns present, and legacy 4-arg plus new 6-arg furniture RPCs
+  present. Cleanup queue currently has `pending=88`, `purged=63`,
+  `approved=0`.
+- Feed hotfix review: `feed_validate` v18 keeps `webhook_skipped: false`, moves
+  partner push to `EdgeRuntime.waitUntil`, and recent function logs show
+  feed_validate 200s around 1-4s. Persisted failed feed jobs reload as pending
+  for silent reconcile/retry.
+- Production observation: recent Postgres logs include a few
+  `invalid input syntax for type uuid: "temp_..."` errors near feed traffic.
+  Review did not localize this to the new queue diff; monitor/follow up, but it
+  is not currently a failing test or known user-visible release blocker.
+- Verification passed: `flutter analyze`; `flutter test` (453 passed / 1
+  skipped, env-gated feed integration test).
+- Recommendation: do not approve/submit the release until the cleanup purge race
+  is fixed or the purge cron is disabled. After that fix, rerun full checks and
+  update `docs/release_status.md`.
+
+
+## Plan (2026-06-07 Feed Upload Latency)
+- [x] Check production edge-function, postgres, and API logs for the latest
+      feeding-photo send.
+- [x] Identify which feed pipeline step keeps `feedRewardPending` visible.
+- [x] Move slow push notification dispatch off the feed response path.
+- [x] Deploy `feed_validate` and verify production latency/behavior.
+- [x] Run focused tests plus required `flutter analyze` / `flutter test`.
+- [x] Document result.
+
+## Review (2026-06-07 Feed Upload Latency)
+- Root cause: the Flutter home status stayed on reward pending until
+  `feed_validate` returned, and `feed_validate` synchronously awaited the
+  nested `notify_friend` Edge Function after rewards/messages were already
+  written.
+- Production logs matched the user-visible delay: one v16 `feed_validate`
+  request took 28.7s and its nested `notify_friend` request took 16.8s; two
+  earlier v16 retries also hit `process_feed_event` statement timeouts before
+  the final successful attempt.
+- Deployed `feed_validate` v17 with `notify_friend` queued through
+  `EdgeRuntime.waitUntil`, so reward/hunger responses no longer wait for push
+  notification delivery. Added response and notification timing logs.
+- Verification passed: `flutter test test/feed_validate_function_test.dart`,
+  `flutter analyze`, and `flutter test` (452 passed / 1 skipped, env-gated feed
+  integration test). MCP confirmed v17 is ACTIVE with `verify_jwt=true`.
+- Follow-up existing-user handling: deployed `feed_validate` v18 to preserve the
+  legacy `webhook_skipped: false` response type, and updated the feed upload
+  queue so persisted failed jobs from older timeouts reload as pending for
+  silent reconcile/retry instead of immediately replaying a stale error.
+- Follow-up verification passed:
+  `flutter test test/feed_validate_function_test.dart test/features/feed/feed_upload_queue_test.dart`,
+  `flutter test` (453 passed / 1 skipped), and `flutter analyze`.
+
+## Review (2026-06-07 Release Status Docs)
+- Added `docs/release_status.md` as the release/build/backend deployment ledger.
+- Documented that git commit messages are evidence only; live iOS state must be
+  verified through App Store Connect/storefront, and shipped releases should get
+  explicit git tags.
+- Linked the ledger from `README.md`, `AGENTS.md`,
+  `docs/ai_collaboration_workflow.md`, and `memory-bank/progress.md`.
+
+## Plan (2026-06-07 Feed Reward Hunger Regression)
+- [x] Build a focused repro/feedback loop for feed image completion and hunger.
+- [x] Trace Flutter feed upload completion, room refresh, pet-state refresh, and
+      backend RPC/tick behavior.
+- [x] Add or update a regression test at the narrowest reliable seam.
+- [x] Apply the smallest fix, then run focused verification.
+- [x] Run `flutter analyze` and `flutter test`.
+- [x] Document result and any current behavior changes.
+
+## Review (2026-06-07 Feed Reward Hunger Regression)
+- Root cause: successful feed actions added hunger after a pre-action tick, but
+  left `last_decay_at` anchored before the feed when the tick had little/no
+  whole-point decay. A subsequent client/server tick could then subtract from
+  that pre-feed anchor, making the reward appear to disappear.
+- Added migration `20260607005751_anchor_decay_after_pet_action.sql` to anchor
+  `last_decay_at` at the feed time only when the feed actually increases hunger,
+  mirrored to both `pet_state` and `room_pet_state`.
+- Added migration `20260607005904_restrict_apply_pet_action_execute.sql` to
+  keep `apply_pet_action` Data API execution authenticated-only.
+- Applied both migrations to Supabase project `ilxzpszgirhwxpeocygs` and
+  verified live function source/grants by MCP SQL.
+- Focused verification passed:
+  `flutter test test/feed_hunger_action_migration_test.dart`.
+- Required verification passed: `flutter analyze`; `flutter test`
+  (450 passed / 1 skipped, env-gated feed integration test).
+
+## Plan (2026-06-06 AGENTS.md + Memory-bank Optimization)
+- [x] Read AGENTS.md, active memory-bank files, task notes, local skills,
+      referenced docs, scripts, Edge Functions, and relevant migrations.
+- [x] Measure active memory-bank line counts before editing.
+- [x] Archive current memory/task snapshots before compaction.
+- [x] Add only repo-grounded workflow updates to AGENTS.md.
+- [x] Compact active memory-bank and task notes into current-state summaries.
+- [x] Run line-count/diff checks plus `flutter analyze` and `flutter test`.
+
+## Review (2026-06-06 AGENTS.md + Memory-bank Optimization)
+- Updated `AGENTS.md` with ASC IPA upload / build-processing commands from the
+  repo release workflow, and replaced the stale room-furniture canvas TODO with
+  the verified 4-arg/6-arg RPC compatibility rule.
+- Archived active memory snapshots to:
+  `memory-bank/archive/architecture_20260606_pre_compaction.md`,
+  `memory-bank/archive/database_schema_20260606_pre_compaction.md`,
+  `memory-bank/archive/progress_20260606_pre_compaction.md`,
+  `memory-bank/archive/tech_stack_20260606_pre_compaction.md`, and
+  `memory-bank/archive/ui_ux_guidelines_20260606_pre_compaction.md`.
+- Archived task notes to `tasks/archive/todo_20260606_pre_compaction.md`.
+- Active memory-bank line counts before -> after:
+  `architecture.md` 130 -> 110, `database-schema.md` 104 -> 98,
+  `progress.md` 97 -> 89, `tech-stack.md` 43 -> 41,
+  `ui-ux-guidelines.md` 31 -> 31, total 405 -> 369.
+- `tasks/todo.md` was compacted from 240 -> 53 lines.
+- Verification passed: `wc -l memory-bank/*.md`, `git diff --check`,
+  `git diff --stat` inspection, `flutter analyze`, and `flutter test`
+  (447 passed / 1 skipped). The feed integration test skipped because
+  `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN` were
+  unset.
+- Pre-existing untracked `.claude/` remains untouched.

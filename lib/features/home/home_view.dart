@@ -2121,6 +2121,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       await _loadCoins(expectedReward: actualReward);
       await _loadPetInfo(petId, roomId: roomId);
     } catch (error) {
+      if (!mounted) {
+        return;
+      }
       setState(
         () => _petError = AppLocalizations.of(
           context,

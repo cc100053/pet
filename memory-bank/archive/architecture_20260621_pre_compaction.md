@@ -2,7 +2,7 @@
 
 Active memory files stay compact because agents must read them before
 non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260621_pre_compaction.md`.
+`memory-bank/archive/architecture_20260613_pre_compaction.md`.
 
 ## Source Of Truth
 - App/runtime: `lib/`, `test/`
@@ -40,16 +40,18 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - `ProfileBootstrapService` owns profile bootstrap.
 - Shared room content is mixed-version safe: new backgrounds, furniture, and
   pets need version gates, fallback rendering, and the compatibility prompt.
-- Multi-pet v2 keeps `pets` one-row-per-room for legacy clients; extra pets
-  live in `room_extra_pets`, and `get_room_pets` is the v2+ surface.
+- Multi-pet compatibility keeps `pets` one-row-per-room for legacy clients;
+  extra pets live in `room_extra_pets`, and `get_room_pets` is the v2+ surface.
 - Room hunger/mood/level/exp source of truth is `room_pet_state`; main-pet
   `pet_state` mirrors it for old clients.
-- `rooms.name` mirrors the main pet's name; pets still keep individual names.
+- `rooms.name` mirrors the main pet's name. Pets still keep individual names.
 - Extra pets are first-class in Home: independent wander/drag/tap-name,
   group feeding, main-pet switcher, long-press rename, and per-pet equipment.
-- Pet tickets are v2-gated and additive. Pet equipment is room-scoped, per-pet,
-  quantity-aware, and uses slots `head`, `face`, `body`, `back`; `face`
-  currently uses the head anchor.
+- Pet tickets are v2-gated and additive: `purchase_and_use_pet_ticket` for new
+  purchases, `use_pet_ticket` for owned tickets.
+- Pet equipment is room-scoped, per-pet, and quantity-aware; one owned copy can
+  only be equipped on one pet at a time. Slots are `head`, `face`, `body`,
+  and `back`; `face` currently uses the head anchor.
 - Furniture placement uses fixed virtual-canvas `canvas_position_x/y` while
   dual-writing legacy `position_x/y`; keep legacy 4-arg furniture RPCs separate
   from 6-arg canvas overloads without default args.
@@ -60,9 +62,11 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   80, and caches newest canonical messages in Hive.
 - Feed uploads are queue-owned. Home owns global completion/failure effects and
   refreshes the original room; Chat reconciles optimistic rows locally.
-- Feed satiety is authoritative end-to-end: `feed_validate` v21 returns
-  committed `pet_state`/`overfed`; Home applies it through a per-pet
-  `last_decay_at` freshness guard and reconciles optimistic +25 predictions.
+- Feed satiety is authoritative end-to-end: `feed_validate` v21 returns the
+  committed `pet_state`/`overfed`; Home applies it directly and guards every
+  `pet_state` write with a per-pet `last_decay_at` freshness clock
+  (`feed_pet_state_freshness.dart`) so a stale snapshot cannot regress a fresher
+  value. Optimistic +25 on enqueue is reconciled by the authoritative value.
 - Force update and What's New remain separate gates.
 - Invite links use `invite_code`; avoid bare `code` because Supabase Auth can
   treat it as a PKCE callback parameter.
@@ -80,8 +84,8 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   function-level auth; `verify_jwt=true` functions expect Supabase Auth JWTs at
   the gateway.
 - Shared Edge helpers: `_shared/http.ts`, `_shared/images.ts`,
-  `_shared/auth.ts`; `notify_friend/l10n.ts` and `notify_friend/pets.ts` hold
-  push copy and pet/avatar mapping.
+  `_shared/auth.ts`. `notify_friend/l10n.ts` and `notify_friend/pets.ts` hold
+  push copy and pet/avatar mapping; FCM auth/send stays in `index.ts`.
 - R2 cleanup is fail-safe: `feed_validate` deletes uploaded objects on
   `process_feed_event` rollback, and `avatar_upload` deletes replaced/failed
   avatar objects.

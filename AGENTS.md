@@ -155,6 +155,11 @@ This file is for agentic coding agents working in this repo.
 - Auto-renewable subscription submissions require a functional Terms of Use /
   EULA footer in every `.asc/version-localizations/*.strings` description; run
   `flutter test test/app_store_metadata_terms_test.dart` before ASC upload.
+- If `asc versions create`, `asc versions view`, or
+  `asc localizations upload` returns App Store Connect `-50`, use
+  `scripts/asc_version_localization_sync.py` with the bundled Codex Python as
+  the direct API fallback; it creates/reuses the ASC version, syncs local
+  `.strings`, and verifies `whatsNew`/`promotionalText` plus EULA footers.
 
 ### Build
 - Debug builds are usually done via `flutter run`.
