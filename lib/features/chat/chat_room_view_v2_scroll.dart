@@ -292,8 +292,7 @@ extension _ChatScrollViewport on _ChatRoomViewV2State {
     }
 
     final messageRender =
-        _messageAnchorKey(message.id).currentContext?.findRenderObject()
-            as RenderBox?;
+        _messageSurfaceContext(message.id)?.findRenderObject() as RenderBox?;
     final localTouch = details != null
         ? overlayBox.globalToLocal(details.globalPosition)
         : Offset(overlayBox.size.width / 2, overlayBox.size.height / 2);

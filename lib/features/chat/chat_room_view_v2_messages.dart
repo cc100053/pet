@@ -259,7 +259,7 @@ BorderRadius _buildGroupedBubbleRadius({
 
 class _TelegramTextMessageBubble extends StatelessWidget {
   const _TelegramTextMessageBubble({
-    required this.surfaceKey,
+    required this.surfaceRegistry,
     required this.message,
     required this.index,
     required this.isSentByMe,
@@ -275,7 +275,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     required this.onReplyTap,
   });
 
-  final GlobalKey surfaceKey;
+  final Map<String, BuildContext> surfaceRegistry;
   final fc.TextMessage message;
   final int index;
   final bool isSentByMe;
@@ -415,8 +415,9 @@ class _TelegramTextMessageBubble extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         child: Container(
           key: ValueKey<String>('chatMessageSurface_${message.id}'),
-          child: KeyedSubtree(
-            key: surfaceKey,
+          child: _MessageSurfaceAnchor(
+            messageId: message.id,
+            registry: surfaceRegistry,
             child: (hasHighlightedMention || isEdited || isDeleted)
                 ? _MentionTextMessageBubble(
                     message: message,
@@ -771,7 +772,7 @@ class _MessageHighlightFrame extends StatelessWidget {
 
 class _FeedCard extends StatelessWidget {
   const _FeedCard({
-    required this.surfaceKey,
+    required this.surfaceRegistry,
     required this.message,
     required this.isMe,
     required this.isGroupedWithPrevious,
@@ -786,7 +787,7 @@ class _FeedCard extends StatelessWidget {
     required this.onTapImage,
   });
 
-  final GlobalKey surfaceKey;
+  final Map<String, BuildContext> surfaceRegistry;
   final fc.CustomMessage message;
   final bool isMe;
   final bool isGroupedWithPrevious;
@@ -923,8 +924,9 @@ class _FeedCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Container(
           key: ValueKey<String>('chatMessageSurface_${message.id}'),
-          child: KeyedSubtree(
-            key: surfaceKey,
+          child: _MessageSurfaceAnchor(
+            messageId: message.id,
+            registry: surfaceRegistry,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 280),
               child: Container(
@@ -1110,7 +1112,8 @@ String? _formatBubbleTime(BuildContext context, DateTime? time) {
   final local = time.toLocal();
   final use24h = MediaQuery.of(context).alwaysUse24HourFormat;
   final locale = Localizations.localeOf(context).toString();
-  final minuteStamp = local.millisecondsSinceEpoch ~/ Duration.millisecondsPerMinute;
+  final minuteStamp =
+      local.millisecondsSinceEpoch ~/ Duration.millisecondsPerMinute;
   final key = '$minuteStamp|$use24h|$locale';
 
   final cached = _bubbleTimeCache.remove(key);
@@ -1128,4 +1131,57 @@ String? _formatBubbleTime(BuildContext context, DateTime? time) {
   }
   _bubbleTimeCache[key] = formatted;
   return formatted;
+}
+
+/// Registers its element's [BuildContext] in [registry] under [messageId] for
+/// its lifetime, so the chat view can measure the exact bubble surface rect
+/// (action-sheet anchor, jump-to-reply scroll) without a per-message
+/// `GlobalKey`. GlobalKeys on the lazily-built reverse list got reparented
+/// across flutter_chat_ui's `LayoutBuilder`/inherited scope during scroll-time
+/// trims, tripping the `_dependents.isEmpty` deactivation assertion. The entry
+/// is removed on dispose, so the registry never holds stale contexts.
+class _MessageSurfaceAnchor extends StatefulWidget {
+  const _MessageSurfaceAnchor({
+    required this.messageId,
+    required this.registry,
+    required this.child,
+  });
+
+  final String messageId;
+  final Map<String, BuildContext> registry;
+  final Widget child;
+
+  @override
+  State<_MessageSurfaceAnchor> createState() => _MessageSurfaceAnchorState();
+}
+
+class _MessageSurfaceAnchorState extends State<_MessageSurfaceAnchor> {
+  @override
+  void initState() {
+    super.initState();
+    widget.registry[widget.messageId] = context;
+  }
+
+  @override
+  void didUpdateWidget(covariant _MessageSurfaceAnchor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.messageId != widget.messageId ||
+        !identical(oldWidget.registry, widget.registry)) {
+      if (identical(oldWidget.registry[oldWidget.messageId], context)) {
+        oldWidget.registry.remove(oldWidget.messageId);
+      }
+      widget.registry[widget.messageId] = context;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (identical(widget.registry[widget.messageId], context)) {
+      widget.registry.remove(widget.messageId);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

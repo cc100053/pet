@@ -25,6 +25,58 @@ Latest historical snapshots before compaction:
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
 
+## Plan (2026-06-21 Chat route-pop duplicate-key crash)
+- [x] Read crash attachment, active memory-bank files, and diagnose guidance.
+- [x] Inspect chat route teardown, message list keys, and package chat builders.
+- [x] Replace the route loading overlay switcher with a stable-key-safe render
+      path.
+- [x] Add/adjust regression coverage for the leave-chatroom crash class.
+- [x] Run focused chat tests, `flutter analyze`, and `flutter test`.
+- [x] Record review/results here before finishing.
+
+## Review (2026-06-21 Chat route-pop duplicate-key crash)
+- The user-provided Crashlytics log showed the first failure was
+  `Duplicate keys found` inside Flutter's `AnimatedSwitcher` layout stack,
+  followed by `_dependents.isEmpty` / "wrong build scope" during route pop.
+- Removed the chat route's `AnimatedSwitcher` around the load-more overlay.
+  `_ChatHistoryLoadingOverlay` is now inserted only while `_loadingMore`, so
+  route teardown cannot retain duplicate null-key switcher children.
+- Added coverage:
+  `chat_route_pop_stability_test.dart` locks out the risky switcher pattern,
+  and `chat_room_view_v2_bounded_window_test.dart` now simulates leaving while
+  load-more is still awaiting.
+- Verification passed: focused chat tests
+  (`chat_route_pop_stability_test.dart`,
+  `chat_message_surface_anchor_test.dart`,
+  `chat_room_view_v2_bounded_window_test.dart`), `flutter analyze`,
+  and `flutter test` (515 passed, 1 skipped: `feed_flow_integration_test.dart`
+  needs Supabase test env vars), `git diff --check`, and code-only
+  `[DEBUG-...]` cleanup grep.
+
+## Plan (2026-06-21 Chat scroll latest crash)
+- [x] Read active memory-bank files, lessons, and relevant local skills.
+- [x] Inspect the chat scroll/message-surface implementation and existing
+      working-tree changes.
+- [x] Tighten the message-surface anchor lifecycle if needed.
+- [x] Run focused chat tests, `flutter analyze`, and `flutter test`.
+- [x] Record review/results here before finishing.
+
+## Review (2026-06-21 Chat scroll latest crash)
+- Replaced per-message lazy-list `GlobalKey` anchors with a lifecycle-managed
+  `BuildContext` registry (`_MessageSurfaceAnchor`) for text and feed bubbles.
+  The action sheet anchor and reply jump still measure the same surface rects,
+  but no longer trigger GlobalKey reparenting during scroll-time window trims.
+- Preview clones used by the message action sheet now receive a throwaway
+  registry, so they cannot overwrite live list message contexts.
+- Added a source-level regression guard:
+  `test/features/chat/chat_message_surface_anchor_test.dart`.
+- Verification passed: focused chat tests
+  (`chat_message_surface_anchor_test.dart`,
+  `chat_room_view_v2_bounded_window_test.dart`), `flutter analyze`,
+  `flutter test` (513 passed, 1 skipped: `feed_flow_integration_test.dart`
+  needs Supabase test env vars), `git diff --check`, and `[DEBUG-...]` cleanup
+  grep.
+
 ## Review (2026-06-21 Room selection + entry latency)
 - Added `features/home/pet_hunger_projection.dart` (pure, unit-tested) mirroring
   server `compute_pet_mood`/`tick_pet_state` decay.

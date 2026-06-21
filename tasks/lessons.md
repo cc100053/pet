@@ -1,5 +1,35 @@
 # Lessons
 
+## 2026-06-21
+- Chat scroll crash (`'_dependents.isEmpty': is not true` at
+  `InheritedElement.debugDeactivated`, plus "Tried to build dirty widget in the
+  wrong build scope", with `_LayoutBuilderElement.visitChildren` in the stack)
+  was caused by per-message `GlobalKey`s on the lazily-built, reversed chat list.
+  When a scroll-time window trim (cap 80) rebuilt the list, those GlobalKey'd
+  bubbles got reparented across flutter_chat_ui's `LayoutBuilder`/inherited
+  scope, leaving an `InheritedElement` with live dependents during deactivation.
+  `deterministic_chat_list.dart` already documented the same class for the
+  route-pop case. Fix: drop the GlobalKeys; have each bubble register its
+  `BuildContext` in a map via a tiny `_MessageSurfaceAnchor` State
+  (register in `initState`, remove in `dispose`) — same precise rect for the
+  action-sheet anchor and jump-to-reply, but no GlobalKey reparenting semantics
+  and a self-cleaning registry (no manual prune).
+- Avoid `GlobalKey`s on items inside a lazy `ListView.builder` purely to measure
+  them later; a lifecycle-registered `BuildContext` (or the scrollview_observer)
+  gives the same `findRenderObject()` without the reparent/teardown hazards.
+- When a one-off overlay re-renders a list widget (action-sheet preview clone),
+  pass it a throwaway registry/map so it never overwrites the live item's
+  registered context.
+- For chat route-pop crashes, inspect the first framework assertion in the
+  captured log, not only the final `_dependents.isEmpty` cascade. In the
+  "scroll old history -> jump latest -> leave room" report, the earlier root
+  error was `Duplicate keys found` from Flutter's `AnimatedSwitcher` layout
+  stack (`Stack(alignment: Alignment.center, fit: loose)`) while the
+  load-more overlay toggled around window reset/route pop. Fix: keep the
+  route-level load-more overlay out of `AnimatedSwitcher`; insert/remove the
+  single keyed overlay directly so there are no retained null-key switcher
+  children during teardown.
+
 ## 2026-06-19
 - "Fed but the satiety bar didn't move" was never a server-write bug: the DB
   applied +25 each time. Root cause was that the write changing hunger

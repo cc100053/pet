@@ -154,7 +154,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     maxVisibleMessages: _maxVisibleMessages,
   );
   final Map<String, ChatMessage> _messagesById = <String, ChatMessage>{};
-  final Map<String, GlobalKey> _messageAnchorKeys = <String, GlobalKey>{};
+  // Live BuildContext per visible message surface, registered/unregistered by
+  // `_MessageSurfaceAnchor`. Replaces per-message GlobalKeys: GlobalKeys on the
+  // lazily-built, reverse list got reparented across flutter_chat_ui's
+  // LayoutBuilder/inherited scope during scroll-time trims, tripping
+  // framework.dart's `_dependents.isEmpty` assertion ("dirty widget in the
+  // wrong build scope"). A plain context registry has no reparenting semantics.
+  final Map<String, BuildContext> _messageSurfaceContexts =
+      <String, BuildContext>{};
   final Map<String, ProfileSummary> _profilesById = <String, ProfileSummary>{};
   final Map<String, String> _optimisticFeedImageByTempId = <String, String>{};
   final List<ChatMentionCandidate> _mentionCandidates =
@@ -764,16 +771,18 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     _messagesById
       ..clear()
       ..addEntries(_messages.map((message) => MapEntry(message.id, message)));
-    _messageAnchorKeys.removeWhere(
-      (messageId, _) => !_messagesById.containsKey(messageId),
-    );
+    // Surface contexts self-clean via `_MessageSurfaceAnchor.dispose`, so no
+    // manual pruning is needed here.
   }
 
-  GlobalKey _messageAnchorKey(String messageId) {
-    return _messageAnchorKeys.putIfAbsent(
-      messageId,
-      () => GlobalKey(debugLabel: 'chat-message-$messageId'),
-    );
+  /// Live BuildContext of a visible message's surface, or null when the message
+  /// is not currently built (e.g. scrolled off in the lazy list).
+  BuildContext? _messageSurfaceContext(String messageId) {
+    final context = _messageSurfaceContexts[messageId];
+    if (context == null || !context.mounted) {
+      return null;
+    }
+    return context;
   }
 
   Future<void> _ensureProfilesForMessages(List<ChatMessage> messages) async {
@@ -1214,7 +1223,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
     _optimisticIds.remove(messageId);
     _window.removeVisibleMessage(messageId);
-    _messageAnchorKeys.remove(messageId);
     await _applyWindowToChat(animated: animated);
     unawaited(_persistCache());
     if (mounted) {
@@ -1236,7 +1244,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     final hasConfirmed = _window.containsVisibleMessage(confirmedMessage.id);
     _optimisticIds.remove(tempId);
     _optimisticIds.remove(confirmedMessage.id);
-    _messageAnchorKeys.remove(tempId);
     if (hasTemp) {
       _window.removeVisibleMessage(tempId);
     }
@@ -1862,9 +1869,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return;
     }
 
-    final targetKey = _messageAnchorKey(targetId);
     if (!await _animateReplyTargetToCenter(
-      targetKey,
+      targetId,
       duration: _replyJumpDuration,
       curve: _replyJumpCurve,
     )) {
@@ -1883,23 +1889,28 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   Future<bool> _animateReplyTargetToCenter(
-    GlobalKey targetKey, {
+    String targetId, {
     required Duration duration,
     required Curve curve,
   }) async {
     for (
       var i = 0;
-      (!_chatScrollController.hasClients || targetKey.currentContext == null) &&
+      (!_chatScrollController.hasClients ||
+              _messageSurfaceContext(targetId) == null) &&
           i < 4;
       i += 1
     ) {
       await WidgetsBinding.instance.endOfFrame;
     }
-    if (!_chatScrollController.hasClients) {
+    if (!mounted || !_chatScrollController.hasClients) {
+      return false;
+    }
+    final targetContext = _messageSurfaceContext(targetId);
+    if (targetContext == null || !targetContext.mounted) {
       return false;
     }
     final position = _chatScrollController.position;
-    final targetOffset = _replyTargetCenterOffset(targetKey);
+    final targetOffset = _replyTargetCenterOffset(targetContext);
     if (targetOffset == null) {
       return false;
     }
@@ -1925,9 +1936,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
 
     if (previewMessage is fc.CustomMessage) {
       return _FeedCard(
-        surfaceKey: GlobalKey(
-          debugLabel: 'message-action-preview-${message.id}',
-        ),
+        // One-off overlay clone: use a throwaway registry so it never overwrites
+        // the live bubble's surface context in `_messageSurfaceContexts`.
+        surfaceRegistry: <String, BuildContext>{},
         message: previewMessage,
         isMe: presentation.isSentByMe,
         isGroupedWithPrevious: presentation.isGroupedWithPrevious,
@@ -2112,27 +2123,21 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
                 ),
               ),
             ),
-            Positioned(
-              top: media.padding.top + topBarHeight + 6,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: Center(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: _loadingMore
-                        ? _ChatHistoryLoadingOverlay(
-                            key: const ValueKey('chatHistoryLoadOverlay'),
-                            label: l10n.chatLoadOlderMessages,
-                            isDarkBackground: widget.isDarkBackground,
-                          )
-                        : const SizedBox.shrink(),
+            if (_loadingMore)
+              Positioned(
+                top: media.padding.top + topBarHeight + 6,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Center(
+                    child: _ChatHistoryLoadingOverlay(
+                      key: const ValueKey('chatHistoryLoadOverlay'),
+                      label: l10n.chatLoadOlderMessages,
+                      isDarkBackground: widget.isDarkBackground,
+                    ),
                   ),
                 ),
               ),
-            ),
             if (_shouldShowJumpToLatestButton)
               Positioned(
                 right: 16,

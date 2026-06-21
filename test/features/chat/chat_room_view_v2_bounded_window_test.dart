@@ -656,6 +656,54 @@ void main() {
     },
   );
 
+  testWidgets('leaving during load-more teardown does not throw', (
+    tester,
+  ) async {
+    final loadMoreGate = Completer<void>();
+    addTearDown(() {
+      if (!loadMoreGate.isCompleted) {
+        loadMoreGate.complete();
+      }
+    });
+
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: List<ChatMessage>.generate(
+        60,
+        (index) => message(60 - index),
+      ),
+      canonicalMessages: List<ChatMessage>.generate(
+        60,
+        (index) => message(index + 1),
+      ),
+      loadMoreGate: loadMoreGate,
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    await tester.drag(
+      find.byKey(const ValueKey('chatTimelineList')),
+      const Offset(0, 2400),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('chatHistoryLoadOverlay')),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    loadMoreGate.complete();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'opening the keyboard while browsing history pushes the viewed message upward and keeps it visible',
     (tester) async {

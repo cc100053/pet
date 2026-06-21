@@ -85,7 +85,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
                 ? null
                 : () => _jumpToReplySource(domainMessage);
             return _TelegramTextMessageBubble(
-              surfaceKey: _messageAnchorKey(message.id),
+              surfaceRegistry: _messageSurfaceContexts,
               message: message,
               index: index,
               isSentByMe: isSentByMe,
@@ -150,7 +150,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
                 ? null
                 : () => _jumpToReplySource(domainMessage);
             return _FeedCard(
-              surfaceKey: _messageAnchorKey(message.id),
+              surfaceRegistry: _messageSurfaceContexts,
               message: message,
               isMe: isSentByMe,
               isGroupedWithPrevious:

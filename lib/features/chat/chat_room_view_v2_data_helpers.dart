@@ -293,11 +293,7 @@ extension _ChatRoomDataHelpers on _ChatRoomViewV2State {
     return aSender == bSender && isSameLocalChatDay(a.createdAt, b.createdAt);
   }
 
-  double? _replyTargetCenterOffset(GlobalKey targetKey) {
-    final targetContext = targetKey.currentContext;
-    if (targetContext == null) {
-      return null;
-    }
+  double? _replyTargetCenterOffset(BuildContext targetContext) {
     final renderObject = targetContext.findRenderObject();
     if (renderObject == null || !renderObject.attached) {
       return null;
