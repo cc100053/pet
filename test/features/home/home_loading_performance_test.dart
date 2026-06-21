@@ -22,19 +22,49 @@ void main() {
     expect(roomManagerSource, contains('.catchError((_) => null)'));
   });
 
-  test('Cold start does not fetch the room list twice', () {
+  test('Cold start does not refetch or re-tick the room list', () {
     // Pro-plan status (RevenueCat) must not gate first paint.
     expect(homeSource, contains('unawaited(_refreshProPlanStatus());'));
     // Rooms are fetched concurrently with the profile/coins reads.
     expect(homeSource, contains('final roomsFuture = _fetchRooms();'));
     expect(homeSource, contains('await roomsFuture;'));
-    // Health-bar refresh on cold start only patches summaries; it must not run
-    // a second full _fetchRooms.
+    // Health is projected client-side, so cold start must NOT run a second full
+    // room fetch or a per-pet tick storm just to surface satiety.
+    expect(homeSource, isNot(contains('summariesOnly')));
+    expect(homeSource, isNot(contains('_patchRoomSelectionPetSummaries')));
+  });
+
+  test('Room selection projects decay client-side instead of per-pet ticks', () {
+    // The room-selection summaries fetch the decay anchor and project health
+    // locally rather than ticking each pet over the network.
+    expect(roomManagerSource, contains('projectHealthFromState('));
+    expect(roomManagerSource, contains('last_decay_at, mood, poop_at'));
+    // The old per-pet `tick_pet_state` storm on the selection screen (its
+    // unique `pets` id/room_id fan-out read) is gone.
+    expect(homeSource, isNot(contains("select('id, room_id')")));
+  });
+
+  test('Cold room entry seeds the known pet id to skip a round-trip', () {
     expect(
-      homeSource,
-      contains('_refreshRoomSelectionHealthBars(summariesOnly: true)'),
+      roomManagerSource,
+      contains("final snapshotPetId = roomSnapshot?['pet_id'] as String?;"),
     );
-    expect(homeSource, contains('_patchRoomSelectionPetSummaries'));
+    expect(
+      roomManagerSource,
+      contains('final knownPetId = cachedPetId ?? snapshotPetId;'),
+    );
+    expect(
+      roomManagerSource,
+      contains('_petId = warmEntry ? cachedPetId : knownPetId;'),
+    );
+  });
+
+  test('Room entry defers picker-only decor loads past first paint', () {
+    expect(
+      roomManagerSource,
+      contains('_scheduleDeferredRoomDecorLoads(roomId)'),
+    );
+    expect(roomManagerSource, contains('addPostFrameCallback'));
   });
 
   test('Entering a previously-visited room paints instantly (warm entry)', () {

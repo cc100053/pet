@@ -25,6 +25,27 @@ Latest historical snapshots before compaction:
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
 
+## Review (2026-06-21 Room selection + entry latency)
+- Added `features/home/pet_hunger_projection.dart` (pure, unit-tested) mirroring
+  server `compute_pet_mood`/`tick_pet_state` decay.
+- Room selection: `_fetchRoomPetSummaries` now fetches the decay anchor + main
+  `pet_id` and projects health locally; removed the cold-start + periodic
+  per-pet `tick_pet_state` storm and the redundant
+  `_patchRoomSelectionPetSummaries` double-fetch. Health bars are accurate
+  immediately from one fan-out.
+- Room entry: cold entry seeds the known `pet_id` (skips `_loadPetId`), the
+  artificial entry-loading floor dropped 550ms->150ms, per-room
+  `pet_state`/`pet_id` persist in the bootstrap cache so the first entry after
+  relaunch is warm, and picker-only decor loads defer to a post-frame callback
+  to cut connection contention.
+- Behavior caveat (accepted): in-app hunger-alert push from the selection screen
+  is now covered by the 20-min server cron instead of firing on every load.
+- Verified: `flutter analyze` clean; `flutter test` 510 passing / 1 skipped
+  (network integration). New tests: `pet_hunger_projection_test.dart`; updated
+  `home_loading_performance_test.dart` for the new invariants.
+- Deferred (Tier 3, not done): single `get_room_overview` RPC to collapse the
+  1+5 fan-out into one round-trip.
+
 ## Plan (2026-06-21 AGENTS + Memory-bank Optimization)
 - [x] Read automation memory, `AGENTS.md`, active `memory-bank/*.md`,
       `tasks/todo.md`, and `tasks/lessons.md`.

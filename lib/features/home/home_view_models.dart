@@ -28,12 +28,17 @@ class _RoomPetSummary {
     required this.healthValue,
     required this.petName,
     required this.petLevel,
+    this.petId,
   });
 
   final String petType;
   final double healthValue;
   final String? petName;
   final int? petLevel;
+
+  /// Main pet id (`pets.id`) for the room, used to warm room entry so it can
+  /// skip the `_loadPetId` round-trip.
+  final String? petId;
 }
 
 class _RoomPet {

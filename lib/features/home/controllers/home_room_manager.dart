@@ -94,6 +94,9 @@ extension _HomeRoomManager on _HomeViewState {
             room['pet_health'] = summary.healthValue;
             room['pet_name'] = summary.petName;
             room['pet_level'] = summary.petLevel;
+            if (summary.petId != null) {
+              room['pet_id'] = summary.petId;
+            }
           }
           if (roomId != null && feeds.containsKey(roomId)) {
             final latest = feeds[roomId]!;
@@ -281,11 +284,16 @@ extension _HomeRoomManager on _HomeViewState {
       appVersion: _currentAppVersion,
     );
     final likelyDeparted = _isRoomLikelyDeparted(roomId);
-    // Warm entry: a room visited earlier this session still has its pet id and
-    // last state cached, so we can paint it instantly and refresh in the
-    // background instead of holding the entry-loading overlay.
+    // Warm entry: a room visited earlier this session (or restored from the
+    // bootstrap cache) still has its pet id and last state cached, so we can
+    // paint it instantly and refresh in the background instead of holding the
+    // entry-loading overlay.
     final cachedPetId = _petIdByRoom[roomId];
     final cachedPetState = _petStateByRoom[roomId];
+    // Even on a cold entry the room-selection fetch already knows the main pet
+    // id, so seed it to skip the `_loadPetId` round-trip in `_refreshPetState`.
+    final snapshotPetId = roomSnapshot?['pet_id'] as String?;
+    final knownPetId = cachedPetId ?? snapshotPetId;
     final warmEntry =
         showEntryLoading &&
         !likelyDeparted &&
@@ -294,7 +302,7 @@ extension _HomeRoomManager on _HomeViewState {
     _setStateForRoomManager(() {
       _roomId = roomId;
       _petState = warmEntry ? cachedPetState : null;
-      _petId = warmEntry ? cachedPetId : null;
+      _petId = warmEntry ? cachedPetId : knownPetId;
       _equippedItemsBySlot.clear();
       _ownedEquipmentItems.clear();
       _equipmentError = null;
@@ -370,12 +378,15 @@ extension _HomeRoomManager on _HomeViewState {
       unawaited(_refreshPetState(tick: true));
     }
     unawaited(_refreshLatestFeed(roomId));
-    unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
     _subscribeToFurniture(roomId);
-    unawaited(_loadRoomBackgrounds(roomId));
+    // Active background is visual-critical (which background to paint); load it
+    // now. The owned-backgrounds list and furniture inventory only feed the
+    // picker panels, so defer them past first paint to free the connection for
+    // the entry-critical reads (pet state + placed furniture + active bg).
     unawaited(_loadRoomBackgroundState(roomId));
     _subscribeToBackgrounds(roomId);
+    _scheduleDeferredRoomDecorLoads(roomId);
     if (previousRoom != roomId) {
       AnalyticsService.instance.logEvent('room_switch');
     }
@@ -413,6 +424,19 @@ extension _HomeRoomManager on _HomeViewState {
       }
       _processPendingNotificationIntent();
     }
+  }
+
+  /// Loads the picker-only decor inventories (owned furniture + owned
+  /// backgrounds) after the current frame paints, so they don't contend with
+  /// the entry-critical reads. Guarded by the still-current room id.
+  void _scheduleDeferredRoomDecorLoads(String roomId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      unawaited(_loadFurnitureInventory());
+      unawaited(_loadRoomBackgrounds(roomId));
+    });
   }
 
   void _enterRoomFromSelection(String roomId, {String? petType}) {
@@ -1073,7 +1097,11 @@ extension _HomeRoomManager on _HomeViewState {
     }
     final rows = await Supabase.instance.client
         .from('pets')
-        .select('room_id, name, level, color_dna, pet_state(hunger)')
+        .select(
+          'id, room_id, name, level, color_dna, '
+          'pet_state(hunger, last_decay_at, mood, poop_at, '
+          'mood_boost, mood_boost_expires_at)',
+        )
         .inFilter('room_id', roomIds);
 
     final summaries = <String, _RoomPetSummary>{};
@@ -1083,24 +1111,30 @@ extension _HomeRoomManager on _HomeViewState {
         continue;
       }
       final state = row['pet_state'];
-      num? hunger;
+      Map<String, dynamic>? stateMap;
       if (state is Map) {
-        hunger = state['hunger'] as num?;
+        stateMap = state.cast<String, dynamic>();
       } else if (state is List && state.isNotEmpty) {
         final first = state.first;
         if (first is Map) {
-          hunger = first['hunger'] as num?;
+          stateMap = first.cast<String, dynamic>();
         }
       }
       final petType = PetCatalog.resolveIdForAppVersion(
         PetCatalog.typeFromColorDna(row['color_dna']),
         appVersion: _currentAppVersion,
       );
+      // Project decay client-side so the health bar is accurate immediately,
+      // without the old per-pet `tick_pet_state` round-trip.
+      final healthValue = stateMap == null
+          ? _healthValueFromHunger(null)
+          : projectHealthFromState(stateMap);
       summaries[roomId] = _RoomPetSummary(
         petType: petType,
-        healthValue: _healthValueFromHunger(hunger),
+        healthValue: healthValue,
         petName: (row['name'] as String?)?.trim(),
         petLevel: row['level'] as int?,
+        petId: row['id'] as String?,
       );
     }
     return summaries;

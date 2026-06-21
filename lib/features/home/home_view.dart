@@ -83,6 +83,7 @@ import 'providers/home_pet_state_provider.dart';
 import 'providers/home_unread_counts_provider.dart';
 import 'providers/home_rooms_provider.dart';
 import 'onboarding_focus_utils.dart';
+import 'pet_hunger_projection.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
 import 'room_canvas.dart';
@@ -272,7 +273,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
   static const Duration _roomEntryLoadingMinDuration = Duration(
-    milliseconds: 550,
+    milliseconds: 150,
   );
   static const Duration _roomEntryFadeDuration = Duration(milliseconds: 420);
   static const Duration _onlineProbeThrottle = Duration(seconds: 10);
@@ -704,10 +705,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     await _ensureProfile();
     await _loadCoins();
     await roomsFuture;
-    if (mounted && _showRoomSelection) {
-      // The fetch above is authoritative; only tick decay + patch health here.
-      await _refreshRoomSelectionHealthBars(summariesOnly: true);
-    }
+    // `_fetchRooms` now projects decay client-side, so the health bars are
+    // already accurate without an extra per-pet `tick_pet_state` round-trip.
     _homeBootstrapCompleted = true;
     unawaited(_processPendingInviteLink());
     _processPendingNotificationIntent();
@@ -831,6 +830,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                   : null);
         _loadingRoom = false;
       });
+      _restoreCachedPetStates(snapshot['pet_states']);
       _syncOnboardingProfileDraftFromCurrentData();
       _syncCurrencyProvider();
       _syncRoomProviders();
@@ -841,11 +841,47 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
+  /// Rehydrates `_petStateByRoom` / `_petIdByRoom` (and the decay freshness
+  /// clock) from the persisted bootstrap snapshot so a previously visited room
+  /// can warm-enter instantly after a relaunch. Each pet_state row carries its
+  /// own `pet_id`, so no separate id map is needed.
+  void _restoreCachedPetStates(dynamic raw) {
+    if (raw is! Map) {
+      return;
+    }
+    for (final entry in raw.entries) {
+      final roomId = entry.key;
+      final value = entry.value;
+      if (roomId is! String || value is! Map) {
+        continue;
+      }
+      final state = Map<String, dynamic>.from(value);
+      final petId = state['pet_id'] as String?;
+      if (petId == null || petId.isEmpty) {
+        continue;
+      }
+      _petStateByRoom[roomId] = state;
+      _petIdByRoom[roomId] = petId;
+      _noteAppliedPetStateClock(petId, state);
+    }
+  }
+
   Future<void> _cacheHomeBootstrapSnapshot() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       return;
     }
+    // Persist last-known per-room pet state so the first entry of a previously
+    // visited room is "warm" (instant paint) even after an app relaunch, not
+    // just within the same session. Scoped to current rooms to bound size.
+    final roomIds = _myRooms
+        .map((room) => room['id'])
+        .whereType<String>()
+        .toSet();
+    final petStates = <String, dynamic>{
+      for (final entry in _petStateByRoom.entries)
+        if (roomIds.contains(entry.key)) entry.key: entry.value,
+    };
     await HomeBootstrapCacheRepository.instance.saveForUser(
       userId: userId,
       snapshot: {
@@ -856,6 +892,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         'rooms': _myRooms,
         'room_id': _roomId,
         'room_selection_id': _roomSelectionId,
+        'pet_states': petStates,
       },
     );
   }
@@ -2632,9 +2669,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_refreshRoomSelectionHealthBars());
   }
 
-  Future<void> _refreshRoomSelectionHealthBars({
-    bool summariesOnly = false,
-  }) async {
+  /// Refreshes the room-selection cards (latest feeds, unread, member counts,
+  /// and the client-projected health bars). Decay is projected client-side
+  /// inside `_fetchRooms`, so this no longer runs a per-pet `tick_pet_state`
+  /// round-trip storm just to surface the current satiety.
+  Future<void> _refreshRoomSelectionHealthBars() async {
     if (_roomSelectionRefreshInFlight) {
       return;
     }
@@ -2647,53 +2686,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       _roomSelectionRefreshInFlight = true;
       _showRoomSelectionRefreshIndicator = true;
     }
-    final roomIds = _myRooms
-        .map((room) => room['id'])
-        .whereType<String>()
-        .toList(growable: false);
     try {
-      if (roomIds.isEmpty) {
-        await _fetchRooms();
-        return;
-      }
-
-      try {
-        final pets = await Supabase.instance.client
-            .from('pets')
-            .select('id, room_id')
-            .inFilter('room_id', roomIds);
-        final nowIso = DateTime.now().toUtc().toIso8601String();
-        await Future.wait(
-          pets.map((row) async {
-            final petId = row['id'] as String?;
-            final petRoomId = row['room_id'] as String?;
-            if (petId == null || petId.isEmpty) {
-              return;
-            }
-            try {
-              await Supabase.instance.client.rpc(
-                'tick_pet_state',
-                params: {'p_pet_id': petId, 'p_now': nowIso},
-              );
-              if (petRoomId != null && petRoomId.isNotEmpty) {
-                await _dispatchNewHungerAlerts(petId: petId, roomId: petRoomId);
-              }
-            } catch (_) {
-              // Best-effort per room: continue refreshing others.
-            }
-          }),
-        );
-      } catch (_) {
-        // Best-effort: still reload rooms below.
-      }
-
-      if (summariesOnly) {
-        // Cold start already ran a full _fetchRooms; only the freshly-ticked
-        // health/level needs patching, so skip the second full room fetch.
-        await _patchRoomSelectionPetSummaries(roomIds);
-      } else {
-        await _fetchRooms();
-      }
+      await _fetchRooms();
     } finally {
       if (mounted) {
         setState(() {
@@ -2705,35 +2699,6 @@ class _HomeViewState extends ConsumerState<HomeView>
         _showRoomSelectionRefreshIndicator = false;
       }
     }
-  }
-
-  /// Re-reads only the per-room pet summaries (health, level, name, type) and
-  /// patches them into `_myRooms`, leaving feeds/unread/members untouched.
-  Future<void> _patchRoomSelectionPetSummaries(List<String> roomIds) async {
-    if (roomIds.isEmpty) {
-      return;
-    }
-    final summaries = await _fetchRoomPetSummaries(roomIds);
-    if (!mounted || summaries.isEmpty) {
-      return;
-    }
-    setState(() {
-      _myRooms = _myRooms.map((room) {
-        final roomId = room['id'] as String?;
-        final summary = roomId == null ? null : summaries[roomId];
-        if (summary == null) {
-          return room;
-        }
-        return {
-          ...room,
-          'pet_type': summary.petType,
-          'pet_health': summary.healthValue,
-          'pet_name': summary.petName,
-          'pet_level': summary.petLevel,
-        };
-      }).toList();
-    });
-    _syncRoomProviders();
   }
 
   Future<void> _openStoreFromNav() async {
