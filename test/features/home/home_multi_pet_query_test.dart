@@ -127,6 +127,32 @@ void main() {
     expect(homeSource, isNot(contains('_pickWanderTargetAvoiding')));
   });
 
+  test('Background feed pet-info refreshes swallow transient failures', () {
+    final feedSource = File(
+      'lib/features/home/controllers/home_feed_orchestrator.dart',
+    ).readAsStringSync();
+    final unreadSource = File(
+      'lib/features/home/controllers/home_unread_manager.dart',
+    ).readAsStringSync();
+
+    expect(
+      feedSource,
+      contains(
+        'try {\n'
+        '          final petId = await _loadPetId(refreshRoomId);',
+      ),
+    );
+    expect(feedSource, contains('} catch (_) {'));
+    expect(
+      unreadSource,
+      contains(
+        'try {\n'
+        '          final petId = _petId ?? await _loadPetId(roomId);',
+      ),
+    );
+    expect(unreadSource, contains('} catch (_) {'));
+  });
+
   test('Extra room pets are interactive (drag + tap name tag + wander)', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',

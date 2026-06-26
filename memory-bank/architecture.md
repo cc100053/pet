@@ -63,6 +63,8 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Feed satiety is authoritative end-to-end: `feed_validate` v21 returns
   committed `pet_state`/`overfed`; Home applies it through a per-pet
   `last_decay_at` freshness guard and reconciles optimistic +25 predictions.
+- Post-feed pet-info refreshes are best-effort; transient Supabase timeouts in
+  background refresh work must not escape as fatal Flutter errors.
 - Room-selection health bars project decay client-side
   (`features/home/pet_hunger_projection.dart`, mirroring `compute_pet_mood` +
   `tick_pet_state`) from the fetched `hunger`/`last_decay_at` anchor, so the

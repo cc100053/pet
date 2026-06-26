@@ -1043,5 +1043,8 @@
   "whatsNew222Title": "Bug fixes",
   "whatsNew222Bullet1": "Hunger now stays in sync after slower photo feeds.",
   "whatsNew222Bullet2": "Shared pet feeding results update more reliably.",
-  "whatsNew222Bullet3": "Small stability fixes keep pet care smoother."
+  "whatsNew222Bullet3": "Small stability fixes keep pet care smoother.",
+  "whatsNew223Title": "Small bug fixes",
+  "whatsNew223Bullet1": "Fixed minor bugs to improve the shared pet care experience.",
+  "whatsNew223Bullet2": "Small stability improvements keep everyday pet care smoother."
 }

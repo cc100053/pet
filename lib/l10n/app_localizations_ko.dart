@@ -1989,4 +1989,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew222Bullet3 => '더 부드러운 펫 돌봄을 위한 작은 안정성 개선을 적용했습니다.';
+
+  @override
+  String get whatsNew223Title => '작은 버그 수정';
+
+  @override
+  String get whatsNew223Bullet1 => '공유 펫 돌봄 경험을 개선하기 위해 작은 버그를 수정했습니다.';
+
+  @override
+  String get whatsNew223Bullet2 => '매일 더 안정적으로 사용할 수 있도록 세부 안정성을 개선했습니다.';
 }

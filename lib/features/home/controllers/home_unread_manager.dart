@@ -352,9 +352,13 @@ extension _HomeUnreadManager on _HomeViewState {
 
     if (roomId == _roomId) {
       unawaited(() async {
-        final petId = _petId ?? await _loadPetId(roomId);
-        if (petId != null) {
-          await _loadPetInfo(petId, roomId: roomId);
+        try {
+          final petId = _petId ?? await _loadPetId(roomId);
+          if (petId != null) {
+            await _loadPetInfo(petId, roomId: roomId);
+          }
+        } catch (_) {
+          // Best-effort; room entry/realtime will refresh pet info again.
         }
       }());
     }

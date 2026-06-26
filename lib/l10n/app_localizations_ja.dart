@@ -1978,4 +1978,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew222Bullet3 => 'より快適にお世話できるよう、細かな安定性を改善しました。';
+
+  @override
+  String get whatsNew223Title => '軽微な不具合の修正';
+
+  @override
+  String get whatsNew223Bullet1 => '共有ペットのお世話体験を改善するため、軽微な不具合を修正しました。';
+
+  @override
+  String get whatsNew223Bullet2 => '毎日より快適に使えるよう、細かな安定性改善を行いました。';
 }

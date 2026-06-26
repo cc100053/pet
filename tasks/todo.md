@@ -9,9 +9,9 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260621_pre_compaction.md`
 
 ## Active Follow-ups
-- [ ] Run ASC submission preflight for repo-current iOS `2.2.2+8`, then submit
-      ASC version `1761de51-ec73-46e4-8b6f-134d9c650e1d` with attached build
-      `702c2f8d-770f-40ec-a013-19cab3c1d098` for review if approved.
+- [ ] Run ASC submission preflight for repo-current iOS `2.2.3+9`, then submit
+      ASC version `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` with attached build
+      `a2049b54-9297-4083-a5d3-e5729d213148` for review if approved.
 - [ ] Live-verify a real feed on the current build: confirm `feed_validate`
       returns `pet_state`, the satiety bar moves on slow upload, and presigned
       upload logs stay clean.
@@ -24,6 +24,65 @@ Latest historical snapshots before compaction:
 - [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
+
+## Plan (2026-06-26 Fresh Crashlytics issue)
+- [x] Confirm Firebase MCP project/app context and fetch the latest/top iOS
+      Crashlytics issue data.
+- [x] Pull issue details, sample/recent events, affected versions, and any
+      useful device/OS breakdown.
+- [x] Map the stack or custom keys back to the current repo and decide whether
+      the issue is current-code, old-version, symbolication, or external noise.
+- [x] Record the triage result and recommended action.
+
+## Review (2026-06-26 Fresh Crashlytics issue)
+- Fresh iOS Crashlytics issue `a5a3f171e28ab8f7076fd99b695bc7eb` first
+  appeared on current build `2.2.3 (9)` with 1 event / 1 impacted user at
+  `2026-06-25T12:45:59Z`; device was Apple `iPhone18,1` on iOS `26.5.0`.
+- Event breadcrumbs showed two feed attempts, a double-reward prompt route, and
+  a fatal FlutterError wrapping `PostgrestException(code: 57014, canceling
+  statement due to statement timeout)`.
+- Root cause was a best-effort post-feed pet-info refresh launched with
+  `unawaited(() async { ... }())` but no catch around `_loadPetId` /
+  `_loadPetInfo`, allowing transient Supabase timeouts to reach the global
+  fatal handler.
+- Added best-effort catch guards for the feed-completion and unread/realtime
+  pet-info refresh paths, plus a source-level regression test.
+- Verification passed: `dart format` touched files, focused
+  `flutter test test/features/home/home_multi_pet_query_test.dart`,
+  `flutter analyze`, and full `flutter test` (516 passed, 1 skipped because
+  `feed_flow_integration_test.dart` needs Supabase test env vars).
+
+## Plan (2026-06-22 Release notes sync 2.2.3)
+- [x] Bump local app version from `2.2.2+8` to `2.2.3+9`.
+- [x] Add bundled What's New copy for `2.2.3` across maintained app locales.
+- [x] Update ASC version-localization `.strings` files for `2.2.3`, preserving
+      support/marketing URLs and direct Apple EULA description footers.
+- [x] Run `flutter gen-l10n`, metadata terms test, `flutter analyze`, and
+      `flutter test`.
+- [x] Create/reuse ASC version `2.2.3`, upload localizations, and verify
+      read-back.
+- [x] Build/upload the `2.2.3+9` IPA, wait for processing, and attach the
+      build.
+- [x] Update `docs/release_status.md`, `memory-bank/progress.md`, and this task
+      review with final ASC IDs/state and verification.
+
+## Review (2026-06-22 Release notes sync 2.2.3)
+- Bumped local app version to `2.2.3+9` and added bundled What's New copy for
+  en, ja, ko, zh-Hant, and zh.
+- Synced ASC version metadata for `2.2.3`; created ASC version
+  `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` and verified localization IDs:
+  en-US `ce0def34-6bb1-4d5c-98ef-12acc6609d19`, ja
+  `3c97e909-6e03-4a70-a714-47594b8c216f`, ko
+  `4a5a9624-f173-43d9-8910-0e073bf962f9`, zh-Hant
+  `52b6b425-72c7-487e-b066-21625b89fb80`.
+- Built and uploaded `build/ios/ipa/PetTomo.ipa`; ASC build/upload ID
+  `a2049b54-9297-4083-a5d3-e5729d213148` is `VALID`, encryption `exempt`, and
+  attached to version `2.2.3`.
+- Verification passed: `flutter gen-l10n`, `flutter test
+  test/app_store_metadata_terms_test.dart`, `flutter analyze`, `flutter test`
+  (515 passed, 1 skipped because `feed_flow_integration_test.dart` needs
+  Supabase test env vars), IPA plist check for version/build/device family/
+  orientations/full-screen, ASC localization read-back, ASC build read-back.
 
 ## Plan (2026-06-21 Chat route-pop duplicate-key crash)
 - [x] Read crash attachment, active memory-bank files, and diagnose guidance.

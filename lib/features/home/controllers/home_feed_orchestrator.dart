@@ -444,9 +444,13 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       unawaited(_refreshLatestFeed(refreshRoomId));
       unawaited(_refreshFeedRoomPetState(refreshRoomId));
       unawaited(() async {
-        final petId = await _loadPetId(refreshRoomId);
-        if (petId != null) {
-          await _loadPetInfo(petId, roomId: refreshRoomId);
+        try {
+          final petId = await _loadPetId(refreshRoomId);
+          if (petId != null) {
+            await _loadPetInfo(petId, roomId: refreshRoomId);
+          }
+        } catch (_) {
+          // Best-effort; room entry/realtime will refresh pet info again.
         }
       }());
     }

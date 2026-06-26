@@ -2065,4 +2065,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew222Bullet3 =>
       'Small stability fixes keep pet care smoother.';
+
+  @override
+  String get whatsNew223Title => 'Small bug fixes';
+
+  @override
+  String get whatsNew223Bullet1 =>
+      'Fixed minor bugs to improve the shared pet care experience.';
+
+  @override
+  String get whatsNew223Bullet2 =>
+      'Small stability improvements keep everyday pet care smoother.';
 }

@@ -1968,6 +1968,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew222Bullet3 => '加入细节稳定性改善，让照顾宠物更顺畅。';
+
+  @override
+  String get whatsNew223Title => '小问题修复';
+
+  @override
+  String get whatsNew223Bullet1 => '修正小问题，改善共同照顾宠物的使用体验。';
+
+  @override
+  String get whatsNew223Bullet2 => '进行细节稳定性改善，让日常使用更顺畅。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3924,4 +3933,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew222Bullet3 => '加入細節穩定性改善，讓照顧寵物更順暢。';
+
+  @override
+  String get whatsNew223Title => '小問題修復';
+
+  @override
+  String get whatsNew223Bullet1 => '修正小問題，改善共同照顧寵物的使用體驗。';
+
+  @override
+  String get whatsNew223Bullet2 => '進行細節穩定性改善，讓日常使用更順暢。';
 }

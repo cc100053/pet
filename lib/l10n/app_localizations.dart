@@ -3662,6 +3662,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Small stability fixes keep pet care smoother.'**
   String get whatsNew222Bullet3;
+
+  /// No description provided for @whatsNew223Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Small bug fixes'**
+  String get whatsNew223Title;
+
+  /// No description provided for @whatsNew223Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed minor bugs to improve the shared pet care experience.'**
+  String get whatsNew223Bullet1;
+
+  /// No description provided for @whatsNew223Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Small stability improvements keep everyday pet care smoother.'**
+  String get whatsNew223Bullet2;
 }
 
 class _AppLocalizationsDelegate

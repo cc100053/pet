@@ -5,10 +5,10 @@ Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/progress_20260621_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `2.2.2+8` after the completed
+- Repo release baseline is iOS `2.2.3+9` after the completed
   `release-notes-sync` flow. ASC version
-  `1761de51-ec73-46e4-8b6f-134d9c650e1d` is `PREPARE_FOR_SUBMISSION`; build
-  `702c2f8d-770f-40ec-a013-19cab3c1d098` is `VALID`, encryption `exempt`, and
+  `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` is `PREPARE_FOR_SUBMISSION`; build
+  `a2049b54-9297-4083-a5d3-e5729d213148` is `VALID`, encryption `exempt`, and
   attached. Exact localization IDs and backend history live in
   `docs/release_status.md`.
 - Flutter is pinned by `.fvmrc` to `3.44.0` / Dart `3.12.0`; use bare
@@ -65,7 +65,7 @@ Active progress stays current-state focused. Full snapshots live in
   `supabase/config.toml`; verify live config before redeploying.
 
 ## Open Items
-- Run ASC submission preflight for iOS `2.2.2+8`, then submit for review if
+- Run ASC submission preflight for iOS `2.2.3+9`, then submit for review if
   approved.
 - Live-verify a real feed on the current build: confirm `feed_validate` returns
   `pet_state`, the satiety bar moves on slow upload, and presigned upload logs
