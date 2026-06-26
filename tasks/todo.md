@@ -9,9 +9,9 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260621_pre_compaction.md`
 
 ## Active Follow-ups
-- [ ] Run ASC submission preflight for repo-current iOS `2.2.3+9`, then submit
-      ASC version `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` with attached build
-      `a2049b54-9297-4083-a5d3-e5729d213148` for review if approved.
+- [ ] Run ASC submission preflight for repo-current iOS `2.2.4+10`, then submit
+      ASC version `ca26e644-9448-4ee3-8640-bac50a810057` with attached build
+      `cdd2fae2-1dd1-434b-bc25-d0bccaa402fd` for review if approved.
 - [ ] Live-verify a real feed on the current build: confirm `feed_validate`
       returns `pet_state`, the satiety bar moves on slow upload, and presigned
       upload logs stay clean.
@@ -24,6 +24,38 @@ Latest historical snapshots before compaction:
 - [ ] TODO: Decide whether to add repo-tracked Supabase Edge Function
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
+
+## Plan (2026-06-26 Release notes sync 2.2.4)
+- [x] Bump local app version from `2.2.3+9` to `2.2.4+10`.
+- [x] Add bundled What's New copy for `2.2.4` across maintained app locales.
+- [x] Update ASC version-localization `.strings` files for `2.2.4`, preserving
+      support/marketing URLs and direct Apple EULA description footers.
+- [x] Run `flutter gen-l10n`, metadata terms test, `flutter analyze`, and
+      `flutter test`.
+- [x] Create/reuse ASC version `2.2.4`, upload localizations, and verify
+      read-back.
+- [x] Build/upload the `2.2.4+10` IPA, wait for processing, and attach the
+      build.
+- [x] Update `docs/release_status.md`, `memory-bank/progress.md`, and this task
+      review with final ASC IDs/state and verification.
+
+## Review (2026-06-26 Release notes sync 2.2.4)
+- Bumped local app version to `2.2.4+10` and added bundled What's New copy for
+  en, ja, ko, zh-Hant, and zh.
+- Synced ASC version metadata for `2.2.4`; created ASC version
+  `ca26e644-9448-4ee3-8640-bac50a810057` and verified localization IDs:
+  en-US `90655a05-eac3-4095-9cf4-311b2d25a743`, ja
+  `c19ae015-159e-4600-932f-e8c6a0075f06`, ko
+  `8358afdd-7044-49b2-812f-90875c20e2d0`, zh-Hant
+  `ef690e76-5fc3-4441-8550-88efe478318a`.
+- Built and uploaded `build/ios/ipa/PetTomo.ipa`; ASC build/upload ID
+  `cdd2fae2-1dd1-434b-bc25-d0bccaa402fd` is `VALID`, encryption `exempt`, and
+  attached to version `2.2.4`.
+- Verification passed: `flutter gen-l10n`, `flutter test
+  test/app_store_metadata_terms_test.dart`, `flutter analyze`, `flutter test`
+  (518 passed, 1 skipped because `feed_flow_integration_test.dart` needs
+  Supabase test env vars), IPA plist check for version/build/device family/
+  orientations/full-screen, ASC localization read-back, ASC build read-back.
 
 ## Plan (2026-06-26 Fresh Crashlytics issue)
 - [x] Confirm Firebase MCP project/app context and fetch the latest/top iOS

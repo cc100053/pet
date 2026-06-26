@@ -1046,5 +1046,8 @@
   "whatsNew222Bullet3": "Small stability fixes keep pet care smoother.",
   "whatsNew223Title": "Small bug fixes",
   "whatsNew223Bullet1": "Fixed minor bugs to improve the shared pet care experience.",
-  "whatsNew223Bullet2": "Small stability improvements keep everyday pet care smoother."
+  "whatsNew223Bullet2": "Small stability improvements keep everyday pet care smoother.",
+  "whatsNew224Title": "Bug fix",
+  "whatsNew224Bullet1": "Fixed a feed-related issue that could cause a crash after uploading a pet photo.",
+  "whatsNew224Bullet2": "Improved stability when returning from feed and chat flows."
 }

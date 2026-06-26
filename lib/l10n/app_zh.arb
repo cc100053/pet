@@ -1046,5 +1046,8 @@
   "whatsNew222Bullet3": "加入细节稳定性改善，让照顾宠物更顺畅。",
   "whatsNew223Title": "小问题修复",
   "whatsNew223Bullet1": "修正小问题，改善共同照顾宠物的使用体验。",
-  "whatsNew223Bullet2": "进行细节稳定性改善，让日常使用更顺畅。"
+  "whatsNew223Bullet2": "进行细节稳定性改善，让日常使用更顺畅。",
+  "whatsNew224Title": "错误修复",
+  "whatsNew224Bullet1": "修正上传宠物照片后可能导致崩溃的问题。",
+  "whatsNew224Bullet2": "改善从动态和聊天室返回时的稳定性。"
 }

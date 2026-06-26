@@ -3680,6 +3680,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Small stability improvements keep everyday pet care smoother.'**
   String get whatsNew223Bullet2;
+
+  /// No description provided for @whatsNew224Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug fix'**
+  String get whatsNew224Title;
+
+  /// No description provided for @whatsNew224Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed a feed-related issue that could cause a crash after uploading a pet photo.'**
+  String get whatsNew224Bullet1;
+
+  /// No description provided for @whatsNew224Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved stability when returning from feed and chat flows.'**
+  String get whatsNew224Bullet2;
 }
 
 class _AppLocalizationsDelegate

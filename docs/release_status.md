@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.2.3 | 9 | Repo workflow assumes current after completed `release-notes-sync`; ASC state `PREPARE_FOR_SUBMISSION`, build `VALID` and attached, not submitted in this step | 2026-06-22 | App Store Connect metadata sync/build upload/attach; release-notes-sync completion rule | none |
+| iOS | 2.2.4 | 10 | Repo workflow assumes current after completed `release-notes-sync`; ASC state `PREPARE_FOR_SUBMISSION`, build `VALID` and attached, not submitted in this step | 2026-06-26 | App Store Connect metadata sync/build upload/attach; release-notes-sync completion rule | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -25,6 +25,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 2.2.3 | 9 | Superseded in repo workflow by completed `2.2.4+10` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-26 | ASC version `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` | none |
 | iOS | 2.2.2 | 8 | Superseded in repo workflow by completed `2.2.3+9` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-22 | ASC version `1761de51-ec73-46e4-8b6f-134d9c650e1d` | none |
 | iOS | 2.2.1 | 7 | Superseded in repo workflow by completed `2.2.2+8` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-19 | ASC version `8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb` | none |
 | iOS | 2.2.0 | 6 | Superseded in repo workflow by completed `2.2.1+7` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-16 | ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58` | none |
@@ -35,7 +36,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | None active | - | `pubspec.yaml` `2.2.3+9` is now the repo current release baseline | ASC version `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` is `PREPARE_FOR_SUBMISSION`; build/upload ID `a2049b54-9297-4083-a5d3-e5729d213148` is `VALID`, encryption `exempt`, attached; localization IDs: en-US `ce0def34-6bb1-4d5c-98ef-12acc6609d19`, ja `3c97e909-6e03-4a70-a714-47594b8c216f`, ko `4a5a9624-f173-43d9-8910-0e073bf962f9`, zh-Hant `52b6b425-72c7-487e-b066-21625b89fb80` | Run ASC submission preflight/validation, then submit `2.2.3+9` for review if approved | working tree v2.2.3 build upload | none |
+| iOS | None active | - | `pubspec.yaml` `2.2.4+10` is now the repo current release baseline | ASC version `ca26e644-9448-4ee3-8640-bac50a810057` is `PREPARE_FOR_SUBMISSION`; build/upload ID `cdd2fae2-1dd1-434b-bc25-d0bccaa402fd` is `VALID`, encryption `exempt`, attached; localization IDs: en-US `90655a05-eac3-4095-9cf4-311b2d25a743`, ja `c19ae015-159e-4600-932f-e8c6a0075f06`, ko `8358afdd-7044-49b2-812f-90875c20e2d0`, zh-Hant `ef690e76-5fc3-4441-8550-88efe478318a` | Run ASC submission preflight/validation, then submit `2.2.4+10` for review if approved | working tree v2.2.4 build upload | none |
 
 ## Backend Deployments
 

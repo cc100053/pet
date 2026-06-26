@@ -1998,4 +1998,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew223Bullet2 => '매일 더 안정적으로 사용할 수 있도록 세부 안정성을 개선했습니다.';
+
+  @override
+  String get whatsNew224Title => '버그 수정';
+
+  @override
+  String get whatsNew224Bullet1 => '펫 사진 업로드 후 앱이 종료될 수 있는 문제를 수정했습니다.';
+
+  @override
+  String get whatsNew224Bullet2 => '피드와 채팅 화면을 오갈 때의 안정성을 개선했습니다.';
 }

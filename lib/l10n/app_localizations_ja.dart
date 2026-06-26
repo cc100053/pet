@@ -1987,4 +1987,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew223Bullet2 => '毎日より快適に使えるよう、細かな安定性改善を行いました。';
+
+  @override
+  String get whatsNew224Title => '不具合修正';
+
+  @override
+  String get whatsNew224Bullet1 => 'ペット写真のアップロード後にクラッシュすることがある問題を修正しました。';
+
+  @override
+  String get whatsNew224Bullet2 => 'フィードやチャットから戻るときの安定性を改善しました。';
 }

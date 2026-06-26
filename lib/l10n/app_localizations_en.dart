@@ -2076,4 +2076,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew223Bullet2 =>
       'Small stability improvements keep everyday pet care smoother.';
+
+  @override
+  String get whatsNew224Title => 'Bug fix';
+
+  @override
+  String get whatsNew224Bullet1 =>
+      'Fixed a feed-related issue that could cause a crash after uploading a pet photo.';
+
+  @override
+  String get whatsNew224Bullet2 =>
+      'Improved stability when returning from feed and chat flows.';
 }
