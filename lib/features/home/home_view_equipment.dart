@@ -8,6 +8,7 @@ extension _HomeEquipment on _HomeViewState {
     String? petId,
     String? roomId,
     bool silent = false,
+    bool isRecoveryAttempt = false,
   }) async {
     final resolvedPetId = petId ?? _petId;
     final expectedRoomId = roomId ?? _roomId;
@@ -73,6 +74,30 @@ extension _HomeEquipment on _HomeViewState {
         );
       });
     } catch (error) {
+      // A stale / cross-room active `_petId` (e.g. a poisoned warm cache) makes
+      // `get_pet_equipment` raise `pet_not_found`, because the pet isn't a
+      // member of this room. Re-resolve the room's real main pet once and retry
+      // instead of surfacing a scary error. Mirrors the `pet_not_found`
+      // recovery in `_showMainPetSwitcher`.
+      if (!isRecoveryAttempt &&
+          mounted &&
+          _roomId == expectedRoomId &&
+          _petId == resolvedPetId &&
+          _isPetNotFound(error)) {
+        final recovered = await _recoverActivePetId(
+          expectedRoomId,
+          resolvedPetId,
+        );
+        if (recovered != null) {
+          await _loadPetEquipment(
+            petId: recovered,
+            roomId: expectedRoomId,
+            silent: silent,
+            isRecoveryAttempt: true,
+          );
+          return;
+        }
+      }
       if (!mounted) {
         _equipmentError = error.toString();
         _equipmentLoading = false;
@@ -92,6 +117,52 @@ extension _HomeEquipment on _HomeViewState {
         }
       }
     }
+  }
+
+  bool _isPetNotFound(Object error) {
+    if (error is PostgrestException) {
+      return error.message.contains('pet_not_found');
+    }
+    return error.toString().contains('pet_not_found');
+  }
+
+  /// Recovers from an active-pet `pet_not_found`: the seeded/cached `_petId`
+  /// belongs to another room, so evict the poisoned warm cache and repoint the
+  /// active pet at the room's authoritative main pet (`rooms.main_pet_id` via
+  /// [_loadPetId]). Also refreshes the (wrong) name/level/type and the realtime
+  /// subscription so the whole pet identity is corrected, not just equipment.
+  /// Returns the recovered pet id, or null when nothing better could be
+  /// resolved (so the caller should not retry).
+  Future<String?> _recoverActivePetId(String roomId, String stalePetId) async {
+    // Drop the poisoned per-room warm cache so it can't re-seed the bad id on
+    // the next entry (and so the persisted bootstrap snapshot is cleaned too).
+    if (_petIdByRoom[roomId] == stalePetId) {
+      _petIdByRoom.remove(roomId);
+      _petStateByRoom.remove(roomId);
+    }
+    String? mainPetId;
+    try {
+      mainPetId = await _loadPetId(roomId);
+    } catch (_) {
+      return null;
+    }
+    if (mainPetId == null || mainPetId == stalePetId) {
+      return null;
+    }
+    // Bail if the user moved on (or the active pet already changed) mid-flight.
+    if (!mounted || _roomId != roomId || _petId != stalePetId) {
+      return null;
+    }
+    final recoveredPetId = mainPetId;
+    _petSubscriptionPetId = null;
+    _setStateForEquipment(() {
+      _petId = recoveredPetId;
+      _petState = null;
+      _petStateReady = false;
+    });
+    unawaited(_loadPetInfo(recoveredPetId, roomId: roomId));
+    _subscribeToPetState(recoveredPetId);
+    return recoveredPetId;
   }
 
   // Loads the equipment of the panel's selected pet into _panelEquippedItemsBySlot.

@@ -224,6 +224,54 @@ void main() {
     },
   );
 
+  test('Room entry evicts a cross-room/stale warm pet cache', () {
+    // Regression: a pet id persisted for a *different* room leaked into this
+    // room's warm cache, so entering the room painted the wrong pet's name and
+    // loaded equipment for a pet not in the room (get_pet_equipment ->
+    // pet_not_found). _switchRoom must reconcile the cached id against the room
+    // snapshot's authoritative main pet id and drop the cache when they differ.
+    final roomManagerSource = File(
+      'lib/features/home/controllers/home_room_manager.dart',
+    ).readAsStringSync();
+
+    final switchRoomBody =
+        RegExp(
+          r'void _switchRoom\([\s\S]*?\n  \}\n',
+          multiLine: true,
+        ).firstMatch(roomManagerSource)?.group(0) ??
+        '';
+
+    // The conflict check compares the cached id to the snapshot's main pet id.
+    expect(
+      switchRoomBody,
+      contains('cachedPetId != snapshotPetId'),
+    );
+    // ...and evicts both per-room caches so the poison cannot persist.
+    expect(switchRoomBody, contains('_petIdByRoom.remove(roomId)'));
+    expect(switchRoomBody, contains('_petStateByRoom.remove(roomId)'));
+  });
+
+  test('Equipment load self-heals a stale active pet id (pet_not_found)', () {
+    // Defense-in-depth: if a cross-room/stale `_petId` slips through, the
+    // active-pet equipment load gets `pet_not_found` from get_pet_equipment.
+    // It must re-resolve the room's main pet (via _loadPetId), evict the
+    // poisoned warm cache, repoint `_petId`, and retry once — not just show an
+    // error. Mirrors the _showMainPetSwitcher recovery.
+    final equipmentSource = File(
+      'lib/features/home/home_view_equipment.dart',
+    ).readAsStringSync();
+
+    expect(equipmentSource, contains('_isPetNotFound(error)'));
+    expect(equipmentSource, contains('_recoverActivePetId('));
+    expect(equipmentSource, contains('isRecoveryAttempt: true'));
+    // Recovery re-resolves the authoritative main pet and clears the poison.
+    expect(equipmentSource, contains('await _loadPetId(roomId)'));
+    expect(equipmentSource, contains('_petIdByRoom.remove(roomId)'));
+    expect(equipmentSource, contains('_petStateByRoom.remove(roomId)'));
+    // It must not retry forever, and only on a true main-pet change.
+    expect(equipmentSource, contains('mainPetId == stalePetId'));
+  });
+
   test('Home subscribes to pets/rooms realtime for the active room', () {
     final homeSource = File(
       'lib/features/home/home_view.dart',

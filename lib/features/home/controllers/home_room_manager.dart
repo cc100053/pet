@@ -288,11 +288,27 @@ extension _HomeRoomManager on _HomeViewState {
     // bootstrap cache) still has its pet id and last state cached, so we can
     // paint it instantly and refresh in the background instead of holding the
     // entry-loading overlay.
-    final cachedPetId = _petIdByRoom[roomId];
-    final cachedPetState = _petStateByRoom[roomId];
-    // Even on a cold entry the room-selection fetch already knows the main pet
-    // id, so seed it to skip the `_loadPetId` round-trip in `_refreshPetState`.
+    var cachedPetId = _petIdByRoom[roomId];
+    var cachedPetState = _petStateByRoom[roomId];
+    // Even on a cold entry the room-selection fetch already knows the room's
+    // main pet id, so seed it to skip the `_loadPetId` round-trip in
+    // `_refreshPetState`.
     final snapshotPetId = roomSnapshot?['pet_id'] as String?;
+    // Self-heal a stale / cross-room warm cache. The room snapshot's pet id is
+    // this room's authoritative main pet; a cached id that disagrees means a
+    // *different* room's pet leaked into this room's cache (e.g. persisted from
+    // an older build). Trusting it would paint the wrong pet's name and load
+    // equipment for a pet that isn't in this room — `get_pet_equipment` then
+    // raises `pet_not_found`. Evict the poisoned cache and fall back to the
+    // snapshot so `_refreshPetState`/`_loadPetId` re-resolve the real main pet.
+    if (cachedPetId != null &&
+        snapshotPetId != null &&
+        cachedPetId != snapshotPetId) {
+      _petIdByRoom.remove(roomId);
+      _petStateByRoom.remove(roomId);
+      cachedPetId = null;
+      cachedPetState = null;
+    }
     final knownPetId = cachedPetId ?? snapshotPetId;
     final warmEntry =
         showEntryLoading &&

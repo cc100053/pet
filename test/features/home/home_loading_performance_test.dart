@@ -68,10 +68,12 @@ void main() {
   });
 
   test('Entering a previously-visited room paints instantly (warm entry)', () {
-    expect(roomManagerSource, contains('final cachedPetId = _petIdByRoom[roomId];'));
+    // `var` (not `final`): the warm cache is nullable here so room entry can
+    // evict a stale / cross-room cached pet id before painting it.
+    expect(roomManagerSource, contains('var cachedPetId = _petIdByRoom[roomId];'));
     expect(
       roomManagerSource,
-      contains('final cachedPetState = _petStateByRoom[roomId];'),
+      contains('var cachedPetState = _petStateByRoom[roomId];'),
     );
     expect(roomManagerSource, contains('final warmEntry ='));
     // Warm entry skips the loading overlay and the artificial min-duration.
