@@ -2,7 +2,7 @@
 
 Active memory files stay compact because agents must read them before
 non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260704_pre_compaction.md`.
+`memory-bank/archive/architecture_20260621_pre_compaction.md`.
 
 ## Source Of Truth
 - App/runtime: `lib/`, `test/`
@@ -31,8 +31,10 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Part extensions must call the owning State wrapper instead of protected
   `setState`, qualify static members on the State class, and use
   `part of '../<core>.dart';` from subdirectories.
-- Moving symbols between parts can require updating source-introspection tests.
-- Shared helpers belong in `lib/shared/utils/` only when behavior is identical.
+- Moving symbols between parts can require updating source-introspection tests
+  that read specific files with `readAsStringSync()`.
+- Shared helpers live in `lib/shared/utils/` only when behavior is actually
+  identical. Similar-but-different helpers stay local.
 
 ## Current Decisions
 - `ProfileBootstrapService` owns profile bootstrap.
@@ -46,7 +48,8 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Extra pets are first-class in Home: independent wander/drag/tap-name,
   group feeding, main-pet switcher, long-press rename, and per-pet equipment.
 - Pet tickets are v2-gated and additive. Pet equipment is room-scoped, per-pet,
-  quantity-aware, and uses `head`, `face`, `body`, `back` slots.
+  quantity-aware, and uses slots `head`, `face`, `body`, `back`; `face`
+  currently uses the head anchor.
 - Furniture placement uses fixed virtual-canvas `canvas_position_x/y` while
   dual-writing legacy `position_x/y`; keep legacy 4-arg furniture RPCs separate
   from 6-arg canvas overloads without default args.
@@ -55,16 +58,23 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   path.
 - Chat opens on the latest 20 messages, pages by 20, caps visible history at
   80, and caches newest canonical messages in Hive.
-- Feed uploads are queue-owned; Home handles global completion/failure effects
-  and Chat reconciles optimistic rows locally.
-- Feed satiety is authoritative end-to-end: `feed_validate` returns committed
-  `pet_state`/`overfed`, and Home applies it through a `last_decay_at`
-  freshness guard.
-- Room-selection health bars project decay client-side from `hunger` plus
-  `last_decay_at` (`features/home/pet_hunger_projection.dart`) while server
-  tick/realtime remains authoritative.
-- Room entry warms from cached per-room `pet_state`/`pet_id`; picker-only decor
-  loads post-frame to avoid entry-critical read contention.
+- Feed uploads are queue-owned. Home owns global completion/failure effects and
+  refreshes the original room; Chat reconciles optimistic rows locally.
+- Feed satiety is authoritative end-to-end: `feed_validate` v21 returns
+  committed `pet_state`/`overfed`; Home applies it through a per-pet
+  `last_decay_at` freshness guard and reconciles optimistic +25 predictions.
+- Post-feed pet-info refreshes are best-effort; transient Supabase timeouts in
+  background refresh work must not escape as fatal Flutter errors.
+- Room-selection health bars project decay client-side
+  (`features/home/pet_hunger_projection.dart`, mirroring `compute_pet_mood` +
+  `tick_pet_state`) from the fetched `hunger`/`last_decay_at` anchor, so the
+  selection screen no longer runs a per-pet `tick_pet_state` round-trip storm.
+  The server tick (entry + 20-min `hunger_tick_dispatch` cron) stays
+  authoritative and reconciles via realtime/refetch.
+- Room entry warms across launches: per-room `pet_state`/`pet_id` persist in the
+  bootstrap cache, and cold entry seeds the known main `pet_id` from the room
+  snapshot to skip `_loadPetId`. Picker-only decor (owned furniture/backgrounds)
+  loads post-frame so it doesn't contend with entry-critical reads.
 - Force update and What's New remain separate gates.
 - Invite links use `invite_code`; avoid bare `code` because Supabase Auth can
   treat it as a PKCE callback parameter.
@@ -74,15 +84,21 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Active Edge Functions: `notify_friend/feed_validate`, `notify_friend`,
   `hunger_tick_dispatch`, `avatar_upload`, `delete_account`,
   `cleanup_abandoned_rooms`, and `feed_upload_url`.
-- Feed upload supports base64 plus opt-in presigned direct R2 upload; see
-  `docs/feed_upload_pipeline.md` for response and compatibility contracts.
-- `notify_friend` remains `verify_jwt=false` for webhook compatibility;
-  gateway-JWT functions still validate callers inside the function.
-- Shared Edge helpers live in `supabase/functions/_shared/`; push copy and
-  pet/avatar mapping live under `supabase/functions/notify_friend/`.
-- R2 cleanup is fail-safe for failed feed/avatar writes and human-in-the-loop
-  for abandoned rooms.
-- Firebase Hosting / GEOFlow pages live in `/Users/fatboy/geo-marketing`.
+- Feed upload supports base64-through-`feed_validate` plus presigned direct R2
+  upload through `feed_upload_url`, controlled by
+  `app_config.feed_presigned_upload_enabled` with base64 fallback.
+- `feed_validate` accepts presigned `image_url` only under the room's R2 prefix.
+- `notify_friend` remains `verify_jwt=false` for webhook compatibility and uses
+  function-level auth; `verify_jwt=true` functions expect Supabase Auth JWTs at
+  the gateway.
+- Shared Edge helpers: `_shared/http.ts`, `_shared/images.ts`,
+  `_shared/auth.ts`; `notify_friend/l10n.ts` and `notify_friend/pets.ts` hold
+  push copy and pet/avatar mapping.
+- R2 cleanup is fail-safe: `feed_validate` deletes uploaded objects on
+  `process_feed_event` rollback, and `avatar_upload` deletes replaced/failed
+  avatar objects.
+- Firebase Hosting / GEOFlow pages live in `/Users/fatboy/geo-marketing`, not
+  this Flutter app repo.
 - iOS Crashlytics dSYM upload goes through
   `ios/scripts/upload_crashlytics_symbols.sh`.
 

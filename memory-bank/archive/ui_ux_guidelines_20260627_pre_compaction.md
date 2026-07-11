@@ -1,7 +1,7 @@
 # UI/UX Design Guidelines
 
 Compact current-state summary. Keep product UI playful and game-like. Latest
-snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
+snapshot: `memory-bank/archive/ui_ux_guidelines_20260621_pre_compaction.md`.
 
 ## Interaction
 - Use `JuicyScaleButton` for clickable elements.
@@ -11,7 +11,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
 ## Visuals
 - Thick black borders, usually `2..3` px on primary surfaces.
 - Rounded corners: large cards/toasts around `32`, dialogs/actions around `16`.
-- Soft cream gradients and translucent vertical `BoxShadow` depth.
+- Soft cream gradient backgrounds instead of flat fills.
+- Use `BoxShadow` depth with translucent black and vertical offset; avoid solid
+  fake-depth slabs.
 - Primary typeface: `GoogleFonts.mPlusRounded1c`.
 
 ## Feedback

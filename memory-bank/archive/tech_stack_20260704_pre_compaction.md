@@ -2,7 +2,7 @@
 
 Active summary only. See source files, `pubspec.yaml`, and archived snapshots
 for exact historical versions. Latest snapshot:
-`memory-bank/archive/tech_stack_20260704_pre_compaction.md`.
+`memory-bank/archive/tech_stack_20260627_pre_compaction.md`.
 
 ## Core App
 - Flutter/Dart
@@ -28,11 +28,14 @@ for exact historical versions. Latest snapshot:
 
 ## Repo-Specific Notes
 - `.fvmrc` pins Flutter `3.44.0` / Dart `3.12.0`; the default/global
-  `flutter` binary should match that pin; use bare `flutter ...` for normal
-  get/analyze/test/build/run commands.
+  `flutter` binary should match that pin, so use bare `flutter ...` for
+  normal get/analyze/test/build/run commands. If FVM is used, confirm it
+  resolves to the same SDK.
 - Edge Function gateway `verify_jwt=true` expects HS256 Supabase Auth JWTs; old
   `notify_friend` webhook compatibility still relies on `verify_jwt=false` plus
   function-level auth checks.
-- Flutter SPM integration is enabled for iOS/macOS. Keep checked-in
-  `Package.resolved` files and `ios/Flutter/GeneratedPluginSwiftPackage`
-  aligned with Flutter 3.44.0.
+- Flutter SPM integration is enabled for iOS/macOS; checked-in
+  `Package.resolved` files and the tracked
+  `ios/Flutter/GeneratedPluginSwiftPackage` mirror are part of the Apple
+  dependency flow. Keep the mirror aligned with Flutter 3.44.0's
+  version-suffixed ephemeral package folders.

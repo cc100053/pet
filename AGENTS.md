@@ -77,6 +77,8 @@ This file is for agentic coding agents working in this repo.
 4. **Explain Changes**: High-level summary at each step
 5. **Document Results**: Add review section to `tasks/todo.md`
 6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
+7. **Keep Tasks Compact**: Keep `tasks/todo.md` current-state focused; move
+   long completed plans/reviews to `tasks/archive/`
 
 ## Core Principles
 
