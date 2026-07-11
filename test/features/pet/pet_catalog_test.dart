@@ -27,4 +27,13 @@ void main() {
       'tiger',
     );
   });
+
+  test('chicken stays gated until version 2.2.5', () {
+    expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.4'), isFalse);
+    expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.5'), isTrue);
+    expect(
+      PetCatalog.resolveIdForAppVersion('chicken', appVersion: '2.2.4'),
+      PetCatalog.defaultPetId,
+    );
+  });
 }

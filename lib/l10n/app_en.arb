@@ -902,6 +902,8 @@
   "petTypeFishTagline": "A bubbly swimmer who loves to glide.",
   "petTypeTigerName": "Tiger",
   "petTypeTigerTagline": "A striped prowler with a bold little swagger.",
+  "petTypeChickenName": "Chicken",
+  "petTypeChickenTagline": "A feathery friend with a lively little strut.",
   "roomLeaveTitle": "Leave room?",
   "roomLeaveMessage": "You'll leave {name} and lose access to its chat and pet.",
   "@roomLeaveMessage": {

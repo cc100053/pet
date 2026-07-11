@@ -78,6 +78,19 @@ void main() {
     );
   });
 
+  test('provides starter sockets for chicken calibration', () {
+    final chicken = PetSocketCatalog.forPet('chicken')!;
+
+    expect(
+      chicken.resolve(PetEquipmentSlot.head),
+      isA<PetSocket>()
+          .having((socket) => socket.x, 'x', 0.39)
+          .having((socket) => socket.y, 'y', 0.18),
+    );
+    expect(chicken.resolve(PetEquipmentSlot.body), isNotNull);
+    expect(chicken.resolve(PetEquipmentSlot.back), isNotNull);
+  });
+
   test('samples ghost idle motion from PNG-derived track', () {
     final ghost = PetSocketCatalog.forPet('ghost');
 

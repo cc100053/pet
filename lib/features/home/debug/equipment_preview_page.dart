@@ -23,7 +23,7 @@ class _EquipmentPreviewPageState extends State<EquipmentPreviewPage> {
 
   // ── static data ──────────────────────────────────────────
 
-  static const _pets = ['ghost', 'cat', 'fish', 'tiger'];
+  static const _pets = ['ghost', 'cat', 'fish', 'tiger', 'chicken'];
 
   static const _petAnimations = {
     'ghost': {
@@ -45,6 +45,14 @@ class _EquipmentPreviewPageState extends State<EquipmentPreviewPage> {
       _AnimState.idle: 'assets/pet/tiger/tiger_stay.gif',
       _AnimState.walk: 'assets/pet/tiger/tiger_moving.gif',
       _AnimState.sleep: 'assets/pet/tiger/tiger_sleep.gif',
+    },
+    'chicken': {
+      _AnimState.idle:
+          'assets/pet_sequences/chicken/chicken-stay/chicken-stay.gif',
+      _AnimState.walk:
+          'assets/pet_sequences/chicken/chicken-moving/chicken-moving.gif',
+      _AnimState.sleep:
+          'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep.gif',
     },
   };
 
@@ -276,6 +284,7 @@ class _EquipmentPreviewPageState extends State<EquipmentPreviewPage> {
     'cat' => '🐱 Cat',
     'fish' => '🐠 Fish',
     'tiger' => '🐯 Tiger',
+    'chicken' => '🐔 Chicken',
     _ => petId,
   };
 

@@ -892,6 +892,8 @@
   "petTypeFishTagline": "愛滑行的泡泡游泳家。",
   "petTypeTigerName": "小老虎",
   "petTypeTigerTagline": "帶著條紋氣勢大步前進的小探險家。",
+  "petTypeChickenName": "小雞",
+  "petTypeChickenTagline": "精神滿滿、昂首闊步的毛茸茸夥伴。",
   "roomLeaveTitle": "要離開房間嗎？",
   "roomLeaveMessage": "你將離開 {name}，並失去聊天室與寵物的存取權。",
   "@roomLeaveMessage": {

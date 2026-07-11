@@ -1704,6 +1704,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petTypeTigerTagline => 'しま模様で堂々と歩く、ちいさな冒険家。';
 
   @override
+  String get petTypeChickenName => 'ニワトリ';
+
+  @override
+  String get petTypeChickenTagline => '元気いっぱいに歩く、ふわふわの友だち。';
+
+  @override
   String get roomLeaveConfirm => '退出する';
 
   @override

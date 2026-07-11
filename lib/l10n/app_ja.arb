@@ -902,6 +902,8 @@
   "petTypeFishTagline": "ぷくぷく泳ぐ、きらきらスイマー。",
   "petTypeTigerName": "トラ",
   "petTypeTigerTagline": "しま模様で堂々と歩く、ちいさな冒険家。",
+  "petTypeChickenName": "ニワトリ",
+  "petTypeChickenTagline": "元気いっぱいに歩く、ふわふわの友だち。",
   "roomLeaveTitle": "ルームを退出しますか？",
   "roomLeaveMessage": "{name} から退出し、チャットとペットにアクセスできなくなります。",
   "@roomLeaveMessage": {

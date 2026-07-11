@@ -3147,6 +3147,18 @@ abstract class AppLocalizations {
   /// **'A striped prowler with a bold little swagger.'**
   String get petTypeTigerTagline;
 
+  /// No description provided for @petTypeChickenName.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken'**
+  String get petTypeChickenName;
+
+  /// No description provided for @petTypeChickenTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A feathery friend with a lively little strut.'**
+  String get petTypeChickenTagline;
+
   /// No description provided for @roomLeaveConfirm.
   ///
   /// In en, this message translates to:

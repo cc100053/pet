@@ -896,6 +896,8 @@
   "petTypeFishTagline": "유영을 좋아하는 톡톡 튀는 수영 친구.",
   "petTypeTigerName": "호랑이",
   "petTypeTigerTagline": "줄무늬 자신감으로 당당히 걷는 작은 탐험가.",
+  "petTypeChickenName": "닭",
+  "petTypeChickenTagline": "활기차게 걷는 복슬복슬한 친구.",
   "@roomLeaveMessage": {
     "description": "Confirmation message when leaving a room.",
     "placeholders": {

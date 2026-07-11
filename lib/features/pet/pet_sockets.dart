@@ -486,6 +486,24 @@ class PetSocketCatalog {
         ),
       },
     ),
+    PetSocketConfig(
+      petId: 'chicken',
+      sockets: {
+        PetEquipmentSlot.head: PetSocket(x: 0.39, y: 0.18),
+        PetEquipmentSlot.body: PetSocket(x: 0.45, y: 0.52),
+        PetEquipmentSlot.back: PetSocket(x: 0.69, y: 0.45),
+      },
+      walkOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.39, y: 0.18),
+        PetEquipmentSlot.body: PetSocket(x: 0.45, y: 0.52),
+        PetEquipmentSlot.back: PetSocket(x: 0.69, y: 0.45),
+      },
+      sleepOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.39, y: 0.18),
+        PetEquipmentSlot.body: PetSocket(x: 0.45, y: 0.52),
+        PetEquipmentSlot.back: PetSocket(x: 0.69, y: 0.45),
+      },
+    ),
   ];
 
   static PetSocketConfig? forPet(String petId) {

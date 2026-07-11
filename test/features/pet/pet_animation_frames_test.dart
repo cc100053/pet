@@ -64,7 +64,7 @@ void main() {
       ),
       PetAnimationFrames.ghostIdle,
     );
-    expect(PetAnimationFrames.all, hasLength(12));
+    expect(PetAnimationFrames.all, hasLength(15));
     for (final sequence in PetAnimationFrames.all) {
       expect(sequence.frameAssets, isNotEmpty);
       expect(sequence.frameDurationsMs, hasLength(sequence.frameAssets.length));
@@ -74,6 +74,26 @@ void main() {
         same(sequence),
       );
     }
+  });
+
+  test('chicken sequences follow the supplied timing sheets', () {
+    expect(PetAnimationFrames.chickenIdle.frameDurationsMs, [
+      200,
+      300,
+      200,
+      300,
+      200,
+    ]);
+    expect(PetAnimationFrames.chickenSleep.frameDurationsMs, [
+      200,
+      100,
+      200,
+      300,
+      200,
+      200,
+    ]);
+    expect(PetAnimationFrames.chickenWalk.frameDurationsMs, everyElement(200));
+    expect(PetAnimationFrames.chickenWalk.frameAssets, hasLength(8));
   });
 
   test('ghost sleep sequence matches exported socket frame count', () {

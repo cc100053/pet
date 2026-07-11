@@ -1759,6 +1759,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A striped prowler with a bold little swagger.';
 
   @override
+  String get petTypeChickenName => 'Chicken';
+
+  @override
+  String get petTypeChickenTagline =>
+      'A feathery friend with a lively little strut.';
+
+  @override
   String get roomLeaveConfirm => 'Leave room';
 
   @override

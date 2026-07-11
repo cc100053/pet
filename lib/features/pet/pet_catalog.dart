@@ -96,6 +96,23 @@ class PetCatalog {
       ),
       minAppVersion: '1.1.0',
     ),
+    PetDefinition(
+      id: 'chicken',
+      name: (l10n) => l10n.petTypeChickenName,
+      tagline: (l10n) => l10n.petTypeChickenTagline,
+      stayAsset: 'assets/pet_sequences/chicken/chicken-stay/chicken-stay.gif',
+      sleepAsset:
+          'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep.gif',
+      walkAsset:
+          'assets/pet_sequences/chicken/chicken-moving/chicken-moving.gif',
+      accent: const Color(0xFF8A5A32),
+      gradient: const LinearGradient(
+        colors: [Color(0xFFD7A66A), Color(0xFF8A5A32)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      minAppVersion: '2.2.5',
+    ),
   ];
 
   static PetDefinition? _byIdOrNull(String? id) {

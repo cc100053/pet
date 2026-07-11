@@ -64,6 +64,9 @@ class PetAnimationFrames {
     tigerIdle,
     tigerSleep,
     tigerWalk,
+    chickenIdle,
+    chickenSleep,
+    chickenWalk,
   ];
 
   static const PetFrameSequence ghostIdle = PetFrameSequence(
@@ -335,6 +338,50 @@ class PetAnimationFrames {
       'assets/pet_sequences/tiger/walk/tiger_walk-05.png',
       'assets/pet_sequences/tiger/walk/tiger_walk-06.png',
       'assets/pet_sequences/tiger/walk/tiger_walk-07.png',
+    ],
+  );
+
+  static const PetFrameSequence chickenIdle = PetFrameSequence(
+    petId: 'chicken',
+    sourceAsset: 'assets/pet_sequences/chicken/chicken-stay/chicken-stay.gif',
+    frameDurationsMs: [200, 300, 200, 300, 200],
+    frameAssets: [
+      'assets/pet_sequences/chicken/chicken-stay/chicken-stay-01.png',
+      'assets/pet_sequences/chicken/chicken-stay/chicken-stay-02.png',
+      'assets/pet_sequences/chicken/chicken-stay/chicken-stay-03.png',
+      'assets/pet_sequences/chicken/chicken-stay/chicken-stay-04.png',
+      'assets/pet_sequences/chicken/chicken-stay/chicken-stay-05.png',
+    ],
+  );
+
+  static const PetFrameSequence chickenSleep = PetFrameSequence(
+    petId: 'chicken',
+    sourceAsset: 'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep.gif',
+    frameDurationsMs: [200, 100, 200, 300, 200, 200],
+    frameAssets: [
+      'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep-01.png',
+      'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep-02.png',
+      'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep-03.png',
+      'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep-04.png',
+      'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep-05.png',
+      'assets/pet_sequences/chicken/chicken-sleep/chicken-sleep-06.png',
+    ],
+  );
+
+  static const PetFrameSequence chickenWalk = PetFrameSequence(
+    petId: 'chicken',
+    sourceAsset:
+        'assets/pet_sequences/chicken/chicken-moving/chicken-moving.gif',
+    frameDurationsMs: [200, 200, 200, 200, 200, 200, 200, 200],
+    frameAssets: [
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-01.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-02.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-03.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-04.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-05.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-06.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-07.png',
+      'assets/pet_sequences/chicken/chicken-moving/chicken-moving-08.png',
     ],
   );
 
