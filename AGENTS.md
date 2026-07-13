@@ -23,6 +23,7 @@ This file is for agentic coding agents working in this repo.
   - Crashlytics triage: `.codex/skills/firebase-crashlytics-triage/SKILL.md`
   - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
   - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
+  - Pet socket calibration / Godot exports: `.codex/skills/pet-socket-calibration/SKILL.md`
   - UI/UX implementation or review: `.codex/skills/ui-ux-pro-max/SKILL.md`
     - TODO: This local skill's copied examples still mention `.claude/skills/...`;
       use `.codex/skills/ui-ux-pro-max/scripts/search.py` for this repo unless

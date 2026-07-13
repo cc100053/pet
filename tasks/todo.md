@@ -9,6 +9,38 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260621_pre_compaction.md`
 - `tasks/archive/todo_20260627_pre_compaction.md`
 - `tasks/archive/todo_20260704_pre_compaction.md`
+- `tasks/archive/todo_20260711_pre_compaction.md`
+
+## Plan (2026-07-14 Crashlytics FCM Permission Fix)
+- [x] Inventory the notification initialization contract and affected
+      Crashlytics variant.
+- [x] Contain notification-permission request failures without changing
+      successful FCM registration behavior.
+- [x] Add regression coverage for the permission-failure path.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record verification results and remaining release implications.
+
+## Review (2026-07-14 Crashlytics FCM Permission Fix)
+- Contained notification permission request exceptions inside `FCMService`
+  so unsupported Apple environments no longer escape to the fatal global zone.
+- Preserved successful permission, local notification, tap routing, token sync,
+  payload, server, and durable-state behavior.
+- Added an injectable permission boundary and regression coverage for the exact
+  `Notifications are not allowed for this application` platform failure.
+- Focused FCM tests passed. `flutter analyze` reported no issues and full
+  `flutter test` passed 523 tests with the environment-dependent feed test
+  skipped.
+- Existing 2.2.4 installs are unchanged; the fix requires a subsequent app
+  build and no server deployment or migration.
+
+## Plan (2026-07-11 AGENTS/Memory Optimization)
+- [x] Audit AGENTS, active memory, task notes, local skills, referenced docs,
+      scripts, Edge Functions, and relevant migrations for verified changes.
+- [x] Archive pre-compaction snapshots and keep active memory current-state
+      focused.
+- [x] Add only newly supported, non-duplicative AGENTS workflow guidance.
+- [x] Record before/after counts and inspect the documentation-only diff.
+- [x] Run `flutter analyze` and `flutter test`, then record results.
 
 ## Active Follow-ups
 - [ ] Run ASC submission preflight for repo-current iOS `2.2.4+10`, then submit
@@ -27,34 +59,68 @@ Latest historical snapshots before compaction:
       deployment config; current `verify_jwt` behavior is documented but no
       `supabase/config.toml` exists.
 
-## Plan (2026-07-11 Chicken Pet Wire-up)
-- [x] Read active memory, shared-item rollout instructions, compatibility
-      workflow, and Godot PNG sequence/socket authoring workflow.
-- [x] Inventory chicken animation frames/timing and existing Flutter/Godot pet
-      contracts.
-- [x] Add version-gated chicken catalog/localization, PNG sequences, starter
-      sockets, asset registration, and regression tests.
-- [x] Add basic chicken authoring scenes in the Godot project
-      for the user's detailed calibration pass.
-- [x] Run localization generation, bundle verification, `flutter analyze`, and
-      `flutter test`.
-- [x] Record implementation and verification results below.
+## Plan (2026-07-11 Pet Socket Calibration Skill)
+- [x] Scaffold a repo-local skill with standard metadata.
+- [x] Add deterministic frame inspection, socket validation, quality scoring,
+      and Flutter motion-track generation scripts.
+- [x] Document the 0–3 review scale and human-in-the-loop calibration workflow.
+- [x] Run the tools against chicken and validate the complete skill package.
+- [x] Record implementation and verification results.
+
+## Plan (2026-07-11 Chicken Socket Sync)
+- [x] Revalidate chicken assets and Godot exports with the calibration skill.
+- [x] Apply exported base/state sockets and required provisional motion tracks.
+- [x] Update regression coverage for track lengths, timing, and sampled motion.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Record verification and remaining Level 2 equipment review.
+
+## Review (2026-07-11 Chicken Socket Sync)
+- Replaced starter chicken sockets with normalized frame-0 values from the
+  validated stay/moving/sleep Godot exports.
+- Added timing-aware Moving motion tracks for head/body/back and a Sleep head
+  track; Stay remains static because every slot stays below the 10px threshold.
+- Added regression coverage for exported bases, track frame/duration parity,
+  and representative Moving/Sleep samples.
+- Focused socket tests passed. `flutter analyze` reported no issues and full
+  `flutter test` passed 522 tests with the environment-dependent feed test
+  skipped.
+- The implementation is intentionally provisional Level 1. Chicken-specific
+  equipment anchors/sizes and Level 2 promotion still require representative
+  equipment playback in Godot and Flutter.
+
+## Review (2026-07-11 Pet Socket Calibration Skill)
+- Added `.codex/skills/pet-socket-calibration/` with standard Codex metadata,
+  a concise human-in-the-loop workflow, and a 0–3 per-animation/slot rubric.
+- Added deterministic scripts for PNG/GIF integrity inspection, Godot export
+  schema/normalization validation, movement/jump/loop scoring, and Flutter
+  `PetSocketConfig` generation.
+- Chicken benchmark passed frame integrity and all three JSON validators. The
+  scorer correctly keeps the AI-authored export at level 1, recommends moving
+  tracks for all moving slots plus the sleeping head, and flags moving frames
+  5–8 for human equipment review.
+- Python syntax parsing, generated Flutter snippet output, `git diff --check`,
+  and the official skill validator passed. The validator required a temporary
+  minimal YAML compatibility module because available Python runtimes do not
+  include PyYAML; no repo dependency was added.
+- Required repo verification passed: `flutter analyze` reported no issues and
+  `flutter test` passed 521 tests with the network integration test skipped.
 
 ## Recent Context
 - Detailed release/build/backend status now lives in `docs/release_status.md`.
 - Detailed task history before this run is archived at
-  `tasks/archive/todo_20260704_pre_compaction.md`.
+  `tasks/archive/todo_20260711_pre_compaction.md`.
 
-## Review (2026-07-11 Chicken Pet Wire-up)
-- Added the `chicken` pet with a `2.2.5` minimum-version gate, localized name
-  and tagline for all five locales, catalog styling, and compatibility tests.
-- Added the supplied 5-frame idle, 6-frame sleep, and 8-frame walk sequences
-  with timing-sheet durations, explicit nested bundle registration, and debug
-  equipment-preview access.
-- Added starter head/body/back sockets at `(0.39, 0.18)`, `(0.45, 0.52)`, and
-  `(0.69, 0.45)` in Flutter and matching 450x450 Marker2D positions in three
-  Godot authoring scenes under `/Users/fatboy/pet-tomo/pet/chicken/`.
-- Godot headless editor imported all chicken assets/scenes without errors.
-- Verification passed: focused pet tests (16), `flutter build bundle` with all
-  chicken assets present, `flutter analyze`, and full `flutter test` (521
-  passed, 1 integration test skipped because its Supabase env vars are unset).
+## Review (2026-07-11 AGENTS/Memory Optimization)
+- Audited repo-local workflows and found no accurate, non-duplicative AGENTS
+  addition; the existing shared-item and PNG/socket rules cover the new chicken
+  rollout.
+- Compacted active memory from 314 to 295 lines: architecture 93→90,
+  database schema 82→82, progress 72→56, tech stack 38→38, UI/UX 29→29.
+- Archived full pre-compaction copies at
+  `memory-bank/archive/architecture_20260711_pre_compaction.md` and
+  `memory-bank/archive/progress_20260711_pre_compaction.md`; archived the prior
+  task state at `tasks/archive/todo_20260711_pre_compaction.md`.
+- Diff inspection and `git diff --check` passed. `flutter analyze` passed with
+  no issues. `flutter test` passed: 521 tests, with the feed integration test
+  skipped because `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
+  `SUPABASE_TEST_REFRESH_TOKEN` are unset.

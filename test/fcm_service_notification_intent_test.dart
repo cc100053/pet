@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/services/fcm_service.dart';
 
@@ -84,6 +85,25 @@ void main() {
       expect(pending, isNotNull);
       expect(pending!.roomId, 'room-1');
       expect(service.takePendingNotificationIntent(), isNull);
+    });
+  });
+
+  group('FCMService initialization', () {
+    test('contains notification permission request failures', () async {
+      var requestCount = 0;
+      final service = FCMService(
+        requestPermission: () async {
+          requestCount += 1;
+          throw PlatformException(
+            code: 'unknown',
+            message: 'Notifications are not allowed for this application',
+          );
+        },
+      );
+
+      await expectLater(service.initialize(), completes);
+
+      expect(requestCount, 1);
     });
   });
 

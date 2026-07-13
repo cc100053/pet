@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pet Socket Calibration"
+  short_description: "Calibrate pet sockets and generate Flutter tracks"
+  default_prompt: "Use $pet-socket-calibration to validate and calibrate this pet animation export."

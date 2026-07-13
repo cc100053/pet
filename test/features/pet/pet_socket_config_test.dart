@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pet/features/pet/pet_animation_frames.dart';
 import 'package:pet/features/pet/pet_sockets.dart';
 
 void main() {
@@ -78,17 +79,78 @@ void main() {
     );
   });
 
-  test('provides starter sockets for chicken calibration', () {
+  test('uses exported base sockets for chicken calibration', () {
     final chicken = PetSocketCatalog.forPet('chicken')!;
 
     expect(
       chicken.resolve(PetEquipmentSlot.head),
       isA<PetSocket>()
-          .having((socket) => socket.x, 'x', 0.39)
-          .having((socket) => socket.y, 'y', 0.18),
+          .having((socket) => socket.x, 'x', 0.368888889)
+          .having((socket) => socket.y, 'y', 0.16),
     );
-    expect(chicken.resolve(PetEquipmentSlot.body), isNotNull);
-    expect(chicken.resolve(PetEquipmentSlot.back), isNotNull);
+    expect(
+      chicken.resolve(PetEquipmentSlot.body, isSleeping: true),
+      isA<PetSocket>()
+          .having((socket) => socket.x, 'x', 0.444444444)
+          .having((socket) => socket.y, 'y', 0.5),
+    );
+  });
+
+  test('samples exported chicken walk and sleep motion tracks', () {
+    final chicken = PetSocketCatalog.forPet('chicken')!;
+
+    for (final slot in const [
+      PetEquipmentSlot.head,
+      PetEquipmentSlot.body,
+      PetEquipmentSlot.back,
+    ]) {
+      final track = chicken.walkMotionTracksBySlot[slot]!;
+      expect(track.frames, hasLength(8));
+      expect(
+        track.frameDurationsMs,
+        PetAnimationFrames.chickenWalk.frameDurationsMs,
+      );
+    }
+    final sleepHeadTrack =
+        chicken.sleepMotionTracksBySlot[PetEquipmentSlot.head]!;
+    expect(sleepHeadTrack.frames, hasLength(6));
+    expect(
+      sleepHeadTrack.frameDurationsMs,
+      PetAnimationFrames.chickenSleep.frameDurationsMs,
+    );
+
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.head,
+        animationProgress: 6 / 8,
+        isWalking: true,
+      ),
+      const Offset(-0.12, 0.035555556),
+    );
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.body,
+        animationProgress: 6 / 8,
+        isWalking: true,
+      ),
+      const Offset(-0.088888889, 0.008888889),
+    );
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.back,
+        animationProgress: 6 / 8,
+        isWalking: true,
+      ),
+      const Offset(-0.055555556, -0.04),
+    );
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.head,
+        animationProgress: 900 / 1200,
+        isSleeping: true,
+      ),
+      const Offset(-0.042222222, 0),
+    );
   });
 
   test('samples ghost idle motion from PNG-derived track', () {

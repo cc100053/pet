@@ -2,7 +2,7 @@
 
 Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/`; latest:
-`memory-bank/archive/progress_20260711_pre_compaction.md`.
+`memory-bank/archive/progress_20260704_pre_compaction.md`.
 
 ## Current State
 - Repo release baseline is iOS `2.2.4+10` after the completed
@@ -14,32 +14,43 @@ Active progress stays current-state focused. Full snapshots live in
   legacy clients; extras live in `room_extra_pets`; shared stats live in
   `room_pet_state`; `rooms.name` mirrors the main pet.
 - Shared backgrounds/furniture/pets need version gates, old-client fallback,
-  and the compatibility prompt; use the shared-item rollout skill.
+  and the compatibility prompt. Use `.codex/skills/shared-item-rollout/SKILL.md`.
+- Pet equipment is room-scoped/per-pet with quantity-aware shared ownership;
+  furniture placement uses fixed-canvas coordinates while preserving legacy RPC
+  overloads.
 - Feed upload has a durable queue, opt-in presigned direct-to-R2 support,
   base64 fallback, and authoritative satiety reconciliation from `feed_validate`.
 - Feed rewards stay on the response path; partner push stays in
   `EdgeRuntime.waitUntil`; old response field types remain stable.
 - Abandoned-room photo cleanup is human-in-the-loop and fail-closed.
-- Large Home/Chat/Shop files use `part` extensions; Chat uses bounded visible
-  history, Hive cache, local-first realtime buffering, and image-feed recall.
+- Large Home/Chat/Shop files are decomposed with `part` extensions. See
+  `memory-bank/architecture.md` before moving code between parts.
+- Chat runs on `ChatRoomViewV2` with bounded visible history, Hive cache,
+  local-first realtime buffering, and soft delete for recalled image feeds.
 - Pet rendering prefers bundled PNG sequences while preserving GIF asset ids;
   Godot remains the socket/equipment authoring path.
-- Chicken is version-gated for `2.2.5`, with bundled sequences and provisional
-  Godot-exported Flutter motion tracks. Equipment-fit review remains level 1
-  until representative head/face/body/back items pass in Godot and Flutter.
+- Chicken is wired as a version-gated `2.2.5` pet with bundled idle/sleep/walk
+  sequences and starter Godot sockets awaiting detailed author calibration.
 - GEOFlow, SEO/Firebase Hosting pages, invite fallbacks, and app/universal-link
   files live in `/Users/fatboy/geo-marketing`, not this Flutter app repo.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer;
   `test/app_store_metadata_terms_test.dart` locks this.
-- FCM notification permission failures are contained inside `FCMService`; an
-  unsupported Apple environment skips notification initialization instead of
-  escaping into the fatal Crashlytics zone. Successful registration behavior
-  and notification contracts are unchanged.
 
 ## Workflow Notes
-- Follow `AGENTS.md` for compatibility, skills, asset checks, Firebase, ASC,
-  and Edge Function deployment workflows.
-- `docs/release_status.md` remains the release/build/backend source of truth.
+- `docs/release_status.md` is the release/build/backend source of truth.
+- Read `docs/ai_collaboration_workflow.md` before high-risk compatibility work.
+- Use the repo-local skills for shared items, release notes/ASC metadata,
+  Crashlytics triage, and UI/UX work before editing those areas.
+- Run `flutter build bundle` after adding nested assets/PNG sequences.
+- Read `docs/godot-png-sequence-socket-workflow.md` before editing pet PNG
+  sequences, sockets, equipment preview metadata, or placement code.
+- Use `docs/firebase_crashlytics_mcp_workflow.md` for Crashlytics MCP triage.
+- Use `docs/ios_app_store_export.md` when uploading an existing iOS archive
+  while avoiding Apple's immediate symbol-upload warning.
+- If ASC wrappers return App Store Connect `-50` for version/localization work,
+  use `scripts/asc_version_localization_sync.py` with bundled Codex Python.
+- Edge Function `verify_jwt` settings are not centralized in a checked-in
+  config; verify live config before redeploying.
 
 ## Open Items
 - Run ASC submission preflight for iOS `2.2.4+10`, then submit for review if

@@ -2,7 +2,7 @@
 
 Active memory files stay compact because agents must read them before
 non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260711_pre_compaction.md`.
+`memory-bank/archive/architecture_20260704_pre_compaction.md`.
 
 ## Source Of Truth
 - App/runtime: `lib/`, `test/`
@@ -20,7 +20,7 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - `features/shop`: decor, consumables, room equipment, RevenueCat, purchase
   feedback, and economy state adapters.
 - `features/profile`, `gallery`, `pet`, `ads`: avatar/profile, memory photos,
-  pet selection/animation, and ATT-aware AdMob.
+  pet visuals/selection, PNG sequence playback, and ATT-aware AdMob.
 - `services` and `shared`: Supabase/FCM/IAP/config/crash services, force
   update, What's New, shared widgets, and debug tools.
 
@@ -63,8 +63,9 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Room-selection health bars project decay client-side from `hunger` plus
   `last_decay_at` (`features/home/pet_hunger_projection.dart`) while server
   tick/realtime remains authoritative.
-- Room entry warms from cached per-room `pet_state`/`pet_id`; noncritical decor
-  loads after entry. Force update and What's New remain separate gates.
+- Room entry warms from cached per-room `pet_state`/`pet_id`; picker-only decor
+  loads post-frame to avoid entry-critical read contention.
+- Force update and What's New remain separate gates.
 - Invite links use `invite_code`; avoid bare `code` because Supabase Auth can
   treat it as a PKCE callback parameter.
 
@@ -77,8 +78,10 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
   `docs/feed_upload_pipeline.md` for response and compatibility contracts.
 - `notify_friend` remains `verify_jwt=false` for webhook compatibility;
   gateway-JWT functions still validate callers inside the function.
-- Shared Edge helpers live in `supabase/functions/_shared/`; R2 cleanup is
-  fail-safe for failed writes and human-in-the-loop for abandoned rooms.
+- Shared Edge helpers live in `supabase/functions/_shared/`; push copy and
+  pet/avatar mapping live under `supabase/functions/notify_friend/`.
+- R2 cleanup is fail-safe for failed feed/avatar writes and human-in-the-loop
+  for abandoned rooms.
 - Firebase Hosting / GEOFlow pages live in `/Users/fatboy/geo-marketing`.
 - iOS Crashlytics dSYM upload goes through
   `ios/scripts/upload_crashlytics_symbols.sh`.

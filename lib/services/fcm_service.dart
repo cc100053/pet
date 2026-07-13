@@ -102,7 +102,11 @@ final fcmServiceProvider = Provider<FCMService>((ref) {
 });
 
 class FCMService {
+  FCMService({Future<NotificationSettings> Function()? requestPermission})
+    : _requestPermission = requestPermission;
+
   final _localNotifications = FlutterLocalNotificationsPlugin();
+  final Future<NotificationSettings> Function()? _requestPermission;
   final _notificationIntentController =
       StreamController<AppNotificationIntent>.broadcast();
   final _recentIntentKeys = ListQueue<String>();
@@ -140,11 +144,17 @@ class FCMService {
       return;
     }
 
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    final NotificationSettings settings;
+    try {
+      settings = await _requestNotificationPermission();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'FCM initialize skipped: notification permission request failed: '
+        '$error',
+      );
+      debugPrintStack(stackTrace: stackTrace);
+      return;
+    }
     final status = settings.authorizationStatus;
     if (status == AuthorizationStatus.denied) {
       debugPrint('FCM initialize skipped: notification permission denied');
@@ -170,6 +180,14 @@ class FCMService {
     });
 
     _initialized = true;
+  }
+
+  Future<NotificationSettings> _requestNotificationPermission() {
+    final requestPermission = _requestPermission;
+    if (requestPermission != null) {
+      return requestPermission();
+    }
+    return _messaging.requestPermission(alert: true, badge: true, sound: true);
   }
 
   AppNotificationIntent? takePendingNotificationIntent() {
