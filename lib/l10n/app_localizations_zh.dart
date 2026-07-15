@@ -1992,6 +1992,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew224Bullet2 => '改善从动态和聊天室返回时的稳定性。';
+
+  @override
+  String get whatsNew225Title => '错误修复';
+
+  @override
+  String get whatsNew225Bullet1 => '修正 iOS 设置通知时可能导致应用崩溃的问题。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3972,4 +3978,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew224Bullet2 => '改善從動態與聊天室返回時的穩定性。';
+
+  @override
+  String get whatsNew225Title => '錯誤修正';
+
+  @override
+  String get whatsNew225Bullet1 => '修正 iOS 設定通知時可能導致應用程式當機的問題。';
 }

@@ -2002,4 +2002,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew224Bullet2 => 'フィードやチャットから戻るときの安定性を改善しました。';
+
+  @override
+  String get whatsNew225Title => '不具合修正';
+
+  @override
+  String get whatsNew225Bullet1 => 'iOSで通知を設定するときにクラッシュすることがある問題を修正しました。';
 }

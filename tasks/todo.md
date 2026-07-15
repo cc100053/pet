@@ -11,6 +11,29 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260704_pre_compaction.md`
 - `tasks/archive/todo_20260711_pre_compaction.md`
 
+## Plan (2026-07-15 iOS 2.2.5 Bug-Fix Release)
+- [x] Inventory the approved bug fix and confirm the chicken rollout boundary.
+- [x] Gate chicken beyond 2.2.5 and add a regression test proving it is hidden.
+- [x] Update bundled What's New, ASC metadata, and the app version to 2.2.5+11.
+- [x] Regenerate localization output and run release validation.
+- [x] Sync App Store Connect metadata, archive/upload, wait for processing, and
+      attach the build without submitting for review.
+- [x] Update release ledgers with the verified App Store Connect state.
+
+## Review (2026-07-15 iOS 2.2.5 Bug-Fix Release)
+- Published bug-fix-only bundled and ASC release notes for the iOS notification
+  permission initialization crash; no new-pet copy was included.
+- Moved chicken's app-version visibility gate to `2.2.6`. Regression coverage
+  proves `2.2.5` excludes it from the visible catalog and resolves remote
+  chicken state to the default pet.
+- Created ASC version `38afa02d-dc0a-4dff-a91c-4cedfe3095a0`, synced and read
+  back all four localizations, built and verified the iPhone-only `2.2.5+11`
+  IPA, uploaded it, waited for `VALID`, and attached build
+  `5e052823-70d6-4d95-9ae5-a7b51651da9d`.
+- `flutter analyze` passed. `flutter test` passed 523 tests with the credentialed
+  feed integration test skipped. App Review submission was intentionally not
+  performed.
+
 ## Plan (2026-07-14 Crashlytics FCM Permission Fix)
 - [x] Inventory the notification initialization contract and affected
       Crashlytics variant.
@@ -43,9 +66,9 @@ Latest historical snapshots before compaction:
 - [x] Run `flutter analyze` and `flutter test`, then record results.
 
 ## Active Follow-ups
-- [ ] Run ASC submission preflight for repo-current iOS `2.2.4+10`, then submit
-      ASC version `ca26e644-9448-4ee3-8640-bac50a810057` with attached build
-      `cdd2fae2-1dd1-434b-bc25-d0bccaa402fd` for review if approved.
+- [ ] Run ASC submission preflight for repo-current iOS `2.2.5+11`, then submit
+      ASC version `38afa02d-dc0a-4dff-a91c-4cedfe3095a0` with attached build
+      `5e052823-70d6-4d95-9ae5-a7b51651da9d` for review if approved.
 - [ ] Live-verify a real feed on the current build: confirm `feed_validate`
       returns `pet_state`, the satiety bar moves on slow upload, and presigned
       upload logs stay clean.

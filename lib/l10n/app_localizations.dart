@@ -3710,6 +3710,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Improved stability when returning from feed and chat flows.'**
   String get whatsNew224Bullet2;
+
+  /// No description provided for @whatsNew225Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug fix'**
+  String get whatsNew225Title;
+
+  /// No description provided for @whatsNew225Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed a crash that could occur while setting up notifications on iOS.'**
+  String get whatsNew225Bullet1;
 }
 
 class _AppLocalizationsDelegate

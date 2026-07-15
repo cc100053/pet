@@ -111,7 +111,7 @@ class PetCatalog {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-      minAppVersion: '2.2.5',
+      minAppVersion: '2.2.6',
     ),
   ];
 

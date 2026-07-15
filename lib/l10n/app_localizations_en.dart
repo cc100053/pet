@@ -2094,4 +2094,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew224Bullet2 =>
       'Improved stability when returning from feed and chat flows.';
+
+  @override
+  String get whatsNew225Title => 'Bug fix';
+
+  @override
+  String get whatsNew225Bullet1 =>
+      'Fixed a crash that could occur while setting up notifications on iOS.';
 }

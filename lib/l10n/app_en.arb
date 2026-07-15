@@ -1051,5 +1051,7 @@
   "whatsNew223Bullet2": "Small stability improvements keep everyday pet care smoother.",
   "whatsNew224Title": "Bug fix",
   "whatsNew224Bullet1": "Fixed a feed-related issue that could cause a crash after uploading a pet photo.",
-  "whatsNew224Bullet2": "Improved stability when returning from feed and chat flows."
+  "whatsNew224Bullet2": "Improved stability when returning from feed and chat flows.",
+  "whatsNew225Title": "Bug fix",
+  "whatsNew225Bullet1": "Fixed a crash that could occur while setting up notifications on iOS."
 }
