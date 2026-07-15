@@ -29,6 +29,7 @@ class _RoomPetSummary {
     required this.petName,
     required this.petLevel,
     this.petId,
+    this.petState,
   });
 
   final String petType;
@@ -39,6 +40,7 @@ class _RoomPetSummary {
   /// Main pet id (`pets.id`) for the room, used to warm room entry so it can
   /// skip the `_loadPetId` round-trip.
   final String? petId;
+  final Map<String, dynamic>? petState;
 }
 
 class _RoomPet {

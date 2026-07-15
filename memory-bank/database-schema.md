@@ -63,6 +63,12 @@ applied migration that rewrites the object.
 - Home summaries: `get_room_latest_feeds(...)` and
   `get_room_member_counts(...)` are additive `SECURITY INVOKER` RPCs; old
   clients still read tables directly.
+- Effective pet status: `get_effective_room_pet_statuses(uuid[])` is an
+  authenticated-only, read-only `SECURITY INVOKER` RPC. It projects canonical
+  `room_pet_state` hunger for requested active-member rooms using one server
+  timestamp and the room timezone; old clients and existing tick RPCs are
+  unchanged. The admin-only hunger-freeze override stays outside this invoker
+  surface and reconciles through authoritative tick/state updates.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use `(select auth.uid())`,

@@ -471,8 +471,9 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       if (state == null) {
         return;
       }
-      _cachePetState(roomId, petId, state);
-      final hunger = state['hunger'] as num?;
+      final normalizedState = stampAuthoritativePetState(state);
+      _cachePetState(roomId, petId, normalizedState);
+      final hunger = petStatusHunger(normalizedState);
       final healthValue = _healthValueFromHunger(hunger);
       if (!mounted) {
         return;
@@ -893,7 +894,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     if (petState == null) {
       return;
     }
-    final current = (petState['hunger'] as num?)?.toDouble();
+    final current = petStatusHunger(petState)?.toDouble();
     if (current == null) {
       return;
     }
@@ -914,7 +915,11 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     }
     final healthValue = _healthValueFromHunger(optimistic);
     _setStateForFeedOrchestrator(() {
-      _petState = {...petState, 'hunger': optimistic};
+      _petHealthActionEventId++;
+      _petState = stampAuthoritativePetState({
+        ...petState,
+        'hunger': optimistic,
+      });
       _myRooms = _myRooms
           .map(
             (room) => room['id'] == roomId
@@ -991,7 +996,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       fieldSize,
       _HomeViewState._photoFoodSize,
     );
-    final hunger = (_petState?['hunger'] as num?)?.toDouble() ?? 50;
+    final hunger = petStatusHunger(_petState)?.toDouble() ?? 50;
     final approachDuration = _durationForFoodApproach(
       distance: (targetPx - currentPx).distance,
       hunger: hunger,

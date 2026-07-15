@@ -81,8 +81,9 @@ extension _HomeBuildHelpers on _HomeViewState {
             : ((roomPetName?.trim().isNotEmpty ?? false)
                   ? roomPetName!.trim()
                   : l10n.petNameUnnamed);
-        final healthDebugValue =
-            ((petSnapshot.state ?? _petState)?['hunger'] as num?)?.round();
+        final healthDebugValue = petStatusHunger(
+          petSnapshot.state ?? _petState,
+        )?.round();
         return HomeGameStatusBar(
           petAvatar: _buildStatusBarPetAvatar(petDefinition),
           expProgress: expProgressValue,
@@ -90,6 +91,7 @@ extension _HomeBuildHelpers on _HomeViewState {
           petName: resolvedPetName,
           healthValue: _healthValue(),
           healthDebugValue: healthDebugValue,
+          healthActionEventId: _petHealthActionEventId,
           coins: currency.coins,
           diamonds: currency.diamonds,
           coinReward: currency.coinReward,

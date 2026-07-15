@@ -10,6 +10,8 @@ void main() {
     int? coinReward,
     int coinRewardEventId = 0,
     String? coinRewardLabel,
+    double healthValue = 0.7,
+    int healthActionEventId = 0,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -18,7 +20,8 @@ void main() {
           expProgress: 0.4,
           level: 3,
           petName: 'Mochi',
-          healthValue: 0.7,
+          healthValue: healthValue,
+          healthActionEventId: healthActionEventId,
           coins: 120,
           diamonds: 8,
           coinReward: coinReward,
@@ -148,4 +151,45 @@ void main() {
     );
     expect(find.text('x2 candy +20'), findsOneWidget);
   });
+
+  testWidgets(
+    'uses a short neutral reconciliation and a deliberate action gain',
+    (tester) async {
+      await tester.pumpWidget(
+        buildHarness(
+          showHint: false,
+          onInventoryTap: () {},
+          onDismissHint: () {},
+          healthValue: 0.5,
+        ),
+      );
+
+      await tester.pumpWidget(
+        buildHarness(
+          showHint: false,
+          onInventoryTap: () {},
+          onDismissHint: () {},
+          healthValue: 0.65,
+        ),
+      );
+      var fill = tester.widget<AnimatedContainer>(
+        find.byKey(const ValueKey('home-health-fill')),
+      );
+      expect(fill.duration, const Duration(milliseconds: 250));
+
+      await tester.pumpWidget(
+        buildHarness(
+          showHint: false,
+          onInventoryTap: () {},
+          onDismissHint: () {},
+          healthValue: 0.8,
+          healthActionEventId: 1,
+        ),
+      );
+      fill = tester.widget<AnimatedContainer>(
+        find.byKey(const ValueKey('home-health-fill')),
+      );
+      expect(fill.duration, const Duration(milliseconds: 500));
+    },
+  );
 }

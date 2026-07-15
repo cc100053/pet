@@ -18,6 +18,7 @@ class HomeGameStatusBar extends StatelessWidget {
     required this.petName,
     required this.healthValue,
     this.healthDebugValue,
+    this.healthActionEventId = 0,
     required this.coins,
     required this.diamonds,
     required this.onPetTap,
@@ -44,6 +45,7 @@ class HomeGameStatusBar extends StatelessWidget {
   final String petName;
   final double healthValue;
   final int? healthDebugValue;
+  final int healthActionEventId;
   final int coins;
   final int diamonds;
   final VoidCallback onPetTap;
@@ -100,6 +102,7 @@ class HomeGameStatusBar extends StatelessWidget {
           _RightCluster(
             healthValue: healthValue,
             healthDebugValue: healthDebugValue,
+            healthActionEventId: healthActionEventId,
             coins: coins,
             diamonds: diamonds,
             coinReward: coinReward,
@@ -808,6 +811,7 @@ class _RightCluster extends StatelessWidget {
   const _RightCluster({
     required this.healthValue,
     this.healthDebugValue,
+    required this.healthActionEventId,
     required this.coins,
     required this.diamonds,
     this.coinReward,
@@ -820,6 +824,7 @@ class _RightCluster extends StatelessWidget {
 
   final double healthValue;
   final int? healthDebugValue;
+  final int healthActionEventId;
   final int coins;
   final int diamonds;
   final int? coinReward;
@@ -851,6 +856,7 @@ class _RightCluster extends StatelessWidget {
                 child: _HealthBar(
                   value: healthValue,
                   debugValue: healthDebugValue,
+                  actionEventId: healthActionEventId,
                 ),
               ),
             ),
@@ -889,10 +895,15 @@ class _RightCluster extends StatelessWidget {
 }
 
 class _HealthBar extends StatefulWidget {
-  const _HealthBar({required this.value, this.debugValue});
+  const _HealthBar({
+    required this.value,
+    this.debugValue,
+    required this.actionEventId,
+  });
 
   final double value;
   final int? debugValue;
+  final int actionEventId;
 
   @override
   State<_HealthBar> createState() => _HealthBarState();
@@ -906,18 +917,23 @@ class _HealthBarState extends State<_HealthBar> {
   double _lastValue = 0.0;
   bool _isRising = false;
   Timer? _riseTimer;
+  late int _lastActionEventId;
 
   @override
   void initState() {
     super.initState();
     _lastValue = widget.value.isFinite ? widget.value : 0.0;
+    _lastActionEventId = widget.actionEventId;
   }
 
   @override
   void didUpdateWidget(_HealthBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     final nextValue = widget.value.isFinite ? widget.value : 0.0;
-    if (nextValue > _lastValue + _riseThreshold) {
+    final isActionGain =
+        widget.actionEventId != _lastActionEventId &&
+        nextValue > _lastValue + _riseThreshold;
+    if (isActionGain) {
       _riseTimer?.cancel();
       setState(() {
         _isRising = true;
@@ -930,10 +946,11 @@ class _HealthBarState extends State<_HealthBar> {
           _isRising = false;
         });
       });
-    } else if (nextValue < _lastValue - _riseThreshold) {
+    } else if ((nextValue - _lastValue).abs() > _riseThreshold) {
       _isRising = false;
     }
     _lastValue = nextValue;
+    _lastActionEventId = widget.actionEventId;
   }
 
   @override
@@ -975,7 +992,8 @@ class _HealthBarState extends State<_HealthBar> {
                 top: 2,
                 bottom: 2,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 750),
+                  key: const ValueKey('home-health-fill'),
+                  duration: Duration(milliseconds: _isRising ? 500 : 250),
                   curve: Curves.easeOut,
                   width: fillWidth,
                   decoration: BoxDecoration(

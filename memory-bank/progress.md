@@ -19,6 +19,9 @@ Active progress stays current-state focused. Full snapshots live in
   base64 fallback, and authoritative satiety reconciliation from `feed_validate`.
 - Feed rewards stay on the response path; partner push stays in
   `EdgeRuntime.waitUntil`; old response field types remain stable.
+- Room selection and Pet Home now share cached effective pet-status snapshots;
+  the additive live `get_effective_room_pet_statuses(...)` RPC performs fast
+  status-only revalidation using the server clock and room timezone.
 - Abandoned-room photo cleanup is human-in-the-loop and fail-closed.
 - Large Home/Chat/Shop files use `part` extensions; Chat uses bounded visible
   history, Hive cache, local-first realtime buffering, and image-feed recall.

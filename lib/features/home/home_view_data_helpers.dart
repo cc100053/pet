@@ -146,7 +146,7 @@ extension _HomeDataHelpers on _HomeViewState {
   }
 
   double _healthValue() {
-    return _healthValueFromHunger(_effectivePetState?['hunger'] as num?);
+    return _healthValueFromHunger(petStatusHunger(_effectivePetState));
   }
 
   String _departureHeroTag(String petId) => 'pet_departure_note_$petId';

@@ -11,6 +11,32 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260704_pre_compaction.md`
 - `tasks/archive/todo_20260711_pre_compaction.md`
 
+## Plan (2026-07-16 Pet Status Freshness)
+- [x] Inventory the current cache/server contract and add regression tests for
+      shared selection/Home status semantics.
+- [x] Add and deploy an additive read-only effective room-pet status RPC.
+- [x] Reuse one per-room snapshot across selection and Home, with background
+      revalidation on entry/resume and debounced durable persistence.
+- [x] Keep server reconciliation neutral while preserving action-driven hunger
+      animations.
+- [x] Run focused and full verification, update current-state docs/release
+      status, then commit and push a clean worktree.
+
+## Review (2026-07-16 Pet Status Freshness)
+- Added and deployed the additive authenticated-only
+  `get_effective_room_pet_statuses(uuid[])` RPC. It calculates every requested
+  room from one server timestamp and the room timezone without mutating state;
+  old clients and tick contracts remain unchanged.
+- Room selection and Pet Home now reuse one normalized per-room status snapshot,
+  persist updates with a debounce, and revalidate status independently from
+  feeds, equipment, member counts, and unread data on entry/resume.
+- Cache corrections use a short neutral transition; only genuine feed/action
+  gains trigger the longer rise treatment, preventing guessed hunger from
+  looking like a reward.
+- Live migration/permission/result smoke checks passed and Supabase advisors
+  report no lint for the new RPC. `flutter analyze` passed; `flutter test`
+  passed 532 tests with the credentialed feed integration test skipped.
+
 ## Plan (2026-07-15 iOS 2.2.5 Bug-Fix Release)
 - [x] Inventory the approved bug fix and confirm the chicken rollout boundary.
 - [x] Gate chicken beyond 2.2.5 and add a regression test proving it is hidden.

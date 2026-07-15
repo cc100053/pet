@@ -97,6 +97,12 @@ extension _HomeRoomManager on _HomeViewState {
             if (summary.petId != null) {
               room['pet_id'] = summary.petId;
             }
+            final petId = summary.petId;
+            final petState = summary.petState;
+            if (petId != null && petState != null) {
+              _noteAppliedPetStateClock(petId, petState);
+              _cachePetState(roomId!, petId, petState);
+            }
           }
           if (roomId != null && feeds.containsKey(roomId)) {
             final latest = feeds[roomId]!;
@@ -1111,6 +1117,9 @@ extension _HomeRoomManager on _HomeViewState {
     if (roomIds.isEmpty) {
       return {};
     }
+    final statusesFuture = _fetchEffectivePetStatuses(
+      roomIds,
+    ).catchError((_) => <String, PetStatusSnapshot>{});
     final rows = await Supabase.instance.client
         .from('pets')
         .select(
@@ -1119,6 +1128,7 @@ extension _HomeRoomManager on _HomeViewState {
           'mood_boost, mood_boost_expires_at)',
         )
         .inFilter('room_id', roomIds);
+    final statuses = await statusesFuture;
 
     final summaries = <String, _RoomPetSummary>{};
     for (final row in rows) {
@@ -1140,20 +1150,55 @@ extension _HomeRoomManager on _HomeViewState {
         PetCatalog.typeFromColorDna(row['color_dna']),
         appVersion: _currentAppVersion,
       );
-      // Project decay client-side so the health bar is accurate immediately,
-      // without the old per-pet `tick_pet_state` round-trip.
-      final healthValue = stateMap == null
-          ? _healthValueFromHunger(null)
-          : projectHealthFromState(stateMap);
+      final effectiveStatus = statuses[roomId];
+      // The additive RPC is authoritative for display time, room timezone, and
+      // mood rules. Keep the old projection only as a compatibility fallback
+      // if the server migration is temporarily unavailable during rollout.
+      final healthValue =
+          effectiveStatus?.healthValue ??
+          (stateMap == null
+              ? _healthValueFromHunger(null)
+              : projectHealthFromState(stateMap));
       summaries[roomId] = _RoomPetSummary(
         petType: petType,
         healthValue: healthValue,
         petName: (row['name'] as String?)?.trim(),
         petLevel: row['level'] as int?,
-        petId: row['id'] as String?,
+        petId: effectiveStatus?.petId ?? row['id'] as String?,
+        petState: effectiveStatus?.petState,
       );
     }
     return summaries;
+  }
+
+  Future<Map<String, PetStatusSnapshot>> _fetchEffectivePetStatuses(
+    List<String> roomIds,
+  ) async {
+    if (roomIds.isEmpty) {
+      return const <String, PetStatusSnapshot>{};
+    }
+    final response = await Supabase.instance.client.rpc(
+      'get_effective_room_pet_statuses',
+      params: {'p_room_ids': roomIds},
+    );
+    final rows = response is List ? response : const <dynamic>[];
+    final statuses = <String, PetStatusSnapshot>{};
+    final receivedAt = DateTime.now().toUtc();
+    for (final row in rows) {
+      if (row is! Map) {
+        continue;
+      }
+      try {
+        final status = PetStatusSnapshot.fromRpcRow(
+          Map<String, dynamic>.from(row),
+          receivedAt: receivedAt,
+        );
+        statuses[status.roomId] = status;
+      } on FormatException {
+        // Ignore malformed rows without discarding valid room statuses.
+      }
+    }
+    return statuses;
   }
 
   Future<Map<String, _RoomLatestFeed>> _fetchRoomLatestFeeds(

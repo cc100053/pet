@@ -60,11 +60,14 @@ non-trivial work. Full snapshots live in `memory-bank/archive/`; latest:
 - Feed satiety is authoritative end-to-end: `feed_validate` returns committed
   `pet_state`/`overfed`, and Home applies it through a `last_decay_at`
   freshness guard.
-- Room-selection health bars project decay client-side from `hunger` plus
-  `last_decay_at` (`features/home/pet_hunger_projection.dart`) while server
-  tick/realtime remains authoritative.
-- Room entry warms from cached per-room `pet_state`/`pet_id`; noncritical decor
-  loads after entry. Force update and What's New remain separate gates.
+- Room selection and Pet Home share one cached per-room effective-status
+  snapshot. `get_effective_room_pet_statuses(...)` revalidates hunger from one
+  server clock without mutating state; the prior client projection remains only
+  as an older-backend fallback.
+- Room entry warms from cached per-room `pet_state`/`pet_id`, revalidates status
+  in the background on entry/resume, and persists status changes with a debounce;
+  noncritical decor loads after entry. Force update and What's New remain
+  separate gates.
 - Invite links use `invite_code`; avoid bare `code` because Supabase Auth can
   treat it as a PKCE callback parameter.
 

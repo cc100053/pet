@@ -84,6 +84,7 @@ import 'providers/home_unread_counts_provider.dart';
 import 'providers/home_rooms_provider.dart';
 import 'onboarding_focus_utils.dart';
 import 'pet_hunger_projection.dart';
+import 'pet_status_snapshot.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
 import 'room_canvas.dart';
@@ -260,6 +261,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   DateTime _lastWanderAt = DateTime.fromMillisecondsSinceEpoch(0);
   Timer? _petTickTimer;
   Timer? _roomSelectionRefreshTimer;
+  Timer? _homeBootstrapCachePersistTimer;
   Timer? _unreadReconcileTimer;
   StreamSubscription<AppNotificationIntent>? _notificationIntentSubscription;
   AppNotificationIntent? _pendingNotificationIntent;
@@ -382,6 +384,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   int _photoFoodBiteStage = 0;
   bool _petEating = false;
   int _feedingAnimationToken = 0;
+  int _petHealthActionEventId = 0;
   final Map<String, ProfileSummary> _profileByUserId = {};
   bool _showingFeedDoubleRewardPrompt = false;
   String? _lastCrashContextRoomId;
@@ -537,6 +540,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       runtime.disposeTimers();
     }
     _roomSelectionRefreshTimer?.cancel();
+    _homeBootstrapCachePersistTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
     _inviteLinkSubscription?.cancel();
@@ -566,6 +570,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       final activeRoomId = _roomId;
       if (activeRoomId != null) {
         unawaited(_refreshLatestFeed(activeRoomId));
+        unawaited(_refreshEffectivePetStatusForRooms([activeRoomId]));
+        unawaited(_tickPetState());
       }
       return;
     }
@@ -830,7 +836,10 @@ class _HomeViewState extends ConsumerState<HomeView>
                   : null);
         _loadingRoom = false;
       });
-      _restoreCachedPetStates(snapshot['pet_states']);
+      _restoreCachedPetStates(
+        snapshot['pet_states'],
+        savedAt: parseOptionalDate(snapshot['saved_at'])?.toUtc(),
+      );
       _syncOnboardingProfileDraftFromCurrentData();
       _syncCurrencyProvider();
       _syncRoomProviders();
@@ -845,7 +854,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   /// clock) from the persisted bootstrap snapshot so a previously visited room
   /// can warm-enter instantly after a relaunch. Each pet_state row carries its
   /// own `pet_id`, so no separate id map is needed.
-  void _restoreCachedPetStates(dynamic raw) {
+  void _restoreCachedPetStates(dynamic raw, {DateTime? savedAt}) {
     if (raw is! Map) {
       return;
     }
@@ -855,10 +864,26 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (roomId is! String || value is! Map) {
         continue;
       }
-      final state = Map<String, dynamic>.from(value);
+      var state = Map<String, dynamic>.from(value);
       final petId = state['pet_id'] as String?;
       if (petId == null || petId.isEmpty) {
         continue;
+      }
+      // Old cache payloads stored a projected card value separately from the
+      // raw per-room pet_state. Normalize that one-time upgrade path so tapping
+      // a card cannot show a different hunger value inside Home.
+      if (state[petStatusEffectiveHungerKey] == null) {
+        final room = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+          (candidate) => candidate?['id'] == roomId,
+          orElse: () => null,
+        );
+        final cachedHealth = (room?['pet_health'] as num?)?.toDouble();
+        if (cachedHealth != null && cachedHealth.isFinite) {
+          state = stampAuthoritativePetState({
+            ...state,
+            'hunger': (cachedHealth.clamp(0.0, 1.0) * 100).round(),
+          }, receivedAt: savedAt);
+        }
       }
       _petStateByRoom[roomId] = state;
       _petIdByRoom[roomId] = petId;
@@ -1084,6 +1109,15 @@ class _HomeViewState extends ConsumerState<HomeView>
   void _cachePetState(String roomId, String petId, Map<String, dynamic> state) {
     _petStateByRoom[roomId] = Map<String, dynamic>.from(state);
     _petIdByRoom[roomId] = petId;
+    _scheduleHomeBootstrapCachePersist();
+  }
+
+  void _scheduleHomeBootstrapCachePersist() {
+    _homeBootstrapCachePersistTimer?.cancel();
+    _homeBootstrapCachePersistTimer = Timer(
+      const Duration(milliseconds: 400),
+      () => unawaited(_cacheHomeBootstrapSnapshot()),
+    );
   }
 
   /// Whether an incoming `pet_state`/`room_pet_state` snapshot for [petId] is at
@@ -1126,7 +1160,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (petId == null || !_isPetStateRecordFresh(petId, petState)) {
       return;
     }
-    final merged = <String, dynamic>{...?_petState, ...petState};
+    final merged = stampAuthoritativePetState({...?_petState, ...petState});
     final hunger = merged['hunger'] as num?;
     final healthValue = _healthValueFromHunger(hunger);
     setState(() {
@@ -1157,20 +1191,21 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (!_isPetStateRecordFresh(petId, state)) {
       return;
     }
-    _noteAppliedPetStateClock(petId, state);
-    _cachePetState(roomId, petId, state);
+    final normalizedState = stampAuthoritativePetState(state);
+    _noteAppliedPetStateClock(petId, normalizedState);
+    _cachePetState(roomId, petId, normalizedState);
     _subscribeToPetState(petId);
-    final hunger = state['hunger'] as num?;
+    final hunger = petStatusHunger(normalizedState);
     final healthValue = _healthValueFromHunger(hunger);
     if (!mounted) {
       _petId = petId;
-      _petState = state;
+      _petState = normalizedState;
       _petStateReady = true;
       return;
     }
     setState(() {
       _petId = petId;
-      _petState = state;
+      _petState = normalizedState;
       _petStateReady = true;
       _myRooms = _myRooms
           .map(
@@ -1182,7 +1217,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     });
     _syncPetStateProvider();
     _handleOverfedState();
-    _handlePetDepartureState(roomId: roomId, petId: petId, state: state);
+    _handlePetDepartureState(
+      roomId: roomId,
+      petId: petId,
+      state: normalizedState,
+    );
   }
 
   Offset _nextPoopPosition() {
@@ -1971,13 +2010,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       // snapshot already landed, this read can be stale — don't let it clobber.
       final isStaleSnapshot =
           state != null && !_isPetStateRecordFresh(petId, state);
-      final hunger = state?['hunger'] as num?;
+      final normalizedState = state == null
+          ? null
+          : stampAuthoritativePetState(state);
+      final hunger = petStatusHunger(normalizedState);
       final healthValue = _healthValueFromHunger(hunger);
 
       setState(() {
         _petId = petId;
         if (!isStaleSnapshot) {
-          _petState = state;
+          _petState = normalizedState;
           _myRooms = _myRooms
               .map(
                 (room) => room['id'] == roomId
@@ -1989,15 +2031,15 @@ class _HomeViewState extends ConsumerState<HomeView>
         _petStateReady = true;
       });
       _syncPetStateProvider();
-      if (state != null && !isStaleSnapshot) {
-        _noteAppliedPetStateClock(petId, state);
-        _cachePetState(roomId, petId, state);
+      if (normalizedState != null && !isStaleSnapshot) {
+        _noteAppliedPetStateClock(petId, normalizedState);
+        _cachePetState(roomId, petId, normalizedState);
       }
       _handleOverfedState();
       _handlePetDepartureState(
         roomId: roomId,
         petId: petId,
-        state: isStaleSnapshot ? _petState : state,
+        state: isStaleSnapshot ? _petState : normalizedState,
       );
       unawaited(_loadPetEquipment(petId: petId, roomId: roomId, silent: true));
     } catch (error) {
@@ -2053,13 +2095,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!_isPetStateRecordFresh(petId, record)) {
         return;
       }
-      final nextState = Map<String, dynamic>.from(record);
+      final nextState = stampAuthoritativePetState(record);
       _noteAppliedPetStateClock(petId, nextState);
       setState(() {
         _petId = petId;
         _petState = nextState;
         _petStateReady = true;
-        final hunger = _petState?['hunger'] as num?;
+        final hunger = petStatusHunger(_petState);
         final healthValue = _healthValueFromHunger(hunger);
         final roomId = _roomId;
         if (roomId != null) {
@@ -2669,10 +2711,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_refreshRoomSelectionHealthBars());
   }
 
-  /// Refreshes the room-selection cards (latest feeds, unread, member counts,
-  /// and the client-projected health bars). Decay is projected client-side
-  /// inside `_fetchRooms`, so this no longer runs a per-pet `tick_pet_state`
-  /// round-trip storm just to surface the current satiety.
+  /// Refreshes only effective pet status for the room-selection cards. This is
+  /// intentionally independent from feeds, equipment, unread, and member-count
+  /// reads so a slow non-status request cannot delay the hunger display.
   Future<void> _refreshRoomSelectionHealthBars() async {
     if (_roomSelectionRefreshInFlight) {
       return;
@@ -2687,7 +2728,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       _showRoomSelectionRefreshIndicator = true;
     }
     try {
-      await _fetchRooms();
+      final roomIds = _myRooms
+          .map((room) => room['id'])
+          .whereType<String>()
+          .toList(growable: false);
+      await _refreshEffectivePetStatusForRooms(roomIds);
     } finally {
       if (mounted) {
         setState(() {
@@ -2698,6 +2743,71 @@ class _HomeViewState extends ConsumerState<HomeView>
         _roomSelectionRefreshInFlight = false;
         _showRoomSelectionRefreshIndicator = false;
       }
+    }
+  }
+
+  Future<void> _refreshEffectivePetStatusForRooms(List<String> roomIds) async {
+    if (roomIds.isEmpty) {
+      return;
+    }
+    try {
+      final statuses = await _fetchEffectivePetStatuses(roomIds);
+      if (statuses.isEmpty || !mounted) {
+        return;
+      }
+      final accepted = <String, PetStatusSnapshot>{};
+      for (final status in statuses.values) {
+        if (_isPetStateRecordFresh(status.petId, status.petState)) {
+          accepted[status.roomId] = status;
+        }
+      }
+      if (accepted.isEmpty) {
+        return;
+      }
+
+      var currentRoomChanged = false;
+      setState(() {
+        _myRooms = _myRooms
+            .map((room) {
+              final status = accepted[room['id'] as String?];
+              if (status == null) {
+                return room;
+              }
+              return {
+                ...room,
+                'pet_id': status.petId,
+                'pet_health': status.healthValue,
+              };
+            })
+            .toList(growable: false);
+
+        final current = accepted[_roomId];
+        if (current != null && (_petId == null || _petId == current.petId)) {
+          _petId = current.petId;
+          _petState = current.petState;
+          _petStateReady = true;
+          currentRoomChanged = true;
+        }
+      });
+
+      for (final status in accepted.values) {
+        _noteAppliedPetStateClock(status.petId, status.petState);
+        _cachePetState(status.roomId, status.petId, status.petState);
+      }
+      _syncRoomProviders();
+      if (currentRoomChanged) {
+        _syncPetStateProvider();
+        final current = accepted[_roomId];
+        if (current != null) {
+          _handlePetDepartureState(
+            roomId: current.roomId,
+            petId: current.petId,
+            state: current.petState,
+          );
+        }
+      }
+    } catch (_) {
+      // Stale-while-revalidate: keep the last visible snapshot on failure.
     }
   }
 
@@ -2911,14 +3021,15 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!_isPetStateRecordFresh(petId, state)) {
         return;
       }
-      _noteAppliedPetStateClock(petId, state);
+      final normalizedState = stampAuthoritativePetState(state);
+      _noteAppliedPetStateClock(petId, normalizedState);
       setState(() {
         _petId = petId;
-        _petState = state;
+        _petState = normalizedState;
         _petStateReady = true;
       });
       _syncPetStateProvider();
-      _cachePetState(roomId, petId, state);
+      _cachePetState(roomId, petId, normalizedState);
     } catch (_) {
       // Best-effort only — the pet_state realtime subscription will still
       // deliver the updated poop list.

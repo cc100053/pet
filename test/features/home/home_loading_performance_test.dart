@@ -17,7 +17,10 @@ void main() {
     expect(roomManagerSource, contains('_fetchRoomPetSummaries(roomIds)'));
     expect(roomManagerSource, contains('_fetchRoomLatestFeeds(roomIds)'));
     expect(roomManagerSource, contains('_fetchRoomMemberCounts(roomIds)'));
-    expect(roomManagerSource, contains('_fetchRoomUnreadCounts(roomIds, userId)'));
+    expect(
+      roomManagerSource,
+      contains('_fetchRoomUnreadCounts(roomIds, userId)'),
+    );
     // Equipment stays best-effort and must not block the others.
     expect(roomManagerSource, contains('.catchError((_) => null)'));
   });
@@ -28,20 +31,35 @@ void main() {
     // Rooms are fetched concurrently with the profile/coins reads.
     expect(homeSource, contains('final roomsFuture = _fetchRooms();'));
     expect(homeSource, contains('await roomsFuture;'));
-    // Health is projected client-side, so cold start must NOT run a second full
-    // room fetch or a per-pet tick storm just to surface satiety.
+    // The room list receives effective health in its existing parallel summary
+    // load, so cold start must NOT run a second full fetch or per-pet tick storm.
     expect(homeSource, isNot(contains('summariesOnly')));
     expect(homeSource, isNot(contains('_patchRoomSelectionPetSummaries')));
   });
 
-  test('Room selection projects decay client-side instead of per-pet ticks', () {
-    // The room-selection summaries fetch the decay anchor and project health
-    // locally rather than ticking each pet over the network.
+  test('Room selection loads effective health in one server request', () {
+    expect(roomManagerSource, contains('get_effective_room_pet_statuses'));
+    expect(roomManagerSource, contains('PetStatusSnapshot.fromRpcRow'));
+    // Local projection remains only as a rollout fallback when an older backend
+    // has not received the additive RPC yet.
     expect(roomManagerSource, contains('projectHealthFromState('));
-    expect(roomManagerSource, contains('last_decay_at, mood, poop_at'));
-    // The old per-pet `tick_pet_state` storm on the selection screen (its
-    // unique `pets` id/room_id fan-out read) is gone.
     expect(homeSource, isNot(contains("select('id, room_id')")));
+  });
+
+  test('Periodic room-list health refresh is status-only', () {
+    final refreshBody = RegExp(
+      r'Future<void> _refreshRoomSelectionHealthBars\(\) async \{([\s\S]*?)\n  \}',
+    ).firstMatch(homeSource)!.group(1)!;
+
+    expect(refreshBody, contains('_refreshEffectivePetStatusForRooms'));
+    expect(refreshBody, isNot(contains('_fetchRooms')));
+  });
+
+  test('Returning to Pet Home refreshes effective status immediately', () {
+    expect(
+      homeSource,
+      contains('_refreshEffectivePetStatusForRooms([activeRoomId])'),
+    );
   });
 
   test('Cold room entry seeds the known pet id to skip a round-trip', () {
@@ -70,7 +88,10 @@ void main() {
   test('Entering a previously-visited room paints instantly (warm entry)', () {
     // `var` (not `final`): the warm cache is nullable here so room entry can
     // evict a stale / cross-room cached pet id before painting it.
-    expect(roomManagerSource, contains('var cachedPetId = _petIdByRoom[roomId];'));
+    expect(
+      roomManagerSource,
+      contains('var cachedPetId = _petIdByRoom[roomId];'),
+    );
     expect(
       roomManagerSource,
       contains('var cachedPetState = _petStateByRoom[roomId];'),
@@ -93,7 +114,9 @@ void main() {
     expect(homeSource, contains('await _tickPetStateRpc(petId);'));
     expect(
       homeSource,
-      contains('unawaited(_dispatchNewHungerAlerts(petId: petId, roomId: roomId));'),
+      contains(
+        'unawaited(_dispatchNewHungerAlerts(petId: petId, roomId: roomId));',
+      ),
     );
   });
 }
