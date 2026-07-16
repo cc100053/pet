@@ -1043,5 +1043,7 @@
   "whatsNew224Bullet1": "修正上傳寵物照片後可能導致當機的問題。",
   "whatsNew224Bullet2": "改善從動態與聊天室返回時的穩定性。",
   "whatsNew225Title": "錯誤修正",
-  "whatsNew225Bullet1": "修正 iOS 設定通知時可能導致應用程式當機的問題。"
+  "whatsNew225Bullet1": "修正 iOS 設定通知時可能導致應用程式當機的問題。",
+  "whatsNew226Title": "寵物狀態更即時",
+  "whatsNew226Bullet1": "改善房間選擇與寵物主頁之間的寵物狀態，讓顯示更準確一致。"
 }

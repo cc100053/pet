@@ -5,7 +5,7 @@ Active progress stays current-state focused. Full snapshots live in
 `memory-bank/archive/progress_20260711_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `2.2.5+11` after the completed
+- Repo release baseline is iOS `2.2.6+12` after the completed
   `release-notes-sync` flow. ASC state, build IDs, localization IDs, and
   backend deployment history live in `docs/release_status.md`.
 - Flutter is pinned by `.fvmrc` to `3.44.0` / Dart `3.12.0`; use bare
@@ -27,9 +27,9 @@ Active progress stays current-state focused. Full snapshots live in
   history, Hive cache, local-first realtime buffering, and image-feed recall.
 - Pet rendering prefers bundled PNG sequences while preserving GIF asset ids;
   Godot remains the socket/equipment authoring path.
-- Chicken assets remain bundled but are version-gated beyond the bug-fix-only
-  `2.2.5` release; `2.2.5` selection/rendering treats chicken as unsupported
-  and falls back to the default pet. The provisional Godot-exported Flutter
+- Chicken assets remain bundled but are version-gated until `2.2.7`; `2.2.6`
+  selection/rendering treats chicken as unsupported and falls back to the
+  default pet. The provisional Godot-exported Flutter
   motion tracks still require representative equipment-fit review before a
   later rollout.
 - GEOFlow, SEO/Firebase Hosting pages, invite fallbacks, and app/universal-link
@@ -47,7 +47,7 @@ Active progress stays current-state focused. Full snapshots live in
 - `docs/release_status.md` remains the release/build/backend source of truth.
 
 ## Open Items
-- Run ASC submission preflight for iOS `2.2.5+11`, then submit for review if
+- Run ASC submission preflight for iOS `2.2.6+12`, then submit for review if
   approved.
 - Live-verify a real feed on the current build: confirm `feed_validate` returns
   `pet_state`, the satiety bar moves on slow upload, and presigned upload logs

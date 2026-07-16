@@ -2019,4 +2019,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew225Bullet1 => 'iOS에서 알림을 설정할 때 앱이 종료될 수 있는 문제를 수정했습니다.';
+
+  @override
+  String get whatsNew226Title => '더 정확해진 펫 상태';
+
+  @override
+  String get whatsNew226Bullet1 =>
+      '방 선택 화면과 펫 홈에서 펫 상태가 정확하고 일관되게 표시되도록 개선했습니다.';
 }

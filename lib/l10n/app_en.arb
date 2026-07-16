@@ -1053,5 +1053,7 @@
   "whatsNew224Bullet1": "Fixed a feed-related issue that could cause a crash after uploading a pet photo.",
   "whatsNew224Bullet2": "Improved stability when returning from feed and chat flows.",
   "whatsNew225Title": "Bug fix",
-  "whatsNew225Bullet1": "Fixed a crash that could occur while setting up notifications on iOS."
+  "whatsNew225Bullet1": "Fixed a crash that could occur while setting up notifications on iOS.",
+  "whatsNew226Title": "Fresher pet status",
+  "whatsNew226Bullet1": "Pet status now stays accurate and consistent between room selection and Pet Home."
 }

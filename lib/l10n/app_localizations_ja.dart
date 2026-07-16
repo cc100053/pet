@@ -2008,4 +2008,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew225Bullet1 => 'iOSで通知を設定するときにクラッシュすることがある問題を修正しました。';
+
+  @override
+  String get whatsNew226Title => 'ペットの状態をより正確に';
+
+  @override
+  String get whatsNew226Bullet1 =>
+      'ルーム選択画面とペットホームの間で、ペットの状態が正確かつ一貫して表示されるよう改善しました。';
 }

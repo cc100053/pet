@@ -1053,5 +1053,7 @@
   "whatsNew224Bullet1": "修正上传宠物照片后可能导致崩溃的问题。",
   "whatsNew224Bullet2": "改善从动态和聊天室返回时的稳定性。",
   "whatsNew225Title": "错误修复",
-  "whatsNew225Bullet1": "修正 iOS 设置通知时可能导致应用崩溃的问题。"
+  "whatsNew225Bullet1": "修正 iOS 设置通知时可能导致应用崩溃的问题。",
+  "whatsNew226Title": "宠物状态更及时",
+  "whatsNew226Bullet1": "改善房间选择与宠物主页之间的宠物状态，让显示更准确一致。"
 }

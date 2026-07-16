@@ -11,6 +11,32 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260704_pre_compaction.md`
 - `tasks/archive/todo_20260711_pre_compaction.md`
 
+## Plan (2026-07-16 iOS 2.2.6 Pet Status Release)
+- [x] Keep chicken unavailable in 2.2.6 by moving its rollout gate to 2.2.7 and
+      updating compatibility coverage.
+- [x] Add the approved localized bundled and App Store release notes and bump
+      the app to 2.2.6+12.
+- [x] Regenerate localization output and run release validation.
+- [x] Sync App Store Connect metadata, archive/upload, wait for processing, and
+      attach the build without submitting for review.
+- [x] Update release ledgers, commit, push, and leave a clean working tree.
+
+## Review (2026-07-16 iOS 2.2.6 Pet Status Release)
+- Added approved bundled and ASC copy for fresher, consistent pet status across
+  room selection and Pet Home; no chicken release copy was included.
+- Moved chicken's minimum app version to `2.2.7`. Regression coverage proves
+  `2.2.6` keeps it hidden and resolves unsupported remote chicken state to the
+  default pet.
+- Created ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b`, synced and read
+  back all four localizations, built and verified the iPhone-only `2.2.6+12`
+  IPA, uploaded it, waited for `VALID`, and attached build
+  `a489f171-7dc2-416c-b332-8ec3e8fe6477`.
+- The ASC CLI wrappers returned the repo's known Apple `-50` error, so metadata
+  sync used the checked-in direct API fallback and upload/processing used
+  Apple's native authenticated tooling. `flutter analyze` passed and
+  `flutter test` passed 532 tests with the credentialed feed integration test
+  skipped. App Review submission was intentionally not performed.
+
 ## Plan (2026-07-16 Pet Status Freshness)
 - [x] Inventory the current cache/server contract and add regression tests for
       shared selection/Home status semantics.
@@ -92,9 +118,9 @@ Latest historical snapshots before compaction:
 - [x] Run `flutter analyze` and `flutter test`, then record results.
 
 ## Active Follow-ups
-- [ ] Run ASC submission preflight for repo-current iOS `2.2.5+11`, then submit
-      ASC version `38afa02d-dc0a-4dff-a91c-4cedfe3095a0` with attached build
-      `5e052823-70d6-4d95-9ae5-a7b51651da9d` for review if approved.
+- [ ] Run ASC submission preflight for repo-current iOS `2.2.6+12`, then submit
+      ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b` with attached build
+      `a489f171-7dc2-416c-b332-8ec3e8fe6477` for review if approved.
 - [ ] Live-verify a real feed on the current build: confirm `feed_validate`
       returns `pet_state`, the satiety bar moves on slow upload, and presigned
       upload logs stay clean.

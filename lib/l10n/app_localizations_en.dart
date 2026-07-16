@@ -2101,4 +2101,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew225Bullet1 =>
       'Fixed a crash that could occur while setting up notifications on iOS.';
+
+  @override
+  String get whatsNew226Title => 'Fresher pet status';
+
+  @override
+  String get whatsNew226Bullet1 =>
+      'Pet status now stays accurate and consistent between room selection and Pet Home.';
 }

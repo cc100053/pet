@@ -3722,6 +3722,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fixed a crash that could occur while setting up notifications on iOS.'**
   String get whatsNew225Bullet1;
+
+  /// No description provided for @whatsNew226Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresher pet status'**
+  String get whatsNew226Title;
+
+  /// No description provided for @whatsNew226Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet status now stays accurate and consistent between room selection and Pet Home.'**
+  String get whatsNew226Bullet1;
 }
 
 class _AppLocalizationsDelegate

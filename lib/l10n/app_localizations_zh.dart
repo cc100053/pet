@@ -1998,6 +1998,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew225Bullet1 => '修正 iOS 设置通知时可能导致应用崩溃的问题。';
+
+  @override
+  String get whatsNew226Title => '宠物状态更及时';
+
+  @override
+  String get whatsNew226Bullet1 => '改善房间选择与宠物主页之间的宠物状态，让显示更准确一致。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3984,4 +3990,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew225Bullet1 => '修正 iOS 設定通知時可能導致應用程式當機的問題。';
+
+  @override
+  String get whatsNew226Title => '寵物狀態更即時';
+
+  @override
+  String get whatsNew226Bullet1 => '改善房間選擇與寵物主頁之間的寵物狀態，讓顯示更準確一致。';
 }
