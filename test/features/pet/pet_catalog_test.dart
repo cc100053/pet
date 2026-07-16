@@ -28,19 +28,21 @@ void main() {
     );
   });
 
-  test('chicken stays gated until version 2.2.7', () {
+  test('chicken stays gated until version 2.3.0', () {
     expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.4'), isFalse);
     expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.5'), isFalse);
     expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.6'), isFalse);
-    expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.7'), isTrue);
+    expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.7'), isFalse);
+    expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.2.9'), isFalse);
+    expect(PetCatalog.supportsIdOnAppVersion('chicken', '2.3.0'), isTrue);
     expect(
       PetCatalog.visiblePetsForAppVersion(
-        '2.2.6',
+        '2.2.9',
       ).map((pet) => pet.id).contains('chicken'),
       isFalse,
     );
     expect(
-      PetCatalog.resolveIdForAppVersion('chicken', appVersion: '2.2.6'),
+      PetCatalog.resolveIdForAppVersion('chicken', appVersion: '2.2.9'),
       PetCatalog.defaultPetId,
     );
   });

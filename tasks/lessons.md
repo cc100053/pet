@@ -1,5 +1,10 @@
 # Lessons
 
+## 2026-07-16
+- When the user postpones a shared-item rollout to an exact version, update the
+  gate to that exact semantic version and assert intermediate releases remain
+  unsupported, not only the currently shipping version.
+
 ## 2026-06-21
 - Chat scroll crash (`'_dependents.isEmpty': is not true` at
   `InheritedElement.debugDeactivated`, plus "Tried to build dirty widget in the

@@ -27,9 +27,9 @@ Active progress stays current-state focused. Full snapshots live in
   history, Hive cache, local-first realtime buffering, and image-feed recall.
 - Pet rendering prefers bundled PNG sequences while preserving GIF asset ids;
   Godot remains the socket/equipment authoring path.
-- Chicken assets remain bundled but are version-gated until `2.2.7`; `2.2.6`
-  selection/rendering treats chicken as unsupported and falls back to the
-  default pet. The provisional Godot-exported Flutter
+- Chicken assets remain bundled but are version-gated until `2.3.0`; all
+  `2.2.x` selection/rendering treats chicken as unsupported and falls back to
+  the default pet. The provisional Godot-exported Flutter
   motion tracks still require representative equipment-fit review before a
   later rollout.
 - GEOFlow, SEO/Firebase Hosting pages, invite fallbacks, and app/universal-link

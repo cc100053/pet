@@ -11,9 +11,22 @@ Latest historical snapshots before compaction:
 - `tasks/archive/todo_20260704_pre_compaction.md`
 - `tasks/archive/todo_20260711_pre_compaction.md`
 
+## Plan (2026-07-16 Chicken v2.3.0 Rollout Boundary)
+- [x] Move chicken's app-version visibility gate from `2.2.7` to `2.3.0`.
+- [x] Prove all `2.2.x` versions keep chicken hidden with default-pet fallback.
+- [x] Run full Flutter verification, update current-state docs, commit, and push
+      a clean working tree.
+
+## Review (2026-07-16 Chicken v2.3.0 Rollout Boundary)
+- Chicken remains bundled but is unavailable throughout `2.2.x`; selection and
+  remote rendering continue to fall back to the default pet.
+- Version `2.3.0` is now the first supported chicken release boundary.
+- `flutter analyze` passed; `flutter test` passed 532 tests with the
+  credentialed feed integration test skipped.
+
 ## Plan (2026-07-16 iOS 2.2.6 Pet Status Release)
-- [x] Keep chicken unavailable in 2.2.6 by moving its rollout gate to 2.2.7 and
-      updating compatibility coverage.
+- [x] Keep chicken unavailable in 2.2.6 by moving its rollout gate beyond 2.2.x
+      and updating compatibility coverage.
 - [x] Add the approved localized bundled and App Store release notes and bump
       the app to 2.2.6+12.
 - [x] Regenerate localization output and run release validation.
@@ -24,7 +37,8 @@ Latest historical snapshots before compaction:
 ## Review (2026-07-16 iOS 2.2.6 Pet Status Release)
 - Added approved bundled and ASC copy for fresher, consistent pet status across
   room selection and Pet Home; no chicken release copy was included.
-- Moved chicken's minimum app version to `2.2.7`. Regression coverage proves
+- Moved chicken's minimum app version beyond the `2.2.6` release. Regression
+  coverage proves
   `2.2.6` keeps it hidden and resolves unsupported remote chicken state to the
   default pet.
 - Created ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b`, synced and read
