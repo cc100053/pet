@@ -157,6 +157,11 @@ This file is for agentic coding agents working in this repo.
 - Wait for build processing: `asc builds wait --app 6757725650 --build-number <BUILD> --version <VERSION> --platform IOS --timeout 10m --poll-interval 30s`
 - If an uploaded build is not discoverable yet, check processing uploads:
   `asc builds uploads list --app 6757725650 --output table`
+- Build a release IPA with explicit versioning:
+  `flutter build ipa --release --build-name=<VERSION> --build-number=<BUILD>`
+- After the build is `VALID`, attach it with
+  `asc versions attach-build --version-id <VERSION_ID> --build <BUILD_ID>`;
+  do not submit for App Review without an explicit submission request.
 - Auto-renewable subscription submissions require a functional Terms of Use /
   EULA footer in every `.asc/version-localizations/*.strings` description; run
   `flutter test test/app_store_metadata_terms_test.dart` before ASC upload.
