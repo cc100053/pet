@@ -68,6 +68,7 @@ class EquipmentDefinition {
     required this.assetPath,
     this.petOverrides = const <String, EquipmentFitOverride>{},
     this.petStateOverrides = const <String, EquipmentStateFitOverrides>{},
+    this.incompatiblePetIds = const <String>{},
     this.zOrder = 1,
   });
 
@@ -78,7 +79,10 @@ class EquipmentDefinition {
   final String assetPath;
   final Map<String, EquipmentFitOverride> petOverrides;
   final Map<String, EquipmentStateFitOverrides> petStateOverrides;
+  final Set<String> incompatiblePetIds;
   final int zOrder;
+
+  bool isCompatibleWithPet(String petId) => !incompatiblePetIds.contains(petId);
 
   EquipmentFitOverride fitOverrideFor(
     String petId, {
@@ -128,6 +132,13 @@ class EquipmentCatalog {
             aspectRatio: 1821 / 700,
           ),
         ),
+        'chicken': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.45, y: 0.85),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.56,
+            aspectRatio: 1821 / 700,
+          ),
+        ),
       },
       zOrder: 1,
     ),
@@ -165,6 +176,24 @@ class EquipmentCatalog {
             aspectRatio: 1,
           ),
         ),
+        'chicken': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.35, y: 0.85),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
+      },
+      petStateOverrides: {
+        'chicken': EquipmentStateFitOverrides(
+          sleep: EquipmentFitOverride(
+            anchor: EquipmentAnchor(x: 0.4, y: 0.65),
+            sizeRatio: EquipmentSize.fromWidthAspect(
+              widthRatio: 0.32,
+              aspectRatio: 1,
+            ),
+          ),
+        ),
       },
       zOrder: 1,
     ),
@@ -180,6 +209,15 @@ class EquipmentCatalog {
         aspectRatio: 1,
       ),
       assetPath: 'assets/equipment/ribbon.png',
+      petOverrides: {
+        'chicken': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.65, y: 0.5),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
+      },
       zOrder: 1,
     ),
 
@@ -217,6 +255,7 @@ class EquipmentCatalog {
           ),
         ),
       },
+      incompatiblePetIds: {'chicken'},
       zOrder: 1,
     ),
   ];
@@ -232,5 +271,9 @@ class EquipmentCatalog {
 
   static List<EquipmentDefinition> forSlot(String slot) {
     return items.where((item) => item.slot == slot).toList(growable: false);
+  }
+
+  static bool isSkuCompatibleWithPet(String sku, String petId) {
+    return bySku(sku)?.isCompatibleWithPet(petId) ?? true;
   }
 }

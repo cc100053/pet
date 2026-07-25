@@ -1594,6 +1594,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every copy of this item is already worn by another pet. Buy another to dress up more than one pet.';
 
   @override
+  String get equipmentNotCompatible =>
+      'This equipment isn\'t compatible with this pet.';
+
+  @override
   String get equipmentSlotHead => 'Head';
 
   @override

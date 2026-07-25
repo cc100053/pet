@@ -496,4 +496,66 @@ void main() {
 
     expect(find.text('Equip on which pet?'), findsNothing);
   });
+
+  testWidgets('hides sunglasses when Chicken is the equip target', (
+    tester,
+  ) async {
+    final sunglasses = buildEquipmentItem(
+      id: 'sunglasses',
+      sku: 'equip_sunglasses',
+      name: 'Sunglasses',
+      slot: 'face',
+      assetPath: 'assets/equipment/sunglasses.png',
+    );
+    var equipCalls = 0;
+
+    await tester.pumpWidget(
+      buildHarness(
+        HomeRoomInventoryPanel(
+          petType: 'chicken',
+          furnitureCatalog: const {},
+          furnitureInventory: const {},
+          selectedFurnitureItemId: null,
+          availableFurnitureCount: (_) => 0,
+          furnitureLoading: false,
+          furnitureErrorText: null,
+          backgroundItems: const [],
+          activeBackgroundId: null,
+          backgroundLoading: false,
+          backgroundErrorText: null,
+          applyingBackgroundId: null,
+          equipmentItems: [sunglasses],
+          availableEquipmentCount: (_) => 1,
+          equippedItemIdsBySlot: const {},
+          equippedItemSkusBySlot: const {},
+          equipmentLoading: false,
+          equipmentErrorText: null,
+          equipPets: const [
+            RoomPetOption(petId: 'chicken-1', petType: 'chicken', isMain: true),
+          ],
+          selectedEquipPetId: 'chicken-1',
+          onSelectEquipPet: (_) {},
+          onClose: () {},
+          onFurnitureTap: (_) {},
+          onBackgroundApply: (_) {},
+          onEquipItem: (_, _) async {
+            equipCalls++;
+          },
+          onUnequipItem: (_) async {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Face'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sunglasses'), findsNothing);
+    expect(
+      find.text("You don't own any items for this slot yet."),
+      findsOneWidget,
+    );
+    expect(equipCalls, 0);
+  });
 }

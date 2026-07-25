@@ -806,6 +806,7 @@
   "equipmentNoneOwned": "You don't own any items for this slot yet.",
   "equipmentCopyInUse": "On another pet",
   "equipmentCopyUnavailable": "Every copy of this item is already worn by another pet. Buy another to dress up more than one pet.",
+  "equipmentNotCompatible": "This equipment isn't compatible with this pet.",
   "equipmentSlotHead": "Head",
   "equipmentSlotFace": "Face",
   "equipmentSlotBody": "Body",

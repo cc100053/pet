@@ -43,6 +43,9 @@ class PetEquipmentOverlay extends StatelessWidget {
       if (definition == null) {
         continue;
       }
+      if (!definition.isCompatibleWithPet(petId)) {
+        continue;
+      }
       final wantsBehind = definition.zOrder < 0;
       if (layer == PetEquipmentOverlayLayer.behindPet && !wantsBehind) {
         continue;

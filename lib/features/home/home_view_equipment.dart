@@ -428,6 +428,35 @@ extension _HomeEquipment on _HomeViewState {
     if (targetPetId == null || roomId == null) {
       return;
     }
+    final targetItem = _ownedEquipmentItems.cast<ShopItem?>().firstWhere(
+      (item) => item?.id == itemId,
+      orElse: () => null,
+    );
+    String? targetPetType;
+    for (final pet in _roomPetsByRoom[roomId] ?? const <_RoomPet>[]) {
+      if (pet.petId == targetPetId) {
+        targetPetType = pet.petType;
+        break;
+      }
+    }
+    if (targetPetType == null && targetPetId == _petId) {
+      targetPetType = _petType;
+    }
+    if (targetItem != null &&
+        targetPetType != null &&
+        !EquipmentCatalog.isSkuCompatibleWithPet(
+          targetItem.sku,
+          targetPetType,
+        )) {
+      if (mounted) {
+        showJuiceSnackbar(
+          context: context,
+          message: AppLocalizations.of(context)!.equipmentNotCompatible,
+          tone: AppDialogTone.warning,
+        );
+      }
+      return;
+    }
     try {
       final response = await Supabase.instance.client.rpc(
         'equip_pet_item',
@@ -444,10 +473,7 @@ extension _HomeEquipment on _HomeViewState {
       if (!mounted) {
         return;
       }
-      final itemName = _ownedEquipmentItems
-          .cast<ShopItem?>()
-          .firstWhere((item) => item?.id == itemId, orElse: () => null)
-          ?.localizedName(AppLocalizations.of(context)!);
+      final itemName = targetItem?.localizedName(AppLocalizations.of(context)!);
       final responseMap = response is Map<String, dynamic>
           ? response
           : <String, dynamic>{};

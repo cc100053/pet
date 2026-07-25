@@ -301,4 +301,26 @@ void main() {
     expect(positioned.left, closeTo(20, 0.001));
     expect(positioned.top, closeTo(-4.444444, 0.001));
   });
+
+  testWidgets('does not render incompatible sunglasses on chicken', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildHarness(
+        const PetEquipmentOverlay(
+          petId: 'chicken',
+          equippedSkusBySlot: {PetEquipmentSlot.face: 'equip_sunglasses'},
+          petSize: Size(100, 100),
+          layer: PetEquipmentOverlayLayer.frontPet,
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(
+        const ValueKey('pet-equipment-frontPet-face-equip_sunglasses'),
+      ),
+      findsNothing,
+    );
+  });
 }

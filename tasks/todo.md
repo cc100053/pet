@@ -4,6 +4,16 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260724_pre_compaction.md`.
 
+## Plan (2026-07-26 Chicken Calibration Sync)
+- [x] Sync the Level 2 Chicken Godot socket export, including the corrected
+      sleep head motion frame, into Flutter.
+- [x] Apply Chicken per-pet crown/straw-hat/ribbon fits plus the crown sleep
+      state override from the resolved Godot equipment settings.
+- [x] Model sunglasses as incompatible with Chicken, hide them from Chicken
+      inventory/preview rendering, and guard the equip RPC path.
+- [x] Add regression coverage, regenerate localization, run full verification,
+      update current-state notes, commit, push, and leave the repo clean.
+
 ## Plan (2026-07-26 Godot Equipment Precedence Fix)
 - [x] Make each higher-priority global equipment layer replace the resolved
       authoring value instead of leaving the first default value in controls.
@@ -61,6 +71,19 @@ Current follow-ups and the active session only. Historical task logs live in
 - Detailed release/build/backend status: `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260724_pre_compaction.md`.
+
+## Review (2026-07-26 Chicken Calibration Sync)
+- Synced the reviewed Level 2 Chicken socket export, including the corrected
+  sleep head frame, plus per-pet crown, straw-hat, and ribbon fits and the
+  sleep-specific crown override.
+- Added a catalog-level Chicken incompatibility for sunglasses. Chicken
+  inventory lists now omit them, equip requests are rejected with localized
+  feedback, and the shared overlay suppresses stale equipped data.
+- Kept the existing Chicken `2.3.0` visibility gate and made no backend/RPC
+  contract changes; other pets can continue buying and using sunglasses.
+- Focused calibration/equipment tests passed 32 tests. `flutter analyze`
+  passed with no issues, and `flutter test` passed 536 tests with one
+  environment-dependent integration test skipped.
 
 ## Review (2026-07-26 Godot Equipment Precedence Fix)
 - Found the remaining root cause: the resolver inserted default equipment

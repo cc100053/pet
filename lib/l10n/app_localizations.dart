@@ -2865,6 +2865,12 @@ abstract class AppLocalizations {
   /// **'Every copy of this item is already worn by another pet. Buy another to dress up more than one pet.'**
   String get equipmentCopyUnavailable;
 
+  /// No description provided for @equipmentNotCompatible.
+  ///
+  /// In en, this message translates to:
+  /// **'This equipment isn\'t compatible with this pet.'**
+  String get equipmentNotCompatible;
+
   /// No description provided for @equipmentSlotHead.
   ///
   /// In en, this message translates to:

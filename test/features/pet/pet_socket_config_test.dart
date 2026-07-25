@@ -149,7 +149,7 @@ void main() {
         animationProgress: 900 / 1200,
         isSleeping: true,
       ),
-      const Offset(-0.042222222, 0),
+      const Offset(-0.046666667, 0),
     );
   });
 

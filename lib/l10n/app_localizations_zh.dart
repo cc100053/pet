@@ -1537,6 +1537,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '这件装备的所有数量都已装在其他宠物身上。想同时给多只宠物打扮，请再购买一件。';
 
   @override
+  String get equipmentNotCompatible => '这件装备不适合这只宠物。';
+
+  @override
   String get equipmentSlotHead => '頭部';
 
   @override
@@ -3530,6 +3533,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String get equipmentCopyUnavailable =>
       '這件裝備的所有數量都已裝在其他寵物身上。想同時幫多隻寵物打扮，請再購買一件。';
+
+  @override
+  String get equipmentNotCompatible => '這件裝備不適合這隻寵物。';
 
   @override
   String get equipmentSlotHead => '頭部';

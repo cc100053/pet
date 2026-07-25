@@ -806,6 +806,7 @@
   "equipmentNoneOwned": "この部位に装備できるアイテムをまだ持っていません。",
   "equipmentCopyInUse": "別のペットが装備中",
   "equipmentCopyUnavailable": "このアイテムはすべて別のペットが装備中です。複数のペットに着せるにはもう1つ購入してください。",
+  "equipmentNotCompatible": "この装備はこのペットには使用できません。",
   "equipmentSlotHead": "頭",
   "equipmentSlotFace": "顔",
   "equipmentSlotBody": "体",

@@ -37,8 +37,11 @@ void main() {
     final item = EquipmentCatalog.bySku('equip_crown');
 
     expect(item, isNotNull);
-    expect(item!.petOverrides.keys, containsAll(['cat', 'fish', 'tiger']));
-    expect(item.petStateOverrides, isEmpty);
+    expect(
+      item!.petOverrides.keys,
+      containsAll(['cat', 'fish', 'tiger', 'chicken']),
+    );
+    expect(item.petStateOverrides.keys, contains('chicken'));
     expect(item.anchor.x, closeTo(0.5, 0.001));
     expect(item.anchor.y, closeTo(0.55, 0.001));
     expect(item.sizeRatio.w, closeTo(0.32, 0.001));
@@ -55,18 +58,36 @@ void main() {
       isWalking: false,
       isSleeping: false,
     );
+    final chickenIdle = item.fitOverrideFor(
+      'chicken',
+      isWalking: false,
+      isSleeping: false,
+    );
+    final chickenSleep = item.fitOverrideFor(
+      'chicken',
+      isWalking: false,
+      isSleeping: true,
+    );
 
     expect(cat.anchor?.y, closeTo(0.7, 0.001));
     expect(fish.anchor?.x, closeTo(0.4, 0.001));
     expect(fish.anchor?.y, closeTo(0.6, 0.001));
     expect(tiger.anchor?.y, closeTo(0.9, 0.001));
+    expect(chickenIdle.anchor?.x, closeTo(0.35, 0.001));
+    expect(chickenIdle.anchor?.y, closeTo(0.85, 0.001));
+    expect(chickenIdle.sizeRatio?.w, closeTo(0.32, 0.001));
+    expect(chickenSleep.anchor?.x, closeTo(0.4, 0.001));
+    expect(chickenSleep.anchor?.y, closeTo(0.65, 0.001));
   });
 
   test('stores straw hat per-pet fit overrides from Godot exports', () {
     final item = EquipmentCatalog.bySku('equip_straw_hat');
 
     expect(item, isNotNull);
-    expect(item!.petOverrides.keys, containsAll(['cat', 'fish', 'tiger']));
+    expect(
+      item!.petOverrides.keys,
+      containsAll(['cat', 'fish', 'tiger', 'chicken']),
+    );
     expect(item.petStateOverrides, isEmpty);
 
     final catIdle = item.fitOverrideFor(
@@ -84,12 +105,40 @@ void main() {
       isWalking: false,
       isSleeping: true,
     );
+    final chicken = item.fitOverrideFor(
+      'chicken',
+      isWalking: false,
+      isSleeping: false,
+    );
 
     expect(catIdle.anchor?.x, closeTo(0.5, 0.001));
     expect(catIdle.anchor?.y, closeTo(0.75, 0.001));
     expect(fishWalk.anchor?.x, closeTo(0.45, 0.001));
     expect(fishWalk.sizeRatio?.w, closeTo(0.65, 0.001));
     expect(tigerSleep.anchor?.y, closeTo(0.9, 0.001));
+    expect(chicken.anchor?.x, closeTo(0.45, 0.001));
+    expect(chicken.anchor?.y, closeTo(0.85, 0.001));
+    expect(chicken.sizeRatio?.w, closeTo(0.56, 0.001));
+  });
+
+  test('stores chicken ribbon fit and excludes sunglasses', () {
+    final ribbon = EquipmentCatalog.bySku('equip_ribbon')!;
+    final sunglasses = EquipmentCatalog.bySku('equip_sunglasses')!;
+    final chickenRibbon = ribbon.fitOverrideFor(
+      'chicken',
+      isWalking: false,
+      isSleeping: false,
+    );
+
+    expect(chickenRibbon.anchor?.x, closeTo(0.65, 0.001));
+    expect(chickenRibbon.anchor?.y, closeTo(0.5, 0.001));
+    expect(chickenRibbon.sizeRatio?.w, closeTo(0.32, 0.001));
+    expect(sunglasses.isCompatibleWithPet('chicken'), isFalse);
+    expect(sunglasses.isCompatibleWithPet('ghost'), isTrue);
+    expect(
+      EquipmentCatalog.isSkuCompatibleWithPet('equip_sunglasses', 'chicken'),
+      isFalse,
+    );
   });
 
   test('stores per-pet fit override values', () {

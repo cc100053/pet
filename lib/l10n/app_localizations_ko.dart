@@ -1556,6 +1556,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 아이템은 모두 다른 펫이 착용 중입니다. 여러 펫에게 입히려면 하나 더 구매하세요.';
 
   @override
+  String get equipmentNotCompatible => '이 장비는 이 펫에게 사용할 수 없습니다.';
+
+  @override
   String get equipmentSlotHead => '머리';
 
   @override

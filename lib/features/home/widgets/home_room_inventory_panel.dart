@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../../../shared/ui/juice_wrappers.dart';
+import '../../pet/equipment_catalog.dart';
 import '../../pet/pet_animated_image.dart';
 import '../../pet/pet_catalog.dart';
 import '../../pet/pet_sockets.dart';
@@ -115,7 +116,12 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
       return;
     }
     final exists = widget.equipmentItems.any(
-      (item) => item.id == _previewEquipmentItemId,
+      (item) =>
+          item.id == _previewEquipmentItemId &&
+          EquipmentCatalog.isSkuCompatibleWithPet(
+            item.sku,
+            _selectedEquipPetType(),
+          ),
     );
     if (!exists) {
       _previewEquipmentItemId = null;
@@ -138,8 +144,16 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
   }
 
   List<ShopItem> _equipmentItemsForSelectedSlot() {
+    final selectedPetType = _selectedEquipPetType();
     return widget.equipmentItems
-        .where((item) => item.equipmentSlot == _selectedEquipmentSlot)
+        .where(
+          (item) =>
+              item.equipmentSlot == _selectedEquipmentSlot &&
+              EquipmentCatalog.isSkuCompatibleWithPet(
+                item.sku,
+                selectedPetType,
+              ),
+        )
         .toList(growable: false);
   }
 
@@ -1060,7 +1074,9 @@ class _EquipmentInventoryItem extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                isUnavailable ? l10n.equipmentCopyInUse : item.localizedName(l10n),
+                isUnavailable
+                    ? l10n.equipmentCopyInUse
+                    : item.localizedName(l10n),
                 maxLines: 2,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,

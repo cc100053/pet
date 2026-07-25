@@ -797,6 +797,7 @@
   "equipmentNoneOwned": "你還沒有這個部位可用的裝備。",
   "equipmentCopyInUse": "其他寵物使用中",
   "equipmentCopyUnavailable": "這件裝備的所有數量都已裝在其他寵物身上。想同時幫多隻寵物打扮，請再購買一件。",
+  "equipmentNotCompatible": "這件裝備不適合這隻寵物。",
   "equipmentSlotHead": "頭部",
   "equipmentSlotFace": "面部",
   "equipmentSlotBody": "身體",

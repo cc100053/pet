@@ -801,6 +801,7 @@
   "equipmentNoneOwned": "아직 이 부위에 사용할 수 있는 장비가 없습니다.",
   "equipmentCopyInUse": "다른 펫이 착용 중",
   "equipmentCopyUnavailable": "이 아이템은 모두 다른 펫이 착용 중입니다. 여러 펫에게 입히려면 하나 더 구매하세요.",
+  "equipmentNotCompatible": "이 장비는 이 펫에게 사용할 수 없습니다.",
   "equipmentSlotHead": "머리",
   "equipmentSlotFace": "얼굴",
   "equipmentSlotBody": "몸",

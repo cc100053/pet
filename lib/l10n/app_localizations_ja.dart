@@ -1545,6 +1545,9 @@ class AppLocalizationsJa extends AppLocalizations {
       'このアイテムはすべて別のペットが装備中です。複数のペットに着せるにはもう1つ購入してください。';
 
   @override
+  String get equipmentNotCompatible => 'この装備はこのペットには使用できません。';
+
+  @override
   String get equipmentSlotHead => '頭';
 
   @override
