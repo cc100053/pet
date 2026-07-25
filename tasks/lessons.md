@@ -1,6 +1,10 @@
 # Lessons
 
 ## 2026-07-26
+- Treat the socket-track movement threshold as an automation heuristic, not
+  permission to discard human-reviewed per-frame captures. If a Level 2 export
+  contains intentional movement—especially a head socket—sync the track even
+  below 10 px when the equipment preview makes the drift visible.
 - For authoring-tool persistence, verifying the JSON write is only half the
   contract. Exercise the reload/rehydration path too and confirm the stored
   value is applied back to both visible controls and the rendered preview.
