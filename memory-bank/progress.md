@@ -21,8 +21,9 @@ latest: `memory-bank/archive/progress_20260724_pre_compaction.md`.
   Hive cache, local-first realtime buffering, and image-feed recall.
 - Pet rendering prefers PNG sequences while preserving GIF ids. Chicken is
   bundled but unsupported throughout `2.2.x` and gated to `2.3.0`; its reviewed
-  Level 2 sockets and crown/straw-hat/ribbon fits are synced. Sunglasses are
-  incompatible with Chicken and blocked in inventory, equip, and render paths.
+  Level 2 sockets—including sub-threshold idle motion—and
+  crown/straw-hat/ribbon fits are synced. Sunglasses are incompatible with
+  Chicken and blocked in inventory, equip, and render paths.
 - The external Godot socket-authoring dock rehydrates the active equipment
   controls/preview after socket, editor, or plugin reloads while preserving
   default → per-pet → per-animation override precedence.

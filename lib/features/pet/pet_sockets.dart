@@ -503,6 +503,38 @@ class PetSocketCatalog {
         PetEquipmentSlot.body: PetSocket(x: 0.444444444, y: 0.5),
         PetEquipmentSlot.back: PetSocket(x: 0.688888889, y: 0.455555556),
       },
+      idleMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.chickenIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.006666667, 0.008888889),
+            Offset(-0.017777778, 0.013333333),
+            Offset(-0.017777778, 0.017777778),
+            Offset(-0.017777778, 0.008888889),
+          ],
+        ),
+        PetEquipmentSlot.body: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.chickenIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.002222222, 0),
+            Offset(-0.006666667, 0),
+            Offset(-0.006666667, 0),
+            Offset(-0.006666667, 0),
+          ],
+        ),
+        PetEquipmentSlot.back: PetMotionTrack.timed(
+          frameDurationsMs: PetAnimationFrames.chickenIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0.004444444, -0.004444444),
+            Offset(0.008888889, -0.008888889),
+            Offset(0.006666667, -0.004444444),
+            Offset(0.004444444, -0.004444444),
+          ],
+        ),
+      },
       walkMotionTracksBySlot: {
         PetEquipmentSlot.head: PetMotionTrack.timed(
           frameDurationsMs: PetAnimationFrames.chickenWalk.frameDurationsMs,

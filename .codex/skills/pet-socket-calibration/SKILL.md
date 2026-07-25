@@ -22,8 +22,9 @@ Read `/Users/fatboy/pet/docs/godot-png-sequence-socket-workflow.md` before editi
    `python3 scripts/validate_socket_export.py <file...>`.
 6. Score movement and suspicious jumps:
    `python3 scripts/score_socket_tracks.py --review-level 1 <file...>`.
-7. After human equipment review reaches level 2, generate Flutter code:
-   `python3 scripts/generate_flutter_tracks.py --idle ... --walk ... --sleep ...`.
+7. After human equipment review reaches level 2, preserve every intentional
+   non-zero per-frame capture by generating Flutter code with:
+   `python3 scripts/generate_flutter_tracks.py --track-threshold 0 --idle ... --walk ... --sleep ...`.
 8. Apply generated code, then run focused socket tests, `flutter analyze`, and `flutter test`.
 
 ## Guardrails
@@ -31,7 +32,9 @@ Read `/Users/fatboy/pet/docs/godot-png-sequence-socket-workflow.md` before editi
 - Do not infer semantic sockets from alpha bounds alone.
 - Do not overwrite reviewed JSON without comparing the old and new per-frame coordinates.
 - Keep canvas dimensions and frame durations aligned across PNG/GIF, Godot JSON, and `PetAnimationFrames`.
-- Generate motion tracks when any axis moves more than 10 px on a 450 px canvas; still review smaller head movement visually.
+- Use 10 px on a 450 px canvas as the automatic-review threshold for
+  provisional data. Once a human-reviewed export reaches level 2, generate
+  every intentional non-zero track with `--track-threshold 0`.
 - Review loop closure and isolated one-frame jumps before accepting generated tracks.
 - Equipment anchors/sizes are independent from pet sockets; do not mix the two data sets.
 - Do not sync level 0–1 captures to production Flutter unless the user explicitly requests a provisional implementation.

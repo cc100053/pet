@@ -4,6 +4,15 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260724_pre_compaction.md`.
 
+## Plan (2026-07-26 Chicken Idle Socket Fix)
+- [x] Validate the reviewed Chicken Stay export and calculate exact per-frame
+      head/body/back offsets from frame 0.
+- [x] Add all three Chicken idle motion tracks and regression coverage that
+      proves Idle samples the authored Stay movement.
+- [x] Run focused tests, `flutter analyze`, and the full `flutter test` suite.
+- [x] Update current-state notes, commit, push the pending calibration commits,
+      and leave `main` clean and synchronized.
+
 ## Plan (2026-07-26 Chicken Calibration Sync)
 - [x] Sync the Level 2 Chicken Godot socket export, including the corrected
       sleep head motion frame, into Flutter.
@@ -71,6 +80,19 @@ Current follow-ups and the active session only. Historical task logs live in
 - Detailed release/build/backend status: `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260724_pre_compaction.md`.
+
+## Review (2026-07-26 Chicken Idle Socket Fix)
+- Confirmed `stay` → `idle` state mapping was already correct. The Chicken
+  config was missing idle motion tracks because all Stay movement fell below
+  the provisional 10 px generation threshold.
+- Synced all five reviewed Stay frames for head, body, and back using the exact
+  frame-0 deltas and `PetAnimationFrames.chickenIdle` timing.
+- Added direct track-sampling coverage plus an overlay regression proving an
+  Idle head item follows the authored Stay socket.
+- Updated the calibration workflow to generate every intentional non-zero
+  Level 2 track with `--track-threshold 0`. Focused tests passed 18 tests,
+  `flutter analyze` passed, and `flutter test` passed 537 tests with one
+  environment-dependent integration test skipped.
 
 ## Review (2026-07-26 Chicken Calibration Sync)
 - Synced the reviewed Level 2 Chicken socket export, including the corrected

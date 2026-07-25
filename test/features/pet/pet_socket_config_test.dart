@@ -96,9 +96,21 @@ void main() {
     );
   });
 
-  test('samples exported chicken walk and sleep motion tracks', () {
+  test('samples exported chicken idle, walk, and sleep motion tracks', () {
     final chicken = PetSocketCatalog.forPet('chicken')!;
 
+    for (final slot in const [
+      PetEquipmentSlot.head,
+      PetEquipmentSlot.body,
+      PetEquipmentSlot.back,
+    ]) {
+      final track = chicken.idleMotionTracksBySlot[slot]!;
+      expect(track.frames, hasLength(5));
+      expect(
+        track.frameDurationsMs,
+        PetAnimationFrames.chickenIdle.frameDurationsMs,
+      );
+    }
     for (final slot in const [
       PetEquipmentSlot.head,
       PetEquipmentSlot.body,
@@ -119,6 +131,27 @@ void main() {
       PetAnimationFrames.chickenSleep.frameDurationsMs,
     );
 
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.face,
+        animationProgress: 750 / 1200,
+      ),
+      const Offset(-0.017777778, 0.017777778),
+    );
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.body,
+        animationProgress: 750 / 1200,
+      ),
+      const Offset(-0.006666667, 0),
+    );
+    expect(
+      chicken.resolveMotion(
+        slot: PetEquipmentSlot.back,
+        animationProgress: 750 / 1200,
+      ),
+      const Offset(0.006666667, -0.004444444),
+    );
     expect(
       chicken.resolveMotion(
         slot: PetEquipmentSlot.head,
