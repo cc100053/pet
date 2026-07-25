@@ -1,7 +1,7 @@
 # Godot Socket & Equipment Authoring Workflow
 
 > Audience: future PicPet coding session or asset-authoring session
-> Last updated: 2026-05-11
+> Last updated: 2026-07-26
 > Scope: socket marker authoring in Godot, equipment anchor/size authoring, and applying all exported data to the Flutter app
 
 ---
@@ -251,6 +251,12 @@ Use this when a piece of equipment needs a different position on a specific pet 
 
 1. Tune settings with the correct pet loaded
 2. Click **Save for Current Pet** — writes to `equipment_overrides.json` under `per_pet.<pet>`
+
+The authoring dock reloads the current scene's equipment settings when
+**Load Sockets** is used and when the editor/plugin starts with a pet scene
+already open. The visible anchor/size controls and preview therefore reflect
+the resolved default → per-pet → per-animation lookup without reselecting the
+equipment.
 
 ### Exported equipmentSettings Shape
 

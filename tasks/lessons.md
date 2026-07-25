@@ -1,5 +1,10 @@
 # Lessons
 
+## 2026-07-26
+- For authoring-tool persistence, verifying the JSON write is only half the
+  contract. Exercise the reload/rehydration path too and confirm the stored
+  value is applied back to both visible controls and the rendered preview.
+
 ## 2026-07-16
 - When the user postpones a shared-item rollout to an exact version, update the
   gate to that exact semantic version and assert intermediate releases remain

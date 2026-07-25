@@ -4,6 +4,16 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260724_pre_compaction.md`.
 
+## Plan (2026-07-26 Godot Equipment Reload Fix)
+- [x] Reload saved per-pet equipment settings into the active Godot controls
+      and preview without requiring a manual equipment reselect.
+- [x] Initialize the authoring dock from an already-open pet scene after the
+      Godot editor or plugin reloads.
+- [x] Preserve the saved chicken equipment overrides and validate the add-on
+      script in headless Godot.
+- [x] Update workflow/current-state notes, run required Flutter verification,
+      commit, push, and leave the repo worktree clean.
+
 ## Plan (2026-07-25 Crashlytics Background Timeout Fix)
 - [x] Apply the existing retryable-network classifier to Flutter framework
       error reporting so socket timeouts are recorded as non-fatal.
@@ -43,6 +53,19 @@ Current follow-ups and the active session only. Historical task logs live in
 - Detailed release/build/backend status: `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260724_pre_compaction.md`.
+
+## Review (2026-07-26 Godot Equipment Reload Fix)
+- Fixed the external Godot authoring dock so socket JSON loads discard stale
+  in-memory equipment data, resolve default/per-pet/per-animation settings
+  again, and apply the active equipment values to the visible controls.
+- Added current-scene initialization after editor/plugin reloads and deferred
+  preview reconstruction by one editor tick to avoid mutating a scene tree
+  while Godot is still building it.
+- Godot 4.6.2 completed a full headless editor/plugin load without parser,
+  initialization, or scene-tree errors. All three chicken socket exports pass
+  the calibration validator, and the saved chicken overrides remain intact.
+- `flutter analyze` passed with no issues. `flutter test` passed 533 tests with
+  one environment-dependent integration test skipped.
 
 ## Review (2026-07-25 Crashlytics Background Timeout Fix)
 - Fixed iOS Crashlytics issue `5347dc92ac7a507fa084a7558fa4f4a0`:

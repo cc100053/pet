@@ -22,6 +22,9 @@ latest: `memory-bank/archive/progress_20260724_pre_compaction.md`.
 - Pet rendering prefers PNG sequences while preserving GIF ids. Chicken is
   bundled but unsupported throughout `2.2.x` and gated to `2.3.0`; provisional
   motion tracks still need representative equipment-fit review.
+- The external Godot socket-authoring dock rehydrates the active equipment
+  controls/preview after socket, editor, or plugin reloads while preserving
+  default → per-pet → per-animation override precedence.
 - FCM permission failures are contained inside `FCMService`; unsupported Apple
   environments skip notification initialization without changing successful
   registration behavior.
