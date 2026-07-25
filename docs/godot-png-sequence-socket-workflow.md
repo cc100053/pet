@@ -256,7 +256,8 @@ The authoring dock reloads the current scene's equipment settings when
 **Load Sockets** is used and when the editor/plugin starts with a pet scene
 already open. The visible anchor/size controls and preview therefore reflect
 the resolved default → per-pet → per-animation lookup without reselecting the
-equipment.
+equipment. Each higher-priority layer replaces the resolved authoring value;
+the existence of a default entry must not prevent its per-pet replacement.
 
 ### Exported equipmentSettings Shape
 
@@ -372,6 +373,7 @@ Use this each time the user re-exports socket JSONs.
 | Body/back socket position wrong for all states | Developer used a placeholder (0.5, 0.5) instead of reading from JSON | Always read all three slots from `frames[0]`, not just head |
 | PNG frames missing in app | Asset directory not in `pubspec.yaml` | Add `- assets/equipment/<subfolder>/` and rebuild |
 | Godot plugin shows correct anchor but app doesn't | Pet has no per-pet override; global default was not propagated to Flutter default | Set Flutter `EquipmentDefinition.anchor` to match `equipment_overrides.json` default |
+| Reloaded controls show defaults after Save for Current Pet | Default was inserted first and incorrectly blocked the per-pet layer | Ensure every higher-priority layer replaces the resolved authoring value before applying it to controls |
 
 ---
 

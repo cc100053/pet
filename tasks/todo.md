@@ -4,6 +4,14 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260724_pre_compaction.md`.
 
+## Plan (2026-07-26 Godot Equipment Precedence Fix)
+- [x] Make each higher-priority global equipment layer replace the resolved
+      authoring value instead of leaving the first default value in controls.
+- [x] Prove chicken per-pet values win over defaults with a headless Godot
+      regression script, then validate editor/plugin startup.
+- [x] Record the corrected diagnosis and unrecoverable last edit, run required
+      Flutter verification, commit, push, and leave the repo clean.
+
 ## Plan (2026-07-26 Godot Equipment Reload Fix)
 - [x] Reload saved per-pet equipment settings into the active Godot controls
       and preview without requiring a manual equipment reselect.
@@ -53,6 +61,23 @@ Current follow-ups and the active session only. Historical task logs live in
 - Detailed release/build/backend status: `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260724_pre_compaction.md`.
+
+## Review (2026-07-26 Godot Equipment Precedence Fix)
+- Found the remaining root cause: the resolver inserted default equipment
+  settings into the authoring map first, then refused to replace an existing
+  key when processing `per_pet.<pet>`.
+- Changed the external Godot dock so each higher-priority global layer replaces
+  the resolved authoring value; per-animation JSON continues to apply after the
+  global layers.
+- A headless regression resolved chicken crown to its per-pet anchor
+  `(0.40, 0.80)` and size ratio `0.32`, rather than the default anchor
+  `(0.50, 0.70)`. A complete Godot 4.6.2 editor/plugin startup also passed.
+- The 00:36 Save did execute, but saved stale visible defaults over the latest
+  straw-hat/ribbon edits. Those unsaved intended values are not recoverable
+  from the current files and must be calibrated again after this fix.
+- All three chicken socket exports passed validation. `flutter analyze` passed
+  with no issues, and `flutter test` passed 533 tests with one
+  environment-dependent integration test skipped.
 
 ## Review (2026-07-26 Godot Equipment Reload Fix)
 - Fixed the external Godot authoring dock so socket JSON loads discard stale

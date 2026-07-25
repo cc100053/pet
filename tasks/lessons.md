@@ -4,6 +4,9 @@
 - For authoring-tool persistence, verifying the JSON write is only half the
   contract. Exercise the reload/rehydration path too and confirm the stored
   value is applied back to both visible controls and the rendered preview.
+- Test layered configuration with fixtures whose default and override values
+  differ. A reload test that checks only parser/startup success can miss a
+  precedence bug that displays defaults and later saves them over user data.
 
 ## 2026-07-16
 - When the user postpones a shared-item rollout to an exact version, update the
