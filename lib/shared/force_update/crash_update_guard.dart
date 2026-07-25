@@ -37,6 +37,12 @@ class AppCrashSignal {
     required StackTrace stackTrace,
     required String source,
   }) {
+    if (!CrashReportingService.shouldRecordAsFatal(
+      error,
+      requestedFatal: true,
+    )) {
+      return;
+    }
     // De-dupe against both the active crash and a deferred one still pending.
     if (_crash.value != null || _pending != null) {
       return;

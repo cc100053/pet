@@ -40,6 +40,18 @@ void main() {
         ),
         isFalse,
       );
+      expect(
+        CrashReportingService.shouldRecordAsFatal(
+          Exception(
+            'ClientException with SocketException: Operation timed out '
+            '(OS Error: Operation timed out, errno = 60), '
+            'uri=https://ilxzpszgirhwxpeocygs.supabase.co/rest/v1/rpc/'
+            'tick_pet_state',
+          ),
+          requestedFatal: true,
+        ),
+        isFalse,
+      );
     });
 
     test('keeps genuine app errors fatal when requested', () {

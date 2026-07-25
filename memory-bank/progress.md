@@ -25,6 +25,8 @@ latest: `memory-bank/archive/progress_20260724_pre_compaction.md`.
 - FCM permission failures are contained inside `FCMService`; unsupported Apple
   environments skip notification initialization without changing successful
   registration behavior.
+- Retryable network/auth failures reported through `FlutterError` are recorded
+  as non-fatal and cannot replace the app with the crash recovery screen.
 - Room-photo cleanup is human-reviewed/fail-closed. GEOFlow/hosting assets live
   in `/Users/fatboy/geo-marketing`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.

@@ -43,6 +43,32 @@ void main() {
     expect(find.text('遊戲發生錯誤'), findsNothing);
   });
 
+  testWidgets('retryable network errors do not replace the app', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildApp(
+        const CrashUpdateGuard(child: Text('Game home')),
+        locale: const Locale('zh', 'TW'),
+      ),
+    );
+
+    AppCrashSignal.instance.report(
+      error: Exception(
+        'ClientException with SocketException: Operation timed out '
+        '(OS Error: Operation timed out, errno = 60), '
+        'uri=https://ilxzpszgirhwxpeocygs.supabase.co/rest/v1/rpc/'
+        'tick_pet_state',
+      ),
+      stackTrace: StackTrace.current,
+      source: 'flutter_error',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Game home'), findsOneWidget);
+    expect(find.text('遊戲發生錯誤'), findsNothing);
+  });
+
   testWidgets(
     'reporting during a build/layout pass defers the recovery swap to a '
     'clean build scope',

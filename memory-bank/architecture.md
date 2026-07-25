@@ -46,6 +46,9 @@ Compact current-state map for mandatory reads. Full snapshots live in
   without mutating state; the old client projection is fallback-only.
 - Room entry warms from cache, revalidates status on entry/resume, and persists
   status changes with a debounce. Force update and What's New stay separate.
+- Global crash handling downgrades retryable network/auth failures across both
+  Dart and Flutter error paths; only genuine fatal errors activate the
+  `CrashUpdateGuard` recovery screen.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
 
 ## Backend And Platform

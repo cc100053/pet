@@ -50,9 +50,10 @@ Future<void> main() async {
       FlutterError.onError = (details) {
         FlutterError.presentError(details);
         unawaited(
-          CrashReportingService.instance.reportFlutterFatalError(
+          CrashReportingService.instance.reportFlutterError(
             details: details,
             source: 'flutter_error',
+            requestedFatal: true,
           ),
         );
         AppCrashSignal.instance.report(

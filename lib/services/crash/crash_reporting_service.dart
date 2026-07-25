@@ -177,23 +177,32 @@ class CrashReportingService {
     );
   }
 
-  Future<void> reportFlutterFatalError({
+  Future<void> reportFlutterError({
     required FlutterErrorDetails details,
     required String source,
+    required bool requestedFatal,
   }) async {
     final normalizedSource = _truncate(
       source.trim().isEmpty ? 'flutter_error' : source.trim(),
     );
+    final effectiveFatal = shouldRecordAsFatal(
+      details.exception,
+      requestedFatal: requestedFatal,
+    );
     await _setCustomKey('last_error_source', normalizedSource);
     await breadcrumb(
-      'captured_flutter_fatal_error',
-      data: {'source': normalizedSource},
+      'captured_flutter_error',
+      data: {
+        'source': normalizedSource,
+        'fatal': effectiveFatal,
+        'error_type': details.exception.runtimeType.toString(),
+      },
     );
     final crashlytics = _crashlyticsOrNull;
     if (crashlytics == null) {
       return;
     }
-    await crashlytics.recordFlutterFatalError(details);
+    await crashlytics.recordFlutterError(details, fatal: effectiveFatal);
   }
 
   Future<void> triggerTestCrash() async {
@@ -232,7 +241,6 @@ class CrashReportingService {
     return value.substring(0, maxLength);
   }
 
-  @visibleForTesting
   static bool shouldRecordAsFatal(
     Object error, {
     required bool requestedFatal,

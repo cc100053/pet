@@ -4,6 +4,16 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260724_pre_compaction.md`.
 
+## Plan (2026-07-25 Crashlytics Background Timeout Fix)
+- [x] Apply the existing retryable-network classifier to Flutter framework
+      error reporting so socket timeouts are recorded as non-fatal.
+- [x] Prevent retryable network errors from activating the app-wide crash
+      recovery screen while preserving genuine fatal handling.
+- [x] Add regression coverage for the exact `tick_pet_state` timeout signature
+      and the recovery-screen decision.
+- [x] Run formatting, focused tests, `flutter analyze`, and `flutter test`.
+- [x] Update current-state notes, commit, push, and leave a clean worktree.
+
 ## Plan (2026-07-24 AGENTS/Memory Optimization)
 - [x] Audit AGENTS, active memory, task notes, local skills, referenced docs,
       scripts, Edge Functions, and relevant migrations for verified changes.
@@ -33,6 +43,19 @@ Current follow-ups and the active session only. Historical task logs live in
 - Detailed release/build/backend status: `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260724_pre_compaction.md`.
+
+## Review (2026-07-25 Crashlytics Background Timeout Fix)
+- Fixed iOS Crashlytics issue `5347dc92ac7a507fa084a7558fa4f4a0`:
+  Flutter-reported socket/auth timeouts now reuse the central retryable-network
+  classifier and are recorded as non-fatal.
+- `AppCrashSignal` now applies the same classifier before showing
+  `CrashUpdateGuard`, so expected background network loss cannot replace the
+  app while genuine fatal errors retain the recovery flow.
+- Added exact `tick_pet_state` timeout regression coverage. Focused tests
+  passed, `flutter analyze` found no issues, and the final full `flutter test`
+  run passed 533 tests with one environment-dependent integration test skipped.
+- One pre-existing feed retry-budget timing test failed in the first full run;
+  its focused rerun and the final full-suite rerun both passed.
 
 ## Review (2026-07-24 AGENTS/Memory Optimization)
 - Added verified ASC release commands for explicit IPA versioning and attaching
