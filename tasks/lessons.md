@@ -1,6 +1,10 @@
 # Lessons
 
 ## 2026-07-26
+- In release notes for a new pet or feature, do not promote baseline completion
+  details such as expected animations or correctly fitted compatible equipment
+  into separate bullets. Keep only meaningful user-facing changes, even when
+  that leaves the release with fewer than three bullets.
 - Treat the socket-track movement threshold as an automation heuristic, not
   permission to discard human-reviewed per-frame captures. If a Level 2 export
   contains intentional movement—especially a head socket—sync the track even
