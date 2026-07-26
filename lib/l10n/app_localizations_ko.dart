@@ -2029,4 +2029,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get whatsNew226Bullet1 =>
       '방 선택 화면과 펫 홈에서 펫 상태가 정확하고 일관되게 표시되도록 개선했습니다.';
+
+  @override
+  String get whatsNew230Title => '새로운 친구, 닭을 만나보세요!';
+
+  @override
+  String get whatsNew230Bullet1 => '활기찬 새 펫 닭이 PetTomo에 찾아왔어요.';
+
+  @override
+  String get whatsNew230Bullet2 => '일시적인 연결 문제로 공동 돌봄이 중단되는 상황을 줄였습니다.';
 }

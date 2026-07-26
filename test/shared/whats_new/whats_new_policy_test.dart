@@ -4,10 +4,17 @@ import 'package:pet/shared/whats_new/app_whats_new_entry.dart';
 import 'package:pet/shared/whats_new/whats_new_policy.dart';
 
 void main() {
+  final entry230 = AppWhatsNewCatalog.entryForVersion('2.3.0');
   final entry110 = AppWhatsNewCatalog.entryForVersion('1.1.0');
   final entry105 = AppWhatsNewCatalog.entryForVersion('1.0.5');
 
   group('AppWhatsNewCatalog', () {
+    test('contains 2.3.0 entry with two meaningful bullets', () {
+      expect(entry230, isNotNull);
+      expect(entry230?.version, '2.3.0');
+      expect(entry230?.bulletBuilders.length, 2);
+    });
+
     test('contains 1.1.0 entry', () {
       expect(entry110, isNotNull);
       expect(entry110?.version, '1.1.0');

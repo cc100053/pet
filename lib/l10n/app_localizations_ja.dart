@@ -2018,4 +2018,13 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get whatsNew226Bullet1 =>
       'ルーム選択画面とペットホームの間で、ペットの状態が正確かつ一貫して表示されるよう改善しました。';
+
+  @override
+  String get whatsNew230Title => 'ニワトリが仲間入り！';
+
+  @override
+  String get whatsNew230Bullet1 => '元気いっぱいの新しいペット「ニワトリ」が登場しました。';
+
+  @override
+  String get whatsNew230Bullet2 => '一時的な通信問題への対応を改善し、共同育成が中断されにくくなりました。';
 }

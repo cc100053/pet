@@ -4,6 +4,21 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260724_pre_compaction.md`.
 
+## Plan (2026-07-26 iOS 2.3.0 Chicken Release)
+- [x] Add the approved two-point bundled What's New copy and App Store
+      localizations for the Chicken launch and smoother temporary-network
+      handling, preserving every locale's existing EULA footer.
+- [x] Reconfirm the `2.3.0` Chicken visibility boundary, old-client fallback,
+      version/build number, and iPhone-only target settings.
+- [x] Regenerate localization and run metadata, compatibility, analyzer, and
+      full Flutter verification.
+- [x] Create or reuse ASC version `2.3.0`, sync and read back all four
+      localizations, build and verify the `2.3.0+13` IPA, upload it, wait for a
+      terminal processing state, and attach the valid build.
+- [x] Update the release ledger/current-state notes, commit and push all
+      release changes, and leave `main` synchronized and clean. App Review
+      submission remains separately authorized.
+
 ## Plan (2026-07-26 Chicken Idle Socket Fix)
 - [x] Validate the reviewed Chicken Stay export and calculate exact per-frame
       head/body/back offsets from frame 0.
@@ -63,9 +78,9 @@ Current follow-ups and the active session only. Historical task logs live in
       worktree.
 
 ## Active Follow-ups
-- [ ] Run ASC submission preflight for iOS `2.2.6+12`, then submit ASC version
-      `b7b48f69-f839-41da-ba4f-60cc0bc9647b` with attached build
-      `a489f171-7dc2-416c-b332-8ec3e8fe6477` if approved.
+- [ ] Run ASC submission preflight for iOS `2.3.0+13`, then submit ASC version
+      `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c` with attached build
+      `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6` if approved.
 - [ ] Live-verify a real feed: confirm `pet_state`, visible satiety movement,
       and clean presigned-upload logs.
 - [ ] Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
@@ -80,6 +95,26 @@ Current follow-ups and the active session only. Historical task logs live in
 - Detailed release/build/backend status: `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260724_pre_compaction.md`.
+
+## Review (2026-07-26 iOS 2.3.0 Chicken Release)
+- Added the approved two-point bundled What's New entry in all five app
+  locales and synchronized full-form ASC `whatsNew` plus promotional text for
+  en-US, ja, ko, and zh-Hant. Every copied description retains the direct
+  Apple Standard EULA URL.
+- Confirmed Chicken remains hidden with default-pet fallback throughout
+  `2.2.x` and becomes visible at `2.3.0`; no Supabase, RPC, notification
+  payload, or old-client contract changed.
+- Created ASC version `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c`, synchronized and
+  read back all four localizations, built the iPhone-only `2.3.0+13` IPA,
+  verified its packaged version/build/device family/orientation/full-screen
+  values, and uploaded it as build `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6`.
+- Apple processing reached `VALID` in about three minutes; build 13 is
+  encryption exempt and attached to v2.3.0. The version remains
+  `PREPARE_FOR_SUBMISSION`; no App Review submission was requested or made.
+- Focused release tests passed 15 tests, the Chicken asset bundle contains the
+  nested animation sequences, `flutter analyze` passed with no issues, and
+  `flutter test` passed 538 tests with one credentialed integration test
+  skipped.
 
 ## Review (2026-07-26 Chicken Idle Socket Fix)
 - Confirmed `stay` → `idle` state mapping was already correct. The Chicken

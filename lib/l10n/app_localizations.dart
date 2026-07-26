@@ -3740,6 +3740,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pet status now stays accurate and consistent between room selection and Pet Home.'**
   String get whatsNew226Bullet1;
+
+  /// No description provided for @whatsNew230Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet Chicken!'**
+  String get whatsNew230Title;
+
+  /// No description provided for @whatsNew230Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken, a lively new pet, has joined PetTomo.'**
+  String get whatsNew230Bullet1;
+
+  /// No description provided for @whatsNew230Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary connection issues are now less likely to interrupt your shared care experience.'**
+  String get whatsNew230Bullet2;
 }
 
 class _AppLocalizationsDelegate

@@ -1046,5 +1046,8 @@
   "whatsNew225Title": "錯誤修正",
   "whatsNew225Bullet1": "修正 iOS 設定通知時可能導致應用程式當機的問題。",
   "whatsNew226Title": "寵物狀態更即時",
-  "whatsNew226Bullet1": "改善房間選擇與寵物主頁之間的寵物狀態，讓顯示更準確一致。"
+  "whatsNew226Bullet1": "改善房間選擇與寵物主頁之間的寵物狀態，讓顯示更準確一致。",
+  "whatsNew230Title": "小雞加入 PetTomo！",
+  "whatsNew230Bullet1": "活力十足的新寵物小雞正式登場。",
+  "whatsNew230Bullet2": "改善暫時性網絡異常的處理，減少共同照顧被短暫連線問題打斷。"
 }

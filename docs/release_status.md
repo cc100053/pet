@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.2.6 | 12 | Repo workflow assumes current after completed `release-notes-sync`; ASC state `PREPARE_FOR_SUBMISSION`, build `VALID`, encryption exempt, attached, and not submitted in this step | 2026-07-16 | App Store Connect metadata sync/build upload/processing/attach; release-notes-sync completion rule | none |
+| iOS | 2.3.0 | 13 | Repo workflow assumes current after completed `release-notes-sync`; ASC state `PREPARE_FOR_SUBMISSION`, build `VALID`, encryption exempt, attached, and not submitted in this step | 2026-07-26 | App Store Connect metadata sync/build upload/processing/attach; release-notes-sync completion rule | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -25,6 +25,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 2.2.6 | 12 | Superseded in repo workflow by completed `2.3.0+13` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-26 | ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b` | none |
 | iOS | 2.2.5 | 11 | Superseded in repo workflow by completed `2.2.6+12` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-16 | ASC version `38afa02d-dc0a-4dff-a91c-4cedfe3095a0` | none |
 | iOS | 2.2.4 | 10 | Superseded in repo workflow by completed `2.2.5+11` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-15 | ASC version `ca26e644-9448-4ee3-8640-bac50a810057` | none |
 | iOS | 2.2.3 | 9 | Superseded in repo workflow by completed `2.2.4+10` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-26 | ASC version `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` | none |
@@ -38,7 +39,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | None active | - | `pubspec.yaml` `2.2.6+12` is now the repo current release baseline; pet-status freshness notes are synced and chicken remains hidden until `2.3.0` with default-pet fallback for unsupported remote state | ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b` is `PREPARE_FOR_SUBMISSION`; build/delivery ID `a489f171-7dc2-416c-b332-8ec3e8fe6477` is `VALID`, App Store eligible, encryption exempt, and attached; localization IDs: en-US `762fbe48-a23e-4d12-a681-34b266cb5a52`, ja `cd2d3691-8856-41e2-aac8-a32315c0e777`, ko `a0493793-1980-44a3-8f77-5571ea6b1861`, zh-Hant `98906970-1d6f-4436-95d8-c10f3801373c` | Await an explicit request to run submission preflight and submit for review; monitor review/store outcome afterward | working tree v2.2.6 build upload | none |
+| iOS | None active | - | `pubspec.yaml` `2.3.0+13` is now the repo current release baseline; Chicken is visible from `2.3.0`, while every `2.2.x` client keeps the default-pet fallback for unsupported remote Chicken state | ASC version `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c` is `PREPARE_FOR_SUBMISSION`; build/upload ID `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6` is `VALID`, App Store eligible, encryption exempt, and attached; localization IDs: en-US `d04d0424-e38d-4920-8313-146246ad14d5`, ja `a0dfd9cf-06a5-4a10-a238-0287da6389d5`, ko `491bb5fd-6ab8-42fe-b1cd-a67afd0c2533`, zh-Hant `9415b3c3-343b-410f-83b5-0729cf684d24` | Await an explicit request to run submission preflight and submit for review; monitor review/store outcome afterward | v2.3.0 release worktree | none |
 
 ## Backend Deployments
 

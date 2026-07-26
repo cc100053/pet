@@ -2112,4 +2112,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew226Bullet1 =>
       'Pet status now stays accurate and consistent between room selection and Pet Home.';
+
+  @override
+  String get whatsNew230Title => 'Meet Chicken!';
+
+  @override
+  String get whatsNew230Bullet1 =>
+      'Chicken, a lively new pet, has joined PetTomo.';
+
+  @override
+  String get whatsNew230Bullet2 =>
+      'Temporary connection issues are now less likely to interrupt your shared care experience.';
 }

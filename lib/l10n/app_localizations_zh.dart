@@ -2007,6 +2007,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew226Bullet1 => '改善房间选择与宠物主页之间的宠物状态，让显示更准确一致。';
+
+  @override
+  String get whatsNew230Title => '小鸡加入 PetTomo！';
+
+  @override
+  String get whatsNew230Bullet1 => '活力十足的新宠物小鸡正式登场。';
+
+  @override
+  String get whatsNew230Bullet2 => '改善临时网络异常的处理，减少共同照顾被短暂连接问题打断。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4002,4 +4011,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew226Bullet1 => '改善房間選擇與寵物主頁之間的寵物狀態，讓顯示更準確一致。';
+
+  @override
+  String get whatsNew230Title => '小雞加入 PetTomo！';
+
+  @override
+  String get whatsNew230Bullet1 => '活力十足的新寵物小雞正式登場。';
+
+  @override
+  String get whatsNew230Bullet2 => '改善暫時性網絡異常的處理，減少共同照顧被短暫連線問題打斷。';
 }

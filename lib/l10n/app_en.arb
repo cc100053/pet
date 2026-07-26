@@ -1056,5 +1056,8 @@
   "whatsNew225Title": "Bug fix",
   "whatsNew225Bullet1": "Fixed a crash that could occur while setting up notifications on iOS.",
   "whatsNew226Title": "Fresher pet status",
-  "whatsNew226Bullet1": "Pet status now stays accurate and consistent between room selection and Pet Home."
+  "whatsNew226Bullet1": "Pet status now stays accurate and consistent between room selection and Pet Home.",
+  "whatsNew230Title": "Meet Chicken!",
+  "whatsNew230Bullet1": "Chicken, a lively new pet, has joined PetTomo.",
+  "whatsNew230Bullet2": "Temporary connection issues are now less likely to interrupt your shared care experience."
 }
