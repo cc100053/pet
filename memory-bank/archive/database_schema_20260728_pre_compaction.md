@@ -1,7 +1,7 @@
 # Database Schema
 
 Compact current-state watchlist. Full snapshots live in `memory-bank/archive/`;
-latest: `memory-bank/archive/database_schema_20260728_pre_compaction.md`.
+latest: `memory-bank/archive/database_schema_20260724_pre_compaction.md`.
 Target Supabase project: `ilxzpszgirhwxpeocygs`.
 
 Before a DB claim/change, verify the target and inspect the latest applied
@@ -47,20 +47,27 @@ migration that rewrites the object.
 - Prefer additive fields/RPCs/optional params. Keep legacy 4-arg furniture RPCs
   separate from non-defaulted 6-arg canvas overloads.
 
-## Additive RPC Watchlist
-- `get_room_latest_feeds(...)` and
+## RPC Watchlist
+- Room lifecycle: create/join/invite/leave/regenerate RPCs
+- Pet/gameplay: `apply_pet_action`, reward/tick/schedule, room-pet, pet-ticket,
+  and equipment RPCs
+- Shop/decor: visible catalog, purchase/grant, inventory, and furniture helpers
+- Chat/unread: edit/delete message and unread-count RPCs
+- Home summaries: `get_room_latest_feeds(...)` and
   `get_room_member_counts(...)` are additive invoker RPCs; old clients read
   tables directly.
-- `get_effective_room_pet_statuses(uuid[])` is authenticated-only,
+- Status: `get_effective_room_pet_statuses(uuid[])` is authenticated-only,
   read-only, and `SECURITY INVOKER`; it projects requested active-member rooms
   from one server timestamp without changing old tick/state contracts.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use
   `(select auth.uid())`, `TO authenticated`, and matching indexes.
-- Function truth lives in `supabase/functions/`; feed/R2 behavior is documented
-  in `docs/feed_upload_pipeline.md`.
-- Room-photo cleanup remains human-reviewed and fail-closed; see
+- `feed_validate`/`avatar_upload` validate image size and MIME before R2.
+- `notify_friend` canonicalizes DB payloads and limits recipients to active
+  room members.
+- `hunger_tick_dispatch` processes due schedules and dispatches alerts.
+- Room-photo cleanup is human-reviewed and fail-closed; see
   `docs/abandoned_room_cleanup.md`.
 
 ## Read More

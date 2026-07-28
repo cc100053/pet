@@ -31,6 +31,9 @@ This file is for agentic coding agents working in this repo.
       use `.codex/skills/ui-ux-pro-max/scripts/search.py` for this repo unless
       the skill is corrected.
 - For pet PNG sequence / socket / equipment-preview work, read `docs/godot-png-sequence-socket-workflow.md` before editing `assets/pet_sequences/`, `lib/features/pet/`, or related equipment placement code.
+- For human-reviewed Level 2 socket exports, preserve every intentional
+  non-zero track with `python3 .codex/skills/pet-socket-calibration/scripts/generate_flutter_tracks.py --track-threshold 0`;
+  the 10 px threshold is for provisional automatic review only.
 
 # Agent Workflows & Core Principles
 
