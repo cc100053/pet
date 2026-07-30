@@ -17,7 +17,9 @@ migration that rewrites the object.
   overrides, room cleanup review
 
 ## Current Contracts
-- Normal sharing uses invite-code RPCs; `rooms.invite_code` is legacy.
+- Normal sharing uses reusable invite-code RPCs; `rooms.invite_code` is legacy.
+  First-party creation/regeneration defaults to 24 hours, while successful
+  joins do not consume the code or impose a user-count limit.
 - `pets.room_id` remains unique for old clients. Extras use
   `room_extra_pets`; `rooms.main_pet_id` identifies the canonical pet and
   `rooms.name` mirrors its name.

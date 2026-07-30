@@ -4,16 +4,13 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260728_pre_compaction.md`.
 
-## Plan (2026-07-28 AGENTS/Memory Optimization)
-- [x] Audit AGENTS, active memory/task notes, local skills, referenced docs,
-      scripts, Edge Functions, and recent repository changes.
-- [x] Archive pre-compaction memory/task snapshots and keep active files
-      focused on current contracts, release state, and follow-ups.
-- [x] Add only verified, non-duplicative workflow guidance to AGENTS.md.
-- [x] Record line-count changes, inspect the full diff, and run required
-      Flutter verification.
-- [x] Commit and push all legitimate changes, verify the remote branch, and
-      leave the worktree clean.
+## Plan (2026-07-30 Room Invite Expiry)
+- [x] Inventory current and legacy invite RPC contracts and verify live
+      definitions on project `ilxzpszgirhwxpeocygs`.
+- [x] Standardize first-party invite creation and regeneration on 24 hours.
+- [x] Cap existing active invites with a 24-hour transition window.
+- [x] Verify live definitions/data, Supabase advisors, Flutter analysis/tests,
+      and current-state documentation.
 
 ## Active Follow-ups
 - [ ] Run ASC submission preflight for iOS `2.3.0+13`, then submit ASC version
@@ -34,18 +31,20 @@ Current follow-ups and the active session only. Historical task logs live in
 - Full task state before this compaction:
   `tasks/archive/todo_20260728_pre_compaction.md`.
 
-## Review (2026-07-28 AGENTS/Memory Optimization)
-- Added the Level 2 socket-export guardrail to AGENTS.md, grounded in the local
-  calibration skill and workflow; no other non-duplicative workflow addition
-  was warranted.
-- Compacted active memory from 270 to 236 lines: architecture 73→63, database
-  schema 76→69, progress 54→37, tech stack 38→38, UI/UX 29→29.
-- Archived full pre-compaction snapshots under
-  `memory-bank/archive/*_20260728_pre_compaction.md` and archived the completed
-  task history at `tasks/archive/todo_20260728_pre_compaction.md`.
+## Review (2026-07-30 Room Invite Expiry)
+- Applied local migration
+  `20260730120037_standardize_room_invite_codes_to_24_hours.sql` as live
+  migration `20260730120412` on `ilxzpszgirhwxpeocygs`.
+- Preserved all RPC signatures and unlimited reusable joins while standardizing
+  first-party creation/regeneration defaults to 24 hours.
+- Live verification: 8 active codes, 0 over 24 hours, 0 primary room/code
+  expiry mismatches, and all four creation paths expose the expected defaults.
+- Supabase advisors were reviewed. Their invite-function warnings reflect the
+  existing authenticated `SECURITY DEFINER` contract; every function still
+  performs its original `auth.uid()` and membership/owner checks. The general
+  table scan also flagged two pre-existing internal tables without RLS, but
+  direct ACL verification confirmed neither `anon` nor `authenticated` has
+  read/write privileges.
 - `git diff --check` passed. `flutter analyze` passed with no issues.
-  `flutter test` passed 538 tests; the feed integration test skipped because
-  `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_TEST_REFRESH_TOKEN` are
-  unset.
-- The worktree began clean; the complete diff is documentation/task history
-  from this automation and belongs in one documentation commit.
+  `flutter test` passed 541 tests; the feed integration test skipped because
+  its three Supabase test environment variables are unset.
