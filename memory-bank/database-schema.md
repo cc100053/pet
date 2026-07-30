@@ -38,6 +38,9 @@ migration that rewrites the object.
   without reversing rewards.
 - `pet_hunger_tick_schedule.next_check_at` is the server due cursor;
   admin-only hunger pause lives in `room_debug_overrides`.
+- Internal scheduler/review tables `pet_hunger_tick_schedule` and
+  `room_cleanup_candidates` have RLS enabled with no client policies; explicit
+  grants keep `anon`/`authenticated` denied and service roles retain access.
 
 ## Compatibility Rules
 - Public PostgREST objects need explicit Data API grants; RLS remains the

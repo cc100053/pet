@@ -41,6 +41,9 @@ Review queue (migration `20260602120500`):
 - `room_cleanup_candidates` — one row per flagged room: R2 photo snapshot
   (`photo_count`, `photo_bytes`), `review_status`
   (`pending` / `approved` / `rejected` / `purged`), timestamps, `note`.
+  RLS is enabled with no client policies; explicit grants keep
+  `anon`/`authenticated` denied while `service_role` retains the cleanup
+  workflow's access.
 - `room_cleanup_review` — admin-only view joining the snapshot with live
   evidence. **Not exposed to anon/authenticated** (view it in Studio):
   - `all_members_left` — hard proof everyone explicitly left

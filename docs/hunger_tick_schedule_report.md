@@ -40,6 +40,9 @@ It is not executed by Flutter app lifecycle.
 - `room_id` (FK -> `rooms.id`)
 - `next_check_at` (`timestamptz`, nullable)
 - `created_at`, `updated_at`
+- RLS is enabled with no client policies. `anon` and `authenticated` have no
+  table privileges; `service_role` retains the scheduler's DML access and
+  bypasses RLS.
 
 ### Indexes
 - `pet_hunger_tick_schedule_next_check_idx` (partial index on `next_check_at is not null`)

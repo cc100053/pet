@@ -11,6 +11,8 @@ latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
   `memory-bank/architecture.md` and `memory-bank/database-schema.md`.
 - Live room invite creation/regeneration now uses a 24-hour expiry across
   current and legacy app RPCs; codes remain reusable without a join-count cap.
+- Internal hunger-schedule and abandoned-room review tables now use RLS as
+  defense in depth while remaining service-only.
 - Pet rendering prefers PNG sequences while preserving GIF ids. Chicken is
   visible from `2.3.0`; `2.2.x` clients hide/fallback unsupported state.
 - Chicken's reviewed Level 2 sockets and compatible equipment fits are synced;

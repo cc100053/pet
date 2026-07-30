@@ -4,12 +4,12 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260728_pre_compaction.md`.
 
-## Plan (2026-07-30 Room Invite Expiry)
-- [x] Inventory current and legacy invite RPC contracts and verify live
-      definitions on project `ilxzpszgirhwxpeocygs`.
-- [x] Standardize first-party invite creation and regeneration on 24 hours.
-- [x] Cap existing active invites with a 24-hour transition window.
-- [x] Verify live definitions/data, Supabase advisors, Flutter analysis/tests,
+## Plan (2026-07-30 Internal Table RLS Hardening)
+- [x] Verify both internal tables' grants, owners, service callers, and current
+      advisor findings on project `ilxzpszgirhwxpeocygs`.
+- [x] Enable RLS without client policies and preserve explicit client-role
+      revocations.
+- [x] Verify live service/client access contracts, advisors, Flutter checks,
       and current-state documentation.
 
 ## Active Follow-ups
@@ -31,20 +31,17 @@ Current follow-ups and the active session only. Historical task logs live in
 - Full task state before this compaction:
   `tasks/archive/todo_20260728_pre_compaction.md`.
 
-## Review (2026-07-30 Room Invite Expiry)
+## Review (2026-07-30 Internal Table RLS Hardening)
 - Applied local migration
-  `20260730120037_standardize_room_invite_codes_to_24_hours.sql` as live
-  migration `20260730120412` on `ilxzpszgirhwxpeocygs`.
-- Preserved all RPC signatures and unlimited reusable joins while standardizing
-  first-party creation/regeneration defaults to 24 hours.
-- Live verification: 8 active codes, 0 over 24 hours, 0 primary room/code
-  expiry mismatches, and all four creation paths expose the expected defaults.
-- Supabase advisors were reviewed. Their invite-function warnings reflect the
-  existing authenticated `SECURITY DEFINER` contract; every function still
-  performs its original `auth.uid()` and membership/owner checks. The general
-  table scan also flagged two pre-existing internal tables without RLS, but
-  direct ACL verification confirmed neither `anon` nor `authenticated` has
-  read/write privileges.
-- `git diff --check` passed. `flutter analyze` passed with no issues.
-  `flutter test` passed 541 tests; the feed integration test skipped because
-  its three Supabase test environment variables are unset.
+  `20260730143024_enable_rls_on_internal_scheduler_and_cleanup_tables.sql` as
+  live migration `20260730143222` on `ilxzpszgirhwxpeocygs`.
+- Both internal tables now have RLS enabled without policies or `FORCE RLS`.
+  Client roles retain no DML privileges; `service_role` retains all required
+  DML privileges and `BYPASSRLS`.
+- Live runtime checks confirmed both hunger and cleanup cron groups active,
+  with all 275 hunger schedule rows and 225 cleanup candidates preserved.
+- The previous critical table advisory cleared. Remaining no-policy INFO
+  findings are intentional for these service-only tables.
+- `git diff --check` and `flutter analyze` passed. `flutter test` passed 543
+  tests; the feed integration test skipped because its three Supabase test
+  environment variables are unset.
