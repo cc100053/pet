@@ -172,6 +172,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   // turning one transient failure into a permanently blank room selection.
   bool _roomsLoadedFromNetwork = false;
   bool _roomsFetchInFlight = false;
+  // Recovery must not run before bootstrap has had its turn: the auth stream
+  // replays `initialSession` during `initState`, well before the post-frame
+  // callback starts `_bootstrapHome`, and fetching there would pre-empt the
+  // cache restore that makes a warm start paint instantly.
+  bool _roomsBootstrapAttempted = false;
   int _roomsRetryAttempt = 0;
   Timer? _roomsRetryTimer;
   StreamSubscription<AuthState>? _homeAuthSubscription;
@@ -766,6 +771,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       await Future.wait<void>([profileFuture, _loadCoins()]);
     }
     await roomsFuture;
+    // Bootstrap has now had its attempt at the room list; from here on an
+    // arriving session or an app resume is allowed to retry it.
+    _roomsBootstrapAttempted = true;
     // `_fetchRooms` now projects decay client-side, so the health bars are
     // already accurate without an extra per-pet `tick_pet_state` round-trip.
     _homeBootstrapCompleted = true;

@@ -247,7 +247,13 @@ extension _HomeRoomManager on _HomeViewState {
   /// deep-link handoff, where Home can mount before the client has the session
   /// and the original bootstrap fetch bails with no user id.
   Future<void> _recoverRoomsIfNeeded(String source) async {
-    if (!mounted || _roomsLoadedFromNetwork) {
+    if (!mounted || _roomsLoadedFromNetwork || _roomsFetchInFlight) {
+      return;
+    }
+    // The auth stream replays `initialSession` during `initState`, before the
+    // post-frame callback starts bootstrap. Recovering there would pre-empt
+    // `_restoreHomeBootstrapCache` and cost the warm start its instant paint.
+    if (!_roomsBootstrapAttempted) {
       return;
     }
     if (Supabase.instance.client.auth.currentUser?.id == null) {
