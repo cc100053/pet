@@ -12,9 +12,18 @@ extension _HomeRoomManager on _HomeViewState {
   }
 
   Future<void> _fetchRooms() async {
+    if (_roomsFetchInFlight) {
+      return;
+    }
+    _roomsFetchInFlight = true;
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) {
+        // The OAuth deep-link handoff can mount Home before the session lands
+        // on the client. Bootstrap is once-only, so giving up here without a
+        // retry is what leaves the room list permanently empty until the user
+        // signs out and back in.
+        _noteRoomsFetchFailed('no_session');
         _setStateForRoomManager(() => _loadingRoom = false);
         return;
       }
@@ -22,6 +31,13 @@ extension _HomeRoomManager on _HomeViewState {
         for (final room in _myRooms)
           if (room['id'] is String)
             room['id'] as String: resolveRoomUnreadCount(room),
+      };
+      // Last known enrichment, keyed by room. A summary query that fails falls
+      // back to these rather than to an empty value: "0 members" and a blank
+      // health bar read as fresh data, not as a missing read.
+      final previousRoomById = <String, Map<String, dynamic>>{
+        for (final room in _myRooms)
+          if (room['id'] is String) room['id'] as String: room,
       };
 
       final responses = await _withNetworkTimeout(
@@ -66,29 +82,69 @@ extension _HomeRoomManager on _HomeViewState {
                 .catchError((_) => null);
         // Fetch the independent per-room summaries concurrently instead of in
         // five serial round-trips.
-        final results = await Future.wait<Object>([
-          _withNetworkTimeout(_fetchRoomPetSummaries(roomIds)),
-          _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds)),
-          _withNetworkTimeout(_fetchRoomMemberCounts(roomIds)),
-          _withNetworkTimeout(_fetchRoomUnreadCounts(roomIds, userId)),
+        // Enrichment must not be able to hide the rooms themselves: the room
+        // list has already been fetched successfully at this point, so a
+        // timeout on any summary query degrades that badge instead of aborting
+        // into the outer catch with `_myRooms` never assigned. Each query also
+        // degrades independently — discarding three successful reads because a
+        // fourth timed out would repaint every room as empty.
+        Future<T?> degradable<T>(Future<T> query, String stage) => query
+            .then<T?>((value) => value)
+            .catchError((Object error) {
+              _logRoomsDiagnostic('summary_failed', '$stage: $error');
+              return null;
+            });
+
+        final results = await Future.wait<Object?>([
+          degradable(
+            _withNetworkTimeout(_fetchRoomPetSummaries(roomIds)),
+            'pet_summaries',
+          ),
+          degradable(
+            _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds)),
+            'latest_feeds',
+          ),
+          degradable(
+            _withNetworkTimeout(_fetchRoomMemberCounts(roomIds)),
+            'member_counts',
+          ),
+          degradable(
+            _withNetworkTimeout(_fetchRoomUnreadCounts(roomIds, userId)),
+            'unread_counts',
+          ),
         ]);
-        final petSummaries = results[0] as Map<String, _RoomPetSummary>;
-        final feeds = results[1] as Map<String, _RoomLatestFeed>;
-        final memberCounts = results[2] as Map<String, int>;
-        final unreadCounts = results[3] as Map<String, int>;
+        final petSummaries = results[0] as Map<String, _RoomPetSummary>?;
+        final feeds = results[1] as Map<String, _RoomLatestFeed>?;
+        final memberCounts = results[2] as Map<String, int>?;
+        final unreadCounts = results[3] as Map<String, int>?;
         final equippedSkus = await equippedSkusFuture;
         if (equippedSkus != null) {
           equippedSkusByRoom.addAll(equippedSkus);
           equippedSkusFetched = true;
         }
-        unreadCountsByRoom.addAll(unreadCounts);
+        if (unreadCounts != null) {
+          unreadCountsByRoom.addAll(unreadCounts);
+        }
         for (final room in rooms) {
           final roomId = room['id'] as String?;
+          final previousRoom = roomId == null ? null : previousRoomById[roomId];
           if (roomId != null) {
-            room['member_count'] = memberCounts[roomId] ?? 0;
-            room['unread_count'] = unreadCountsByRoom[roomId] ?? 0;
+            room['member_count'] = memberCounts != null
+                ? (memberCounts[roomId] ?? 0)
+                : (previousRoom?['member_count'] ?? 0);
+            // Keep the last known unread badge when the counts query failed;
+            // zeroing it would silently mark rooms as read.
+            room['unread_count'] = unreadCounts != null
+                ? (unreadCountsByRoom[roomId] ?? 0)
+                : (previousUnreadByRoom[roomId] ?? 0);
           }
-          final summary = roomId == null ? null : petSummaries[roomId];
+          if (petSummaries == null && previousRoom != null) {
+            _carryOverRoomFields(room, previousRoom, _petSummaryRoomFields);
+          }
+          if (feeds == null && previousRoom != null) {
+            _carryOverRoomFields(room, previousRoom, _latestFeedRoomFields);
+          }
+          final summary = roomId == null ? null : petSummaries?[roomId];
           if (summary != null) {
             room['pet_type'] = summary.petType;
             room['pet_health'] = summary.healthValue;
@@ -104,7 +160,7 @@ extension _HomeRoomManager on _HomeViewState {
               _cachePetState(roomId!, petId, petState);
             }
           }
-          if (roomId != null && feeds.containsKey(roomId)) {
+          if (roomId != null && feeds != null && feeds.containsKey(roomId)) {
             final latest = feeds[roomId]!;
             if (latest.imageUrls.isNotEmpty) {
               room['latest_photo'] = latest.latestImageUrl;
@@ -158,15 +214,119 @@ extension _HomeRoomManager on _HomeViewState {
           _switchRoom(sortedRooms.first['id'] as String);
         }
       }
+      // Only now is the room list authoritative: everything that persists or
+      // recovers state keys off this flag.
+      _roomsLoadedFromNetwork = true;
+      _roomsRetryAttempt = 0;
+      _roomsRetryTimer?.cancel();
+      _roomsRetryTimer = null;
       await _cacheHomeBootstrapSnapshot();
       _processPendingNotificationIntent();
-    } catch (_) {
+    } catch (error) {
+      _noteRoomsFetchFailed('$error');
     } finally {
+      _roomsFetchInFlight = false;
       if (mounted) {
         _setStateForRoomManager(() => _loadingRoom = false);
       }
       _processPendingNotificationIntent();
     }
+  }
+
+  /// Fields owned by `_fetchRoomPetSummaries`.
+  static const List<String> _petSummaryRoomFields = <String>[
+    'pet_type',
+    'pet_health',
+    'pet_name',
+    'pet_level',
+    'pet_id',
+  ];
+
+  /// Fields owned by `_fetchRoomLatestFeeds`.
+  static const List<String> _latestFeedRoomFields = <String>[
+    'latest_photo',
+    'latest_photos',
+    'latest_photo_captions',
+    'latest_photo_sender_ids',
+    'latest_photo_message_ids',
+    'latest_photo_created_ats',
+    'latest_caption',
+    'latest_sender_id',
+  ];
+
+  /// Copies the last known value of [fields] onto a freshly built room map.
+  /// Used when the query that owns those fields failed: the room row is rebuilt
+  /// from scratch on every fetch, so leaving them unset would drop a health bar
+  /// or a latest photo that is still perfectly valid.
+  void _carryOverRoomFields(
+    Map<String, dynamic> room,
+    Map<String, dynamic> previousRoom,
+    List<String> fields,
+  ) {
+    for (final field in fields) {
+      final value = previousRoom[field];
+      if (value != null) {
+        room[field] = value;
+      }
+    }
+  }
+
+  void _logRoomsDiagnostic(String stage, String detail) {
+    // Deliberately loud: the previous `catch (_) {}` made a blank room list
+    // indistinguishable from "this account has no rooms".
+    debugPrint('[home_rooms] $stage: $detail');
+    unawaited(
+      CrashReportingService.instance.setContext(
+        feature: 'home_view',
+        lastAction: 'rooms_$stage',
+      ),
+    );
+  }
+
+  /// Records a failed room fetch and schedules a bounded retry. Home bootstrap
+  /// runs once per mount, so without this a single failure leaves the room
+  /// selection empty until the user signs out and back in.
+  void _noteRoomsFetchFailed(String reason) {
+    _logRoomsDiagnostic('fetch_failed', reason);
+    if (_roomsLoadedFromNetwork || !mounted) {
+      return;
+    }
+    if (_roomsRetryAttempt >= _HomeViewState._roomsMaxRetryAttempts) {
+      _logRoomsDiagnostic('retry_exhausted', 'attempts=$_roomsRetryAttempt');
+      return;
+    }
+    _roomsRetryAttempt += 1;
+    final delay = Duration(milliseconds: 400 * (1 << (_roomsRetryAttempt - 1)));
+    _roomsRetryTimer?.cancel();
+    _roomsRetryTimer = Timer(delay, () {
+      if (!mounted || _roomsLoadedFromNetwork) {
+        return;
+      }
+      unawaited(_fetchRooms());
+    });
+  }
+
+  /// Re-runs the room fetch once a session is available. Covers the OAuth
+  /// deep-link handoff, where Home can mount before the client has the session
+  /// and the original bootstrap fetch bails with no user id.
+  Future<void> _recoverRoomsIfNeeded(String source) async {
+    if (!mounted || _roomsLoadedFromNetwork || _roomsFetchInFlight) {
+      return;
+    }
+    // The auth stream replays `initialSession` during `initState`, before the
+    // post-frame callback starts bootstrap. Recovering there would pre-empt
+    // `_restoreHomeBootstrapCache` and cost the warm start its instant paint.
+    if (!_roomsBootstrapAttempted) {
+      return;
+    }
+    if (Supabase.instance.client.auth.currentUser?.id == null) {
+      return;
+    }
+    _logRoomsDiagnostic('recover', source);
+    _roomsRetryAttempt = 0;
+    _roomsRetryTimer?.cancel();
+    _roomsRetryTimer = null;
+    await _fetchRooms();
   }
 
   int _memberCountForRoom(String roomId) {
@@ -279,7 +439,6 @@ extension _HomeRoomManager on _HomeViewState {
     );
     _feedingAnimationToken++;
     final roomEntryToken = showEntryLoading ? ++_roomEntryLoadingToken : -1;
-    final roomEntryStartedAt = DateTime.now();
     final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
       (room) => room?['id'] == roomId,
       orElse: () => null,
@@ -341,6 +500,7 @@ extension _HomeRoomManager on _HomeViewState {
       _petExp = null;
       _petType = nextPetType;
       _roomEntryLoading = showEntryLoading && !warmEntry;
+      _roomEntryOverlayVisible = false;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
       _photoFoodImageSource = null;
@@ -388,11 +548,9 @@ extension _HomeRoomManager on _HomeViewState {
       ),
     );
     if (showEntryLoading && !warmEntry) {
+      _scheduleRoomEntryOverlayReveal(roomEntryToken);
       unawaited(
-        _loadRoomEntryCore(
-          roomEntryToken: roomEntryToken,
-          roomEntryStartedAt: roomEntryStartedAt,
-        ),
+        _loadRoomEntryCore(roomEntryToken: roomEntryToken),
       );
     } else {
       // Cold non-loading switches and warm entries both just refresh in the
@@ -422,18 +580,41 @@ extension _HomeRoomManager on _HomeViewState {
     _syncCrashContextFromHome(lastAction: 'switch_room_ready');
   }
 
-  Future<void> _loadRoomEntryCore({
-    required int roomEntryToken,
-    required DateTime roomEntryStartedAt,
-  }) async {
+  /// Reveals the full-screen entry overlay only if the entry is still running
+  /// after [_HomeViewState._roomEntryOverlayRevealDelay]. A fast entry finishes
+  /// first and never blanks the room.
+  void _scheduleRoomEntryOverlayReveal(int roomEntryToken) {
+    _roomEntryOverlayRevealTimer?.cancel();
+    _roomEntryOverlayRevealTimer = Timer(
+      _HomeViewState._roomEntryOverlayRevealDelay,
+      () {
+        if (!mounted ||
+            _roomEntryLoadingToken != roomEntryToken ||
+            !_roomEntryLoading) {
+          return;
+        }
+        _roomEntryOverlayShownAt = DateTime.now();
+        _setStateForRoomManager(() => _roomEntryOverlayVisible = true);
+      },
+    );
+  }
+
+  Future<void> _loadRoomEntryCore({required int roomEntryToken}) async {
     var canCompleteEntry = true;
     try {
       await _refreshPetState(tick: true);
     } finally {
-      final elapsed = DateTime.now().difference(roomEntryStartedAt);
-      final minimum = _HomeViewState._roomEntryLoadingMinDuration;
-      if (elapsed < minimum) {
-        await Future<void>.delayed(minimum - elapsed);
+      _roomEntryOverlayRevealTimer?.cancel();
+      _roomEntryOverlayRevealTimer = null;
+      // Only an overlay the user actually saw needs to be held; padding an
+      // entry that never revealed one just makes a fast room slower.
+      final shownAt = _roomEntryOverlayVisible ? _roomEntryOverlayShownAt : null;
+      if (shownAt != null) {
+        final elapsed = DateTime.now().difference(shownAt);
+        final minimum = _HomeViewState._roomEntryLoadingMinDuration;
+        if (elapsed < minimum) {
+          await Future<void>.delayed(minimum - elapsed);
+        }
       }
       if (!mounted || _roomEntryLoadingToken != roomEntryToken) {
         canCompleteEntry = false;
@@ -441,6 +622,8 @@ extension _HomeRoomManager on _HomeViewState {
       if (canCompleteEntry) {
         _setStateForRoomManager(() {
           _roomEntryLoading = false;
+          _roomEntryOverlayVisible = false;
+          _roomEntryOverlayShownAt = null;
           _roomEntryFadeVersion++;
         });
       }

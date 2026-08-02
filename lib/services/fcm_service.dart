@@ -436,9 +436,48 @@ class FCMService {
     }
 
     try {
+      // Registering through the RPC rather than upserting the table directly:
+      // `on conflict (token)` becomes an UPDATE, and the update policy checks
+      // the *existing* row, so a device that previously belonged to another
+      // account could never be reclaimed (42501). The SECURITY DEFINER function
+      // reassigns it without loosening the table policies.
+      await _supabase.rpc(
+        'register_device_token',
+        params: {
+          'p_token': token,
+          'p_platform': _platformLabel(),
+          'p_device_locale': _systemLocaleTag(),
+        },
+      );
+    } on PostgrestException catch (error, stack) {
+      if (_isMissingFunctionError(error)) {
+        // The RPC ships with a migration; if a build reaches a backend that
+        // predates it, fall back to the legacy path rather than losing push
+        // registration entirely. Still broken for account switches, which is
+        // exactly what the old build did anyway.
+        await _saveTokenViaLegacyUpsert(user.id, token);
+        return;
+      }
+      debugPrint('FCM token sync failed: $error');
+      debugPrintStack(stackTrace: stack);
+      _scheduleRetry();
+    } catch (error, stack) {
+      debugPrint('FCM token sync failed: $error');
+      debugPrintStack(stackTrace: stack);
+      _scheduleRetry();
+    }
+  }
+
+  bool _isMissingFunctionError(PostgrestException error) {
+    // PostgREST reports an unknown RPC as PGRST202; Postgres itself uses 42883.
+    return error.code == 'PGRST202' || error.code == '42883';
+  }
+
+  Future<void> _saveTokenViaLegacyUpsert(String userId, String token) async {
+    try {
       final now = DateTime.now().toUtc().toIso8601String();
       await _supabase.from('device_tokens').upsert({
-        'user_id': user.id,
+        'user_id': userId,
         'token': token,
         'platform': _platformLabel(),
         'device_locale': _systemLocaleTag(),
@@ -446,7 +485,7 @@ class FCMService {
         'updated_at': now,
       }, onConflict: 'token');
     } catch (error, stack) {
-      debugPrint('FCM token sync failed: $error');
+      debugPrint('FCM token sync failed (legacy upsert): $error');
       debugPrintStack(stackTrace: stack);
       _scheduleRetry();
     }

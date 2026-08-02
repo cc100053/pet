@@ -436,10 +436,76 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       removeRealtimeChannelSafely(channel);
 
   Future<void> _initialize() async {
-    await _loadBlockedUsers();
-    await _loadMentionCandidates();
+    // Entry order matters for perceived speed: the Hive message cache can paint
+    // in ~0ms, so nothing that needs the network may run ahead of it. The block
+    // list is the one exception — it filters which messages are visible (see
+    // `_isMessageVisible`), so hydrate it from disk first, then refresh it (and
+    // the mention directory, which depends on it) alongside the message fetch.
+    await _hydrateCachedBlockedUsers();
+    await _hydrateCachedMentionCandidates();
+    final paintedWithBlockedUserIds = Set<String>.of(_blockedUserIds);
+    final directory = _loadBlockedUsers().then((_) => _loadMentionCandidates());
     await _loadCachedMessages();
-    await _loadInitial();
+    await Future.wait<void>([_loadInitial(), directory]);
+    await _reconcileVisibilityForBlockListDrift(paintedWithBlockedUserIds);
+  }
+
+  /// Reconciles the message window against the authoritative block list once
+  /// both it and the first message load have settled.
+  ///
+  /// Blocking is applied when a message *enters* the window (`_isVisibleMessage`
+  /// in `_toAscendingMessages`/`_fetchMessagePage`), not when it is painted, so
+  /// anything that loaded while the network fetch was still in flight was
+  /// filtered against the disk-hydrated set. Without this, a first entry with no
+  /// cache — or a block made on another device — leaves the blocked sender
+  /// visible for the rest of the room session.
+  Future<void> _reconcileVisibilityForBlockListDrift(
+    Set<String> paintedWith,
+  ) async {
+    if (!mounted ||
+        (paintedWith.length == _blockedUserIds.length &&
+            paintedWith.containsAll(_blockedUserIds))) {
+      return;
+    }
+    // Messages hidden under a block that is no longer in force were never
+    // loaded, so only the server can bring them back.
+    if (paintedWith.difference(_blockedUserIds).isNotEmpty) {
+      await _refreshLatest(resetWindow: true);
+      if (!mounted) {
+        return;
+      }
+    }
+    final toRemove = _messages
+        .where((message) {
+          final senderId = message.senderId;
+          return senderId != null && _blockedUserIds.contains(senderId);
+        })
+        .map((message) => message.id)
+        .toList(growable: false);
+    for (final messageId in toRemove) {
+      await _removeMessageById(messageId, animated: false);
+    }
+  }
+
+  Future<void> _hydrateCachedBlockedUsers() async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    try {
+      final cached = await _repository.loadCachedBlockedUserIds(userId);
+      if (cached.isEmpty) {
+        return;
+      }
+      _blockedUserIds
+        ..clear()
+        ..addAll(cached);
+    } catch (_) {
+      // Best effort; `_loadBlockedUsers` still fetches the authoritative list.
+    }
   }
 
   Future<void> _fetchMemberCount() async {
@@ -462,17 +528,21 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   Future<void> _loadBlockedUsers() async {
-    _blockedUserIds.clear();
-
+    // Build into a local set and swap it in only once the fetch succeeds: this
+    // now runs concurrently with the first paint, so clearing up front would
+    // drop the disk-hydrated list and briefly un-hide blocked senders.
     try {
+      final fetched = <String>{};
       final runtimeLoader = _runtime?.loadBlockedUserIds;
       if (runtimeLoader != null) {
-        _blockedUserIds.addAll(await runtimeLoader(widget.roomId));
+        fetched.addAll(await runtimeLoader(widget.roomId));
       } else if (_runtime != null) {
+        _blockedUserIds.clear();
         return;
       } else {
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId == null) {
+          _blockedUserIds.clear();
           return;
         }
         final response = await Supabase.instance.client
@@ -483,10 +553,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         for (final row in rows) {
           final blockedId = row['blocked_user_id'] as String?;
           if (blockedId != null && blockedId.isNotEmpty) {
-            _blockedUserIds.add(blockedId);
+            fetched.add(blockedId);
           }
         }
       }
+      _blockedUserIds
+        ..clear()
+        ..addAll(fetched);
+      unawaited(_persistBlockedUserIds());
     } catch (error) {
       if (!mounted) {
         return;
@@ -496,6 +570,41 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
           context,
         )!.chatLoadBlockedUsersFailed(userFacingError(context, error));
       });
+    }
+  }
+
+  Future<void> _hydrateCachedMentionCandidates() async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    try {
+      final cached = await _repository.loadCachedMentionCandidates(
+        widget.roomId,
+      );
+      if (cached.isEmpty) {
+        return;
+      }
+      _mentionCandidates
+        ..clear()
+        ..addAll(cached.where(_isMentionCandidateVisible));
+      invalidateChatMentionCache();
+    } catch (_) {
+      // Best effort; `_loadMentionCandidates` refreshes from the network.
+    }
+  }
+
+  Future<void> _persistBlockedUserIds() async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    try {
+      await _repository.cacheBlockedUserIds(userId, _blockedUserIds);
+    } catch (_) {
+      // Best effort; the next room entry re-fetches from the network anyway.
     }
   }
 
@@ -515,8 +624,24 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       // re-resolve mentions against the new members.
       invalidateChatMentionCache();
       _updateMentionSuggestions(setStateIfChanged: true);
+      // Persist the unfiltered roster: blocking is applied on read, so a block
+      // that is later lifted must not have pruned the cache permanently.
+      unawaited(_persistMentionCandidates(candidates));
     } catch (_) {
       // Mention autocomplete is best-effort; the composer remains usable.
+    }
+  }
+
+  Future<void> _persistMentionCandidates(
+    List<ChatMentionCandidate> candidates,
+  ) async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    try {
+      await _repository.cacheMentionCandidates(widget.roomId, candidates);
+    } catch (_) {
+      // Best effort; the next room entry re-fetches from the network anyway.
     }
   }
 

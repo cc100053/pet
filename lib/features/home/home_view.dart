@@ -166,6 +166,21 @@ class _HomeViewState extends ConsumerState<HomeView>
   // Logic State
   bool _profileEnsured = false;
   bool _homeBootstrapCompleted = false;
+  // Whether the room list has been fetched from the server at least once this
+  // session. A silent `_fetchRooms` failure used to leave an empty list that
+  // nothing retried and that `_cacheHomeBootstrapSnapshot` then persisted,
+  // turning one transient failure into a permanently blank room selection.
+  bool _roomsLoadedFromNetwork = false;
+  bool _roomsFetchInFlight = false;
+  // Recovery must not run before bootstrap has had its turn: the auth stream
+  // replays `initialSession` during `initState`, well before the post-frame
+  // callback starts `_bootstrapHome`, and fetching there would pre-empt the
+  // cache restore that makes a warm start paint instantly.
+  bool _roomsBootstrapAttempted = false;
+  int _roomsRetryAttempt = 0;
+  Timer? _roomsRetryTimer;
+  StreamSubscription<AuthState>? _homeAuthSubscription;
+  static const int _roomsMaxRetryAttempts = 4;
   bool _creatingRoom = false;
   bool _joiningRoom = false;
   bool _leavingRoom = false;
@@ -274,6 +289,17 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const int _freePlanRoomLimit = 2;
   static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
+  /// How long a cold room entry may run before the full-screen entry overlay
+  /// takes over. Under this, the room scaffold itself is a better placeholder —
+  /// it paints the real background and shows a small spinner in the pet's place
+  /// (`_buildPetLoadingPlaceholder`) instead of blanking the screen.
+  static const Duration _roomEntryOverlayRevealDelay = Duration(
+    milliseconds: 120,
+  );
+
+  /// Minimum time the entry overlay stays up *once revealed*, so it cannot
+  /// flash. Measured from the reveal, not from the start of the entry — an
+  /// entry that never revealed the overlay is never padded.
   static const Duration _roomEntryLoadingMinDuration = Duration(
     milliseconds: 150,
   );
@@ -281,6 +307,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _onlineProbeThrottle = Duration(seconds: 10);
   bool _inviteCodeLoading = false;
   bool _roomEntryLoading = false;
+  bool _roomEntryOverlayVisible = false;
+  DateTime? _roomEntryOverlayShownAt;
+  Timer? _roomEntryOverlayRevealTimer;
   bool _latestFeedRefreshInFlight = false;
   String? _latestFeedRefreshingRoomId;
   int _latestFeedRefreshToken = 0;
@@ -333,6 +362,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _backgroundApplyingItemId;
   final Map<String, List<ShopItem>> _ownedBackgroundsByRoom = {};
   final Map<String, String?> _activeBackgroundByRoom = {};
+  // Last resolved background key per room, persisted with the bootstrap
+  // snapshot. Painting the real background needs both `room_background_state`
+  // and the owned-background list, and the latter is deliberately deferred past
+  // first paint — without this the room would flash the default background on
+  // every cold entry.
+  final Map<String, String> _cachedBackgroundKeyByRoom = {};
   RealtimeChannel? _backgroundStateChannel;
   RealtimeChannel? _backgroundInventoryChannel;
   RealtimeChannel? _roomInventoryRevisionChannel;
@@ -437,6 +472,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_processPendingInviteLink());
     });
     _pendingNotificationIntent ??= _fcmService.takePendingNotificationIntent();
+    // Home can mount during the OAuth deep-link handoff, before the client has
+    // the session. Bootstrap is once-only, so the arriving session is the only
+    // signal that the initial room fetch needs redoing.
+    _homeAuthSubscription = Supabase.instance.client.auth.onAuthStateChange
+        .listen((data) {
+          if (data.session == null) {
+            return;
+          }
+          unawaited(_recoverRoomsIfNeeded('auth_state_change'));
+        });
     unawaited(_ensureCurrentAppVersion());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -540,6 +585,9 @@ class _HomeViewState extends ConsumerState<HomeView>
       runtime.disposeTimers();
     }
     _roomSelectionRefreshTimer?.cancel();
+    _roomEntryOverlayRevealTimer?.cancel();
+    _roomsRetryTimer?.cancel();
+    _homeAuthSubscription?.cancel();
     _homeBootstrapCachePersistTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
@@ -562,6 +610,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
     unawaited(_feedUploadQueue.resumePendingJobs());
+    // Last line of defence: returning to a blank room list is always a bug.
+    unawaited(_recoverRoomsIfNeeded('app_resume'));
     _replayUnacknowledgedFeedUploadEvents();
     unawaited(_fcmService.refreshTokenSync());
     unawaited(_reconcileUnreadStateFromServer());
@@ -708,9 +758,28 @@ class _HomeViewState extends ConsumerState<HomeView>
     // Rooms are the slow part and don't depend on the profile/coins reads, so
     // fetch them concurrently instead of after them.
     final roomsFuture = _fetchRooms();
-    await _ensureProfile();
-    await _loadCoins();
-    await roomsFuture;
+    // `_ensureProfile` *inserts* the profile row when it is missing, and
+    // `_loadCoins` reads it — so on a first launch they must stay serial or the
+    // coins read can miss the row and leave nickname/avatar blank. A restored
+    // nickname proves the row already exists, which is the common case; there
+    // the two reads are independent and can share one round-trip window.
+    final profileFuture = _ensureProfile();
+    try {
+      if (_myNickname == null) {
+        await profileFuture;
+        await _loadCoins();
+      } else {
+        await Future.wait<void>([profileFuture, _loadCoins()]);
+      }
+      await roomsFuture;
+    } finally {
+      // Bootstrap has now had its attempt at the room list; from here on an
+      // arriving session or an app resume is allowed to retry it. This has to
+      // hold even if a read above throws: leaving the flag false would disable
+      // both recovery paths for the rest of this mount, which is exactly the
+      // blank-room-list failure they exist to undo.
+      _roomsBootstrapAttempted = true;
+    }
     // `_fetchRooms` now projects decay client-side, so the health bars are
     // already accurate without an extra per-pet `tick_pet_state` round-trip.
     _homeBootstrapCompleted = true;
@@ -840,6 +909,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         snapshot['pet_states'],
         savedAt: parseOptionalDate(snapshot['saved_at'])?.toUtc(),
       );
+      _restoreCachedBackgroundKeys(snapshot['background_keys']);
       _syncOnboardingProfileDraftFromCurrentData();
       _syncCurrencyProvider();
       _syncRoomProviders();
@@ -847,6 +917,29 @@ class _HomeViewState extends ConsumerState<HomeView>
       _evaluateBasicOnboardingAgainstCurrentData();
     } catch (_) {
       // Best effort. If cache read fails we continue with network bootstrap.
+    }
+  }
+
+  /// Rehydrates the last resolved background key per room so a cold entry can
+  /// paint the real background immediately. Snapshots written before this field
+  /// existed simply have no `background_keys` entry and fall back to the
+  /// previous behaviour (default background until the loaders return).
+  void _restoreCachedBackgroundKeys(dynamic raw) {
+    if (raw is! Map) {
+      return;
+    }
+    for (final entry in raw.entries) {
+      final roomId = entry.key;
+      final backgroundKey = entry.value;
+      if (roomId is! String || backgroundKey is! String) {
+        continue;
+      }
+      // A key from a newer build (or a since-removed background) must not be
+      // resurrected as the default — drop anything this build cannot render.
+      if (backgroundKey.isEmpty || !RoomBackgrounds.supportsKey(backgroundKey)) {
+        continue;
+      }
+      _cachedBackgroundKeyByRoom[roomId] = backgroundKey;
     }
   }
 
@@ -896,6 +989,13 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (userId == null) {
       return;
     }
+    // Never persist a room list we have not actually fetched. `_loadCoins`
+    // reaches this before `_fetchRooms` finishes, so without this guard a
+    // failed fetch cached an empty list and the blank room selection survived
+    // restarts — turning a transient failure into a permanent one.
+    if (!_roomsLoadedFromNetwork) {
+      return;
+    }
     // Persist last-known per-room pet state so the first entry of a previously
     // visited room is "warm" (instant paint) even after an app relaunch, not
     // just within the same session. Scoped to current rooms to bound size.
@@ -905,6 +1005,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         .toSet();
     final petStates = <String, dynamic>{
       for (final entry in _petStateByRoom.entries)
+        if (roomIds.contains(entry.key)) entry.key: entry.value,
+    };
+    final backgroundKeys = <String, dynamic>{
+      for (final entry in _cachedBackgroundKeyByRoom.entries)
         if (roomIds.contains(entry.key)) entry.key: entry.value,
     };
     await HomeBootstrapCacheRepository.instance.saveForUser(
@@ -918,6 +1022,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         'room_id': _roomId,
         'room_selection_id': _roomSelectionId,
         'pet_states': petStates,
+        'background_keys': backgroundKeys,
       },
     );
   }
@@ -3057,7 +3162,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         child: const HomeLoadingView(),
       );
     }
-    if (_roomEntryLoading && !_showRoomSelection && selectedRoomId != null) {
+    if (_roomEntryOverlayVisible &&
+        _roomEntryLoading &&
+        !_showRoomSelection &&
+        selectedRoomId != null) {
       final l10n = AppLocalizations.of(context)!;
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,

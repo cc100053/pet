@@ -470,6 +470,76 @@ void main() {
     expect(repository.lastPersistedMessages.last.id, 'm40');
   });
 
+  testWidgets('room open paints history without waiting on the block list', (
+    tester,
+  ) async {
+    // The block list decides which messages are visible, so it used to be
+    // awaited before any message could paint — two network round-trips ahead of
+    // a local cache read. It must now resolve alongside the first paint.
+    final blockedGate = Completer<Set<String>>();
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: List<ChatMessage>.generate(
+        3,
+        (index) => message(3 - index),
+      ),
+      canonicalMessages: List<ChatMessage>.generate(
+        3,
+        (index) => message(index + 1),
+      ),
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+      loadBlockedUserIds: (_) => blockedGate.future,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    expect(blockedGate.isCompleted, isFalse);
+    expect(find.text('message 3'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    blockedGate.complete(<String>{});
+    await tester.pumpAndSettle();
+
+    expect(find.text('message 3'), findsOneWidget);
+  });
+
+  testWidgets('a late block list still hides messages that already painted', (
+    tester,
+  ) async {
+    // Blocking is applied when a message enters the window, not when it is
+    // painted, so history loaded ahead of the block list was filtered against
+    // the stale set. Without a reconcile pass the blocked sender stays visible
+    // for the rest of the room session — a first entry with no cache, or a
+    // block made on another device, hits this every time.
+    final blockedGate = Completer<Set<String>>();
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: List<ChatMessage>.generate(3, (index) => message(3 - index)),
+      canonicalMessages: List<ChatMessage>.generate(
+        3,
+        (index) => message(index + 1),
+      ),
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+      loadBlockedUserIds: (_) => blockedGate.future,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    expect(find.text('message 3'), findsOneWidget);
+
+    // Every fixture message is from 'other'.
+    blockedGate.complete(<String>{'other'});
+    await tester.pumpAndSettle();
+
+    expect(find.text('message 3'), findsNothing);
+    expect(find.text('message 2'), findsNothing);
+    expect(find.text('message 1'), findsNothing);
+  });
+
   testWidgets(
     'room open keeps newest message fully visible after delayed reply preview expands it',
     (tester) async {
