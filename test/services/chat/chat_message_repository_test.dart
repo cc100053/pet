@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pet/features/chat/chat_mentions.dart';
 import 'package:pet/features/chat/chat_message.dart';
 import 'package:pet/services/chat/chat_message_repository.dart';
 
@@ -144,4 +145,35 @@ void main() {
       expect(details.last.emoji, '👍');
     },
   );
+
+  test('blocked user ids round-trip and stay scoped to the blocker', () async {
+    final repository = ChatMessageRepository(box: box);
+
+    await repository.cacheBlockedUserIds('me', <String>{'a', 'b'});
+
+    expect(await repository.loadCachedBlockedUserIds('me'), {'a', 'b'});
+    // A different account on the same device must not inherit the list.
+    expect(await repository.loadCachedBlockedUserIds('someone-else'), isEmpty);
+    // The reserved key must not leak into the per-room message cache.
+    expect(await repository.loadCachedMessages('room-1'), isEmpty);
+  });
+
+  test('mention candidates round-trip per room', () async {
+    final repository = ChatMessageRepository(box: box);
+
+    await repository.cacheMentionCandidates('room-1', const [
+      ChatMentionCandidate(
+        userId: 'alice',
+        displayName: 'Alice',
+        avatarUrl: 'https://example.test/a.png',
+      ),
+      ChatMentionCandidate(userId: 'bob', displayName: 'Bob'),
+    ]);
+
+    final cached = await repository.loadCachedMentionCandidates('room-1');
+    expect(cached.map((candidate) => candidate.userId), ['alice', 'bob']);
+    expect(cached.first.avatarUrl, 'https://example.test/a.png');
+    expect(cached.last.avatarUrl, isNull);
+    expect(await repository.loadCachedMentionCandidates('room-2'), isEmpty);
+  });
 }

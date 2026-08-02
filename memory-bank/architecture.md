@@ -37,9 +37,18 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - Feed uploads are queue-owned. `feed_validate` returns authoritative satiety,
   while Home applies it through a `last_decay_at` freshness guard and Chat
   reconciles optimistic rows locally.
-- Chat room entry paints the Hive message cache first; the block list is
-  hydrated from disk before it (it filters visible messages) and the
-  block/mention refresh runs concurrently with the message fetch.
+- Chat room entry paints the Hive message cache first. Blocked ids (they filter
+  visible messages) and mention candidates (they highlight mentions in rendered
+  bubbles, so they cannot be deferred to the first `@`) hydrate from Hive ahead
+  of it; both refresh concurrently with the message fetch.
+- Home persists the last resolved background key per room. Painting the real
+  background needs `room_background_state` plus the owned-background list, and
+  the latter is deferred past first paint; unsupported keys are dropped on
+  restore. `_currentBackgroundDefinition` distinguishes "not loaded" from
+  "explicitly none" by key presence.
+- The room-entry overlay is revealed on a delay and only then held to a
+  minimum; a fast cold entry shows the room scaffold with a pet-sized spinner
+  instead of blanking the screen.
 - Room selection/Home share cached status snapshots, revalidate through
   `get_effective_room_pet_statuses(...)`, and debounce persistence.
 - Retryable network/auth failures stay non-fatal; only genuine fatal errors

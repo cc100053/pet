@@ -442,6 +442,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     // `_isMessageVisible`), so hydrate it from disk first, then refresh it (and
     // the mention directory, which depends on it) alongside the message fetch.
     await _hydrateCachedBlockedUsers();
+    await _hydrateCachedMentionCandidates();
     final directory = _loadBlockedUsers().then((_) => _loadMentionCandidates());
     await _loadCachedMessages();
     await Future.wait<void>([_loadInitial(), directory]);
@@ -533,6 +534,26 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
   }
 
+  Future<void> _hydrateCachedMentionCandidates() async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    try {
+      final cached = await _repository.loadCachedMentionCandidates(
+        widget.roomId,
+      );
+      if (cached.isEmpty) {
+        return;
+      }
+      _mentionCandidates
+        ..clear()
+        ..addAll(cached.where(_isMentionCandidateVisible));
+      invalidateChatMentionCache();
+    } catch (_) {
+      // Best effort; `_loadMentionCandidates` refreshes from the network.
+    }
+  }
+
   Future<void> _persistBlockedUserIds() async {
     if (_runtime != null || !_repository.isReady) {
       return;
@@ -564,8 +585,24 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       // re-resolve mentions against the new members.
       invalidateChatMentionCache();
       _updateMentionSuggestions(setStateIfChanged: true);
+      // Persist the unfiltered roster: blocking is applied on read, so a block
+      // that is later lifted must not have pruned the cache permanently.
+      unawaited(_persistMentionCandidates(candidates));
     } catch (_) {
       // Mention autocomplete is best-effort; the composer remains usable.
+    }
+  }
+
+  Future<void> _persistMentionCandidates(
+    List<ChatMentionCandidate> candidates,
+  ) async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    try {
+      await _repository.cacheMentionCandidates(widget.roomId, candidates);
+    } catch (_) {
+      // Best effort; the next room entry re-fetches from the network anyway.
     }
   }
 

@@ -447,6 +447,7 @@ extension _HomeRoomDecor on _HomeViewState {
         _ownedBackgroundsByRoom[roomId] = items;
         _unsupportedBackgroundItemIdsByRoom[roomId] = unsupportedIds;
       });
+      _syncCachedBackgroundKey(roomId);
       unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
     } catch (error) {
       if (!mounted) {
@@ -481,6 +482,7 @@ extension _HomeRoomDecor on _HomeViewState {
       _setStateForRoomDecor(() {
         _activeBackgroundByRoom[roomId] = activeItemId;
       });
+      _syncCachedBackgroundKey(roomId);
       unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
     } catch (error) {
       if (!mounted) {
@@ -590,6 +592,7 @@ extension _HomeRoomDecor on _HomeViewState {
         'updated_at': DateTime.now().toIso8601String(),
       });
       _activeBackgroundByRoom[roomId] = itemId;
+      _syncCachedBackgroundKey(roomId);
     } finally {
       if (mounted) {
         _setStateForRoomDecor(() => _backgroundApplyingItemId = null);
@@ -604,13 +607,19 @@ extension _HomeRoomDecor on _HomeViewState {
     if (roomId == null) {
       return RoomBackgrounds.resolve(null);
     }
+    // Falls back to the persisted key whenever the live inputs are not both
+    // loaded yet. A room whose state *is* loaded and has no active background
+    // must still resolve to the default, so absence and "explicitly none" are
+    // distinguished by key presence rather than by a null value.
     final activeItemId = _activeBackgroundByRoom[roomId];
     if (activeItemId == null) {
-      return RoomBackgrounds.resolve(null);
+      return _activeBackgroundByRoom.containsKey(roomId)
+          ? RoomBackgrounds.resolve(null)
+          : RoomBackgrounds.resolve(_cachedBackgroundKeyByRoom[roomId]);
     }
     final items = _ownedBackgroundsByRoom[roomId];
     if (items == null) {
-      return RoomBackgrounds.resolve(null);
+      return RoomBackgrounds.resolve(_cachedBackgroundKeyByRoom[roomId]);
     }
     ShopItem? activeItem;
     for (final item in items) {
@@ -619,7 +628,46 @@ extension _HomeRoomDecor on _HomeViewState {
         break;
       }
     }
-    return RoomBackgrounds.resolve(activeItem?.backgroundKey);
+    if (activeItem == null) {
+      return RoomBackgrounds.resolve(_cachedBackgroundKeyByRoom[roomId]);
+    }
+    return RoomBackgrounds.resolve(activeItem.backgroundKey);
+  }
+
+  /// Recomputes the persisted background key for [roomId] once both the active
+  /// item id and the owned-background list are known. Called from the loaders
+  /// and the apply path rather than from `_currentBackgroundDefinition`, which
+  /// runs inside `build`.
+  void _syncCachedBackgroundKey(String roomId) {
+    if (!_activeBackgroundByRoom.containsKey(roomId)) {
+      return;
+    }
+    final activeItemId = _activeBackgroundByRoom[roomId];
+    if (activeItemId == null) {
+      if (_cachedBackgroundKeyByRoom.remove(roomId) != null) {
+        _scheduleHomeBootstrapCachePersist();
+      }
+      return;
+    }
+    final items = _ownedBackgroundsByRoom[roomId];
+    if (items == null) {
+      return;
+    }
+    String? backgroundKey;
+    for (final item in items) {
+      if (item.id == activeItemId) {
+        backgroundKey = item.backgroundKey;
+        break;
+      }
+    }
+    if (backgroundKey == null || backgroundKey.isEmpty) {
+      return;
+    }
+    if (_cachedBackgroundKeyByRoom[roomId] == backgroundKey) {
+      return;
+    }
+    _cachedBackgroundKeyByRoom[roomId] = backgroundKey;
+    _scheduleHomeBootstrapCachePersist();
   }
 
   Future<void> _maybePromptForUnsupportedRoomDecor(String roomId) async {
@@ -705,7 +753,7 @@ extension _HomeRoomDecor on _HomeViewState {
 
   SystemUiOverlayStyle _currentOverlayStyle() {
     // Room selection and loading screens use light background themes.
-    if (_showRoomSelection || _loadingRoom || _roomEntryLoading) {
+    if (_showRoomSelection || _loadingRoom || _roomEntryOverlayVisible) {
       return AppStatusBarStyles.light;
     }
     final isDark = _currentBackgroundDefinition().isDark;

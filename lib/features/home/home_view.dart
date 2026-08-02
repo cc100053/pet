@@ -274,6 +274,17 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const int _freePlanRoomLimit = 2;
   static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
+  /// How long a cold room entry may run before the full-screen entry overlay
+  /// takes over. Under this, the room scaffold itself is a better placeholder —
+  /// it paints the real background and shows a small spinner in the pet's place
+  /// (`_buildPetLoadingPlaceholder`) instead of blanking the screen.
+  static const Duration _roomEntryOverlayRevealDelay = Duration(
+    milliseconds: 120,
+  );
+
+  /// Minimum time the entry overlay stays up *once revealed*, so it cannot
+  /// flash. Measured from the reveal, not from the start of the entry — an
+  /// entry that never revealed the overlay is never padded.
   static const Duration _roomEntryLoadingMinDuration = Duration(
     milliseconds: 150,
   );
@@ -281,6 +292,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _onlineProbeThrottle = Duration(seconds: 10);
   bool _inviteCodeLoading = false;
   bool _roomEntryLoading = false;
+  bool _roomEntryOverlayVisible = false;
+  DateTime? _roomEntryOverlayShownAt;
+  Timer? _roomEntryOverlayRevealTimer;
   bool _latestFeedRefreshInFlight = false;
   String? _latestFeedRefreshingRoomId;
   int _latestFeedRefreshToken = 0;
@@ -333,6 +347,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   String? _backgroundApplyingItemId;
   final Map<String, List<ShopItem>> _ownedBackgroundsByRoom = {};
   final Map<String, String?> _activeBackgroundByRoom = {};
+  // Last resolved background key per room, persisted with the bootstrap
+  // snapshot. Painting the real background needs both `room_background_state`
+  // and the owned-background list, and the latter is deliberately deferred past
+  // first paint — without this the room would flash the default background on
+  // every cold entry.
+  final Map<String, String> _cachedBackgroundKeyByRoom = {};
   RealtimeChannel? _backgroundStateChannel;
   RealtimeChannel? _backgroundInventoryChannel;
   RealtimeChannel? _roomInventoryRevisionChannel;
@@ -540,6 +560,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       runtime.disposeTimers();
     }
     _roomSelectionRefreshTimer?.cancel();
+    _roomEntryOverlayRevealTimer?.cancel();
     _homeBootstrapCachePersistTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
@@ -850,6 +871,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         snapshot['pet_states'],
         savedAt: parseOptionalDate(snapshot['saved_at'])?.toUtc(),
       );
+      _restoreCachedBackgroundKeys(snapshot['background_keys']);
       _syncOnboardingProfileDraftFromCurrentData();
       _syncCurrencyProvider();
       _syncRoomProviders();
@@ -857,6 +879,29 @@ class _HomeViewState extends ConsumerState<HomeView>
       _evaluateBasicOnboardingAgainstCurrentData();
     } catch (_) {
       // Best effort. If cache read fails we continue with network bootstrap.
+    }
+  }
+
+  /// Rehydrates the last resolved background key per room so a cold entry can
+  /// paint the real background immediately. Snapshots written before this field
+  /// existed simply have no `background_keys` entry and fall back to the
+  /// previous behaviour (default background until the loaders return).
+  void _restoreCachedBackgroundKeys(dynamic raw) {
+    if (raw is! Map) {
+      return;
+    }
+    for (final entry in raw.entries) {
+      final roomId = entry.key;
+      final backgroundKey = entry.value;
+      if (roomId is! String || backgroundKey is! String) {
+        continue;
+      }
+      // A key from a newer build (or a since-removed background) must not be
+      // resurrected as the default — drop anything this build cannot render.
+      if (backgroundKey.isEmpty || !RoomBackgrounds.supportsKey(backgroundKey)) {
+        continue;
+      }
+      _cachedBackgroundKeyByRoom[roomId] = backgroundKey;
     }
   }
 
@@ -917,6 +962,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       for (final entry in _petStateByRoom.entries)
         if (roomIds.contains(entry.key)) entry.key: entry.value,
     };
+    final backgroundKeys = <String, dynamic>{
+      for (final entry in _cachedBackgroundKeyByRoom.entries)
+        if (roomIds.contains(entry.key)) entry.key: entry.value,
+    };
     await HomeBootstrapCacheRepository.instance.saveForUser(
       userId: userId,
       snapshot: {
@@ -928,6 +977,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         'room_id': _roomId,
         'room_selection_id': _roomSelectionId,
         'pet_states': petStates,
+        'background_keys': backgroundKeys,
       },
     );
   }
@@ -3067,7 +3117,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         child: const HomeLoadingView(),
       );
     }
-    if (_roomEntryLoading && !_showRoomSelection && selectedRoomId != null) {
+    if (_roomEntryOverlayVisible &&
+        _roomEntryLoading &&
+        !_showRoomSelection &&
+        selectedRoomId != null) {
       final l10n = AppLocalizations.of(context)!;
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,

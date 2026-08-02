@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../features/chat/chat_mentions.dart';
 import '../../features/chat/chat_message.dart';
 
 typedef ChatReactionDetailsRowsLoader =
@@ -28,6 +29,7 @@ class ChatMessageRepository {
   /// Reserved key inside the message box. Room ids are UUIDs, so this cannot
   /// collide with a cached room entry.
   static const String _blockedUserIdsKey = '__blocked_user_ids__';
+  static const String _mentionCandidatesKeyPrefix = '__mention_candidates__:';
 
   final SupabaseClient? _client;
   Box<dynamic>? _box;
@@ -123,6 +125,64 @@ class ChatMessageRepository {
       'user_id': userId,
       'ids': blockedUserIds.toList(growable: false),
     });
+  }
+
+  /// Mention candidates cached per room.
+  ///
+  /// These are not just composer autocomplete — they also drive mention
+  /// highlighting inside rendered messages, so they cannot be deferred until
+  /// the user types `@`. Caching them instead keeps the `room_members` +
+  /// profile round-trip off the room-open path while still highlighting
+  /// correctly on a cold entry.
+  Future<List<ChatMentionCandidate>> loadCachedMentionCandidates(
+    String roomId,
+  ) async {
+    final box = _box;
+    if (box == null || roomId.isEmpty) {
+      return const <ChatMentionCandidate>[];
+    }
+    final raw = box.get('$_mentionCandidatesKeyPrefix$roomId');
+    if (raw is! List) {
+      return const <ChatMentionCandidate>[];
+    }
+    final candidates = <ChatMentionCandidate>[];
+    for (final entry in raw.whereType<Map>()) {
+      final userId = (entry['user_id'] as String? ?? '').trim();
+      final displayName = (entry['display_name'] as String? ?? '').trim();
+      if (userId.isEmpty || displayName.isEmpty) {
+        continue;
+      }
+      candidates.add(
+        ChatMentionCandidate(
+          userId: userId,
+          displayName: displayName,
+          avatarUrl: entry['avatar_url'] as String?,
+        ),
+      );
+    }
+    return candidates;
+  }
+
+  Future<void> cacheMentionCandidates(
+    String roomId,
+    List<ChatMentionCandidate> candidates,
+  ) async {
+    final box = _box;
+    if (box == null || roomId.isEmpty) {
+      return;
+    }
+    await box.put(
+      '$_mentionCandidatesKeyPrefix$roomId',
+      candidates
+          .map(
+            (candidate) => <String, dynamic>{
+              'user_id': candidate.userId,
+              'display_name': candidate.displayName,
+              'avatar_url': candidate.avatarUrl,
+            },
+          )
+          .toList(growable: false),
+    );
   }
 
   Future<List<ChatMessage>> fetchMessages({

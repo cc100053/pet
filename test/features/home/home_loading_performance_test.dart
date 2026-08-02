@@ -119,4 +119,52 @@ void main() {
       ),
     );
   });
+
+  test('Profile ensure and coins read share a round-trip for returning users', () {
+    // First launch must stay serial: _ensureProfile inserts the row _loadCoins
+    // reads, so parallelising it there can leave nickname/avatar blank.
+    expect(homeSource, contains('if (_myNickname == null) {'));
+    expect(
+      homeSource,
+      contains('await Future.wait<void>([profileFuture, _loadCoins()]);'),
+    );
+  });
+
+  test('Cold room entry paints the last known background', () {
+    // Resolving the real background needs both room_background_state and the
+    // owned-background list, and the latter is deferred past first paint.
+    expect(homeSource, contains("_restoreCachedBackgroundKeys(snapshot['background_keys'])"));
+    expect(homeSource, contains("'background_keys': backgroundKeys,"));
+    // Unknown/removed keys must not be resurrected as the default.
+    expect(homeSource, contains('RoomBackgrounds.supportsKey(backgroundKey)'));
+
+    final decorSource = File(
+      'lib/features/home/home_view_room_decor.dart',
+    ).readAsStringSync();
+    // "Not loaded yet" falls back to the cache; "explicitly none" must not.
+    expect(
+      decorSource,
+      contains('_activeBackgroundByRoom.containsKey(roomId)'),
+    );
+    expect(
+      decorSource,
+      contains('RoomBackgrounds.resolve(_cachedBackgroundKeyByRoom[roomId])'),
+    );
+  });
+
+  test('Entry overlay is revealed on a delay rather than held to a minimum', () {
+    // A fast cold entry should never blank the room; only an overlay the user
+    // actually saw is held long enough not to flash.
+    expect(homeSource, contains('_roomEntryOverlayRevealDelay'));
+    expect(
+      roomManagerSource,
+      contains('_scheduleRoomEntryOverlayReveal(roomEntryToken);'),
+    );
+    expect(
+      roomManagerSource,
+      contains('_roomEntryOverlayVisible ? _roomEntryOverlayShownAt : null'),
+    );
+    // The overlay gate must key off visibility, not the raw loading flag.
+    expect(homeSource, contains('if (_roomEntryOverlayVisible &&'));
+  });
 }

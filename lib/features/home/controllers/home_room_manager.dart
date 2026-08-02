@@ -279,7 +279,6 @@ extension _HomeRoomManager on _HomeViewState {
     );
     _feedingAnimationToken++;
     final roomEntryToken = showEntryLoading ? ++_roomEntryLoadingToken : -1;
-    final roomEntryStartedAt = DateTime.now();
     final roomSnapshot = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
       (room) => room?['id'] == roomId,
       orElse: () => null,
@@ -341,6 +340,7 @@ extension _HomeRoomManager on _HomeViewState {
       _petExp = null;
       _petType = nextPetType;
       _roomEntryLoading = showEntryLoading && !warmEntry;
+      _roomEntryOverlayVisible = false;
       _furnitureMode = false;
       _selectedFurnitureItemId = null;
       _photoFoodImageSource = null;
@@ -388,11 +388,9 @@ extension _HomeRoomManager on _HomeViewState {
       ),
     );
     if (showEntryLoading && !warmEntry) {
+      _scheduleRoomEntryOverlayReveal(roomEntryToken);
       unawaited(
-        _loadRoomEntryCore(
-          roomEntryToken: roomEntryToken,
-          roomEntryStartedAt: roomEntryStartedAt,
-        ),
+        _loadRoomEntryCore(roomEntryToken: roomEntryToken),
       );
     } else {
       // Cold non-loading switches and warm entries both just refresh in the
@@ -422,18 +420,41 @@ extension _HomeRoomManager on _HomeViewState {
     _syncCrashContextFromHome(lastAction: 'switch_room_ready');
   }
 
-  Future<void> _loadRoomEntryCore({
-    required int roomEntryToken,
-    required DateTime roomEntryStartedAt,
-  }) async {
+  /// Reveals the full-screen entry overlay only if the entry is still running
+  /// after [_HomeViewState._roomEntryOverlayRevealDelay]. A fast entry finishes
+  /// first and never blanks the room.
+  void _scheduleRoomEntryOverlayReveal(int roomEntryToken) {
+    _roomEntryOverlayRevealTimer?.cancel();
+    _roomEntryOverlayRevealTimer = Timer(
+      _HomeViewState._roomEntryOverlayRevealDelay,
+      () {
+        if (!mounted ||
+            _roomEntryLoadingToken != roomEntryToken ||
+            !_roomEntryLoading) {
+          return;
+        }
+        _roomEntryOverlayShownAt = DateTime.now();
+        _setStateForRoomManager(() => _roomEntryOverlayVisible = true);
+      },
+    );
+  }
+
+  Future<void> _loadRoomEntryCore({required int roomEntryToken}) async {
     var canCompleteEntry = true;
     try {
       await _refreshPetState(tick: true);
     } finally {
-      final elapsed = DateTime.now().difference(roomEntryStartedAt);
-      final minimum = _HomeViewState._roomEntryLoadingMinDuration;
-      if (elapsed < minimum) {
-        await Future<void>.delayed(minimum - elapsed);
+      _roomEntryOverlayRevealTimer?.cancel();
+      _roomEntryOverlayRevealTimer = null;
+      // Only an overlay the user actually saw needs to be held; padding an
+      // entry that never revealed one just makes a fast room slower.
+      final shownAt = _roomEntryOverlayVisible ? _roomEntryOverlayShownAt : null;
+      if (shownAt != null) {
+        final elapsed = DateTime.now().difference(shownAt);
+        final minimum = _HomeViewState._roomEntryLoadingMinDuration;
+        if (elapsed < minimum) {
+          await Future<void>.delayed(minimum - elapsed);
+        }
       }
       if (!mounted || _roomEntryLoadingToken != roomEntryToken) {
         canCompleteEntry = false;
@@ -441,6 +462,8 @@ extension _HomeRoomManager on _HomeViewState {
       if (canCompleteEntry) {
         _setStateForRoomManager(() {
           _roomEntryLoading = false;
+          _roomEntryOverlayVisible = false;
+          _roomEntryOverlayShownAt = null;
           _roomEntryFadeVersion++;
         });
       }
