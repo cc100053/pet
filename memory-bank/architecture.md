@@ -49,6 +49,10 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - The room-entry overlay is revealed on a delay and only then held to a
   minimum; a fast cold entry shows the room scaffold with a pet-sized spinner
   instead of blanking the screen.
+- The room list must survive a failed fetch: `_fetchRooms` retries with
+  backoff, an arriving session and app resume both re-run it, room summaries
+  degrade to stale badges instead of aborting the list, and the bootstrap
+  snapshot is never written before a fetch has succeeded.
 - Room selection/Home share cached status snapshots, revalidate through
   `get_effective_room_pet_statuses(...)`, and debounce persistence.
 - Retryable network/auth failures stay non-fatal; only genuine fatal errors

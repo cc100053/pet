@@ -166,6 +166,16 @@ class _HomeViewState extends ConsumerState<HomeView>
   // Logic State
   bool _profileEnsured = false;
   bool _homeBootstrapCompleted = false;
+  // Whether the room list has been fetched from the server at least once this
+  // session. A silent `_fetchRooms` failure used to leave an empty list that
+  // nothing retried and that `_cacheHomeBootstrapSnapshot` then persisted,
+  // turning one transient failure into a permanently blank room selection.
+  bool _roomsLoadedFromNetwork = false;
+  bool _roomsFetchInFlight = false;
+  int _roomsRetryAttempt = 0;
+  Timer? _roomsRetryTimer;
+  StreamSubscription<AuthState>? _homeAuthSubscription;
+  static const int _roomsMaxRetryAttempts = 4;
   bool _creatingRoom = false;
   bool _joiningRoom = false;
   bool _leavingRoom = false;
@@ -457,6 +467,16 @@ class _HomeViewState extends ConsumerState<HomeView>
       unawaited(_processPendingInviteLink());
     });
     _pendingNotificationIntent ??= _fcmService.takePendingNotificationIntent();
+    // Home can mount during the OAuth deep-link handoff, before the client has
+    // the session. Bootstrap is once-only, so the arriving session is the only
+    // signal that the initial room fetch needs redoing.
+    _homeAuthSubscription = Supabase.instance.client.auth.onAuthStateChange
+        .listen((data) {
+          if (data.session == null) {
+            return;
+          }
+          unawaited(_recoverRoomsIfNeeded('auth_state_change'));
+        });
     unawaited(_ensureCurrentAppVersion());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -561,6 +581,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
     _roomSelectionRefreshTimer?.cancel();
     _roomEntryOverlayRevealTimer?.cancel();
+    _roomsRetryTimer?.cancel();
+    _homeAuthSubscription?.cancel();
     _homeBootstrapCachePersistTimer?.cancel();
     _unreadReconcileTimer?.cancel();
     _notificationIntentSubscription?.cancel();
@@ -583,6 +605,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
     unawaited(_feedUploadQueue.resumePendingJobs());
+    // Last line of defence: returning to a blank room list is always a bug.
+    unawaited(_recoverRoomsIfNeeded('app_resume'));
     _replayUnacknowledgedFeedUploadEvents();
     unawaited(_fcmService.refreshTokenSync());
     unawaited(_reconcileUnreadStateFromServer());
@@ -949,6 +973,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _cacheHomeBootstrapSnapshot() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
+      return;
+    }
+    // Never persist a room list we have not actually fetched. `_loadCoins`
+    // reaches this before `_fetchRooms` finishes, so without this guard a
+    // failed fetch cached an empty list and the blank room selection survived
+    // restarts — turning a transient failure into a permanent one.
+    if (!_roomsLoadedFromNetwork) {
       return;
     }
     // Persist last-known per-room pet state so the first entry of a previously

@@ -167,4 +167,41 @@ void main() {
     // The overlay gate must key off visibility, not the raw loading flag.
     expect(homeSource, contains('if (_roomEntryOverlayVisible &&'));
   });
+
+  group('Room list cannot be lost by a silent fetch failure', () {
+    test('A failed or session-less fetch retries instead of giving up', () {
+      // The OAuth deep-link handoff can mount Home before the session lands,
+      // and bootstrap only runs once per mount.
+      expect(roomManagerSource, contains("_noteRoomsFetchFailed('no_session')"));
+      expect(roomManagerSource, isNot(contains('} catch (_) {\n    } finally {')));
+      expect(roomManagerSource, contains('_noteRoomsFetchFailed(\'\$error\');'));
+      expect(roomManagerSource, contains('_roomsRetryTimer = Timer(delay,'));
+      expect(homeSource, contains('_roomsMaxRetryAttempts'));
+    });
+
+    test('An arriving session and app resume both re-run the fetch', () {
+      expect(homeSource, contains('onAuthStateChange'));
+      expect(
+        homeSource,
+        contains("_recoverRoomsIfNeeded('auth_state_change')"),
+      );
+      expect(homeSource, contains("_recoverRoomsIfNeeded('app_resume')"));
+      expect(roomManagerSource, contains('Future<void> _recoverRoomsIfNeeded('));
+    });
+
+    test('An unfetched room list is never persisted', () {
+      // _loadCoins reaches the snapshot before _fetchRooms finishes; caching
+      // the still-empty list is what made one failure survive restarts.
+      expect(homeSource, contains('if (!_roomsLoadedFromNetwork) {'));
+    });
+
+    test('Summary failures degrade badges instead of hiding the rooms', () {
+      // The room list is already fetched by this point; a timeout on any
+      // enrichment query must not abort into the outer catch.
+      expect(roomManagerSource, contains('List<Object>? results;'));
+      expect(roomManagerSource, contains("_logRoomsDiagnostic('summaries_failed'"));
+      // Losing the unread query must not silently mark rooms as read.
+      expect(roomManagerSource, contains('previousUnreadByRoom[roomId] ?? 0'));
+    });
+  });
 }

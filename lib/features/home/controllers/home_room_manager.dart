@@ -12,9 +12,18 @@ extension _HomeRoomManager on _HomeViewState {
   }
 
   Future<void> _fetchRooms() async {
+    if (_roomsFetchInFlight) {
+      return;
+    }
+    _roomsFetchInFlight = true;
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) {
+        // The OAuth deep-link handoff can mount Home before the session lands
+        // on the client. Bootstrap is once-only, so giving up here without a
+        // retry is what leaves the room list permanently empty until the user
+        // signs out and back in.
+        _noteRoomsFetchFailed('no_session');
         _setStateForRoomManager(() => _loadingRoom = false);
         return;
       }
@@ -66,16 +75,34 @@ extension _HomeRoomManager on _HomeViewState {
                 .catchError((_) => null);
         // Fetch the independent per-room summaries concurrently instead of in
         // five serial round-trips.
-        final results = await Future.wait<Object>([
-          _withNetworkTimeout(_fetchRoomPetSummaries(roomIds)),
-          _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds)),
-          _withNetworkTimeout(_fetchRoomMemberCounts(roomIds)),
-          _withNetworkTimeout(_fetchRoomUnreadCounts(roomIds, userId)),
-        ]);
-        final petSummaries = results[0] as Map<String, _RoomPetSummary>;
-        final feeds = results[1] as Map<String, _RoomLatestFeed>;
-        final memberCounts = results[2] as Map<String, int>;
-        final unreadCounts = results[3] as Map<String, int>;
+        // Enrichment must not be able to hide the rooms themselves: the room
+        // list has already been fetched successfully at this point, so a
+        // timeout on any summary query degrades that room's health/unread
+        // badge instead of aborting into the outer catch with `_myRooms`
+        // never assigned.
+        List<Object>? results;
+        try {
+          results = await Future.wait<Object>([
+            _withNetworkTimeout(_fetchRoomPetSummaries(roomIds)),
+            _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds)),
+            _withNetworkTimeout(_fetchRoomMemberCounts(roomIds)),
+            _withNetworkTimeout(_fetchRoomUnreadCounts(roomIds, userId)),
+          ]);
+        } catch (error) {
+          _logRoomsDiagnostic('summaries_failed', '$error');
+        }
+        final petSummaries = results == null
+            ? const <String, _RoomPetSummary>{}
+            : results[0] as Map<String, _RoomPetSummary>;
+        final feeds = results == null
+            ? const <String, _RoomLatestFeed>{}
+            : results[1] as Map<String, _RoomLatestFeed>;
+        final memberCounts = results == null
+            ? const <String, int>{}
+            : results[2] as Map<String, int>;
+        final unreadCounts = results == null
+            ? const <String, int>{}
+            : results[3] as Map<String, int>;
         final equippedSkus = await equippedSkusFuture;
         if (equippedSkus != null) {
           equippedSkusByRoom.addAll(equippedSkus);
@@ -86,7 +113,11 @@ extension _HomeRoomManager on _HomeViewState {
           final roomId = room['id'] as String?;
           if (roomId != null) {
             room['member_count'] = memberCounts[roomId] ?? 0;
-            room['unread_count'] = unreadCountsByRoom[roomId] ?? 0;
+            // Keep the last known unread badge when the counts query failed;
+            // zeroing it would silently mark rooms as read.
+            room['unread_count'] =
+                unreadCountsByRoom[roomId] ??
+                (results == null ? (previousUnreadByRoom[roomId] ?? 0) : 0);
           }
           final summary = roomId == null ? null : petSummaries[roomId];
           if (summary != null) {
@@ -158,15 +189,75 @@ extension _HomeRoomManager on _HomeViewState {
           _switchRoom(sortedRooms.first['id'] as String);
         }
       }
+      // Only now is the room list authoritative: everything that persists or
+      // recovers state keys off this flag.
+      _roomsLoadedFromNetwork = true;
+      _roomsRetryAttempt = 0;
+      _roomsRetryTimer?.cancel();
+      _roomsRetryTimer = null;
       await _cacheHomeBootstrapSnapshot();
       _processPendingNotificationIntent();
-    } catch (_) {
+    } catch (error) {
+      _noteRoomsFetchFailed('$error');
     } finally {
+      _roomsFetchInFlight = false;
       if (mounted) {
         _setStateForRoomManager(() => _loadingRoom = false);
       }
       _processPendingNotificationIntent();
     }
+  }
+
+  void _logRoomsDiagnostic(String stage, String detail) {
+    // Deliberately loud: the previous `catch (_) {}` made a blank room list
+    // indistinguishable from "this account has no rooms".
+    debugPrint('[home_rooms] $stage: $detail');
+    unawaited(
+      CrashReportingService.instance.setContext(
+        feature: 'home_view',
+        lastAction: 'rooms_$stage',
+      ),
+    );
+  }
+
+  /// Records a failed room fetch and schedules a bounded retry. Home bootstrap
+  /// runs once per mount, so without this a single failure leaves the room
+  /// selection empty until the user signs out and back in.
+  void _noteRoomsFetchFailed(String reason) {
+    _logRoomsDiagnostic('fetch_failed', reason);
+    if (_roomsLoadedFromNetwork || !mounted) {
+      return;
+    }
+    if (_roomsRetryAttempt >= _HomeViewState._roomsMaxRetryAttempts) {
+      _logRoomsDiagnostic('retry_exhausted', 'attempts=$_roomsRetryAttempt');
+      return;
+    }
+    _roomsRetryAttempt += 1;
+    final delay = Duration(milliseconds: 400 * (1 << (_roomsRetryAttempt - 1)));
+    _roomsRetryTimer?.cancel();
+    _roomsRetryTimer = Timer(delay, () {
+      if (!mounted || _roomsLoadedFromNetwork) {
+        return;
+      }
+      unawaited(_fetchRooms());
+    });
+  }
+
+  /// Re-runs the room fetch once a session is available. Covers the OAuth
+  /// deep-link handoff, where Home can mount before the client has the session
+  /// and the original bootstrap fetch bails with no user id.
+  Future<void> _recoverRoomsIfNeeded(String source) async {
+    if (!mounted || _roomsLoadedFromNetwork) {
+      return;
+    }
+    if (Supabase.instance.client.auth.currentUser?.id == null) {
+      return;
+    }
+    _logRoomsDiagnostic('recover', source);
+    _roomsRetryAttempt = 0;
+    _roomsRetryTimer?.cancel();
+    _roomsRetryTimer = null;
+    await _fetchRooms();
   }
 
   int _memberCountForRoom(String roomId) {
