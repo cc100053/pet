@@ -636,6 +636,7 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
       });
 
       _blockedUserIds.add(blockedUserId);
+      unawaited(_persistBlockedUserIds());
       final toRemove = _messages
           .where((message) => message.senderId == blockedUserId)
           .map((message) => message.id)

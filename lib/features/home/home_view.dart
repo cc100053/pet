@@ -708,8 +708,18 @@ class _HomeViewState extends ConsumerState<HomeView>
     // Rooms are the slow part and don't depend on the profile/coins reads, so
     // fetch them concurrently instead of after them.
     final roomsFuture = _fetchRooms();
-    await _ensureProfile();
-    await _loadCoins();
+    // `_ensureProfile` *inserts* the profile row when it is missing, and
+    // `_loadCoins` reads it — so on a first launch they must stay serial or the
+    // coins read can miss the row and leave nickname/avatar blank. A restored
+    // nickname proves the row already exists, which is the common case; there
+    // the two reads are independent and can share one round-trip window.
+    final profileFuture = _ensureProfile();
+    if (_myNickname == null) {
+      await profileFuture;
+      await _loadCoins();
+    } else {
+      await Future.wait<void>([profileFuture, _loadCoins()]);
+    }
     await roomsFuture;
     // `_fetchRooms` now projects decay client-side, so the health bars are
     // already accurate without an extra per-pet `tick_pet_state` round-trip.

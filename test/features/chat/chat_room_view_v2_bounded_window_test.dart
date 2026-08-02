@@ -470,6 +470,41 @@ void main() {
     expect(repository.lastPersistedMessages.last.id, 'm40');
   });
 
+  testWidgets('room open paints history without waiting on the block list', (
+    tester,
+  ) async {
+    // The block list decides which messages are visible, so it used to be
+    // awaited before any message could paint — two network round-trips ahead of
+    // a local cache read. It must now resolve alongside the first paint.
+    final blockedGate = Completer<Set<String>>();
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: List<ChatMessage>.generate(
+        3,
+        (index) => message(3 - index),
+      ),
+      canonicalMessages: List<ChatMessage>.generate(
+        3,
+        (index) => message(index + 1),
+      ),
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+      loadBlockedUserIds: (_) => blockedGate.future,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    expect(blockedGate.isCompleted, isFalse);
+    expect(find.text('message 3'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    blockedGate.complete(<String>{});
+    await tester.pumpAndSettle();
+
+    expect(find.text('message 3'), findsOneWidget);
+  });
+
   testWidgets(
     'room open keeps newest message fully visible after delayed reply preview expands it',
     (tester) async {

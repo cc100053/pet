@@ -37,6 +37,9 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - Feed uploads are queue-owned. `feed_validate` returns authoritative satiety,
   while Home applies it through a `last_decay_at` freshness guard and Chat
   reconciles optimistic rows locally.
+- Chat room entry paints the Hive message cache first; the block list is
+  hydrated from disk before it (it filters visible messages) and the
+  block/mention refresh runs concurrently with the message fetch.
 - Room selection/Home share cached status snapshots, revalidate through
   `get_effective_room_pet_statuses(...)`, and debounce persistence.
 - Retryable network/auth failures stay non-fatal; only genuine fatal errors

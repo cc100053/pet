@@ -436,10 +436,36 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       removeRealtimeChannelSafely(channel);
 
   Future<void> _initialize() async {
-    await _loadBlockedUsers();
-    await _loadMentionCandidates();
+    // Entry order matters for perceived speed: the Hive message cache can paint
+    // in ~0ms, so nothing that needs the network may run ahead of it. The block
+    // list is the one exception — it filters which messages are visible (see
+    // `_isMessageVisible`), so hydrate it from disk first, then refresh it (and
+    // the mention directory, which depends on it) alongside the message fetch.
+    await _hydrateCachedBlockedUsers();
+    final directory = _loadBlockedUsers().then((_) => _loadMentionCandidates());
     await _loadCachedMessages();
-    await _loadInitial();
+    await Future.wait<void>([_loadInitial(), directory]);
+  }
+
+  Future<void> _hydrateCachedBlockedUsers() async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    try {
+      final cached = await _repository.loadCachedBlockedUserIds(userId);
+      if (cached.isEmpty) {
+        return;
+      }
+      _blockedUserIds
+        ..clear()
+        ..addAll(cached);
+    } catch (_) {
+      // Best effort; `_loadBlockedUsers` still fetches the authoritative list.
+    }
   }
 
   Future<void> _fetchMemberCount() async {
@@ -462,17 +488,21 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   Future<void> _loadBlockedUsers() async {
-    _blockedUserIds.clear();
-
+    // Build into a local set and swap it in only once the fetch succeeds: this
+    // now runs concurrently with the first paint, so clearing up front would
+    // drop the disk-hydrated list and briefly un-hide blocked senders.
     try {
+      final fetched = <String>{};
       final runtimeLoader = _runtime?.loadBlockedUserIds;
       if (runtimeLoader != null) {
-        _blockedUserIds.addAll(await runtimeLoader(widget.roomId));
+        fetched.addAll(await runtimeLoader(widget.roomId));
       } else if (_runtime != null) {
+        _blockedUserIds.clear();
         return;
       } else {
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId == null) {
+          _blockedUserIds.clear();
           return;
         }
         final response = await Supabase.instance.client
@@ -483,10 +513,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         for (final row in rows) {
           final blockedId = row['blocked_user_id'] as String?;
           if (blockedId != null && blockedId.isNotEmpty) {
-            _blockedUserIds.add(blockedId);
+            fetched.add(blockedId);
           }
         }
       }
+      _blockedUserIds
+        ..clear()
+        ..addAll(fetched);
+      unawaited(_persistBlockedUserIds());
     } catch (error) {
       if (!mounted) {
         return;
@@ -496,6 +530,21 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
           context,
         )!.chatLoadBlockedUsersFailed(userFacingError(context, error));
       });
+    }
+  }
+
+  Future<void> _persistBlockedUserIds() async {
+    if (_runtime != null || !_repository.isReady) {
+      return;
+    }
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return;
+    }
+    try {
+      await _repository.cacheBlockedUserIds(userId, _blockedUserIds);
+    } catch (_) {
+      // Best effort; the next room entry re-fetches from the network anyway.
     }
   }
 

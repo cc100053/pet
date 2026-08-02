@@ -25,6 +25,10 @@ class ChatMessageRepository {
   static const String _boxName = 'chat_messages';
   static const int _maxMessagesPerRoom = 20;
 
+  /// Reserved key inside the message box. Room ids are UUIDs, so this cannot
+  /// collide with a cached room entry.
+  static const String _blockedUserIdsKey = '__blocked_user_ids__';
+
   final SupabaseClient? _client;
   Box<dynamic>? _box;
   final ChatReactionDetailsRowsLoader? _reactionDetailsRowsLoader;
@@ -79,6 +83,46 @@ class ChatMessageRepository {
         .toList();
 
     await box.put(roomId, payload);
+  }
+
+  /// Blocked-sender ids persisted for [userId].
+  ///
+  /// The block list decides which cached messages are allowed to paint, so it
+  /// has to be available synchronously-fast at room entry — otherwise showing
+  /// the Hive message cache first would flash a blocked sender's message.
+  /// Scoped to the blocker so a different account on the same device cannot
+  /// inherit a stale list.
+  Future<Set<String>> loadCachedBlockedUserIds(String userId) async {
+    final box = _box;
+    if (box == null || userId.isEmpty) {
+      return const <String>{};
+    }
+    final raw = box.get(_blockedUserIdsKey);
+    if (raw is! Map || raw['user_id'] != userId) {
+      return const <String>{};
+    }
+    final ids = raw['ids'];
+    if (ids is! List) {
+      return const <String>{};
+    }
+    return ids
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  }
+
+  Future<void> cacheBlockedUserIds(
+    String userId,
+    Set<String> blockedUserIds,
+  ) async {
+    final box = _box;
+    if (box == null || userId.isEmpty) {
+      return;
+    }
+    await box.put(_blockedUserIdsKey, <String, dynamic>{
+      'user_id': userId,
+      'ids': blockedUserIds.toList(growable: false),
+    });
   }
 
   Future<List<ChatMessage>> fetchMessages({
