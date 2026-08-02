@@ -2016,6 +2016,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew230Bullet2 => '改善临时网络异常的处理，减少共同照顾被短暂连接问题打断。';
+
+  @override
+  String get whatsNew231Title => '问题修复与稳定性提升';
+
+  @override
+  String get whatsNew231Bullet1 => '修复影响共同照顾体验的小问题。';
+
+  @override
+  String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4020,4 +4029,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew230Bullet2 => '改善暫時性網絡異常的處理，減少共同照顧被短暫連線問題打斷。';
+
+  @override
+  String get whatsNew231Title => '錯誤修正與穩定性提升';
+
+  @override
+  String get whatsNew231Bullet1 => '修正影響共同照顧體驗的細節問題。';
+
+  @override
+  String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
 }

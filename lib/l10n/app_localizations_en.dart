@@ -2123,4 +2123,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew230Bullet2 =>
       'Temporary connection issues are now less likely to interrupt your shared care experience.';
+
+  @override
+  String get whatsNew231Title => 'Bug Fixes & Stability';
+
+  @override
+  String get whatsNew231Bullet1 =>
+      'Fixed minor bugs affecting shared pet care.';
+
+  @override
+  String get whatsNew231Bullet2 =>
+      'Improved app stability for a smoother everyday experience.';
 }

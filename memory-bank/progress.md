@@ -4,7 +4,7 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `2.3.0+13`; exact ASC/build/localization and
+- Repo release baseline is iOS `2.3.1+14`; exact ASC/build/localization and
   backend deployment state lives in `docs/release_status.md`.
 - Flutter is pinned by `.fvmrc` to `3.44.0` / Dart `3.12.0`.
 - Current compatibility/architecture contracts live in
@@ -25,9 +25,8 @@ latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
 
 ## Open Items
-- Run ASC submission preflight for iOS `2.3.0+13`, then submit ASC version
-  `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c` with attached build
-  `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6` if approved.
+- Monitor ASC/store outcome for iOS `2.3.1+14`; App Review submission remains
+  pending an explicit request.
 - Live-verify feed satiety plus presigned-upload logs on the current build.
 - Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion.

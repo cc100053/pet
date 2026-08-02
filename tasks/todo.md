@@ -12,10 +12,16 @@ Current follow-ups and the active session only. Historical task logs live in
 - [x] Verify live service/client access contracts, advisors, Flutter checks,
       and current-state documentation.
 
+## Plan (2026-08-02 iOS 2.3.1 Release Notes Sync)
+- [x] Bump the app to `2.3.1+14` and add localized bundled What's New copy.
+- [x] Sync localized ASC metadata while preserving descriptions and EULA
+      footers.
+- [x] Archive, validate, upload, process, and attach the iOS build.
+- [x] Run localization, metadata terms, analyzer, and full Flutter checks.
+
 ## Active Follow-ups
-- [ ] Run ASC submission preflight for iOS `2.3.0+13`, then submit ASC version
-      `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c` with attached build
-      `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6` if approved.
+- [ ] Monitor ASC/store outcome for iOS `2.3.1+14`; submit for App Review only
+      after an explicit request.
 - [ ] Live-verify a real feed: confirm `pet_state`, visible satiety movement,
       and clean presigned-upload logs.
 - [ ] Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
@@ -28,6 +34,8 @@ Current follow-ups and the active session only. Historical task logs live in
 
 ## Recent Context
 - Detailed release/build/backend status: `docs/release_status.md`.
+- Completed iOS `2.3.1+14` release-notes-sync; ASC version/build IDs and exact
+  processing state are recorded in `docs/release_status.md`.
 - Full task state before this compaction:
   `tasks/archive/todo_20260728_pre_compaction.md`.
 
@@ -45,3 +53,14 @@ Current follow-ups and the active session only. Historical task logs live in
 - `git diff --check` and `flutter analyze` passed. `flutter test` passed 543
   tests; the feed integration test skipped because its three Supabase test
   environment variables are unset.
+
+## Review (2026-08-02 iOS 2.3.1 Release Notes Sync)
+- ASC version `91382e2c-a755-42cc-96e6-5e3628b426cf` is
+  `PREPARE_FOR_SUBMISSION`; build `1b2dbb59-b9a9-49b9-a3e0-68f2b1fac618` is
+  `VALID`, encryption exempt, and attached.
+- Localized ASC metadata was verified for en-US, ja, ko, and zh-Hant with
+  direct EULA footers preserved. App Review submission was intentionally not
+  performed.
+- `flutter gen-l10n`, the App Store metadata terms test, `flutter analyze`,
+  and `flutter test` completed successfully; the feed integration test remains
+  skipped because its required Supabase test environment variables are unset.

@@ -2038,4 +2038,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew230Bullet2 => '일시적인 연결 문제로 공동 돌봄이 중단되는 상황을 줄였습니다.';
+
+  @override
+  String get whatsNew231Title => '버그 수정 및 안정성 개선';
+
+  @override
+  String get whatsNew231Bullet1 => '공동 돌봄 경험에 영향을 주던 작은 문제를 수정했습니다.';
+
+  @override
+  String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 }

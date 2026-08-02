@@ -2027,4 +2027,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew230Bullet2 => '一時的な通信問題への対応を改善し、共同育成が中断されにくくなりました。';
+
+  @override
+  String get whatsNew231Title => '不具合修正と安定性向上';
+
+  @override
+  String get whatsNew231Bullet1 => '共同育成に関する軽微な不具合を修正しました。';
+
+  @override
+  String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 }
