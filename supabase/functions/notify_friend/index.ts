@@ -180,8 +180,50 @@ function truncateText(value: string, max: number): string {
   return value.length <= max ? value : `${value.slice(0, max)}...`;
 }
 
+/// Pulls the JSON body out of the `HTTP <status>: <body>` error string built at
+/// the send site.
+function parseFcmErrorPayload(
+  errorText: string | undefined,
+): Record<string, unknown> | null {
+  if (!errorText) {
+    return null;
+  }
+  const start = errorText.indexOf("{");
+  if (start < 0) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(errorText.slice(start));
+    return typeof parsed === "object" && parsed !== null
+      ? parsed as Record<string, unknown>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function isStaleTokenFailure(errorText: string | undefined): boolean {
-  const normalized = (errorText ?? "").toLowerCase();
+  // FCM HTTP v1 pretty-prints its JSON, so it sends
+  //   "errorCode": "UNREGISTERED"
+  // with a space after the colon. Matching the compact `"errorCode":"..."`
+  // shape therefore never fired, and dead tokens were retried forever instead
+  // of being pruned. Read the structured field first.
+  const payload = parseFcmErrorPayload(errorText);
+  const error = payload?.error as Record<string, unknown> | undefined;
+  const details = Array.isArray(error?.details) ? error!.details : [];
+  for (const detail of details) {
+    const code = (detail as Record<string, unknown> | null)?.errorCode;
+    if (typeof code === "string" && code.toUpperCase() === "UNREGISTERED") {
+      return true;
+    }
+  }
+
+  // INVALID_ARGUMENT is deliberately NOT treated as stale. A malformed message
+  // returns 400 too, so trusting it would let one bad payload delete every
+  // recipient's registration in a single send.
+
+  // Whitespace-insensitive fallback for legacy/proxied error shapes.
+  const normalized = (errorText ?? "").toLowerCase().replace(/\s+/g, "");
   return normalized.includes("registration-token-not-registered") ||
     normalized.includes('"errorcode":"unregistered"') ||
     normalized.includes('"status":"unregistered"') ||
