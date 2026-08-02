@@ -13,7 +13,7 @@ void main() {
   test('Room selection fetches per-room summaries concurrently', () {
     // The five independent per-room queries must run in parallel instead of
     // five serial round-trips.
-    expect(roomManagerSource, contains('await Future.wait<Object>(['));
+    expect(roomManagerSource, contains('await Future.wait<Object?>(['));
     expect(roomManagerSource, contains('_fetchRoomPetSummaries(roomIds)'));
     expect(roomManagerSource, contains('_fetchRoomLatestFeeds(roomIds)'));
     expect(roomManagerSource, contains('_fetchRoomMemberCounts(roomIds)'));
@@ -198,10 +198,20 @@ void main() {
     test('Summary failures degrade badges instead of hiding the rooms', () {
       // The room list is already fetched by this point; a timeout on any
       // enrichment query must not abort into the outer catch.
-      expect(roomManagerSource, contains('List<Object>? results;'));
-      expect(roomManagerSource, contains("_logRoomsDiagnostic('summaries_failed'"));
+      expect(roomManagerSource, contains('Future<T?> degradable<T>('));
+      expect(roomManagerSource, contains("_logRoomsDiagnostic('summary_failed'"));
       // Losing the unread query must not silently mark rooms as read.
       expect(roomManagerSource, contains('previousUnreadByRoom[roomId] ?? 0'));
+    });
+
+    test('One failed summary query does not discard the others', () {
+      // Each query degrades on its own, and the fields it owns fall back to
+      // their last known values — "0 members" and a blank health bar would
+      // otherwise read as fresh data.
+      expect(roomManagerSource, contains('final petSummaries = results[0] as Map<String, _RoomPetSummary>?;'));
+      expect(roomManagerSource, contains('_carryOverRoomFields(room, previousRoom, _petSummaryRoomFields)'));
+      expect(roomManagerSource, contains('_carryOverRoomFields(room, previousRoom, _latestFeedRoomFields)'));
+      expect(roomManagerSource, contains("(previousRoom?['member_count'] ?? 0)"));
     });
   });
 }

@@ -68,3 +68,6 @@ ios/Runner/GoogleService-Info.plist
 
 # FVM Version Cache
 .fvm/
+
+# Supabase CLI scratch state (version probe cache, not source).
+supabase/.temp/

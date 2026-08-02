@@ -61,6 +61,14 @@ migration that rewrites the object.
   client's `on conflict (token)` upsert resolves to an UPDATE, and the update
   policy checks the *existing* row, so a device could never change owner. Table
   policies stay strict; old clients keep upserting directly.
+  Accepted trade-off: because it is definer-rights, it bypasses the RLS that
+  previously blocked cross-account reassignment — an authenticated caller who
+  learns another device's FCM token can claim it and redirect that device's
+  push to their own account. There is no cheap server-side proof of possession
+  for an FCM token, and the alternative is the shipped bug (a device stuck
+  receiving the previous account's notifications), so this is deliberate. If
+  abuse ever shows up, the lever is rate-limiting per caller, not loosening the
+  table policies.
 - `get_effective_room_pet_statuses(uuid[])` is authenticated-only,
   read-only, and `SECURITY INVOKER`; it projects requested active-member rooms
   from one server timestamp without changing old tick/state contracts.

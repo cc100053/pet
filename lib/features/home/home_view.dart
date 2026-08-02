@@ -764,16 +764,22 @@ class _HomeViewState extends ConsumerState<HomeView>
     // nickname proves the row already exists, which is the common case; there
     // the two reads are independent and can share one round-trip window.
     final profileFuture = _ensureProfile();
-    if (_myNickname == null) {
-      await profileFuture;
-      await _loadCoins();
-    } else {
-      await Future.wait<void>([profileFuture, _loadCoins()]);
+    try {
+      if (_myNickname == null) {
+        await profileFuture;
+        await _loadCoins();
+      } else {
+        await Future.wait<void>([profileFuture, _loadCoins()]);
+      }
+      await roomsFuture;
+    } finally {
+      // Bootstrap has now had its attempt at the room list; from here on an
+      // arriving session or an app resume is allowed to retry it. This has to
+      // hold even if a read above throws: leaving the flag false would disable
+      // both recovery paths for the rest of this mount, which is exactly the
+      // blank-room-list failure they exist to undo.
+      _roomsBootstrapAttempted = true;
     }
-    await roomsFuture;
-    // Bootstrap has now had its attempt at the room list; from here on an
-    // arriving session or an app resume is allowed to retry it.
-    _roomsBootstrapAttempted = true;
     // `_fetchRooms` now projects decay client-side, so the health bars are
     // already accurate without an extra per-pet `tick_pet_state` round-trip.
     _homeBootstrapCompleted = true;

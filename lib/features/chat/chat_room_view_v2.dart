@@ -443,9 +443,48 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     // the mention directory, which depends on it) alongside the message fetch.
     await _hydrateCachedBlockedUsers();
     await _hydrateCachedMentionCandidates();
+    final paintedWithBlockedUserIds = Set<String>.of(_blockedUserIds);
     final directory = _loadBlockedUsers().then((_) => _loadMentionCandidates());
     await _loadCachedMessages();
     await Future.wait<void>([_loadInitial(), directory]);
+    await _reconcileVisibilityForBlockListDrift(paintedWithBlockedUserIds);
+  }
+
+  /// Reconciles the message window against the authoritative block list once
+  /// both it and the first message load have settled.
+  ///
+  /// Blocking is applied when a message *enters* the window (`_isVisibleMessage`
+  /// in `_toAscendingMessages`/`_fetchMessagePage`), not when it is painted, so
+  /// anything that loaded while the network fetch was still in flight was
+  /// filtered against the disk-hydrated set. Without this, a first entry with no
+  /// cache — or a block made on another device — leaves the blocked sender
+  /// visible for the rest of the room session.
+  Future<void> _reconcileVisibilityForBlockListDrift(
+    Set<String> paintedWith,
+  ) async {
+    if (!mounted ||
+        (paintedWith.length == _blockedUserIds.length &&
+            paintedWith.containsAll(_blockedUserIds))) {
+      return;
+    }
+    // Messages hidden under a block that is no longer in force were never
+    // loaded, so only the server can bring them back.
+    if (paintedWith.difference(_blockedUserIds).isNotEmpty) {
+      await _refreshLatest(resetWindow: true);
+      if (!mounted) {
+        return;
+      }
+    }
+    final toRemove = _messages
+        .where((message) {
+          final senderId = message.senderId;
+          return senderId != null && _blockedUserIds.contains(senderId);
+        })
+        .map((message) => message.id)
+        .toList(growable: false);
+    for (final messageId in toRemove) {
+      await _removeMessageById(messageId, animated: false);
+    }
   }
 
   Future<void> _hydrateCachedBlockedUsers() async {

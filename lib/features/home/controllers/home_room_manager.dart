@@ -32,6 +32,13 @@ extension _HomeRoomManager on _HomeViewState {
           if (room['id'] is String)
             room['id'] as String: resolveRoomUnreadCount(room),
       };
+      // Last known enrichment, keyed by room. A summary query that fails falls
+      // back to these rather than to an empty value: "0 members" and a blank
+      // health bar read as fresh data, not as a missing read.
+      final previousRoomById = <String, Map<String, dynamic>>{
+        for (final room in _myRooms)
+          if (room['id'] is String) room['id'] as String: room,
+      };
 
       final responses = await _withNetworkTimeout(
         Supabase.instance.client
@@ -77,49 +84,67 @@ extension _HomeRoomManager on _HomeViewState {
         // five serial round-trips.
         // Enrichment must not be able to hide the rooms themselves: the room
         // list has already been fetched successfully at this point, so a
-        // timeout on any summary query degrades that room's health/unread
-        // badge instead of aborting into the outer catch with `_myRooms`
-        // never assigned.
-        List<Object>? results;
-        try {
-          results = await Future.wait<Object>([
+        // timeout on any summary query degrades that badge instead of aborting
+        // into the outer catch with `_myRooms` never assigned. Each query also
+        // degrades independently — discarding three successful reads because a
+        // fourth timed out would repaint every room as empty.
+        Future<T?> degradable<T>(Future<T> query, String stage) => query
+            .then<T?>((value) => value)
+            .catchError((Object error) {
+              _logRoomsDiagnostic('summary_failed', '$stage: $error');
+              return null;
+            });
+
+        final results = await Future.wait<Object?>([
+          degradable(
             _withNetworkTimeout(_fetchRoomPetSummaries(roomIds)),
+            'pet_summaries',
+          ),
+          degradable(
             _withNetworkTimeout(_fetchRoomLatestFeeds(roomIds)),
+            'latest_feeds',
+          ),
+          degradable(
             _withNetworkTimeout(_fetchRoomMemberCounts(roomIds)),
+            'member_counts',
+          ),
+          degradable(
             _withNetworkTimeout(_fetchRoomUnreadCounts(roomIds, userId)),
-          ]);
-        } catch (error) {
-          _logRoomsDiagnostic('summaries_failed', '$error');
-        }
-        final petSummaries = results == null
-            ? const <String, _RoomPetSummary>{}
-            : results[0] as Map<String, _RoomPetSummary>;
-        final feeds = results == null
-            ? const <String, _RoomLatestFeed>{}
-            : results[1] as Map<String, _RoomLatestFeed>;
-        final memberCounts = results == null
-            ? const <String, int>{}
-            : results[2] as Map<String, int>;
-        final unreadCounts = results == null
-            ? const <String, int>{}
-            : results[3] as Map<String, int>;
+            'unread_counts',
+          ),
+        ]);
+        final petSummaries = results[0] as Map<String, _RoomPetSummary>?;
+        final feeds = results[1] as Map<String, _RoomLatestFeed>?;
+        final memberCounts = results[2] as Map<String, int>?;
+        final unreadCounts = results[3] as Map<String, int>?;
         final equippedSkus = await equippedSkusFuture;
         if (equippedSkus != null) {
           equippedSkusByRoom.addAll(equippedSkus);
           equippedSkusFetched = true;
         }
-        unreadCountsByRoom.addAll(unreadCounts);
+        if (unreadCounts != null) {
+          unreadCountsByRoom.addAll(unreadCounts);
+        }
         for (final room in rooms) {
           final roomId = room['id'] as String?;
+          final previousRoom = roomId == null ? null : previousRoomById[roomId];
           if (roomId != null) {
-            room['member_count'] = memberCounts[roomId] ?? 0;
+            room['member_count'] = memberCounts != null
+                ? (memberCounts[roomId] ?? 0)
+                : (previousRoom?['member_count'] ?? 0);
             // Keep the last known unread badge when the counts query failed;
             // zeroing it would silently mark rooms as read.
-            room['unread_count'] =
-                unreadCountsByRoom[roomId] ??
-                (results == null ? (previousUnreadByRoom[roomId] ?? 0) : 0);
+            room['unread_count'] = unreadCounts != null
+                ? (unreadCountsByRoom[roomId] ?? 0)
+                : (previousUnreadByRoom[roomId] ?? 0);
           }
-          final summary = roomId == null ? null : petSummaries[roomId];
+          if (petSummaries == null && previousRoom != null) {
+            _carryOverRoomFields(room, previousRoom, _petSummaryRoomFields);
+          }
+          if (feeds == null && previousRoom != null) {
+            _carryOverRoomFields(room, previousRoom, _latestFeedRoomFields);
+          }
+          final summary = roomId == null ? null : petSummaries?[roomId];
           if (summary != null) {
             room['pet_type'] = summary.petType;
             room['pet_health'] = summary.healthValue;
@@ -135,7 +160,7 @@ extension _HomeRoomManager on _HomeViewState {
               _cachePetState(roomId!, petId, petState);
             }
           }
-          if (roomId != null && feeds.containsKey(roomId)) {
+          if (roomId != null && feeds != null && feeds.containsKey(roomId)) {
             final latest = feeds[roomId]!;
             if (latest.imageUrls.isNotEmpty) {
               room['latest_photo'] = latest.latestImageUrl;
@@ -205,6 +230,44 @@ extension _HomeRoomManager on _HomeViewState {
         _setStateForRoomManager(() => _loadingRoom = false);
       }
       _processPendingNotificationIntent();
+    }
+  }
+
+  /// Fields owned by `_fetchRoomPetSummaries`.
+  static const List<String> _petSummaryRoomFields = <String>[
+    'pet_type',
+    'pet_health',
+    'pet_name',
+    'pet_level',
+    'pet_id',
+  ];
+
+  /// Fields owned by `_fetchRoomLatestFeeds`.
+  static const List<String> _latestFeedRoomFields = <String>[
+    'latest_photo',
+    'latest_photos',
+    'latest_photo_captions',
+    'latest_photo_sender_ids',
+    'latest_photo_message_ids',
+    'latest_photo_created_ats',
+    'latest_caption',
+    'latest_sender_id',
+  ];
+
+  /// Copies the last known value of [fields] onto a freshly built room map.
+  /// Used when the query that owns those fields failed: the room row is rebuilt
+  /// from scratch on every fetch, so leaving them unset would drop a health bar
+  /// or a latest photo that is still perfectly valid.
+  void _carryOverRoomFields(
+    Map<String, dynamic> room,
+    Map<String, dynamic> previousRoom,
+    List<String> fields,
+  ) {
+    for (final field in fields) {
+      final value = previousRoom[field];
+      if (value != null) {
+        room[field] = value;
+      }
     }
   }
 
