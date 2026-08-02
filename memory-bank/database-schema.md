@@ -56,6 +56,11 @@ migration that rewrites the object.
 - `get_room_latest_feeds(...)` and
   `get_room_member_counts(...)` are additive invoker RPCs; old clients read
   tables directly.
+- `register_device_token(text, text, text)` is authenticated-only and the only
+  `SECURITY DEFINER` entry point for `device_tokens`. It exists because the
+  client's `on conflict (token)` upsert resolves to an UPDATE, and the update
+  policy checks the *existing* row, so a device could never change owner. Table
+  policies stay strict; old clients keep upserting directly.
 - `get_effective_room_pet_statuses(uuid[])` is authenticated-only,
   read-only, and `SECURITY INVOKER`; it projects requested active-member rooms
   from one server timestamp without changing old tick/state contracts.
