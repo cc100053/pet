@@ -71,6 +71,24 @@ Compact current-state map for mandatory reads. Full snapshots live in
     retry loop cannot flood Crashlytics.
   - Never interpolate a raw `error.toString()` into UI copy; it leaks internals
     and bypasses reporting.
+- OOM kills cannot be caught in-process: the OS sends SIGKILL, no handler runs,
+  and Crashlytics records nothing. `UncleanExitService` detects them
+  retroactively via a Hive sentinel (`unclean_exit_sentinel`) that is opened at
+  boot, updated with route/lifecycle/memory-warning context, and closed only on
+  `AppLifecycleState.detached`.
+  - On the next launch a still-open sentinel plus
+    `didCrashOnPreviousExecution() == false` means the process was killed. Death
+    while `resumed` is reported as a non-fatal `UncleanExitException`; death
+    while backgrounded is only a breadcrumb, since the OS reclaims background
+    apps routinely and reporting it would be pure noise.
+  - Prior memory warnings distinguish `out_of_memory` from
+    `unknown_process_kill`, so keep `SystemMemoryPressureService` feeding
+    `recordMemoryWarning(...)`.
+  - Android 11+ additionally reports the authoritative reason through
+    `pet/process_exit_reasons` (`getHistoricalProcessExitReasons`); prefer the
+    `android_exit_reason` key over the sentinel's inference where present.
+  - `Hive.initFlutter()` runs before the sentinel in `main.dart` on purpose, to
+    shrink the startup window an OOM could go unrecorded. Keep that order.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
 
 ## Backend And Platform

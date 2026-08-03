@@ -23,6 +23,8 @@ latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
   Crashlytics instead of only `debugPrint`ing.
 - Handled errors are now reported: `userFacingError(...)` records a classified
   non-fatal for every user-visible error message (see `memory-bank/architecture.md`).
+- OOM/process kills are now detected retroactively by `UncleanExitService`
+  (sentinel + Android exit reasons); they cannot be caught as they happen.
 - Room-photo cleanup is human-reviewed/fail-closed; GEOFlow/hosting lives in
   `/Users/fatboy/geo-marketing`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
@@ -38,6 +40,10 @@ latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
   `unexpected` bucket is the backlog of errors we still cannot classify.
 - ~185 best-effort `catch (_) {}` sites remain uninstrumented; convert to
   `reportSwallowedError(...)` opportunistically when touching that code.
+- Verify on a real build that `unclean_exit` non-fatals arrive, then compare the
+  `out_of_memory` rate against `memory_warning_route` to find the leaking screen.
+- iOS has no authoritative exit-reason API; if OOM proves to be the dominant
+  cause, consider `MetricKit` (`MXAppExitMetric`) for confirmation.
 - Smoke-test iOS ads after the `google_mobile_ads` 8.0.0 upgrade.
 
 ## Read More

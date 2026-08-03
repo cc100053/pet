@@ -16,6 +16,7 @@ import 'services/chat/chat_message_repository.dart';
 import 'services/env.dart';
 import 'services/analytics/analytics_service.dart';
 import 'services/crash/crash_reporting_service.dart';
+import 'services/crash/unclean_exit_service.dart';
 import 'services/home/home_bootstrap_cache_repository.dart';
 import 'services/invite/invite_link_service.dart';
 import 'services/performance/performance_service.dart';
@@ -45,6 +46,13 @@ Future<void> main() async {
         !kDebugMode,
       );
       await CrashReportingService.instance.initialize();
+      // Hive is initialized before the sentinel so the unclean-exit detector
+      // covers as much of bootstrap as possible: an OOM during startup is
+      // exactly the kind of death that otherwise leaves no trace.
+      await Hive.initFlutter();
+      await UncleanExitService.instance.initialize(
+        appVersion: CrashReportingService.instance.appVersionFull,
+      );
       await SystemMemoryPressureService.instance.initialize();
       _registerIsolateErrorListener();
       FlutterError.onError = (details) {
@@ -105,7 +113,6 @@ Future<void> main() async {
         ),
       );
 
-      await Hive.initFlutter();
       await AppSettingsRepository.instance.init();
       await AppInviteLinkService.instance.initialize();
       await ChatMessageRepository.instance.init();

@@ -5,6 +5,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'unclean_exit_service.dart';
+
 class CrashReportingService {
   CrashReportingService._();
 
@@ -15,6 +17,9 @@ class CrashReportingService {
   String _roomId = 'none';
   String _lastAction = 'app_start';
   String _networkState = 'unknown';
+  String _appVersionFull = 'unknown';
+
+  String get appVersionFull => _appVersionFull;
 
   String get currentRoute => _route;
 
@@ -45,9 +50,10 @@ class CrashReportingService {
     } catch (_) {
       // Ignore package info failure and continue with unknown version metadata.
     }
+    _appVersionFull = '$appVersion+$buildNumber';
     await _setCustomKey('app_version', appVersion);
     await _setCustomKey('build_number', buildNumber);
-    await _setCustomKey('app_version_full', '$appVersion+$buildNumber');
+    await _setCustomKey('app_version_full', _appVersionFull);
     await _setCustomKey('route', _route);
     await _setCustomKey('feature', _feature);
     await _setCustomKey('room_id', _roomId);
@@ -205,6 +211,21 @@ class CrashReportingService {
     await crashlytics.recordFlutterError(details, fatal: effectiveFatal);
   }
 
+  /// Whether the previous run ended in a crash Crashlytics already recorded.
+  ///
+  /// Used to tell a real crash apart from a process kill that left no report.
+  Future<bool> didCrashOnPreviousExecution() async {
+    final crashlytics = _crashlyticsOrNull;
+    if (crashlytics == null) {
+      return false;
+    }
+    try {
+      return await crashlytics.didCrashOnPreviousExecution();
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> triggerTestCrash() async {
     await setContext(lastAction: 'debug_test_crash');
     await breadcrumb('debug_test_crash_triggered');
@@ -316,6 +337,9 @@ class CrashRouteObserver extends NavigatorObserver {
         data: {'route': routeName},
       ),
     );
+    // Keeps the unclean-exit sentinel pointing at the current screen, so a
+    // process kill is attributed to where the user actually was.
+    unawaited(UncleanExitService.instance.recordContext());
   }
 
   String _resolveRouteName(Route<dynamic>? route) {

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../crash/crash_reporting_service.dart';
+import '../crash/unclean_exit_service.dart';
 import 'memory_diagnostics_service.dart';
 
 class SystemMemoryPressureService {
@@ -59,6 +60,9 @@ class SystemMemoryPressureService {
         'room_id': roomId,
       },
     );
+    // Persisted so that if the OS kills us next, the following launch can tell
+    // an OOM apart from an unexplained process death.
+    await UncleanExitService.instance.recordMemoryWarning(_memoryWarningCount);
     await MemoryDiagnosticsService.instance.captureSnapshot(
       source: 'ios_memory_warning',
       route: route,
