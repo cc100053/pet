@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/env.dart';
 import '../../services/settings/app_settings_repository.dart';
+import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_ui_scale.dart';
 
 const String _googleLogoSvg = '''
@@ -105,11 +106,11 @@ class _SignInViewState extends State<SignInView> {
         authScreenLaunchMode: LaunchMode.inAppWebView,
         queryParams: {'prompt': 'select_account'},
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!context.mounted) {
         return;
       }
-      _showError(context, error);
+      _showError(context, error, stackTrace);
     } finally {
       if (mounted) {
         setState(() {
@@ -162,11 +163,11 @@ class _SignInViewState extends State<SignInView> {
         idToken: idToken,
         nonce: rawNonce,
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!context.mounted) {
         return;
       }
-      _showError(context, error);
+      _showError(context, error, stackTrace);
     } finally {
       if (mounted) {
         setState(() {
@@ -177,7 +178,8 @@ class _SignInViewState extends State<SignInView> {
     }
   }
 
-  void _showError(BuildContext context, Object error) {
+  void _showError(BuildContext context, Object error, StackTrace stackTrace) {
+    reportUserVisibleError(error, stackTrace, source: 'sign_in');
     final l10n = AppLocalizations.of(context)!;
     String message = l10n.signInFailed;
     final errorText = error.toString();

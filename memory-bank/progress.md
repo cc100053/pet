@@ -19,7 +19,10 @@ latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
   sunglasses are blocked for Chicken. Godot reload preserves
   default → per-pet → per-animation precedence.
 - FCM permission failures are contained in `FCMService`; retryable network/auth
-  failures remain non-fatal.
+  failures remain non-fatal. FCM permission/token-sync failures now report to
+  Crashlytics instead of only `debugPrint`ing.
+- Handled errors are now reported: `userFacingError(...)` records a classified
+  non-fatal for every user-visible error message (see `memory-bank/architecture.md`).
 - Room-photo cleanup is human-reviewed/fail-closed; GEOFlow/hosting lives in
   `/Users/fatboy/geo-marketing`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
@@ -31,6 +34,10 @@ latest: `memory-bank/archive/progress_20260728_pre_compaction.md`.
 - Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion.
 - Confirm Crashlytics receives Firebase Apple SPM dSYMs.
+- After the next release, triage Crashlytics non-fatals by `category`; the
+  `unexpected` bucket is the backlog of errors we still cannot classify.
+- ~185 best-effort `catch (_) {}` sites remain uninstrumented; convert to
+  `reportSwallowedError(...)` opportunistically when touching that code.
 - Smoke-test iOS ads after the `google_mobile_ads` 8.0.0 upgrade.
 
 ## Read More

@@ -57,6 +57,20 @@ Compact current-state map for mandatory reads. Full snapshots live in
   `get_effective_room_pet_statuses(...)`, and debounce persistence.
 - Retryable network/auth failures stay non-fatal; only genuine fatal errors
   activate `CrashUpdateGuard`.
+- `userFacingError(...)` in `lib/shared/errors/user_facing_error.dart` is the
+  single choke point for handled errors: it classifies the error, returns the
+  localized message, and reports it to Crashlytics as a non-fatal. Previously it
+  only `debugPrint`ed, so every error the user saw was invisible in release.
+  - Any new user-visible failure must route through it. If a screen renders its
+    own copy, call `reportUserVisibleError(...)`; for best-effort work that
+    stays silent in the UI, use `reportSwallowedError(...)` instead of a bare
+    `catch (_) {}`.
+  - Reports carry a `category` (see `UserFacingErrorCategory`); `unexpected`
+    marks errors we failed to classify and is the actionable triage bucket.
+  - Identical error/source pairs are throttled to one report per 2 minutes so a
+    retry loop cannot flood Crashlytics.
+  - Never interpolate a raw `error.toString()` into UI copy; it leaks internals
+    and bypasses reporting.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
 
 ## Backend And Platform

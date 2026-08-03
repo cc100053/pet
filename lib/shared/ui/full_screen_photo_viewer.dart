@@ -11,6 +11,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
+import '../errors/user_facing_error.dart';
 import 'chat_emoji_picker_sheet.dart';
 import 'photo_viewer_item.dart';
 import 'status_bar_style.dart';
@@ -340,6 +341,15 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
           setState(() => _showDownloadedIcon = false);
         });
       }
+      if (!saved) {
+        // The plugin reported failure without throwing, so synthesize an error
+        // to keep this path visible in Crashlytics.
+        reportUserVisibleError(
+          StateError('gallery_save_rejected: $result'),
+          StackTrace.current,
+          source: 'photo_viewer_save',
+        );
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -347,7 +357,12 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
           ),
         ),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportUserVisibleError(
+        error,
+        stackTrace,
+        source: 'photo_viewer_save',
+      );
       if (!mounted) {
         return;
       }
@@ -559,13 +574,27 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
                   }
                   setState(() => _showReplySentState = false);
                 });
-              } catch (error) {
-                if (!mounted) {
+              } catch (error, stackTrace) {
+                if (!sheetContext.mounted) {
+                  reportUserVisibleError(
+                    error,
+                    stackTrace,
+                    source: 'photo_viewer_reply',
+                  );
                   return;
                 }
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(l10n.chatSendFailed(error.toString())),
+                    content: Text(
+                      l10n.chatSendFailed(
+                        userFacingError(
+                          sheetContext,
+                          error,
+                          stackTrace: stackTrace,
+                          source: 'photo_viewer_reply',
+                        ),
+                      ),
+                    ),
                   ),
                 );
               } finally {

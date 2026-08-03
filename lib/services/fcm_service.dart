@@ -10,6 +10,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../shared/errors/user_facing_error.dart';
+
 enum NotificationIntentTarget { chat, petHome }
 
 enum NotificationRoomAction {
@@ -153,6 +155,11 @@ class FCMService {
         '$error',
       );
       debugPrintStack(stackTrace: stackTrace);
+      reportSwallowedError(
+        error,
+        stackTrace,
+        source: 'fcm_permission_request',
+      );
       return;
     }
     final status = settings.authorizationStatus;
@@ -422,9 +429,11 @@ class FCMService {
   Future<String?> _getFcmTokenSafely() async {
     try {
       return await _messaging.getToken();
-    } on PlatformException {
+    } on PlatformException catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'fcm_get_token');
       return null;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'fcm_get_token');
       return null;
     }
   }
@@ -464,6 +473,7 @@ class FCMService {
     } catch (error, stack) {
       debugPrint('FCM token sync failed: $error');
       debugPrintStack(stackTrace: stack);
+      reportSwallowedError(error, stack, source: 'fcm_token_sync');
       _scheduleRetry();
     }
   }
@@ -487,6 +497,7 @@ class FCMService {
     } catch (error, stack) {
       debugPrint('FCM token sync failed (legacy upsert): $error');
       debugPrintStack(stackTrace: stack);
+      reportSwallowedError(error, stack, source: 'fcm_token_sync_legacy');
       _scheduleRetry();
     }
   }
