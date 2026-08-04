@@ -48,6 +48,7 @@ import 'chat_mentions.dart';
 import 'chat_room_view_runtime.dart';
 import 'chat_reaction_options.dart';
 import 'chat_reaction_utils.dart';
+import 'chat_sender_name_visibility.dart';
 import 'chat_window_state.dart';
 import 'room_members_sheet.dart';
 import 'widgets/deterministic_chat_list.dart';

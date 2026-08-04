@@ -73,6 +73,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
     double listBottomPadding,
     ChatMessage? replyTarget,
   ) {
+    final senderNameVisibleIds = _senderNameVisibleMessageIds();
     return fc.Builders(
       textMessageBuilder:
           (context, message, index, {required isSentByMe, groupStatus}) {
@@ -98,10 +99,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
                 _messagesById[message.id]?.senderId,
               ),
               showSenderName:
-                  isSentByMe ||
-                  message.id == _historyGroupingBoundaryMessageId ||
-                  groupStatus == null ||
-                  groupStatus.isFirst,
+                  isSentByMe || senderNameVisibleIds.contains(message.id),
               replyPreview: resolvedReplyPreview,
               replySenderName: _displayNameForSenderId(
                 resolvedReplyPreview?.senderId,
@@ -162,10 +160,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
                 _messagesById[message.id]?.senderId,
               ),
               showSenderName:
-                  isSentByMe ||
-                  message.id == _historyGroupingBoundaryMessageId ||
-                  groupStatus == null ||
-                  groupStatus.isFirst,
+                  isSentByMe || senderNameVisibleIds.contains(message.id),
               replyPreview: resolvedReplyPreview,
               replySenderName: _displayNameForSenderId(
                 resolvedReplyPreview?.senderId,

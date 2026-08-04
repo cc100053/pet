@@ -2029,6 +2029,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew230Bullet2 => '一時的な通信問題への対応を改善し、共同育成が中断されにくくなりました。';
 
   @override
+  String get whatsNew233Title => '不具合修正と改善';
+
+  @override
+  String get whatsNew233Bullet1 => 'グループチャットで送信者名が表示されなくなる不具合を修正しました。';
+
+  @override
+  String get whatsNew233Bullet2 => 'チャット表示の信頼性を向上しました。';
+
+  @override
   String get whatsNew232Title => '不具合修正と改善';
 
   @override

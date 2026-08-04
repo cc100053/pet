@@ -265,6 +265,7 @@ extension _ChatScrollViewport on _ChatRoomViewV2State {
       isGroupedWithNext: isGroupedWithNext,
       showSenderName:
           isSentByMe ||
+          alwaysShowsSenderName(message) ||
           message.id == _historyGroupingBoundaryMessageId ||
           !isGroupedWithPrevious,
     );

@@ -2040,6 +2040,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew230Bullet2 => '일시적인 연결 문제로 공동 돌봄이 중단되는 상황을 줄였습니다.';
 
   @override
+  String get whatsNew233Title => '버그 수정 및 개선';
+
+  @override
+  String get whatsNew233Bullet1 => '그룹 채팅에서 보낸 사람 이름이 표시되지 않던 문제를 수정했습니다.';
+
+  @override
+  String get whatsNew233Bullet2 => '채팅 표시 안정성을 개선했습니다.';
+
+  @override
   String get whatsNew232Title => '버그 수정 및 개선';
 
   @override

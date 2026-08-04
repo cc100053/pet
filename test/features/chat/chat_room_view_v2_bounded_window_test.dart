@@ -515,7 +515,10 @@ void main() {
     // block made on another device, hits this every time.
     final blockedGate = Completer<Set<String>>();
     final repository = _FakeChatMessageRepository(
-      cachedMessages: List<ChatMessage>.generate(3, (index) => message(3 - index)),
+      cachedMessages: List<ChatMessage>.generate(
+        3,
+        (index) => message(3 - index),
+      ),
       canonicalMessages: List<ChatMessage>.generate(
         3,
         (index) => message(index + 1),
@@ -1376,7 +1379,7 @@ void main() {
   );
 
   testWidgets(
-    'grouped received text and feed messages show sender name only once',
+    'a grouped feed message still names its sender, unlike grouped text',
     (tester) async {
       final firstCreatedAt = DateTime.utc(2026, 3, 20, 12, 0);
       final secondCreatedAt = firstCreatedAt.add(const Duration(minutes: 1));
@@ -1407,7 +1410,59 @@ void main() {
 
       expect(find.text('first grouped message'), findsOneWidget);
       expect(find.text('grouped feed caption'), findsOneWidget);
-      expect(find.text('Other'), findsOneWidget);
+      // Text bubble names the sender once; the feed photo always names it.
+      expect(find.text('Other'), findsNWidgets(2));
+    },
+  );
+
+  testWidgets(
+    'a system message from the same user does not swallow the next name',
+    (tester) async {
+      // Action system messages (e.g. cleaning poop) carry the actor's
+      // sender_id, so the chat package saw the following message as grouped.
+      final firstCreatedAt = DateTime.utc(2026, 3, 20, 15, 0);
+      final messages = <ChatMessage>[
+        textMessage(
+          id: 'before-system',
+          senderId: 'other',
+          body: 'before system',
+          createdAt: firstCreatedAt,
+        ),
+        ChatMessage(
+          id: 'system-action',
+          roomId: 'room-1',
+          senderId: 'other',
+          type: 'system',
+          body: 'Other cleaned the poop: +1 Coins.',
+          imageUrl: null,
+          caption: null,
+          coinsAwarded: 1,
+          createdAt: firstCreatedAt.add(const Duration(minutes: 1)),
+          clientCreatedAt: firstCreatedAt.add(const Duration(minutes: 1)),
+          labels: const <Map<String, dynamic>>[],
+          localImagePath: null,
+        ),
+        textMessage(
+          id: 'after-system',
+          senderId: 'other',
+          body: 'after system',
+          createdAt: firstCreatedAt.add(const Duration(minutes: 2)),
+        ),
+      ];
+      final repository = _FakeChatMessageRepository(
+        cachedMessages: messages.reversed.toList(),
+        canonicalMessages: messages,
+      );
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+
+      await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+      expect(find.text('before system'), findsOneWidget);
+      expect(find.text('after system'), findsOneWidget);
+      expect(find.text('Other'), findsNWidgets(2));
     },
   );
 

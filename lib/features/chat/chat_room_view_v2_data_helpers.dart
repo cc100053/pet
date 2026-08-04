@@ -278,20 +278,16 @@ extension _ChatRoomDataHelpers on _ChatRoomViewV2State {
         .toList(growable: false);
   }
 
-  bool _canGroupPreviewMessages(ChatMessage a, ChatMessage b) {
-    if (a.isSystem || b.isSystem) {
-      return false;
-    }
-    final aSender = a.senderId?.trim();
-    final bSender = b.senderId?.trim();
-    if (aSender == null ||
-        aSender.isEmpty ||
-        bSender == null ||
-        bSender.isEmpty) {
-      return false;
-    }
-    return aSender == bSender && isSameLocalChatDay(a.createdAt, b.createdAt);
-  }
+  bool _canGroupPreviewMessages(ChatMessage a, ChatMessage b) =>
+      canGroupSenderNames(a, b);
+
+  /// Ids of the messages whose bubble must render the sender name; see
+  /// `chat_sender_name_visibility.dart` for why the chat package's own
+  /// `groupStatus` cannot answer this.
+  Set<String> _senderNameVisibleMessageIds() => senderNameVisibleMessageIds(
+    _toAscendingMessages(_messages),
+    historyGroupingBoundaryMessageId: _historyGroupingBoundaryMessageId,
+  );
 
   double? _replyTargetCenterOffset(BuildContext targetContext) {
     final renderObject = targetContext.findRenderObject();

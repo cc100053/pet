@@ -2018,6 +2018,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew230Bullet2 => '改善临时网络异常的处理，减少共同照顾被短暂连接问题打断。';
 
   @override
+  String get whatsNew233Title => '问题修复与改进';
+
+  @override
+  String get whatsNew233Bullet1 => '修复群聊中发送者名称可能消失的问题。';
+
+  @override
+  String get whatsNew233Bullet2 => '提升聊天显示的稳定性。';
+
+  @override
   String get whatsNew232Title => '问题修复与改进';
 
   @override
@@ -4038,6 +4047,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew230Bullet2 => '改善暫時性網絡異常的處理，減少共同照顧被短暫連線問題打斷。';
+
+  @override
+  String get whatsNew233Title => '錯誤修正與改善';
+
+  @override
+  String get whatsNew233Bullet1 => '修正群組聊天中寄件者名稱可能消失的問題。';
+
+  @override
+  String get whatsNew233Bullet2 => '提升聊天顯示的穩定性。';
 
   @override
   String get whatsNew232Title => '錯誤修正與改善';
