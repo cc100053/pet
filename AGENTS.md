@@ -243,6 +243,10 @@ flutter run
 - Copy `.firebase-mcp.env.example` to the gitignored `.firebase-mcp.env` and point it at the local service-account JSON key before using the wrapper.
 - Prefer ADC via the local `.firebase-mcp.env` service-account path over `firebase login` for long-lived MCP access.
 - If Crashlytics stacks are unsymbolicated, inspect `ios/scripts/upload_crashlytics_symbols.sh` before debugging app logic.
+- OOM/SIGKILL events cannot be caught in-process. For missing-kill reports,
+  inspect `UncleanExitService`, its Hive sentinel, memory-warning context, and
+  Android `pet/process_exit_reasons`; preserve Hive initialization before the
+  sentinel starts in `lib/main.dart`.
 
 ### Firebase Hosting / GEO marketing
 - Static marketing, GEOFlow guides, support/legal pages, invite fallback pages, and app/universal-link files live outside this Flutter app repo in `/Users/fatboy/geo-marketing`.
@@ -293,6 +297,12 @@ flutter run
 - No empty `catch` blocks. If intentionally ignored, use `catch (_) { /* reason */ }`.
 - Surface actionable errors to the UI where appropriate (this app often stores a `*_error` string in state).
 - Prefer structured error messages; include context (feature, RPC name, ids) but never secrets.
+- Route user-visible failures through `userFacingError(...)` so copy stays
+  localized and the handled error is classified/reported to Crashlytics. If a
+  surface renders bespoke error copy, call `reportUserVisibleError(...)`; for
+  silent best-effort failures, capture the stack trace and call
+  `reportSwallowedError(...)` instead of adding a bare catch.
+- Never interpolate raw `error.toString()` values into user-facing copy.
 
 ### Flutter UI/state
 - Avoid side effects in `build`; do async work in `initState` / callbacks.

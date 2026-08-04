@@ -1,7 +1,7 @@
 # Database Schema
 
 Compact current-state watchlist. Full snapshots live in `memory-bank/archive/`;
-latest: `memory-bank/archive/database_schema_20260728_pre_compaction.md`.
+latest: `memory-bank/archive/database_schema_20260804_pre_compaction.md`.
 Target Supabase project: `ilxzpszgirhwxpeocygs`.
 
 Before a DB claim/change, verify the target and inspect the latest applied
@@ -14,70 +14,49 @@ migration that rewrites the object.
 - Economy/shared room: items, decor/equipment inventories, purchases,
   subscriptions, ledgers, `pet_equipment`
 - Config/safety: `app_config`, reports/blocks, notification logs, debug
-  overrides, room cleanup review
+  overrides, cleanup review
 
 ## Current Contracts
-- Normal sharing uses reusable invite-code RPCs; `rooms.invite_code` is legacy.
-  First-party creation/regeneration defaults to 24 hours, while successful
-  joins do not consume the code or impose a user-count limit.
-- `pets.room_id` remains unique for old clients. Extras use
+- Invite-code RPCs are reusable and default first-party creation/regeneration
+  to 24 hours; successful joins do not consume codes or impose a user cap.
+- `pets.room_id` stays unique for old clients. Extras use
   `room_extra_pets`; `rooms.main_pet_id` identifies the canonical pet and
   `rooms.name` mirrors its name.
-- `room_pet_state` is shared hunger/mood/level/exp truth; `pet_state` mirrors
-  the main pet. Successful feed actions anchor decay at feed time; rejected
-  overfed/cooldown actions do not.
+- `room_pet_state` is shared stat truth; `pet_state` mirrors the main pet.
+  Successful feed actions anchor decay at feed time; rejected feeds do not.
 - `pet_equipment.pet_id` may reference either pet table; RLS/RPC validation
   must cover both.
-- `items.metadata` carries item compatibility: visibility, minimum version,
-  shop visibility, fallback/assets, and slots.
-- Furniture uses nullable fixed-canvas center fractions and dual-writes legacy
+- `items.metadata` carries compatibility, visibility, asset/fallback, and slot
+  rules. Furniture uses nullable canvas center fractions and dual-writes legacy
   positions.
-- Pet tickets are v2-gated additive consumables. New purchases use
+- Pet tickets are additive and v2-gated. New purchases use
   `purchase_and_use_pet_ticket(...)`; owned tickets use `use_pet_ticket(...)`.
 - Message senders may be null for system events. Image-feed recall clears media
   without reversing rewards.
-- `pet_hunger_tick_schedule.next_check_at` is the server due cursor;
-  admin-only hunger pause lives in `room_debug_overrides`.
-- Internal scheduler/review tables `pet_hunger_tick_schedule` and
-  `room_cleanup_candidates` have RLS enabled with no client policies; explicit
-  grants keep `anon`/`authenticated` denied and service roles retain access.
+- `pet_hunger_tick_schedule.next_check_at` is the due cursor; hunger pause
+  state lives in `room_debug_overrides`.
+- Internal schedule/cleanup tables have RLS enabled with no client policies;
+  client grants remain denied while service roles retain access.
 
-## Compatibility Rules
+## Compatibility And Additive RPCs
 - Public PostgREST objects need explicit Data API grants; RLS remains the
   boundary.
-- Legacy catalogs see active items only. Version-gated decor stays inactive and
-  uses `get_visible_shop_items(p_app_version)`.
-- Hidden rollout decor uses `metadata.shop_visibility = 'hidden'`; catalog
-  RPCs, purchase predicates, and RLS write policies must agree.
+- Legacy catalogs see active items only. Version-gated/hidden decor must keep
+  catalog RPCs, purchase predicates, and RLS write policies aligned.
 - Prefer additive fields/RPCs/optional params. Keep legacy 4-arg furniture RPCs
-  separate from non-defaulted 6-arg canvas overloads.
-
-## Additive RPC Watchlist
-- `get_room_latest_feeds(...)` and
-  `get_room_member_counts(...)` are additive invoker RPCs; old clients read
-  tables directly.
-- `register_device_token(text, text, text)` is authenticated-only and the only
-  `SECURITY DEFINER` entry point for `device_tokens`. It exists because the
-  client's `on conflict (token)` upsert resolves to an UPDATE, and the update
-  policy checks the *existing* row, so a device could never change owner. Table
-  policies stay strict; old clients keep upserting directly.
-  Accepted trade-off: because it is definer-rights, it bypasses the RLS that
-  previously blocked cross-account reassignment — an authenticated caller who
-  learns another device's FCM token can claim it and redirect that device's
-  push to their own account. There is no cheap server-side proof of possession
-  for an FCM token, and the alternative is the shipped bug (a device stuck
-  receiving the previous account's notifications), so this is deliberate. If
-  abuse ever shows up, the lever is rate-limiting per caller, not loosening the
-  table policies.
-- `get_effective_room_pet_statuses(uuid[])` is authenticated-only,
-  read-only, and `SECURITY INVOKER`; it projects requested active-member rooms
-  from one server timestamp without changing old tick/state contracts.
+  separate from non-defaulted 6-arg overloads.
+- `get_room_latest_feeds(...)`, `get_room_member_counts(...)`, and
+  `get_effective_room_pet_statuses(uuid[])` are additive invoker RPCs.
+- `register_device_token(text,text,text)` is the authenticated definer-rights
+  reassignment path; old clients retain direct upsert. Its accepted trade-off
+  is token-knowledge-based reassignment, so rate-limit callers if abuse appears
+  rather than weakening table policies.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use
   `(select auth.uid())`, `TO authenticated`, and matching indexes.
-- Function truth lives in `supabase/functions/`; feed/R2 behavior is documented
-  in `docs/feed_upload_pipeline.md`.
+- Function truth lives in `supabase/functions/`; feed/R2 behavior is in
+  `docs/feed_upload_pipeline.md`.
 - Room-photo cleanup remains human-reviewed and fail-closed; see
   `docs/abandoned_room_cleanup.md`.
 
