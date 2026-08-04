@@ -2125,6 +2125,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Temporary connection issues are now less likely to interrupt your shared care experience.';
 
   @override
+  String get whatsNew232Title => 'Bug Fixes & Improvements';
+
+  @override
+  String get whatsNew232Bullet1 => 'Fixed minor bugs to improve app stability.';
+
+  @override
+  String get whatsNew232Bullet2 =>
+      'Improved reliability for a smoother everyday experience.';
+
+  @override
   String get whatsNew231Title => 'Bug Fixes & Stability';
 
   @override

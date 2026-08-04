@@ -3759,6 +3759,24 @@ abstract class AppLocalizations {
   /// **'Temporary connection issues are now less likely to interrupt your shared care experience.'**
   String get whatsNew230Bullet2;
 
+  /// No description provided for @whatsNew232Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Fixes & Improvements'**
+  String get whatsNew232Title;
+
+  /// No description provided for @whatsNew232Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed minor bugs to improve app stability.'**
+  String get whatsNew232Bullet1;
+
+  /// No description provided for @whatsNew232Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved reliability for a smoother everyday experience.'**
+  String get whatsNew232Bullet2;
+
   /// No description provided for @whatsNew231Title.
   ///
   /// In en, this message translates to:
