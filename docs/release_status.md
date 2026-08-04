@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.3.2 | 15 | Repo workflow assumes current after completed `release-notes-sync`; ASC version `2120a1f4-f8cf-4f2a-9527-b177b20e9210` is `PREPARE_FOR_SUBMISSION`, build `36348531-630d-47a7-b0b8-be9ea7fc89b6` is `VALID` and attached, and not submitted in this step | 2026-08-03 | App Store Connect metadata sync/build upload/processing/attach; release-notes-sync completion rule | none |
+| iOS | 2.3.3 | 16 | Repo workflow assumes current after completed `release-notes-sync`; ASC version `717272d6-bcf3-4d3e-a6e4-48438305b196` is `PREPARE_FOR_SUBMISSION`, build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` is `VALID` and attached, and not submitted in this step | 2026-08-05 | App Store Connect metadata sync/build upload/processing/attach; release-notes-sync completion rule | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -25,6 +25,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 2.3.2 | 15 | Superseded in repo workflow by completed `2.3.3+16` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-03 | ASC version `2120a1f4-f8cf-4f2a-9527-b177b20e9210`, attached build `36348531-630d-47a7-b0b8-be9ea7fc89b6` | none |
 | iOS | 2.3.1 | 14 | Superseded in repo workflow by completed `2.3.2+15` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-02 | ASC version `91382e2c-a755-42cc-96e6-5e3628b426cf` | none |
 | iOS | 2.3.0 | 13 | Superseded in repo workflow by completed `2.3.1+14` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-02 | ASC version `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c`, attached build `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6` | none |
 | iOS | 2.2.6 | 12 | Superseded in repo workflow by completed `2.3.0+13` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-26 | ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b` | none |
@@ -41,7 +42,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | None active | - | `pubspec.yaml` `2.3.2+15` is now the repo current release baseline; bundled/ASC copy for 2.3.2 is a generic bug-fix/stability release note covering internal-only Crashlytics handled-error reporting and OOM-kill detection work that is not user-visible | ASC version `2120a1f4-f8cf-4f2a-9527-b177b20e9210` is `PREPARE_FOR_SUBMISSION`; build `36348531-630d-47a7-b0b8-be9ea7fc89b6` is `VALID`, App Store eligible, and attached; localization IDs: en-US `ccaceb78-be3b-4eca-988e-177c0671d765`, ja `dd30a8cf-47de-45cb-92e3-b42ba72a1826`, ko `f704357f-488c-4773-8cb9-cab50937f75c`, zh-Hant `e0fb84e6-52ae-428e-99d5-e720ea0577b4` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `fix/report-handled-errors` | none |
+| iOS | None active | - | `pubspec.yaml` `2.3.3+16` is now the repo current release baseline; bundled/ASC copy for 2.3.3 covers the chat fix where a sender's name could disappear after a system message | ASC version `717272d6-bcf3-4d3e-a6e4-48438305b196` is `PREPARE_FOR_SUBMISSION`; build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` is `VALID`, App Store eligible, and attached; localization IDs: en-US `735eac8d-d43f-40b7-9d51-b5c59fe081e6`, ja `4eb7a1fa-63cf-4361-b917-bfb6308fd786`, ko `fe606f14-6d9a-4ebf-81b8-a93ea95face6`, zh-Hant `cb18cbf2-f8c5-409b-9f53-73784e780397` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `fix/report-handled-errors`, commit `183efdc` | none |
 
 ## Backend Deployments
 

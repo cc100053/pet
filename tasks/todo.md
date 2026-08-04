@@ -13,7 +13,7 @@ Current follow-ups and the active session only. Historical task logs live in
       changes before committing logical groups.
 
 ## Active Follow-ups
-- [ ] Monitor ASC/store outcome for iOS `2.3.2+15`; submit for App Review only
+- [ ] Monitor ASC/store outcome for iOS `2.3.3+16`; submit for App Review only
       after an explicit request.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
       logs.
@@ -27,13 +27,15 @@ Current follow-ups and the active session only. Historical task logs live in
 
 ## Recent Context
 - Release/build/backend truth: `docs/release_status.md`.
-- iOS `2.3.2+15` release-notes sync completed: ASC version
-  `2120a1f4-f8cf-4f2a-9527-b177b20e9210` is `PREPARE_FOR_SUBMISSION`;
-  build `36348531-630d-47a7-b0b8-be9ea7fc89b6` is `VALID`, attached, and
-  intentionally not submitted for App Review.
+- iOS `2.3.3+16` release-notes sync completed: ASC version
+  `717272d6-bcf3-4d3e-a6e4-48438305b196` is `PREPARE_FOR_SUBMISSION`;
+  build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` is `VALID`, attached, and
+  intentionally not submitted for App Review. Release note covers the chat fix
+  where a sender's name could disappear after a system message
+  (`chat_sender_name_visibility.dart`, commit `183efdc`).
 - Localized ASC metadata was verified for en-US, ja, ko, and zh-Hant with EULA
   footers preserved. The release session recorded successful `flutter gen-l10n`,
-  metadata terms, analyzer, and full test checks (579 passed).
+  metadata terms, analyzer, and full test checks (588 passed).
 - Full prior task state: `tasks/archive/todo_20260804_pre_compaction.md`.
 
 ## Review (2026-08-04 Agent Docs And Memory Optimization)

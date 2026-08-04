@@ -4,7 +4,7 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `2.3.2+15`; exact ASC/build/localization and
+- Repo release baseline is iOS `2.3.3+16`; exact ASC/build/localization and
   backend deployment state lives in `docs/release_status.md`.
 - Flutter is pinned to `3.44.0` / Dart `3.12.0`.
 - Room invite creation/regeneration uses reusable 24-hour codes.
@@ -21,7 +21,7 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
 
 ## Open Items
-- Monitor ASC/store outcome for iOS `2.3.2+15`; App Review submission requires
+- Monitor ASC/store outcome for iOS `2.3.3+16`; App Review submission requires
   an explicit request.
 - Live-verify feed satiety plus presigned-upload logs.
 - Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
