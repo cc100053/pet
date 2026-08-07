@@ -49,5 +49,24 @@ xcodebuild -exportArchive \
   -exportPath "${EXPORT_PATH}" \
   -exportOptionsPlist "${EXPORT_OPTIONS}"
 
+# uploadSymbols=false means App Store Connect never gets a copy of the dSYMs, so
+# this archive is the only one that will ever exist. Preserve it before the next
+# `flutter build ipa` overwrites build/ios/archive, and push the symbols to
+# Crashlytics now — a build shipped without them produces crash reports that can
+# never be symbolicated afterwards.
+ARCHIVE_VERSION=$(plutil -extract ApplicationProperties.CFBundleShortVersionString raw "${ARCHIVE_PATH}/Info.plist" 2>/dev/null || echo unknown)
+ARCHIVE_BUILD=$(plutil -extract ApplicationProperties.CFBundleVersion raw "${ARCHIVE_PATH}/Info.plist" 2>/dev/null || echo unknown)
+ARCHIVE_STORE="${HOME}/Library/Developer/Xcode/Archives/shipped"
+PRESERVED="${ARCHIVE_STORE}/Runner ${ARCHIVE_VERSION} (${ARCHIVE_BUILD}).xcarchive"
+
+if [ "$(CDPATH= cd -- "${ARCHIVE_PATH}" && pwd)" != "$(CDPATH= cd -- "${PRESERVED}" 2>/dev/null && pwd || echo '')" ]; then
+  mkdir -p "${ARCHIVE_STORE}"
+  rm -rf "${PRESERVED}"
+  cp -R "${ARCHIVE_PATH}" "${PRESERVED}"
+  echo "Preserved archive: ${PRESERVED}"
+fi
+
+"${REPO_ROOT}/ios/scripts/upload_archive_dsyms.sh" "${ARCHIVE_PATH}"
+
 echo "Done. Apple immediate symbol upload was disabled by uploadSymbols=false."
-echo "dSYMs remain in the .xcarchive for Crashlytics or manual Apple upload if needed."
+echo "dSYMs were uploaded to Crashlytics and the archive was preserved for re-upload."
