@@ -4,6 +4,16 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260804_pre_compaction.md`.
 
+## Plan (2026-08-08 Image Picker Non-Fatal Triage)
+- [x] Trace the `ImagePickerApi.pickImage` non-fatal to the pigeon throw site
+      and enumerate the native codes it can carry.
+- [x] Classify media-permission codes into their own user-facing category with
+      localized copy, and stop `multiple_request` from surfacing as an error.
+- [x] Serialize picker requests and drop the unneeded full-metadata request so
+      gallery picks no longer need photo-library permission.
+- [x] Cover the new behavior with tests; run `dart format`, `flutter analyze`,
+      and `flutter test`.
+
 ## Plan (2026-08-04 Agent Docs And Memory Optimization)
 - [x] Audit `AGENTS.md`, active memory, task notes, repo-local workflows, and
       every outstanding worktree change without discarding shared-session work.
@@ -37,6 +47,30 @@ Current follow-ups and the active session only. Historical task logs live in
   footers preserved. The release session recorded successful `flutter gen-l10n`,
   metadata terms, analyzer, and full test checks (588 passed).
 - Full prior task state: `tasks/archive/todo_20260804_pre_compaction.md`.
+
+## Review (2026-08-08 Image Picker Non-Fatal Triage)
+- The Crashlytics frame `messages.g.dart:268` is the pigeon
+  `throw PlatformException(...)` branch, so the non-fatal was always a native
+  `image_picker` refusal, never a Dart bug at
+  `feed_capture_view.dart:115`. The exact code is only in the report's
+  reason/log lines, so the fix covers every code that site can raise.
+- `userFacingError(...)` gained a `mediaPermissionDenied` category keyed off
+  the `PlatformException.code` (locale-independent, unlike the message), with
+  `errorMediaPermissionDenied` copy in en/ja/ko/zh/zh_TW. These stop landing in
+  the `unexpected` bucket, which is what the open triage item asked for.
+- `_errorSummary` now renders `PlatformException` as `code | message | details`
+  instead of `toString()`, whose trailing native stack differs per occurrence
+  and defeated both dedup and Crashlytics grouping.
+- `FeedCaptureView` serializes picks behind `_picking` (the plugin fails the
+  *first* request with `multiple_request` when a second arrives), treats
+  `multiple_request` as a silent no-op, and passes `requestFullMetadata: false`
+  so iOS stays on the permission-free PHPicker path.
+- The same unguarded `pickImage` call existed in `profile_view._pickAvatar` and
+  `home_onboarding_flow._uploadOnboardingProfileAvatar`, where a refusal became
+  an unhandled async error; both now handle it the same way.
+- `dart format`, `flutter analyze` (no issues), and `flutter test` (593 passed,
+  1 skipped Supabase integration test) all pass. `flutter gen-l10n` still
+  reports only the three pre-existing untranslated messages in ko and zh_TW.
 
 ## Review (2026-08-04 Agent Docs And Memory Optimization)
 - Added repo-grounded handled-error and OOM/process-kill guidance to

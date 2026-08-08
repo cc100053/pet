@@ -228,6 +228,7 @@
   "errorNetwork": "Network error. Please check your connection and try again.",
   "errorNotFound": "Requested data was not found.",
   "errorPermissionDenied": "You don't have permission to do that.",
+  "errorMediaPermissionDenied": "Camera or photo access is off. Please allow it in Settings and try again.",
   "errorImageTooLarge": "Image is too large. Please choose a smaller image.",
   "errorPetNameInvalid": "That pet name is not allowed. Please use a different name.",
   "errorUnexpected": "Something went wrong. Please try again.",

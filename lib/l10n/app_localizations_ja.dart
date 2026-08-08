@@ -392,6 +392,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorPermissionDenied => 'この操作を実行する権限がありません。';
 
   @override
+  String get errorMediaPermissionDenied =>
+      'カメラまたは写真へのアクセスがオフになっています。設定で許可してからもう一度お試しください。';
+
+  @override
   String get errorImageTooLarge => '画像サイズが大きすぎます。より小さい画像を選択してください。';
 
   @override

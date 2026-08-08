@@ -390,6 +390,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorPermissionDenied => '你沒有权限執行这个操作。';
 
   @override
+  String get errorMediaPermissionDenied => '相机或照片存取权限已关闭，请到设定中允许后再试一次。';
+
+  @override
   String get errorImageTooLarge => '图片档案太大，请选择较小的图片。';
 
   @override
@@ -2429,6 +2432,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get errorPermissionDenied => '你沒有權限執行這個操作。';
+
+  @override
+  String get errorMediaPermissionDenied => '相機或照片存取權限已關閉，請到設定中允許後再試一次。';
 
   @override
   String get errorImageTooLarge => '圖片檔案太大，請選擇較小的圖片。';

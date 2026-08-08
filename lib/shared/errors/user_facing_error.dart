@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/services/crash/crash_reporting_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +16,7 @@ enum UserFacingErrorCategory {
   authReauthRequired,
   imageTooLarge,
   invalidInvite,
+  mediaPermissionDenied,
   permissionDenied,
   petNameInvalid,
   network,
@@ -210,9 +212,26 @@ bool _shouldReport(
 UserFacingErrorCategory classifyUserFacingError(Object error) =>
     _classify(error, _errorSummary(error));
 
+/// `image_picker` platform codes that mean "the OS refused media access",
+/// not "the app is broken". iOS raises the camera codes from
+/// `UIImagePickerController` and the photo codes from the legacy
+/// `PHPhotoLibrary` path; Android raises the same two families.
+const Set<String> _mediaPermissionCodes = <String>{
+  'camera_access_denied',
+  'camera_access_restricted',
+  'photo_access_denied',
+  'photo_access_restricted',
+};
+
 UserFacingErrorCategory _classify(Object error, String rawSummary) {
   final summary = rawSummary.toLowerCase();
 
+  // Platform channel failures carry a stable `code`; matching on it beats
+  // substring-matching the rendered message, which varies per OS locale.
+  if (error is PlatformException &&
+      _mediaPermissionCodes.contains(error.code)) {
+    return UserFacingErrorCategory.mediaPermissionDenied;
+  }
   if (error is FunctionException && error.status == 401) {
     return UserFacingErrorCategory.authReauthRequired;
   }
@@ -268,6 +287,8 @@ String _message(AppLocalizations l10n, UserFacingErrorCategory category) {
       return l10n.errorImageTooLarge;
     case UserFacingErrorCategory.invalidInvite:
       return l10n.errorInvalidInviteCode;
+    case UserFacingErrorCategory.mediaPermissionDenied:
+      return l10n.errorMediaPermissionDenied;
     case UserFacingErrorCategory.permissionDenied:
       return l10n.errorPermissionDenied;
     case UserFacingErrorCategory.petNameInvalid:
@@ -306,6 +327,15 @@ String _errorSummary(Object error) {
   }
   if (error is AuthException) {
     return '${error.message} | ${error.statusCode}';
+  }
+  if (error is PlatformException) {
+    // `toString()` appends the native stack trace, which differs on every
+    // occurrence and would defeat both dedup and Crashlytics grouping.
+    return [
+      error.code,
+      error.message,
+      error.details?.toString(),
+    ].whereType<String>().join(' | ');
   }
   return error.toString();
 }

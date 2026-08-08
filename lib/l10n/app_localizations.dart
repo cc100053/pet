@@ -775,6 +775,12 @@ abstract class AppLocalizations {
   /// **'You don\'t have permission to do that.'**
   String get errorPermissionDenied;
 
+  /// No description provided for @errorMediaPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera or photo access is off. Please allow it in Settings and try again.'**
+  String get errorMediaPermissionDenied;
+
   /// No description provided for @errorImageTooLarge.
   ///
   /// In en, this message translates to:

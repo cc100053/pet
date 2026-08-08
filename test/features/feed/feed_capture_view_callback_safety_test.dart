@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
@@ -131,5 +132,98 @@ void main() {
 
     expect(reportedErrors, isEmpty);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('surfaces denied camera access as a permission message', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: FeedCaptureView(
+            roomId: 'room-1',
+            pickImage: (_) async =>
+                throw PlatformException(code: 'camera_access_denied'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded));
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(FeedCaptureView)),
+    )!;
+    expect(find.text(l10n.errorMediaPermissionDenied), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stays silent when a pick is cancelled by a second request', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: FeedCaptureView(
+            roomId: 'room-1',
+            pickImage: (_) async =>
+                throw PlatformException(code: 'multiple_request'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.photo_library_rounded));
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(FeedCaptureView)),
+    )!;
+    expect(find.text(l10n.errorMediaPermissionDenied), findsNothing);
+    expect(find.text(l10n.errorUnexpected), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('does not start a second pick while one is in flight', (
+    WidgetTester tester,
+  ) async {
+    final pickerCompleter = Completer<XFile?>();
+    var pickCount = 0;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: FeedCaptureView(
+            roomId: 'room-1',
+            pickImage: (_) {
+              pickCount++;
+              return pickerCompleter.future;
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.photo_library_rounded));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded));
+    await tester.pump();
+
+    expect(pickCount, 1);
+
+    pickerCompleter.complete(null);
+    await tester.pumpAndSettle();
+
+    // The guard releases once the in-flight request settles.
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded));
+    await tester.pump();
+    expect(pickCount, 2);
   });
 }

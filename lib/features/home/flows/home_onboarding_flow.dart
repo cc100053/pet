@@ -394,9 +394,30 @@ extension _HomeOnboardingFlow on _HomeViewState {
       return;
     }
 
-    final image = await _onboardingProfileImagePicker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final XFile? image;
+    try {
+      // Only the pixels are needed, and skipping full metadata keeps iOS on
+      // the permission-free PHPicker path.
+      image = await _onboardingProfileImagePicker.pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+      );
+    } on PlatformException catch (error, stackTrace) {
+      // A request cancelled by a competing one is not a user-visible failure;
+      // the surviving request still delivers a result.
+      if (error.code == 'multiple_request' || !mounted) {
+        return;
+      }
+      _setStateForOnboarding(() {
+        _onboardingProfileError = userFacingError(
+          context,
+          error,
+          stackTrace: stackTrace,
+          source: 'home_onboarding_pick_avatar',
+        );
+      });
+      return;
+    }
     if (image == null) {
       return;
     }

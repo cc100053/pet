@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/errors/user_facing_error.dart';
@@ -68,6 +69,28 @@ void main() {
           const PostgrestException(message: 'denied', code: '42501'),
         ),
         UserFacingErrorCategory.permissionDenied,
+      );
+    });
+
+    test('maps image_picker access codes to the media-permission category', () {
+      for (final code in const <String>[
+        'camera_access_denied',
+        'camera_access_restricted',
+        'photo_access_denied',
+        'photo_access_restricted',
+      ]) {
+        expect(
+          classifyUserFacingError(PlatformException(code: code)),
+          UserFacingErrorCategory.mediaPermissionDenied,
+          reason: code,
+        );
+      }
+    });
+
+    test('leaves other platform codes unexpected', () {
+      expect(
+        classifyUserFacingError(PlatformException(code: 'create_error')),
+        UserFacingErrorCategory.unexpected,
       );
     });
 

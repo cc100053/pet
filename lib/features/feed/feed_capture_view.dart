@@ -86,6 +86,7 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
   XFile? _selectedImage;
 
   bool _sending = false;
+  bool _picking = false;
   String? _error;
 
   @override
@@ -100,7 +101,14 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    // The picker is a single native resource: a second request while one is
+    // in flight makes image_picker fail the *first* one with
+    // `multiple_request`, so serialize here instead of relying on taps.
+    if (_picking) {
+      return;
+    }
     setState(() {
+      _picking = true;
       _error = null;
     });
 
@@ -113,13 +121,24 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
     try {
       image =
           await (widget.pickImage?.call(source) ??
-              _picker.pickImage(source: source));
+              _picker.pickImage(
+                source: source,
+                // We only need the pixels. Asking for full metadata makes iOS
+                // take the legacy PHPhotoLibrary path, which prompts for (and
+                // can be denied) photo-library permission we do not need.
+                requestFullMetadata: false,
+              ));
       if (image == null) {
         return;
       }
       previewBytes = await image.readAsBytes();
     } catch (error, stackTrace) {
       if (!mounted) {
+        return;
+      }
+      // A request cancelled by a competing one is not a failure the user did
+      // anything about; the surviving request still delivers a result.
+      if (error is PlatformException && error.code == 'multiple_request') {
         return;
       }
       setState(() {
@@ -131,6 +150,12 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
         );
       });
       return;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _picking = false;
+        });
+      }
     }
 
     if (!mounted) {
@@ -391,7 +416,7 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                           label: l10n.commonGallery,
                                           icon: Icons.photo_library_rounded,
                                           color: const Color(0xFFFFBE8A),
-                                          onTap: _sending
+                                          onTap: _sending || _picking
                                               ? null
                                               : () => _pickImage(
                                                   ImageSource.gallery,
@@ -404,7 +429,7 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                           label: l10n.commonCamera,
                                           icon: Icons.photo_camera_rounded,
                                           color: const Color(0xFF8ED0A9),
-                                          onTap: _sending
+                                          onTap: _sending || _picking
                                               ? null
                                               : () => _pickImage(
                                                   ImageSource.camera,

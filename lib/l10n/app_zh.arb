@@ -228,6 +228,7 @@
   "errorNetwork": "网络異常，请检查连接後再試一次。",
   "errorNotFound": "找不到指定資料。",
   "errorPermissionDenied": "你沒有权限執行这个操作。",
+  "errorMediaPermissionDenied": "相机或照片存取权限已关闭，请到设定中允许后再试一次。",
   "errorImageTooLarge": "图片档案太大，请选择较小的图片。",
   "errorPetNameInvalid": "这个宠物名称不可用，请換一個名称。",
   "errorUnexpected": "發生错误，请稍后再試。",

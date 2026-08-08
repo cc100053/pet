@@ -16,6 +16,9 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 - FCM permission/token-sync failures and handled UI errors report non-fatals to
   Crashlytics. `UncleanExitService` detects likely OOM/process kills on the
   next launch.
+- `image_picker` refusals are classified by `PlatformException.code`:
+  camera/photo access codes map to `mediaPermissionDenied`, `multiple_request`
+  is a silent no-op, and picks are serialized and request no full metadata.
 - Room-photo cleanup is human-reviewed/fail-closed; GEOFlow/hosting lives in
   `/Users/fatboy/geo-marketing`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
@@ -27,7 +30,8 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 - Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
 - Implement Sign in with Apple token revocation on account deletion.
 - Confirm Crashlytics receives Firebase Apple SPM dSYMs and real
-  `unclean_exit` non-fatals; then triage handled-error `unexpected` categories.
+  `unclean_exit` non-fatals; then triage the remaining handled-error
+  `unexpected` categories (`image_picker` refusals are now classified).
 - Instrument remaining best-effort bare catches opportunistically with
   `reportSwallowedError(...)`.
 - Smoke-test iOS ads after the `google_mobile_ads` 8.0.0 upgrade.

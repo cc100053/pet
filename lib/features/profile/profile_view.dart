@@ -349,11 +349,33 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Future<XFile?> _pickAvatar() async {
-    final image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image == null) {
+    try {
+      // Avatars only need the pixels, and skipping full metadata keeps iOS on
+      // the permission-free PHPicker path.
+      return await _picker.pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+      );
+    } on PlatformException catch (error, stackTrace) {
+      // The picker rejects a request while another is in flight; that is the
+      // competing request's problem, not something to report to the user.
+      if (error.code == 'multiple_request') {
+        return null;
+      }
+      if (mounted) {
+        showJuiceToast(
+          context: context,
+          message: userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'profile_pick_avatar',
+          ),
+          tone: AppDialogTone.danger,
+        );
+      }
       return null;
     }
-    return image;
   }
 
   bool _isRemoteAvatarUrl(String? avatarUrl) {
