@@ -289,6 +289,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const int _freePlanRoomLimit = 2;
   static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
+
   /// How long a cold room entry may run before the full-screen entry overlay
   /// takes over. Under this, the room scaffold itself is a better placeholder —
   /// it paints the real background and shows a small spinner in the pet's place
@@ -936,7 +937,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       }
       // A key from a newer build (or a since-removed background) must not be
       // resurrected as the default — drop anything this build cannot render.
-      if (backgroundKey.isEmpty || !RoomBackgrounds.supportsKey(backgroundKey)) {
+      if (backgroundKey.isEmpty ||
+          !RoomBackgrounds.supportsKey(backgroundKey)) {
         continue;
       }
       _cachedBackgroundKeyByRoom[roomId] = backgroundKey;
@@ -2147,8 +2149,20 @@ class _HomeViewState extends ConsumerState<HomeView>
         state: isStaleSnapshot ? _petState : normalizedState,
       );
       unawaited(_loadPetEquipment(petId: petId, roomId: roomId, silent: true));
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) {
+        return;
+      }
+      // A refresh is a revalidation of state the user can already see. Letting
+      // a transient failure paint an error over a good pet is the same mistake
+      // as replacing a bootstrap snapshot with a stale-room summary: report it,
+      // but only surface it when there is nothing on screen to fall back to.
+      if (_petStateReady && _petState != null) {
+        reportSwallowedError(
+          error,
+          stackTrace,
+          source: 'home_refresh_pet_state',
+        );
         return;
       }
       setState(

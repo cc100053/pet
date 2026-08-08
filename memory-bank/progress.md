@@ -16,6 +16,11 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 - FCM permission/token-sync failures and handled UI errors report non-fatals to
   Crashlytics. `UncleanExitService` detects likely OOM/process kills on the
   next launch.
+- `tick_pet_state` no longer probes `pg_timezone_names` (a ~792 ms system-view
+  scan per call) — that was the source of `57014` statement timeouts in Home.
+  Six sibling functions still carry the same probe; see `docs/release_status.md`.
+- A failed `_refreshPetState` no longer replaces pet state the user can already
+  see; it reports through `reportSwallowedError` instead.
 - `image_picker` refusals are classified by `PlatformException.code`:
   camera/photo access codes map to `mediaPermissionDenied`, `multiple_request`
   is a silent no-op, and picks are serialized and request no full metadata.

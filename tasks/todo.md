@@ -4,6 +4,14 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260804_pre_compaction.md`.
 
+## Plan (2026-08-08 Pet Refresh Timeout And Unclean Exit Triage)
+- [x] Trace the `userFacingError` / `_refreshPetState` non-fatal to the RPC that
+      actually timed out.
+- [x] Stop a failed refresh from replacing pet state the user can already see.
+- [x] Remove the `pg_timezone_names` probe from `tick_pet_state` and deploy it.
+- [x] Assess the `UncleanExitService` non-fatal (working as designed; no code
+      change).
+
 ## Plan (2026-08-08 Image Picker Non-Fatal Triage)
 - [x] Trace the `ImagePickerApi.pickImage` non-fatal to the pigeon throw site
       and enumerate the native codes it can carry.
@@ -31,8 +39,16 @@ Current follow-ups and the active session only. Historical task logs live in
       logs.
 - [ ] Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
 - [ ] Implement Sign in with Apple token revocation on account deletion.
-- [ ] Confirm Crashlytics receives Firebase Apple SPM dSYMs and real
-      `unclean_exit` events.
+- [x] Confirm Crashlytics receives Firebase Apple SPM dSYMs and real
+      `unclean_exit` events. Confirmed 2026-08-08: issue
+      `5fd6c8464435fdf77b3ad723f3085fff` is a genuine foreground OOM on
+      2.3.3+16 with `memoryWarnings=2`.
+- [ ] Reduce simultaneously-live chat images: `liveImageCount` reached 96
+      against the 80-entry `ImageCache` cap, and live images cannot be evicted.
+- [ ] Remove the `pg_timezone_names` probe from the six remaining functions
+      (`get_effective_room_pet_statuses`, `apply_pet_action`,
+      `apply_room_pet_action`, `create_room`,
+      `compute_pet_hunger_next_check_at`, `ensure_room_owner`).
 - [ ] Smoke-test iOS banner/rewarded ads after `google_mobile_ads` 8.0.0.
 - [ ] Decide whether to track Supabase Edge Function deployment config; no
       checked-in `supabase/config.toml` currently exists.
@@ -49,6 +65,32 @@ Current follow-ups and the active session only. Historical task logs live in
   footers preserved. The release session recorded successful `flutter gen-l10n`,
   metadata terms, analyzer, and full test checks (588 passed).
 - Full prior task state: `tasks/archive/todo_20260804_pre_compaction.md`.
+
+## Review (2026-08-08 Pet Refresh Timeout And Unclean Exit Triage)
+- Issue `0183b64515477452f62329d7d3a83a4f` (`PostgrestException 57014` at
+  `home_view.dart:2154`) had two independent defects. Server: `tick_pet_state`
+  probed `pg_timezone_names` once per call at ~792 ms, blowing the
+  `authenticated` role's 8 s `statement_timeout` — 71,502 calls, 757 ms mean,
+  54,165 s cumulative, the largest single consumer of DB time on the project.
+  App: the `catch` replaced a perfectly good on-screen pet with an error banner
+  on any transient refresh failure.
+- Both are fixed. Migration `20260808130000` is applied to production (live
+  `20260808131528`); see `docs/release_status.md` for the contract inventory,
+  the before/after measurements, and the live-traffic verification still owed.
+- Six sibling functions carry the identical `pg_timezone_names` probe and are
+  the next-largest slow queries. Deliberately out of scope for this pass since
+  they are not in the reported traces; each needs its own timezone-usage check.
+- Issue `5fd6c8464435fdf77b3ad723f3085fff` (`UncleanExitException`) is **not a
+  bug**. It is `UncleanExitService` doing exactly its job: `previous_exit:
+  foregroundUnclean`, `memoryWarnings=2`, route `MaterialPageRoute<dynamic>`,
+  `diag_snapshot_route: chat_room_view_v2`, `diag_image_cache_live: 96` against
+  an 80-entry cap, `diag_image_cache_bytes: 53 MB` against a 64 MB cap. It is
+  the confirmation the memory-bank open item asked for. Left OPEN and
+  unmodified: silencing it would delete the only OOM signal the app has.
+- Live images cannot be evicted by `ImageCache`, so `liveImageCount` 96 > the
+  80-entry `maximumSize` is the real memory driver. Reducing simultaneously
+  mounted chat images is the follow-up, not a reporter change.
+- `flutter analyze` clean; `flutter test` 601 passed/1 skipped.
 
 ## Review (2026-08-08 Image Picker Non-Fatal Triage)
 - The Crashlytics frame `messages.g.dart:268` is the pigeon

@@ -39,7 +39,11 @@ Compact current-state map for mandatory reads. Full snapshots live in
   candidates before network refresh. Home and room selection share cached
   status snapshots and revalidate through `get_effective_room_pet_statuses`.
 - Room fetch failures retry/degrade to stale summaries without replacing a
-  successful bootstrap snapshot. Retryable network/auth failures remain
+  successful bootstrap snapshot. Pet-state refreshes follow the same rule: a
+  failed refresh keeps the visible pet and reports silently.
+- Never probe `pg_timezone_names` in an RPC. It rescans the whole tz database
+  (~792 ms/call here); `at time zone` validates the zone for free by raising
+  `22023`. Retryable network/auth failures remain
   non-fatal; only genuine fatal errors activate `CrashUpdateGuard`.
 - `userFacingError(...)` is the handled-error choke point: it localizes,
   classifies, deduplicates, and reports non-fatals. Bespoke visible copy uses
