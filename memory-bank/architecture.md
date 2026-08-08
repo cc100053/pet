@@ -43,7 +43,8 @@ Compact current-state map for mandatory reads. Full snapshots live in
   failed refresh keeps the visible pet and reports silently.
 - Never probe `pg_timezone_names` in an RPC. It rescans the whole tz database
   (~792 ms/call here); `at time zone` validates the zone for free by raising
-  `22023`. Retryable network/auth failures remain
+  `22023`. Use `public.normalize_timezone(text)` — required in `LANGUAGE sql`
+  bodies, which cannot carry an exception handler. Retryable network/auth failures remain
   non-fatal; only genuine fatal errors activate `CrashUpdateGuard`.
 - `userFacingError(...)` is the handled-error choke point: it localizes,
   classifies, deduplicates, and reports non-fatals. Bespoke visible copy uses

@@ -4,6 +4,13 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260804_pre_compaction.md`.
 
+## Plan (2026-08-08 Remaining pg_timezone_names Probes)
+- [x] Rewrite the six remaining probing functions behind a shared
+      `public.normalize_timezone(text)` and deploy them.
+- [x] Snapshot the old definitions first, then diff post-apply to prove only
+      the probe changed, and verify grants/volatility/signatures survived.
+- [x] Time each deployed function against real rows in aborted transactions.
+
 ## Plan (2026-08-08 Pet Refresh Timeout And Unclean Exit Triage)
 - [x] Trace the `userFacingError` / `_refreshPetState` non-fatal to the RPC that
       actually timed out.
@@ -45,10 +52,10 @@ Current follow-ups and the active session only. Historical task logs live in
       2.3.3+16 with `memoryWarnings=2`.
 - [ ] Reduce simultaneously-live chat images: `liveImageCount` reached 96
       against the 80-entry `ImageCache` cap, and live images cannot be evicted.
-- [ ] Remove the `pg_timezone_names` probe from the six remaining functions
-      (`get_effective_room_pet_statuses`, `apply_pet_action`,
-      `apply_room_pet_action`, `create_room`,
-      `compute_pet_hunger_next_check_at`, `ensure_room_owner`).
+- [x] Remove the `pg_timezone_names` probe from the six remaining functions.
+      Done 2026-08-08 via `20260808150000`; 0 functions in `public` still probe.
+- [ ] Drop the rollback snapshot once `20260808150000` has soaked:
+      `drop schema tz_probe_rollback cascade;`
 - [ ] Smoke-test iOS banner/rewarded ads after `google_mobile_ads` 8.0.0.
 - [ ] Decide whether to track Supabase Edge Function deployment config; no
       checked-in `supabase/config.toml` currently exists.
@@ -65,6 +72,28 @@ Current follow-ups and the active session only. Historical task logs live in
   footers preserved. The release session recorded successful `flutter gen-l10n`,
   metadata terms, analyzer, and full test checks (588 passed).
 - Full prior task state: `tasks/archive/todo_20260804_pre_compaction.md`.
+
+## Review (2026-08-08 Remaining pg_timezone_names Probes)
+- All six rewritten and applied as `20260808150000`. `public` now has **0**
+  functions with an executable `pg_timezone_names` reference.
+- `get_effective_room_pet_statuses` was the worst of the group and the reason
+  the room picker was slow: being `LANGUAGE sql`, its probe sat in a lateral
+  join and ran once per requested room. It also cannot carry an inline
+  exception handler, which is why the fallback became a shared
+  `public.normalize_timezone(text)` rather than six inlined blocks.
+- Measured on the deployed functions, all inside aborted transactions:
+  `get_effective_room_pet_statuses` ~7 ms over 5 rooms (was 1,652 ms mean),
+  `apply_pet_action` ~4–5 ms (was 588 ms), `apply_room_pet_action` ~14 ms,
+  `create_room` ~96 ms (was 967 ms), `compute_pet_hunger_next_check_at`
+  ~0.6 ms. `create_room` persisted the caller's real `Asia/Taipei` profile zone,
+  which is the check that matters for the two functions that *store* the
+  normalized value rather than just reading it.
+- Snapshot-then-diff showed zero unrelated changes across all six, and
+  signature/`prosecdef`/volatility/grants byte-identical. `create or replace`
+  (never drop/create) is what preserves the tightened `apply_pet_action` ACL.
+- Rollback snapshot `tz_probe_rollback.snapshot_20260808` intentionally left in
+  place; dropping it is tracked as a follow-up.
+- `flutter analyze` clean; `flutter test` 608 passed/1 skipped.
 
 ## Review (2026-08-08 Pet Refresh Timeout And Unclean Exit Triage)
 - Issue `0183b64515477452f62329d7d3a83a4f` (`PostgrestException 57014` at

@@ -16,9 +16,10 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 - FCM permission/token-sync failures and handled UI errors report non-fatals to
   Crashlytics. `UncleanExitService` detects likely OOM/process kills on the
   next launch.
-- `tick_pet_state` no longer probes `pg_timezone_names` (a ~792 ms system-view
-  scan per call) — that was the source of `57014` statement timeouts in Home.
-  Six sibling functions still carry the same probe; see `docs/release_status.md`.
+- No function in `public` probes `pg_timezone_names` any more (a ~792 ms
+  system-view scan per call, the source of `57014` statement timeouts).
+  `public.normalize_timezone(text)` is the shared UTC fallback. A rollback
+  snapshot lives in `tz_probe_rollback.snapshot_20260808`; drop it once soaked.
 - A failed `_refreshPetState` no longer replaces pet state the user can already
   see; it reports through `reportSwallowedError` instead.
 - `image_picker` refusals are classified by `PlatformException.code`:
