@@ -13,6 +13,8 @@ Current follow-ups and the active session only. Historical task logs live in
       gallery picks no longer need photo-library permission.
 - [x] Cover the new behavior with tests; run `dart format`, `flutter analyze`,
       and `flutter test`.
+- [x] Register the Firebase MCP wrapper with Claude Code and confirm the actual
+      Crashlytics code for issue `52a65b49f33a2938c9b1a123895d063e`.
 
 ## Plan (2026-08-04 Agent Docs And Memory Optimization)
 - [x] Audit `AGENTS.md`, active memory, task notes, repo-local workflows, and
@@ -71,6 +73,23 @@ Current follow-ups and the active session only. Historical task logs live in
 - `dart format`, `flutter analyze` (no issues), and `flutter test` (593 passed,
   1 skipped Supabase integration test) all pass. `flutter gen-l10n` still
   reports only the three pre-existing untranslated messages in ko and zh_TW.
+- Crashlytics confirmed the code afterwards: issue
+  `52a65b49f33a2938c9b1a123895d063e` is
+  `PlatformException(multiple_request, Cancelled by a second request)`, thrown
+  from `ui_error:feed_pick_image`. One event, one user, 2.3.3+16, iPhone 15 Pro
+  on iOS 26.5.2, 2026-08-08T07:21:31Z; the event log shows `route_push
+  MaterialPageRoute` five seconds earlier, i.e. a second tap on the capture
+  sheet. It is the only `image_picker` issue in the last 90 days, and no
+  camera/photo access-denied events exist, so the `_picking` guard addresses
+  the observed cause and the permission classification is pre-emptive.
+- Diagnosis recorded as a Crashlytics note on that issue. The fix ships after
+  2.3.3+16, so the issue should be left OPEN until a build carrying `de0454e`
+  has soaked.
+- Firebase MCP now works from Claude Code too: registered the existing
+  `scripts/start_firebase_mcp_crashlytics.sh` wrapper via `claude mcp add`
+  (local scope, `~/.claude.json`) and documented it as step 4 in
+  `docs/firebase_crashlytics_mcp_workflow.md`. ADC and the service-account key
+  were already in place; nothing new was stored in the repo.
 
 ## Review (2026-08-04 Agent Docs And Memory Optimization)
 - Added repo-grounded handled-error and OOM/process-kill guidance to

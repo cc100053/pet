@@ -61,10 +61,25 @@ Notes:
 - The wrapper loads `.firebase-mcp.env` if present, validates `GOOGLE_APPLICATION_CREDENTIALS`, and then starts `firebase mcp --dir /Users/fatboy/pet --only core,crashlytics`.
 - This avoids depending on expiring `firebase login` user credentials.
 
-### 4. Restart Codex
+### 4. Add the same wrapper to Claude Code
+
+Claude Code keeps its own MCP registry, so the Codex block in
+`~/.codex/config.toml` does not apply to it. Register the same wrapper once:
+
+```sh
+claude mcp add firebase-pet --scope local -- /Users/fatboy/pet/scripts/start_firebase_mcp_crashlytics.sh
+```
+
+This writes to `~/.claude.json` under the `/Users/fatboy/pet` project, so it is
+scoped to this repo and stays out of version control. Verify with
+`claude mcp list`; the server is only loaded into a session that starts after
+the registration, so restart the session before using the tools.
+
+### 5. Restart the agent session
 [USER ACTION REQUIRED]
 
-Restart the Codex app/session after editing `~/.codex/config.toml` so the new MCP server is loaded.
+Restart the Codex app/session after editing `~/.codex/config.toml`, and start a
+new Claude Code session after `claude mcp add`, so the new MCP server loads.
 
 ## Local verification
 
