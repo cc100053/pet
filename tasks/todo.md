@@ -54,8 +54,7 @@ Current follow-ups and the active session only. Historical task logs live in
       against the 80-entry `ImageCache` cap, and live images cannot be evicted.
 - [x] Remove the `pg_timezone_names` probe from the six remaining functions.
       Done 2026-08-08 via `20260808150000`; 0 functions in `public` still probe.
-- [ ] Drop the rollback snapshot once `20260808150000` has soaked:
-      `drop schema tz_probe_rollback cascade;`
+- [x] Drop the rollback snapshot. Done 2026-08-08 on request.
 - [ ] Smoke-test iOS banner/rewarded ads after `google_mobile_ads` 8.0.0.
 - [ ] Decide whether to track Supabase Edge Function deployment config; no
       checked-in `supabase/config.toml` currently exists.
@@ -91,8 +90,9 @@ Current follow-ups and the active session only. Historical task logs live in
 - Snapshot-then-diff showed zero unrelated changes across all six, and
   signature/`prosecdef`/volatility/grants byte-identical. `create or replace`
   (never drop/create) is what preserves the tightened `apply_pet_action` ACL.
-- Rollback snapshot `tz_probe_rollback.snapshot_20260808` intentionally left in
-  place; dropping it is tracked as a follow-up.
+- Rollback snapshot `tz_probe_rollback.snapshot_20260808` was dropped on
+  request once verification was complete. The revert source is now git alone:
+  the pre-change definitions live in the migrations this one supersedes.
 - `flutter analyze` clean; `flutter test` 608 passed/1 skipped.
 
 ## Review (2026-08-08 Pet Refresh Timeout And Unclean Exit Triage)

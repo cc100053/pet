@@ -18,8 +18,7 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
   next launch.
 - No function in `public` probes `pg_timezone_names` any more (a ~792 ms
   system-view scan per call, the source of `57014` statement timeouts).
-  `public.normalize_timezone(text)` is the shared UTC fallback. A rollback
-  snapshot lives in `tz_probe_rollback.snapshot_20260808`; drop it once soaked.
+  `public.normalize_timezone(text)` is the shared UTC fallback.
 - A failed `_refreshPetState` no longer replaces pet state the user can already
   see; it reports through `reportSwallowedError` instead.
 - `image_picker` refusals are classified by `PlatformException.code`:
