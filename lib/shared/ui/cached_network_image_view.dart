@@ -250,8 +250,16 @@ class _PortraitAwareImageState extends State<_PortraitAwareImage> {
     );
     final listener = ImageStreamListener(
       (imageInfo, _) {
+        // Every listener is handed its *own* clone of the image, and the
+        // receiver owns it. This listener only needs the dimensions, so the
+        // clone is released immediately. Leaking it instead pins the decoded
+        // buffer for the rest of the session: the handle keeps the completer
+        // in `imageCache.liveImageCount`, and eviction from the byte-capped
+        // cache frees nothing while a handle is open. That is what let live
+        // images climb past 90 while `currentSizeBytes` sat at the 64 MB cap.
         final width = imageInfo.image.width.toDouble();
         final height = imageInfo.image.height.toDouble();
+        imageInfo.dispose();
         if (height <= 0 || !mounted) {
           return;
         }

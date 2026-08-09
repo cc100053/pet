@@ -156,6 +156,88 @@ void main() {
     expect(result!.alignment, Alignment.center);
     expect(result!.scale, 1);
   });
+
+  // Regression: the aspect-ratio listener reads the image dimensions and must
+  // release the ImageInfo clone it is handed. Each listener receives its own
+  // clone and owns it, so an undisposed one keeps the decoded buffer allocated
+  // for the rest of the process. Repeated across every rendered photo this is
+  // an unbounded leak, and it is what drove the foreground OOM kills reported
+  // as Crashlytics issue 5fd6c8464435fdf77b3ad723f3085fff.
+  testWidgets('releases the image handle taken to measure aspect ratio', (
+    tester,
+  ) async {
+    final tracker = _ImageInfoTracker();
+    addTearDown(tracker.stop);
+
+    final image = await _testImage(width: 2, height: 1);
+    await _pumpHarness(tester, imageProvider: image, onResult: (_) {});
+
+    Future<void> openAndClose() async {
+      await tester.tap(find.byKey(const ValueKey<String>('open-editor')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey<String>('avatar-editor-cancel-button')),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    // The image cache legitimately retains the completer's own ImageInfo, so
+    // the absolute count is not zero. What must not happen is *growth*: the
+    // provider and its cache entry are identical every time, so a session that
+    // opens the editor repeatedly must not accumulate image handles.
+    await openAndClose();
+    final baseline = tracker.outstanding;
+
+    for (var i = 0; i < 4; i += 1) {
+      await openAndClose();
+    }
+
+    expect(
+      tracker.outstanding,
+      baseline,
+      reason:
+          'resolving the same image 5 times left '
+          '${tracker.outstanding - baseline} extra undisposed ImageInfo '
+          'handles; each one pins a decoded image for the whole session',
+    );
+  });
+}
+
+/// Counts `ImageInfo` objects created and disposed, so a test can assert that
+/// none outlive the widgets that resolved them.
+class _ImageInfoTracker {
+  _ImageInfoTracker() {
+    if (!kFlutterMemoryAllocationsEnabled) {
+      return;
+    }
+    _listening = true;
+    FlutterMemoryAllocations.instance.addListener(_onEvent);
+  }
+
+  int created = 0;
+  int disposed = 0;
+  bool _listening = false;
+
+  int get outstanding => created - disposed;
+
+  void _onEvent(ObjectEvent event) {
+    if (event.object is! ImageInfo) {
+      return;
+    }
+    if (event is ObjectCreated) {
+      created += 1;
+    } else if (event is ObjectDisposed) {
+      disposed += 1;
+    }
+  }
+
+  void stop() {
+    if (!_listening) {
+      return;
+    }
+    _listening = false;
+    FlutterMemoryAllocations.instance.removeListener(_onEvent);
+  }
 }
 
 Future<void> _pumpHarness(

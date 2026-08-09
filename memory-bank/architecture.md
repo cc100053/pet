@@ -56,6 +56,12 @@ Compact current-state map for mandatory reads. Full snapshots live in
   startup. Lifecycle transitions flush the sentinel box, and the report carries
   `last_resumed_at` alongside `session_started_at` so a long-suspended session
   that died on resume is distinguishable from one that grew until it was killed.
+- An `ImageStreamListener` is handed its own `ImageInfo` clone and **owns** it:
+  read the dimensions, then call `imageInfo.dispose()`. Leaking one pins that
+  decoded image for the life of the process, and no cache cap can reclaim it —
+  eviction frees nothing while a handle is open. This was the root cause of the
+  foreground OOM kills; measure aspect ratios through the already-sized provider
+  and never through a bare `NetworkImage`.
 - Image-cache trim thresholds are fractions of the *configured* caps
   (`MemoryDiagnosticsService.imageCacheSoftTrimFraction` / `...HardTrimFraction`),
   never absolute bytes: absolute thresholds silently outran the 64 MB cap in

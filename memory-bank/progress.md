@@ -19,6 +19,10 @@ latest: `memory-bank/archive/progress_20260804_pre_compaction.md`.
 - FCM permission/token-sync failures and handled UI errors report non-fatals to
   Crashlytics. `UncleanExitService` detects likely OOM/process kills on the
   next launch.
+- Root cause of the OOM kills was an `ImageInfo` handle leak: the aspect-ratio
+  listeners in `CachedNetworkImageView`, `AvatarPositionEditorPage`, and
+  `ImageAspectCache` never disposed the clone each listener owns, so every photo
+  rendered pinned its decoded buffer for the session. Fixed at all three sites.
 - iOS memory warnings now release memory (image cache plus the live-image set)
   instead of only logging, image-cache trim thresholds are fractions of the
   configured caps and also weigh live images, and unclean-exit reports carry

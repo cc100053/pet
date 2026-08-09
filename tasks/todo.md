@@ -51,6 +51,10 @@ Current follow-ups and the active session only. Historical task logs live in
 - [x] Record `last_resumed_at` and flush the sentinel on lifecycle change so
       foreground/background classification is auditable.
 - [x] `dart format`, `flutter analyze` (clean), `flutter test` (612 pass).
+- [x] Root-cause the OOM: undisposed `ImageInfo` clones in the aspect-ratio
+      listeners, pinning every rendered photo's decoded buffer for the session.
+      Fixed in `CachedNetworkImageView`, `AvatarPositionEditorPage`, and
+      `ImageAspectCache`, with a growth-based regression test.
 - [ ] Decide the release vehicle: 2.3.4 build 17 is already uploaded and
       attached at ASC, so shipping this needs a new build.
 
@@ -66,11 +70,18 @@ Current follow-ups and the active session only. Historical task logs live in
       `unclean_exit` events. Confirmed 2026-08-08: issue
       `5fd6c8464435fdf77b3ad723f3085fff` is a genuine foreground OOM on
       2.3.3+16 with `memoryWarnings=2`.
-- [ ] Reduce simultaneously-live chat images: `liveImageCount` reached 96
+- [x] Reduce simultaneously-live chat images: `liveImageCount` reached 96
       against the 80-entry `ImageCache` cap, and live images cannot be evicted.
-      Partly mitigated 2026-08-10 (pressure now clears the live set and trim
-      weighs live images), but the root cause stands: ~3.5 MB decoded per chat
-      bubble at DPR 3, and the live set spans rooms across a room switch.
+      Root-caused 2026-08-10 to undisposed `ImageInfo` clones in the three
+      aspect-ratio listeners; each rendered photo pinned its decoded buffer for
+      the session, which is why live count grew without bound while
+      `currentSizeBytes` sat pinned at the cap.
+- [ ] Add a leak regression test for `CachedNetworkImageView` (the high-volume
+      path). The equivalent test exists for `AvatarPositionEditorPage`, which
+      takes an injectable provider; driving `CachedNetworkImage` needs a stub
+      cache manager serving a real file and the attempt hung in `flutter test`
+      (cause not yet identified — possibly a rebuild loop in the stub, possibly
+      real).
 - [x] Remove the `pg_timezone_names` probe from the six remaining functions.
       Done 2026-08-08 via `20260808150000`; 0 functions in `public` still probe.
 - [x] Drop the rollback snapshot. Done 2026-08-08 on request.

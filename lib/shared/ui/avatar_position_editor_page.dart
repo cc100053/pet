@@ -87,8 +87,12 @@ class _AvatarPositionEditorPageState extends State<AvatarPositionEditorPage> {
       createLocalImageConfiguration(context),
     );
     final listener = ImageStreamListener((imageInfo, _) {
+      // The listener owns this clone; release it once the dimensions are read
+      // or it pins the decoded image for the rest of the session. Dispose
+      // before the `mounted` guard so an unmounted editor still frees it.
       final width = imageInfo.image.width.toDouble();
       final height = imageInfo.image.height.toDouble();
+      imageInfo.dispose();
       if (!mounted || width <= 0 || height <= 0) {
         return;
       }
