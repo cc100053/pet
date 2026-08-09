@@ -53,7 +53,19 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - OOM/SIGKILL cannot be caught in-process. `UncleanExitService` reports likely
   resumed-state kills on the next launch using a Hive sentinel, memory-warning
   context, and Android exit reasons. Keep Hive initialization before sentinel
-  startup.
+  startup. Lifecycle transitions flush the sentinel box, and the report carries
+  `last_resumed_at` alongside `session_started_at` so a long-suspended session
+  that died on resume is distinguishable from one that grew until it was killed.
+- Image-cache trim thresholds are fractions of the *configured* caps
+  (`MemoryDiagnosticsService.imageCacheSoftTrimFraction` / `...HardTrimFraction`),
+  never absolute bytes: absolute thresholds silently outran the 64 MB cap in
+  `main.dart` and disabled trimming entirely. Trim decisions also weigh
+  `liveImageCount` against `maximumSize`, because live images are pinned by
+  mounted widgets and are not counted against the byte budget.
+- Flutter already clears the image cache on an iOS memory warning but never the
+  live set; `SystemMemoryPressureService` answers each warning through
+  `MemoryDiagnosticsService.releaseUnderMemoryPressure(...)` so pressure frees
+  memory instead of only recording telemetry.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
 
 ## Backend And Platform

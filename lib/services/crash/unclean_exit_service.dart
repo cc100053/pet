@@ -58,6 +58,7 @@ class UncleanExitService with WidgetsBindingObserver {
   static const String _memoryWarningCountKey = 'memory_warning_count';
   static const String _appVersionKey = 'app_version';
   static const String _startedAtKey = 'started_at_iso';
+  static const String _lastResumedAtKey = 'last_resumed_at_iso';
 
   Box<dynamic>? _box;
   bool _initialized = false;
@@ -102,8 +103,9 @@ class UncleanExitService with WidgetsBindingObserver {
       return;
     }
     try {
-      final info = await _exitReasonChannel
-          .invokeMapMethod<String, dynamic>('getLastExitReason');
+      final info = await _exitReasonChannel.invokeMapMethod<String, dynamic>(
+        'getLastExitReason',
+      );
       if (info == null) {
         return;
       }
@@ -172,6 +174,7 @@ class UncleanExitService with WidgetsBindingObserver {
     final memoryWarnings = (box.get(_memoryWarningCountKey) as int?) ?? 0;
     final appVersion = (box.get(_appVersionKey) as String?) ?? 'unknown';
     final startedAt = (box.get(_startedAtKey) as String?) ?? 'unknown';
+    final lastResumedAt = (box.get(_lastResumedAtKey) as String?) ?? 'unknown';
 
     await CrashReportingService.instance.setCustomKeys(<String, Object?>{
       'previous_exit': kind.name,
@@ -179,6 +182,11 @@ class UncleanExitService with WidgetsBindingObserver {
       'previous_exit_lifecycle': lifecycle,
       'previous_exit_memory_warnings': memoryWarnings,
       'previous_exit_app_version': appVersion,
+      // `started_at` is process start, which on iOS can predate the kill by
+      // more than a day of suspend/resume cycles. Without the last resume the
+      // two are indistinguishable, and a long-suspended session that died on
+      // resume reads identically to a session that grew until it was killed.
+      'previous_exit_last_resumed_at': lastResumedAt,
     });
 
     // A backgrounded app being reclaimed is normal OS behaviour and would be
@@ -222,16 +230,19 @@ class UncleanExitService with WidgetsBindingObserver {
         'lifecycle_at_death: $lifecycle',
         'app_version: $appVersion',
         'session_started_at: $startedAt',
+        'last_resumed_at: $lastResumedAt',
       ],
     );
   }
 
   Future<void> _openSession({required String appVersion}) async {
+    final startedAt = DateTime.now().toUtc().toIso8601String();
     await _write(<String, Object?>{
       _sessionOpenKey: true,
       _lifecycleKey: 'resumed',
       _appVersionKey: appVersion,
-      _startedAtKey: DateTime.now().toUtc().toIso8601String(),
+      _startedAtKey: startedAt,
+      _lastResumedAtKey: startedAt,
       _memoryWarningCountKey: 0,
       _routeKey: CrashReportingService.instance.currentRoute,
       _featureKey: CrashReportingService.instance.currentFeature,
@@ -261,12 +272,33 @@ class UncleanExitService with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    unawaited(_write(<String, Object?>{_lifecycleKey: state.name}));
+    unawaited(_recordLifecycle(state));
     if (state == AppLifecycleState.detached) {
       // The one lifecycle callback that means an orderly shutdown.
       unawaited(_closeSession());
     }
     super.didChangeAppLifecycleState(state);
+  }
+
+  Future<void> _recordLifecycle(AppLifecycleState state) async {
+    final values = <String, Object?>{_lifecycleKey: state.name};
+    if (state == AppLifecycleState.resumed) {
+      values[_lastResumedAtKey] = DateTime.now().toUtc().toIso8601String();
+    }
+    await _write(values);
+    // The whole foreground/background classification rests on this value being
+    // on disk when the process dies. A queued write is not, and the callback is
+    // synchronous so it cannot be awaited by the framework, so force the flush
+    // here while the app still has time to run.
+    await _flush();
+  }
+
+  Future<void> _flush() async {
+    try {
+      await _box?.flush();
+    } catch (_) {
+      // Best-effort durability; a failed flush must never break the app.
+    }
   }
 
   Future<void> _closeSession() async {

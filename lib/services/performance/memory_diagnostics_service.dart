@@ -189,8 +189,14 @@ class MemoryDiagnosticsService {
 
   static final MemoryDiagnosticsService instance = MemoryDiagnosticsService._();
   static const int _maxSnapshots = 30;
-  static const int imageCacheSoftTrimThresholdBytes = 96 * 1024 * 1024;
-  static const int imageCacheHardTrimThresholdBytes = 128 * 1024 * 1024;
+
+  /// Trim thresholds are fractions of the *configured* cache limits rather than
+  /// absolute byte counts. Absolute thresholds silently stop working when the
+  /// cap moves: they were 96 MB/128 MB against a 64 MB cap, which `ImageCache`
+  /// enforces by evicting, so `currentSizeBytes` could never reach them and no
+  /// trim ever ran in production.
+  static const double imageCacheSoftTrimFraction = 0.60;
+  static const double imageCacheHardTrimFraction = 0.85;
 
   final ValueNotifier<List<MemoryDiagnosticsSnapshot>> _snapshots =
       ValueNotifier<List<MemoryDiagnosticsSnapshot>>(
@@ -287,6 +293,38 @@ class MemoryDiagnosticsService {
     );
   }
 
+  /// Frees what can be freed after the OS reports memory pressure.
+  ///
+  /// Flutter's own `PaintingBinding.handleMemoryPressure` already calls
+  /// `imageCache.clear()` on an iOS memory warning, but it never clears the
+  /// *live* image set, and live images are the ones this app accumulates: they
+  /// are pinned by mounted widgets, are not counted against
+  /// `maximumSizeBytes`, and are therefore invisible to every eviction path.
+  /// Dropping the live handles releases each decoded buffer as soon as its last
+  /// listener detaches instead of holding it for the rest of the session.
+  Future<MemoryDiagnosticsSnapshot> releaseUnderMemoryPressure({
+    required String source,
+    required String route,
+    String? roomId,
+    String? note,
+  }) async {
+    final imageCache = PaintingBinding.instance.imageCache;
+    final releasedBytes = imageCache.currentSizeBytes;
+    final releasedLiveImages = imageCache.liveImageCount;
+    imageCache.clear();
+    imageCache.clearLiveImages();
+    final detail =
+        'pressure_release'
+        ' released_bytes=$releasedBytes'
+        ' released_live=$releasedLiveImages';
+    return captureSnapshot(
+      source: source,
+      route: route,
+      roomId: roomId,
+      note: note == null || note.isEmpty ? detail : '$detail $note',
+    );
+  }
+
   Future<MemoryDiagnosticsSnapshot?> trimImageCacheIfNeeded({
     required String source,
     required String route,
@@ -295,14 +333,13 @@ class MemoryDiagnosticsService {
     int imageMessageCount = 0,
     int optimisticMessageCount = 0,
     String? note,
-    int softThresholdBytes = imageCacheSoftTrimThresholdBytes,
-    int hardThresholdBytes = imageCacheHardTrimThresholdBytes,
   }) async {
     final imageCache = PaintingBinding.instance.imageCache;
-    final action = cacheTrimActionForBytes(
-      imageCache.currentSizeBytes,
-      softThresholdBytes: softThresholdBytes,
-      hardThresholdBytes: hardThresholdBytes,
+    final action = cacheTrimAction(
+      currentSizeBytes: imageCache.currentSizeBytes,
+      maximumSizeBytes: imageCache.maximumSizeBytes,
+      liveImageCount: imageCache.liveImageCount,
+      maximumSize: imageCache.maximumSize,
     );
     if (action == null) {
       return null;
@@ -322,16 +359,30 @@ class MemoryDiagnosticsService {
     );
   }
 
+  /// Decides whether to trim, from cache *pressure* rather than raw bytes.
+  ///
+  /// Both the byte budget and the entry budget are considered, and the worse of
+  /// the two wins. The entry signal matters because live images are pinned
+  /// outside `currentSizeBytes`: a session can sit at a comfortable byte count
+  /// while holding far more decoded images than the cap nominally allows, which
+  /// is exactly the shape of the observed OOM sessions (96 live images against
+  /// an 80-entry cap).
   @visibleForTesting
-  static String? cacheTrimActionForBytes(
-    int currentSizeBytes, {
-    int softThresholdBytes = imageCacheSoftTrimThresholdBytes,
-    int hardThresholdBytes = imageCacheHardTrimThresholdBytes,
+  static String? cacheTrimAction({
+    required int currentSizeBytes,
+    required int maximumSizeBytes,
+    required int liveImageCount,
+    required int maximumSize,
   }) {
-    if (currentSizeBytes < softThresholdBytes) {
+    final byteRatio = maximumSizeBytes > 0
+        ? currentSizeBytes / maximumSizeBytes
+        : 0.0;
+    final entryRatio = maximumSize > 0 ? liveImageCount / maximumSize : 0.0;
+    final ratio = byteRatio > entryRatio ? byteRatio : entryRatio;
+    if (ratio < imageCacheSoftTrimFraction) {
       return null;
     }
-    return currentSizeBytes >= hardThresholdBytes ? 'hard_trim' : 'soft_trim';
+    return ratio >= imageCacheHardTrimFraction ? 'hard_trim' : 'soft_trim';
   }
 
   void clearDebugSnapshots() {

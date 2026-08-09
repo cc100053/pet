@@ -39,9 +39,25 @@ Current follow-ups and the active session only. Historical task logs live in
 - [x] Run diff, analyzer, and test verification; document results and line-count
       changes before committing logical groups.
 
+## Plan (2026-08-10 OOM Non-Fatal Remediation)
+- [x] Re-triage `5fd6c8464435fdf77b3ad723f3085fff`; confirm 2.3.4+17 does not
+      address it (it carries the DB perf and image-picker fixes only).
+- [x] Make image-cache trim thresholds track the configured caps instead of
+      absolute bytes, which the 64 MB cap had made unreachable.
+- [x] Weigh `liveImageCount` in the trim decision; live images are pinned
+      outside the byte budget.
+- [x] Release memory on an iOS memory warning instead of only logging; Flutter
+      clears the cache but never the live set.
+- [x] Record `last_resumed_at` and flush the sentinel on lifecycle change so
+      foreground/background classification is auditable.
+- [x] `dart format`, `flutter analyze` (clean), `flutter test` (612 pass).
+- [ ] Decide the release vehicle: 2.3.4 build 17 is already uploaded and
+      attached at ASC, so shipping this needs a new build.
+
 ## Active Follow-ups
-- [ ] Monitor ASC/store outcome for iOS `2.3.3+16`; submit for App Review only
-      after an explicit request.
+- [ ] Monitor ASC/store outcome for iOS `2.3.4+17`; submit for App Review only
+      after an explicit request. Working tree changes for this release are not
+      yet committed to git.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
       logs.
 - [ ] Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
@@ -52,6 +68,9 @@ Current follow-ups and the active session only. Historical task logs live in
       2.3.3+16 with `memoryWarnings=2`.
 - [ ] Reduce simultaneously-live chat images: `liveImageCount` reached 96
       against the 80-entry `ImageCache` cap, and live images cannot be evicted.
+      Partly mitigated 2026-08-10 (pressure now clears the live set and trim
+      weighs live images), but the root cause stands: ~3.5 MB decoded per chat
+      bubble at DPR 3, and the live set spans rooms across a room switch.
 - [x] Remove the `pg_timezone_names` probe from the six remaining functions.
       Done 2026-08-08 via `20260808150000`; 0 functions in `public` still probe.
 - [x] Drop the rollback snapshot. Done 2026-08-08 on request.
@@ -61,15 +80,16 @@ Current follow-ups and the active session only. Historical task logs live in
 
 ## Recent Context
 - Release/build/backend truth: `docs/release_status.md`.
-- iOS `2.3.3+16` release-notes sync completed: ASC version
-  `717272d6-bcf3-4d3e-a6e4-48438305b196` is `PREPARE_FOR_SUBMISSION`;
-  build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` is `VALID`, attached, and
-  intentionally not submitted for App Review. Release note covers the chat fix
-  where a sender's name could disappear after a system message
-  (`chat_sender_name_visibility.dart`, commit `183efdc`).
-- Localized ASC metadata was verified for en-US, ja, ko, and zh-Hant with EULA
-  footers preserved. The release session recorded successful `flutter gen-l10n`,
-  metadata terms, analyzer, and full test checks (588 passed).
+- iOS `2.3.4+17` release-notes sync completed: ASC version
+  `9f8120ca-91be-4875-aa4e-eb8e3106cae9` is `PREPARE_FOR_SUBMISSION`;
+  build `42b5c164-d1e4-45f3-b485-a26116d70d76` is `VALID`, attached, and
+  intentionally not submitted for App Review. Release note covers the
+  `tick_pet_state`/sibling-function database performance fix (`07c831c`,
+  `0aef9b2`) and the photo-permission-refusal error-handling fix (`de0454e`).
+  Localized ASC metadata was verified for en-US, ja, ko, and zh-Hant with EULA
+  footers preserved. `flutter gen-l10n`, analyzer, and full test checks
+  (608 passed/1 skipped) all passed. Working tree changes are not yet
+  committed to git.
 - Full prior task state: `tasks/archive/todo_20260804_pre_compaction.md`.
 
 ## Review (2026-08-08 Remaining pg_timezone_names Probes)

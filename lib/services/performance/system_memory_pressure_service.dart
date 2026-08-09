@@ -63,7 +63,11 @@ class SystemMemoryPressureService {
     // Persisted so that if the OS kills us next, the following launch can tell
     // an OOM apart from an unexplained process death.
     await UncleanExitService.instance.recordMemoryWarning(_memoryWarningCount);
-    await MemoryDiagnosticsService.instance.captureSnapshot(
+    // Answering a memory warning with telemetry alone is how a session reaches
+    // 14 warnings and then a SIGKILL: nothing the app holds is ever given back.
+    // The snapshot is captured *after* the release so the recorded numbers
+    // describe what survived it.
+    await MemoryDiagnosticsService.instance.releaseUnderMemoryPressure(
       source: 'ios_memory_warning',
       route: route,
       roomId: roomId,
