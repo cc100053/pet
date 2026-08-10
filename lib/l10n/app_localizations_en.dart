@@ -2129,6 +2129,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Temporary connection issues are now less likely to interrupt your shared care experience.';
 
   @override
+  String get whatsNew234Title => 'Bug Fixes & Improvements';
+
+  @override
+  String get whatsNew234Bullet1 =>
+      'Fixed a performance issue that could slow down pet updates.';
+
+  @override
+  String get whatsNew234Bullet2 =>
+      'Fixed an issue where declining photo access could show an unexpected error.';
+
+  @override
   String get whatsNew233Title => 'Bug Fixes & Improvements';
 
   @override

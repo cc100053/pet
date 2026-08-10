@@ -2033,6 +2033,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew230Bullet2 => '一時的な通信問題への対応を改善し、共同育成が中断されにくくなりました。';
 
   @override
+  String get whatsNew234Title => '不具合修正と改善';
+
+  @override
+  String get whatsNew234Bullet1 => 'ペットの更新が遅くなる不具合を修正しました。';
+
+  @override
+  String get whatsNew234Bullet2 => '写真へのアクセスを拒否した際に予期しないエラーが表示される不具合を修正しました。';
+
+  @override
   String get whatsNew233Title => '不具合修正と改善';
 
   @override

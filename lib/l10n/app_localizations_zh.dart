@@ -2021,6 +2021,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew230Bullet2 => '改善临时网络异常的处理，减少共同照顾被短暂连接问题打断。';
 
   @override
+  String get whatsNew234Title => '问题修复与改进';
+
+  @override
+  String get whatsNew234Bullet1 => '修复可能导致宠物更新变慢的问题。';
+
+  @override
+  String get whatsNew234Bullet2 => '修复拒绝访问照片时可能出现异常错误的问题。';
+
+  @override
   String get whatsNew233Title => '问题修复与改进';
 
   @override
@@ -4053,6 +4062,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew230Bullet2 => '改善暫時性網絡異常的處理，減少共同照顧被短暫連線問題打斷。';
+
+  @override
+  String get whatsNew234Title => '錯誤修正與改善';
+
+  @override
+  String get whatsNew234Bullet1 => '修正可能導致寵物更新變慢的問題。';
+
+  @override
+  String get whatsNew234Bullet2 => '修正拒絕存取相片時可能顯示非預期錯誤的問題。';
 
   @override
   String get whatsNew233Title => '錯誤修正與改善';

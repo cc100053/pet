@@ -2044,6 +2044,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew230Bullet2 => '일시적인 연결 문제로 공동 돌봄이 중단되는 상황을 줄였습니다.';
 
   @override
+  String get whatsNew234Title => '버그 수정 및 개선';
+
+  @override
+  String get whatsNew234Bullet1 => '펫 업데이트가 느려지던 문제를 수정했습니다.';
+
+  @override
+  String get whatsNew234Bullet2 => '사진 접근을 거부했을 때 예기치 않은 오류가 표시되던 문제를 수정했습니다.';
+
+  @override
   String get whatsNew233Title => '버그 수정 및 개선';
 
   @override

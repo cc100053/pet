@@ -358,11 +358,7 @@ class _FullScreenPhotoViewerState extends State<FullScreenPhotoViewer> {
         ),
       );
     } catch (error, stackTrace) {
-      reportUserVisibleError(
-        error,
-        stackTrace,
-        source: 'photo_viewer_save',
-      );
+      reportUserVisibleError(error, stackTrace, source: 'photo_viewer_save');
       if (!mounted) {
         return;
       }

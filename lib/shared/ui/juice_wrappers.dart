@@ -56,10 +56,10 @@ class _JuicyScaleButtonState extends State<JuicyScaleButton>
 
   void _handleTapUp(TapUpDetails details) {
     if (widget.onTap == null) return;
-    
+
     // Call onTap IMMEDIATELY for instant feedback
     widget.onTap?.call();
-    
+
     HapticFeedback.mediumImpact(); // Stronger pop on release
     // The "Pop" sequence: Retract -> Overshoot -> Settle
     setState(() {
