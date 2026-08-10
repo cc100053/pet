@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.3.4 | 17 | Repo workflow assumes current after completed `release-notes-sync`; ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9` is `PREPARE_FOR_SUBMISSION`, build `42b5c164-d1e4-45f3-b485-a26116d70d76` is `VALID` and attached, and not submitted for App Review in this step | 2026-08-08 | App Store Connect metadata sync/build upload/processing/attach; release-notes-sync completion rule | none |
+| iOS | 2.3.4 | 18 | Repo workflow assumes current; ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9` is `PREPARE_FOR_SUBMISSION`, build `142aeed9-852f-43c6-8114-3f5a30f80505` is `VALID` and attached (supersedes build 17, which was uploaded/attached without a matching commit), and not submitted for App Review in this step | 2026-08-09 | App Store Connect build upload/processing/attach; no bundled/ASC copy change (build-number-only bump) | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -25,6 +25,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 2.3.4 | 17 | Superseded by build 18 on the same ASC version 2026-08-09; build 17 was uploaded/attached to ASC but its local files were never committed (fixed retroactively in commit `e3829dd`) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, previously attached build `42b5c164-d1e4-45f3-b485-a26116d70d76` | none |
 | iOS | 2.3.3 | 16 | Superseded in repo workflow by completed `2.3.4+17` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-05 | ASC version `717272d6-bcf3-4d3e-a6e4-48438305b196`, attached build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` | none |
 | iOS | 2.3.2 | 15 | Superseded in repo workflow by completed `2.3.3+16` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-03 | ASC version `2120a1f4-f8cf-4f2a-9527-b177b20e9210`, attached build `36348531-630d-47a7-b0b8-be9ea7fc89b6` | none |
 | iOS | 2.3.1 | 14 | Superseded in repo workflow by completed `2.3.2+15` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-02 | ASC version `91382e2c-a755-42cc-96e6-5e3628b426cf` | none |
@@ -43,7 +44,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | None active | - | `pubspec.yaml` `2.3.4+17` is now the repo current release baseline; bundled/ASC copy for 2.3.4 covers the `tick_pet_state`/sibling-function database performance fix and the photo-permission-refusal error-handling fix | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9` is `PREPARE_FOR_SUBMISSION`; build `42b5c164-d1e4-45f3-b485-a26116d70d76` is `VALID`, App Store eligible, and attached; localization IDs: en-US `32fd2945-82ab-46fe-8e47-59aafb94b622`, ja `8a6db267-0f5c-4db8-a801-bca55c4f5c14`, ko `7e9ee1c4-43cf-4e12-a7b4-8e6c5707375d`, zh-Hant `4086c2dc-fdb9-4802-aeb3-251b6b2d0493` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `main`, working tree not yet committed as of this entry | none |
+| iOS | None active | - | `pubspec.yaml` `2.3.4+18` is now the repo current release baseline; bundled/ASC copy for 2.3.4 is unchanged from build 17 (covers the `tick_pet_state`/sibling-function database performance fix and the photo-permission-refusal error-handling fix); build 18 is a build-number-only bump, no new copy | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9` is `PREPARE_FOR_SUBMISSION`; build `142aeed9-852f-43c6-8114-3f5a30f80505` (build 18) is `VALID`, App Store eligible, and attached; localization IDs: en-US `32fd2945-82ab-46fe-8e47-59aafb94b622`, ja `8a6db267-0f5c-4db8-a801-bca55c4f5c14`, ko `7e9ee1c4-43cf-4e12-a7b4-8e6c5707375d`, zh-Hant `4086c2dc-fdb9-4802-aeb3-251b6b2d0493` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `main`, commits `e3829dd` (2.3.4+17 files) and `e8b4b7d` (bump to 2.3.4+18), pushed | none |
 
 ## Backend Deployments
 
