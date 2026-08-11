@@ -1,7 +1,7 @@
 # Database Schema
 
 Compact current-state watchlist. Full snapshots live in `memory-bank/archive/`;
-latest: `memory-bank/archive/database_schema_20260811_pre_compaction.md`.
+latest: `memory-bank/archive/database_schema_20260804_pre_compaction.md`.
 Target Supabase project: `ilxzpszgirhwxpeocygs`.
 
 Before a DB claim/change, verify the target and inspect the latest applied
@@ -37,8 +37,6 @@ migration that rewrites the object.
   state lives in `room_debug_overrides`.
 - Internal schedule/cleanup tables have RLS enabled with no client policies;
   client grants remain denied while service roles retain access.
-- Timezone-aware functions use `public.normalize_timezone(text)`; do not
-  reintroduce executable `pg_timezone_names` scans.
 
 ## Compatibility And Additive RPCs
 - Public PostgREST objects need explicit Data API grants; RLS remains the
@@ -50,8 +48,9 @@ migration that rewrites the object.
 - `get_room_latest_feeds(...)`, `get_room_member_counts(...)`, and
   `get_effective_room_pet_statuses(uuid[])` are additive invoker RPCs.
 - `register_device_token(text,text,text)` is the authenticated definer-rights
-  reassignment path; old clients retain direct upsert. Rate-limit callers if
-  token-knowledge-based reassignment becomes an abuse vector.
+  reassignment path; old clients retain direct upsert. Its accepted trade-off
+  is token-knowledge-based reassignment, so rate-limit callers if abuse appears
+  rather than weakening table policies.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use

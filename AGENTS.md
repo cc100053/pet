@@ -141,7 +141,10 @@ This file is for agentic coding agents working in this repo.
 - AI collaboration / compatibility workflow: `docs/ai_collaboration_workflow.md`.
 - Firebase Crashlytics MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
 - iOS App Store export/upload without Apple's immediate symbol-upload step:
-  `scripts/export_ios_appstore_no_apple_symbols.sh "/path/to/Runner.xcarchive"` (see `docs/ios_app_store_export.md`).
+  `scripts/export_ios_appstore_no_apple_symbols.sh "/path/to/Runner.xcarchive"`.
+  It preserves the archive and uploads every archive dSYM to Crashlytics; use
+  `ios/scripts/upload_archive_dsyms.sh "/path/to/Runner.xcarchive"` to re-upload
+  symbols from a preserved archive (see `docs/ios_app_store_export.md`).
 - Apple client secret (Sign in with Apple):
   - Generate and update reminder: `./tool/generate_secret.sh` (Reads `APPLE_*` vars from `.env`)
   - Manual override: `./tool/generate_secret.sh --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
@@ -346,6 +349,9 @@ flutter run
 
 #### RPC Functions
 - Use `SECURITY INVOKER`; prefix params with `p_`; validate inputs; raise meaningful errors
+- Never scan `pg_timezone_names` inside an RPC; it re-reads the timezone
+  database and has caused statement timeouts here. Use
+  `public.normalize_timezone(text)` or `at time zone` with `22023` fallback.
 
 #### Flutter Queries
 - Use explicit `.select('col1, col2')`; convert to typed models at boundary
@@ -364,6 +370,9 @@ flutter run
 
 ### Assets
 - If adding assets, ensure they are referenced in `pubspec.yaml` (this repo includes `assets/lottie/`).
+- An `ImageStreamListener` callback owns its `ImageInfo` clone; dispose it after
+  reading, and use the already-sized provider for aspect-ratio probes so a
+  listener cannot pin full-resolution decoded images for the session.
 
 ### Juice UI System (Game-style Design)
 

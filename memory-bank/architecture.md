@@ -2,7 +2,7 @@
 
 Compact current-state map for mandatory reads. Full snapshots live in
 `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260804_pre_compaction.md`.
+`memory-bank/archive/architecture_20260811_pre_compaction.md`.
 
 ## Sources Of Truth
 - Runtime/tests: `lib/`, `test/`
@@ -14,7 +14,7 @@ Compact current-state map for mandatory reads. Full snapshots live in
   and equipment. Chat owns realtime/history/cache/media; Feed owns capture and
   its durable presigned/base64 upload queue.
 - Shop owns catalog, purchases, equipment, and subscriptions. Profile, gallery,
-  pet, ads, `services`, and `shared` cover the remaining feature/platform work.
+  pet, ads, `services`, and `shared` cover remaining feature/platform work.
 
 ## Structural And Compatibility Contracts
 - Large Home/Chat/Shop views use core files plus `part` extensions. Extensions
@@ -35,56 +35,34 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - Feed uploads are queue-owned. `feed_validate` returns authoritative satiety;
   Home applies it through `last_decay_at` freshness and Chat reconciles
   optimistic rows locally.
-- Chat paints cached messages first and hydrates cached blocked ids/mention
-  candidates before network refresh. Home and room selection share cached
-  status snapshots and revalidate through `get_effective_room_pet_statuses`.
-- Room fetch failures retry/degrade to stale summaries without replacing a
-  successful bootstrap snapshot. Pet-state refreshes follow the same rule: a
-  failed refresh keeps the visible pet and reports silently.
-- Never probe `pg_timezone_names` in an RPC. It rescans the whole tz database
-  (~792 ms/call here); `at time zone` validates the zone for free by raising
-  `22023`. Use `public.normalize_timezone(text)` — required in `LANGUAGE sql`
-  bodies, which cannot carry an exception handler. Retryable network/auth failures remain
-  non-fatal; only genuine fatal errors activate `CrashUpdateGuard`.
-- `userFacingError(...)` is the handled-error choke point: it localizes,
-  classifies, deduplicates, and reports non-fatals. Bespoke visible copy uses
-  `reportUserVisibleError(...)`; silent best-effort work uses
-  `reportSwallowedError(...)`.
-- OOM/SIGKILL cannot be caught in-process. `UncleanExitService` reports likely
-  resumed-state kills on the next launch using a Hive sentinel, memory-warning
-  context, and Android exit reasons. Keep Hive initialization before sentinel
-  startup. Lifecycle transitions flush the sentinel box, and the report carries
-  `last_resumed_at` alongside `session_started_at` so a long-suspended session
-  that died on resume is distinguishable from one that grew until it was killed.
-- An `ImageStreamListener` is handed its own `ImageInfo` clone and **owns** it:
-  read the dimensions, then call `imageInfo.dispose()`. Leaking one pins that
-  decoded image for the life of the process, and no cache cap can reclaim it —
-  eviction frees nothing while a handle is open. This was the root cause of the
-  foreground OOM kills; measure aspect ratios through the already-sized provider
-  and never through a bare `NetworkImage`.
-- Image-cache trim thresholds are fractions of the *configured* caps
-  (`MemoryDiagnosticsService.imageCacheSoftTrimFraction` / `...HardTrimFraction`),
-  never absolute bytes: absolute thresholds silently outran the 64 MB cap in
-  `main.dart` and disabled trimming entirely. Trim decisions also weigh
-  `liveImageCount` against `maximumSize`, because live images are pinned by
-  mounted widgets and are not counted against the byte budget.
-- Flutter already clears the image cache on an iOS memory warning but never the
-  live set; `SystemMemoryPressureService` answers each warning through
-  `MemoryDiagnosticsService.releaseUnderMemoryPressure(...)` so pressure frees
-  memory instead of only recording telemetry.
+- Chat/Home paint cached state first and revalidate. Failed room or pet-state
+  refreshes keep the last successful visible snapshot and report silently.
+- Never scan `pg_timezone_names` in an RPC; validate through
+  `public.normalize_timezone(text)` or `at time zone` with `22023` fallback.
+- `userFacingError(...)` localizes, classifies, deduplicates, and reports handled
+  failures. Bespoke visible copy uses `reportUserVisibleError(...)`; silent
+  best-effort work uses `reportSwallowedError(...)`.
+- `UncleanExitService` reports likely OOM/SIGKILL on the next launch; keep Hive
+  initialization before its sentinel. On iOS pressure,
+  `SystemMemoryPressureService` releases cache and live-image handles.
+- Every `ImageStreamListener` callback owns its `ImageInfo` clone and must
+  dispose it after reading. Aspect-ratio probes use the already-sized provider;
+  cache trim thresholds remain fractions of configured caps and include live
+  image count.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
 
 ## Backend And Platform
 - Supabase Auth/Postgres/Realtime back shared gameplay and chat; active Edge
   Function source lives in `supabase/functions/`.
 - Feed/R2 contracts live in `docs/feed_upload_pipeline.md`: preserve response
-  field types, keep reward writes on-path, and keep partner push in
+  field types, keep reward writes on-path, and partner push in
   `EdgeRuntime.waitUntil(...)`.
 - `notify_friend` keeps `verify_jwt=false` for webhook compatibility; gateway
   JWT functions still validate users internally.
 - Room-photo cleanup is human-reviewed/fail-closed. Firebase Hosting/GEOFlow
-  lives in `/Users/fatboy/geo-marketing`; iOS dSYM upload support lives under
-  `ios/scripts/`.
+  lives in `/Users/fatboy/geo-marketing`.
+- For iOS releases, the export helper preserves the `.xcarchive` and uploads all
+  archive dSYMs to Crashlytics; see `docs/ios_app_store_export.md`.
 
 ## Read More
 - Schema/RPC watchlist: `memory-bank/database-schema.md`
