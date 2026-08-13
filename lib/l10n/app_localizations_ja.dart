@@ -1402,6 +1402,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescFurnitureTub => 'おふろ時間にぴったりのバスタブ。';
 
   @override
+  String get storeItemNameFurnitureBalloon => '風船';
+
+  @override
+  String get storeItemDescFurnitureBalloon => 'リボンを結んだ風船の束。';
+
+  @override
+  String get storeItemNameFurnitureCactus => 'サボテン';
+
+  @override
+  String get storeItemDescFurnitureCactus => '花が咲いた鉢植えのサボテン。';
+
+  @override
+  String get storeItemNameFurnitureCarpet => 'ラグ';
+
+  @override
+  String get storeItemDescFurnitureCarpet => '花模様のだ円ラグ。';
+
+  @override
+  String get storeItemNameFurnitureVinyl => 'レコード';
+
+  @override
+  String get storeItemDescFurnitureVinyl => '音楽コーナーにぴったりのレコード。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '麦わら帽子';
 
   @override
@@ -2031,6 +2055,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew230Bullet2 => '一時的な通信問題への対応を改善し、共同育成が中断されにくくなりました。';
+
+  @override
+  String get whatsNew240Title => '新しいルームデコレーション！';
+
+  @override
+  String get whatsNew240Bullet1 => 'ショップに新しい家具が4種類追加されました：バルーン、サボテン、花柄ラグ、レコード。';
+
+  @override
+  String get whatsNew240Bullet2 => '新しいスタイルでふたりのお部屋を飾ろう。';
 
   @override
   String get whatsNew234Title => '不具合修正と改善';

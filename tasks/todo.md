@@ -15,7 +15,7 @@ Current follow-ups and the active session only. Historical task logs live in
       and leave a clean worktree.
 
 ## Active Follow-ups
-- [ ] Monitor ASC/store outcome for iOS `2.3.4+18`; submit for App Review only
+- [ ] Monitor ASC/store outcome for iOS `2.4.0+19`; submit for App Review only
       after an explicit request.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
       logs.

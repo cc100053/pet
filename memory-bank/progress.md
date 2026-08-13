@@ -4,9 +4,11 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `2.3.4+18`; exact ASC/build/localization and
-  backend deployment state lives in `docs/release_status.md`. Build 18 is
-  `VALID`, attached, and intentionally not submitted for App Review.
+- Repo release baseline is iOS `2.4.0+19`; exact ASC/build/localization and
+  backend deployment state lives in `docs/release_status.md`. Build 19 is
+  `VALID`, attached, and intentionally not submitted for App Review. Adds four
+  new furniture pieces (Balloons/Cactus/Rug/Vinyl Records) to the shop,
+  version-gated to `2.4.0` and active.
 - Flutter is pinned to `3.44.0` / Dart `3.12.0`.
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - Internal hunger-schedule and abandoned-room review tables use RLS as
@@ -28,7 +30,7 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
 
 ## Open Items
-- Monitor ASC/store outcome for iOS `2.3.4+18`; App Review submission requires
+- Monitor ASC/store outcome for iOS `2.4.0+19`; App Review submission requires
   an explicit request.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.
 - Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.

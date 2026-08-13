@@ -1395,6 +1395,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
 
   @override
+  String get storeItemNameFurnitureBalloon => '氣球';
+
+  @override
+  String get storeItemDescFurnitureBalloon => '綁著緞帶的氣球束。';
+
+  @override
+  String get storeItemNameFurnitureCactus => '仙人掌';
+
+  @override
+  String get storeItemDescFurnitureCactus => '開著小花的盆栽仙人掌。';
+
+  @override
+  String get storeItemNameFurnitureCarpet => '地毯';
+
+  @override
+  String get storeItemDescFurnitureCarpet => '花朵圖案的橢圓地毯。';
+
+  @override
+  String get storeItemNameFurnitureVinyl => '黑膠唱片';
+
+  @override
+  String get storeItemDescFurnitureVinyl => '適合音樂角落的唱片。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '草帽';
 
   @override
@@ -2019,6 +2043,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew230Bullet2 => '改善临时网络异常的处理，减少共同照顾被短暂连接问题打断。';
+
+  @override
+  String get whatsNew240Title => '全新房间装饰！';
+
+  @override
+  String get whatsNew240Bullet1 => '商店新增四款家具：气球、仙人掌、花纹地毯、黑胶唱片。';
+
+  @override
+  String get whatsNew240Bullet2 => '用全新风格装饰你们的共享房间。';
 
   @override
   String get whatsNew234Title => '问题修复与改进';
@@ -3442,6 +3475,30 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
 
   @override
+  String get storeItemNameFurnitureBalloon => '氣球';
+
+  @override
+  String get storeItemDescFurnitureBalloon => '綁著緞帶的氣球束。';
+
+  @override
+  String get storeItemNameFurnitureCactus => '仙人掌';
+
+  @override
+  String get storeItemDescFurnitureCactus => '開著小花的盆栽仙人掌。';
+
+  @override
+  String get storeItemNameFurnitureCarpet => '地毯';
+
+  @override
+  String get storeItemDescFurnitureCarpet => '花朵圖案的橢圓地毯。';
+
+  @override
+  String get storeItemNameFurnitureVinyl => '黑膠唱片';
+
+  @override
+  String get storeItemDescFurnitureVinyl => '適合音樂角落的唱片。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '草帽';
 
   @override
@@ -4062,6 +4119,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew230Bullet2 => '改善暫時性網絡異常的處理，減少共同照顧被短暫連線問題打斷。';
+
+  @override
+  String get whatsNew240Title => '全新房間佈置！';
+
+  @override
+  String get whatsNew240Bullet1 => '商店新增四款家具：氣球、仙人掌、花朵地毯、黑膠唱片。';
+
+  @override
+  String get whatsNew240Bullet2 => '用嶄新風格佈置你們的共享房間。';
 
   @override
   String get whatsNew234Title => '錯誤修正與改善';

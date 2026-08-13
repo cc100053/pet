@@ -2603,6 +2603,54 @@ abstract class AppLocalizations {
   /// **'A cozy tub for bath time.'**
   String get storeItemDescFurnitureTub;
 
+  /// No description provided for @storeItemNameFurnitureBalloon.
+  ///
+  /// In en, this message translates to:
+  /// **'Balloons'**
+  String get storeItemNameFurnitureBalloon;
+
+  /// No description provided for @storeItemDescFurnitureBalloon.
+  ///
+  /// In en, this message translates to:
+  /// **'A ribbon-tied balloon bunch.'**
+  String get storeItemDescFurnitureBalloon;
+
+  /// No description provided for @storeItemNameFurnitureCactus.
+  ///
+  /// In en, this message translates to:
+  /// **'Cactus'**
+  String get storeItemNameFurnitureCactus;
+
+  /// No description provided for @storeItemDescFurnitureCactus.
+  ///
+  /// In en, this message translates to:
+  /// **'A potted cactus in bloom.'**
+  String get storeItemDescFurnitureCactus;
+
+  /// No description provided for @storeItemNameFurnitureCarpet.
+  ///
+  /// In en, this message translates to:
+  /// **'Rug'**
+  String get storeItemNameFurnitureCarpet;
+
+  /// No description provided for @storeItemDescFurnitureCarpet.
+  ///
+  /// In en, this message translates to:
+  /// **'A flower-patterned oval rug.'**
+  String get storeItemDescFurnitureCarpet;
+
+  /// No description provided for @storeItemNameFurnitureVinyl.
+  ///
+  /// In en, this message translates to:
+  /// **'Vinyl Records'**
+  String get storeItemNameFurnitureVinyl;
+
+  /// No description provided for @storeItemDescFurnitureVinyl.
+  ///
+  /// In en, this message translates to:
+  /// **'Records for a music corner.'**
+  String get storeItemDescFurnitureVinyl;
+
   /// No description provided for @storeItemNameEquipmentStrawHat.
   ///
   /// In en, this message translates to:
@@ -3764,6 +3812,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Temporary connection issues are now less likely to interrupt your shared care experience.'**
   String get whatsNew230Bullet2;
+
+  /// No description provided for @whatsNew240Title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Room Decor!'**
+  String get whatsNew240Title;
+
+  /// No description provided for @whatsNew240Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Four new furniture pieces have joined the shop: balloons, a potted cactus, a flower rug, and vinyl records.'**
+  String get whatsNew240Bullet1;
+
+  /// No description provided for @whatsNew240Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Decorate your shared room with these fresh new styles.'**
+  String get whatsNew240Bullet2;
 
   /// No description provided for @whatsNew234Title.
   ///

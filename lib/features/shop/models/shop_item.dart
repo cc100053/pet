@@ -184,6 +184,14 @@ class ShopItem {
         return l10n.storeItemDescFurnitureToilet;
       case 'furniture_tub':
         return l10n.storeItemDescFurnitureTub;
+      case 'furniture_balloon':
+        return l10n.storeItemDescFurnitureBalloon;
+      case 'furniture_cactus':
+        return l10n.storeItemDescFurnitureCactus;
+      case 'furniture_carpet':
+        return l10n.storeItemDescFurnitureCarpet;
+      case 'furniture_vinyl':
+        return l10n.storeItemDescFurnitureVinyl;
       default:
         return description;
     }

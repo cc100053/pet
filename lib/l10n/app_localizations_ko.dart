@@ -1412,6 +1412,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurnitureTub => '목욕 시간에 어울리는 아늑한 욕조.';
 
   @override
+  String get storeItemNameFurnitureBalloon => '풍선';
+
+  @override
+  String get storeItemDescFurnitureBalloon => '리본으로 묶은 풍선 다발.';
+
+  @override
+  String get storeItemNameFurnitureCactus => '선인장';
+
+  @override
+  String get storeItemDescFurnitureCactus => '꽃이 핀 화분 선인장.';
+
+  @override
+  String get storeItemNameFurnitureCarpet => '러그';
+
+  @override
+  String get storeItemDescFurnitureCarpet => '꽃무늬 타원형 러그.';
+
+  @override
+  String get storeItemNameFurnitureVinyl => '레코드판';
+
+  @override
+  String get storeItemDescFurnitureVinyl => '음악 코너에 어울리는 레코드판.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '밀짚모자';
 
   @override
@@ -2042,6 +2066,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew230Bullet2 => '일시적인 연결 문제로 공동 돌봄이 중단되는 상황을 줄였습니다.';
+
+  @override
+  String get whatsNew240Title => '새로운 룸 데코레이션!';
+
+  @override
+  String get whatsNew240Bullet1 => '상점에 새로운 가구 4종이 추가되었습니다: 풍선, 선인장, 러그, 레코드판.';
+
+  @override
+  String get whatsNew240Bullet2 => '새로운 스타일로 함께 꾸미는 방을 장식해보세요.';
 
   @override
   String get whatsNew234Title => '버그 수정 및 개선';

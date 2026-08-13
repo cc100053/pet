@@ -1443,6 +1443,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescFurnitureTub => 'A cozy tub for bath time.';
 
   @override
+  String get storeItemNameFurnitureBalloon => 'Balloons';
+
+  @override
+  String get storeItemDescFurnitureBalloon => 'A ribbon-tied balloon bunch.';
+
+  @override
+  String get storeItemNameFurnitureCactus => 'Cactus';
+
+  @override
+  String get storeItemDescFurnitureCactus => 'A potted cactus in bloom.';
+
+  @override
+  String get storeItemNameFurnitureCarpet => 'Rug';
+
+  @override
+  String get storeItemDescFurnitureCarpet => 'A flower-patterned oval rug.';
+
+  @override
+  String get storeItemNameFurnitureVinyl => 'Vinyl Records';
+
+  @override
+  String get storeItemDescFurnitureVinyl => 'Records for a music corner.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => 'Straw Hat';
 
   @override
@@ -2127,6 +2151,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew230Bullet2 =>
       'Temporary connection issues are now less likely to interrupt your shared care experience.';
+
+  @override
+  String get whatsNew240Title => 'New Room Decor!';
+
+  @override
+  String get whatsNew240Bullet1 =>
+      'Four new furniture pieces have joined the shop: balloons, a potted cactus, a flower rug, and vinyl records.';
+
+  @override
+  String get whatsNew240Bullet2 =>
+      'Decorate your shared room with these fresh new styles.';
 
   @override
   String get whatsNew234Title => 'Bug Fixes & Improvements';
