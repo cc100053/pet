@@ -43,13 +43,17 @@ class RoomFrameGeometry {
 
     // The mat sizes itself; this is the cell reservation, so it is deliberately
     // a slight over-estimate rather than an exact fit.
+    //
+    // The mat is a two-row text block beside a ring, so its content is whichever
+    // of the two is taller. Both are constants — the caption row is a fixed
+    // height regardless of what it says — so every card in the grid measures the
+    // same whether its caption carries a real message or a fallback status line.
+    final matContentHeight = math.max(
+      _nameLineHeight + _matRowGap + _captionLineHeight,
+      _hungerRingSize,
+    );
     final matHeight =
-        (skin.matPadding.vertical +
-            _hungerRingSize +
-            _matRowGap +
-            _captionLineHeight +
-            _matSlack) *
-        scale;
+        (skin.matPadding.vertical + matContentHeight + _matSlack) * scale;
 
     final aboveMat =
         (skin.mountPadding.vertical +
@@ -89,14 +93,33 @@ class RoomFrameGeometry {
 
   double get totalHeight => topOverhang + cardHeight + bottomOverhang;
 
-  static const double _hungerRingSize = 26;
-  static const double _matRowGap = 6;
-  static const double _captionLineHeight = 14;
-  static const double _matSlack = 4;
+  /// Deliberately kept just under the text block's height (16 + 5 + 13 = 34):
+  /// the ring should read as the mat's co-equal right-hand element, but never be
+  /// the thing that decides how tall the mat is.
+  static const double _hungerRingSize = 30;
+  static const double _matRowGap = 5;
+  static const double _nameLineHeight = 16;
+  static const double _captionLineHeight = 13;
+  static const double _matSlack = 3;
   static const double _topOverhang = 14;
   static const double _bottomOverhang = 7;
 
   static double _radians(double degrees) => degrees * math.pi / 180;
+}
+
+/// Who is speaking in the card's caption line.
+///
+/// The line is never blank — an empty slot under the name reads as a hole, and
+/// hiding the line would make cards in the same grid different heights. Instead
+/// the caller always supplies text, and this says whether it came from a person
+/// or from the app, so the two can be told apart at a glance.
+enum RoomFrameCaptionKind {
+  /// A caption a human wrote on a photo. Ink-weight, no icon.
+  message,
+
+  /// App-derived state (hungry, no photo yet…). Lighter, and marked with an
+  /// icon so it never passes for something a person typed.
+  status,
 }
 
 /// One room card on 房間選擇, wearing an equippable [RoomFrameSkin].
@@ -115,6 +138,8 @@ class RoomFrameCard extends StatelessWidget {
     required this.hungerValue,
     required this.petId,
     required this.petAssetPath,
+    this.captionKind = RoomFrameCaptionKind.message,
+    this.captionIcon,
     this.equippedSkusBySlot = const <String, String>{},
     this.unreadCount = 0,
     this.scale = 1,
@@ -125,7 +150,17 @@ class RoomFrameCard extends StatelessWidget {
   final RoomFrameSkin skin;
   final String imageUrl;
   final String petName;
+
+  /// Always non-empty in practice: the caller falls back to a status line
+  /// rather than leaving the slot blank. See [RoomFrameCaptionKind].
   final String caption;
+
+  /// Whether [caption] is a person's words or an app-derived status line.
+  final RoomFrameCaptionKind captionKind;
+
+  /// Leading glyph for a [RoomFrameCaptionKind.status] caption. Ignored for
+  /// messages, which are never iconified.
+  final IconData? captionIcon;
   final int? petLevel;
 
   /// Satiety as 0..1.
@@ -296,7 +331,10 @@ class RoomFrameCard extends StatelessWidget {
   }
 
   Widget _buildPhotoZoneWithPet(RoomFrameGeometry geometry) {
-    final spriteSize = 62.0 * scale;
+    // Kept near the handoff's 66px: on the taller photo zone this reads as a pet
+    // standing in a room, where the old 62 on a shorter zone filled half the
+    // frame and left no photo to look at.
+    final spriteSize = 66.0 * scale;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -367,55 +405,112 @@ class RoomFrameCard extends StatelessWidget {
 
   Widget _buildMat() {
     return Padding(
-      padding: skin.matPadding * scale,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      // The mat's text starts on the photo's left edge, not on the casing's
+      // inner wall. The skins set `matPadding` horizontally tighter than
+      // `photoInset`, which left the name hanging off the frame's left rail;
+      // deriving the horizontal inset from `photoInset` puts the two edges on
+      // one vertical line in every skin by construction, instead of relying on
+      // five hand-tuned pairs of numbers staying in sync. Only the vertical
+      // padding — the mat's own breathing room — still comes from the skin.
+      padding:
+          EdgeInsets.fromLTRB(
+            skin.photoInset.left,
+            skin.matPadding.top,
+            skin.photoInset.right,
+            skin.matPadding.bottom,
+          ) *
+          scale,
+      // The ring is the mat's trailing element, centred against BOTH text rows
+      // rather than living inside the caption row. Sitting at the end of the
+      // last row pushed it into the card's bottom-right corner; centring it
+      // here reads as one balanced unit — text block on the left, dial on the
+      // right — and lets the ring grow without dragging the caption's baseline
+      // down with it.
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  petName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.5 * scale,
-                    fontWeight: FontWeight.w900,
-                    color: skin.nameColor,
-                    height: 1,
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Row 1 belongs to the pet: the name is the loudest thing on
+                // the mat, with the level riding beside it as a chip rather
+                // than as a second competing headline.
+                SizedBox(
+                  height: RoomFrameGeometry._nameLineHeight * scale,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: _PetNameText(
+                          name: petName,
+                          skin: skin,
+                          scale: scale,
+                        ),
+                      ),
+                      SizedBox(width: 5 * scale),
+                      _LevelChip(skin: skin, level: petLevel, scale: scale),
+                    ],
                   ),
                 ),
-              ),
-              SizedBox(width: 6 * scale),
-              Text(
-                petLevel == null ? 'Lv --' : 'Lv $petLevel',
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: 9.5 * scale,
-                  fontWeight: FontWeight.w900,
-                  color: skin.levelColor,
-                  height: 1,
+                SizedBox(height: RoomFrameGeometry._matRowGap * scale),
+                // Row 2 belongs to the room's current state. Fixed height, so
+                // the mat measures the same whether the caption carries a real
+                // message or a fallback status line.
+                SizedBox(
+                  height: RoomFrameGeometry._captionLineHeight * scale,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _buildCaption(),
+                  ),
                 ),
-              ),
-              const Spacer(),
-              _HungerRing(skin: skin, value: hungerValue, scale: scale),
-            ],
-          ),
-          SizedBox(height: RoomFrameGeometry._matRowGap * scale),
-          Text(
-            caption,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 10.5 * scale,
-              fontWeight: FontWeight.w500,
-              color: skin.captionColor,
-              height: 1.2,
+              ],
             ),
           ),
+          SizedBox(width: 8 * scale),
+          _HungerRing(skin: skin, value: hungerValue, scale: scale),
         ],
       ),
+    );
+  }
+
+  /// The caption line, styled by who is speaking.
+  ///
+  /// A person's words get ink weight and no ornament — they should read like
+  /// something someone wrote. A status line is deliberately quieter (lighter
+  /// colour, lighter weight) and carries a leading glyph, so the user can tell
+  /// at a glance that nobody said this; the app did.
+  Widget _buildCaption() {
+    final isStatus = captionKind == RoomFrameCaptionKind.status;
+    final text = Text(
+      caption,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: (isStatus ? 10.0 : 10.5) * scale,
+        fontWeight: isStatus ? FontWeight.w500 : FontWeight.w600,
+        color: isStatus
+            ? skin.captionColor.withValues(alpha: 0.72)
+            : skin.captionColor,
+        height: 1,
+      ),
+    );
+    if (!isStatus || captionIcon == null) {
+      return text;
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          captionIcon,
+          size: 10 * scale,
+          color: skin.captionColor.withValues(alpha: 0.6),
+        ),
+        SizedBox(width: 3 * scale),
+        Flexible(child: text),
+      ],
     );
   }
 
@@ -478,6 +573,122 @@ class RoomFrameCard extends StatelessWidget {
           ),
         )
         .toList(growable: false);
+  }
+}
+
+/// The pet's name, sized to the lane it actually has.
+///
+/// A single character budget cannot serve both scripts this app carries: in
+/// production the CJK names run 3 characters on average (95th percentile 5)
+/// while the Latin ones run 5 (95th percentile 11) — the same cap is either too
+/// tight for one or useless for the other. Both percentiles overrun the ~4 CJK /
+/// ~8 Latin the mat's name lane fits at full size.
+///
+/// So the type adapts instead of the input: short names keep the full 15pt
+/// punch, longer ones step down to a [_minFontSize] floor — chosen so the name
+/// stays clearly the loudest thing on the mat — and only past that does it
+/// ellipsize. This also means the lane can be re-tuned (frame insets, the level
+/// chip, the ring) without anyone re-deriving a character limit.
+class _PetNameText extends StatelessWidget {
+  const _PetNameText({
+    required this.name,
+    required this.skin,
+    required this.scale,
+  });
+
+  final String name;
+  final RoomFrameSkin skin;
+  final double scale;
+
+  static const double _maxFontSize = 15;
+  static const double _minFontSize = 11;
+  static const double _step = 0.5;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textScaler = MediaQuery.textScalerOf(context);
+        var fontSize = _minFontSize;
+        if (constraints.maxWidth.isFinite) {
+          for (
+            var candidate = _maxFontSize;
+            candidate >= _minFontSize;
+            candidate -= _step
+          ) {
+            if (_fits(candidate, constraints.maxWidth, textScaler)) {
+              fontSize = candidate;
+              break;
+            }
+          }
+        } else {
+          fontSize = _maxFontSize;
+        }
+        return Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: _styleFor(fontSize),
+        );
+      },
+    );
+  }
+
+  bool _fits(double fontSize, double maxWidth, TextScaler textScaler) {
+    final painter = TextPainter(
+      text: TextSpan(text: name, style: _styleFor(fontSize)),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width <= maxWidth;
+  }
+
+  TextStyle _styleFor(double fontSize) => TextStyle(
+    fontSize: fontSize * scale,
+    fontWeight: FontWeight.w900,
+    color: skin.nameColor,
+    height: 1,
+  );
+}
+
+/// `Lv n` as a tinted chip.
+///
+/// As bare text beside a 15pt name the level either shouted (same weight, same
+/// ink) or vanished. A chip in the skin's level colour gives it its own lane:
+/// clearly secondary to the name, still findable.
+class _LevelChip extends StatelessWidget {
+  const _LevelChip({
+    required this.skin,
+    required this.level,
+    required this.scale,
+  });
+
+  final RoomFrameSkin skin;
+  final int? level;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 5 * scale, vertical: 2 * scale),
+      decoration: BoxDecoration(
+        color: skin.levelColor.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        level == null ? 'Lv --' : 'Lv $level',
+        maxLines: 1,
+        style: TextStyle(
+          fontSize: 9.5 * scale,
+          fontWeight: FontWeight.w900,
+          color: skin.levelColor,
+          height: 1,
+        ),
+      ),
+    );
   }
 }
 
@@ -612,7 +823,7 @@ class _HungerRing extends StatelessWidget {
             size: Size.square(size),
             painter: _HungerRingPainter(
               progress: clamped,
-              strokeWidth: 2.5 * scale,
+              strokeWidth: 2.8 * scale,
               ringColor: skin.hungerRingColor,
               trackColor: skin.hungerTrackColor,
               fillColor: skin.hungerFillColor,
@@ -621,7 +832,7 @@ class _HungerRing extends StatelessWidget {
           Text(
             '${(clamped * 100).round()}',
             style: TextStyle(
-              fontSize: 10 * scale,
+              fontSize: 11 * scale,
               fontWeight: FontWeight.w900,
               color: skin.hungerValueColor,
               height: 1,

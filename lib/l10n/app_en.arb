@@ -593,6 +593,14 @@
   "roomSelectionEnterInvite": "Enter Invite Code",
   "roomSelectionJoining": "Joining...",
   "roomSelectionRoomFallback": "Room",
+  "roomSelectionStatusHungry": "{name} is getting hungry",
+  "@roomSelectionStatusHungry": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "roomSelectionStatusNewPhoto": "A new photo arrived",
+  "roomSelectionStatusNoPhoto": "No photos yet — send one",
   "roomSelectionSubtitle": "Pick a pet home and jump back in.",
   "roomSelectionTitle": "Room Selection",
   "roomFrameSheetTitle": "Change Frame",

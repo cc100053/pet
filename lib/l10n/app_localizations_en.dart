@@ -1154,6 +1154,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomSelectionRoomFallback => 'Room';
 
   @override
+  String roomSelectionStatusHungry(Object name) {
+    return '$name is getting hungry';
+  }
+
+  @override
+  String get roomSelectionStatusNewPhoto => 'A new photo arrived';
+
+  @override
+  String get roomSelectionStatusNoPhoto => 'No photos yet — send one';
+
+  @override
   String get roomSelectionSubtitle => 'Pick a pet home and jump back in.';
 
   @override

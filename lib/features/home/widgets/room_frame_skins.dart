@@ -189,9 +189,14 @@ class RoomFrameSkin {
 class RoomFrameSkins {
   const RoomFrameSkins._();
 
-  /// Aspect ratio of the photo message zone. Shared by every skin and by
-  /// `HomePolaroidMemoryFrame`; changing it breaks invariant 1.
-  static const double photoAspectRatio = 1.72;
+  /// Aspect ratio of the photo message zone, shared by every skin.
+  ///
+  /// The photo is the reason the card exists, so it gets the card's height
+  /// budget: at 4:3-ish the zone reads as a photo rather than the letterbox
+  /// strip a wider ratio collapses into at two-column widths. The mat below is
+  /// sized from its own contents (see [RoomFrameGeometry]), so the two never
+  /// compete — widening this ratio again would shrink the photo, not the mat.
+  static const double photoAspectRatio = 1.25;
 
   static const Color _ink = AppTheme.textPrimary;
   static const Color _muted = AppTheme.textSecondary;

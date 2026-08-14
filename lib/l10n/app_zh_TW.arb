@@ -584,6 +584,14 @@
   "roomSelectionEnterInvite": "輸入邀請碼",
   "roomSelectionJoining": "加入中...",
   "roomSelectionRoomFallback": "房間",
+  "roomSelectionStatusHungry": "{name} 肚子餓了",
+  "@roomSelectionStatusHungry": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "roomSelectionStatusNewPhoto": "有新的相片",
+  "roomSelectionStatusNoPhoto": "還沒有相片，去拍一張",
   "roomSelectionSubtitle": "選擇寵物的家並繼續。",
   "roomSelectionTitle": "房間選擇",
   "roomFrameSheetTitle": "換相框",

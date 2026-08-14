@@ -22,11 +22,18 @@ class RoomFramePreviewData {
     required this.petId,
     required this.petAssetPath,
     this.equippedSkusBySlot = const <String, String>{},
+    this.captionKind = RoomFrameCaptionKind.message,
+    this.captionIcon,
   });
 
   final String imageUrl;
   final String petName;
+
+  /// Already resolved by the caller, so the sheet previews the exact caption
+  /// the grid card shows — including a status fallback.
   final String caption;
+  final RoomFrameCaptionKind captionKind;
+  final IconData? captionIcon;
   final int? petLevel;
   final double hungerValue;
   final String petId;
@@ -196,6 +203,8 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
                   imageUrl: widget.preview.imageUrl,
                   petName: widget.preview.petName,
                   caption: widget.preview.caption,
+                  captionKind: widget.preview.captionKind,
+                  captionIcon: widget.preview.captionIcon,
                   petLevel: widget.preview.petLevel,
                   hungerValue: widget.preview.hungerValue,
                   petId: widget.preview.petId,

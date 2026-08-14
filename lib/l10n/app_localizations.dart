@@ -2093,6 +2093,24 @@ abstract class AppLocalizations {
   /// **'Room'**
   String get roomSelectionRoomFallback;
 
+  /// No description provided for @roomSelectionStatusHungry.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is getting hungry'**
+  String roomSelectionStatusHungry(Object name);
+
+  /// No description provided for @roomSelectionStatusNewPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'A new photo arrived'**
+  String get roomSelectionStatusNewPhoto;
+
+  /// No description provided for @roomSelectionStatusNoPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet — send one'**
+  String get roomSelectionStatusNoPhoto;
+
   /// No description provided for @roomSelectionSubtitle.
   ///
   /// In en, this message translates to:

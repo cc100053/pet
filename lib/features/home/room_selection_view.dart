@@ -17,6 +17,18 @@ import 'widgets/room_frame_card.dart';
 import 'widgets/room_frame_picker_sheet.dart';
 import 'widgets/room_frame_skins.dart';
 
+/// Below this satiety, "feed me" outranks anything else the caption could say.
+const double _hungryCaptionThreshold = 0.3;
+
+/// Resolved caption line: what to say, who is saying it, and its glyph.
+class _RoomCaption {
+  const _RoomCaption(this.text, this.kind, this.icon);
+
+  final String text;
+  final RoomFrameCaptionKind kind;
+  final IconData? icon;
+}
+
 class RoomSelectionView extends StatelessWidget {
   const RoomSelectionView({
     super.key,
@@ -130,10 +142,17 @@ class RoomSelectionView extends StatelessWidget {
         final avatarSize = 42.0 * uiScale;
         final rowSpacing = 16.0 * uiScale;
         final columnSpacing = 14.0 * uiScale;
+        // The CTA floats over the grid, so the grid has to end above it: the
+        // button (56) + its hard shadow (5) + the gap below it + breathing room
+        // above, or the last row of cards hides underneath.
         final gridBottomInset =
-            responsive.pick(compact: 96, regular: 104, expanded: 112) * uiScale;
+            responsive.pick(compact: 112, regular: 122, expanded: 132) *
+            uiScale;
+        // The button is the heaviest object on screen; sitting it 8pt off the
+        // safe area made it look like it had slipped off the bottom edge. Give
+        // it a margin in the same family as the horizontal padding.
         final ctaBottomInset =
-            responsive.pick(compact: 8, regular: 10, expanded: 12) * uiScale;
+            responsive.pick(compact: 22, regular: 24, expanded: 26) * uiScale;
 
         return Align(
           alignment: Alignment.topCenter,
@@ -435,11 +454,21 @@ class RoomSelectionView extends StatelessWidget {
       roomId == null ? null : roomFrameStyleByRoom[roomId],
     );
 
+    final caption = _resolveCaption(
+      l10n: l10n,
+      latestCaption: latestCaption,
+      hasPhoto: latestPhoto != null && latestPhoto.isNotEmpty,
+      hungerValue: hungerValue,
+      displayName: displayName,
+    );
+
     final frame = RoomFrameCard(
       skin: skin,
       imageUrl: latestPhoto ?? '',
       petName: displayName,
-      caption: latestCaption,
+      caption: caption.text,
+      captionKind: caption.kind,
+      captionIcon: caption.icon,
       petLevel: petLevel,
       hungerValue: hungerValue,
       petId: petDefinition.id,
@@ -487,6 +516,43 @@ class RoomSelectionView extends StatelessWidget {
         onTap: () => onSelectRoom(roomId),
         child: card,
       ),
+    );
+  }
+
+  /// Text for the card's caption line, which is never allowed to be empty.
+  ///
+  /// A blank line under the name reads as a hole in the card, and hiding it
+  /// would leave cards in the same grid at different heights. So the slot always
+  /// says the most useful true thing available, falling back down this ladder —
+  /// and everything below the first rung is marked as app-written, not human.
+  _RoomCaption _resolveCaption({
+    required AppLocalizations l10n,
+    required String latestCaption,
+    required bool hasPhoto,
+    required double hungerValue,
+    required String displayName,
+  }) {
+    if (latestCaption.isNotEmpty) {
+      return _RoomCaption(latestCaption, RoomFrameCaptionKind.message, null);
+    }
+    if (hungerValue.isFinite && hungerValue < _hungryCaptionThreshold) {
+      return _RoomCaption(
+        l10n.roomSelectionStatusHungry(displayName),
+        RoomFrameCaptionKind.status,
+        Icons.restaurant_rounded,
+      );
+    }
+    if (hasPhoto) {
+      return _RoomCaption(
+        l10n.roomSelectionStatusNewPhoto,
+        RoomFrameCaptionKind.status,
+        Icons.photo_camera_back_rounded,
+      );
+    }
+    return _RoomCaption(
+      l10n.roomSelectionStatusNoPhoto,
+      RoomFrameCaptionKind.status,
+      Icons.add_a_photo_rounded,
     );
   }
 
@@ -547,14 +613,26 @@ class RoomSelectionView extends StatelessWidget {
       room['pet_type'] as String?,
       appVersion: currentAppVersion,
     );
+    final latestPhoto = (room['latest_photo'] as String?) ?? '';
+    final hungerValue = (room['pet_health'] as num?)?.toDouble() ?? 0.0;
+    // Same ladder as the grid card, so the sheet previews the real caption.
+    final caption = _resolveCaption(
+      l10n: l10n,
+      latestCaption: ((room['latest_caption'] as String?) ?? '').trim(),
+      hasPhoto: latestPhoto.isNotEmpty,
+      hungerValue: hungerValue,
+      displayName: displayName,
+    );
     await showRoomFramePickerSheet(
       context: context,
       preview: RoomFramePreviewData(
-        imageUrl: (room['latest_photo'] as String?) ?? '',
+        imageUrl: latestPhoto,
         petName: displayName,
-        caption: ((room['latest_caption'] as String?) ?? '').trim(),
+        caption: caption.text,
+        captionKind: caption.kind,
+        captionIcon: caption.icon,
         petLevel: (room['pet_level'] as num?)?.toInt(),
-        hungerValue: (room['pet_health'] as num?)?.toDouble() ?? 0.0,
+        hungerValue: hungerValue,
         petId: petDefinition.id,
         petAssetPath: petDefinition.stayAsset,
         equippedSkusBySlot:
