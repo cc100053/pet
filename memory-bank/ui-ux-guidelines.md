@@ -28,8 +28,27 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
 - Casings unlock by room level through `RoomFrameSkin.unlockLevel`. To stage the
   ladder, change only those numbers.
 - Three invariants every casing must keep: nothing paints over the photo message
-  zone (ratio 1.72), the pet overlaps only its bottom-right corner, and no frame
-  name or rarity text appears on the card — names live in the 換相框 sheet.
+  zone (ratio `RoomFrameSkins.photoAspectRatio`, currently 1.25), the pet
+  overlaps only its bottom-right corner, and no frame name or rarity text
+  appears on the card — names live in the 換相框 sheet.
+- The card is laid out around its photo, which holds 63–66% of the card. Widen
+  the ratio and the photo shrinks; the mat is sized from its own contents, so
+  the two never trade space silently.
+- The mat is a text block beside the hunger ring, not a stack of rows. The ring
+  is the trailing element centred against both text rows — at the end of the
+  last row it reads as fallen into the corner — and is kept below the text
+  block's height so it can never drive the mat's size.
+- The mat's horizontal inset derives from `skin.photoInset`, not `matPadding`,
+  so the name lands on the photo's left edge in every casing. Retune photo
+  insets freely; the mat follows.
+- The caption line is never blank and never conditional: blank reads as a hole,
+  conditional makes cards in one grid different heights. It falls back through
+  photo caption → hungry → new photo → no photo yet, and a status line is styled
+  distinctly from a human one (lighter, with a glyph) so the app is never
+  mistaken for a person.
+- Names are fitted to the lane they get (15→11pt, then ellipsis), not capped to
+  fit it. No character limit can serve both scripts: CJK names run 3 characters
+  on average, Latin ones 5, with 95th percentiles of 5 and 11.
 - Card height comes from `RoomFrameGeometry`, shared by the card's build and the
   grid's cell estimate. Keep them reading the same source.
 

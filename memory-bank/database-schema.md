@@ -52,6 +52,17 @@ migration that rewrites the object.
 - `register_device_token(text,text,text)` is the authenticated definer-rights
   reassignment path; old clients retain direct upsert. Rate-limit callers if
   token-knowledge-based reassignment becomes an abuse vector.
+- Pet names validate through `public.validate_pet_name(text)`, whose limit comes
+  from `public.pet_name_max_length()` (12). Both `update_pet_name(...)` and
+  `set_initial_pet_name(...)` call it; do not re-spell the rule in a caller.
+  `set_initial_pet_name` exists because `update_pet_name` posts a "renamed"
+  system message, and only accepts pets that have no name yet, so it cannot be
+  used as a rename that skips that message. Resending the same name is a no-op.
+  Caveat: `pets`' UPDATE policy still lets any room member write the column
+  directly, so these RPCs are the app's path, not a hard boundary — a CHECK
+  constraint would close it but would reject every future update to the one row
+  already over the limit. Old clients cap renames at 20 or not at all, so they
+  now see `name_too_long`.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use

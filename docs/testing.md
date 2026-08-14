@@ -1,5 +1,16 @@
 ## Testing Helpers
 
+### CI
+- `.github/workflows/ci.yml` runs on pushes to `main`, on pull requests, and on
+  demand: `dart format --set-exit-if-changed lib test`, then `flutter analyze`,
+  then `flutter test`.
+- It pins the same Flutter as `.fvmrc` (`3.44.0`). A different SDK ships a
+  different formatter, which is what let the tree drift out of canonical form
+  before the gate existed.
+- Format runs first on purpose. Several tests assert on source text, so an
+  unformatted tree surfaces as unrelated test failures rather than as a
+  formatting complaint.
+
 ### Edge Function auth
 - `feed_validate` and `avatar_upload` validate callers inside the function with
   `auth.getUser()` using the Authorization header.
