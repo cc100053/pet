@@ -15,6 +15,9 @@ import '../../../shared/theme/app_theme.dart';
 /// 2. The pet overlaps the photo's bottom-right corner only.
 /// 3. No frame name or rarity text on the card; names live in the 換相框 sheet.
 enum RoomFrameStyle {
+  /// The pre-redesign room card, kept as an equippable casing so no player
+  /// loses the look they already had.
+  original,
   polaroidClassic,
   corkboard,
   goldLeaf,
@@ -24,6 +27,8 @@ enum RoomFrameStyle {
   /// durable storage and (later) to the server.
   String get storageKey {
     switch (this) {
+      case RoomFrameStyle.original:
+        return 'original';
       case RoomFrameStyle.polaroidClassic:
         return 'polaroid_classic';
       case RoomFrameStyle.corkboard:
@@ -65,6 +70,7 @@ class RoomFramePhotoBevel {
 class RoomFrameSkin {
   const RoomFrameSkin({
     required this.style,
+    required this.unlockLevel,
     required this.rotationDegrees,
     required this.mountPadding,
     required this.mountRadius,
@@ -95,6 +101,11 @@ class RoomFrameSkin {
   });
 
   final RoomFrameStyle style;
+
+  /// Room level at which this casing unlocks. Every casing is currently `1`
+  /// (everything available from the start) — raise these to stage the ladder;
+  /// nothing else has to change.
+  final int unlockLevel;
 
   /// Signed tilt of the whole casing, in degrees.
   final double rotationDegrees;
@@ -156,6 +167,8 @@ class RoomFrameSkin {
 
   String localizedName(AppLocalizations l10n) {
     switch (style) {
+      case RoomFrameStyle.original:
+        return l10n.roomFrameStyleOriginal;
       case RoomFrameStyle.polaroidClassic:
         return l10n.roomFrameStylePolaroidClassic;
       case RoomFrameStyle.corkboard:
@@ -168,8 +181,11 @@ class RoomFrameSkin {
   }
 }
 
-/// The four shipped casings. Values are taken verbatim from
+/// The shipped casings: the original room card plus the four from the handoff,
+/// whose values are taken verbatim from
 /// `design_handoff_room_frames/README.md` "The four skins (turn 4)".
+///
+/// Casings unlock by room level via [RoomFrameSkin.unlockLevel].
 class RoomFrameSkins {
   const RoomFrameSkins._();
 
@@ -208,9 +224,42 @@ class RoomFrameSkins {
   static const Alignment _deg112Begin = Alignment(-0.93, -0.37);
   static const Alignment _deg112End = Alignment(0.93, 0.37);
 
+  /// The original room card, preserved as a casing: plain white, soft shadow,
+  /// no tilt and no accent, with the pre-redesign radii (card 22, photo 14) and
+  /// its thinner 2px / 1.5px outlines.
+  static const RoomFrameSkin original = RoomFrameSkin(
+    style: RoomFrameStyle.original,
+    unlockLevel: 1,
+    rotationDegrees: 0,
+    mountPadding: EdgeInsets.zero,
+    mountRadius: 22,
+    mountBorderWidth: 2,
+    mountColor: Colors.white,
+    mountShadows: [
+      BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 6)),
+    ],
+    innerCardColor: Colors.white,
+    innerCardBorderWidth: 0,
+    innerCardRadius: 20,
+    photoInset: EdgeInsets.fromLTRB(12, 12, 12, 0),
+    photoBorderWidth: 1.5,
+    photoRadius: 14,
+    matPadding: EdgeInsets.fromLTRB(4, 10, 4, 12),
+    nameColor: _ink,
+    captionColor: _muted,
+    levelColor: AppTheme.secondaryColor,
+    hungerRingColor: Color(0xFFED8787),
+    hungerTrackColor: Color(0x1F000000),
+    hungerValueColor: _ink,
+    hungerFillColor: Colors.white,
+    topAccent: RoomFrameTopAccent.none,
+    petShadow: _petShadow,
+  );
+
   /// `4a` 拍立得 · 經典 — true polaroid proportions, washi tape, deep bottom mat.
   static const RoomFrameSkin polaroidClassic = RoomFrameSkin(
     style: RoomFrameStyle.polaroidClassic,
+    unlockLevel: 1,
     rotationDegrees: -1,
     mountPadding: EdgeInsets.zero,
     mountRadius: 14,
@@ -242,6 +291,7 @@ class RoomFrameSkins {
   /// white bevel.
   static const RoomFrameSkin corkboard = RoomFrameSkin(
     style: RoomFrameStyle.corkboard,
+    unlockLevel: 1,
     rotationDegrees: 1.2,
     mountPadding: EdgeInsets.zero,
     mountRadius: 10,
@@ -278,6 +328,7 @@ class RoomFrameSkins {
   /// diagonal sheen that lights the rim only.
   static const RoomFrameSkin goldLeaf = RoomFrameSkin(
     style: RoomFrameStyle.goldLeaf,
+    unlockLevel: 1,
     rotationDegrees: 0,
     mountPadding: EdgeInsets.all(6),
     mountRadius: 18,
@@ -325,6 +376,7 @@ class RoomFrameSkins {
   /// `4d` 收藏卡 · 夜光 — ink card in a mint-to-violet glowing mount.
   static const RoomFrameSkin nightGlow = RoomFrameSkin(
     style: RoomFrameStyle.nightGlow,
+    unlockLevel: 1,
     rotationDegrees: 0,
     mountPadding: EdgeInsets.all(6),
     mountRadius: 18,
@@ -365,36 +417,44 @@ class RoomFrameSkins {
 
   static const Map<RoomFrameStyle, RoomFrameSkin> byStyle =
       <RoomFrameStyle, RoomFrameSkin>{
+        RoomFrameStyle.original: original,
         RoomFrameStyle.polaroidClassic: polaroidClassic,
         RoomFrameStyle.corkboard: corkboard,
         RoomFrameStyle.goldLeaf: goldLeaf,
         RoomFrameStyle.nightGlow: nightGlow,
       };
 
-  static const RoomFrameStyle defaultStyle = RoomFrameStyle.polaroidClassic;
+  /// A room that has never picked a casing keeps the card it already had.
+  static const RoomFrameStyle defaultStyle = RoomFrameStyle.original;
 
   static RoomFrameSkin resolve(RoomFrameStyle? style) {
-    return byStyle[style ?? defaultStyle] ?? polaroidClassic;
+    return byStyle[style ?? defaultStyle] ?? original;
   }
 
-  /// Ordered for the 換相框 swatch grid: 拍立得 first, then 收藏卡.
+  /// Ordered for the 換相框 swatch grid: the original card, then 拍立得, then
+  /// 收藏卡.
   static const List<RoomFrameStyle> displayOrder = <RoomFrameStyle>[
+    RoomFrameStyle.original,
     RoomFrameStyle.polaroidClassic,
     RoomFrameStyle.corkboard,
     RoomFrameStyle.goldLeaf,
     RoomFrameStyle.nightGlow,
   ];
 
-  /// Candy price of a locked casing. The 拍立得 pair ships free; the 收藏卡
-  /// pair is priced. Prices stay here until the shop-backed `items` rows land.
-  static int? candyPrice(RoomFrameStyle style) {
-    switch (style) {
-      case RoomFrameStyle.polaroidClassic:
-      case RoomFrameStyle.corkboard:
-      case RoomFrameStyle.goldLeaf:
-        return null;
-      case RoomFrameStyle.nightGlow:
-        return 300;
-    }
+  /// Room level at which [style] unlocks.
+  static int unlockLevel(RoomFrameStyle style) => resolve(style).unlockLevel;
+
+  /// Whether a room at [roomLevel] may equip [style]. An unknown level (a room
+  /// whose pet summary has not loaded yet) is treated as level 1 so the sheet
+  /// never claims a level-1 casing is locked.
+  static bool isUnlocked(RoomFrameStyle style, int? roomLevel) {
+    return (roomLevel ?? 1) >= unlockLevel(style);
+  }
+
+  static Set<RoomFrameStyle> unlockedFor(int? roomLevel) {
+    return {
+      for (final style in displayOrder)
+        if (isUnlocked(style, roomLevel)) style,
+    };
   }
 }

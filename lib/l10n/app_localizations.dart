@@ -2141,6 +2141,24 @@ abstract class AppLocalizations {
   /// **'Collector · Night Glow'**
   String get roomFrameStyleNightGlow;
 
+  /// No description provided for @roomFrameStyleOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get roomFrameStyleOriginal;
+
+  /// No description provided for @roomFrameLockedLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv {level}'**
+  String roomFrameLockedLevel(int level);
+
+  /// No description provided for @roomFrameLockedLevelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{frameName} unlocks at room Lv {level}.'**
+  String roomFrameLockedLevelHint(Object frameName, int level);
+
   /// No description provided for @roomFrameInUse.
   ///
   /// In en, this message translates to:
@@ -2164,12 +2182,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Frame changed to {frameName}.'**
   String roomFrameChanged(Object frameName);
-
-  /// No description provided for @roomFrameLockedHint.
-  ///
-  /// In en, this message translates to:
-  /// **'You don\'t own {frameName} yet.'**
-  String roomFrameLockedHint(Object frameName);
 
   /// No description provided for @roomFrameChangeAction.
   ///

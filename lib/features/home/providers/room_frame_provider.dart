@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../services/settings/app_settings_repository.dart';
 import '../widgets/room_frame_skins.dart';
 
-/// Which casing each room card wears on 房間選擇, and which casings the player
-/// may equip.
+/// Which casing each room card wears on 房間選擇.
+///
+/// Which casings are *available* is not stored: it is derived from the room's
+/// level by [RoomFrameSkins.isUnlocked].
 ///
 /// Backed by [AppSettingsRepository] (Hive). Frames are a per-device preference
 /// today; when the shop-backed `items` rows and the server column land, only
@@ -23,8 +25,10 @@ class RoomFrameNotifier extends Notifier<Map<String, RoomFrameStyle>> {
     return resolved;
   }
 
+  /// Equips [style] on [roomId]. The level gate lives in the 換相框 sheet,
+  /// which is the only surface that knows the room's level.
   Future<void> equip(String roomId, RoomFrameStyle style) async {
-    if (roomId.isEmpty || !ownedStyles.contains(style)) {
+    if (roomId.isEmpty) {
       return;
     }
     state = {...state, roomId: style};
@@ -32,15 +36,6 @@ class RoomFrameNotifier extends Notifier<Map<String, RoomFrameStyle>> {
       roomId,
       style.storageKey,
     );
-  }
-
-  /// Casings the player may equip. Free casings are always available; priced
-  /// ones unlock through the shop, which does not carry frame items yet.
-  Set<RoomFrameStyle> get ownedStyles {
-    return {
-      for (final style in RoomFrameStyle.values)
-        if (RoomFrameSkins.candyPrice(style) == null) style,
-    };
   }
 }
 

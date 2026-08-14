@@ -33,7 +33,6 @@ class RoomSelectionView extends StatelessWidget {
     this.userNameById = const {},
     this.roomEquippedSkusBySlot = const {},
     this.roomFrameStyleByRoom = const {},
-    this.ownedFrameStyles = const {},
     this.onEquipRoomFrame,
     this.onOpenStore,
     this.coins = 0,
@@ -64,10 +63,6 @@ class RoomSelectionView extends StatelessWidget {
   /// Casing each room currently wears, keyed by room id. Rooms without an entry
   /// fall back to [RoomFrameSkins.defaultStyle].
   final Map<String, RoomFrameStyle> roomFrameStyleByRoom;
-
-  /// Casings this player may equip. Anything outside this set renders locked in
-  /// the 換相框 sheet with its candy price.
-  final Set<RoomFrameStyle> ownedFrameStyles;
 
   /// Commits a casing change. When null, long-pressing a card falls back to the
   /// room options sheet instead of opening 換相框.
@@ -566,7 +561,8 @@ class RoomSelectionView extends StatelessWidget {
             roomEquippedSkusBySlot[roomId] ?? const <String, String>{},
       ),
       equippedStyle: skin.style,
-      ownedStyles: ownedFrameStyles,
+      // Casings unlock by room level, so the gate is per room.
+      roomLevel: (room['pet_level'] as num?)?.toInt(),
       coins: coins,
       diamonds: diamonds,
       onStoreTap: onOpenStore ?? () {},

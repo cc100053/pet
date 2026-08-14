@@ -17,17 +17,21 @@ Future<void> settle(WidgetTester tester) async {
 Finder swatchOf(RoomFrameStyle style) =>
     find.byKey(Key('room_frame_swatch_${style.storageKey}'));
 
-void main() {
-  const ownedStyles = <RoomFrameStyle>{
-    RoomFrameStyle.polaroidClassic,
-    RoomFrameStyle.corkboard,
-    RoomFrameStyle.goldLeaf,
-  };
+/// A phone-shaped viewport: the default 800x600 test surface is too short for
+/// the 換相框 sheet, which puts 完成 off-screen and makes taps miss.
+void usePhoneViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390 * 3, 900 * 3);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
 
+void main() {
   Widget buildView({
     Map<String, RoomFrameStyle> roomFrameStyleByRoom = const {},
     Future<void> Function(String roomId, RoomFrameStyle style)?
     onEquipRoomFrame,
+    int? petLevel = 4,
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -35,19 +39,18 @@ void main() {
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: RoomSelectionView(
-          rooms: const [
+          rooms: [
             {
               'id': 'room-1',
               'pet_name': 'Mochi',
               'pet_type': 'ghost',
               'pet_health': 0.8,
-              'pet_level': 4,
+              'pet_level': petLevel,
               'unread_count': 0,
               'latest_caption': 'fed today',
             },
           ],
           roomFrameStyleByRoom: roomFrameStyleByRoom,
-          ownedFrameStyles: ownedStyles,
           onEquipRoomFrame: onEquipRoomFrame,
           onCreateRoom: () {},
           onJoinRoom: () {},
@@ -82,6 +85,7 @@ void main() {
   testWidgets('long press opens the frame picker and commits the pick', (
     tester,
   ) async {
+    usePhoneViewport(tester);
     final equipped = <(String, RoomFrameStyle)>[];
     await tester.pumpWidget(
       buildView(
@@ -99,7 +103,12 @@ void main() {
     // The equipped casing is highlighted, named, and previewed on open.
     expect(find.text('Polaroid · Classic'), findsOneWidget);
     expect(find.text('In use'), findsOneWidget);
-    expect(find.text('Owned'), findsNWidgets(2));
+    // The original card is offered alongside the four new casings.
+    expect(swatchOf(RoomFrameStyle.original), findsOneWidget);
+    expect(
+      find.text('Owned'),
+      findsNWidgets(RoomFrameSkins.displayOrder.length - 1),
+    );
 
     await tester.tap(swatchOf(RoomFrameStyle.goldLeaf));
     await settle(tester);
@@ -115,13 +124,12 @@ void main() {
     expect(find.text('Change Frame'), findsNothing);
   });
 
-  testWidgets('a locked casing cannot be highlighted or equipped', (
-    tester,
-  ) async {
+  testWidgets('the original card can be picked back', (tester) async {
+    usePhoneViewport(tester);
     final equipped = <RoomFrameStyle>[];
     await tester.pumpWidget(
       buildView(
-        roomFrameStyleByRoom: const {'room-1': RoomFrameStyle.polaroidClassic},
+        roomFrameStyleByRoom: const {'room-1': RoomFrameStyle.goldLeaf},
         onEquipRoomFrame: (_, style) async => equipped.add(style),
       ),
     );
@@ -129,24 +137,30 @@ void main() {
     await tester.longPress(find.byType(RoomFrameCard));
     await settle(tester);
 
-    // 夜光 is priced, so it shows its candy cost instead of an owned label.
-    expect(find.text('300'), findsOneWidget);
-
-    await tester.tap(swatchOf(RoomFrameStyle.nightGlow));
-    await tester.pump();
-
-    expect(
-      find.text("You don't own Collector · Night Glow yet."),
-      findsOneWidget,
-    );
-    expect(find.text('Polaroid · Classic'), findsOneWidget);
-
+    await tester.tap(swatchOf(RoomFrameStyle.original));
+    await settle(tester);
     await tester.tap(find.text('Done'));
     await settle(tester);
-    expect(equipped, isEmpty);
 
-    // Let the juice snackbar's auto-dismiss timer drain.
-    await tester.pump(const Duration(seconds: 4));
+    expect(equipped, [RoomFrameStyle.original]);
+  });
+
+  testWidgets('every casing is pickable while the ladder sits at Lv 1', (
+    tester,
+  ) async {
+    usePhoneViewport(tester);
+    // A room whose pet summary has not loaded yet must not read as locked.
+    await tester.pumpWidget(
+      buildView(petLevel: null, onEquipRoomFrame: (_, _) async {}),
+    );
+
+    await tester.longPress(find.byType(RoomFrameCard));
+    await settle(tester);
+
+    expect(find.byIcon(Icons.lock_rounded), findsNothing);
+    for (final style in RoomFrameSkins.displayOrder) {
+      expect(swatchOf(style), findsOneWidget);
+    }
   });
 
   testWidgets('long press falls back to room options with no equip handler', (
@@ -180,6 +194,38 @@ void main() {
           closeTo(RoomFrameSkins.photoAspectRatio, 0.001),
         );
       }
+    });
+
+    test('the original card is the default casing', () {
+      // Existing rooms have no stored casing, so the default must be the card
+      // they already had.
+      expect(RoomFrameSkins.defaultStyle, RoomFrameStyle.original);
+      expect(RoomFrameSkins.resolve(null).style, RoomFrameStyle.original);
+      expect(RoomFrameSkins.displayOrder.first, RoomFrameStyle.original);
+      expect(
+        RoomFrameSkins.byStyle.keys.toSet(),
+        RoomFrameStyle.values.toSet(),
+      );
+    });
+
+    test('the whole ladder currently unlocks at Lv 1', () {
+      for (final style in RoomFrameStyle.values) {
+        expect(RoomFrameSkins.unlockLevel(style), 1, reason: '$style');
+        expect(RoomFrameSkins.isUnlocked(style, 1), isTrue);
+        // An unknown level is treated as 1 rather than as locked.
+        expect(RoomFrameSkins.isUnlocked(style, null), isTrue);
+      }
+      expect(RoomFrameSkins.unlockedFor(1), RoomFrameStyle.values.toSet());
+    });
+
+    test('the level gate compares against the required level', () {
+      for (final style in RoomFrameStyle.values) {
+        final required = RoomFrameSkins.unlockLevel(style);
+        expect(RoomFrameSkins.isUnlocked(style, required - 1), isFalse);
+        expect(RoomFrameSkins.isUnlocked(style, required), isTrue);
+        expect(RoomFrameSkins.isUnlocked(style, required + 5), isTrue);
+      }
+      expect(RoomFrameSkins.unlockedFor(0), isEmpty);
     });
 
     test('storage keys round-trip', () {

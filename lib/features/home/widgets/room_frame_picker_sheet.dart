@@ -37,13 +37,15 @@ class RoomFramePreviewData {
 /// 換相框 — pick the casing a room card wears.
 ///
 /// Built on the app's existing equip/inventory treatments: the green
-/// `使用中` outline plus check badge, the muted `擁有` label, and the candy price
-/// on a locked entry all match `home_room_inventory_panel.dart`.
+/// `使用中` outline plus check badge and the muted `擁有` label both match
+/// `home_room_inventory_panel.dart`.
+///
+/// Casings unlock by room level, so [roomLevel] decides what is pickable.
 Future<void> showRoomFramePickerSheet({
   required BuildContext context,
   required RoomFramePreviewData preview,
   required RoomFrameStyle equippedStyle,
-  required Set<RoomFrameStyle> ownedStyles,
+  required int? roomLevel,
   required int coins,
   required int diamonds,
   required VoidCallback onStoreTap,
@@ -61,7 +63,7 @@ Future<void> showRoomFramePickerSheet({
       return _RoomFramePickerSheet(
         preview: preview,
         equippedStyle: equippedStyle,
-        ownedStyles: ownedStyles,
+        roomLevel: roomLevel,
         coins: coins,
         diamonds: diamonds,
         onStoreTap: onStoreTap,
@@ -76,7 +78,7 @@ class _RoomFramePickerSheet extends StatefulWidget {
   const _RoomFramePickerSheet({
     required this.preview,
     required this.equippedStyle,
-    required this.ownedStyles,
+    required this.roomLevel,
     required this.coins,
     required this.diamonds,
     required this.onStoreTap,
@@ -86,7 +88,7 @@ class _RoomFramePickerSheet extends StatefulWidget {
 
   final RoomFramePreviewData preview;
   final RoomFrameStyle equippedStyle;
-  final Set<RoomFrameStyle> ownedStyles;
+  final int? roomLevel;
   final int coins;
   final int diamonds;
   final VoidCallback onStoreTap;
@@ -105,15 +107,18 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
 
   static const double _previewWidth = 190;
 
-  bool _isOwned(RoomFrameStyle style) => widget.ownedStyles.contains(style);
+  bool _isUnlocked(RoomFrameStyle style) =>
+      RoomFrameSkins.isUnlocked(style, widget.roomLevel);
 
   void _handleSwatchTap(RoomFrameStyle style) {
     final l10n = AppLocalizations.of(context)!;
-    if (!_isOwned(style)) {
+    if (!_isUnlocked(style)) {
+      final skin = RoomFrameSkins.resolve(style);
       showJuiceSnackbar(
         context: context,
-        message: l10n.roomFrameLockedHint(
-          RoomFrameSkins.resolve(style).localizedName(l10n),
+        message: l10n.roomFrameLockedLevelHint(
+          skin.localizedName(l10n),
+          skin.unlockLevel,
         ),
         tone: AppDialogTone.warning,
       );
@@ -304,8 +309,7 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
                 child: _RoomFrameSwatch(
                   skin: RoomFrameSkins.resolve(style),
                   isHighlighted: style == _highlighted,
-                  isOwned: _isOwned(style),
-                  candyPrice: RoomFrameSkins.candyPrice(style),
+                  isUnlocked: _isUnlocked(style),
                   onTap: () => _handleSwatchTap(style),
                   l10n: l10n,
                 ),
@@ -361,16 +365,14 @@ class _RoomFrameSwatch extends StatelessWidget {
   const _RoomFrameSwatch({
     required this.skin,
     required this.isHighlighted,
-    required this.isOwned,
-    required this.candyPrice,
+    required this.isUnlocked,
     required this.onTap,
     required this.l10n,
   });
 
   final RoomFrameSkin skin;
   final bool isHighlighted;
-  final bool isOwned;
-  final int? candyPrice;
+  final bool isUnlocked;
   final VoidCallback onTap;
   final AppLocalizations l10n;
 
@@ -382,7 +384,7 @@ class _RoomFrameSwatch extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Opacity(
-            opacity: isOwned ? 1 : 0.75,
+            opacity: isUnlocked ? 1 : 0.75,
             child: AspectRatio(
               aspectRatio: 1,
               child: Stack(
@@ -531,7 +533,7 @@ class _RoomFrameSwatch extends StatelessWidget {
         ),
       );
     }
-    if (isOwned) {
+    if (isUnlocked) {
       return Text(
         l10n.roomFrameOwned,
         maxLines: 1,
@@ -544,13 +546,14 @@ class _RoomFrameSwatch extends StatelessWidget {
         ),
       );
     }
+    // Locked casings name the room level that opens them.
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset('assets/shop/icon/candy.png', width: 13, height: 13),
+        const Icon(Icons.lock_rounded, size: 11, color: AppTheme.textSecondary),
         const Gap(3),
         Text(
-          '${candyPrice ?? 0}',
+          l10n.roomFrameLockedLevel(skin.unlockLevel),
           maxLines: 1,
           style: const TextStyle(
             fontSize: 10,

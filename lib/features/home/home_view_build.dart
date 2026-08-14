@@ -38,9 +38,6 @@ extension _HomeBuildHelpers on _HomeViewState {
               ),
               roomEquippedSkusBySlot: _roomEquippedSkusBySlot,
               roomFrameStyleByRoom: roomFrameStyleByRoom,
-              ownedFrameStyles: ref
-                  .read(roomFrameProvider.notifier)
-                  .ownedStyles,
               onEquipRoomFrame: (roomId, style) =>
                   ref.read(roomFrameProvider.notifier).equip(roomId, style),
               onOpenStore: _openStoreFromNav,

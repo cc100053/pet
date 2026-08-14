@@ -22,7 +22,11 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
 
 ## Room Frame Casings (房間選擇)
 - `RoomFrameSkin` in `lib/features/home/widgets/room_frame_skins.dart` is the
-  only place casing values live; `RoomFrameCard` renders all four.
+  only place casing values live; `RoomFrameCard` renders all of them.
+- `RoomFrameStyle.original` is the pre-redesign card and the default; never drop
+  it, or existing rooms lose the look they had.
+- Casings unlock by room level through `RoomFrameSkin.unlockLevel`. To stage the
+  ladder, change only those numbers.
 - Three invariants every casing must keep: nothing paints over the photo message
   zone (ratio 1.72), the pet overlaps only its bottom-right corner, and no frame
   name or rarity text appears on the card — names live in the 換相框 sheet.

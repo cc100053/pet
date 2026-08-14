@@ -1140,6 +1140,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomFrameStyleNightGlow => '收藏卡 · 夜光';
 
   @override
+  String get roomFrameStyleOriginal => '原本相框';
+
+  @override
+  String roomFrameLockedLevel(int level) {
+    return 'Lv $level';
+  }
+
+  @override
+  String roomFrameLockedLevelHint(Object frameName, int level) {
+    return '$frameName 需要房间 Lv $level 才能解锁。';
+  }
+
+  @override
   String get roomFrameInUse => '使用中';
 
   @override
@@ -1151,11 +1164,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String roomFrameChanged(Object frameName) {
     return '已换上$frameName。';
-  }
-
-  @override
-  String roomFrameLockedHint(Object frameName) {
-    return '还没有拥有$frameName。';
   }
 
   @override
@@ -3262,6 +3270,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomFrameStyleNightGlow => '收藏卡 · 夜光';
 
   @override
+  String get roomFrameStyleOriginal => '原本相框';
+
+  @override
+  String roomFrameLockedLevel(int level) {
+    return 'Lv $level';
+  }
+
+  @override
+  String roomFrameLockedLevelHint(Object frameName, int level) {
+    return '$frameName 需要房間 Lv $level 才能解鎖。';
+  }
+
+  @override
   String get roomFrameInUse => '使用中';
 
   @override
@@ -3273,11 +3294,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String roomFrameChanged(Object frameName) {
     return '已換上$frameName。';
-  }
-
-  @override
-  String roomFrameLockedHint(Object frameName) {
-    return '還沒有擁有$frameName。';
   }
 
   @override

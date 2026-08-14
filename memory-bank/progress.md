@@ -28,14 +28,17 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
 - Room-photo cleanup remains human-reviewed/fail-closed; GEOFlow/hosting lives
   in `/Users/fatboy/geo-marketing`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
-- 房間選擇 room cards are equippable frame casings (`RoomFrameStyle` ×4) picked
-  in the 換相框 sheet via long-press. Equipped casing persists per device in
-  Hive; the 收藏卡 · 夜光 price is declared client-side and not yet purchasable.
+- 房間選擇 room cards are equippable frame casings (`RoomFrameStyle` ×5) picked
+  in the 換相框 sheet via long-press. `original` is the pre-redesign card and the
+  default, so untouched rooms look unchanged. Casings unlock by room level
+  (`RoomFrameSkin.unlockLevel`, all `1` today). Equipped casing persists per
+  device in Hive.
 
 ## Open Items
-- Room frames need a server-backed equip/ownership path (new state table plus
-  `items` rows, following the `room_backgrounds` precedent) before 夜光 can be
-  sold or a casing can be shared across a room's members. Requires approval.
+- Room frames: the unlock ladder is still flat (every casing at level 1), and
+  the equipped casing is per device. Sharing one across a room's members needs a
+  server-backed state table following the `room_backgrounds` precedent, which
+  requires approval.
 - Monitor ASC/store outcome for iOS `2.4.0+19`; App Review submission requires
   an explicit request.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.

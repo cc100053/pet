@@ -1152,6 +1152,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomFrameStyleNightGlow => '컬렉션 · 나이트 글로우';
 
   @override
+  String get roomFrameStyleOriginal => '오리지널';
+
+  @override
+  String roomFrameLockedLevel(int level) {
+    return 'Lv $level';
+  }
+
+  @override
+  String roomFrameLockedLevelHint(Object frameName, int level) {
+    return '$frameName은(는) 방 Lv $level에서 해금됩니다.';
+  }
+
+  @override
   String get roomFrameInUse => '사용 중';
 
   @override
@@ -1163,11 +1176,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String roomFrameChanged(Object frameName) {
     return '$frameName(으)로 변경했습니다.';
-  }
-
-  @override
-  String roomFrameLockedHint(Object frameName) {
-    return '$frameName을(를) 아직 보유하지 않았습니다.';
   }
 
   @override

@@ -1180,6 +1180,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomFrameStyleNightGlow => 'Collector · Night Glow';
 
   @override
+  String get roomFrameStyleOriginal => 'Original';
+
+  @override
+  String roomFrameLockedLevel(int level) {
+    return 'Lv $level';
+  }
+
+  @override
+  String roomFrameLockedLevelHint(Object frameName, int level) {
+    return '$frameName unlocks at room Lv $level.';
+  }
+
+  @override
   String get roomFrameInUse => 'In use';
 
   @override
@@ -1191,11 +1204,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String roomFrameChanged(Object frameName) {
     return 'Frame changed to $frameName.';
-  }
-
-  @override
-  String roomFrameLockedHint(Object frameName) {
-    return 'You don\'t own $frameName yet.';
   }
 
   @override

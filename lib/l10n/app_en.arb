@@ -606,17 +606,25 @@
   "roomFrameStyleCorkboard": "Polaroid · Corkboard",
   "roomFrameStyleGoldLeaf": "Collector · Gold Leaf",
   "roomFrameStyleNightGlow": "Collector · Night Glow",
+  "roomFrameStyleOriginal": "Original",
+  "roomFrameLockedLevel": "Lv {level}",
+  "@roomFrameLockedLevel": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  },
+  "roomFrameLockedLevelHint": "{frameName} unlocks at room Lv {level}.",
+  "@roomFrameLockedLevelHint": {
+    "placeholders": {
+      "frameName": {},
+      "level": {"type": "int"}
+    }
+  },
   "roomFrameInUse": "In use",
   "roomFrameOwned": "Owned",
   "roomFrameConfirm": "Done",
   "roomFrameChanged": "Frame changed to {frameName}.",
   "@roomFrameChanged": {
-    "placeholders": {
-      "frameName": {}
-    }
-  },
-  "roomFrameLockedHint": "You don't own {frameName} yet.",
-  "@roomFrameLockedHint": {
     "placeholders": {
       "frameName": {}
     }

@@ -14,7 +14,11 @@ sheet). Client-only; no schema or shop changes.
 - [x] Rebuild `room_selection_view.dart` on the card: gradient backdrop, 42px
       avatar, 邀請碼 hard-shadow pill, 2-column grid, dashed 空位, 56px CTA.
 - [x] `room_frame_picker_sheet.dart` (換相框): live preview, 4-up swatch grid
-      with 使用中/擁有/price states, 完成 confirm.
+      with 使用中/擁有/locked states, 完成 confirm.
+- [x] Keep the pre-redesign card as `RoomFrameStyle.original`, make it the
+      default so no existing room changes look, and list it first in 換相框.
+- [x] Gate casings by room level via `RoomFrameSkin.unlockLevel` (all `1` for
+      now); locked swatches show a lock plus the required `Lv n`.
 - [x] Extract the currency pill to `home_currency_pill.dart` and reuse it in the
       sheet rather than re-drawing it.
 - [x] Persist the equipped casing per room via `AppSettingsRepository` (Hive)
@@ -33,12 +37,14 @@ sheet). Client-only; no schema or shop changes.
       and leave a clean worktree.
 
 ## Active Follow-ups
-- [ ] Room frames are per-device only. To make them shared/purchasable, add a
-      `room_frame_state`-style table plus `items` rows following the
-      `room_backgrounds` / `room_background_state` precedent, price 夜光 off
-      `docs/shop_pricing.md`, and version-gate visibility per
-      `.codex/skills/shared-item-rollout/SKILL.md`. Needs approval first
-      (migration + old-client compatibility).
+- [ ] Decide the real room-frame unlock ladder: raise
+      `RoomFrameSkin.unlockLevel` per casing (everything is `1` today, so
+      nothing is gated yet).
+- [ ] Room frames are per-device only. To share a casing across a room's
+      members, add a `room_frame_state`-style table following the
+      `room_backgrounds` / `room_background_state` precedent and version-gate
+      visibility per `.codex/skills/shared-item-rollout/SKILL.md`. Needs
+      approval first (migration + old-client compatibility).
 - [ ] Monitor ASC/store outcome for iOS `2.4.0+19`; submit for App Review only
       after an explicit request.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
