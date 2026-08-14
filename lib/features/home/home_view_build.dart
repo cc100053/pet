@@ -8,6 +8,8 @@ extension _HomeBuildHelpers on _HomeViewState {
     Map<String, int> unreadCountByRoom,
     String? roomSelectionId,
   ) {
+    final roomFrameStyleByRoom = ref.watch(roomFrameProvider);
+    final currency = ref.watch(homeCurrencyProvider);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
       child: Scaffold(
@@ -35,6 +37,15 @@ extension _HomeBuildHelpers on _HomeViewState {
                 (key, value) => MapEntry(key, value.nickname),
               ),
               roomEquippedSkusBySlot: _roomEquippedSkusBySlot,
+              roomFrameStyleByRoom: roomFrameStyleByRoom,
+              ownedFrameStyles: ref
+                  .read(roomFrameProvider.notifier)
+                  .ownedStyles,
+              onEquipRoomFrame: (roomId, style) =>
+                  ref.read(roomFrameProvider.notifier).equip(roomId, style),
+              onOpenStore: _openStoreFromNav,
+              coins: currency.coins,
+              diamonds: currency.diamonds,
               selectedRoomId: roomSelectionId,
               userAvatarUrl: _myAvatarUrl,
               currentAppVersion: _currentAppVersion,

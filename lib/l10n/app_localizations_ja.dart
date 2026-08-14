@@ -1124,6 +1124,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomSelectionTitle => 'ルーム選択';
 
   @override
+  String get roomFrameSheetTitle => 'フレーム変更';
+
+  @override
+  String roomFrameSheetSubtitle(Object petName) {
+    return '$petNameのルーム';
+  }
+
+  @override
+  String get roomFrameStylePolaroidClassic => 'ポラロイド · クラシック';
+
+  @override
+  String get roomFrameStyleCorkboard => 'ポラロイド · コルクボード';
+
+  @override
+  String get roomFrameStyleGoldLeaf => 'コレクション · ゴールドリーフ';
+
+  @override
+  String get roomFrameStyleNightGlow => 'コレクション · ナイトグロウ';
+
+  @override
+  String get roomFrameInUse => '使用中';
+
+  @override
+  String get roomFrameOwned => '所持';
+
+  @override
+  String get roomFrameConfirm => '完了';
+
+  @override
+  String roomFrameChanged(Object frameName) {
+    return '$frameNameに変更しました。';
+  }
+
+  @override
+  String roomFrameLockedHint(Object frameName) {
+    return '$frameNameはまだ持っていません。';
+  }
+
+  @override
+  String get roomFrameChangeAction => 'フレーム変更';
+
+  @override
   String get signInFailed => 'サインインに失敗しました。もう一度お試しください。';
 
   @override

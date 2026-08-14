@@ -595,6 +595,33 @@
   "roomSelectionRoomFallback": "Room",
   "roomSelectionSubtitle": "Pick a pet home and jump back in.",
   "roomSelectionTitle": "Room Selection",
+  "roomFrameSheetTitle": "Change Frame",
+  "roomFrameSheetSubtitle": "{petName}'s room",
+  "@roomFrameSheetSubtitle": {
+    "placeholders": {
+      "petName": {}
+    }
+  },
+  "roomFrameStylePolaroidClassic": "Polaroid · Classic",
+  "roomFrameStyleCorkboard": "Polaroid · Corkboard",
+  "roomFrameStyleGoldLeaf": "Collector · Gold Leaf",
+  "roomFrameStyleNightGlow": "Collector · Night Glow",
+  "roomFrameInUse": "In use",
+  "roomFrameOwned": "Owned",
+  "roomFrameConfirm": "Done",
+  "roomFrameChanged": "Frame changed to {frameName}.",
+  "@roomFrameChanged": {
+    "placeholders": {
+      "frameName": {}
+    }
+  },
+  "roomFrameLockedHint": "You don't own {frameName} yet.",
+  "@roomFrameLockedHint": {
+    "placeholders": {
+      "frameName": {}
+    }
+  },
+  "roomFrameChangeAction": "Change frame",
   "roomOptionsTitle": "Room options",
   "roomOptionRename": "Rename room",
   "roomOptionLeave": "Leave room",

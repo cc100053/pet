@@ -1132,6 +1132,48 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomSelectionTitle => '방 선택';
 
   @override
+  String get roomFrameSheetTitle => '프레임 변경';
+
+  @override
+  String roomFrameSheetSubtitle(Object petName) {
+    return '$petName의 방';
+  }
+
+  @override
+  String get roomFrameStylePolaroidClassic => '폴라로이드 · 클래식';
+
+  @override
+  String get roomFrameStyleCorkboard => '폴라로이드 · 코크보드';
+
+  @override
+  String get roomFrameStyleGoldLeaf => '컬렉션 · 골드 리프';
+
+  @override
+  String get roomFrameStyleNightGlow => '컬렉션 · 나이트 글로우';
+
+  @override
+  String get roomFrameInUse => '사용 중';
+
+  @override
+  String get roomFrameOwned => '보유';
+
+  @override
+  String get roomFrameConfirm => '완료';
+
+  @override
+  String roomFrameChanged(Object frameName) {
+    return '$frameName(으)로 변경했습니다.';
+  }
+
+  @override
+  String roomFrameLockedHint(Object frameName) {
+    return '$frameName을(를) 아직 보유하지 않았습니다.';
+  }
+
+  @override
+  String get roomFrameChangeAction => '프레임 변경';
+
+  @override
   String get signInFailed => '로그인에 실패했습니다. 다시 시도해 주세요.';
 
   @override

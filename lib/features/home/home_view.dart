@@ -82,6 +82,7 @@ import 'providers/home_currency_provider.dart';
 import 'providers/home_pet_state_provider.dart';
 import 'providers/home_unread_counts_provider.dart';
 import 'providers/home_rooms_provider.dart';
+import 'providers/room_frame_provider.dart';
 import 'onboarding_focus_utils.dart';
 import 'pet_hunger_projection.dart';
 import 'pet_status_snapshot.dart';

@@ -2105,6 +2105,78 @@ abstract class AppLocalizations {
   /// **'Room Selection'**
   String get roomSelectionTitle;
 
+  /// No description provided for @roomFrameSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Frame'**
+  String get roomFrameSheetTitle;
+
+  /// No description provided for @roomFrameSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName}\'s room'**
+  String roomFrameSheetSubtitle(Object petName);
+
+  /// No description provided for @roomFrameStylePolaroidClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Polaroid · Classic'**
+  String get roomFrameStylePolaroidClassic;
+
+  /// No description provided for @roomFrameStyleCorkboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Polaroid · Corkboard'**
+  String get roomFrameStyleCorkboard;
+
+  /// No description provided for @roomFrameStyleGoldLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Collector · Gold Leaf'**
+  String get roomFrameStyleGoldLeaf;
+
+  /// No description provided for @roomFrameStyleNightGlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Collector · Night Glow'**
+  String get roomFrameStyleNightGlow;
+
+  /// No description provided for @roomFrameInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'In use'**
+  String get roomFrameInUse;
+
+  /// No description provided for @roomFrameOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned'**
+  String get roomFrameOwned;
+
+  /// No description provided for @roomFrameConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get roomFrameConfirm;
+
+  /// No description provided for @roomFrameChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame changed to {frameName}.'**
+  String roomFrameChanged(Object frameName);
+
+  /// No description provided for @roomFrameLockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t own {frameName} yet.'**
+  String roomFrameLockedHint(Object frameName);
+
+  /// No description provided for @roomFrameChangeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change frame'**
+  String get roomFrameChangeAction;
+
   /// No description provided for @signInFailed.
   ///
   /// In en, this message translates to:

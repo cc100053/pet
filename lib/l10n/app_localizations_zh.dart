@@ -1120,6 +1120,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomSelectionTitle => '房间选择';
 
   @override
+  String get roomFrameSheetTitle => '换相框';
+
+  @override
+  String roomFrameSheetSubtitle(Object petName) {
+    return '$petName的房间';
+  }
+
+  @override
+  String get roomFrameStylePolaroidClassic => '拍立得 · 经典';
+
+  @override
+  String get roomFrameStyleCorkboard => '拍立得 · 软木板';
+
+  @override
+  String get roomFrameStyleGoldLeaf => '收藏卡 · 金叶';
+
+  @override
+  String get roomFrameStyleNightGlow => '收藏卡 · 夜光';
+
+  @override
+  String get roomFrameInUse => '使用中';
+
+  @override
+  String get roomFrameOwned => '拥有';
+
+  @override
+  String get roomFrameConfirm => '完成';
+
+  @override
+  String roomFrameChanged(Object frameName) {
+    return '已换上$frameName。';
+  }
+
+  @override
+  String roomFrameLockedHint(Object frameName) {
+    return '还没有拥有$frameName。';
+  }
+
+  @override
+  String get roomFrameChangeAction => '换相框';
+
+  @override
   String get signInFailed => '登录失敗，请再試一次。';
 
   @override
@@ -3198,6 +3240,48 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomSelectionTitle => '房間選擇';
+
+  @override
+  String get roomFrameSheetTitle => '換相框';
+
+  @override
+  String roomFrameSheetSubtitle(Object petName) {
+    return '$petName的房間';
+  }
+
+  @override
+  String get roomFrameStylePolaroidClassic => '拍立得 · 經典';
+
+  @override
+  String get roomFrameStyleCorkboard => '拍立得 · 軟木板';
+
+  @override
+  String get roomFrameStyleGoldLeaf => '收藏卡 · 金葉';
+
+  @override
+  String get roomFrameStyleNightGlow => '收藏卡 · 夜光';
+
+  @override
+  String get roomFrameInUse => '使用中';
+
+  @override
+  String get roomFrameOwned => '擁有';
+
+  @override
+  String get roomFrameConfirm => '完成';
+
+  @override
+  String roomFrameChanged(Object frameName) {
+    return '已換上$frameName。';
+  }
+
+  @override
+  String roomFrameLockedHint(Object frameName) {
+    return '還沒有擁有$frameName。';
+  }
+
+  @override
+  String get roomFrameChangeAction => '換相框';
 
   @override
   String get signInFailed => '登入失敗，請再試一次。';

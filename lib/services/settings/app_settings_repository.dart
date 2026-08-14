@@ -33,6 +33,7 @@ class AppSettingsRepository implements PendingInviteCodeStore {
   static const String _onboardingBasicCompletedAtIsoKey =
       'onboarding_basic_completed_at_iso';
   static const String _pendingInviteCodeKey = 'pending_invite_code';
+  static const String _roomFrameStylesKey = 'room_frame_styles';
 
   Box<dynamic>? _box;
   bool _hadExistingBoxAtInit = false;
@@ -205,6 +206,37 @@ class AppSettingsRepository implements PendingInviteCodeStore {
       _onboardingBasicCompletedAtIsoKey,
       value.toUtc().toIso8601String(),
     );
+  }
+
+  /// Equipped room-frame casing per room, as `roomId -> RoomFrameStyle.storageKey`.
+  ///
+  /// Frames are a per-device preference until the shop-backed rows land, so this
+  /// is the durable source of truth for what a room card wears.
+  Map<String, String> get roomFrameStyles {
+    final raw = _box?.get(_roomFrameStylesKey);
+    if (raw is! Map) {
+      return const <String, String>{};
+    }
+    final styles = <String, String>{};
+    raw.forEach((key, value) {
+      if (key is String && value is String && key.isNotEmpty) {
+        styles[key] = value;
+      }
+    });
+    return styles;
+  }
+
+  Future<void> setRoomFrameStyle(String roomId, String? styleKey) async {
+    if (roomId.isEmpty) {
+      return;
+    }
+    final styles = Map<String, String>.from(roomFrameStyles);
+    if (styleKey == null || styleKey.isEmpty) {
+      styles.remove(roomId);
+    } else {
+      styles[roomId] = styleKey;
+    }
+    await _box?.put(_roomFrameStylesKey, styles);
   }
 
   @override

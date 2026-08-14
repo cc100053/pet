@@ -1160,6 +1160,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomSelectionTitle => 'Room Selection';
 
   @override
+  String get roomFrameSheetTitle => 'Change Frame';
+
+  @override
+  String roomFrameSheetSubtitle(Object petName) {
+    return '$petName\'s room';
+  }
+
+  @override
+  String get roomFrameStylePolaroidClassic => 'Polaroid · Classic';
+
+  @override
+  String get roomFrameStyleCorkboard => 'Polaroid · Corkboard';
+
+  @override
+  String get roomFrameStyleGoldLeaf => 'Collector · Gold Leaf';
+
+  @override
+  String get roomFrameStyleNightGlow => 'Collector · Night Glow';
+
+  @override
+  String get roomFrameInUse => 'In use';
+
+  @override
+  String get roomFrameOwned => 'Owned';
+
+  @override
+  String get roomFrameConfirm => 'Done';
+
+  @override
+  String roomFrameChanged(Object frameName) {
+    return 'Frame changed to $frameName.';
+  }
+
+  @override
+  String roomFrameLockedHint(Object frameName) {
+    return 'You don\'t own $frameName yet.';
+  }
+
+  @override
+  String get roomFrameChangeAction => 'Change frame';
+
+  @override
   String get signInFailed => 'Sign-in failed. Please try again.';
 
   @override

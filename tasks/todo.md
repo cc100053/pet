@@ -4,6 +4,24 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260811_pre_compaction.md`.
 
+## Plan (2026-08-14 Room Frame Casings)
+Design source: `design_handoff_room_frames/` (turn 4 = skins, turn 3 = screen +
+sheet). Client-only; no schema or shop changes.
+- [x] `room_frame_skins.dart`: `RoomFrameStyle` enum with stable storage keys
+      plus one `const RoomFrameSkin` per style, values taken from the handoff.
+- [x] `room_frame_card.dart`: one card for all four casings, with
+      `RoomFrameGeometry` shared by build and the grid's height estimate.
+- [x] Rebuild `room_selection_view.dart` on the card: gradient backdrop, 42px
+      avatar, 邀請碼 hard-shadow pill, 2-column grid, dashed 空位, 56px CTA.
+- [x] `room_frame_picker_sheet.dart` (換相框): live preview, 4-up swatch grid
+      with 使用中/擁有/price states, 完成 confirm.
+- [x] Extract the currency pill to `home_currency_pill.dart` and reuse it in the
+      sheet rather than re-drawing it.
+- [x] Persist the equipped casing per room via `AppSettingsRepository` (Hive)
+      behind `roomFrameProvider`.
+- [x] `flutter analyze`, `flutter test`, and visual verification of all four
+      casings, the screen, and the sheet.
+
 ## Plan (2026-08-11 Agent Docs And Memory Optimization)
 - [x] Audit `AGENTS.md`, active memory, task notes, local workflows, recent
       commits, and the complete worktree without discarding shared-session work.
@@ -15,6 +33,12 @@ Current follow-ups and the active session only. Historical task logs live in
       and leave a clean worktree.
 
 ## Active Follow-ups
+- [ ] Room frames are per-device only. To make them shared/purchasable, add a
+      `room_frame_state`-style table plus `items` rows following the
+      `room_backgrounds` / `room_background_state` precedent, price 夜光 off
+      `docs/shop_pricing.md`, and version-gate visibility per
+      `.codex/skills/shared-item-rollout/SKILL.md`. Needs approval first
+      (migration + old-client compatibility).
 - [ ] Monitor ASC/store outcome for iOS `2.4.0+19`; submit for App Review only
       after an explicit request.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
