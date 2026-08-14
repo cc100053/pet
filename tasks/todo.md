@@ -55,10 +55,38 @@ Client-only; no schema or shop changes.
       removing the grandfather clause first).
 - [x] `dart format`, `flutter analyze`, `flutter test` (628 passed / 1 skipped).
 
+## Review (2026-08-15 Simulator Verification)
+Verified on iOS 26.5 simulators (iPhone 17 Pro / 17 Pro Max / 17e) with a
+throwaway `--dart-define`-driven harness, since the simulator has no tap API.
+The harness has been deleted; the recipe is `RoomSelectionView` inside a fixed
+-width `SizedBox` (both `homeUiScale` and `HomeResponsiveSpec` read
+`LayoutBuilder` constraints, so a constrained width exercises the real tier),
+plus a `PrimaryScrollController` jump to `maxScrollExtent` and a first-frame
+`showRoomFramePickerSheet` call.
+- All five casings render correctly at all three tiers — compact 360/0.76,
+  regular 393/0.90, expanded 440/1.00 — with no clipping or overflow.
+- `gridBottomInset` is right at every tier: scrolled to the end, the last card
+  row clears the floating CTA, and the CTA clears the home indicator.
+- The 30pt hunger ring does not overpower `goldLeaf`.
+- `Lv` chip contrast: `nightGlow` is fine (amber on the dark card).
+  **`goldLeaf` is the weakest pair in the set** — gold `0xFFC08A2E` on an 18%
+  gold fill over a cream card. Legible at preview size, marginal on the room
+  card. Left as-is; see the follow-up.
+- 換相框 uses **no** `homeUiScale` — fixed 16pt paddings, a fixed 190pt preview
+  and a 4-up grid that flexes with the device width — so it has no breakpoints
+  to sweep. Verified on the narrowest device available: the `🔒 Lv 3/5/8`
+  labels do not truncate and 完成 clears the home indicator.
+- Caveats: no simulator ≤360pt exists in this install, so the compact tier was
+  driven by constraining the view rather than by a narrow device; and every
+  shot shows the empty-photo placeholder, since the harness has no network
+  photo.
+
 ## Active Follow-ups
-- [ ] Live-verify the room card at every `homeUiScale` breakpoint × all five
-      casings, now including the locked swatch states in 換相框. Only
-      calculated/widget-test verification has been done.
+- [ ] Darken `goldLeaf.levelColor` (or raise the `Lv` chip fill above 18%
+      alpha) — it is the lowest-contrast chip of the five on the room card.
+- [ ] Decide whether locked swatches in 換相框 should be dimmed. They currently
+      render at full saturation, distinguished only by the lock + `Lv n` label,
+      which reads as available at a glance.
 - [ ] Decide whether any casing belongs in the shop instead of on the level
       ladder. Needs an `items` row + a price off `docs/shop_pricing.md`, so it
       is a product call plus a migration, not a client change.

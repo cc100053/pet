@@ -61,11 +61,10 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   precedent, which requires approval. Whether any casing belongs in the shop
   instead of on the level ladder is also still open (needs an `items` row and a
   price off `docs/shop_pricing.md`, so it is a product call plus a migration).
-- Live-verify the room card at every `homeUiScale` breakpoint × all five
-  casings. Only calculated/widget-test verification has been done. Watch the
-  `Lv` chip's contrast on `goldLeaf`/`nightGlow` (18% alpha of `levelColor`),
-  whether the 30pt ring overpowers `goldLeaf`, and the CTA's bottom inset on
-  devices with and without a home indicator.
+- The room card is simulator-verified at all three `homeUiScale` tiers × all
+  five casings (see `tasks/todo.md`). Two cosmetic follow-ups remain: the
+  `goldLeaf` `Lv` chip is the lowest-contrast of the five, and locked swatches
+  in 換相框 are not dimmed, so they read as available at a glance.
 - Convert source-text test assertions to behavioural ones. ~11 test files do
   `readAsStringSync()` + `contains('…')`, which checks how code looks, not what
   it does; `home_loading_performance_test.dart` is only whitespace-insensitive,
