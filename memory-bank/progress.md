@@ -30,9 +30,17 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
 - 房間選擇 room cards are equippable frame casings (`RoomFrameStyle` ×5) picked
   in the 換相框 sheet via long-press. `original` is the pre-redesign card and the
-  default, so untouched rooms look unchanged. Casings unlock by room level
-  (`RoomFrameSkin.unlockLevel`, all `1` today). Equipped casing persists per
+  default, so untouched rooms look unchanged. Equipped casing persists per
   device in Hive.
+- The room-frame unlock ladder is calibrated, not flat: `original` and
+  `polaroidClassic` Lv1, `corkboard` Lv3, `goldLeaf` Lv5, `nightGlow` Lv8. Exp
+  comes only from rewarded feeds (`+10`, behind the 10-minute cooldown) against
+  a `50 * level` curve, so level N costs `2.5*N*(N-1)` feeds ≈ 7 / 25 / 70 days
+  at the live median of ~2 rewarded feeds per active day. Unlock levels may be
+  lowered but never raised — raising one retracts a casing a room already wears.
+  The picker grandfathers the equipped casing, and an unknown room level reads
+  as Lv1 so a failed summary load cannot hand out a gated casing. Derivation and
+  refresh queries live in `RoomFrameSkins`' doc comment.
 - The room card is laid out around its photo: `photoAspectRatio` 1.25 gives the
   photo 63–66% of the card. The mat is a two-row text block beside a 30pt hunger
   ring centred against both rows; its horizontal inset derives from
@@ -48,12 +56,11 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   `dart format` / `flutter analyze` / `flutter test`.
 
 ## Open Items
-- Room frames: the unlock ladder is still flat (every casing at level 1) and was
-  never calibrated — needs checking against `leveling.dart`'s real curve, the
-  live player-level distribution, and `docs/shop_pricing.md` (some casings may
-  belong in the shop rather than on the ladder). The equipped casing is also per
-  device; sharing one across a room's members needs a server-backed state table
-  following the `room_backgrounds` precedent, which requires approval.
+- Room frames: the equipped casing is per device; sharing one across a room's
+  members needs a server-backed state table following the `room_backgrounds`
+  precedent, which requires approval. Whether any casing belongs in the shop
+  instead of on the level ladder is also still open (needs an `items` row and a
+  price off `docs/shop_pricing.md`, so it is a product call plus a migration).
 - Live-verify the room card at every `homeUiScale` breakpoint × all five
   casings. Only calculated/widget-test verification has been done. Watch the
   `Lv` chip's contrast on `goldLeaf`/`nightGlow` (18% alpha of `levelColor`),

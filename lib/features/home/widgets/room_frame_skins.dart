@@ -102,9 +102,13 @@ class RoomFrameSkin {
 
   final RoomFrameStyle style;
 
-  /// Room level at which this casing unlocks. Every casing is currently `1`
-  /// (everything available from the start) — raise these to stage the ladder;
-  /// nothing else has to change.
+  /// Room level at which this casing unlocks. See [RoomFrameSkins] for how the
+  /// ladder was calibrated.
+  ///
+  /// These may be **lowered** later but never raised: raising one retracts a
+  /// casing a room already equipped. The picker grandfathers the equipped
+  /// casing for exactly that reason, but the retraction would still be visible
+  /// as a lock on the swatch the room is wearing.
   final int unlockLevel;
 
   /// Signed tilt of the whole casing, in degrees.
@@ -186,6 +190,41 @@ class RoomFrameSkin {
 /// `design_handoff_room_frames/README.md` "The four skins (turn 4)".
 ///
 /// Casings unlock by room level via [RoomFrameSkin.unlockLevel].
+///
+/// ## The unlock ladder
+///
+/// Calibrated 2026-08-15 the way `docs/shop_pricing.md` prices coins: in days
+/// of play, against the live distribution, with a reachable ceiling.
+///
+/// Exp comes from **rewarded feeds only** (`apply_pet_action` grants `+10` when
+/// `v_reward > 0`, behind the 10-minute feed cooldown), and
+/// `xpRequiredForNextLevel` is `50 * level`, so reaching level `N` costs
+/// `2.5 * N * (N - 1)` rewarded feeds. Live 30-day median is ~2 rewarded feeds
+/// per active day, which converts the ladder to:
+///
+/// | Casing | Lv | Feeds | ≈ days | Active rooms that have it today |
+/// |---|---|---|---|---|
+/// | 原始 / 拍立得·經典 | 1 | 0 | 0 | 100% |
+/// | 軟木板 | 3 | 15 | ~7 | 41% |
+/// | 金葉 | 5 | 50 | ~25 | 29% |
+/// | 夜光 | 8 | 140 | ~70 | 17% |
+///
+/// Two casings sit at level 1 on purpose. `original` is the default, so a
+/// ladder that gated everything else would make 換相框 a menu of locks on first
+/// open — the same reason `docs/shop_pricing.md` requires a 100-coin rung in
+/// every drop.
+///
+/// Distribution the rungs were cut against (`room_pet_state`, 2026-08-15):
+/// 293 rooms total, 70% still level 1, max level 14; of the 58 rooms active in
+/// the last 30 days, median 2, p75 ~5.75, p90 12.
+///
+/// Recalibrate by re-running:
+///
+/// ```sql
+/// select level, count(*) from public.room_pet_state group by 1 order by 1;
+/// select count(*) from public.coin_ledger
+///  where source = 'feed' and amount > 0 and created_at > now() - interval '30 days';
+/// ```
 class RoomFrameSkins {
   const RoomFrameSkins._();
 
@@ -296,7 +335,7 @@ class RoomFrameSkins {
   /// white bevel.
   static const RoomFrameSkin corkboard = RoomFrameSkin(
     style: RoomFrameStyle.corkboard,
-    unlockLevel: 1,
+    unlockLevel: 3,
     rotationDegrees: 1.2,
     mountPadding: EdgeInsets.zero,
     mountRadius: 10,
@@ -333,7 +372,7 @@ class RoomFrameSkins {
   /// diagonal sheen that lights the rim only.
   static const RoomFrameSkin goldLeaf = RoomFrameSkin(
     style: RoomFrameStyle.goldLeaf,
-    unlockLevel: 1,
+    unlockLevel: 5,
     rotationDegrees: 0,
     mountPadding: EdgeInsets.all(6),
     mountRadius: 18,
@@ -381,7 +420,7 @@ class RoomFrameSkins {
   /// `4d` 收藏卡 · 夜光 — ink card in a mint-to-violet glowing mount.
   static const RoomFrameSkin nightGlow = RoomFrameSkin(
     style: RoomFrameStyle.nightGlow,
-    unlockLevel: 1,
+    unlockLevel: 8,
     rotationDegrees: 0,
     mountPadding: EdgeInsets.all(6),
     mountRadius: 18,
@@ -449,9 +488,13 @@ class RoomFrameSkins {
   /// Room level at which [style] unlocks.
   static int unlockLevel(RoomFrameStyle style) => resolve(style).unlockLevel;
 
-  /// Whether a room at [roomLevel] may equip [style]. An unknown level (a room
-  /// whose pet summary has not loaded yet) is treated as level 1 so the sheet
-  /// never claims a level-1 casing is locked.
+  /// Whether a room at [roomLevel] may equip [style].
+  ///
+  /// An unknown level (a room whose pet summary has not loaded) reads as
+  /// level 1, so a failed summary load can never hand out a gated casing. The
+  /// picker grandfathers whatever the room already wears, so the conservative
+  /// reading cannot strip a casing either — at worst the higher swatches read
+  /// as locked until the summary lands.
   static bool isUnlocked(RoomFrameStyle style, int? roomLevel) {
     return (roomLevel ?? 1) >= unlockLevel(style);
   }

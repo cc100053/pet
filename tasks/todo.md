@@ -36,10 +36,32 @@ sheet). Client-only; no schema or shop changes.
 - [x] Commit the logical documentation set, push `main`, verify the remote SHA,
       and leave a clean worktree.
 
+## Plan (2026-08-15 Room Frame Unlock Ladder)
+Client-only; no schema or shop changes.
+- [x] Calibrate against the real curve and live data: exp is `+10` per
+      *rewarded* feed only, `50 * level` per level, so level N costs
+      `2.5*N*(N-1)` feeds; ~2 rewarded feeds per active day; 58 active rooms
+      median Lv2 / p75 ~5.75 / p90 12, 70% of all 293 rooms still Lv1.
+- [x] Set the ladder: Lv1 `original` + `polaroidClassic` (換相框 must never open
+      as a menu of locks), Lv3 `corkboard` (~7 days), Lv5 `goldLeaf` (~25 days),
+      Lv8 `nightGlow` (~70 days, the long-tail anchor).
+- [x] Record the derivation and the two refresh queries in `RoomFrameSkins`'
+      doc comment so the next recalibration is not a re-derivation.
+- [x] Grandfather the equipped casing in 換相框, and keep an unknown room level
+      reading as Lv1 so a failed pet-summary load cannot hand out a gated
+      casing.
+- [x] Tests: exact ladder values, monotonic opening, Lv1 lock counts + hint
+      copy, unknown-level behaviour, grandfathering (proved to have teeth by
+      removing the grandfather clause first).
+- [x] `dart format`, `flutter analyze`, `flutter test` (628 passed / 1 skipped).
+
 ## Active Follow-ups
-- [ ] Decide the real room-frame unlock ladder: raise
-      `RoomFrameSkin.unlockLevel` per casing (everything is `1` today, so
-      nothing is gated yet).
+- [ ] Live-verify the room card at every `homeUiScale` breakpoint × all five
+      casings, now including the locked swatch states in 換相框. Only
+      calculated/widget-test verification has been done.
+- [ ] Decide whether any casing belongs in the shop instead of on the level
+      ladder. Needs an `items` row + a price off `docs/shop_pricing.md`, so it
+      is a product call plus a migration, not a client change.
 - [ ] Room frames are per-device only. To share a casing across a room's
       members, add a `room_frame_state`-style table following the
       `room_backgrounds` / `room_background_state` precedent and version-gate

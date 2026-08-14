@@ -31,7 +31,9 @@ void main() {
     Map<String, RoomFrameStyle> roomFrameStyleByRoom = const {},
     Future<void> Function(String roomId, RoomFrameStyle style)?
     onEquipRoomFrame,
-    int? petLevel = 4,
+    // Lv 8 clears the whole unlock ladder, so tests that are not about gating
+    // see every casing as pickable.
+    int? petLevel = 8,
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -145,11 +147,49 @@ void main() {
     expect(equipped, [RoomFrameStyle.original]);
   });
 
-  testWidgets('every casing is pickable while the ladder sits at Lv 1', (
+  testWidgets('a level-1 room sees the gated casings locked', (tester) async {
+    usePhoneViewport(tester);
+    final equipped = <RoomFrameStyle>[];
+    await tester.pumpWidget(
+      buildView(
+        petLevel: 1,
+        onEquipRoomFrame: (_, style) async {
+          equipped.add(style);
+        },
+      ),
+    );
+
+    await tester.longPress(find.byType(RoomFrameCard));
+    await settle(tester);
+
+    // Every casing is still shown — the ladder is a goal, not a hidden menu.
+    for (final style in RoomFrameSkins.displayOrder) {
+      expect(swatchOf(style), findsOneWidget);
+    }
+    // 軟木板 / 金葉 / 夜光 are gated; the default and 拍立得 are not.
+    expect(find.byIcon(Icons.lock_rounded), findsNWidgets(3));
+    // Each locked swatch names the level it needs.
+    expect(find.text('Lv 3'), findsOneWidget);
+    expect(find.text('Lv 5'), findsOneWidget);
+    expect(find.text('Lv 8'), findsOneWidget);
+
+    // Tapping a locked swatch explains the gate and commits nothing.
+    await tester.tap(swatchOf(RoomFrameStyle.nightGlow));
+    await settle(tester);
+    expect(find.textContaining('unlocks at room Lv 8'), findsOneWidget);
+
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(equipped, isEmpty);
+
+    // Let the juice snackbar's auto-dismiss timer expire before the test ends.
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('an unloaded pet summary does not hand out a gated casing', (
     tester,
   ) async {
     usePhoneViewport(tester);
-    // A room whose pet summary has not loaded yet must not read as locked.
     await tester.pumpWidget(
       buildView(petLevel: null, onEquipRoomFrame: (_, _) async {}),
     );
@@ -157,10 +197,41 @@ void main() {
     await tester.longPress(find.byType(RoomFrameCard));
     await settle(tester);
 
-    expect(find.byIcon(Icons.lock_rounded), findsNothing);
-    for (final style in RoomFrameSkins.displayOrder) {
-      expect(swatchOf(style), findsOneWidget);
-    }
+    // An unknown level reads as level 1 rather than as "everything unlocked".
+    expect(find.byIcon(Icons.lock_rounded), findsNWidgets(3));
+  });
+
+  testWidgets('the equipped casing stays pickable below its unlock level', (
+    tester,
+  ) async {
+    usePhoneViewport(tester);
+    final equipped = <RoomFrameStyle>[];
+    await tester.pumpWidget(
+      buildView(
+        petLevel: 1,
+        roomFrameStyleByRoom: const {'room-1': RoomFrameStyle.nightGlow},
+        onEquipRoomFrame: (_, style) async => equipped.add(style),
+      ),
+    );
+
+    await tester.longPress(find.byType(RoomFrameCard));
+    await settle(tester);
+
+    // Lv 8 casing on a Lv 1 room: grandfathered, so only the other two gated
+    // casings read as locked and the room can still re-select what it wears.
+    expect(find.byIcon(Icons.lock_rounded), findsNWidgets(2));
+
+    await tester.tap(swatchOf(RoomFrameStyle.original));
+    await settle(tester);
+    await tester.tap(swatchOf(RoomFrameStyle.nightGlow));
+    await settle(tester);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+
+    // Re-selecting what it already wears is a no-op, not a lock.
+    expect(equipped, isEmpty);
+    final card = tester.widget<RoomFrameCard>(find.byType(RoomFrameCard));
+    expect(card.skin.style, RoomFrameStyle.nightGlow);
   });
 
   testWidgets('long press falls back to room options with no equip handler', (
@@ -208,14 +279,44 @@ void main() {
       );
     });
 
-    test('the whole ladder currently unlocks at Lv 1', () {
-      for (final style in RoomFrameStyle.values) {
-        expect(RoomFrameSkins.unlockLevel(style), 1, reason: '$style');
-        expect(RoomFrameSkins.isUnlocked(style, 1), isTrue);
-        // An unknown level is treated as 1 rather than as locked.
-        expect(RoomFrameSkins.isUnlocked(style, null), isTrue);
+    test('the ladder is the calibrated one', () {
+      // Cut against the live level distribution; see RoomFrameSkins' docs for
+      // the derivation. Locked in as a test because lowering a rung is free
+      // but raising one retracts a casing a room already equipped.
+      expect(RoomFrameSkins.unlockLevel(RoomFrameStyle.original), 1);
+      expect(RoomFrameSkins.unlockLevel(RoomFrameStyle.polaroidClassic), 1);
+      expect(RoomFrameSkins.unlockLevel(RoomFrameStyle.corkboard), 3);
+      expect(RoomFrameSkins.unlockLevel(RoomFrameStyle.goldLeaf), 5);
+      expect(RoomFrameSkins.unlockLevel(RoomFrameStyle.nightGlow), 8);
+    });
+
+    test('a level-1 room can still pick the default and one alternative', () {
+      // 換相框 must never open as a menu of locks.
+      expect(RoomFrameSkins.unlockedFor(1), {
+        RoomFrameStyle.original,
+        RoomFrameStyle.polaroidClassic,
+      });
+      expect(
+        RoomFrameSkins.unlockedFor(1),
+        contains(RoomFrameSkins.defaultStyle),
+      );
+      // An unknown level reads as 1, so a failed summary load cannot hand out
+      // a gated casing.
+      expect(RoomFrameSkins.unlockedFor(null), RoomFrameSkins.unlockedFor(1));
+    });
+
+    test('the ladder opens up monotonically', () {
+      var previous = RoomFrameSkins.unlockedFor(1);
+      for (var level = 2; level <= 12; level++) {
+        final unlocked = RoomFrameSkins.unlockedFor(level);
+        expect(
+          unlocked.containsAll(previous),
+          isTrue,
+          reason: 'Lv $level must not take a casing back',
+        );
+        previous = unlocked;
       }
-      expect(RoomFrameSkins.unlockedFor(1), RoomFrameStyle.values.toSet());
+      expect(previous, RoomFrameStyle.values.toSet());
     });
 
     test('the level gate compares against the required level', () {

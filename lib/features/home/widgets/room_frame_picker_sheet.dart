@@ -114,7 +114,12 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
 
   static const double _previewWidth = 190;
 
+  /// The casing the room already wears is always pickable, whatever the ladder
+  /// says today. Levels only ever rise, but an unlock level that is lowered and
+  /// raised again — or a room whose pet summary has not loaded — must never
+  /// leave the room unable to re-select the card it is currently showing.
   bool _isUnlocked(RoomFrameStyle style) =>
+      style == widget.equippedStyle ||
       RoomFrameSkins.isUnlocked(style, widget.roomLevel);
 
   void _handleSwatchTap(RoomFrameStyle style) {
