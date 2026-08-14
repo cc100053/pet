@@ -261,3 +261,22 @@
   "undefined Widget/Colors/..." errors. NOTE: `flutter analyze <partfile>`
   alone is misleading (a part has no imports of its own) — always analyze the
   whole project.
+
+## 2026-08-14
+- Never run `dart format lib test` on the whole repo to tidy one feature. Parts
+  of `lib/` are not formatter-clean, so a blanket run rewrites unrelated files
+  and reflows lines that source-introspection tests assert on verbatim (it broke
+  `test/features/home/home_loading_performance_test.dart`, which greps
+  `home_room_manager.dart` for
+  `_roomEntryOverlayVisible ? _roomEntryOverlayShownAt : null`). Format only the
+  files you touched, by path.
+- `BoxShadow` on a widget wrapping a transparent PNG sprite paints an opaque
+  rectangle, not a silhouette. For a pet drop shadow, duplicate the image under
+  `ColorFiltered(BlendMode.srcATop)` + `ImageFiltered(blur)` offset behind it —
+  and shadow the body only, since duplicating `PetEquipmentOverlay` also
+  duplicates its widget keys and breaks `findsOneWidget` assertions.
+- `DecoratedBox` does not inset its child by the decoration's border, so a child
+  that fills the box paints over the border. Use `Container` when a border must
+  remain visible around a `ClipRRect`/image child.
+- `pumpAndSettle` never returns on any surface showing a pet sprite — the idle
+  animation loops forever. Pump explicit durations instead.
