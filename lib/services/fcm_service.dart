@@ -155,11 +155,7 @@ class FCMService {
         '$error',
       );
       debugPrintStack(stackTrace: stackTrace);
-      reportSwallowedError(
-        error,
-        stackTrace,
-        source: 'fcm_permission_request',
-      );
+      reportSwallowedError(error, stackTrace, source: 'fcm_permission_request');
       return;
     }
     final status = settings.authorizationStatus;

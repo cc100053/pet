@@ -48,7 +48,10 @@ void main() {
       // The defect being fixed: a single global LIMIT across all rooms.
       expect(migration, contains('cross join lateral'));
       expect(migration, contains('distinct on (m.image_url)'));
-      expect(migration, contains('limit least(greatest(p_per_room_limit, 0), 50)'));
+      expect(
+        migration,
+        contains('limit least(greatest(p_per_room_limit, 0), 50)'),
+      );
     });
   });
 
@@ -61,7 +64,10 @@ void main() {
 
     test('latest feeds come from the per-room RPC', () {
       expect(roomManager, contains("'get_room_latest_feeds'"));
-      expect(roomManager, contains("'p_per_room_limit': kPetHomeGalleryMaxPhotos"));
+      expect(
+        roomManager,
+        contains("'p_per_room_limit': kPetHomeGalleryMaxPhotos"),
+      );
       // The old global-limit heuristic is gone.
       expect(
         roomManager,

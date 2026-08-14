@@ -6,5 +6,4 @@ Future<int> putBytesToPresignedUrl(
   String uploadUrl,
   Uint8List bytes,
   String contentType,
-) async =>
-    -1;
+) async => -1;

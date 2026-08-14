@@ -88,9 +88,8 @@ extension _HomeRoomManager on _HomeViewState {
         // into the outer catch with `_myRooms` never assigned. Each query also
         // degrades independently — discarding three successful reads because a
         // fourth timed out would repaint every room as empty.
-        Future<T?> degradable<T>(Future<T> query, String stage) => query
-            .then<T?>((value) => value)
-            .catchError((Object error) {
+        Future<T?> degradable<T>(Future<T> query, String stage) =>
+            query.then<T?>((value) => value).catchError((Object error) {
               _logRoomsDiagnostic('summary_failed', '$stage: $error');
               return null;
             });
@@ -549,9 +548,7 @@ extension _HomeRoomManager on _HomeViewState {
     );
     if (showEntryLoading && !warmEntry) {
       _scheduleRoomEntryOverlayReveal(roomEntryToken);
-      unawaited(
-        _loadRoomEntryCore(roomEntryToken: roomEntryToken),
-      );
+      unawaited(_loadRoomEntryCore(roomEntryToken: roomEntryToken));
     } else {
       // Cold non-loading switches and warm entries both just refresh in the
       // background; the room is already (or about to be) visible.
@@ -608,7 +605,9 @@ extension _HomeRoomManager on _HomeViewState {
       _roomEntryOverlayRevealTimer = null;
       // Only an overlay the user actually saw needs to be held; padding an
       // entry that never revealed one just makes a fast room slower.
-      final shownAt = _roomEntryOverlayVisible ? _roomEntryOverlayShownAt : null;
+      final shownAt = _roomEntryOverlayVisible
+          ? _roomEntryOverlayShownAt
+          : null;
       if (shownAt != null) {
         final elapsed = DateTime.now().difference(shownAt);
         final minimum = _HomeViewState._roomEntryLoadingMinDuration;

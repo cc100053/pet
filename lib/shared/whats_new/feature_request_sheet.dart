@@ -102,18 +102,17 @@ class _FeatureRequestSheetState extends State<_FeatureRequestSheet> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 filled: true,
-                fillColor: theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.4),
+                fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.4,
+                ),
               ),
             ),
             const SizedBox(height: 12),
             FilledButton(
               onPressed:
-                  (_submitting ||
-                          _submitted ||
-                          _controller.text.trim().isEmpty)
-                      ? null
-                      : _submit,
+                  (_submitting || _submitted || _controller.text.trim().isEmpty)
+                  ? null
+                  : _submit,
               style: FilledButton.styleFrom(
                 backgroundColor: accent,
                 padding: const EdgeInsets.symmetric(vertical: 14),

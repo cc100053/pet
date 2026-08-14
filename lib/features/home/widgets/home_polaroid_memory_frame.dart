@@ -116,9 +116,15 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
         final identityBandPreferredHeight =
             (showAvatar ? avatarSize : 0.0) + identityLabelSectionHeight;
         final identityBandHeight = showIdentityBand
-            ? math.min(safeBottomHeight, math.max(0.0, identityBandPreferredHeight))
+            ? math.min(
+                safeBottomHeight,
+                math.max(0.0, identityBandPreferredHeight),
+              )
             : 0.0;
-        final captionBandHeight = math.max(0.0, safeBottomHeight - identityBandHeight);
+        final captionBandHeight = math.max(
+          0.0,
+          safeBottomHeight - identityBandHeight,
+        );
         final captionTopSpacing = math.min(
           resolvedCaptionTopInset,
           captionBandHeight * 0.35,
@@ -191,7 +197,9 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.10),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.10,
+                                        ),
                                         blurRadius: 12,
                                         offset: const Offset(0, 6),
                                       ),
@@ -208,14 +216,18 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
                               if (showUserLabel) ...[
                                 Gap(6 * scale),
                                 ConstrainedBox(
-                                  constraints: BoxConstraints(maxWidth: photoWidth),
+                                  constraints: BoxConstraints(
+                                    maxWidth: photoWidth,
+                                  ),
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 10 * scale,
                                       vertical: 4 * scale,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.95),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.95,
+                                      ),
                                       borderRadius: BorderRadius.circular(999),
                                       border: Border.all(
                                         color: Colors.black87,

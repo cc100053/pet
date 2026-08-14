@@ -37,7 +37,9 @@ void main() {
   );
 
   test('uses personalized ads when ATT is authorized', () async {
-    final service = _makeService(allowPersonalizedAdsResolver: () async => true);
+    final service = _makeService(
+      allowPersonalizedAdsResolver: () async => true,
+    );
 
     final result = await service.initialize();
 

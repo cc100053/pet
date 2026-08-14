@@ -28,8 +28,9 @@ void main() {
     });
 
     test('feed_validate and avatar_upload consume the shared helpers', () {
-      final feed =
-          read('supabase/functions/notify_friend/feed_validate/index.ts');
+      final feed = read(
+        'supabase/functions/notify_friend/feed_validate/index.ts',
+      );
       expect(feed, contains('../../_shared/http.ts'));
       expect(feed, contains('../../_shared/images.ts'));
       // The duplicated local copies must be gone.
@@ -46,14 +47,17 @@ void main() {
 
   group('R2 orphan cleanup', () {
     test('feed_validate deletes the uploaded object when the RPC fails', () {
-      final feed =
-          read('supabase/functions/notify_friend/feed_validate/index.ts');
+      final feed = read(
+        'supabase/functions/notify_friend/feed_validate/index.ts',
+      );
       // Tracks the object it owns and reclaims it on the rolled-back RPC path.
       expect(feed, contains('let uploadedKey: string | null = null'));
       expect(feed, contains('uploadedKey = key'));
       expect(
         feed,
-        contains(RegExp(r'if \(processFeedError\)[\s\S]*?deleteFromR2\(uploadedKey\)')),
+        contains(
+          RegExp(r'if \(processFeedError\)[\s\S]*?deleteFromR2\(uploadedKey\)'),
+        ),
       );
     });
 
@@ -81,15 +85,19 @@ void main() {
       );
     });
 
-    test('hunger_tick_dispatch uses timingSafeEqual for the scheduler secret',
-        () {
-      final hunger = read('supabase/functions/hunger_tick_dispatch/index.ts');
-      expect(hunger, contains('../_shared/auth.ts'));
-      expect(hunger, contains('timingSafeEqual(authHeader'));
-      expect(
-        hunger,
-        isNot(contains(r'authHeader !== `Bearer ${expectedSchedulerSecret}`')),
-      );
-    });
+    test(
+      'hunger_tick_dispatch uses timingSafeEqual for the scheduler secret',
+      () {
+        final hunger = read('supabase/functions/hunger_tick_dispatch/index.ts');
+        expect(hunger, contains('../_shared/auth.ts'));
+        expect(hunger, contains('timingSafeEqual(authHeader'));
+        expect(
+          hunger,
+          isNot(
+            contains(r'authHeader !== `Bearer ${expectedSchedulerSecret}`'),
+          ),
+        );
+      },
+    );
   });
 }

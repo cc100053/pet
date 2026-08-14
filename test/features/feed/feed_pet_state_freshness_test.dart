@@ -37,13 +37,15 @@ void main() {
       );
     });
 
-    test('applies an equal-anchor snapshot (clean/touch/overfed keep anchor)',
-        () {
-      expect(
-        petStateSnapshotIsFresh(held: feedAnchor, incoming: feedAnchor),
-        isTrue,
-      );
-    });
+    test(
+      'applies an equal-anchor snapshot (clean/touch/overfed keep anchor)',
+      () {
+        expect(
+          petStateSnapshotIsFresh(held: feedAnchor, incoming: feedAnchor),
+          isTrue,
+        );
+      },
+    );
 
     test('accepts snapshots that cannot be ordered (null anchors)', () {
       expect(petStateSnapshotIsFresh(held: null, incoming: feedAnchor), isTrue);
@@ -100,18 +102,20 @@ void main() {
       expect(src, contains("overfed: data['overfed'] == true"));
     });
 
-    test('home applies authoritative pet state + optimistic gain under guard',
-        () {
-      final home = read('lib/features/home/home_view.dart');
-      expect(home, contains('petStateSnapshotIsFresh'));
-      expect(home, contains('_applyAuthoritativeFeedPetState'));
-      expect(home, contains('_petStateDecayClockByPetId'));
+    test(
+      'home applies authoritative pet state + optimistic gain under guard',
+      () {
+        final home = read('lib/features/home/home_view.dart');
+        expect(home, contains('petStateSnapshotIsFresh'));
+        expect(home, contains('_applyAuthoritativeFeedPetState'));
+        expect(home, contains('_petStateDecayClockByPetId'));
 
-      final orchestrator = read(
-        'lib/features/home/controllers/home_feed_orchestrator.dart',
-      );
-      expect(orchestrator, contains('_applyAuthoritativeFeedPetState'));
-      expect(orchestrator, contains('_applyOptimisticFeedHunger'));
-    });
+        final orchestrator = read(
+          'lib/features/home/controllers/home_feed_orchestrator.dart',
+        );
+        expect(orchestrator, contains('_applyAuthoritativeFeedPetState'));
+        expect(orchestrator, contains('_applyOptimisticFeedHunger'));
+      },
+    );
   });
 }

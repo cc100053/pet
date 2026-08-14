@@ -48,18 +48,21 @@ void main() {
       expect(UncleanExitService.instance.previousExit, PreviousExitKind.clean);
     });
 
-    test('flags a session that was still open while in the foreground', () async {
-      // Open a session and never close it: the process "died" mid-use.
-      await UncleanExitService.instance.debugInitializeWith(box: box);
+    test(
+      'flags a session that was still open while in the foreground',
+      () async {
+        // Open a session and never close it: the process "died" mid-use.
+        await UncleanExitService.instance.debugInitializeWith(box: box);
 
-      UncleanExitService.instance.resetDebugState();
-      await UncleanExitService.instance.debugInitializeWith(box: box);
+        UncleanExitService.instance.resetDebugState();
+        await UncleanExitService.instance.debugInitializeWith(box: box);
 
-      expect(
-        UncleanExitService.instance.previousExit,
-        PreviousExitKind.foregroundUnclean,
-      );
-    });
+        expect(
+          UncleanExitService.instance.previousExit,
+          PreviousExitKind.foregroundUnclean,
+        );
+      },
+    );
 
     test('treats a background death as routine OS reclamation', () async {
       await UncleanExitService.instance.debugInitializeWith(box: box);

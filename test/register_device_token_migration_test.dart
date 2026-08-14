@@ -6,9 +6,7 @@ void main() {
   final migration = File(
     'supabase/migrations/20260802103000_add_register_device_token_rpc.sql',
   ).readAsStringSync();
-  final fcmService = File(
-    'lib/services/fcm_service.dart',
-  ).readAsStringSync();
+  final fcmService = File('lib/services/fcm_service.dart').readAsStringSync();
 
   test('claims the token for the caller instead of trusting client input', () {
     // A client-supplied user_id would let any caller register a token against
@@ -53,7 +51,10 @@ void main() {
   });
 
   test('client registers via the RPC but can still fall back', () {
-    expect(fcmService, contains("_supabase.rpc(\n        'register_device_token'"));
+    expect(
+      fcmService,
+      contains("_supabase.rpc(\n        'register_device_token'"),
+    );
     // A build reaching a backend without the migration must not lose push
     // registration entirely.
     expect(fcmService, contains("error.code == 'PGRST202'"));

@@ -187,7 +187,9 @@ void main() {
     test('projects health (0..1) from a pet_state map', () {
       final state = <String, dynamic>{
         'hunger': 100,
-        'last_decay_at': now.subtract(const Duration(hours: 5)).toIso8601String(),
+        'last_decay_at': now
+            .subtract(const Duration(hours: 5))
+            .toIso8601String(),
         'mood': 'mid',
         'poop_at': null,
         'mood_boost': 0,

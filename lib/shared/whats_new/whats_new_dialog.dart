@@ -70,9 +70,7 @@ class WhatsNewDialog extends StatelessWidget {
                         children: [
                           Center(child: _HeroIcon(accent: accent)),
                           const SizedBox(height: 18),
-                          Center(
-                            child: _VersionCard(version: version),
-                          ),
+                          Center(child: _VersionCard(version: version)),
                           const SizedBox(height: 8),
                           Text(
                             entry.title(l10n),

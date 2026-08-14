@@ -240,10 +240,7 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
       final urlResponse = await _client.functions.invoke(
         'feed_upload_url',
         headers: {'Authorization': 'Bearer $accessToken'},
-        body: {
-          'room_id': job.roomId,
-          'image_content_type': imageContentType,
-        },
+        body: {'room_id': job.roomId, 'image_content_type': imageContentType},
       );
       if (urlResponse.status < 200 || urlResponse.status >= 300) {
         return null;

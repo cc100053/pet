@@ -107,10 +107,7 @@ class ChatMessageRepository {
     if (ids is! List) {
       return const <String>{};
     }
-    return ids
-        .whereType<String>()
-        .where((id) => id.isNotEmpty)
-        .toSet();
+    return ids.whereType<String>().where((id) => id.isNotEmpty).toSet();
   }
 
   Future<void> cacheBlockedUserIds(

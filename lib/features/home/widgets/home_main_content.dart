@@ -87,11 +87,8 @@ class HomeMainContent extends StatelessWidget {
                               minGalleryHeight * uiScale,
                               maxGalleryHeight * uiScale,
                             );
-                        final petAreaHeight =
-                            (safeSplitHeight - galleryHeight).clamp(
-                              0.0,
-                              double.infinity,
-                            );
+                        final petAreaHeight = (safeSplitHeight - galleryHeight)
+                            .clamp(0.0, double.infinity);
                         return Column(
                           children: [
                             SizedBox(

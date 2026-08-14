@@ -242,10 +242,7 @@ void main() {
         '';
 
     // The conflict check compares the cached id to the snapshot's main pet id.
-    expect(
-      switchRoomBody,
-      contains('cachedPetId != snapshotPetId'),
-    );
+    expect(switchRoomBody, contains('cachedPetId != snapshotPetId'));
     // ...and evicts both per-room caches so the poison cannot persist.
     expect(switchRoomBody, contains('_petIdByRoom.remove(roomId)'));
     expect(switchRoomBody, contains('_petStateByRoom.remove(roomId)'));
