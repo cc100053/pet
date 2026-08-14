@@ -33,12 +33,37 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   default, so untouched rooms look unchanged. Casings unlock by room level
   (`RoomFrameSkin.unlockLevel`, all `1` today). Equipped casing persists per
   device in Hive.
+- The room card is laid out around its photo: `photoAspectRatio` 1.25 gives the
+  photo 63–66% of the card. The mat is a two-row text block beside a 30pt hunger
+  ring centred against both rows; its horizontal inset derives from
+  `skin.photoInset` so the name aligns to the photo's left edge in every skin.
+  The caption line is never blank — it falls back to a status line (hungry / new
+  photo / no photo yet) styled distinctly from a human caption.
+- Pet names cap at 12 characters via `kPetNameMaxLength`, enforced at every
+  entry point and on the server by `validate_pet_name`; first-time naming goes
+  through `set_initial_pet_name` instead of a direct column write. Names are
+  fitted to the space that shows them (15→11pt on the room card), so no layout
+  depends on the cap.
+- `lib/` and `test/` are canonical for the pinned formatter, and CI gates
+  `dart format` / `flutter analyze` / `flutter test`.
 
 ## Open Items
-- Room frames: the unlock ladder is still flat (every casing at level 1), and
-  the equipped casing is per device. Sharing one across a room's members needs a
-  server-backed state table following the `room_backgrounds` precedent, which
-  requires approval.
+- Room frames: the unlock ladder is still flat (every casing at level 1) and was
+  never calibrated — needs checking against `leveling.dart`'s real curve, the
+  live player-level distribution, and `docs/shop_pricing.md` (some casings may
+  belong in the shop rather than on the ladder). The equipped casing is also per
+  device; sharing one across a room's members needs a server-backed state table
+  following the `room_backgrounds` precedent, which requires approval.
+- Live-verify the room card at every `homeUiScale` breakpoint × all five
+  casings. Only calculated/widget-test verification has been done. Watch the
+  `Lv` chip's contrast on `goldLeaf`/`nightGlow` (18% alpha of `levelColor`),
+  whether the 30pt ring overpowers `goldLeaf`, and the CTA's bottom inset on
+  devices with and without a home indicator.
+- Convert source-text test assertions to behavioural ones. ~11 test files do
+  `readAsStringSync()` + `contains('…')`, which checks how code looks, not what
+  it does; `home_loading_performance_test.dart` is only whitespace-insensitive,
+  not fixed. Migration tests asserting on `.sql` text are legitimate. Prove any
+  replacement still has teeth by breaking the guarded structure first.
 - Monitor ASC/store outcome for iOS `2.4.0+19`; App Review submission requires
   an explicit request.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.
