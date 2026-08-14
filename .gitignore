@@ -71,3 +71,6 @@ ios/Runner/GoogleService-Info.plist
 
 # Supabase CLI scratch state (version probe cache, not source).
 supabase/.temp/
+
+# CodeGraph index (generated from the source, rebuilt locally).
+.codegraph/
