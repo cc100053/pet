@@ -22,6 +22,16 @@ class PetSelectionResult {
   final String petName;
 }
 
+/// Characters a pet name may be typed to, everywhere in the app.
+///
+/// Sits above both scripts' 95th percentile in production (CJK names run 3
+/// characters on average and 5 at p95; Latin ones 5 and 11), so it caps the tail
+/// without cramping real names. No layout depends on it — surfaces that show a
+/// name fit it to the space they have — so this is about keeping input sane.
+/// Lowering it does not touch stored names; only a user actively renaming meets
+/// the new limit.
+const int kPetNameMaxLength = 12;
+
 typedef PetSelectionSubmitHandler =
     Future<String?> Function(PetSelectionResult selection);
 
@@ -29,7 +39,7 @@ class PetSelectionPage extends StatefulWidget {
   const PetSelectionPage({
     super.key,
     this.initialSelectionId,
-    this.maxPetNameLength = 20,
+    this.maxPetNameLength = kPetNameMaxLength,
     this.titleText,
     this.subtitleText,
     this.confirmText,
@@ -47,7 +57,7 @@ class PetSelectionPage extends StatefulWidget {
 
   static Route<PetSelectionResult> route({
     String? initialSelectionId,
-    int maxPetNameLength = 20,
+    int maxPetNameLength = kPetNameMaxLength,
     String? titleText,
     String? subtitleText,
     String? confirmText,

@@ -113,7 +113,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
 
     final selection = await Navigator.of(context).push<PetSelectionResult>(
       PetSelectionPage.route(
-        maxPetNameLength: 20,
+        maxPetNameLength: kPetNameMaxLength,
         titleText: l10n.petTicketSelectionTitle,
         subtitleText: l10n.petTicketSelectionSubtitle,
         confirmText: l10n.petTicketSelectionConfirm,
@@ -218,7 +218,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
 
     final selection = await Navigator.of(context).push<PetSelectionResult>(
       PetSelectionPage.route(
-        maxPetNameLength: 20,
+        maxPetNameLength: kPetNameMaxLength,
         titleText: l10n.petTicketSelectionTitle,
         subtitleText: l10n.petTicketSelectionSubtitle,
         confirmText: l10n.petTicketSelectionConfirm,

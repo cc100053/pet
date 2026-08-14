@@ -286,7 +286,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Set<String> _cachedPetAssets = {};
   bool _departureFontsWarmed = false;
   Future<void>? _departureFontsWarmup;
-  static const int _petNameMaxLength = 20;
+  static const int _petNameMaxLength = kPetNameMaxLength;
   static const int _freePlanRoomLimit = 2;
   static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
@@ -2467,6 +2467,12 @@ class _HomeViewState extends ConsumerState<HomeView>
                 autofocus: true,
                 onTapOutside: dismissKeyboardOnTapOutside,
                 textInputAction: TextInputAction.done,
+                // Renaming has to honour the same cap as naming: this editor
+                // used to accept any length, which is how names longer than the
+                // creation limit got into the data in the first place.
+                inputFormatters: <TextInputFormatter>[
+                  LengthLimitingTextInputFormatter(_petNameMaxLength),
+                ],
                 style: GoogleFonts.mPlusRounded1c(
                   fontWeight: FontWeight.w700,
                   color: Colors.black87,

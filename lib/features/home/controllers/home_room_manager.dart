@@ -835,10 +835,13 @@ extension _HomeRoomManager on _HomeViewState {
         return;
       }
 
-      await Supabase.instance.client
-          .from('pets')
-          .update({'name': trimmed})
-          .eq('id', petId);
+      // Via RPC, not a direct column write: the table's RLS lets any room member
+      // update `pets` freely, so a direct update validated nothing. Naming was
+      // the one path into `pets.name` with no server-side rules at all.
+      await Supabase.instance.client.rpc(
+        'set_initial_pet_name',
+        params: {'p_pet_id': petId, 'p_name': trimmed},
+      );
 
       if (!mounted) {
         return;
