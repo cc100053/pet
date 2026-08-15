@@ -22,7 +22,7 @@ Compact current-state map for mandatory reads. Full snapshots live in
   and use `part of '../<core>.dart';` from subdirectories. Moving symbols can
   require source-introspection test updates. Those tests match on source text,
   so reformatting can break them too; `lib/` and `test/` are formatter-canonical
-  and CI gates `dart format` before analyze and test to keep it that way.
+  and `dart format` must be run before analyze and test to keep it that way.
 - `ProfileBootstrapService` owns profile bootstrap.
 - Shared backgrounds, furniture, and pets require version-gated visibility,
   old-client render fallback, and the compatibility prompt.

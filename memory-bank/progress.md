@@ -52,8 +52,10 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   through `set_initial_pet_name` instead of a direct column write. Names are
   fitted to the space that shows them (15→11pt on the room card), so no layout
   depends on the cap.
-- `lib/` and `test/` are canonical for the pinned formatter, and CI gates
-  `dart format` / `flutter analyze` / `flutter test`.
+- `lib/` and `test/` are canonical for the pinned formatter. There is **no CI
+  gate** — the workflow was deleted 2026-08-16 (never passed, gated nothing);
+  `dart format` / `flutter analyze` / `flutter test` are run locally before
+  every push. See `docs/testing.md`.
 
 ## Open Items
 - Room frames: the equipped casing is per device; sharing one across a room's

@@ -5,7 +5,13 @@ This file is for agentic coding agents working in this repo.
 ## Core workflow (non-negotiable)
 - Read all `memory-bank/*.md` (excluding `archive/`) before making non-trivial code changes; update them if your work changes current behavior/decisions.
 - Optional: `memory-bank/archive/progress_archive.md` (Archive) contains historical development logs for deeper context when needed.
-- After changes, run: `flutter analyze` and `flutter test`.
+- After changes, run, in this order:
+  `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`,
+  `flutter test`. There is no CI gate — this is the only thing standing between
+  a bad commit and `main`, so run it on the final tree, not mid-edit. Format
+  comes first because several tests assert on source text: an unformatted tree
+  shows up as unrelated test failures. Never reformat whole files you did not
+  otherwise touch (see `docs/testing.md`).
 - After completing any requested repo change, commit and push all resulting
   changes before handoff; always keep the working tree clean.
 - When instructions require a website/dashboard step, mark it as `[USER ACTION REQUIRED]`.

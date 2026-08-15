@@ -1,15 +1,28 @@
 ## Testing Helpers
 
-### CI
-- `.github/workflows/ci.yml` runs on pushes to `main`, on pull requests, and on
-  demand: `dart format --set-exit-if-changed lib test`, then `flutter analyze`,
-  then `flutter test`.
-- It pins the same Flutter as `.fvmrc` (`3.44.0`). A different SDK ships a
-  different formatter, which is what let the tree drift out of canonical form
-  before the gate existed.
-- Format runs first on purpose. Several tests assert on source text, so an
+### Verification is local, not CI
+
+There is no CI gate. `.github/workflows/ci.yml` was deleted on 2026-08-16: it
+ran only on push to an unprotected `main`, so it could never block anything,
+and it had never once passed — `lib/firebase_options.dart` and `.env` are both
+gitignored, so `flutter analyze` failed on every run and the test step never
+executed. A permanently red check that gates nothing is worse than none. If it
+is ever restored, those two files must be materialised from templates first.
+
+Run this before every push, in this order:
+
+```
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
+
+- **Format first, always.** Several tests assert on source text, so an
   unformatted tree surfaces as unrelated test failures rather than as a
   formatting complaint.
+- **Use the pinned SDK** — Flutter `3.44.0`, per `.fvmrc`. A different SDK
+  ships a different formatter, which is what let the tree drift out of
+  canonical form in the first place (see `412cb1b`).
 
 ### Edge Function auth
 - `feed_validate` and `avatar_upload` validate callers inside the function with
