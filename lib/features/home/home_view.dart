@@ -238,8 +238,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _debugAlwaysShowOnboarding = false;
 
   /// Whether 房間選擇 still owes this device the 長按換相框 coach bubble.
-  /// Read once at init; the box is already open by the time Home mounts.
-  bool _roomFrameHintSeen = true;
+  ///
+  /// Read at field-init as well as in `initState`: Hive is open before
+  /// `runApp`, and a hot reload adds the field without re-running `initState`,
+  /// which would otherwise leave the bubble permanently hidden in development.
+  bool _roomFrameHintSeen = AppSettingsRepository.instance.roomFrameHintSeen;
   bool _revenueCatProPlan = false;
   final RevenueCatService _revenueCatService = RevenueCatService();
   late final FCMService _fcmService;
