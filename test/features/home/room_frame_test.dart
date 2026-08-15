@@ -129,13 +129,21 @@ void main() {
     expect(find.text('Change Frame'), findsOneWidget);
     // The equipped casing is highlighted, named, and previewed on open.
     expect(find.text('Polaroid · Classic'), findsOneWidget);
-    expect(find.text('In use'), findsOneWidget);
-    // The original card is offered alongside the four new casings.
+    // The original card is offered alongside the four new casings, and every
+    // swatch names its casing rather than repeating an ownership word.
     expect(swatchOf(RoomFrameStyle.original), findsOneWidget);
-    expect(
-      find.text('Owned'),
-      findsNWidgets(RoomFrameSkins.displayOrder.length - 1),
-    );
+    expect(find.text('Owned'), findsNothing);
+    expect(find.text('In use'), findsNothing);
+    for (final style in RoomFrameSkins.displayOrder) {
+      expect(
+        find.descendant(of: swatchOf(style), matching: find.byType(Text)),
+        findsOneWidget,
+        reason: '$style swatch carries its name and nothing else',
+      );
+    }
+    expect(find.text('Classic'), findsOneWidget);
+    expect(find.text('Gold Leaf'), findsOneWidget);
+    expect(find.text('Original'), findsOneWidget);
 
     await tester.tap(swatchOf(RoomFrameStyle.goldLeaf));
     await settle(tester);

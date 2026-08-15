@@ -687,7 +687,9 @@ class RoomSelectionView extends StatelessWidget {
               ),
               const Gap(16),
               _RoomActionTile(
-                icon: Icons.exit_to_app_rounded,
+                // Same glyph as the 換相框 header's leave button — one action,
+                // one icon, whichever way the player reaches it.
+                icon: Icons.logout_rounded,
                 label: l10n.roomOptionLeave,
                 isDestructive: true,
                 onTap: () {

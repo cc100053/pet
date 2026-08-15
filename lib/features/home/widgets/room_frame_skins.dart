@@ -202,6 +202,21 @@ class RoomFrameSkin {
         return l10n.roomFrameStyleNightGlow;
     }
   }
+
+  /// The variant half of [localizedName] — "經典" out of "拍立得 · 經典".
+  ///
+  /// Derived rather than translated separately: the two can then never drift,
+  /// and every locale writes the name as `family · variant` (or as a single
+  /// word, which comes back whole). Use it where a name must fit a lane too
+  /// narrow for the family prefix, such as the 換相框 swatches.
+  String shortLocalizedName(AppLocalizations l10n) {
+    final name = localizedName(l10n);
+    final separator = name.lastIndexOf('·');
+    if (separator < 0) {
+      return name;
+    }
+    return name.substring(separator + 1).trim();
+  }
 }
 
 /// The shipped casings: the original room card plus the four from the handoff,

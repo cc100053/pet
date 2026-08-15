@@ -43,9 +43,10 @@ class RoomFramePreviewData {
 
 /// 換相框 — pick the casing a room card wears.
 ///
-/// Built on the app's existing equip/inventory treatments: the green
-/// `使用中` outline plus check badge and the muted `擁有` label both match
-/// `home_room_inventory_panel.dart`.
+/// Built on the app's existing equip/inventory treatments: the green outline
+/// plus check badge that marks the worn casing matches
+/// `home_room_inventory_panel.dart`. The label under each swatch names the
+/// casing instead of repeating its ownership — see `_buildLabel`.
 ///
 /// Casings unlock by room level, so [roomLevel] decides what is pickable.
 Future<void> showRoomFramePickerSheet({
@@ -290,17 +291,43 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
             expandToWidth: true,
           ),
         ),
-        if (widget.onLeaveRoom != null)
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.onLeaveRoom!();
-            },
-            icon: const Icon(Icons.more_horiz_rounded),
-            color: AppTheme.textSecondary,
-            visualDensity: VisualDensity.compact,
-            tooltip: l10n.roomOptionsTitle,
+        // Leaving is the only thing this button has ever done, so it wears the
+        // leave glyph and the destructive tint rather than an overflow "…"
+        // that promises a menu the sheet does not have.
+        if (widget.onLeaveRoom != null) ...[
+          const Gap(6),
+          Semantics(
+            button: true,
+            label: l10n.roomOptionLeave,
+            child: Tooltip(
+              message: l10n.roomOptionLeave,
+              child: JuicyScaleButton(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  widget.onLeaveRoom!();
+                },
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppTheme.errorColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppTheme.errorColor.withValues(alpha: 0.38),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    size: 18,
+                    color: AppTheme.errorColor,
+                  ),
+                ),
+              ),
+            ),
           ),
+        ],
       ],
     );
   }
@@ -426,70 +453,77 @@ class _RoomFrameSwatch extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _dimIfLocked(
-            AspectRatio(
-              aspectRatio: 1,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(child: _buildRim()),
-                  // The tape / pushpin is what separates 經典 from 軟木板 at this
-                  // size, so the miniature keeps it.
-                  if (skin.topAccent != RoomFrameTopAccent.none)
-                    Positioned(
-                      top: -6,
-                      left: 0,
-                      right: 0,
-                      child: Center(child: _buildTopAccent()),
-                    ),
-                  if (isHighlighted)
-                    // Matches the equip panel's selected treatment: a green ring
-                    // offset outside the rim so it reads as a selection, not as
-                    // part of the frame.
-                    Positioned(
-                      left: -3,
-                      top: -3,
-                      right: -3,
-                      bottom: -3,
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(19),
-                            border: Border.all(
-                              color: AppTheme.primaryColor,
-                              width: 3,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (isHighlighted)
-                    Positioned(
-                      right: -6,
-                      bottom: -6,
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.check_rounded,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              _dimIfLocked(_buildMiniature()),
+              // The gate rides on the miniature, not in the label lane — the
+              // label lane now belongs to the casing's name. It stays outside
+              // the dimming so `Lv n` reads at full strength on exactly the
+              // swatches that need it read.
+              if (!isUnlocked) _buildLockChip(),
+            ],
           ),
           const Gap(8),
-          // The label stays outside the dimming, so `Lv n` reads at full
-          // strength on exactly the swatches the player needs to read it on.
           _buildLabel(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniature() {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(child: _buildRim()),
+          // The tape / pushpin is what separates 經典 from 軟木板 at this
+          // size, so the miniature keeps it.
+          if (skin.topAccent != RoomFrameTopAccent.none)
+            Positioned(
+              top: -6,
+              left: 0,
+              right: 0,
+              child: Center(child: _buildTopAccent()),
+            ),
+          if (isHighlighted)
+            // Matches the equip panel's selected treatment: a green ring
+            // offset outside the rim so it reads as a selection, not as
+            // part of the frame.
+            Positioned(
+              left: -3,
+              top: -3,
+              right: -3,
+              bottom: -3,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(19),
+                    border: Border.all(color: AppTheme.primaryColor, width: 3),
+                  ),
+                ),
+              ),
+            ),
+          if (isHighlighted)
+            Positioned(
+              right: -6,
+              bottom: -6,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -563,50 +597,73 @@ class _RoomFrameSwatch extends StatelessWidget {
     );
   }
 
+  /// The gate, read at full strength over the drained miniature. Dark pill so
+  /// it survives both the pale mounts and the near-black 夜光 one.
+  Widget _buildLockChip() {
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black87,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white, width: 1.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_rounded, size: 11, color: Colors.white),
+            const Gap(3),
+            Text(
+              l10n.roomFrameLockedLevel(skin.unlockLevel),
+              maxLines: 1,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The label lane names the casing. Ownership is not spelled out: 使用中 is
+  /// the green ring plus its check badge, locked is the chip on the miniature,
+  /// and 擁有 — every remaining swatch — needs no word at all.
+  ///
+  /// Only the variant half of the name fits this lane, so the family half
+  /// ("拍立得 · ") stays on the full name under the preview. Scaled down rather
+  /// than ellipsised: a chopped name identifies nothing.
   Widget _buildLabel() {
+    final Color color;
+    final FontWeight weight;
     if (isHighlighted) {
-      return Text(
-        l10n.roomFrameInUse,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: AppTheme.textPrimary,
-          height: 1,
-        ),
-      );
+      color = AppTheme.primaryColor;
+      weight = FontWeight.w900;
+    } else if (isUnlocked) {
+      color = AppTheme.textPrimary;
+      weight = FontWeight.w800;
+    } else {
+      color = AppTheme.textSecondary;
+      weight = FontWeight.w700;
     }
-    if (isUnlocked) {
-      return Text(
-        l10n.roomFrameOwned,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          color: AppTheme.textSecondary,
-          height: 1,
-        ),
-      );
-    }
-    // Locked casings name the room level that opens them.
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.lock_rounded, size: 11, color: AppTheme.textSecondary),
-        const Gap(3),
-        Text(
-          l10n.roomFrameLockedLevel(skin.unlockLevel),
+    return SizedBox(
+      height: 14,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          skin.shortLocalizedName(l10n),
           maxLines: 1,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.textSecondary,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: weight,
+            color: color,
             height: 1,
           ),
         ),
-      ],
+      ),
     );
   }
 }

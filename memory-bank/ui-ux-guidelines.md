@@ -51,6 +51,15 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
   on average, Latin ones 5, with 95th percentiles of 5 and 11.
 - Card height comes from `RoomFrameGeometry`, shared by the card's build and the
   grid's cell estimate. Keep them reading the same source.
+- In the 換相框 sheet, the label under a swatch names the casing — it never
+  states ownership. 使用中 is the green ring plus check badge, locked is a dark
+  `🔒 Lv n` chip on the drained miniature, and the 擁有 majority needs no word:
+  a label every unremarkable swatch shares carries no signal. Swatches show
+  `RoomFrameSkin.shortLocalizedName` (the variant half, scaled down to fit, not
+  ellipsised); the full `family · variant` name stays under the preview.
+- The sheet header's trailing button leaves the room and says so:
+  `Icons.logout_rounded` in a red-tinted circle, the same glyph the room-options
+  leave tile uses. It is not an overflow menu and must not wear one.
 
 ## Implementation Notes
 - Validate `showJuiceToast` inputs inside the dialog with `StatefulBuilder`;
