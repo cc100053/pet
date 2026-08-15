@@ -2114,7 +2114,7 @@ abstract class AppLocalizations {
   /// No description provided for @roomSelectionSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Pick a pet home and jump back in.'**
+  /// **'Pick a pet home and jump back in. Long-press a card to change its frame.'**
   String get roomSelectionSubtitle;
 
   /// No description provided for @roomSelectionTitle.
@@ -2164,6 +2164,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Original'**
   String get roomFrameStyleOriginal;
+
+  /// No description provided for @roomFrameLongPressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a card to change its frame'**
+  String get roomFrameLongPressHint;
 
   /// No description provided for @roomFrameLockedLevel.
   ///

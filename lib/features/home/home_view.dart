@@ -236,6 +236,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _isDebugAdmin = false;
   bool _debugProPlan = false;
   bool _debugAlwaysShowOnboarding = false;
+
+  /// Whether 房間選擇 still owes this device the 長按換相框 coach bubble.
+  /// Read once at init; the box is already open by the time Home mounts.
+  bool _roomFrameHintSeen = true;
   bool _revenueCatProPlan = false;
   final RevenueCatService _revenueCatService = RevenueCatService();
   late final FCMService _fcmService;
@@ -461,6 +465,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _debugProPlan = AppSettingsRepository.instance.debugProPlanEnabled;
     _debugAlwaysShowOnboarding =
         AppSettingsRepository.instance.debugAlwaysShowOnboarding;
+    _roomFrameHintSeen = AppSettingsRepository.instance.roomFrameHintSeen;
     unawaited(_refreshDebugAdminAccess());
     _notificationIntentSubscription = _fcmService.notificationIntents.listen((
       intent,

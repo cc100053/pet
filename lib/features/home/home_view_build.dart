@@ -50,6 +50,13 @@ extension _HomeBuildHelpers on _HomeViewState {
               createRoomCtaKey: _onboardingCreateRoomCtaKey,
               highlightJoinRoomCta: _isCreatePetOnboardingStepActive,
               joinRoomCtaKey: _onboardingJoinRoomCtaKey,
+              // One coach mark at a time: while onboarding is still asking for
+              // a first pet, the frame hint has nothing to point at anyway.
+              showFrameHint:
+                  !_roomFrameHintSeen &&
+                  !_isCreatePetOnboardingStepActive &&
+                  !_loadingRoom,
+              onFrameHintSeen: _markRoomFrameHintSeen,
             ),
             if (_isProfileSetupOnboardingStepActive)
               _buildProfileSetupOnboardingOverlay(),
@@ -61,6 +68,16 @@ extension _HomeBuildHelpers on _HomeViewState {
         ),
       ),
     );
+  }
+
+  /// Spends the 長按換相框 coach bubble, for good. Called when it is tapped,
+  /// when its stay ends, or when the player long-presses a card without it.
+  void _markRoomFrameHintSeen() {
+    if (_roomFrameHintSeen || !mounted) {
+      return;
+    }
+    _setStateForOnboarding(() => _roomFrameHintSeen = true);
+    unawaited(AppSettingsRepository.instance.setRoomFrameHintSeen(true));
   }
 
   Widget _buildHomeStatusBar(

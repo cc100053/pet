@@ -14,6 +14,7 @@ import '../../shared/ui/pet_name_text_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'widgets/home_responsive.dart';
 import 'widgets/room_frame_card.dart';
+import 'widgets/room_frame_long_press_hint.dart';
 import 'widgets/room_frame_picker_sheet.dart';
 import 'widgets/room_frame_skins.dart';
 
@@ -57,6 +58,8 @@ class RoomSelectionView extends StatelessWidget {
     this.createRoomCtaKey,
     this.highlightJoinRoomCta = false,
     this.joinRoomCtaKey,
+    this.showFrameHint = false,
+    this.onFrameHintSeen,
   });
 
   final List<Map<String, dynamic>> rooms;
@@ -91,6 +94,14 @@ class RoomSelectionView extends StatelessWidget {
   final Key? createRoomCtaKey;
   final bool highlightJoinRoomCta;
   final Key? joinRoomCtaKey;
+
+  /// Whether this device is still owed the 長按換相框 coach bubble. The caller
+  /// owns the flag; the view only draws it and reports when it is spent.
+  final bool showFrameHint;
+
+  /// Fired when the bubble's job is done — tapped, timed out, or pre-empted by
+  /// a player who long-pressed a card without needing to be told.
+  final VoidCallback? onFrameHintSeen;
 
   /// Warm cream vertical gradient behind the whole screen.
   static const LinearGradient _backdrop = LinearGradient(
@@ -272,6 +283,22 @@ class RoomSelectionView extends StatelessWidget {
                               },
                             ),
                           ),
+                          // Anchored over the first card's top edge rather than
+                          // laid out above the grid: the bubble is on loan for
+                          // five seconds and must not shift the grid when it
+                          // leaves.
+                          if (showFrameHint &&
+                              rooms.isNotEmpty &&
+                              onEquipRoomFrame != null)
+                            Positioned(
+                              left: horizontalPadding,
+                              right: horizontalPadding,
+                              top: 0,
+                              child: RoomFrameLongPressHint(
+                                scale: uiScale,
+                                onDismissed: () => onFrameHintSeen?.call(),
+                              ),
+                            ),
                           Positioned(
                             left: horizontalPadding,
                             right: horizontalPadding,
@@ -608,6 +635,11 @@ class RoomSelectionView extends StatelessWidget {
     if (equip == null) {
       await _showRoomOptions(context, roomId, displayName, l10n);
       return;
+    }
+    // A player who already knows the gesture has nothing left to learn from the
+    // bubble, so spend it here too — not only when it is read.
+    if (showFrameHint) {
+      onFrameHintSeen?.call();
     }
     final petDefinition = PetCatalog.byIdForAppVersion(
       room['pet_type'] as String?,

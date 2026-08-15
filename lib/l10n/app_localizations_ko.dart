@@ -1137,7 +1137,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => '아직 사진이 없어요';
 
   @override
-  String get roomSelectionSubtitle => '펫 홈을 선택하고 다시 이어서 플레이하세요.';
+  String get roomSelectionSubtitle =>
+      '펫 홈을 선택하고 다시 이어서 플레이하세요. 길게 눌러 프레임을 바꿀 수 있어요.';
 
   @override
   String get roomSelectionTitle => '방 선택';
@@ -1164,6 +1165,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get roomFrameStyleOriginal => '오리지널';
+
+  @override
+  String get roomFrameLongPressHint => '길게 눌러 프레임 변경';
 
   @override
   String roomFrameLockedLevel(int level) {

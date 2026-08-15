@@ -1129,7 +1129,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => 'まだ写真がありません';
 
   @override
-  String get roomSelectionSubtitle => 'ペットの家を選んで戻りましょう。';
+  String get roomSelectionSubtitle => 'ペットの家を選んで戻りましょう。長押しでフレームを変更できます。';
 
   @override
   String get roomSelectionTitle => 'ルーム選択';
@@ -1156,6 +1156,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomFrameStyleOriginal => 'オリジナル';
+
+  @override
+  String get roomFrameLongPressHint => '長押しでフレームを変更';
 
   @override
   String roomFrameLockedLevel(int level) {

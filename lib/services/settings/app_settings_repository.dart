@@ -34,6 +34,7 @@ class AppSettingsRepository implements PendingInviteCodeStore {
       'onboarding_basic_completed_at_iso';
   static const String _pendingInviteCodeKey = 'pending_invite_code';
   static const String _roomFrameStylesKey = 'room_frame_styles';
+  static const String _roomFrameHintSeenKey = 'room_frame_hint_seen';
 
   Box<dynamic>? _box;
   bool _hadExistingBoxAtInit = false;
@@ -237,6 +238,18 @@ class AppSettingsRepository implements PendingInviteCodeStore {
       styles[roomId] = styleKey;
     }
     await _box?.put(_roomFrameStylesKey, styles);
+  }
+
+  /// Whether the 長按換相框 coach bubble has done its job on this device.
+  ///
+  /// Long press is invisible, so the bubble is the only thing that teaches it;
+  /// it is owed once and never again, which makes this a device flag rather
+  /// than a per-room one.
+  bool get roomFrameHintSeen =>
+      (_box?.get(_roomFrameHintSeenKey) as bool?) ?? false;
+
+  Future<void> setRoomFrameHintSeen(bool seen) async {
+    await _box?.put(_roomFrameHintSeenKey, seen);
   }
 
   @override

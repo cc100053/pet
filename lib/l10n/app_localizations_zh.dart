@@ -1125,7 +1125,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => '还没有照片，去拍一张';
 
   @override
-  String get roomSelectionSubtitle => '选择宠物的家並繼續。';
+  String get roomSelectionSubtitle => '选择宠物的家并继续。长按可换相框。';
 
   @override
   String get roomSelectionTitle => '房间选择';
@@ -1152,6 +1152,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get roomFrameStyleOriginal => '原本相框';
+
+  @override
+  String get roomFrameLongPressHint => '长按相框可换造型';
 
   @override
   String roomFrameLockedLevel(int level) {
@@ -3266,7 +3269,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomSelectionStatusNoPhoto => '還沒有相片，去拍一張';
 
   @override
-  String get roomSelectionSubtitle => '選擇寵物的家並繼續。';
+  String get roomSelectionSubtitle => '選擇寵物的家並繼續。長按可換相框。';
 
   @override
   String get roomSelectionTitle => '房間選擇';
@@ -3293,6 +3296,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomFrameStyleOriginal => '原本相框';
+
+  @override
+  String get roomFrameLongPressHint => '長按相框可換造型';
 
   @override
   String roomFrameLockedLevel(int level) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/home/room_selection_view.dart';
 import 'package:pet/features/home/widgets/room_frame_card.dart';
+import 'package:pet/features/home/widgets/room_frame_long_press_hint.dart';
 import 'package:pet/features/home/widgets/room_frame_skins.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
@@ -59,6 +60,8 @@ void main() {
     // Lv 8 clears the whole unlock ladder, so tests that are not about gating
     // see every casing as pickable.
     int? petLevel = 8,
+    bool showFrameHint = false,
+    VoidCallback? onFrameHintSeen,
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -86,6 +89,8 @@ void main() {
           creatingRoom: false,
           joiningRoom: false,
           selectedRoomId: 'room-1',
+          showFrameHint: showFrameHint,
+          onFrameHintSeen: onFrameHintSeen,
         ),
       ),
     );
@@ -178,6 +183,98 @@ void main() {
     await settle(tester);
 
     expect(equipped, [RoomFrameStyle.original]);
+  });
+
+  group('long-press hint', () {
+    testWidgets('is only drawn when the device is still owed it', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+      await tester.pumpWidget(buildView(onEquipRoomFrame: (_, _) async {}));
+      await settle(tester);
+      expect(find.byType(RoomFrameLongPressHint), findsNothing);
+
+      await tester.pumpWidget(
+        buildView(onEquipRoomFrame: (_, _) async {}, showFrameHint: true),
+      );
+      await settle(tester);
+      expect(find.byType(RoomFrameLongPressHint), findsOneWidget);
+      expect(
+        find.text('Long-press a card to change its frame'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('is not drawn when there is no picker to teach', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+      // No equip handler means long press opens room options, not 換相框.
+      await tester.pumpWidget(buildView(showFrameHint: true));
+      await settle(tester);
+
+      expect(find.byType(RoomFrameLongPressHint), findsNothing);
+    });
+
+    testWidgets('is spent by a tap', (tester) async {
+      usePhoneViewport(tester);
+      var seen = 0;
+      await tester.pumpWidget(
+        buildView(
+          onEquipRoomFrame: (_, _) async {},
+          showFrameHint: true,
+          onFrameHintSeen: () => seen++,
+        ),
+      );
+      await settle(tester);
+
+      await tester.tap(find.byType(RoomFrameLongPressHint));
+      await settle(tester);
+      expect(seen, 1);
+
+      // The stay ending afterwards must not report it a second time.
+      await tester.pump(RoomFrameLongPressHint.visibleFor);
+      expect(seen, 1);
+    });
+
+    testWidgets('is spent by its own stay ending', (tester) async {
+      usePhoneViewport(tester);
+      var seen = 0;
+      await tester.pumpWidget(
+        buildView(
+          onEquipRoomFrame: (_, _) async {},
+          showFrameHint: true,
+          onFrameHintSeen: () => seen++,
+        ),
+      );
+      await settle(tester);
+      expect(seen, 0);
+
+      await tester.pump(RoomFrameLongPressHint.visibleFor);
+      await settle(tester);
+      expect(seen, 1);
+    });
+
+    testWidgets('is spent by a player who already knows the gesture', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+      var seen = 0;
+      await tester.pumpWidget(
+        buildView(
+          onEquipRoomFrame: (_, _) async {},
+          showFrameHint: true,
+          onFrameHintSeen: () => seen++,
+        ),
+      );
+      await settle(tester);
+
+      await tester.longPress(find.byType(RoomFrameCard));
+      await settle(tester);
+
+      expect(seen, 1);
+      expect(find.text('Change Frame'), findsOneWidget);
+    });
   });
 
   testWidgets('a level-1 room sees the gated casings locked', (tester) async {

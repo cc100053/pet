@@ -57,6 +57,15 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
   a label every unremarkable swatch shares carries no signal. Swatches show
   `RoomFrameSkin.shortLocalizedName` (the variant half, scaled down to fit, not
   ellipsised); the full `family · variant` name stays under the preview.
+- 換相框 opens on long press, which has no visual form, so the gesture is taught
+  in two places and nowhere else: `roomSelectionSubtitle` names it permanently,
+  and `RoomFrameLongPressHint` — a coach bubble over the first card, owed once
+  per device via `AppSettingsRepository.roomFrameHintSeen` — says it out loud on
+  the first visit. The bubble times itself out with an `AnimationController`,
+  never a `Timer`, so `pumpAndSettle` runs it out instead of failing on a
+  pending timer. It is spent by a tap, by its stay ending, or by a long press
+  from a player who never needed it. Do not add per-card chrome for this: the
+  rim already carries the unread badge, the paywall chip, and the top accent.
 - The sheet header's trailing button leaves the room and says so:
   `Icons.logout_rounded` in a red-tinted circle, the same glyph the room-options
   leave tile uses. It is not an overflow menu and must not wear one.

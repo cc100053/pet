@@ -1165,7 +1165,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => 'No photos yet — send one';
 
   @override
-  String get roomSelectionSubtitle => 'Pick a pet home and jump back in.';
+  String get roomSelectionSubtitle =>
+      'Pick a pet home and jump back in. Long-press a card to change its frame.';
 
   @override
   String get roomSelectionTitle => 'Room Selection';
@@ -1192,6 +1193,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roomFrameStyleOriginal => 'Original';
+
+  @override
+  String get roomFrameLongPressHint => 'Long-press a card to change its frame';
 
   @override
   String roomFrameLockedLevel(int level) {
