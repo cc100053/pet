@@ -81,12 +81,26 @@ plus a `PrimaryScrollController` jump to `maxScrollExtent` and a first-frame
   shot shows the empty-photo placeholder, since the harness has no network
   photo.
 
+## Plan (2026-08-15 Lv Chip Contrast And Locked Swatches)
+- [x] Measure instead of eyeballing. **The simulator read was wrong**: the
+      worst chip was not `goldLeaf` (2.48:1) but `original` /
+      `polaroidClassic` at **1.59:1** — `#FFB36B` on white. A small orange chip
+      on a white card looks acceptable at a glance and is not.
+- [x] Split `levelTextColor` out of `levelColor`, so the fill keeps each
+      casing's accent while the text takes a readable ink. All four light
+      casings use `_levelInk` `#8A4C0C` (6.09 / 6.09 / 4.60 / 5.49);
+      `nightGlow` keeps its accent, which already measures 6.18.
+- [x] Dim locked swatches: 15% saturation + 0.55 opacity, with the `Lv n`
+      label left outside the filter. The previous 0.75 opacity alone was
+      invisible as a state.
+- [x] Tests: a WCAG contrast helper holds every casing to 4.5:1 against its own
+      chip fill (proved to have teeth — reverting `levelInk` fails on
+      `original` first), plus a per-swatch assertion that exactly the gated
+      casings are drained.
+- [x] Re-verified both on the simulator, `dart format`, `flutter analyze`,
+      `flutter test` (630 passed / 1 skipped).
+
 ## Active Follow-ups
-- [ ] Darken `goldLeaf.levelColor` (or raise the `Lv` chip fill above 18%
-      alpha) — it is the lowest-contrast chip of the five on the room card.
-- [ ] Decide whether locked swatches in 換相框 should be dimmed. They currently
-      render at full saturation, distinguished only by the lock + `Lv n` label,
-      which reads as available at a glance.
 - [ ] Decide whether any casing belongs in the shop instead of on the level
       ladder. Needs an `items` row + a price off `docs/shop_pricing.md`, so it
       is a product call plus a migration, not a client change.

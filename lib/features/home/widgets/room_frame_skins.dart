@@ -91,6 +91,7 @@ class RoomFrameSkin {
     required this.nameColor,
     required this.captionColor,
     required this.levelColor,
+    this.levelTextColor,
     required this.hungerRingColor,
     required this.hungerTrackColor,
     required this.hungerValueColor,
@@ -149,7 +150,25 @@ class RoomFrameSkin {
   final EdgeInsets matPadding;
   final Color nameColor;
   final Color captionColor;
+
+  /// Tints the `Lv` chip's fill (at 18% alpha), so each casing keeps its own
+  /// accent.
   final Color levelColor;
+
+  /// Ink for the `Lv` chip's text.
+  ///
+  /// Split from [levelColor] because the two answer different questions: the
+  /// fill only has to belong to the casing, but the text has to be readable on
+  /// top of that fill. Reusing one warm accent for both put every light casing
+  /// between 1.59:1 and 2.48:1 — `original`'s orange on white was the worst of
+  /// them. Defaults to [levelColor] for casings whose accent already carries
+  /// enough contrast on its own card (only `nightGlow`, at 6.18:1).
+  ///
+  /// `room_frame_test.dart` holds every casing to 4.5:1 against its own chip.
+  final Color? levelTextColor;
+
+  /// The colour the `Lv` text is actually painted in.
+  Color get levelInk => levelTextColor ?? levelColor;
   final Color hungerRingColor;
   final Color hungerTrackColor;
   final Color hungerValueColor;
@@ -238,6 +257,11 @@ class RoomFrameSkins {
   static const double photoAspectRatio = 1.25;
 
   static const Color _ink = AppTheme.textPrimary;
+
+  /// `Lv` chip text for every light casing: a warm brown that stays in the
+  /// accents' hue family while clearing 4.5:1 on all three light chip fills
+  /// (`original`/`polaroidClassic` 6.09, `corkboard` 4.60, `goldLeaf` 5.49).
+  static const Color _levelInk = Color(0xFF8A4C0C);
   static const Color _muted = AppTheme.textSecondary;
   static const Color _hardShadowColor = Colors.black87;
 
@@ -292,6 +316,7 @@ class RoomFrameSkins {
     nameColor: _ink,
     captionColor: _muted,
     levelColor: AppTheme.secondaryColor,
+    levelTextColor: _levelInk,
     hungerRingColor: Color(0xFFED8787),
     hungerTrackColor: Color(0x1F000000),
     hungerValueColor: _ink,
@@ -323,6 +348,7 @@ class RoomFrameSkins {
     nameColor: _ink,
     captionColor: _muted,
     levelColor: AppTheme.secondaryColor,
+    levelTextColor: _levelInk,
     hungerRingColor: Color(0xFFED8787),
     hungerTrackColor: Color(0x1F000000),
     hungerValueColor: _ink,
@@ -360,6 +386,7 @@ class RoomFrameSkins {
     nameColor: _ink,
     captionColor: _muted,
     levelColor: Color(0xFFC9803A),
+    levelTextColor: _levelInk,
     hungerRingColor: Color(0xFFE08A8A),
     hungerTrackColor: Color(0x1F000000),
     hungerValueColor: _ink,
@@ -409,6 +436,7 @@ class RoomFrameSkins {
     nameColor: _ink,
     captionColor: _muted,
     levelColor: Color(0xFFC08A2E),
+    levelTextColor: _levelInk,
     hungerRingColor: Color(0xFFED8787),
     hungerTrackColor: Color(0x1F000000),
     hungerValueColor: _ink,

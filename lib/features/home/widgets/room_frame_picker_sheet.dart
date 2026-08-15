@@ -390,6 +390,35 @@ class _RoomFrameSwatch extends StatelessWidget {
   final VoidCallback onTap;
   final AppLocalizations l10n;
 
+  /// Saturation matrix at `s`, in the standard luminance-preserving form.
+  static List<double> _saturation(double s) {
+    const lr = 0.213, lg = 0.715, lb = 0.072;
+    return <double>[
+      lr + (1 - lr) * s, lg * (1 - s), lb * (1 - s), 0, 0, //
+      lr * (1 - s), lg + (1 - lg) * s, lb * (1 - s), 0, 0, //
+      lr * (1 - s), lg * (1 - s), lb + (1 - lb) * s, 0, 0, //
+      0, 0, 0, 1, 0,
+    ];
+  }
+
+  /// A locked casing has to read as locked at a glance, before the `Lv n`
+  /// label is read. Opacity alone at 0.75 did not — the gold and cork casings
+  /// still looked as available as the owned ones — so the miniature is drained
+  /// of colour as well. Both are needed: desaturation alone leaves a crisp
+  /// full-strength card, and dimming alone leaves the accent hues shouting.
+  Widget _dimIfLocked(Widget child) {
+    if (isUnlocked) {
+      return child;
+    }
+    return Opacity(
+      opacity: 0.55,
+      child: ColorFiltered(
+        colorFilter: ColorFilter.matrix(_saturation(0.15)),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return JuicyScaleButton(
@@ -397,9 +426,8 @@ class _RoomFrameSwatch extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Opacity(
-            opacity: isUnlocked ? 1 : 0.75,
-            child: AspectRatio(
+          _dimIfLocked(
+            AspectRatio(
               aspectRatio: 1,
               child: Stack(
                 clipBehavior: Clip.none,
@@ -459,6 +487,8 @@ class _RoomFrameSwatch extends StatelessWidget {
             ),
           ),
           const Gap(8),
+          // The label stays outside the dimming, so `Lv n` reads at full
+          // strength on exactly the swatches the player needs to read it on.
           _buildLabel(),
         ],
       ),

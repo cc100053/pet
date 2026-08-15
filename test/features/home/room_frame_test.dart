@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/home/room_selection_view.dart';
@@ -24,6 +26,29 @@ void usePhoneViewport(WidgetTester tester) {
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+/// WCAG 2.1 relative luminance of one sRGB channel.
+double _channelLuminance(int value) {
+  final c = value / 255;
+  return c <= 0.03928
+      ? c / 12.92
+      : math.pow((c + 0.055) / 1.055, 2.4) as double;
+}
+
+double _relativeLuminance(Color color) {
+  return 0.2126 * _channelLuminance((color.r * 255).round()) +
+      0.7152 * _channelLuminance((color.g * 255).round()) +
+      0.0722 * _channelLuminance((color.b * 255).round());
+}
+
+/// WCAG 2.1 contrast ratio. Both colours must be fully opaque.
+double _contrastRatio(Color a, Color b) {
+  final la = _relativeLuminance(a);
+  final lb = _relativeLuminance(b);
+  final lighter = math.max(la, lb);
+  final darker = math.min(la, lb);
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 void main() {
@@ -172,6 +197,21 @@ void main() {
     expect(find.text('Lv 3'), findsOneWidget);
     expect(find.text('Lv 5'), findsOneWidget);
     expect(find.text('Lv 8'), findsOneWidget);
+
+    // A locked miniature is drained and dimmed, so it reads as locked before
+    // the label is read — and only the locked ones are.
+    for (final style in RoomFrameSkins.displayOrder) {
+      final drained = find.descendant(
+        of: swatchOf(style),
+        matching: find.byType(ColorFiltered),
+      );
+      final isGated = RoomFrameSkins.unlockLevel(style) > 1;
+      expect(
+        drained,
+        isGated ? findsOneWidget : findsNothing,
+        reason: '$style at Lv 1',
+      );
+    }
 
     // Tapping a locked swatch explains the gate and commits nothing.
     await tester.tap(swatchOf(RoomFrameStyle.nightGlow));
@@ -327,6 +367,36 @@ void main() {
         expect(RoomFrameSkins.isUnlocked(style, required + 5), isTrue);
       }
       expect(RoomFrameSkins.unlockedFor(0), isEmpty);
+    });
+
+    test('every casing keeps the Lv chip readable', () {
+      // The chip is 9.5pt bold — normal-sized text, so WCAG AA asks 4.5:1.
+      // Measured against the chip's own fill (levelColor at 18% over the mat),
+      // not against the mat, because that is what sits behind the glyphs.
+      for (final skin in RoomFrameSkins.byStyle.values) {
+        final chip = Color.alphaBlend(
+          skin.levelColor.withValues(alpha: 0.18),
+          skin.innerCardColor,
+        );
+        expect(
+          _contrastRatio(skin.levelInk, chip),
+          greaterThanOrEqualTo(4.5),
+          reason: '${skin.style} Lv chip',
+        );
+      }
+    });
+
+    test('the Lv ink falls back to the accent only when that is readable', () {
+      // nightGlow is the one casing whose accent already carries the contrast,
+      // so it is the only one allowed to leave levelTextColor unset.
+      for (final skin in RoomFrameSkins.byStyle.values) {
+        if (skin.style == RoomFrameStyle.nightGlow) {
+          expect(skin.levelTextColor, isNull);
+          expect(skin.levelInk, skin.levelColor);
+        } else {
+          expect(skin.levelTextColor, isNotNull, reason: '${skin.style}');
+        }
+      }
     });
 
     test('storage keys round-trip', () {

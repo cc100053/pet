@@ -62,9 +62,15 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   instead of on the level ladder is also still open (needs an `items` row and a
   price off `docs/shop_pricing.md`, so it is a product call plus a migration).
 - The room card is simulator-verified at all three `homeUiScale` tiers × all
-  five casings (see `tasks/todo.md`). Two cosmetic follow-ups remain: the
-  `goldLeaf` `Lv` chip is the lowest-contrast of the five, and locked swatches
-  in 換相框 are not dimmed, so they read as available at a glance.
+  five casings (see `tasks/todo.md`).
+- The `Lv` chip takes its fill from `levelColor` but its text from
+  `levelInk` (`levelTextColor ?? levelColor`). The two are split because one
+  accent could not do both jobs: reused as text it measured 1.59:1 on
+  `original`. Light casings ink at `#8A4C0C`; `nightGlow` keeps its accent.
+  `room_frame_test.dart` holds every casing to WCAG 4.5:1 against its own chip
+  fill, so a new casing cannot ship an unreadable chip.
+- Locked casings in 換相框 are drained (15% saturation) and dimmed (0.55), with
+  the `Lv n` label outside the filter. Opacity alone did not read as a state.
 - Convert source-text test assertions to behavioural ones. ~11 test files do
   `readAsStringSync()` + `contains('…')`, which checks how code looks, not what
   it does; `home_loading_performance_test.dart` is only whitespace-insensitive,

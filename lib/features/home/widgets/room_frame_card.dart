@@ -684,7 +684,7 @@ class _LevelChip extends StatelessWidget {
         style: TextStyle(
           fontSize: 9.5 * scale,
           fontWeight: FontWeight.w900,
-          color: skin.levelColor,
+          color: skin.levelInk,
           height: 1,
         ),
       ),
