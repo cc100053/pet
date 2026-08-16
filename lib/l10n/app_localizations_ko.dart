@@ -2177,4 +2177,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
+
+  @override
+  String get whatsNew300Title => '새로운 룸 프레임!';
+
+  @override
+  String get whatsNew300Bullet1 => '공유 방 카드를 5가지 개성 있는 프레임으로 꾸밀 수 있어요.';
+
+  @override
+  String get whatsNew300Bullet2 => '방 카드를 길게 눌러 프레임을 미리 보고 마음에 드는 디자인을 장착하세요.';
+
+  @override
+  String get whatsNew300Bullet3 => '방 레벨이 오르면 더 많은 프레임이 잠금 해제됩니다.';
 }

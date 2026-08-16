@@ -2165,4 +2165,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
+
+  @override
+  String get whatsNew300Title => '新しいルームフレーム！';
+
+  @override
+  String get whatsNew300Bullet1 => '共有ルームのカードを5種類のフレームで飾れます。';
+
+  @override
+  String get whatsNew300Bullet2 => 'ルームカードを長押ししてプレビューし、お気に入りを設定できます。';
+
+  @override
+  String get whatsNew300Bullet3 => 'ルームレベルが上がると、さらに多くのフレームを解放できます。';
 }

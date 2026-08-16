@@ -2270,4 +2270,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew231Bullet2 =>
       'Improved app stability for a smoother everyday experience.';
+
+  @override
+  String get whatsNew300Title => 'New Room Frames!';
+
+  @override
+  String get whatsNew300Bullet1 =>
+      'Customize shared room cards with five playful frame styles.';
+
+  @override
+  String get whatsNew300Bullet2 =>
+      'Long-press a room card to preview and equip your favorite frame.';
+
+  @override
+  String get whatsNew300Bullet3 =>
+      'Unlock more frame styles as your room level grows.';
 }

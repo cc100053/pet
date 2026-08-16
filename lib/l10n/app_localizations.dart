@@ -4016,6 +4016,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
+
+  /// No description provided for @whatsNew300Title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Room Frames!'**
+  String get whatsNew300Title;
+
+  /// No description provided for @whatsNew300Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize shared room cards with five playful frame styles.'**
+  String get whatsNew300Bullet1;
+
+  /// No description provided for @whatsNew300Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press a room card to preview and equip your favorite frame.'**
+  String get whatsNew300Bullet2;
+
+  /// No description provided for @whatsNew300Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock more frame styles as your room level grows.'**
+  String get whatsNew300Bullet3;
 }
 
 class _AppLocalizationsDelegate

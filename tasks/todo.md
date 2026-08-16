@@ -4,6 +4,26 @@ Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260811_pre_compaction.md`.
 
+## Plan (2026-08-16 v3.0.0 Release Notes Sync)
+- [x] Approve localized bundled What's New and ASC release-note drafts.
+- [x] Resolve the next iOS build number as `20` from ASC build history.
+- [x] Update `pubspec.yaml`, bundled What's New, and ASC localization assets.
+- [x] Run localization generation, formatting, analyzer, tests, and metadata
+      terms validation.
+- [x] Sync v3.0.0 metadata to ASC, archive/upload build 20, wait for processing,
+      and attach the valid build without submitting for review.
+- [x] Update release ledgers, create the release tag, commit, push, and leave
+      the worktree clean.
+
+## Review (2026-08-16 v3.0.0 Release Notes Sync)
+- Local `3.0.0+20` metadata, generated localization code, bundled What's New,
+  and four ASC `.strings` files are synchronized for the room-frame feature.
+- `flutter analyze` passed; `flutter test` passed 642 tests with 1 skipped
+  integration test; the direct-EULA metadata test passed.
+- ASC version `9c8da611-140f-42aa-be58-e3b019978793` is
+  `PREPARE_FOR_SUBMISSION`; build `2fec6cc5-c143-42a4-97b6-aed587726311`
+  is `VALID` and attached. App Review submission was intentionally not made.
+
 ## Plan (2026-08-14 Room Frame Casings)
 Design source: `design_handoff_room_frames/` (turn 4 = skins, turn 3 = screen +
 sheet). Client-only; no schema or shop changes.

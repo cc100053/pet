@@ -4,11 +4,10 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `2.4.0+19`; exact ASC/build/localization and
-  backend deployment state lives in `docs/release_status.md`. Build 19 is
-  `VALID`, attached, and intentionally not submitted for App Review. Adds four
-  new furniture pieces (Balloons/Cactus/Rug/Vinyl Records) to the shop,
-  version-gated to `2.4.0` and active.
+- Repo release baseline is iOS `3.0.0+20`; exact ASC/build/localization and
+  backend deployment state lives in `docs/release_status.md`. Build 20 is
+  `VALID`, attached, and intentionally not submitted for App Review. Adds the
+  customizable room-frame feature, version-gated to `3.0.0`.
 - Flutter is pinned to `3.44.0` / Dart `3.12.0`.
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - Internal hunger-schedule and abandoned-room review tables use RLS as
@@ -38,8 +37,8 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   cards render `original` whatever Hive holds, the coach bubble is not drawn (so
   its one-shot flag survives to 3.0.0), and the subtitle drops the long-press
   clause. The gate reads the running app version, not a build flag, so a 2.4.x
-  build cut from this tree cannot leak the feature. Add a What's New entry when
-  the gate opens — the catalog has none for frames.
+  build cut from this tree cannot leak the feature. The bundled What's New and
+  ASC release notes now announce the frame feature in v3.0.0.
 - The room-frame unlock ladder is calibrated, not flat: `original` and
   `polaroidClassic` Lv1, `corkboard` Lv3, `goldLeaf` Lv5, `nightGlow` Lv8. Exp
   comes only from rewarded feeds (`+10`, behind the 10-minute cooldown) against
@@ -86,7 +85,7 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   it does; `home_loading_performance_test.dart` is only whitespace-insensitive,
   not fixed. Migration tests asserting on `.sql` text are legitimate. Prove any
   replacement still has teeth by breaking the guarded structure first.
-- Monitor ASC/store outcome for iOS `2.4.0+19`; App Review submission requires
+- Monitor ASC/store outcome for iOS `3.0.0+20`; App Review submission requires
   an explicit request.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.
 - Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.

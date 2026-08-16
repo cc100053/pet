@@ -2153,6 +2153,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
+
+  @override
+  String get whatsNew300Title => '全新房间相框！';
+
+  @override
+  String get whatsNew300Bullet1 => '用 5 款相框自定义共享房间卡片的风格。';
+
+  @override
+  String get whatsNew300Bullet2 => '长按房间卡片即可预览相框，并套用你喜欢的设计。';
+
+  @override
+  String get whatsNew300Bullet3 => '提升房间等级，解锁更多相框样式。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4294,4 +4306,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew300Title => '全新房間相框！';
+
+  @override
+  String get whatsNew300Bullet1 => '用 5 款相框自訂共享房間卡片的風格。';
+
+  @override
+  String get whatsNew300Bullet2 => '長按房間卡片即可預覽相框，並套用你喜歡的設計。';
+
+  @override
+  String get whatsNew300Bullet3 => '提升房間等級，解鎖更多相框樣式。';
 }

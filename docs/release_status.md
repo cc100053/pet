@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 2.4.0 | 19 | Repo workflow assumes current; ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8` is `PREPARE_FOR_SUBMISSION`, build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` is `VALID` and attached; localizations synced (en-US `1cb2cdfe-83e8-4ca4-82d1-16c3b0b718bb`, ja `97663caa-a14a-45e3-ad59-8ab5e114af24`, ko `76fed5e2-26bd-4cce-875c-cbca91070af7`, zh-Hant `b1aed71b-9ebe-42e6-9420-9c5d963cd0ae`); not submitted for App Review in this step | 2026-08-13 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the four new furniture pieces (Balloons/Cactus/Rug/Vinyl Records) | none |
+| iOS | 3.0.0 | 20 | Repo workflow assumes current; ASC version `9c8da611-140f-42aa-be58-e3b019978793` is `PREPARE_FOR_SUBMISSION`, build `2fec6cc5-c143-42a4-97b6-aed587726311` is `VALID` and attached; localizations synced (en-US `eeb71b4a-4b54-4676-9e81-67d5f826d547`, ja `3a6c687f-2d56-4e3e-8382-1444142bf1f1`, ko `c17e6b1c-2b1e-4b0f-afa4-933b350dce97`, zh-Hant `126d741c-1838-4430-acd8-d820bbfea767`); not submitted for App Review | 2026-08-16 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the new customizable room-frame feature | ios/v3.0.0+20 |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Last Repo-Known Public Release
@@ -25,6 +25,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 2.4.0 | 19 | Superseded in repo workflow by completed `3.0.0+20` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-13 | ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8`, attached build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` | none |
 | iOS | 2.3.4 | 18 | Superseded in repo workflow by completed `2.4.0+19` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-09, already public per App Store lookup (live since 2.3.4) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, attached build `142aeed9-852f-43c6-8114-3f5a30f80505` | none |
 | iOS | 2.3.4 | 17 | Superseded by build 18 on the same ASC version 2026-08-09; build 17 was uploaded/attached to ASC but its local files were never committed (fixed retroactively in commit `e3829dd`) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, previously attached build `42b5c164-d1e4-45f3-b485-a26116d70d76` | none |
 | iOS | 2.3.3 | 16 | Superseded in repo workflow by completed `2.3.4+17` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-05 | ASC version `717272d6-bcf3-4d3e-a6e4-48438305b196`, attached build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` | none |
@@ -45,7 +46,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | None active | - | `pubspec.yaml` `2.4.0+19` is now the repo current release baseline; bundled What's New + ASC copy cover the four new furniture pieces (Balloons/Cactus/Rug/Vinyl Records) added to the shop, version-gated to `min_app_version=2.4.0` and now `is_active=true` | ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8` is `PREPARE_FOR_SUBMISSION`; build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` (build 19) is `VALID`, App Store eligible, and attached; localization IDs: en-US `1cb2cdfe-83e8-4ca4-82d1-16c3b0b718bb`, ja `97663caa-a14a-45e3-ad59-8ab5e114af24`, ko `76fed5e2-26bd-4cce-875c-cbca91070af7`, zh-Hant `b1aed71b-9ebe-42e6-9420-9c5d963cd0ae` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `main`, pending commit for 2.4.0+19 files | none |
+| iOS | None active | - | `pubspec.yaml` `3.0.0+20` is now the repo current release baseline; bundled What's New + ASC copy cover the new customizable room-frame feature, gated to `min_app_version=3.0.0` | ASC version `9c8da611-140f-42aa-be58-e3b019978793` is `PREPARE_FOR_SUBMISSION`; build `2fec6cc5-c143-42a4-97b6-aed587726311` (build 20) is `VALID`, App Store eligible, and attached; localization IDs: en-US `eeb71b4a-4b54-4676-9e81-67d5f826d547`, ja `3a6c687f-2d56-4e3e-8382-1444142bf1f1`, ko `c17e6b1c-2b1e-4b0f-afa4-933b350dce97`, zh-Hant `126d741c-1838-4430-acd8-d820bbfea767` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `main`, release tag `ios/v3.0.0+20` | ios/v3.0.0+20 |
 
 ## Feature Version Gates
 
