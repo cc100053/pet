@@ -64,6 +64,9 @@ void main() {
     VoidCallback? onFrameHintSeen,
     int coins = 0,
     int diamonds = 0,
+    // 換相框 is gated to 3.0.0, so tests that are not about the gate run on a
+    // build where the feature is live.
+    String? appVersion = '3.0.0',
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -95,6 +98,7 @@ void main() {
           onFrameHintSeen: onFrameHintSeen,
           coins: coins,
           diamonds: diamonds,
+          currentAppVersion: appVersion,
         ),
       ),
     );
@@ -209,6 +213,124 @@ void main() {
     // out: an overflow here fails the test.
     expect(find.text('999999'), findsNWidgets(2));
     expect(find.text('Change Frame'), findsOneWidget);
+  });
+
+  group('version gate', () {
+    test('the ladder opens at 3.0.0 and not before', () {
+      expect(RoomFrameSkins.minAppVersion, '3.0.0');
+      expect(RoomFrameSkins.isAvailableOnAppVersion('3.0.0'), isTrue);
+      expect(RoomFrameSkins.isAvailableOnAppVersion('3.0.1'), isTrue);
+      expect(RoomFrameSkins.isAvailableOnAppVersion('3.1.0'), isTrue);
+      expect(RoomFrameSkins.isAvailableOnAppVersion('2.4.0'), isFalse);
+      expect(RoomFrameSkins.isAvailableOnAppVersion('2.9.9'), isFalse);
+      // The version resolves asynchronously from PackageInfo; until it lands
+      // the feature must read as off, never as on.
+      expect(RoomFrameSkins.isAvailableOnAppVersion(null), isFalse);
+      expect(RoomFrameSkins.isAvailableOnAppVersion(''), isFalse);
+    });
+
+    test('a gated build wears the pre-redesign card, whatever Hive holds', () {
+      for (final style in RoomFrameSkins.displayOrder) {
+        expect(
+          RoomFrameSkins.resolveForAppVersion(style, appVersion: '2.4.0').style,
+          RoomFrameStyle.original,
+          reason: '$style must not render below the gate',
+        );
+        expect(
+          RoomFrameSkins.resolveForAppVersion(style, appVersion: '3.0.0').style,
+          style,
+        );
+      }
+      // The stored value is never rewritten, so upgrading restores the casing.
+      expect(
+        RoomFrameSkins.resolveForAppVersion(
+          RoomFrameStyle.nightGlow,
+          appVersion: null,
+        ).style,
+        RoomFrameStyle.original,
+      );
+    });
+
+    testWidgets('a gated build renders the casing a room already picked as the '
+        'original card', (tester) async {
+      usePhoneViewport(tester);
+      await tester.pumpWidget(
+        buildView(
+          appVersion: '2.4.0',
+          roomFrameStyleByRoom: const {'room-1': RoomFrameStyle.nightGlow},
+          onEquipRoomFrame: (_, _) async {},
+        ),
+      );
+
+      final card = tester.widget<RoomFrameCard>(find.byType(RoomFrameCard));
+      expect(card.skin.style, RoomFrameStyle.original);
+    });
+
+    testWidgets('a gated long press keeps its pre-feature meaning', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+      final equipped = <RoomFrameStyle>[];
+      await tester.pumpWidget(
+        buildView(
+          appVersion: '2.4.0',
+          onEquipRoomFrame: (_, style) async => equipped.add(style),
+        ),
+      );
+
+      await tester.longPress(find.byType(RoomFrameCard));
+      await settle(tester);
+
+      // The room options sheet, exactly as before 換相框 existed.
+      expect(find.text('Room options'), findsOneWidget);
+      expect(find.text('Leave room'), findsOneWidget);
+      expect(find.text('Change Frame'), findsNothing);
+      expect(equipped, isEmpty);
+    });
+
+    testWidgets('a gated build never names the gesture in its subtitle', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+      await tester.pumpWidget(
+        buildView(appVersion: '2.4.0', onEquipRoomFrame: (_, _) async {}),
+      );
+      await settle(tester);
+      expect(find.text('Pick a pet home and jump back in.'), findsOneWidget);
+
+      await tester.pumpWidget(
+        buildView(appVersion: '3.0.0', onEquipRoomFrame: (_, _) async {}),
+      );
+      await settle(tester);
+      expect(
+        find.text(
+          'Pick a pet home and jump back in. Long-press a card to change its '
+          'frame.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a gated build does not spend the one-shot coach bubble', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+      var seen = 0;
+      await tester.pumpWidget(
+        buildView(
+          appVersion: '2.4.0',
+          onEquipRoomFrame: (_, _) async {},
+          showFrameHint: true,
+          onFrameHintSeen: () => seen++,
+        ),
+      );
+      await settle(tester);
+
+      expect(find.byType(RoomFrameLongPressHint), findsNothing);
+      // Crucially the flag survives: the bubble is still owed once 3.0.0 lands.
+      await tester.pump(RoomFrameLongPressHint.visibleFor);
+      expect(seen, 0);
+    });
   });
 
   group('long-press hint', () {

@@ -1123,7 +1123,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => '还没有照片';
 
   @override
-  String get roomSelectionSubtitle => '选择宠物的家并继续。长按可换相框。';
+  String get roomSelectionSubtitle => '选择宠物的家並繼續。';
+
+  @override
+  String get roomSelectionSubtitleFrames => '选择宠物的家并继续。长按可换相框。';
 
   @override
   String get roomSelectionTitle => '房间选择';
@@ -3265,7 +3268,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomSelectionStatusNoPhoto => '還沒有相片';
 
   @override
-  String get roomSelectionSubtitle => '選擇寵物的家並繼續。長按可換相框。';
+  String get roomSelectionSubtitle => '選擇寵物的家並繼續。';
+
+  @override
+  String get roomSelectionSubtitleFrames => '選擇寵物的家並繼續。長按可換相框。';
 
   @override
   String get roomSelectionTitle => '房間選擇';

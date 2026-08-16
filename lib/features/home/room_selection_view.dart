@@ -114,6 +114,15 @@ class RoomSelectionView extends StatelessWidget {
   static const Color _emptySlotLabel = Color(0xFF9A9187);
   static String? _lastLayoutDebugLogKey;
 
+  /// Whether 換相框 is live on this build. Every surface of the feature —
+  /// the picker, the casings the cards wear, the coach bubble, and the
+  /// subtitle that names the gesture — reads this one flag, so a build below
+  /// [RoomFrameSkins.minAppVersion] behaves exactly like one built before the
+  /// feature existed.
+  bool get _framesEnabled =>
+      onEquipRoomFrame != null &&
+      RoomFrameSkins.isAvailableOnAppVersion(currentAppVersion);
+
   @override
   Widget build(BuildContext context) {
     final totalSlots = math.max(4, rooms.length + 1);
@@ -211,7 +220,9 @@ class RoomSelectionView extends StatelessWidget {
                         18 * uiScale,
                       ),
                       child: Text(
-                        l10n.roomSelectionSubtitle,
+                        _framesEnabled
+                            ? l10n.roomSelectionSubtitleFrames
+                            : l10n.roomSelectionSubtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -289,7 +300,7 @@ class RoomSelectionView extends StatelessWidget {
                           // leaves.
                           if (showFrameHint &&
                               rooms.isNotEmpty &&
-                              onEquipRoomFrame != null)
+                              _framesEnabled)
                             Positioned(
                               left: horizontalPadding,
                               right: horizontalPadding,
@@ -477,8 +488,9 @@ class RoomSelectionView extends StatelessWidget {
     final equippedSkusBySlot = roomId == null
         ? const <String, String>{}
         : (roomEquippedSkusBySlot[roomId] ?? const <String, String>{});
-    final skin = RoomFrameSkins.resolve(
+    final skin = RoomFrameSkins.resolveForAppVersion(
       roomId == null ? null : roomFrameStyleByRoom[roomId],
+      appVersion: currentAppVersion,
     );
 
     final caption = _resolveCaption(
@@ -632,7 +644,9 @@ class RoomSelectionView extends StatelessWidget {
     AppLocalizations l10n,
   ) async {
     final equip = onEquipRoomFrame;
-    if (equip == null) {
+    // Below the version gate the long press keeps the meaning it had before
+    // 換相框 existed: the room options sheet, with its leave action.
+    if (equip == null || !_framesEnabled) {
       await _showRoomOptions(context, roomId, displayName, l10n);
       return;
     }

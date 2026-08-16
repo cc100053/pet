@@ -47,6 +47,16 @@ This section is a historical repo hint, not a live-store guarantee.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | iOS | None active | - | `pubspec.yaml` `2.4.0+19` is now the repo current release baseline; bundled What's New + ASC copy cover the four new furniture pieces (Balloons/Cactus/Rug/Vinyl Records) added to the shop, version-gated to `min_app_version=2.4.0` and now `is_active=true` | ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8` is `PREPARE_FOR_SUBMISSION`; build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` (build 19) is `VALID`, App Store eligible, and attached; localization IDs: en-US `1cb2cdfe-83e8-4ca4-82d1-16c3b0b718bb`, ja `97663caa-a14a-45e3-ad59-8ab5e114af24`, ko `76fed5e2-26bd-4cce-875c-cbca91070af7`, zh-Hant `b1aed71b-9ebe-42e6-9420-9c5d963cd0ae` | Monitor review/store outcome; submit for App Review only after an explicit request | branch `main`, pending commit for 2.4.0+19 files | none |
 
+## Feature Version Gates
+
+Client-side gates that hold an implemented feature dark until a given app
+version. Each one must be verified against the released baseline before the
+gate is moved.
+
+| Feature | Gate | Declared in | Server component | Compatibility note | Verified at |
+| --- | --- | --- | --- | --- | --- |
+| 換相框 room-frame casings (picker, equipped casings, coach bubble, subtitle copy) | `min_app_version = 3.0.0` | `RoomFrameSkins.minAppVersion`, read by `RoomSelectionView._framesEnabled` | None — equipped casings live only in Hive `app_settings.room_frame_styles`; no table, column, RPC, or Edge Function | Released builds (≤ `2.4.0+19`, archived 2026-08-13) do not contain the feature at all: every frame commit landed 2026-08-14 or later. No released user can be affected. Below the gate, long press falls back to the room options sheet, cards render `RoomFrameStyle.original`, the one-shot coach flag is never spent, and the subtitle omits the long-press clause. Hive values are read-only below the gate, so a 3.0.0 → 2.4.x rollback shows the original card and restores the casing on re-upgrade | 2026-08-16 |
+
 ## Backend Deployments
 
 | Date | System | Target | Status | Compatibility note | Verification |

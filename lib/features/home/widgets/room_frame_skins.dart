@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/compatibility/shared_decor_compatibility.dart';
 import '../../../shared/theme/app_theme.dart';
 
 /// Equippable casing for a room card on 房間選擇.
@@ -513,6 +514,41 @@ class RoomFrameSkins {
 
   /// A room that has never picked a casing keeps the card it already had.
   static const RoomFrameStyle defaultStyle = RoomFrameStyle.original;
+
+  /// 換相框 ships in 3.0.0. Below it, every surface of the feature is dark:
+  /// long press falls back to the room options sheet, the coach bubble is not
+  /// drawn (so it does not spend its one-shot flag before there is anything to
+  /// teach), and every card renders [defaultStyle] — the pre-redesign card.
+  ///
+  /// The gate reads the running app version rather than a build flag so a
+  /// 2.4.x build cut from this tree cannot expose the feature by accident.
+  static const String minAppVersion = '3.0.0';
+
+  /// Whether this build may show 換相框 at all.
+  ///
+  /// A null [appVersion] reads as unsupported, matching [PetCatalog]: the
+  /// version resolves asynchronously from `PackageInfo`, and a feature that
+  /// flickers on before the gate is known is worse than one that appears a
+  /// frame late.
+  static bool isAvailableOnAppVersion(String? appVersion) {
+    return SharedDecorCompatibility.supportsAppVersion(
+      minAppVersion: minAppVersion,
+      appVersion: appVersion,
+    );
+  }
+
+  /// The casing a room card wears on this build: what the room picked once the
+  /// feature is live, and always the pre-redesign card before that.
+  ///
+  /// Equipped casings survive the gate closed — they live in Hive and are read
+  /// back untouched — so a player who picked one in 3.0.0 and rolled back to
+  /// 2.4.x sees the original card, then their casing again on re-upgrade.
+  static RoomFrameSkin resolveForAppVersion(
+    RoomFrameStyle? style, {
+    required String? appVersion,
+  }) {
+    return resolve(isAvailableOnAppVersion(appVersion) ? style : null);
+  }
 
   static RoomFrameSkin resolve(RoomFrameStyle? style) {
     return byStyle[style ?? defaultStyle] ?? original;

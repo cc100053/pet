@@ -1135,7 +1135,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => '사진 없음';
 
   @override
-  String get roomSelectionSubtitle =>
+  String get roomSelectionSubtitle => '펫 홈을 선택하고 다시 이어서 플레이하세요.';
+
+  @override
+  String get roomSelectionSubtitleFrames =>
       '펫 홈을 선택하고 다시 이어서 플레이하세요. 길게 눌러 프레임을 바꿀 수 있어요.';
 
   @override

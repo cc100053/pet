@@ -1127,7 +1127,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => 'まだ写真なし';
 
   @override
-  String get roomSelectionSubtitle => 'ペットの家を選んで戻りましょう。長押しでフレームを変更できます。';
+  String get roomSelectionSubtitle => 'ペットの家を選んで戻りましょう。';
+
+  @override
+  String get roomSelectionSubtitleFrames => 'ペットの家を選んで戻りましょう。長押しでフレームを変更できます。';
 
   @override
   String get roomSelectionTitle => 'ルーム選択';

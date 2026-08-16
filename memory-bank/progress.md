@@ -32,6 +32,14 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
   in the 換相框 sheet via long-press. `original` is the pre-redesign card and the
   default, so untouched rooms look unchanged. Equipped casing persists per
   device in Hive.
+- 換相框 is version-gated to `RoomFrameSkins.minAppVersion = '3.0.0'`, read
+  through the single `RoomSelectionView._framesEnabled` flag. Below the gate the
+  feature is dark on every surface: long press opens the room options sheet,
+  cards render `original` whatever Hive holds, the coach bubble is not drawn (so
+  its one-shot flag survives to 3.0.0), and the subtitle drops the long-press
+  clause. The gate reads the running app version, not a build flag, so a 2.4.x
+  build cut from this tree cannot leak the feature. Add a What's New entry when
+  the gate opens — the catalog has none for frames.
 - The room-frame unlock ladder is calibrated, not flat: `original` and
   `polaroidClassic` Lv1, `corkboard` Lv3, `goldLeaf` Lv5, `nightGlow` Lv8. Exp
   comes only from rewarded feeds (`+10`, behind the 10-minute cooldown) against

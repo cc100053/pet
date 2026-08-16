@@ -1163,7 +1163,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => 'No photos yet';
 
   @override
-  String get roomSelectionSubtitle =>
+  String get roomSelectionSubtitle => 'Pick a pet home and jump back in.';
+
+  @override
+  String get roomSelectionSubtitleFrames =>
       'Pick a pet home and jump back in. Long-press a card to change its frame.';
 
   @override
