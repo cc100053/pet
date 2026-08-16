@@ -2096,19 +2096,19 @@ abstract class AppLocalizations {
   /// No description provided for @roomSelectionStatusHungry.
   ///
   /// In en, this message translates to:
-  /// **'{name} is getting hungry'**
-  String roomSelectionStatusHungry(Object name);
+  /// **'Hungry'**
+  String get roomSelectionStatusHungry;
 
   /// No description provided for @roomSelectionStatusNewPhoto.
   ///
   /// In en, this message translates to:
-  /// **'A new photo arrived'**
+  /// **'New photo'**
   String get roomSelectionStatusNewPhoto;
 
   /// No description provided for @roomSelectionStatusNoPhoto.
   ///
   /// In en, this message translates to:
-  /// **'No photos yet — send one'**
+  /// **'No photos yet'**
   String get roomSelectionStatusNoPhoto;
 
   /// No description provided for @roomSelectionSubtitle.

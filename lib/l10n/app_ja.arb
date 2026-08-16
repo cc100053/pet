@@ -593,14 +593,9 @@
   "roomSelectionEnterInvite": "招待コードを入力",
   "roomSelectionJoining": "参加中...",
   "roomSelectionRoomFallback": "ルーム",
-  "roomSelectionStatusHungry": "{name}がおなかをすかせています",
-  "@roomSelectionStatusHungry": {
-    "placeholders": {
-      "name": {}
-    }
-  },
-  "roomSelectionStatusNewPhoto": "新しい写真が届きました",
-  "roomSelectionStatusNoPhoto": "まだ写真がありません",
+  "roomSelectionStatusHungry": "おなかすいた",
+  "roomSelectionStatusNewPhoto": "新しい写真",
+  "roomSelectionStatusNoPhoto": "まだ写真なし",
   "roomSelectionSubtitle": "ペットの家を選んで戻りましょう。長押しでフレームを変更できます。",
   "roomSelectionTitle": "ルーム選択",
   "roomFrameSheetTitle": "フレーム変更",

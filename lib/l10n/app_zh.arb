@@ -580,14 +580,9 @@
   "roomSelectionEnterInvite": "输入邀请碼",
   "roomSelectionJoining": "加入中...",
   "roomSelectionRoomFallback": "房间",
-  "roomSelectionStatusHungry": "{name} 肚子饿了",
-  "@roomSelectionStatusHungry": {
-    "placeholders": {
-      "name": {}
-    }
-  },
-  "roomSelectionStatusNewPhoto": "有新的照片",
-  "roomSelectionStatusNoPhoto": "还没有照片，去拍一张",
+  "roomSelectionStatusHungry": "肚子饿了",
+  "roomSelectionStatusNewPhoto": "新照片",
+  "roomSelectionStatusNoPhoto": "还没有照片",
   "roomSelectionSubtitle": "选择宠物的家并继续。长按可换相框。",
   "roomSelectionTitle": "房间选择",
   "roomFrameSheetTitle": "换相框",

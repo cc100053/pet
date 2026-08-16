@@ -1126,15 +1126,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get roomSelectionRoomFallback => '방';
 
   @override
-  String roomSelectionStatusHungry(Object name) {
-    return '$name이(가) 배고파해요';
-  }
+  String get roomSelectionStatusHungry => '배고파요';
 
   @override
-  String get roomSelectionStatusNewPhoto => '새 사진이 도착했어요';
+  String get roomSelectionStatusNewPhoto => '새 사진';
 
   @override
-  String get roomSelectionStatusNoPhoto => '아직 사진이 없어요';
+  String get roomSelectionStatusNoPhoto => '사진 없음';
 
   @override
   String get roomSelectionSubtitle =>

@@ -486,7 +486,6 @@ class RoomSelectionView extends StatelessWidget {
       latestCaption: latestCaption,
       hasPhoto: latestPhoto != null && latestPhoto.isNotEmpty,
       hungerValue: hungerValue,
-      displayName: displayName,
     );
 
     final frame = RoomFrameCard(
@@ -557,14 +556,15 @@ class RoomSelectionView extends StatelessWidget {
     required String latestCaption,
     required bool hasPhoto,
     required double hungerValue,
-    required String displayName,
   }) {
     if (latestCaption.isNotEmpty) {
       return _RoomCaption(latestCaption, RoomFrameCaptionKind.message, null);
     }
     if (hungerValue.isFinite && hungerValue < _hungryCaptionThreshold) {
       return _RoomCaption(
-        l10n.roomSelectionStatusHungry(displayName),
+        // The pet's name is printed directly above this line, so the status
+        // does not spend its lane repeating it.
+        l10n.roomSelectionStatusHungry,
         RoomFrameCaptionKind.status,
         Icons.restaurant_rounded,
       );
@@ -653,7 +653,6 @@ class RoomSelectionView extends StatelessWidget {
       latestCaption: ((room['latest_caption'] as String?) ?? '').trim(),
       hasPhoto: latestPhoto.isNotEmpty,
       hungerValue: hungerValue,
-      displayName: displayName,
     );
     await showRoomFramePickerSheet(
       context: context,

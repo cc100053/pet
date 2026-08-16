@@ -1114,15 +1114,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomSelectionRoomFallback => '房间';
 
   @override
-  String roomSelectionStatusHungry(Object name) {
-    return '$name 肚子饿了';
-  }
+  String get roomSelectionStatusHungry => '肚子饿了';
 
   @override
-  String get roomSelectionStatusNewPhoto => '有新的照片';
+  String get roomSelectionStatusNewPhoto => '新照片';
 
   @override
-  String get roomSelectionStatusNoPhoto => '还没有照片，去拍一张';
+  String get roomSelectionStatusNoPhoto => '还没有照片';
 
   @override
   String get roomSelectionSubtitle => '选择宠物的家并继续。长按可换相框。';
@@ -3258,15 +3256,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomSelectionRoomFallback => '房間';
 
   @override
-  String roomSelectionStatusHungry(Object name) {
-    return '$name 肚子餓了';
-  }
+  String get roomSelectionStatusHungry => '肚子餓了';
 
   @override
-  String get roomSelectionStatusNewPhoto => '有新的相片';
+  String get roomSelectionStatusNewPhoto => '新相片';
 
   @override
-  String get roomSelectionStatusNoPhoto => '還沒有相片，去拍一張';
+  String get roomSelectionStatusNoPhoto => '還沒有相片';
 
   @override
   String get roomSelectionSubtitle => '選擇寵物的家並繼續。長按可換相框。';

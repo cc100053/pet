@@ -591,14 +591,9 @@
   "roomSelectionEnterInvite": "초대 코드 입력",
   "roomSelectionJoining": "참가 중...",
   "roomSelectionRoomFallback": "방",
-  "roomSelectionStatusHungry": "{name}이(가) 배고파해요",
-  "@roomSelectionStatusHungry": {
-    "placeholders": {
-      "name": {}
-    }
-  },
-  "roomSelectionStatusNewPhoto": "새 사진이 도착했어요",
-  "roomSelectionStatusNoPhoto": "아직 사진이 없어요",
+  "roomSelectionStatusHungry": "배고파요",
+  "roomSelectionStatusNewPhoto": "새 사진",
+  "roomSelectionStatusNoPhoto": "사진 없음",
   "roomSelectionSubtitle": "펫 홈을 선택하고 다시 이어서 플레이하세요. 길게 눌러 프레임을 바꿀 수 있어요.",
   "roomSelectionTitle": "방 선택",
   "roomFrameSheetTitle": "프레임 변경",

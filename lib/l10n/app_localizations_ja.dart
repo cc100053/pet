@@ -1118,15 +1118,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get roomSelectionRoomFallback => 'ルーム';
 
   @override
-  String roomSelectionStatusHungry(Object name) {
-    return '$nameがおなかをすかせています';
-  }
+  String get roomSelectionStatusHungry => 'おなかすいた';
 
   @override
-  String get roomSelectionStatusNewPhoto => '新しい写真が届きました';
+  String get roomSelectionStatusNewPhoto => '新しい写真';
 
   @override
-  String get roomSelectionStatusNoPhoto => 'まだ写真がありません';
+  String get roomSelectionStatusNoPhoto => 'まだ写真なし';
 
   @override
   String get roomSelectionSubtitle => 'ペットの家を選んで戻りましょう。長押しでフレームを変更できます。';

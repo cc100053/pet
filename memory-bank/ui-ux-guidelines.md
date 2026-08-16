@@ -41,6 +41,11 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260704_pre_compaction.md`.
 - The mat's horizontal inset derives from `skin.photoInset`, not `matPadding`,
   so the name lands on the photo's left edge in every casing. Retune photo
   insets freely; the mat follows.
+- Status captions are badges, not sentences: no verb where a noun will do, and
+  never a word the card already shows. `roomSelectionStatusHungry` carries no
+  `{name}` because the name is printed directly above it. Budget is ~5 CJK
+  characters or ~14 Latin ones — past that the lane ellipsises and the status
+  reads as truncated chatter next to a real human caption.
 - The caption line is never blank and never conditional: blank reads as a hole,
   conditional makes cards in one grid different heights. It falls back through
   photo caption → hungry → new photo → no photo yet, and a status line is styled
