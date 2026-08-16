@@ -281,8 +281,12 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
         // Reused as-is from the Home status bar — never re-drawn here. The pill
         // lays out its columns with flex, so it needs a bounded width; share the
         // header rather than pinning a width that large balances would overflow.
+        //
+        // 4 of 7 rather than 6 of 9: the balances are reference material on this
+        // sheet, not its subject. The title takes the slack, which leaves the
+        // pill sitting tight against the leave button on the right.
         Expanded(
-          flex: 6,
+          flex: 4,
           child: HomeCurrencyPill(
             coins: widget.coins,
             diamonds: widget.diamonds,

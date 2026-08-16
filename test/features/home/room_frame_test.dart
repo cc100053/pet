@@ -62,6 +62,8 @@ void main() {
     int? petLevel = 8,
     bool showFrameHint = false,
     VoidCallback? onFrameHintSeen,
+    int coins = 0,
+    int diamonds = 0,
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -91,6 +93,8 @@ void main() {
           selectedRoomId: 'room-1',
           showFrameHint: showFrameHint,
           onFrameHintSeen: onFrameHintSeen,
+          coins: coins,
+          diamonds: diamonds,
         ),
       ),
     );
@@ -183,6 +187,28 @@ void main() {
     await settle(tester);
 
     expect(equipped, [RoomFrameStyle.original]);
+  });
+
+  testWidgets('the sheet header fits the widest balances it can show', (
+    tester,
+  ) async {
+    usePhoneViewport(tester);
+    await tester.pumpWidget(
+      buildView(
+        onEquipRoomFrame: (_, _) async {},
+        coins: 999999,
+        diamonds: 999999,
+      ),
+    );
+
+    await tester.longPress(find.byType(RoomFrameCard));
+    await settle(tester);
+
+    // The pill shares the header by flex rather than a pinned width, so the
+    // guard against squeezing it too far is that six-figure balances still lay
+    // out: an overflow here fails the test.
+    expect(find.text('999999'), findsNWidgets(2));
+    expect(find.text('Change Frame'), findsOneWidget);
   });
 
   group('long-press hint', () {

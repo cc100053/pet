@@ -245,24 +245,32 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                           Expanded(
                             flex: 4,
                             child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset(
-                                    'assets/shop/icon/diamond.png',
-                                    width: iconSize,
-                                    height: iconSize,
-                                  ),
-                                  Gap(4 * scale),
-                                  Text(
-                                    '${widget.diamonds}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13 * scale,
-                                      height: 1,
+                              // A six-figure balance is wider than the column
+                              // it is given on narrow headers. Shrink the pair
+                              // to fit rather than overflow it — the icon and
+                              // the number must scale together or they stop
+                              // reading as one unit.
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.asset(
+                                      'assets/shop/icon/diamond.png',
+                                      width: iconSize,
+                                      height: iconSize,
                                     ),
-                                  ),
-                                ],
+                                    Gap(4 * scale),
+                                    Text(
+                                      '${widget.diamonds}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 13 * scale,
+                                        height: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -280,27 +288,32 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                                   return Stack(
                                     clipBehavior: Clip.none,
                                     children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Transform.scale(
-                                            scale: _bounceAnimation.value,
-                                            child: Image.asset(
-                                              'assets/shop/icon/candy.png',
-                                              width: iconSize,
-                                              height: iconSize,
+                                      // Shrinks to fit for the same reason as
+                                      // the diamond column above.
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Transform.scale(
+                                              scale: _bounceAnimation.value,
+                                              child: Image.asset(
+                                                'assets/shop/icon/candy.png',
+                                                width: iconSize,
+                                                height: iconSize,
+                                              ),
                                             ),
-                                          ),
-                                          Gap(4 * scale),
-                                          Text(
-                                            '${widget.coins}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 13 * scale,
-                                              height: 1,
+                                            Gap(4 * scale),
+                                            Text(
+                                              '${widget.coins}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 13 * scale,
+                                                height: 1,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                       if (_displayReward != null)
                                         Positioned(
