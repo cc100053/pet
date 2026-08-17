@@ -27,7 +27,7 @@ this is unrecoverable after the fact. Record every release here.
 
 | Version | Build | dSYMs uploaded | Archive preserved | Note |
 | --- | --- | --- | --- | --- |
-| 3.0.0 | 20 | Not confirmed — the release ran `flutter build ipa` + `asc builds upload` without the dSYM step | `build/ios/archive/Runner.xcarchive` still present as of 2026-08-17, not yet copied to `Archives/shipped` | Recoverable **only until the next `flutter build ipa`**. Run `ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive`. Runner UUID `A42B22FA-F8DA-3002-B633-249266FD2393`, App.framework `0C7143A3-1916-07E9-485E-50E6CB22EBD2` |
+| 3.0.0 | 20 | Yes — 2026-08-17, all 12 dSYMs, retroactively | `~/Library/Developer/Xcode/Archives/shipped/Runner 3.0.0 (20).xcarchive` (327 MB) | The release itself ran `flutter build ipa` + `asc builds upload` without the dSYM step; rescued from the surviving `build/ios/archive/Runner.xcarchive` before the next build could destroy it. Runner UUID `A42B22FA-F8DA-3002-B633-249266FD2393`, App.framework `0C7143A3-1916-07E9-485E-50E6CB22EBD2`. `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 2.4.0 | 19 | No | No | Lost. Crashlytics reported a missing dSYM on 2026-08-17; the archive had already been overwritten by the 3.0.0+20 build on 2026-08-16 and no copy exists under `Archives/shipped`. Crashes for this build can never be symbolicated |
 | 2.3.4 | 17, 18 | Not confirmed | No | Same gap as 19; no archive survives |
 | 2.3.3 | 16 | Yes | `~/Library/Developer/Xcode/Archives/shipped/Runner 2.3.3 (16).xcarchive` | The only build exported through `scripts/export_ios_appstore_no_apple_symbols.sh` |
