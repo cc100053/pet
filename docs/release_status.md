@@ -19,6 +19,30 @@ Verify live store state before relying on these values for release decisions.
 | iOS | 3.0.0 | 20 | Repo workflow assumes current; ASC version `9c8da611-140f-42aa-be58-e3b019978793` is `PREPARE_FOR_SUBMISSION`, build `2fec6cc5-c143-42a4-97b6-aed587726311` is `VALID` and attached; localizations synced (en-US `eeb71b4a-4b54-4676-9e81-67d5f826d547`, ja `3a6c687f-2d56-4e3e-8382-1444142bf1f1`, ko `c17e6b1c-2b1e-4b0f-afa4-933b350dce97`, zh-Hant `126d741c-1838-4430-acd8-d820bbfea767`); not submitted for App Review | 2026-08-16 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the new customizable room-frame feature | ios/v3.0.0+20 |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
+## Crashlytics dSYM Status Per Build
+
+A build whose dSYMs never reached Crashlytics receives crashes it can never
+symbolicate, and the archive is destroyed by the next `flutter build ipa`, so
+this is unrecoverable after the fact. Record every release here.
+
+| Version | Build | dSYMs uploaded | Archive preserved | Note |
+| --- | --- | --- | --- | --- |
+| 3.0.0 | 20 | Not confirmed — the release ran `flutter build ipa` + `asc builds upload` without the dSYM step | `build/ios/archive/Runner.xcarchive` still present as of 2026-08-17, not yet copied to `Archives/shipped` | Recoverable **only until the next `flutter build ipa`**. Run `ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive`. Runner UUID `A42B22FA-F8DA-3002-B633-249266FD2393`, App.framework `0C7143A3-1916-07E9-485E-50E6CB22EBD2` |
+| 2.4.0 | 19 | No | No | Lost. Crashlytics reported a missing dSYM on 2026-08-17; the archive had already been overwritten by the 3.0.0+20 build on 2026-08-16 and no copy exists under `Archives/shipped`. Crashes for this build can never be symbolicated |
+| 2.3.4 | 17, 18 | Not confirmed | No | Same gap as 19; no archive survives |
+| 2.3.3 | 16 | Yes | `~/Library/Developer/Xcode/Archives/shipped/Runner 2.3.3 (16).xcarchive` | The only build exported through `scripts/export_ios_appstore_no_apple_symbols.sh` |
+| 2.3.1, 2.3.2 | 14, 15 | No | No | Lost to the build-phase ordering bug fixed in `053b407` |
+
+Root cause of the 17–20 gap: the 2026-08-08 fix (`053b407`) put the
+authoritative upload in `scripts/export_ios_appstore_no_apple_symbols.sh`, but
+releases are actually driven by `.codex/skills/release-notes-sync`, whose
+Phase 1 step 5 built with `flutter build ipa` and shipped with
+`asc builds upload` — never touching the export script. Closed 2026-08-17 by
+adding the step to the skill and to `AGENTS.md`, moving archive preservation
+into `ios/scripts/upload_archive_dsyms.sh` so both paths get it from one
+command, and making the in-build fallback phase warn/fail instead of exiting
+silently.
+
 ## Last Repo-Known Public Release
 
 This section is a historical repo hint, not a live-store guarantee.

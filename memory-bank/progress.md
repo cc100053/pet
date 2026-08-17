@@ -19,8 +19,13 @@ latest: `memory-bank/archive/progress_20260811_pre_compaction.md`.
 - The foreground OOM root cause was undisposed `ImageInfo` listener clones.
   All known aspect-ratio listeners now dispose them; iOS memory warnings also
   release cache/live images and trim thresholds track configured caps.
-- iOS release exports preserve the archive and upload every archive dSYM to
-  Crashlytics; the archive path is authoritative for symbolication.
+- `ios/scripts/upload_archive_dsyms.sh` uploads every archive dSYM to
+  Crashlytics, preserves the archive under `Archives/shipped`, and prints the
+  UUIDs; the archive path is authoritative for symbolication. Both release
+  paths call it — the export script and, since 2026-08-17, the
+  `flutter build ipa` + `asc builds upload` path that `release-notes-sync`
+  actually drives. Omitting it from that skill is why 2.4.0 (19) shipped
+  unsymbolicatable despite the 2026-08-08 build-phase fix.
 - No public function scans `pg_timezone_names`; timezone-aware RPCs use
   `public.normalize_timezone(text)`.
 - Failed pet-state refreshes keep the last successful visible snapshot.

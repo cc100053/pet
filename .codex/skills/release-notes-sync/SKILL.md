@@ -58,7 +58,7 @@ Keep bundled `What's New` copy and App Store Connect `whatsNew` / `promotionalTe
 When the user provides a version and a summary (e.g., in Cantonese like "v1.0.5 呢個更新主要係一個安全性更新..."):
 1. **Translate & Draft:** Generate localized drafts for all supported locales (`en-US`, `ja`, `ko`, `zh-Hant`).
 2. **Review Formatting:** Ensure the ASC `whatsNew` follows the "Ver X.X.X Update Details" header format used in this repo.
-3. **Present for Approval:** Display the drafts clearly. **Explain that approving these drafts (e.g., "proceed", "OK") will trigger the full release-notes flow: local file updates, App Store Connect metadata sync, App Store IPA build, IPA upload, build processing wait/check, and build attachment. App Store Review submission still requires an explicit submission request.**
+3. **Present for Approval:** Display the drafts clearly. **Explain that approving these drafts (e.g., "proceed", "OK") will trigger the full release-notes flow: local file updates, App Store Connect metadata sync, App Store IPA build, Crashlytics dSYM upload plus archive preservation, IPA upload, build processing wait/check, and build attachment. App Store Review submission still requires an explicit submission request.**
 
 ### Phase 1: Execution (After Approval)
 Once the user approves the drafts, perform the following steps autonomously:
@@ -103,6 +103,19 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Verify the packaged IPA before upload: `CFBundleShortVersionString`,
      `CFBundleVersion`, `UIDeviceFamily`, `UISupportedInterfaceOrientations`, and
      `UIRequiresFullScreen`.
+   - **Mandatory before anything else touches `build/ios/archive`:** upload the
+     archive's dSYMs to Crashlytics and preserve the archive.
+     ```bash
+     ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive
+     ```
+     The next `flutter build ipa` overwrites `build/ios/archive/Runner.xcarchive`
+     and App Store Connect never holds a usable copy, so skipping this loses the
+     symbols permanently — crashes for that build arrive at Crashlytics but can
+     never be symbolicated. 2.3.1 (14), 2.3.2 (15) and 2.4.0 (19) were all lost
+     this way. Treat a non-zero exit as a release blocker, not a warning; the
+     command also copies the archive to
+     `~/Library/Developer/Xcode/Archives/shipped/Runner <VERSION> (<BUILD>).xcarchive`
+     and prints the uploaded UUIDs. Record those UUIDs for step 7.
    - Creating an archive/IPA is not enough. Upload the IPA with
      `asc builds upload --app 6757725650 --ipa <IPA_PATH>`.
    - After upload, wait for App Store Connect processing with a 10-minute
@@ -127,17 +140,27 @@ Once the user approves the drafts, perform the following steps autonomously:
    - Run `flutter gen-l10n`, `flutter analyze`, and `flutter test`.
    - Confirm `test/app_store_metadata_terms_test.dart` passes before ASC upload.
    - Confirm the ASC update via `asc localizations list`.
+   - Confirm the preserved archive exists at
+     `~/Library/Developer/Xcode/Archives/shipped/Runner <VERSION> (<BUILD>).xcarchive`.
+     Its absence means the dSYM step never ran.
+   - `[USER ACTION REQUIRED]` Check Crashlytics → Settings → Missing dSYMs and
+     confirm none of the UUIDs printed in step 5 is listed. This is the only
+     check that catches a failed upload; do not report the release as complete
+     without it.
 7. **Release Ledger Completion Rule:**
    - After the whole approved release-notes-sync flow is complete for a target
-     version (local metadata, ASC localization sync, archive/upload, build
-     processing verification, build attachment, and any requested submission
-     steps), update `docs/release_status.md`,
+     version (local metadata, ASC localization sync, archive/upload, dSYM upload
+     and archive preservation, build processing verification, build attachment,
+     and any requested submission steps), update `docs/release_status.md`,
      `memory-bank/progress.md`, and `tasks/todo.md` as if that target version is
      the live public version for repo workflow purposes.
    - Move the target version into the Current Public Release / current-state
      wording, move the previous current version into historical context if
      needed, and make the next action "monitor review/store outcome" only as an
      operational note.
+   - Record the dSYM outcome in `docs/release_status.md`: the preserved archive
+     path, the uploaded `Runner`/`App.framework` UUIDs, and the result of the
+     Missing dSYMs check. A release row without this is not complete.
    - Do not leave the completed target version tracked as merely "next release
      candidate" solely because App Store Connect still says
      `WAITING_FOR_REVIEW`, `PENDING_DEVELOPER_RELEASE`, or another post-submit

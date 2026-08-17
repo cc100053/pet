@@ -1,13 +1,20 @@
 #!/bin/sh
 set -eu
 
-# Uploads every dSYM in an .xcarchive to Crashlytics.
+# Preserves an .xcarchive and uploads every dSYM in it to Crashlytics.
 #
 # The in-Xcode "Upload Crashlytics dSYMs" build phase is best-effort: it runs
 # inside the build graph and can only see what has been written so far. The
 # archive, by contrast, is complete by definition — Xcode copies every dSYM
 # into it before the archive action finishes. Uploading from here is therefore
 # the authoritative path, and the build phase is the convenience fallback.
+#
+# Preserving happens here rather than in the export script because
+# `build/ios/archive/Runner.xcarchive` is overwritten by the next
+# `flutter build ipa`, and App Store Connect never holds a usable copy of the
+# dSYMs. Whichever release path is taken, running this one command is what
+# stands between a shipped build and crash reports that can never be
+# symbolicated — so both paths call it, and it never silently does nothing.
 
 usage() {
   echo "Usage: $0 <path-to-archive.xcarchive>" >&2
@@ -65,8 +72,34 @@ if [ -z "${UPLOAD_SCRIPT}" ]; then
   exit 69
 fi
 
+ARCHIVE_VERSION=$(plutil -extract ApplicationProperties.CFBundleShortVersionString raw "${ARCHIVE_PATH}/Info.plist" 2>/dev/null || echo unknown)
+ARCHIVE_BUILD=$(plutil -extract ApplicationProperties.CFBundleVersion raw "${ARCHIVE_PATH}/Info.plist" 2>/dev/null || echo unknown)
+
 echo "Uploading dSYMs to Crashlytics:"
 echo "  archive: ${ARCHIVE_PATH}"
+echo "  version: ${ARCHIVE_VERSION} (${ARCHIVE_BUILD})"
 echo "  tool:    ${UPLOAD_SCRIPT}"
 
 "${UPLOAD_SCRIPT}" -gsp "${GOOGLE_SERVICE_INFO}" -p ios "${DSYM_DIR}"
+
+# Preserve after a successful upload, so the copy that survives is one whose
+# symbols are known to have reached Crashlytics.
+ARCHIVE_STORE="${HOME}/Library/Developer/Xcode/Archives/shipped"
+PRESERVED="${ARCHIVE_STORE}/Runner ${ARCHIVE_VERSION} (${ARCHIVE_BUILD}).xcarchive"
+
+if [ "$(CDPATH= cd -- "${ARCHIVE_PATH}" && pwd)" != "$(CDPATH= cd -- "${PRESERVED}" 2>/dev/null && pwd || echo '')" ]; then
+  mkdir -p "${ARCHIVE_STORE}"
+  rm -rf "${PRESERVED}"
+  cp -R "${ARCHIVE_PATH}" "${PRESERVED}"
+  echo "Preserved archive: ${PRESERVED}"
+fi
+
+# Print the UUIDs so the release ledger can record them and Crashlytics →
+# Settings → Missing dSYMs can be checked against something concrete.
+echo ""
+echo "Uploaded UUIDs for ${ARCHIVE_VERSION} (${ARCHIVE_BUILD}) — none of these"
+echo "may appear in Crashlytics → Settings → Missing dSYMs:"
+find "${DSYM_DIR}" -maxdepth 1 -name "*.dSYM" -type d -print | sort | while IFS= read -r dsym
+do
+  dwarfdump --uuid "${dsym}" | sed "s|^|  |"
+done

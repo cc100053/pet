@@ -37,14 +37,29 @@ Optional output directory:
 scripts/export_ios_appstore_no_apple_symbols.sh "/path/to/Runner.xcarchive" "/tmp/PetTomoExport"
 ```
 
-After exporting, the script also:
+After exporting, the script calls `ios/scripts/upload_archive_dsyms.sh`, which
+uploads every dSYM in the archive to Crashlytics, then copies the archive to
+`~/Library/Developer/Xcode/Archives/shipped/Runner <version> (<build>).xcarchive`
+because `build/ios/archive/Runner.xcarchive` is overwritten by the next
+`flutter build ipa`, and prints the uploaded UUIDs.
 
-1. Copies the archive to
-   `~/Library/Developer/Xcode/Archives/shipped/Runner <version> (<build>).xcarchive`,
-   because `build/ios/archive/Runner.xcarchive` is overwritten by the next
-   `flutter build ipa`.
-2. Uploads every dSYM in the archive to Crashlytics via
-   `ios/scripts/upload_archive_dsyms.sh`.
+### The other release path
+
+The `release-notes-sync` skill and the `AGENTS.md` App Store Connect recipe do
+**not** use this export script: they build with `flutter build ipa` and ship the
+resulting IPA with `asc builds upload`. That path produces the same archive at
+`build/ios/archive/Runner.xcarchive`, so it must run the dSYM command itself,
+immediately after the build:
+
+```sh
+ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive
+```
+
+This is why preservation lives in `upload_archive_dsyms.sh` rather than in the
+export script — both paths get it from one command. Builds 17, 18, 19 and 20
+took the `flutter build ipa` path while the step existed only in the export
+script, which is how 2.4.0 (19) shipped with a missing dSYM after the 2.3.x
+fix.
 
 ## dSYMs And Crashlytics
 
@@ -55,9 +70,14 @@ Two things upload symbols, and only the second is reliable:
   input so it is ordered after `dsymutil` produces `Runner.app.dSYM`. Without
   that input Xcode ran the phase first, and every release shipped with the app
   binary's own dSYM missing while the framework dSYMs uploaded fine — which is
-  what blocked 2.3.1 (14) and 2.3.2 (15) from ever being symbolicated.
-- The **archive upload** run by the export script. The archive is complete by
-  definition, so this is the authoritative path.
+  what blocked 2.3.1 (14) and 2.3.2 (15) from ever being symbolicated. It is a
+  convenience fallback: it can only see what the build graph has written so far,
+  and it is skippable by design. Every skip now prints an Xcode `warning:` and a
+  genuine upload failure fails the build, because the earlier silent `exit 0`
+  left no evidence in the build log.
+- The **archive upload** run by `ios/scripts/upload_archive_dsyms.sh`. The
+  archive is complete by definition, so this is the authoritative path — and it
+  is the one every release path must run explicitly.
 
 A missing dSYM does not stop Crashlytics from *receiving* a crash, but it does
 stop it from being processed and displayed. The Crashlytics "Missing dSYM" table
@@ -74,9 +94,15 @@ ios/scripts/upload_archive_dsyms.sh "/path/to/Runner.xcarchive"
 After upload, wait for App Store Connect processing and confirm the build is
 `VALID` with no missing-symbol warning.
 
-Then check Crashlytics → Settings → Missing dSYMs and confirm the new build's
-`Runner` UUID is not listed. Compare against the archive with:
+Then check Crashlytics → Settings → Missing dSYMs and confirm none of the UUIDs
+printed by `upload_archive_dsyms.sh` is listed. This check is the only thing
+that catches a failed upload while the archive still exists, so run it before
+the next `flutter build ipa` destroys it. To re-derive the UUIDs from a
+preserved archive:
 
 ```sh
 dwarfdump --uuid "/path/to/Runner.xcarchive/dSYMs/Runner.app.dSYM"
 ```
+
+Absence of `~/Library/Developer/Xcode/Archives/shipped/Runner <version> (<build>).xcarchive`
+is itself the signal that the dSYM step never ran for that build.

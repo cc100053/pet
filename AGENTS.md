@@ -175,6 +175,14 @@ This file is for agentic coding agents working in this repo.
   `asc builds uploads list --app 6757725650 --output table`
 - Build a release IPA with explicit versioning:
   `flutter build ipa --release --build-name=<VERSION> --build-number=<BUILD>`
+- Immediately after the build, before anything else touches `build/ios/archive`,
+  run `ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive`.
+  It uploads the dSYMs to Crashlytics, preserves the archive under
+  `Archives/shipped`, and prints the UUIDs. The next `flutter build ipa` destroys
+  the archive and App Store Connect never holds a usable copy, so skipping this
+  makes that build's crashes permanently unsymbolicatable. Non-zero exit is a
+  release blocker. After the release, confirm none of the printed UUIDs appears
+  in Crashlytics → Settings → Missing dSYMs `[USER ACTION REQUIRED]`.
 - After the build is `VALID`, attach it with
   `asc versions attach-build --version-id <VERSION_ID> --build <BUILD_ID>`;
   do not submit for App Review without an explicit submission request.
