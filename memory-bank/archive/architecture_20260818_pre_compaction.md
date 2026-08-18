@@ -2,7 +2,7 @@
 
 Compact current-state map for mandatory reads. Full snapshots live in
 `memory-bank/archive/`; latest:
-`memory-bank/archive/architecture_20260818_pre_compaction.md`.
+`memory-bank/archive/architecture_20260811_pre_compaction.md`.
 
 ## Sources Of Truth
 - Runtime/tests: `lib/`, `test/`
@@ -20,9 +20,9 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - Large Home/Chat/Shop views use core files plus `part` extensions. Extensions
   call State wrappers instead of protected `setState`, qualify static members,
   and use `part of '../<core>.dart';` from subdirectories. Moving symbols can
-  require source-introspection test updates. Those tests can be formatting
-  sensitive; format only touched files and follow the final check order in
-  `AGENTS.md` / `docs/testing.md`.
+  require source-introspection test updates. Those tests match on source text,
+  so reformatting can break them too; `lib/` and `test/` are formatter-canonical
+  and `dart format` must be run before analyze and test to keep it that way.
 - `ProfileBootstrapService` owns profile bootstrap.
 - Shared backgrounds, furniture, and pets require version-gated visibility,
   old-client render fallback, and the compatibility prompt.

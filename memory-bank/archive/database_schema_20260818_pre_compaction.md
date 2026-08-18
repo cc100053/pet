@@ -1,7 +1,7 @@
 # Database Schema
 
 Compact current-state watchlist. Full snapshots live in `memory-bank/archive/`;
-latest: `memory-bank/archive/database_schema_20260818_pre_compaction.md`.
+latest: `memory-bank/archive/database_schema_20260811_pre_compaction.md`.
 Target Supabase project: `ilxzpszgirhwxpeocygs`.
 
 Before a DB claim/change, verify the target and inspect the latest applied
@@ -54,11 +54,15 @@ migration that rewrites the object.
   token-knowledge-based reassignment becomes an abuse vector.
 - Pet names validate through `public.validate_pet_name(text)`, whose limit comes
   from `public.pet_name_max_length()` (12). Both `update_pet_name(...)` and
-  `set_initial_pet_name(...)` call it; do not re-spell the rule in callers.
-  Initial naming avoids the rename system event and same-name retries are
-  no-ops. The app uses these RPCs, but the existing `pets` UPDATE policy is not
-  a hard DB boundary; a CHECK remains blocked by one legacy over-limit row.
-  Older clients may surface `name_too_long`.
+  `set_initial_pet_name(...)` call it; do not re-spell the rule in a caller.
+  `set_initial_pet_name` exists because `update_pet_name` posts a "renamed"
+  system message, and only accepts pets that have no name yet, so it cannot be
+  used as a rename that skips that message. Resending the same name is a no-op.
+  Caveat: `pets`' UPDATE policy still lets any room member write the column
+  directly, so these RPCs are the app's path, not a hard boundary — a CHECK
+  constraint would close it but would reject every future update to the one row
+  already over the limit. Old clients cap renames at 20 or not at all, so they
+  now see `name_too_long`.
 
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use

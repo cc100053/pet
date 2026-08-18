@@ -32,6 +32,9 @@ This file is for agentic coding agents working in this repo.
   - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
   - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
   - Pet socket calibration / Godot exports: `.codex/skills/pet-socket-calibration/SKILL.md`
+    - TODO: This skill's helper commands currently use bare `scripts/...`
+      paths; from the repo root, prefix them with
+      `.codex/skills/pet-socket-calibration/` until the skill is corrected.
   - UI/UX implementation or review: `.codex/skills/ui-ux-pro-max/SKILL.md`
     - TODO: This local skill's copied examples still mention `.claude/skills/...`;
       use `.codex/skills/ui-ux-pro-max/scripts/search.py` for this repo unless
@@ -127,9 +130,11 @@ This file is for agentic coding agents working in this repo.
 - Analyzer (required before shipping): `flutter analyze`
 
 ### Format
-- Format whole repo: `dart format .`
-- Format a folder: `dart format lib test`
-- Format a single file: `dart format lib/path/to/file.dart`
+- During feature work, format only files you touched:
+  `dart format lib/path/to/file.dart test/path/to/test.dart`.
+- Do not run a writing whole-repo format merely to tidy a feature; it can
+  rewrite unrelated files and source-text assertions. The final required
+  whole-tree check is the non-writing command in "Core workflow" above.
 
 ### Tests
 - Run all tests: `flutter test`
