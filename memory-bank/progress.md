@@ -48,6 +48,9 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 - Submit iOS `3.0.0+20` for App Review only after an explicit request, and
   confirm build 20's UUIDs are absent from Crashlytics Missing dSYMs
   `[USER ACTION REQUIRED]`.
+- The room-decor transient-failure fix is on `main` but unreleased; it is
+  client-only, so it needs a build. Crashlytics issue
+  `0183b64515477452f62329d7d3a83a4f` stays OPEN until that ships.
 - Convert remaining source-text app tests to behavioral tests where practical;
   SQL migration text tests remain legitimate.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.
