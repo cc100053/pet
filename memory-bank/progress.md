@@ -23,7 +23,10 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   archive; see `docs/ios_app_store_export.md`.
 - Timezone-aware RPCs use `public.normalize_timezone(text)`; no public
   function scans `pg_timezone_names`.
-- Failed pet-state refreshes keep the last successful visible snapshot.
+- Failed pet-state and room-background refreshes keep the last successful
+  visible snapshot; both decor loaders are re-run by realtime callbacks, so
+  they report through `reportSwallowedError` unless the room has no loaded
+  decor to show.
 - Room-photo cleanup remains human-reviewed/fail-closed; GEOFlow/hosting lives
   in `/Users/fatboy/geo-marketing`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.

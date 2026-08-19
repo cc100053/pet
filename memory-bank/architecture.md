@@ -37,8 +37,10 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - Feed uploads are queue-owned. `feed_validate` returns authoritative satiety;
   Home applies it through `last_decay_at` freshness and Chat reconciles
   optimistic rows locally.
-- Chat/Home paint cached state first and revalidate. Failed room or pet-state
-  refreshes keep the last successful visible snapshot and report silently.
+- Chat/Home paint cached state first and revalidate. Failed room, pet-state, or
+  room-decor refreshes keep the last successful visible snapshot and report
+  silently; they surface an error only when nothing is on screen to fall back
+  to, and a good load clears any banner a previous failure left.
 - Never scan `pg_timezone_names` in an RPC; validate through
   `public.normalize_timezone(text)` or `at time zone` with `22023` fallback.
 - `userFacingError(...)` localizes, classifies, deduplicates, and reports handled

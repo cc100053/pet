@@ -446,11 +446,27 @@ extension _HomeRoomDecor on _HomeViewState {
       _setStateForRoomDecor(() {
         _ownedBackgroundsByRoom[roomId] = items;
         _unsupportedBackgroundItemIdsByRoom[roomId] = unsupportedIds;
+        // Data on screen and a failure banner beside it is a contradiction;
+        // a good load retires the message from whichever load last failed.
+        _backgroundError = null;
       });
       _syncCachedBackgroundKey(roomId);
       unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) {
+        return;
+      }
+      // The realtime callbacks re-run this on every change, so most calls are
+      // revalidations of decor the user can already see. Painting a transient
+      // network failure over a loaded room is the mistake _refreshPetState
+      // made: report it, and only surface it when there is nothing to fall
+      // back to.
+      if (_ownedBackgroundsByRoom.containsKey(roomId)) {
+        reportSwallowedError(
+          error,
+          stackTrace,
+          source: 'home_load_room_backgrounds',
+        );
         return;
       }
       _setStateForRoomDecor(() {
@@ -481,11 +497,25 @@ extension _HomeRoomDecor on _HomeViewState {
       }
       _setStateForRoomDecor(() {
         _activeBackgroundByRoom[roomId] = activeItemId;
+        _backgroundError = null;
       });
       _syncCachedBackgroundKey(roomId);
       unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (!mounted) {
+        return;
+      }
+      // The realtime callbacks re-run this on every change, so most calls are
+      // revalidations of decor the user can already see. Painting a transient
+      // network failure over a loaded room is the mistake _refreshPetState
+      // made: report it, and only surface it when there is nothing to fall
+      // back to.
+      if (_activeBackgroundByRoom.containsKey(roomId)) {
+        reportSwallowedError(
+          error,
+          stackTrace,
+          source: 'home_load_room_background_state',
+        );
         return;
       }
       _setStateForRoomDecor(() {
