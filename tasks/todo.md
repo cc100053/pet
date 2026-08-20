@@ -21,9 +21,9 @@ Current follow-ups and the active session only. Historical task logs live in
 - [ ] To share a room-frame casing across members, add server-backed state
       following the room-background precedent and version-gate it through
       `.codex/skills/shared-item-rollout/SKILL.md`.
-- [ ] Monitor ASC/store outcome for iOS `3.0.0+20`; submit for App Review only
+- [ ] Monitor ASC/store outcome for iOS `3.0.1+21`; submit for App Review only
       after an explicit request.
-- [ ] Confirm build 20's recorded UUIDs are absent from Crashlytics Missing
+- [ ] Confirm build 21's recorded UUIDs are absent from Crashlytics Missing
       dSYMs `[USER ACTION REQUIRED]`.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
       logs.

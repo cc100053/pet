@@ -2167,6 +2167,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 
   @override
+  String get whatsNew301Title => '不具合修正';
+
+  @override
+  String get whatsNew301Bullet1 =>
+      '通信が一時的に不安定なときに、お部屋のフレームや飾りがエラーメッセージで隠れてしまう不具合を修正しました。';
+
+  @override
   String get whatsNew300Title => '新しいルームフレーム！';
 
   @override

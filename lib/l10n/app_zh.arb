@@ -1103,6 +1103,8 @@
   "whatsNew231Title": "问题修复与稳定性提升",
   "whatsNew231Bullet1": "修复影响共同照顾体验的小问题。",
   "whatsNew231Bullet2": "提升 App 稳定性，让日常使用更加顺畅。",
+  "whatsNew301Title": "问题修复",
+  "whatsNew301Bullet1": "修复在网络暂时不稳定时，房间相框与装饰可能被错误提示遮盖的问题。",
   "whatsNew300Title": "全新房间相框！",
   "whatsNew300Bullet1": "用 5 款相框自定义共享房间卡片的风格。",
   "whatsNew300Bullet2": "长按房间卡片即可预览相框，并套用你喜欢的设计。",

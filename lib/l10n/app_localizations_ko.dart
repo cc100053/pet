@@ -2179,6 +2179,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 
   @override
+  String get whatsNew301Title => '버그 수정';
+
+  @override
+  String get whatsNew301Bullet1 =>
+      '네트워크가 일시적으로 불안정할 때 방의 프레임과 장식이 오류 메시지에 가려지던 문제를 수정했습니다.';
+
+  @override
   String get whatsNew300Title => '새로운 룸 프레임!';
 
   @override

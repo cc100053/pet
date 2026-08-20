@@ -4017,6 +4017,18 @@ abstract class AppLocalizations {
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
 
+  /// No description provided for @whatsNew301Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Fixes'**
+  String get whatsNew301Title;
+
+  /// No description provided for @whatsNew301Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed an issue where a brief network hiccup could hide your room\'s frames and decorations behind an error message.'**
+  String get whatsNew301Bullet1;
+
   /// No description provided for @whatsNew300Title.
   ///
   /// In en, this message translates to:

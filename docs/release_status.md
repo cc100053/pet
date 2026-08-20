@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 3.0.0 | 20 | Repo workflow assumes current; ASC version `9c8da611-140f-42aa-be58-e3b019978793` is `PREPARE_FOR_SUBMISSION`, build `2fec6cc5-c143-42a4-97b6-aed587726311` is `VALID` and attached; localizations synced (en-US `eeb71b4a-4b54-4676-9e81-67d5f826d547`, ja `3a6c687f-2d56-4e3e-8382-1444142bf1f1`, ko `c17e6b1c-2b1e-4b0f-afa4-933b350dce97`, zh-Hant `126d741c-1838-4430-acd8-d820bbfea767`); not submitted for App Review | 2026-08-16 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the new customizable room-frame feature | ios/v3.0.0+20 |
+| iOS | 3.0.1 | 21 | Repo workflow assumes current; ASC version `a5d1ca1d-81be-47d5-a63c-1aa80413a47a` is `PREPARE_FOR_SUBMISSION`, build `7d5bf932-2b30-4dad-9a15-30392f183a1e` is `VALID` and attached; localizations synced (en-US `c8f62704-a88a-4b76-9c85-81806b20cafc`, ja `9b01f1a7-6260-48d3-b910-00104bea874c`, ko `9daac0d6-9f78-497c-9ead-3695fbeb0846`, zh-Hant `fcab0d89-8240-4f75-8155-2df9feefc018`); not submitted for App Review | 2026-08-20 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the `840773d` room-decor error-banner bug fix | ios/v3.0.1+21 |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Crashlytics dSYM Status Per Build
@@ -27,6 +27,7 @@ this is unrecoverable after the fact. Record every release here.
 
 | Version | Build | dSYMs uploaded | Archive preserved | Note |
 | --- | --- | --- | --- | --- |
+| 3.0.1 | 21 | Yes — 2026-08-20, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `~/Library/Developer/Xcode/Archives/shipped/Runner 3.0.1 (21).xcarchive` | Runner UUID `4472ACFA-8623-39C1-878B-E178380BB83A`, App.framework `0C7143A3-8EAC-741B-485E-50E6749A1B92`. `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.0.0 | 20 | Yes — 2026-08-17, all 12 dSYMs, retroactively | `~/Library/Developer/Xcode/Archives/shipped/Runner 3.0.0 (20).xcarchive` (327 MB) | The release itself ran `flutter build ipa` + `asc builds upload` without the dSYM step; rescued from the surviving `build/ios/archive/Runner.xcarchive` before the next build could destroy it. Runner UUID `A42B22FA-F8DA-3002-B633-249266FD2393`, App.framework `0C7143A3-1916-07E9-485E-50E6CB22EBD2`. `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 2.4.0 | 19 | No | No | Lost. Crashlytics reported a missing dSYM on 2026-08-17; the archive had already been overwritten by the 3.0.0+20 build on 2026-08-16 and no copy exists under `Archives/shipped`. Crashes for this build can never be symbolicated |
 | 2.3.4 | 17, 18 | Not confirmed | No | Same gap as 19; no archive survives |
@@ -49,6 +50,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 3.0.0 | 20 | Superseded in repo workflow by completed `3.0.1+21` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-16 | ASC version `9c8da611-140f-42aa-be58-e3b019978793`, attached build `2fec6cc5-c143-42a4-97b6-aed587726311` | none |
 | iOS | 2.4.0 | 19 | Superseded in repo workflow by completed `3.0.0+20` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-13 | ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8`, attached build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` | none |
 | iOS | 2.3.4 | 18 | Superseded in repo workflow by completed `2.4.0+19` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-09, already public per App Store lookup (live since 2.3.4) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, attached build `142aeed9-852f-43c6-8114-3f5a30f80505` | none |
 | iOS | 2.3.4 | 17 | Superseded by build 18 on the same ASC version 2026-08-09; build 17 was uploaded/attached to ASC but its local files were never committed (fixed retroactively in commit `e3829dd`) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, previously attached build `42b5c164-d1e4-45f3-b485-a26116d70d76` | none |

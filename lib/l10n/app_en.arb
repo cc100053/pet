@@ -1124,6 +1124,8 @@
   "whatsNew231Title": "Bug Fixes & Stability",
   "whatsNew231Bullet1": "Fixed minor bugs affecting shared pet care.",
   "whatsNew231Bullet2": "Improved app stability for a smoother everyday experience.",
+  "whatsNew301Title": "Bug Fixes",
+  "whatsNew301Bullet1": "Fixed an issue where a brief network hiccup could hide your room's frames and decorations behind an error message.",
   "whatsNew300Title": "New Room Frames!",
   "whatsNew300Bullet1": "Customize shared room cards with five playful frame styles.",
   "whatsNew300Bullet2": "Long-press a room card to preview and equip your favorite frame.",

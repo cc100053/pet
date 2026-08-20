@@ -2155,6 +2155,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 
   @override
+  String get whatsNew301Title => '问题修复';
+
+  @override
+  String get whatsNew301Bullet1 => '修复在网络暂时不稳定时，房间相框与装饰可能被错误提示遮盖的问题。';
+
+  @override
   String get whatsNew300Title => '全新房间相框！';
 
   @override
@@ -4306,6 +4312,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew301Title => '問題修正';
+
+  @override
+  String get whatsNew301Bullet1 => '修正在網路暫時不穩定時，房間相框與裝飾可能被錯誤訊息遮蓋的問題。';
 
   @override
   String get whatsNew300Title => '全新房間相框！';

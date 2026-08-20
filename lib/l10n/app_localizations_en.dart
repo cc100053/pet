@@ -2272,6 +2272,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved app stability for a smoother everyday experience.';
 
   @override
+  String get whatsNew301Title => 'Bug Fixes';
+
+  @override
+  String get whatsNew301Bullet1 =>
+      'Fixed an issue where a brief network hiccup could hide your room\'s frames and decorations behind an error message.';
+
+  @override
   String get whatsNew300Title => 'New Room Frames!';
 
   @override
