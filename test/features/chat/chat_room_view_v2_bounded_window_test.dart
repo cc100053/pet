@@ -2059,4 +2059,59 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
   });
+
+  testWidgets('reply preview glides to a target the list already built', (
+    tester,
+  ) async {
+    final base = DateTime.utc(2026, 3, 19, 9);
+    String tallBody(String label) => List<String>.filled(8, label).join('\n');
+    final messages = <ChatMessage>[
+      for (var i = 1; i <= 19; i += 1)
+        textMessage(
+          id: 'm$i',
+          senderId: 'other',
+          body: tallBody('message $i'),
+          createdAt: base.add(Duration(minutes: i)),
+        ),
+      // Two bubbles up, so the target is inside the build cache and the jump
+      // is short enough to be worth animating.
+      textMessage(
+        id: 'm20',
+        senderId: 'other',
+        body: 'the reply',
+        createdAt: base.add(const Duration(minutes: 20)),
+        replyToMessageId: 'm18',
+      ),
+    ];
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: messages,
+      canonicalMessages: messages,
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    expect(find.byKey(const ValueKey('chatItem_m18')), findsOneWidget);
+    final controller = timelineController(tester);
+    final startOffset = controller.position.pixels;
+
+    await tester.tap(find.byKey(const ValueKey('chatTextBubbleReplyPreview')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    final midOffset = controller.position.pixels;
+
+    await tester.pumpAndSettle();
+    final endOffset = controller.position.pixels;
+
+    // Partway through, which a jumpTo could never produce.
+    expect(endOffset, greaterThan(startOffset));
+    expect(midOffset, greaterThan(startOffset));
+    expect(midOffset, lessThan(endOffset));
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+  });
 }

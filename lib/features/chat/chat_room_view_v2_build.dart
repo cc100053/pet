@@ -255,21 +255,35 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
         // one frame before and one frame after instead of the search itself.
         // Permissive mode degrades to painting the live child rather than
         // throwing if a bubble ever holds a platform view.
-        return SnapshotWidget(
-          controller: _timelineSnapshotController,
-          mode: SnapshotMode.permissive,
-          child: DeterministicChatList(
-            itemBuilder: itemBuilder,
-            messages: uiMessages,
-            scrollController: _chatScrollController,
-            observerController: _observerController,
-            topPadding: listTopPadding,
-            bottomPadding: listBottomPadding,
-            onMessageLongPress: _handleDeterministicMessageLongPress,
-            onBackgroundTap: () => _handleBackdropTapUp(
-              TapUpDetails(kind: PointerDeviceKind.touch),
+        return Stack(
+          fit: StackFit.passthrough,
+          children: [
+            SnapshotWidget(
+              controller: _timelineSnapshotController,
+              mode: SnapshotMode.permissive,
+              child: DeterministicChatList(
+                itemBuilder: itemBuilder,
+                messages: uiMessages,
+                scrollController: _chatScrollController,
+                observerController: _observerController,
+                topPadding: listTopPadding,
+                bottomPadding: listBottomPadding,
+                onMessageLongPress: _handleDeterministicMessageLongPress,
+                onBackgroundTap: () => _handleBackdropTapUp(
+                  TapUpDetails(kind: PointerDeviceKind.touch),
+                ),
+              ),
             ),
-          ),
+            // Sits outside the snapshot so it stays live while the timeline
+            // underneath is frozen, and absorbs taps that would otherwise land
+            // on the stale frame.
+            if (_isReplyJumpSearchVisible)
+              Positioned.fill(
+                child: _ReplyJumpScrim(
+                  isDarkBackground: widget.isDarkBackground,
+                ),
+              ),
+          ],
         );
       },
       emptyChatListBuilder: (context) => const SizedBox.shrink(),

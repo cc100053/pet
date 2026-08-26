@@ -300,3 +300,38 @@ class _GlassPill extends StatelessWidget {
     );
   }
 }
+
+/// Faint cover shown while a reply jump searches for an off-screen target.
+///
+/// The timeline underneath is frozen on its pre-jump frame, so this is the
+/// only thing telling the user the tap was heard. It stays deliberately quiet:
+/// most searches finish before it is ever armed, and the ones that do show it
+/// last a few hundred milliseconds.
+class _ReplyJumpScrim extends StatelessWidget {
+  const _ReplyJumpScrim({required this.isDarkBackground});
+
+  final bool isDarkBackground;
+
+  @override
+  Widget build(BuildContext context) {
+    return AbsorbPointer(
+      child: ColoredBox(
+        color: isDarkBackground
+            ? Colors.black.withValues(alpha: 0.16)
+            : Colors.white.withValues(alpha: 0.32),
+        child: Center(
+          child: SizedBox(
+            height: 22,
+            width: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppTheme.primaryColor.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

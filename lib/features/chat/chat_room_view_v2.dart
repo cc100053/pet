@@ -137,11 +137,18 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   static const int _pageSize = 20;
   static const int _maxVisibleMessages = 80;
 
+  static const Duration _replyJumpDuration = Duration(milliseconds: 360);
+  static const Curve _replyJumpCurve = Curves.easeInOutCubic;
+
   /// Ceiling on how long the timeline may stay frozen while a reply jump
   /// searches for its target. It exists so a pathological search can never
   /// leave the chat looking hung, not as a normal exit: a search that has to
   /// page through the whole loaded window still finishes well inside it.
   static const Duration _replyJumpTimeout = Duration(seconds: 3);
+
+  /// How long a frozen search may run before the scrim appears. Below this the
+  /// jump reads as instant and a loading state would only flicker.
+  static const Duration _replyJumpScrimDelay = Duration(milliseconds: 120);
 
   late final ChatMessageActionService _messageActionService;
   final fc.InMemoryChatController _chatController = fc.InMemoryChatController();
@@ -152,6 +159,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   /// Freezes the timeline on its current frame so a reply jump can search for
   /// its target off screen. See [_revealReplyTarget].
   final SnapshotController _timelineSnapshotController = SnapshotController();
+  Timer? _replyJumpScrimTimer;
+  bool _isReplyJumpSearchVisible = false;
   final TextEditingController _composerController = TextEditingController();
   final FocusNode _composerFocusNode = FocusNode();
   final GlobalKey _composerSurfaceKey = GlobalKey();
@@ -303,6 +312,8 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     _runtimeReactionSubscription = null;
     _chatScrollController.removeListener(_handleChatScroll);
     _composerController.removeListener(_handleComposerEditingChanged);
+    _replyJumpScrimTimer?.cancel();
+    _replyJumpScrimTimer = null;
     _chatController.dispose();
     _timelineSnapshotController.dispose();
     _chatScrollController.dispose();
@@ -2027,14 +2038,15 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     });
   }
 
-  /// Puts [targetId] on screen in a single visible step and returns whether it
-  /// landed, leaving it highlighted when it did.
+  /// Puts [targetId] on screen and returns whether it landed, leaving it
+  /// highlighted when it did.
   ///
-  /// Positioning an unbuilt bubble is inherently multi-step: the observer has
-  /// to page the lazy list toward the target before its height is known, and
-  /// only then can the exact centre offset be computed. Showing that search is
-  /// what made the jump feel like a scroll followed by a correction, so the
-  /// timeline is frozen on its pre-jump frame for the duration and thawed on
+  /// A bubble that is already built is at most a build-cache away, so it is
+  /// reached with an ordinary glide. An unbuilt one cannot be: the observer
+  /// has to page the lazy list toward it before its height is known, and only
+  /// then can the exact centre offset be computed. Showing that search is what
+  /// made the jump feel like a scroll followed by a correction, so the
+  /// timeline is frozen on its pre-jump frame for its duration and thawed on
   /// the target, already highlighted. A jump that does not land rewinds to
   /// where it started, so a failure never strands the user mid-search.
   Future<bool> _revealReplyTarget(String targetId) async {
@@ -2051,8 +2063,16 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return false;
     }
 
+    if (_messageSurfaceContext(targetId) != null) {
+      if (!await _slideReplyTargetToCenter(targetId) || !mounted) {
+        return false;
+      }
+      setState(() => _highlightedMessageId = targetId);
+      return true;
+    }
+
     final restoreOffset = _chatScrollController.position.pixels;
-    _timelineSnapshotController.allowSnapshotting = true;
+    _beginReplyJumpSearch();
     var landed = false;
     try {
       // Rasterize the pre-jump frame before anything moves.
@@ -2078,23 +2098,70 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       }
       await WidgetsBinding.instance.endOfFrame;
     } finally {
-      _timelineSnapshotController.allowSnapshotting = false;
+      _endReplyJumpSearch();
     }
     return landed;
+  }
+
+  /// Freezes the timeline for a reply-jump search and arms the scrim that
+  /// covers a search long enough to notice. Most searches finish inside
+  /// [_replyJumpScrimDelay] and never show it, which keeps a jump that is
+  /// effectively instant from flashing a loading state.
+  void _beginReplyJumpSearch() {
+    _timelineSnapshotController.allowSnapshotting = true;
+    _replyJumpScrimTimer?.cancel();
+    _replyJumpScrimTimer = Timer(_replyJumpScrimDelay, () {
+      if (!mounted || !_timelineSnapshotController.allowSnapshotting) {
+        return;
+      }
+      setState(() => _isReplyJumpSearchVisible = true);
+    });
+  }
+
+  void _endReplyJumpSearch() {
+    _replyJumpScrimTimer?.cancel();
+    _replyJumpScrimTimer = null;
+    _timelineSnapshotController.allowSnapshotting = false;
+    if (_isReplyJumpSearchVisible && mounted) {
+      setState(() => _isReplyJumpSearchVisible = false);
+    } else {
+      _isReplyJumpSearchVisible = false;
+    }
+  }
+
+  /// Glides to a bubble that is already built. Nothing has to be searched for,
+  /// so the movement is short and worth showing.
+  Future<bool> _slideReplyTargetToCenter(String targetId) async {
+    final targetContext = _messageSurfaceContext(targetId);
+    if (targetContext == null || !targetContext.mounted) {
+      return false;
+    }
+    final targetOffset = _replyTargetCenterOffset(targetContext);
+    if (targetOffset == null) {
+      return false;
+    }
+    if ((_chatScrollController.position.pixels - targetOffset).abs() <= 1) {
+      return true;
+    }
+    await _chatScrollController.animateTo(
+      targetOffset,
+      duration: _replyJumpDuration,
+      curve: _replyJumpCurve,
+    );
+    return true;
   }
 
   /// Scrolls so [targetId] sits at the centre of the viewport, without any
   /// animation. Only ever called while the timeline is frozen.
   Future<bool> _positionReplyTargetAtCenter(String targetId) async {
-    // The target bubble may never have been built, in which case it has no
-    // surface context and waiting for more frames cannot produce one: nothing
-    // scrolls the list toward it. That is the common case for photos, because
-    // the timeline keeps only a 600px off-screen cache (see
-    // `DeterministicChatList`) and one image bubble already fills much of it,
-    // and it is always the case for history the caller just loaded above.
-    // Drive the observer to the item's index first so the list builds it.
-    if (_messageSurfaceContext(targetId) == null &&
-        !await _buildReplyTargetIntoView(targetId)) {
+    // The target bubble has not been built, so it has no surface context and
+    // waiting for more frames cannot produce one: nothing scrolls the list
+    // toward it. That is the common case for photos, because the timeline
+    // keeps only a 600px off-screen cache (see `DeterministicChatList`) and
+    // one image bubble already fills much of it, and it is always the case for
+    // history the caller just loaded above. Drive the observer to the item's
+    // index first so the list builds it.
+    if (!await _buildReplyTargetIntoView(targetId)) {
       return false;
     }
 

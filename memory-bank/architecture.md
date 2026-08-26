@@ -43,11 +43,14 @@ Compact current-state map for mandatory reads. Full snapshots live in
   `ListObserverController` to the item's index via
   `chatListRawIndexForMessageId`, which accounts for interleaved date
   separators; waiting for frames alone can never build an off-screen item.
-  That search is multi-step and must not be shown: the timeline is wrapped in a
-  `SnapshotWidget` that freezes it on the pre-jump frame while the observer
-  pages toward the target, and thaws on the target already highlighted, so a
-  reply jump reads as one instant move. A jump that fails or times out rewinds
-  to its starting offset before thawing.
+  A target that is already built is at most a cache away and is reached with an
+  ordinary animated glide. An unbuilt one needs that search, which must not be
+  shown: the timeline is wrapped in a `SnapshotWidget` that freezes it on the
+  pre-jump frame while the observer pages toward the target, and thaws on the
+  target already highlighted, so the jump reads as one instant move. A faint
+  scrim covers the freeze, armed only after 120ms so a fast search never
+  flashes a loading state. A jump that fails or times out rewinds to its
+  starting offset before thawing.
 - Chat/Home paint cached state first and revalidate. Failed room, pet-state, or
   room-decor refreshes keep the last successful visible snapshot and report
   silently; they surface an error only when nothing is on screen to fall back
