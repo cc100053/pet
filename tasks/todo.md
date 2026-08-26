@@ -21,8 +21,12 @@ Current follow-ups and the active session only. Historical task logs live in
 - [ ] To share a room-frame casing across members, add server-backed state
       following the room-background precedent and version-gate it through
       `.codex/skills/shared-item-rollout/SKILL.md`.
-- [ ] Monitor ASC/store outcome for iOS `3.0.1+21`; submit for App Review only
+- [ ] Monitor ASC/store outcome for iOS `3.0.2+22`; submit for App Review only
       after an explicit request.
+- [ ] `[USER ACTION REQUIRED]` Confirm build 22's recorded UUIDs (Runner
+      `3D5833E2-B9BC-3107-9C9C-15DEFC0C5886`, App.framework
+      `0C7143A3-330B-1F8B-485E-50E6EF09C56E`) are absent from Crashlytics →
+      Settings → Missing dSYMs.
 - [x] Confirm build 21's recorded UUIDs are absent from Crashlytics Missing
       dSYMs — confirmed 2026-08-20.
 - [ ] Live-verify feed satiety, visible hunger movement, and presigned-upload
