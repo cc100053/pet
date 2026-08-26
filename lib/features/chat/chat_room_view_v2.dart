@@ -2000,6 +2000,15 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       duration: _replyJumpDuration,
       curve: _replyJumpCurve,
     )) {
+      // The message is loaded but we could not bring its bubble on screen. Say
+      // so rather than leaving the tap looking dead.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.chatNoOlderMessages),
+          ),
+        );
+      }
       return;
     }
     if (!mounted) {
@@ -2031,6 +2040,19 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     if (!mounted || !_chatScrollController.hasClients) {
       return false;
     }
+
+    // The target bubble may never have been built, in which case it has no
+    // surface context and waiting for more frames cannot produce one: nothing
+    // scrolls the list toward it. That is the common case for photos, because
+    // the timeline keeps only a 600px off-screen cache (see
+    // `DeterministicChatList`) and one image bubble already fills much of it,
+    // and it is always the case for history the caller just loaded above.
+    // Drive the observer to the item's index first so the list builds it.
+    if (_messageSurfaceContext(targetId) == null &&
+        !await _buildReplyTargetIntoView(targetId)) {
+      return false;
+    }
+
     final targetContext = _messageSurfaceContext(targetId);
     if (targetContext == null || !targetContext.mounted) {
       return false;
@@ -2049,6 +2071,40 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       curve: curve,
     );
     return true;
+  }
+
+  /// Scrolls the timeline to [targetId]'s item index so the lazy list builds
+  /// that bubble, then waits for its surface context to register. Returns
+  /// whether the bubble is now live; the caller still does the precise
+  /// centering afterwards.
+  Future<bool> _buildReplyTargetIntoView(String targetId) async {
+    // The timeline interleaves date separators between bubbles, so the item
+    // index is not the message index.
+    final rawIndex = chatListRawIndexForMessageId(
+      _toUiMessages(_messages).reversed.toList(growable: false),
+      targetId,
+    );
+    if (rawIndex == null) {
+      return false;
+    }
+    try {
+      await _observerController.jumpTo(index: rawIndex, alignment: 0.5);
+    } catch (error, stackTrace) {
+      reportSwallowedError(
+        error,
+        stackTrace,
+        source: 'chat_reply_jump_observer',
+      );
+      return false;
+    }
+    for (
+      var i = 0;
+      mounted && _messageSurfaceContext(targetId) == null && i < 4;
+      i += 1
+    ) {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    return mounted && _messageSurfaceContext(targetId) != null;
   }
 
   Widget _buildMessageActionPreview(ChatMessage message) {

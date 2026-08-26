@@ -37,6 +37,12 @@ Compact current-state map for mandatory reads. Full snapshots live in
 - Feed uploads are queue-owned. `feed_validate` returns authoritative satiety;
   Home applies it through `last_decay_at` freshness and Chat reconciles
   optimistic rows locally.
+- The chat timeline keeps a deliberately small 600px off-screen build cache, so
+  a bubble outside the viewport has no registered surface context. Anything
+  that scrolls to a message by `BuildContext` (reply-jump) must first drive
+  `ListObserverController` to the item's index via
+  `chatListRawIndexForMessageId`, which accounts for interleaved date
+  separators; waiting for frames alone can never build an off-screen item.
 - Chat/Home paint cached state first and revalidate. Failed room, pet-state, or
   room-decor refreshes keep the last successful visible snapshot and report
   silently; they surface an error only when nothing is on screen to fall back

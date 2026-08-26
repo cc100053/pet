@@ -274,4 +274,51 @@ void main() {
       findsOneWidget,
     );
   });
+
+  group('chatListRawIndexForMessageId', () {
+    fc.Message messageAt(String id, DateTime createdAt) =>
+        fc.TextMessage(id: id, authorId: 'u1', createdAt: createdAt, text: id);
+
+    test('skips the date separators interleaved between bubbles', () {
+      final today = DateTime.now();
+      final yesterday = today.subtract(const Duration(days: 1));
+      // Descending visual order: newest -> oldest, as the reversed list wants.
+      final messages = <fc.Message>[
+        messageAt('newest', DateTime(today.year, today.month, today.day, 14)),
+        messageAt('middle', DateTime(today.year, today.month, today.day, 9)),
+        messageAt(
+          'oldest',
+          DateTime(yesterday.year, yesterday.month, yesterday.day, 20),
+        ),
+      ];
+
+      expect(chatListRawIndexForMessageId(messages, 'newest'), 0);
+      expect(chatListRawIndexForMessageId(messages, 'middle'), 1);
+      // A separator sits between the two days, so the oldest message is at 3.
+      expect(chatListRawIndexForMessageId(messages, 'oldest'), 3);
+    });
+
+    test('matches the message index when every message shares a day', () {
+      final today = DateTime.now();
+      final messages = <fc.Message>[
+        messageAt('a', DateTime(today.year, today.month, today.day, 14)),
+        messageAt('b', DateTime(today.year, today.month, today.day, 12)),
+        messageAt('c', DateTime(today.year, today.month, today.day, 9)),
+      ];
+
+      expect(chatListRawIndexForMessageId(messages, 'a'), 0);
+      expect(chatListRawIndexForMessageId(messages, 'b'), 1);
+      expect(chatListRawIndexForMessageId(messages, 'c'), 2);
+    });
+
+    test('returns null for a message outside the loaded window', () {
+      final today = DateTime.now();
+      final messages = <fc.Message>[
+        messageAt('a', DateTime(today.year, today.month, today.day, 14)),
+      ];
+
+      expect(chatListRawIndexForMessageId(messages, 'missing'), isNull);
+      expect(chatListRawIndexForMessageId(const <fc.Message>[], 'a'), isNull);
+    });
+  });
 }

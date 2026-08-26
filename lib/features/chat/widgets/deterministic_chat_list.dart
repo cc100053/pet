@@ -70,6 +70,49 @@ String formatChatDateSeparatorLabel(
   return DateFormat.yMMMd().format(localDate);
 }
 
+DateTime? chatSeparatorTimeFor(fc.Message message) {
+  return message.resolvedTime ?? message.createdAt;
+}
+
+/// Whether a date separator follows [messages]`[index]`. [messages] are in
+/// descending visual order (newest -> oldest), so "after" means "older".
+bool shouldShowChatDateSeparatorAfter(List<fc.Message> messages, int index) {
+  final currentTime = chatSeparatorTimeFor(messages[index]);
+  if (currentTime == null) {
+    return false;
+  }
+  // In a reversed list, "after" an item actually means "above" it in time.
+  // If it's the last item in the list (index == messages.length - 1),
+  // it's the oldest message, so it definitely needs a separator.
+  if (index == messages.length - 1) {
+    return true;
+  }
+  final nextTime = chatSeparatorTimeFor(messages[index + 1]);
+  if (nextTime == null) {
+    return true;
+  }
+  return !isSameLocalChatDay(nextTime, currentTime);
+}
+
+/// Raw `ListView` item index of [messageId], or null when the message is not in
+/// [messages]. [messages] must be the same descending list handed to
+/// [DeterministicChatList], and the result accounts for the date separators
+/// interleaved between bubbles. Callers that scroll by index (e.g. the
+/// reply-jump) need this because the timeline holds more items than messages.
+int? chatListRawIndexForMessageId(List<fc.Message> messages, String messageId) {
+  var rawIndex = 0;
+  for (var index = 0; index < messages.length; index += 1) {
+    if (messages[index].id == messageId) {
+      return rawIndex;
+    }
+    rawIndex += 1;
+    if (shouldShowChatDateSeparatorAfter(messages, index)) {
+      rawIndex += 1;
+    }
+  }
+  return null;
+}
+
 class DeterministicChatList extends StatelessWidget {
   const DeterministicChatList({
     super.key,
@@ -123,8 +166,8 @@ class DeterministicChatList extends StatelessWidget {
         ),
       );
 
-      if (_shouldShowDateSeparatorAfter(index)) {
-        final time = _separatorTimeFor(message);
+      if (shouldShowChatDateSeparatorAfter(messages, index)) {
+        final time = chatSeparatorTimeFor(message);
         if (time != null) {
           items.add(
             _DateSeparator(
@@ -164,28 +207,6 @@ class DeterministicChatList extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool _shouldShowDateSeparatorAfter(int index) {
-    final currentTime = _separatorTimeFor(messages[index]);
-    if (currentTime == null) {
-      return false;
-    }
-    // In a reversed list, "after" an item actually means "above" it in time.
-    // If it's the last item in the list (index == messages.length - 1),
-    // it's the oldest message, so it definitely needs a separator.
-    if (index == messages.length - 1) {
-      return true;
-    }
-    final nextTime = _separatorTimeFor(messages[index + 1]);
-    if (nextTime == null) {
-      return true;
-    }
-    return !isSameLocalChatDay(nextTime, currentTime);
-  }
-
-  DateTime? _separatorTimeFor(fc.Message message) {
-    return message.resolvedTime ?? message.createdAt;
   }
 }
 
