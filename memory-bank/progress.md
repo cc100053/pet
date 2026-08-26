@@ -12,8 +12,10 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   the local final-check order in `AGENTS.md` and `docs/testing.md`.
 - Chat reply-jump scrolls to the target's list index before centering it, so
   tapping a reply preview works even when the target bubble (typically a photo,
-  or history just loaded by the jump itself) was never built. A jump that still
-  cannot land now reports instead of failing silently.
+  or history just loaded by the jump itself) was never built. The whole search
+  happens behind a frozen `SnapshotWidget` frame and lands instantly rather
+  than animating, and a jump that still cannot land rewinds and reports instead
+  of failing silently.
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - Internal hunger-schedule and abandoned-room review tables use RLS as
   defense-in-depth while remaining service-only.

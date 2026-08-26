@@ -2008,4 +2008,55 @@ void main() {
 
     expect(systemCenter, closeTo(scaffoldCenter, 1));
   });
+
+  testWidgets('reply preview jumps to a target the list never built', (
+    tester,
+  ) async {
+    final base = DateTime.utc(2026, 3, 19, 9);
+    // Tall bubbles push the oldest messages well outside the timeline's
+    // 600px off-screen build cache, which is the state that used to make the
+    // tap do nothing at all.
+    String tallBody(String label) => List<String>.filled(8, label).join('\n');
+    final messages = <ChatMessage>[
+      for (var i = 1; i <= 19; i += 1)
+        textMessage(
+          id: 'm$i',
+          senderId: 'other',
+          body: tallBody('message $i'),
+          createdAt: base.add(Duration(minutes: i)),
+        ),
+      textMessage(
+        id: 'm20',
+        senderId: 'other',
+        body: 'the reply',
+        createdAt: base.add(const Duration(minutes: 20)),
+        replyToMessageId: 'm1',
+      ),
+    ];
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: messages,
+      canonicalMessages: messages,
+    );
+    const runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      disableRealtime: true,
+    );
+
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    expect(find.text('the reply'), findsOneWidget);
+    expect(find.byKey(const ValueKey('chatItem_m1')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('chatTextBubbleReplyPreview')));
+    await tester.pumpAndSettle();
+
+    final target = find.byKey(const ValueKey('chatItem_m1'));
+    expect(target, findsOneWidget);
+    final viewportCenter = tester.getCenter(find.byType(Scaffold)).dy;
+    expect(tester.getCenter(target).dy, closeTo(viewportCenter, 120));
+
+    // Let the highlight timer fire so no timer outlives the test.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+  });
 }

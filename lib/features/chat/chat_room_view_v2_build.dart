@@ -250,16 +250,26 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
             ),
           );
         }
-        return DeterministicChatList(
-          itemBuilder: itemBuilder,
-          messages: uiMessages,
-          scrollController: _chatScrollController,
-          observerController: _observerController,
-          topPadding: listTopPadding,
-          bottomPadding: listBottomPadding,
-          onMessageLongPress: _handleDeterministicMessageLongPress,
-          onBackgroundTap: () =>
-              _handleBackdropTapUp(TapUpDetails(kind: PointerDeviceKind.touch)),
+        // A reply jump keeps scrolling and rebuilding underneath this
+        // snapshot while it hunts for an off-screen target, so the user sees
+        // one frame before and one frame after instead of the search itself.
+        // Permissive mode degrades to painting the live child rather than
+        // throwing if a bubble ever holds a platform view.
+        return SnapshotWidget(
+          controller: _timelineSnapshotController,
+          mode: SnapshotMode.permissive,
+          child: DeterministicChatList(
+            itemBuilder: itemBuilder,
+            messages: uiMessages,
+            scrollController: _chatScrollController,
+            observerController: _observerController,
+            topPadding: listTopPadding,
+            bottomPadding: listBottomPadding,
+            onMessageLongPress: _handleDeterministicMessageLongPress,
+            onBackgroundTap: () => _handleBackdropTapUp(
+              TapUpDetails(kind: PointerDeviceKind.touch),
+            ),
+          ),
         );
       },
       emptyChatListBuilder: (context) => const SizedBox.shrink(),
