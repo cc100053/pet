@@ -2047,13 +2047,54 @@ void main() {
     expect(find.text('the reply'), findsOneWidget);
     expect(find.byKey(const ValueKey('chatItem_m1')), findsNothing);
 
+    final controller = timelineController(tester);
+    bool isFrozen() {
+      return tester
+          .widget<SnapshotWidget>(find.byType(SnapshotWidget))
+          .controller
+          .allowSnapshotting;
+    }
+
     await tester.tap(find.byKey(const ValueKey('chatTextBubbleReplyPreview')));
+
+    // Sample only the frames the user actually sees, which begin once the
+    // search behind the frozen timeline has finished.
+    final visibleOffsets = <double>[];
+    var sawFreeze = false;
+    for (var frame = 0; frame < 200; frame += 1) {
+      await tester.pump(const Duration(milliseconds: 16));
+      if (isFrozen()) {
+        sawFreeze = true;
+      } else if (sawFreeze) {
+        visibleOffsets.add(controller.position.pixels);
+      }
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
     await tester.pumpAndSettle();
 
     final target = find.byKey(const ValueKey('chatItem_m1'));
     expect(target, findsOneWidget);
     final viewportCenter = tester.getCenter(find.byType(Scaffold)).dy;
     expect(tester.getCenter(target).dy, closeTo(viewportCenter, 120));
+
+    expect(sawFreeze, isTrue);
+    expect(visibleOffsets, isNotEmpty);
+
+    // The long haul happened behind the freeze: every frame the user saw is
+    // within a screen of the destination, and the visible part of the move is
+    // the glide, not a teleport.
+    final endOffset = controller.position.pixels;
+    final viewport = controller.position.viewportDimension;
+    for (final offset in visibleOffsets) {
+      expect((offset - endOffset).abs(), lessThan(viewport * 1.2));
+    }
+    expect(visibleOffsets.first, lessThan(endOffset));
+    expect(
+      endOffset - visibleOffsets.first,
+      closeTo(viewport * 0.75, viewport * 0.25),
+    );
 
     // Let the highlight timer fire so no timer outlives the test.
     await tester.pump(const Duration(seconds: 1));

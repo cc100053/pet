@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io';
 import 'dart:ui' show PointerDeviceKind;
 
@@ -139,6 +140,16 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
 
   static const Duration _replyJumpDuration = Duration(milliseconds: 360);
   static const Curve _replyJumpCurve = Curves.easeInOutCubic;
+
+  /// How much of the viewport a reply jump animates for real when it has to
+  /// warp. Scrolling the true distance would drag the whole history past the
+  /// user; landing this far short and gliding in reads as a scroll while only
+  /// building one screen of bubbles.
+  static const double _replyGlideFraction = 0.75;
+
+  /// Curve for that glide. It stands in for motion already under way, so it
+  /// only decelerates — easing in as well would betray the warp.
+  static const Curve _replyGlideCurve = Curves.easeOutCubic;
 
   /// Ceiling on how long the timeline may stay frozen while a reply jump
   /// searches for its target. It exists so a pathological search can never
@@ -2041,14 +2052,15 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   /// Puts [targetId] on screen and returns whether it landed, leaving it
   /// highlighted when it did.
   ///
-  /// A bubble that is already built is at most a build-cache away, so it is
-  /// reached with an ordinary glide. An unbuilt one cannot be: the observer
-  /// has to page the lazy list toward it before its height is known, and only
-  /// then can the exact centre offset be computed. Showing that search is what
-  /// made the jump feel like a scroll followed by a correction, so the
-  /// timeline is frozen on its pre-jump frame for its duration and thawed on
-  /// the target, already highlighted. A jump that does not land rewinds to
-  /// where it started, so a failure never strands the user mid-search.
+  /// A bubble that is already built is at most a build-cache away, so the whole
+  /// move is animated. An unbuilt one cannot be reached that way: the observer
+  /// has to page the lazy list toward it before its height is known, and
+  /// animating the true distance afterwards would drag the entire history past
+  /// the user. So the search runs behind a frozen frame, parks a fraction of a
+  /// screen short of the target, and only that last stretch is animated for
+  /// real — the jump still arrives as a scroll, without replaying every message
+  /// in between. A jump that does not land rewinds to where it started, so a
+  /// failure never strands the user mid-search.
   Future<bool> _revealReplyTarget(String targetId) async {
     for (
       var i = 0;
@@ -2063,44 +2075,50 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return false;
     }
 
+    // Already built, so there is nothing to search for and nothing to hide.
     if (_messageSurfaceContext(targetId) != null) {
-      if (!await _slideReplyTargetToCenter(targetId) || !mounted) {
+      if (!await _glideToReplyTarget(targetId, curve: _replyJumpCurve) ||
+          !mounted) {
         return false;
       }
       setState(() => _highlightedMessageId = targetId);
       return true;
     }
 
-    final restoreOffset = _chatScrollController.position.pixels;
+    final fromOffset = _chatScrollController.position.pixels;
     _beginReplyJumpSearch();
-    var landed = false;
+    var warped = false;
     try {
       // Rasterize the pre-jump frame before anything moves.
       await WidgetsBinding.instance.endOfFrame;
-      landed = await _positionReplyTargetAtCenter(
+      warped = await _warpNearReplyTarget(
         targetId,
+        fromOffset: fromOffset,
       ).timeout(_replyJumpTimeout, onTimeout: () => false);
       if (!mounted) {
         return false;
       }
-      if (landed) {
-        // Thaw onto an already-highlighted bubble instead of flashing it in a
-        // frame later.
+      if (warped) {
+        // Thaw onto an already-highlighted bubble rather than lighting it up
+        // part way through the glide.
         setState(() => _highlightedMessageId = targetId);
       } else if (_chatScrollController.hasClients) {
         final position = _chatScrollController.position;
         _chatScrollController.jumpTo(
-          restoreOffset.clamp(
-            position.minScrollExtent,
-            position.maxScrollExtent,
-          ),
+          fromOffset.clamp(position.minScrollExtent, position.maxScrollExtent),
         );
       }
       await WidgetsBinding.instance.endOfFrame;
     } finally {
       _endReplyJumpSearch();
     }
-    return landed;
+    if (!warped || !mounted) {
+      return false;
+    }
+    // The warp already put the target within a screen, so the target is
+    // reached whether or not this last animation can run.
+    await _glideToReplyTarget(targetId, curve: _replyGlideCurve);
+    return true;
   }
 
   /// Freezes the timeline for a reply-jump search and arms the scrim that
@@ -2129,9 +2147,12 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
   }
 
-  /// Glides to a bubble that is already built. Nothing has to be searched for,
-  /// so the movement is short and worth showing.
-  Future<bool> _slideReplyTargetToCenter(String targetId) async {
+  /// Animates the timeline until [targetId] sits at the centre of the
+  /// viewport.
+  Future<bool> _glideToReplyTarget(
+    String targetId, {
+    required Curve curve,
+  }) async {
     final targetContext = _messageSurfaceContext(targetId);
     if (targetContext == null || !targetContext.mounted) {
       return false;
@@ -2146,14 +2167,23 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     await _chatScrollController.animateTo(
       targetOffset,
       duration: _replyJumpDuration,
-      curve: _replyJumpCurve,
+      curve: curve,
     );
     return true;
   }
 
-  /// Scrolls so [targetId] sits at the centre of the viewport, without any
-  /// animation. Only ever called while the timeline is frozen.
-  Future<bool> _positionReplyTargetAtCenter(String targetId) async {
+  /// Places the timeline [_replyGlideFraction] of a screen short of
+  /// [targetId], on the side of it the user is coming from, so the caller can
+  /// animate that last stretch. Only ever called while the timeline is frozen.
+  ///
+  /// [fromOffset] is where the user actually was, which the live scroll offset
+  /// no longer tells us: the search below moves the timeline to the target,
+  /// and starting the glide from there would leave it nowhere to travel and
+  /// no direction to travel in.
+  Future<bool> _warpNearReplyTarget(
+    String targetId, {
+    required double fromOffset,
+  }) async {
     // The target bubble has not been built, so it has no surface context and
     // waiting for more frames cannot produce one: nothing scrolls the list
     // toward it. That is the common case for photos, because the timeline
@@ -2169,15 +2199,30 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     if (targetContext == null || !targetContext.mounted) {
       return false;
     }
-    final position = _chatScrollController.position;
     final targetOffset = _replyTargetCenterOffset(targetContext);
     if (targetOffset == null) {
       return false;
     }
-    if ((position.pixels - targetOffset).abs() > 1) {
-      _chatScrollController.jumpTo(targetOffset);
+
+    final position = _chatScrollController.position;
+    final travel = targetOffset - fromOffset;
+    // Never overshoot past where the user started: a target closer than the
+    // glide length keeps its true distance, so a short jump animates the whole
+    // way and never warps at all.
+    final glide = math.min(
+      position.viewportDimension * _replyGlideFraction,
+      travel.abs(),
+    );
+    final glideStart = (targetOffset - glide * travel.sign).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    if ((position.pixels - glideStart).abs() > 1) {
+      _chatScrollController.jumpTo(glideStart);
+      // Build the stretch the glide is about to cross before it animates.
+      await WidgetsBinding.instance.endOfFrame;
     }
-    return true;
+    return mounted;
   }
 
   /// Scrolls the timeline to [targetId]'s item index so the lazy list builds

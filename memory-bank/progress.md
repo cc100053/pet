@@ -13,10 +13,11 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 - Chat reply-jump scrolls to the target's list index before centering it, so
   tapping a reply preview works even when the target bubble (typically a photo,
   or history just loaded by the jump itself) was never built. A nearby target
-  is reached with an animated glide; a target that has to be searched for is
-  found behind a frozen `SnapshotWidget` frame under a faint delayed scrim and
-  lands in one step. A jump that still cannot land rewinds and reports instead
-  of failing silently.
+  is animated the whole way; a distant one is searched for behind a frozen
+  `SnapshotWidget` frame under a faint delayed scrim, then glides in over the
+  last three quarters of a screen, so it arrives as a scroll without replaying
+  the history in between. A jump that still cannot land rewinds and reports
+  instead of failing silently.
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - Internal hunger-schedule and abandoned-room review tables use RLS as
   defense-in-depth while remaining service-only.
