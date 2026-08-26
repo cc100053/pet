@@ -2179,6 +2179,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 
   @override
+  String get whatsNew302Title => '더 부드러워진 답장 이동';
+
+  @override
+  String get whatsNew302Bullet1 => '답장을 탭하면 아직 불러오지 않은 메시지로도 바로 이동할 수 있어요.';
+
+  @override
+  String get whatsNew302Bullet2 => '먼 메시지로 이동할 때 순간 이동 대신 부드럽게 스크롤됩니다.';
+
+  @override
+  String get whatsNew302Bullet3 => '가까운 메시지로 이동할 때 발생하던 화면 깜빡임 문제를 수정했습니다.';
+
+  @override
   String get whatsNew301Title => '버그 수정';
 
   @override

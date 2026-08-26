@@ -2155,6 +2155,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 
   @override
+  String get whatsNew302Title => '回复跳转更流畅';
+
+  @override
+  String get whatsNew302Bullet1 => '点击回复即可跳转到原始消息，即使该消息尚未加载也是如此。';
+
+  @override
+  String get whatsNew302Bullet2 => '长距离跳转现在会平滑滚动，而不是瞬间跳过去。';
+
+  @override
+  String get whatsNew302Bullet3 => '修复跳转到附近消息时偶尔出现的画面闪烁问题。';
+
+  @override
   String get whatsNew301Title => '问题修复';
 
   @override
@@ -4312,6 +4324,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew302Title => '回覆跳轉更流暢';
+
+  @override
+  String get whatsNew302Bullet1 => '點擊回覆即可跳轉到原始訊息，即使該訊息尚未載入也一樣。';
+
+  @override
+  String get whatsNew302Bullet2 => '長距離跳轉現在會平滑捲動，而不是瞬間跳過去。';
+
+  @override
+  String get whatsNew302Bullet3 => '修正跳轉到附近訊息時偶爾出現的畫面閃爍問題。';
 
   @override
   String get whatsNew301Title => '問題修正';

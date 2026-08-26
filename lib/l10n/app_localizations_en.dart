@@ -2272,6 +2272,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved app stability for a smoother everyday experience.';
 
   @override
+  String get whatsNew302Title => 'Smoother Reply Jumps';
+
+  @override
+  String get whatsNew302Bullet1 =>
+      'Tapping a reply now jumps straight to the original message, even if it hasn\'t loaded yet.';
+
+  @override
+  String get whatsNew302Bullet2 =>
+      'Long jumps glide smoothly instead of snapping instantly.';
+
+  @override
+  String get whatsNew302Bullet3 =>
+      'Fixed occasional glitches when jumping to nearby messages.';
+
+  @override
   String get whatsNew301Title => 'Bug Fixes';
 
   @override

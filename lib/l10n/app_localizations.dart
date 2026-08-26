@@ -4017,6 +4017,30 @@ abstract class AppLocalizations {
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
 
+  /// No description provided for @whatsNew302Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoother Reply Jumps'**
+  String get whatsNew302Title;
+
+  /// No description provided for @whatsNew302Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tapping a reply now jumps straight to the original message, even if it hasn\'t loaded yet.'**
+  String get whatsNew302Bullet1;
+
+  /// No description provided for @whatsNew302Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Long jumps glide smoothly instead of snapping instantly.'**
+  String get whatsNew302Bullet2;
+
+  /// No description provided for @whatsNew302Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed occasional glitches when jumping to nearby messages.'**
+  String get whatsNew302Bullet3;
+
   /// No description provided for @whatsNew301Title.
   ///
   /// In en, this message translates to:

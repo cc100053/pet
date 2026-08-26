@@ -2167,6 +2167,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 
   @override
+  String get whatsNew302Title => 'リプライジャンプがよりスムーズに';
+
+  @override
+  String get whatsNew302Bullet1 =>
+      '返信をタップすると、まだ読み込まれていないメッセージへもすぐにジャンプできるようになりました。';
+
+  @override
+  String get whatsNew302Bullet2 => '長距離のジャンプは、瞬間移動ではなく滑らかにスクロールするようになりました。';
+
+  @override
+  String get whatsNew302Bullet3 => '近くのメッセージへジャンプする際に発生していた表示の不具合を修正しました。';
+
+  @override
   String get whatsNew301Title => '不具合修正';
 
   @override
