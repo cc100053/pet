@@ -814,6 +814,9 @@ class _FeedCard extends StatelessWidget {
         (metadata[PetChatMessageAdapter.captionKey] as String? ?? '').trim();
     final coinsAwarded =
         (metadata[PetChatMessageAdapter.coinsAwardedKey] as int?) ?? 0;
+    final isEdited =
+        metadata[PetChatMessageAdapter.isEditedKey] as bool? ?? false;
+    final editedLabel = AppLocalizations.of(context)!.chatMessageEdited;
     final theme = Theme.of(context);
     final canShowRemote = remoteUrl.isNotEmpty;
     final canShowLocal = localPath.isNotEmpty;
@@ -1040,7 +1043,9 @@ class _FeedCard extends StatelessWidget {
                                     vertical: 6,
                                   ),
                                   child: Text(
-                                    bubbleTime,
+                                    isEdited
+                                        ? '$editedLabel $bubbleTime'
+                                        : bubbleTime,
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: overlaySecondaryText,
                                       fontSize: 10,
@@ -1075,7 +1080,9 @@ class _FeedCard extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 1),
                                   child: Text(
-                                    bubbleTime,
+                                    isEdited
+                                        ? '$editedLabel $bubbleTime'
+                                        : bubbleTime,
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: metadataTimeColor,
                                       fontSize: 10,

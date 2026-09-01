@@ -369,15 +369,13 @@ extension _HomeUnreadManager on _HomeViewState {
   }
 
   void _handleMessageUpdate(Map<String, dynamic> record) {
-    // Currently only recalled feed photos need a gallery refresh: an image_feed
-    // row whose deleted_at is now set should drop out of the gallery + room
-    // snapshot for every member.
+    // Feed photos need a gallery refresh on two updates: a recall (deleted_at
+    // set) drops the photo out of the gallery + room snapshot, and a caption
+    // edit rewrites it in place, for every member.
     if (record['type'] != 'image_feed') {
       return;
     }
-    if (_parseOptionalDate(record['deleted_at']) == null) {
-      return;
-    }
+    final isRecalled = _parseOptionalDate(record['deleted_at']) != null;
     final messageId = (record['id'] as String?)?.trim();
     final roomId = (record['room_id'] as String?)?.trim();
     if (messageId == null ||
@@ -386,20 +384,22 @@ extension _HomeUnreadManager on _HomeViewState {
         roomId.isEmpty) {
       return;
     }
+    final caption = record['caption'] as String?;
+    PetHomeGalleryFeedData applyUpdate(PetHomeGalleryFeedData data) =>
+        isRecalled
+        ? data.removeByMessageId(messageId)
+        : data.updateCaptionByMessageId(messageId, caption);
     _setStateForUnreadMutation(() {
       if (roomId == _roomId) {
-        _applyLatestFeedData(
-          _currentLatestFeedData().removeByMessageId(messageId),
-        );
+        _applyLatestFeedData(applyUpdate(_currentLatestFeedData()));
       }
       _myRooms = _myRooms.map((room) {
         if (room['id'] != roomId) {
           return room;
         }
-        final next = PetHomeGalleryFeedData.fromRoomSnapshot(
-          room,
-        ).removeByMessageId(messageId);
-        return next.applyToRoomSnapshot(room);
+        return applyUpdate(
+          PetHomeGalleryFeedData.fromRoomSnapshot(room),
+        ).applyToRoomSnapshot(room);
       }).toList();
     });
   }

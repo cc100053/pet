@@ -19,6 +19,12 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   last three quarters of a screen, so it arrives as a scroll without replaying
   the history in between. A jump that still cannot land rewinds and reports
   instead of failing silently.
+- A sent photo's caption is editable by its sender, alongside text bodies:
+  `edit_message` writes `caption` for `image_feed` rows, the feed card shows the
+  `edited` marker, reply previews resolve from the loaded message (so an edited
+  body/caption is never stale), and a realtime caption update rewrites the home
+  gallery + room-card preview in place. Clearing a caption to empty is still
+  rejected (`message_body_required`).
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - Internal hunger-schedule and abandoned-room review tables use RLS as
   defense-in-depth while remaining service-only.

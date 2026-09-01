@@ -41,17 +41,17 @@ extension _ChatRoomDataHelpers on _ChatRoomViewV2State {
 
   ChatReplyPreview? _resolvedReplyPreview(ChatMessage message) {
     final preview = message.replyPreview;
+    final replyId = message.replyToMessageId ?? preview?.id;
+    if (replyId != null && replyId.isNotEmpty) {
+      // The loaded message wins over the stored preview snapshot: the target's
+      // body/caption may have been edited since the preview was captured.
+      final target = _messagesById[replyId];
+      if (target != null) {
+        return ChatReplyPreview.fromMessage(target);
+      }
+    }
     if (preview != null && preview.id.isNotEmpty) {
       return preview;
-    }
-
-    final replyId = message.replyToMessageId;
-    if (replyId == null || replyId.isEmpty) {
-      return null;
-    }
-    final target = _messagesById[replyId];
-    if (target != null) {
-      return ChatReplyPreview.fromMessage(target);
     }
     return null;
   }

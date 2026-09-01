@@ -32,7 +32,9 @@ migration that rewrites the object.
 - Pet tickets are additive and v2-gated. New purchases use
   `purchase_and_use_pet_ticket(...)`; owned tickets use `use_pet_ticket(...)`.
 - Message senders may be null for system events. Image-feed recall clears media
-  without reversing rewards.
+  without reversing rewards. `edit_message` covers `text` and `image_feed`: the
+  edited text writes to `body` for text and to `caption` for a photo, and
+  stamps `edited_at` either way.
 - `pet_hunger_tick_schedule.next_check_at` is the due cursor; hunger pause
   state lives in `room_debug_overrides`.
 - Internal schedule/cleanup tables have RLS enabled with no client policies;

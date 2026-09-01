@@ -51,6 +51,36 @@ void main() {
       expect(identical(next.removeByMessageId('missing'), next), isTrue);
     });
 
+    test('updateCaptionByMessageId rewrites only the edited photo', () {
+      var data = const PetHomeGalleryFeedData.empty();
+      for (var i = 0; i < 3; i++) {
+        data = data.prependEntry(
+          imageUrl: 'https://example.com/$i.jpg',
+          caption: 'caption $i',
+          senderId: 'sender-$i',
+          sentAt: DateTime.utc(2026, 9, 1, 0, i),
+          messageId: 'message-$i',
+        );
+      }
+
+      final next = data.updateCaptionByMessageId('message-1', 'edited');
+
+      expect(next.messageIds, data.messageIds);
+      expect(next.imageUrls, data.imageUrls);
+      expect(next.captions[next.messageIds.indexOf('message-1')], 'edited');
+      expect(next.captions[next.messageIds.indexOf('message-2')], 'caption 2');
+      // The newest photo's caption drives the room card preview line.
+      expect(
+        data.updateCaptionByMessageId('message-2', 'newest').latestCaption,
+        'newest',
+      );
+      // Unknown ids leave the data untouched.
+      expect(
+        identical(next.updateCaptionByMessageId('missing', 'x'), next),
+        isTrue,
+      );
+    });
+
     test('reconciles optimistic local image with canonical remote image', () {
       final pending = PendingPetHomeOptimisticFeed(
         tempId: 'temp-1',

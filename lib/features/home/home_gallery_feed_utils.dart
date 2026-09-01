@@ -328,6 +328,32 @@ class PetHomeGalleryFeedData {
     return _fromEntries(entries, maxItems: maxItems);
   }
 
+  /// Rewrites one entry's caption after its photo message was edited.
+  PetHomeGalleryFeedData updateCaptionByMessageId(
+    String messageId,
+    String? caption, {
+    int maxItems = kPetHomeGalleryMaxPhotos,
+  }) {
+    final trimmed = messageId.trim();
+    if (trimmed.isEmpty || !messageIds.contains(trimmed)) {
+      return this;
+    }
+    final entries = _entries
+        .map(
+          (entry) => entry.messageId == trimmed
+              ? _PetHomeGalleryFeedEntry(
+                  imageUrl: entry.imageUrl,
+                  caption: caption,
+                  senderId: entry.senderId,
+                  sentAt: entry.sentAt,
+                  messageId: entry.messageId,
+                )
+              : entry,
+        )
+        .toList(growable: false);
+    return _fromEntries(entries, maxItems: maxItems);
+  }
+
   PetHomeGalleryRealtimeReconcileResult reconcilePendingRealtime({
     required PendingPetHomeOptimisticFeed pending,
     required String roomId,

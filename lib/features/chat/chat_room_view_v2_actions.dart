@@ -10,8 +10,13 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
   }
 
   Future<String?> _promptEditMessageText(ChatMessage message) async {
-    final controller = TextEditingController(text: (message.body ?? '').trim());
+    // A photo message has no body: the editable text is its caption.
+    final isPhoto = message.isImageFeed;
+    final controller = TextEditingController(
+      text: ((isPhoto ? message.caption : message.body) ?? '').trim(),
+    );
     final l10n = AppLocalizations.of(context)!;
+    final hintText = isPhoto ? l10n.feedCaptionLabel : l10n.chatMessageHint;
     final originalText = controller.text.trim();
     String? errorText;
     final result = await showJuiceToast<String>(
@@ -25,7 +30,7 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
             final text = controller.text.trim();
             if (text.isEmpty) {
               setDialogState(() {
-                errorText = l10n.chatMessageHint;
+                errorText = hintText;
               });
               return;
             }
@@ -53,7 +58,7 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
                 maxLines: 4,
                 style: GoogleFonts.mPlusRounded1c(),
                 decoration: InputDecoration(
-                  hintText: l10n.chatMessageHint,
+                  hintText: hintText,
                   errorText: errorText,
                   hintStyle: GoogleFonts.mPlusRounded1c(color: Colors.black26),
                 ),
@@ -215,7 +220,8 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
   }
 
   Future<void> _editMessage(ChatMessage message) async {
-    if (message.isDeleted || message.type != 'text') {
+    final isPhoto = message.isImageFeed;
+    if (message.isDeleted || !(message.type == 'text' || isPhoto)) {
       return;
     }
     final text = await _promptEditMessageText(message);
@@ -225,7 +231,8 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
 
     final previous = _messagesById[message.id] ?? message;
     final optimistic = previous.copyWith(
-      body: text.trim(),
+      body: isPhoto ? null : text.trim(),
+      caption: isPhoto ? text.trim() : null,
       editedAt: DateTime.now().toUtc(),
     );
     await _replaceMessageLocally(optimistic, animated: false);
@@ -241,6 +248,9 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
           ).copyWith(
             reactions: previous.reactions,
             replyPreview: previous.replyPreview,
+            // The server row carries no local file path; keep the already
+            // rendered local image so the card does not flicker.
+            localImagePath: previous.localImagePath,
           );
       await _replaceMessageLocally(updated, animated: false);
     } catch (error) {
@@ -358,9 +368,10 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
     }
 
     final isMine = senderId == _currentUserId;
-    // Editing stays text-only; recall (delete) also covers the user's own
-    // photos so a sent photo can be un-sent.
-    final canEdit = isMine && message.type == 'text';
+    // Editing covers the user's own text (body) and photos (caption); recall
+    // (delete) covers both too, so a sent photo can be un-sent.
+    final canEdit =
+        isMine && (message.type == 'text' || message.type == 'image_feed');
     final canDelete =
         isMine && (message.type == 'text' || message.type == 'image_feed');
     final isBlocked = _blockedUserIds.contains(senderId);
