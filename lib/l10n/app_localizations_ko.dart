@@ -2179,6 +2179,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 
   @override
+  String get whatsNew310Title => '사진 캡션 편집';
+
+  @override
+  String get whatsNew310Bullet1 => '채팅의 메시지 작업 메뉴에서 내가 보낸 사진의 캡션을 수정할 수 있어요.';
+
+  @override
+  String get whatsNew310Bullet2 => '수정한 캡션은 채팅, 갤러리, 방 카드, 답장 미리보기에 즉시 반영됩니다.';
+
+  @override
+  String get whatsNew310Bullet3 => '수정된 사진에는 \'수정됨\' 표시가 나타나요.';
+
+  @override
   String get whatsNew302Title => '더 부드러워진 답장 이동';
 
   @override

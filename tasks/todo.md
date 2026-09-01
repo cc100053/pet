@@ -21,8 +21,12 @@ Current follow-ups and the active session only. Historical task logs live in
 - [ ] To share a room-frame casing across members, add server-backed state
       following the room-background precedent and version-gate it through
       `.codex/skills/shared-item-rollout/SKILL.md`.
-- [ ] Monitor ASC/store outcome for iOS `3.0.2+22`; submit for App Review only
+- [ ] Monitor ASC/store outcome for iOS `3.1.0+23`; submit for App Review only
       after an explicit request.
+- [ ] Confirm build 23's Runner UUID
+      `1074123E-B8C3-3470-9A05-F5D2ACAF3F78` and App.framework UUID
+      `0C7143A3-F470-6FF3-485E-50E695C70643` are absent from Crashlytics →
+      Settings → Missing dSYMs `[USER ACTION REQUIRED]`.
 - [x] Confirm build 22's recorded UUIDs (Runner
       `3D5833E2-B9BC-3107-9C9C-15DEFC0C5886`, App.framework
       `0C7143A3-330B-1F8B-485E-50E6EF09C56E`) are absent from Crashlytics →
@@ -48,6 +52,23 @@ Current follow-ups and the active session only. Historical task logs live in
 - Release/build/backend truth: `docs/release_status.md`.
 - Full pre-compaction task state:
   `tasks/archive/todo_20260818_pre_compaction.md`.
+
+## Plan (2026-09-01 PetTomo 3.1.0 Release Notes Sync)
+- [x] Update `3.1.0+23` versioning and localized bundled/ASC notes.
+- [x] Create ASC version, sync four locales, and verify the EULA metadata.
+- [x] Build, upload, process, and attach iOS build 23.
+- [x] Upload all 12 dSYMs and preserve the archive.
+- [x] Record release IDs and current baseline in the release ledger.
+- [ ] Complete the Crashlytics Missing dSYMs check `[USER ACTION REQUIRED]`.
+
+## Review (2026-09-01 PetTomo 3.1.0 Release Notes Sync)
+- `dart format --output=none --set-exit-if-changed lib test`: 329 files, 0 changed.
+- `flutter analyze`: passed with no issues.
+- `flutter test`: 656 passed, 1 documented integration skip.
+- ASC version `00203205-22bc-4b4d-94bc-8802b7839892` is
+  `PREPARE_FOR_SUBMISSION`; build `00e52973-ae37-4ce9-9b70-47eb50762e3c` is
+  `VALID` and attached.
+- App Review submission was not requested or performed.
 
 ## Review (2026-08-18 Agent Docs And Memory Optimization)
 - Added a narrow `AGENTS.md` TODO for the pet-socket skill's broken bare helper

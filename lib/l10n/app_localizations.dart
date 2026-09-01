@@ -4017,6 +4017,30 @@ abstract class AppLocalizations {
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
 
+  /// No description provided for @whatsNew310Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Photo Captions'**
+  String get whatsNew310Title;
+
+  /// No description provided for @whatsNew310Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the captions on photos you send from the chat action menu.'**
+  String get whatsNew310Bullet1;
+
+  /// No description provided for @whatsNew310Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated captions appear right away in chat, your gallery, room cards, and reply previews.'**
+  String get whatsNew310Bullet2;
+
+  /// No description provided for @whatsNew310Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited photos show a clear “edited” label.'**
+  String get whatsNew310Bullet3;
+
   /// No description provided for @whatsNew302Title.
   ///
   /// In en, this message translates to:

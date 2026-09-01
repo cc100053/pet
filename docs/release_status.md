@@ -16,7 +16,7 @@ Verify live store state before relying on these values for release decisions.
 
 | Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 3.0.2 | 22 | Repo workflow assumes current; ASC version `b3a0c116-cd88-4997-82ff-e9dcb7ae8603` is `PREPARE_FOR_SUBMISSION`, build `c997fdc5-61fe-4984-9273-957630da97e5` is `VALID` and attached; localizations synced (en-US `22079e36-fa1d-4229-91f1-9973795f2c18`, ja `c407aff2-5426-4c68-967f-28d6049885c1`, ko `ec3671f4-ad45-46b2-9e73-84d53f64eae5`, zh-Hant `d39dbbed-966b-4631-8264-527d45709e4a`); not submitted for App Review | 2026-08-26 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the chat reply-jump smoothing fixes (`e1ea39b`, `74b3b66`, `30a7422`, `bb29077`) | ios/v3.0.2+22 |
+| iOS | 3.1.0 | 23 | Repo workflow assumes current; ASC version `00203205-22bc-4b4d-94bc-8802b7839892` is `PREPARE_FOR_SUBMISSION`, build `00e52973-ae37-4ce9-9b70-47eb50762e3c` is `VALID` and attached; localizations synced (en-US `40194a78-5a0c-412e-9660-150f0651c4aa`, ja `8880e97d-4d74-4165-a120-d27a5f29adc9`, ko `fc58bc08-21ea-4ad8-a6a3-ede9afc00c64`, zh-Hant `0ff95c01-6f58-4667-86c3-b4206b881d64`); not submitted for App Review | 2026-09-01 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for sent-photo caption editing | ios/v3.1.0+23 |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Crashlytics dSYM Status Per Build
@@ -27,6 +27,7 @@ this is unrecoverable after the fact. Record every release here.
 
 | Version | Build | dSYMs uploaded | Archive preserved | Note |
 | --- | --- | --- | --- | --- |
+| 3.1.0 | 23 | Yes — 2026-09-01, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.1.0 (23).xcarchive` | Runner UUID `1074123E-B8C3-3470-9A05-F5D2ACAF3F78`, App.framework `0C7143A3-F470-6FF3-485E-50E695C70643`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.0.2 | 22 | Yes — 2026-08-26, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `~/Library/Developer/Xcode/Archives/shipped/Runner 3.0.2 (22).xcarchive` | Runner UUID `3D5833E2-B9BC-3107-9C9C-15DEFC0C5886`, App.framework `0C7143A3-330B-1F8B-485E-50E6EF09C56E`. Confirmed 2026-08-26: neither UUID appears in Crashlytics → Settings → Missing dSYMs |
 | 3.0.1 | 21 | Yes — 2026-08-20, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `~/Library/Developer/Xcode/Archives/shipped/Runner 3.0.1 (21).xcarchive` | Runner UUID `4472ACFA-8623-39C1-878B-E178380BB83A`, App.framework `0C7143A3-8EAC-741B-485E-50E6749A1B92`. Confirmed 2026-08-20: neither UUID appears in Crashlytics → Settings → Missing dSYMs |
 | 3.0.0 | 20 | Yes — 2026-08-17, all 12 dSYMs, retroactively | `~/Library/Developer/Xcode/Archives/shipped/Runner 3.0.0 (20).xcarchive` (327 MB) | The release itself ran `flutter build ipa` + `asc builds upload` without the dSYM step; rescued from the surviving `build/ios/archive/Runner.xcarchive` before the next build could destroy it. Runner UUID `A42B22FA-F8DA-3002-B633-249266FD2393`, App.framework `0C7143A3-1916-07E9-485E-50E6CB22EBD2`. `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
@@ -51,6 +52,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Status note | Evidence | Git tag |
 | --- | --- | --- | --- | --- | --- |
+| iOS | 3.0.2 | 22 | Superseded in repo workflow by completed `3.1.0+23` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-09-01 | ASC version `b3a0c116-cd88-4997-82ff-e9dcb7ae8603`, attached build `c997fdc5-61fe-4984-9273-957630da97e5` | none |
 | iOS | 3.0.1 | 21 | Superseded in repo workflow by completed `3.0.2+22` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-20 | ASC version `a5d1ca1d-81be-47d5-a63c-1aa80413a47a`, attached build `7d5bf932-2b30-4dad-9a15-30392f183a1e` | none |
 | iOS | 3.0.0 | 20 | Superseded in repo workflow by completed `3.0.1+21` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-16 | ASC version `9c8da611-140f-42aa-be58-e3b019978793`, attached build `2fec6cc5-c143-42a4-97b6-aed587726311` | none |
 | iOS | 2.4.0 | 19 | Superseded in repo workflow by completed `3.0.0+20` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-13 | ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8`, attached build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` | none |
@@ -74,7 +76,7 @@ This section is a historical repo hint, not a live-store guarantee.
 
 | Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS | None pending | - | `pubspec.yaml` is `3.0.2+22`; the completed `release-notes-sync` flow for `3.0.2` (chat reply-jump smoothing fixes) is the repo's current release baseline per the Update Checklist below, even though ASC still shows `PREPARE_FOR_SUBMISSION`/not submitted | ASC version `b3a0c116-cd88-4997-82ff-e9dcb7ae8603`, attached build `c997fdc5-61fe-4984-9273-957630da97e5` (build 22) | Monitor review/store outcome once submitted; no further candidate work queued | branch `main` | none |
+| iOS | None pending | - | `pubspec.yaml` is `3.1.0+23`; the completed `release-notes-sync` flow for `3.1.0` (sent-photo caption editing) is the repo's current release baseline per the Update Checklist below, even though ASC still shows `PREPARE_FOR_SUBMISSION`/not submitted | ASC version `00203205-22bc-4b4d-94bc-8802b7839892`, attached build `00e52973-ae37-4ce9-9b70-47eb50762e3c` (build 23) | Monitor review/store outcome once submitted; no further candidate work queued | branch `main` | none |
 
 ## Feature Version Gates
 

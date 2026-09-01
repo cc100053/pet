@@ -2155,6 +2155,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 
   @override
+  String get whatsNew310Title => '编辑照片说明';
+
+  @override
+  String get whatsNew310Bullet1 => '现在可以从聊天消息的操作菜单编辑你发送的照片说明。';
+
+  @override
+  String get whatsNew310Bullet2 => '编辑内容会立即同步到聊天、图库、房间卡片和回复预览。';
+
+  @override
+  String get whatsNew310Bullet3 => '编辑过的照片会显示“已编辑”标记。';
+
+  @override
   String get whatsNew302Title => '回复跳转更流畅';
 
   @override
@@ -4324,6 +4336,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew310Title => '編輯照片說明';
+
+  @override
+  String get whatsNew310Bullet1 => '現在可以從聊天訊息的操作選單，編輯你送出的照片說明。';
+
+  @override
+  String get whatsNew310Bullet2 => '編輯內容會立即同步到聊天室、相片庫、房間卡片與回覆預覽。';
+
+  @override
+  String get whatsNew310Bullet3 => '編輯過的照片會顯示「已編輯」標記。';
 
   @override
   String get whatsNew302Title => '回覆跳轉更流暢';

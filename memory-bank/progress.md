@@ -4,11 +4,10 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `3.0.2+22` (chat reply-jump smoothing fixes:
-  `e1ea39b`, `74b3b66`, `30a7422`, `bb29077`). Build 22 is `VALID`, attached,
-  and intentionally not submitted for App Review. Exact ASC, dSYM,
-  localization, and backend deployment state lives in
-  `docs/release_status.md`.
+- Repo release baseline is iOS `3.1.0+23` (sent-photo caption editing).
+  Build 23 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
+  not submitted for App Review. Exact ASC, dSYM, localization, and backend
+  deployment state lives in `docs/release_status.md`.
 - Flutter is pinned to `3.44.0` / Dart `3.12.0`. There is no CI gate; follow
   the local final-check order in `AGENTS.md` and `docs/testing.md`.
 - Chat reply-jump scrolls to the target's list index before centering it, so
@@ -61,12 +60,12 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   decision, a price from `docs/shop_pricing.md`, and a migration.
 - Sharing an equipped casing across room members needs server-backed state and
   old-client compatibility approval.
-- Submit iOS `3.0.0+20` for App Review only after an explicit request, and
-  confirm build 20's UUIDs are absent from Crashlytics Missing dSYMs
+- Submit iOS `3.1.0+23` for App Review only after an explicit request, and
+  confirm build 23's Runner/App.framework UUIDs are absent from Crashlytics
+  Missing dSYMs
   `[USER ACTION REQUIRED]`.
-- The room-decor transient-failure fix is on `main` but unreleased; it is
-  client-only, so it needs a build. Crashlytics issue
-  `0183b64515477452f62329d7d3a83a4f` stays OPEN until that ships.
+- The room-decor transient-failure fix shipped in `3.0.1+21`; Crashlytics
+  issue `0183b64515477452f62329d7d3a83a4f` stays OPEN until live verification.
 - Convert remaining source-text app tests to behavioral tests where practical;
   SQL migration text tests remain legitimate.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.

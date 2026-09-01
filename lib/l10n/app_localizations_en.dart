@@ -2272,6 +2272,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved app stability for a smoother everyday experience.';
 
   @override
+  String get whatsNew310Title => 'Edit Photo Captions';
+
+  @override
+  String get whatsNew310Bullet1 =>
+      'Edit the captions on photos you send from the chat action menu.';
+
+  @override
+  String get whatsNew310Bullet2 =>
+      'Updated captions appear right away in chat, your gallery, room cards, and reply previews.';
+
+  @override
+  String get whatsNew310Bullet3 => 'Edited photos show a clear “edited” label.';
+
+  @override
   String get whatsNew302Title => 'Smoother Reply Jumps';
 
   @override

@@ -2167,6 +2167,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 
   @override
+  String get whatsNew310Title => '写真キャプションを編集';
+
+  @override
+  String get whatsNew310Bullet1 => 'チャットの操作メニューから、送信した写真のキャプションを編集できます。';
+
+  @override
+  String get whatsNew310Bullet2 => '編集内容はチャット、ギャラリー、ルームカード、返信プレビューにすぐ反映されます。';
+
+  @override
+  String get whatsNew310Bullet3 => '編集した写真には「編集済み」マークが表示されます。';
+
+  @override
   String get whatsNew302Title => 'リプライジャンプがよりスムーズに';
 
   @override
