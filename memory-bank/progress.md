@@ -25,6 +25,12 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   gallery + room-card preview in place. Clearing a caption to empty is still
   rejected (`message_body_required`).
 - Room invite creation/regeneration uses reusable 24-hour codes.
+- `leave_room` is idempotent: leaving a room you have no active membership
+  in is a silent no-op, not a `not_member` error, and an already-inactive
+  membership keeps its original `left_at`. A stale client (relaunched after
+  a background termination with a room it already left) no longer shows
+  "leave failed". Server-only, live since 2026-09-03; see
+  `docs/release_status.md`.
 - Internal hunger-schedule and abandoned-room review tables use RLS as
   defense-in-depth while remaining service-only.
 - Pet rendering prefers PNG sequences while preserving GIF ids. Chicken is
