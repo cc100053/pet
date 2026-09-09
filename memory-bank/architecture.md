@@ -61,7 +61,9 @@ Compact current-state map for mandatory reads. Full snapshots live in
   `public.normalize_timezone(text)` or `at time zone` with `22023` fallback.
 - `userFacingError(...)` localizes, classifies, deduplicates, and reports handled
   failures. Bespoke visible copy uses `reportUserVisibleError(...)`; silent
-  best-effort work uses `reportSwallowedError(...)`.
+  best-effort work uses `reportSwallowedError(...)`. Classify on exception type
+  or code, never on message keywords: iOS returns OS messages in the device
+  locale, so English substring matching mislabels them `unexpected`.
 - `UncleanExitService` reports likely OOM/SIGKILL on the next launch; keep Hive
   initialization before its sentinel. On iOS pressure,
   `SystemMemoryPressureService` releases cache and live-image handles.

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,6 +56,44 @@ void main() {
       );
       expect(
         classifyUserFacingError(Exception('Connection timed out')),
+        UserFacingErrorCategory.network,
+      );
+    });
+
+    test('classifies transport failures whose message is OS-localized', () {
+      // These reach us with a device-locale message ("要求逾時。"), so only the
+      // type identifies them.
+      expect(
+        classifyUserFacingError(
+          TimeoutException('\u8981\u6c42\u903e\u6642\u3002'),
+        ),
+        UserFacingErrorCategory.network,
+      );
+      expect(
+        classifyUserFacingError(
+          AuthRetryableFetchException(
+            message: '\u8981\u6c42\u903e\u6642\u3002',
+          ),
+        ),
+        UserFacingErrorCategory.network,
+      );
+      expect(
+        classifyUserFacingError(
+          FirebaseException(
+            plugin: 'firebase_messaging',
+            code: 'unknown',
+            message: '\u8981\u6c42\u903e\u6642\u3002',
+          ),
+        ),
+        UserFacingErrorCategory.network,
+      );
+      expect(
+        classifyUserFacingError(
+          PlatformException(
+            code: 'Error',
+            message: 'Error while launching https://example.com',
+          ),
+        ),
         UserFacingErrorCategory.network,
       );
     });

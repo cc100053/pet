@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -231,6 +232,16 @@ UserFacingErrorCategory _classify(Object error, String rawSummary) {
   if (error is PlatformException &&
       _mediaPermissionCodes.contains(error.code)) {
     return UserFacingErrorCategory.mediaPermissionDenied;
+  }
+  // Transport failures whose only human-readable text is an OS message: iOS
+  // renders those in the device locale ("要求逾時。"), so the keyword matching
+  // below never sees them. The type is the locale-independent signal.
+  if (error is TimeoutException ||
+      error is AuthRetryableFetchException ||
+      (error is FirebaseException && error.plugin == 'firebase_messaging') ||
+      (error is PlatformException &&
+          (error.message ?? '').startsWith('Error while launching'))) {
+    return UserFacingErrorCategory.network;
   }
   if (error is FunctionException && error.status == 401) {
     return UserFacingErrorCategory.authReauthRequired;
