@@ -4,8 +4,8 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 
 ## Current State
-- Repo release baseline is iOS `3.1.0+23` (sent-photo caption editing).
-  Build 23 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
+- Repo release baseline is iOS `3.2.0+24` (shared room frame sync).
+  Build 24 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
   not submitted for App Review. Exact ASC, dSYM, localization, and backend
   deployment state lives in `docs/release_status.md`.
 - Flutter is pinned to `3.44.0` / Dart `3.12.0`. There is no CI gate; follow
@@ -53,7 +53,7 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
 - Room-frame casings ship in `3.0.0` and are dark below that version. The
   pre-redesign `original` casing remains the default, and the equipped style
-  now syncs through `room_frame_state` in the next app build; Hive remains a
+  now syncs through `room_frame_state` in `3.2.0+24`; Hive remains a
   fallback/cache and legacy choices are not automatically uploaded.
 - Frame unlocks are room-level based: `original` and `polaroidClassic` Lv1,
   `corkboard` Lv3, `goldLeaf` Lv5, `nightGlow` Lv8. Equipped casings are
@@ -65,8 +65,8 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 ## Open Items
 - Decide whether any room-frame casing belongs in Shop. This needs a product
   decision, a price from `docs/shop_pricing.md`, and a migration.
-- Submit iOS `3.1.0+23` for App Review only after an explicit request, and
-  confirm build 23's Runner/App.framework UUIDs are absent from Crashlytics
+- Submit iOS `3.2.0+24` for App Review only after an explicit request, and
+  confirm build 24's Runner/App.framework UUIDs are absent from Crashlytics
   Missing dSYMs
   `[USER ACTION REQUIRED]`.
 - The room-decor transient-failure fix shipped in `3.0.1+21`; Crashlytics

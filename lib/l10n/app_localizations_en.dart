@@ -2272,6 +2272,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved app stability for a smoother everyday experience.';
 
   @override
+  String get whatsNew320Title => 'Shared Room Frames';
+
+  @override
+  String get whatsNew320Bullet1 =>
+      'Pick from five playful frames for your shared room card.';
+
+  @override
+  String get whatsNew320Bullet2 =>
+      'Frame changes now sync automatically for everyone in the room.';
+
+  @override
+  String get whatsNew320Bullet3 =>
+      'Improved room updates and network error handling.';
+
+  @override
   String get whatsNew310Title => 'Edit Photo Captions';
 
   @override

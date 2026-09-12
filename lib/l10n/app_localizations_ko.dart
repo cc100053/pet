@@ -2179,6 +2179,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 
   @override
+  String get whatsNew320Title => '공유 방 프레임 동기화';
+
+  @override
+  String get whatsNew320Bullet1 => '공유 방 카드에 5가지 프레임을 설정할 수 있어요.';
+
+  @override
+  String get whatsNew320Bullet2 => '프레임 변경 사항이 모든 멤버에게 자동으로 동기화됩니다.';
+
+  @override
+  String get whatsNew320Bullet3 => '방 업데이트와 네트워크 오류 처리를 개선했어요.';
+
+  @override
   String get whatsNew310Title => '사진 캡션 편집';
 
   @override

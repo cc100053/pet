@@ -1,12 +1,36 @@
 # TODO
 
+## Plan (2026-09-13 PetTomo 3.2.0 Release Notes Sync)
+- [x] Bump the app to `3.2.0+24` and add localized bundled/ASC notes.
+- [x] Run localization generation, format, analyzer, metadata terms, and tests.
+- [x] Create/sync the ASC version and verify all four store localizations.
+- [x] Build/upload iOS 3.2.0+24, upload dSYMs, and preserve the archive.
+- [x] Wait for VALID processing, attach the build, update release ledgers, commit, and push.
+
+## Review (2026-09-13 PetTomo 3.2.0 Release Notes Sync)
+- Localized bundled What's New and ASC metadata were updated for `3.2.0`;
+  ASC version `4ae6f075-36a9-48ad-9592-a9b27d085600` has all four store
+  localizations with the direct Apple EULA footer preserved.
+- `dart format --output=none --set-exit-if-changed lib test`: 331 files,
+  0 changed; `flutter analyze`: clean; metadata terms test passed;
+  `flutter test`: 667 passed, 1 documented environment-dependent skip.
+- IPA `3.2.0+24` passed package checks, uploaded as
+  `2524cff5-2c7d-4c01-b8f9-4e945f48dff9`, reached `VALID`, and is attached to
+  the ASC version. App Review submission was not requested or performed.
+- All 12 dSYMs uploaded before any later archive operation and the archive is
+  preserved at `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.2.0 (24).xcarchive`.
+  Runner UUID `899B069B-543E-33E9-B307-4C78FBEC276A`; App.framework UUID
+  `0C7143A3-E8A1-4BD6-485E-50E684619EE5`.
+- [ ] Confirm those two UUIDs are absent from Crashlytics → Settings → Missing
+  dSYMs `[USER ACTION REQUIRED]`.
+
 ## Plan (2026-09-13 Shared Room Frames)
 - [x] Add additive member-only room-frame state and server level validation; preserve all existing contracts.
 - [x] Save explicit frame confirmations to Supabase, reconcile/realtime-sync all active rooms, and retain Hive fallback without auto-uploading it.
 - [x] Test failed saves, shared reconciliation, stale responses, and server authorization/level boundaries.
 - [x] Update current-state/release docs, run final format/analyze/tests, commit and push.
 
-Contract: legacy Hive `room_frame_styles` remains the fallback/cache (`roomId -> storageKey`); existing frame ids and unlock levels are unchanged. New `room_frame_state(room_id, style, updated_at)` is independent of existing room/background/shop RPCs. Only active members can read/equip; explicit confirmation is last-writer-wins. No automatic migration of conflicting local choices. Old binaries ignore the table; next app build consumes it. Rollback: revert client integration; old storage and RPCs remain usable.
+Contract: legacy Hive `room_frame_styles` remains the fallback/cache (`roomId -> storageKey`); existing frame ids and unlock levels are unchanged. New `room_frame_state(room_id, style, updated_at)` is independent of existing room/background/shop RPCs. Only active members can read/equip; explicit confirmation is last-writer-wins. No automatic migration of conflicting local choices. Old binaries ignore the table; `3.2.0+24` consumes it. Rollback: revert client integration; old storage and RPCs remain usable.
 
 ## Review (2026-09-13 Shared Room Frames)
 - Applied migration on verified `ilxzpszgirhwxpeocygs` (live `20260912151653`);
@@ -17,8 +41,8 @@ Contract: legacy Hive `room_frame_styles` remains the fallback/cache (`roomId ->
   0 changed; `flutter analyze`: clean; `flutter test`: 667 passed, 1 documented
   env-dependent integration skip. Focused frame tests: 35 passed.
 - Real-device two-client realtime/background verification remains a release
-  follow-up. This integration is not included in uploaded `3.1.0+23`; no app
-  build/upload/submission was requested.
+  follow-up. This integration is included in uploaded `3.2.0+24`; App Review
+  submission was not requested.
 
 Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
@@ -38,10 +62,13 @@ Current follow-ups and the active session only. Historical task logs live in
 - [ ] Decide whether any room-frame casing belongs in the shop. This needs an
       `items` row, a price from `docs/shop_pricing.md`, and migration /
       old-client compatibility approval.
-- [ ] Real-device verify shared frames in two upgraded clients once the next
-      app build is distributed; legacy-only choices are shared on Done.
-- [ ] Monitor ASC/store outcome for iOS `3.1.0+23`; submit for App Review only
+- [ ] Real-device verify shared frames in two upgraded clients once `3.2.0+24`
+      is distributed; legacy-only choices are shared on Done.
+- [ ] Monitor ASC/store outcome for iOS `3.2.0+24`; submit for App Review only
       after an explicit request.
+- [ ] Confirm build 24's Runner UUID `899B069B-543E-33E9-B307-4C78FBEC276A`
+      and App.framework UUID `0C7143A3-E8A1-4BD6-485E-50E684619EE5` are absent
+      from Crashlytics → Settings → Missing dSYMs `[USER ACTION REQUIRED]`.
 - [ ] Confirm build 23's Runner UUID
       `1074123E-B8C3-3470-9A05-F5D2ACAF3F78` and App.framework UUID
       `0C7143A3-F470-6FF3-485E-50E695C70643` are absent from Crashlytics →

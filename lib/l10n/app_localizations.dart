@@ -4017,6 +4017,30 @@ abstract class AppLocalizations {
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
 
+  /// No description provided for @whatsNew320Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared Room Frames'**
+  String get whatsNew320Title;
+
+  /// No description provided for @whatsNew320Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from five playful frames for your shared room card.'**
+  String get whatsNew320Bullet1;
+
+  /// No description provided for @whatsNew320Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame changes now sync automatically for everyone in the room.'**
+  String get whatsNew320Bullet2;
+
+  /// No description provided for @whatsNew320Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved room updates and network error handling.'**
+  String get whatsNew320Bullet3;
+
   /// No description provided for @whatsNew310Title.
   ///
   /// In en, this message translates to:

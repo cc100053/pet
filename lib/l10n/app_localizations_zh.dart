@@ -2155,6 +2155,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 
   @override
+  String get whatsNew320Title => '同步共享房间相框';
+
+  @override
+  String get whatsNew320Bullet1 => '共享房间卡片现在可以套用 5 款相框。';
+
+  @override
+  String get whatsNew320Bullet2 => '相框变更会自动同步给房间内的所有成员。';
+
+  @override
+  String get whatsNew320Bullet3 => '改善房间更新与网络错误处理。';
+
+  @override
   String get whatsNew310Title => '编辑照片说明';
 
   @override
@@ -4336,6 +4348,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew320Title => '同步共享房間相框';
+
+  @override
+  String get whatsNew320Bullet1 => '共享房間卡片現在可以套用 5 款相框。';
+
+  @override
+  String get whatsNew320Bullet2 => '相框變更會自動同步給房間內的所有成員。';
+
+  @override
+  String get whatsNew320Bullet3 => '改善房間更新與網路錯誤處理。';
 
   @override
   String get whatsNew310Title => '編輯照片說明';

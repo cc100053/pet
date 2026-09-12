@@ -2167,6 +2167,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 
   @override
+  String get whatsNew320Title => '共有ルームのフレームを同期';
+
+  @override
+  String get whatsNew320Bullet1 => '共有ルームのカードに5種類のフレームを設定できます。';
+
+  @override
+  String get whatsNew320Bullet2 => 'フレームの変更がメンバー全員に自動で同期されます。';
+
+  @override
+  String get whatsNew320Bullet3 => 'ルーム更新と通信エラーの処理を改善しました。';
+
+  @override
   String get whatsNew310Title => '写真キャプションを編集';
 
   @override
