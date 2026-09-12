@@ -37,6 +37,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   path is exposed or spent.
 - Swatches show casing names. Active uses a green ring/check; locked uses a
   drained miniature plus `Lv n`. Level-chip text must meet 4.5:1 contrast.
+- Done explicitly saves a shared room casing even when the selection is
+  unchanged. Save failures keep the sheet open with localized juice feedback.
+  Legacy choices remain local until confirmed; shared state wins once loaded.
 - Pet sprites animate forever, so widget tests on these surfaces pump explicit
   durations rather than `pumpAndSettle`.
 

@@ -39,7 +39,7 @@ extension _HomeBuildHelpers on _HomeViewState {
               roomEquippedSkusBySlot: _roomEquippedSkusBySlot,
               roomFrameStyleByRoom: roomFrameStyleByRoom,
               onEquipRoomFrame: (roomId, style) =>
-                  ref.read(roomFrameProvider.notifier).equip(roomId, style),
+                  _roomFrames.equip(roomId, style),
               onOpenStore: _openStoreFromNav,
               coins: currency.coins,
               diamonds: currency.diamonds,

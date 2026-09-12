@@ -53,7 +53,8 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 - ASC subscription metadata must retain the direct Apple Standard EULA footer.
 - Room-frame casings ship in `3.0.0` and are dark below that version. The
   pre-redesign `original` casing remains the default, and the equipped style
-  is currently per-device Hive state.
+  now syncs through `room_frame_state` in the next app build; Hive remains a
+  fallback/cache and legacy choices are not automatically uploaded.
 - Frame unlocks are room-level based: `original` and `polaroidClassic` Lv1,
   `corkboard` Lv3, `goldLeaf` Lv5, `nightGlow` Lv8. Equipped casings are
   grandfathered; unknown room level reads as Lv1. Source and calibration
@@ -64,8 +65,6 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 ## Open Items
 - Decide whether any room-frame casing belongs in Shop. This needs a product
   decision, a price from `docs/shop_pricing.md`, and a migration.
-- Sharing an equipped casing across room members needs server-backed state and
-  old-client compatibility approval.
 - Submit iOS `3.1.0+23` for App Review only after an explicit request, and
   confirm build 23's Runner/App.framework UUIDs are absent from Crashlytics
   Missing dSYMs

@@ -47,6 +47,19 @@ flutter test
 - Durable queue retry/reconciliation guard:
   `flutter test test/features/feed/feed_upload_queue_test.dart`.
 
+### Shared room frames
+- Client requests/cache/stale response and picker retry coverage:
+  `flutter test test/features/home/room_frame_provider_test.dart test/features/home/room_frame_test.dart`.
+- Execute `test/supabase/room_frame_state_checks.sql` via Supabase MCP as
+  postgres on the verified target. It tests level boundaries, partner
+  read/write, nonmember/session denial, server timestamps, and grandfathered
+  upserts, then rolls back every frame write without changing pet/membership
+  state. It needs existing active rooms at levels 1/2/3/4/5/7/8.
+- On two upgraded devices: confirm a frame, verify the partner card changes
+  without refresh, then background the partner, change it again, and verify
+  on resume. Old binaries retain local-only frame behavior. Unconfirmed Hive
+  choices must never overwrite an existing shared casing.
+
 ### Notify Friend webhook test
 - Script: `scripts/test_notify_friend.sh`
 - Required env vars:

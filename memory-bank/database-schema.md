@@ -17,6 +17,11 @@ migration that rewrites the object.
   overrides, cleanup review
 
 ## Current Contracts
+- `room_frame_state(room_id, style, updated_at)` is additive shared casing
+  state: member-only RLS, explicit SELECT/INSERT/UPDATE grants, no client delete
+  or timestamp writes. Invoker trigger enforces levels 1/1/3/5/8, immutable
+  room ids, and grandfathered shared casings (including upserts); server owns
+  timestamps. Published to Realtime; existing RPCs/catalogs are unchanged.
 - Invite-code RPCs are reusable and default first-party creation/regeneration
   to 24 hours; successful joins do not consume codes or impose a user cap.
 - `pets.room_id` stays unique for old clients. Extras use

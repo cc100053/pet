@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/errors/user_facing_error.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/ui/app_dialog.dart';
 import '../../../shared/ui/juice_wrappers.dart';
@@ -148,10 +149,6 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
       return;
     }
     final navigator = Navigator.of(context);
-    if (_highlighted == widget.equippedStyle) {
-      navigator.pop();
-      return;
-    }
     setState(() => _submitting = true);
     try {
       await widget.onEquip(_highlighted);
@@ -159,6 +156,19 @@ class _RoomFramePickerSheetState extends State<_RoomFramePickerSheet> {
         return;
       }
       navigator.pop();
+    } catch (error, stackTrace) {
+      if (mounted) {
+        showJuiceSnackbar(
+          context: context,
+          message: userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'room_frame_equip',
+          ),
+          tone: AppDialogTone.danger,
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _submitting = false);

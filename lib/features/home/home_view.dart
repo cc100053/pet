@@ -83,6 +83,7 @@ import 'providers/home_pet_state_provider.dart';
 import 'providers/home_unread_counts_provider.dart';
 import 'providers/home_rooms_provider.dart';
 import 'providers/room_frame_provider.dart';
+import 'widgets/room_frame_skins.dart';
 import 'onboarding_focus_utils.dart';
 import 'pet_hunger_projection.dart';
 import 'pet_status_snapshot.dart';
@@ -363,6 +364,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, Map<String, String>> _equippedSkusByPetId = {};
   RealtimeChannel? _petEquipmentChannel;
   RealtimeChannel? _roomSelectionEquipmentChannel;
+  RealtimeChannel? _roomFrameChannel;
   String? _petEquipmentSubscriptionRoomId;
 
   // Background State
@@ -422,6 +424,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   final Map<String, PendingPetHomeOptimisticFeed>
   _pendingOptimisticFeedsByTempId = {};
   late final FeedUploadQueueNotifier _feedUploadQueue;
+  late final RoomFrameNotifier _roomFrames;
   String? _photoFoodImageSource;
   Offset? _photoFoodNormalizedPosition;
   bool _photoFoodDropping = false;
@@ -458,6 +461,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     _fcmService = ref.read(fcmServiceProvider);
     _rewardedAdsService = ref.read(rewardedAdsServiceProvider);
     _feedUploadQueue = ref.read(feedUploadQueueProvider.notifier);
+    _roomFrames = ref.read(roomFrameProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     unawaited(
       CrashReportingService.instance.setContext(
@@ -558,6 +562,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _roomFrames.stopSync();
+    final roomFrameChannel = _roomFrameChannel;
+    _roomFrameChannel = null;
+    unawaited(_removeRealtimeChannel(roomFrameChannel));
     final petStateChannel = _petStateChannel;
     final petEquipmentChannel = _petEquipmentChannel;
     final roomSelectionEquipmentChannel = _roomSelectionEquipmentChannel;
@@ -617,6 +625,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (state != AppLifecycleState.resumed) {
       return;
     }
+    unawaited(_refreshRoomFrames());
     unawaited(_refreshDebugAdminAccess());
     unawaited(_refreshProPlanStatus());
     unawaited(_feedUploadQueue.resumePendingJobs());
@@ -732,6 +741,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         setState(() {
           _currentAppVersion = resolved;
         });
+        _syncRoomFrameSubscription(
+          _myRooms.map((r) => r['id']).whereType<String>().toList(),
+        );
+        unawaited(_refreshRoomFrames());
       }
       return resolved;
     } catch (_) {

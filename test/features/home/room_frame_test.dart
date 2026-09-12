@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -191,6 +192,54 @@ void main() {
     await settle(tester);
 
     expect(equipped, [RoomFrameStyle.original]);
+  });
+
+  testWidgets('confirming the legacy selection saves it for the room', (
+    tester,
+  ) async {
+    usePhoneViewport(tester);
+    final equipped = <RoomFrameStyle>[];
+    await tester.pumpWidget(
+      buildView(
+        roomFrameStyleByRoom: const {'room-1': RoomFrameStyle.polaroidClassic},
+        onEquipRoomFrame: (_, style) async => equipped.add(style),
+      ),
+    );
+    await tester.longPress(find.byType(RoomFrameCard));
+    await settle(tester);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(equipped, [RoomFrameStyle.polaroidClassic]);
+    expect(find.text('Change Frame'), findsNothing);
+  });
+
+  testWidgets('failed shared save keeps the picker open for retry', (
+    tester,
+  ) async {
+    usePhoneViewport(tester);
+    var attempts = 0;
+    await tester.pumpWidget(
+      buildView(
+        onEquipRoomFrame: (_, _) async {
+          if (++attempts == 1) {
+            throw const SocketException('offline');
+          }
+        },
+      ),
+    );
+    await tester.longPress(find.byType(RoomFrameCard));
+    await settle(tester);
+    await tester.tap(swatchOf(RoomFrameStyle.goldLeaf));
+    await settle(tester);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(find.text('Change Frame'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(attempts, 2);
+    expect(find.text('Change Frame'), findsNothing);
+    await tester.pump(const Duration(seconds: 3));
   });
 
   testWidgets('the sheet header fits the widest balances it can show', (
@@ -473,7 +522,7 @@ void main() {
 
     await tester.tap(find.text('Done'));
     await settle(tester);
-    expect(equipped, isEmpty);
+    expect(equipped, [RoomFrameStyle.original]);
 
     // Let the juice snackbar's auto-dismiss timer expire before the test ends.
     await tester.pump(const Duration(seconds: 3));
@@ -521,8 +570,8 @@ void main() {
     await tester.tap(find.text('Done'));
     await settle(tester);
 
-    // Re-selecting what it already wears is a no-op, not a lock.
-    expect(equipped, isEmpty);
+    // Explicit confirmation can share an unchanged local selection.
+    expect(equipped, [RoomFrameStyle.nightGlow]);
     final card = tester.widget<RoomFrameCard>(find.byType(RoomFrameCard));
     expect(card.skin.style, RoomFrameStyle.nightGlow);
   });

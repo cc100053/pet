@@ -1,5 +1,25 @@
 # TODO
 
+## Plan (2026-09-13 Shared Room Frames)
+- [x] Add additive member-only room-frame state and server level validation; preserve all existing contracts.
+- [x] Save explicit frame confirmations to Supabase, reconcile/realtime-sync all active rooms, and retain Hive fallback without auto-uploading it.
+- [x] Test failed saves, shared reconciliation, stale responses, and server authorization/level boundaries.
+- [x] Update current-state/release docs, run final format/analyze/tests, commit and push.
+
+Contract: legacy Hive `room_frame_styles` remains the fallback/cache (`roomId -> storageKey`); existing frame ids and unlock levels are unchanged. New `room_frame_state(room_id, style, updated_at)` is independent of existing room/background/shop RPCs. Only active members can read/equip; explicit confirmation is last-writer-wins. No automatic migration of conflicting local choices. Old binaries ignore the table; next app build consumes it. Rollback: revert client integration; old storage and RPCs remain usable.
+
+## Review (2026-09-13 Shared Room Frames)
+- Applied migration on verified `ilxzpszgirhwxpeocygs` (live `20260912151653`);
+  pre/post-apply transactional SQL authorization/level/partner/upsert probes
+  passed and rolled back. No pet/member writes; read-back shows 0 frame rows.
+  Security/performance advisors have no findings for the new objects.
+- Final `dart format --output=none --set-exit-if-changed lib test`: 331 files,
+  0 changed; `flutter analyze`: clean; `flutter test`: 667 passed, 1 documented
+  env-dependent integration skip. Focused frame tests: 35 passed.
+- Real-device two-client realtime/background verification remains a release
+  follow-up. This integration is not included in uploaded `3.1.0+23`; no app
+  build/upload/submission was requested.
+
 Current follow-ups and the active session only. Historical task logs live in
 `tasks/archive/`; latest:
 `tasks/archive/todo_20260818_pre_compaction.md`.
@@ -18,9 +38,8 @@ Current follow-ups and the active session only. Historical task logs live in
 - [ ] Decide whether any room-frame casing belongs in the shop. This needs an
       `items` row, a price from `docs/shop_pricing.md`, and migration /
       old-client compatibility approval.
-- [ ] To share a room-frame casing across members, add server-backed state
-      following the room-background precedent and version-gate it through
-      `.codex/skills/shared-item-rollout/SKILL.md`.
+- [ ] Real-device verify shared frames in two upgraded clients once the next
+      app build is distributed; legacy-only choices are shared on Done.
 - [ ] Monitor ASC/store outcome for iOS `3.1.0+23`; submit for App Review only
       after an explicit request.
 - [ ] Confirm build 23's Runner UUID

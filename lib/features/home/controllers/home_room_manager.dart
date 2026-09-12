@@ -184,6 +184,7 @@ extension _HomeRoomManager on _HomeViewState {
 
       _syncMessageSubscriptions(roomIds);
       _syncRoomSelectionEquipmentSubscription(roomIds);
+      _syncRoomFrameSubscription(roomIds);
       final sortedRooms = _applyLegacyRoomLocking(rooms);
 
       _setStateForRoomManager(() {
@@ -202,6 +203,7 @@ extension _HomeRoomManager on _HomeViewState {
         }
       });
       _evaluateBasicOnboardingAgainstCurrentData();
+      unawaited(_refreshRoomFrames());
       _syncUnreadCountsProvider(sortedRooms);
       _syncAppIconBadge(rooms: sortedRooms);
       for (final senderId in senderIds) {

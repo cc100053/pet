@@ -211,8 +211,8 @@ class AppSettingsRepository implements PendingInviteCodeStore {
 
   /// Equipped room-frame casing per room, as `roomId -> RoomFrameStyle.storageKey`.
   ///
-  /// Frames are a per-device preference until the shop-backed rows land, so this
-  /// is the durable source of truth for what a room card wears.
+  /// Last-known shared styles, or legacy per-device choices until a member
+  /// explicitly saves a shared style. Never automatically uploaded.
   Map<String, String> get roomFrameStyles {
     final raw = _box?.get(_roomFrameStylesKey);
     if (raw is! Map) {

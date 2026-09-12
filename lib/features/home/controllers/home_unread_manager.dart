@@ -1,6 +1,56 @@
 part of '../home_view.dart';
 
 extension _HomeUnreadManager on _HomeViewState {
+  Future<void> _refreshRoomFrames() async {
+    if (!mounted ||
+        !RoomFrameSkins.isAvailableOnAppVersion(_currentAppVersion)) {
+      return;
+    }
+    await _roomFrames.refresh(
+      _myRooms.map((r) => r['id']).whereType<String>().toList(),
+    );
+  }
+
+  void _syncRoomFrameSubscription(List<String> roomIds) {
+    if (roomIds.isEmpty ||
+        !RoomFrameSkins.isAvailableOnAppVersion(_currentAppVersion)) {
+      final channel = _roomFrameChannel;
+      _roomFrameChannel = null;
+      _roomFrames.stopSync();
+      unawaited(_removeRealtimeChannel(channel));
+      return;
+    }
+    if (_roomFrameChannel != null) {
+      return;
+    }
+    final channel = Supabase.instance.client.channel('room_frame_state');
+    _roomFrameChannel = channel;
+    channel.onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'room_frame_state',
+      callback: (payload) {
+        if (!mounted || _roomFrameChannel != channel) {
+          return;
+        }
+        final roomIds = _myRooms
+            .map((r) => r['id'])
+            .whereType<String>()
+            .toList();
+        if (roomIds.contains(payload.newRecord['room_id'])) {
+          unawaited(_refreshRoomFrames());
+        }
+      },
+    );
+    channel.subscribe((status, error) {
+      if (mounted &&
+          _roomFrameChannel == channel &&
+          status == RealtimeSubscribeStatus.subscribed) {
+        unawaited(_refreshRoomFrames());
+      }
+    });
+  }
+
   void _syncMessageSubscriptions(List<String> roomIds) {
     final target = roomIds.toSet();
     final existing = _messageChannels.keys.toList(growable: false);

@@ -24,6 +24,11 @@ Compact current-state map for mandatory reads. Full snapshots live in
   sensitive; format only touched files and follow the final check order in
   `AGENTS.md` / `docs/testing.md`.
 - `ProfileBootstrapService` owns profile bootstrap.
+- `RoomFrameNotifier` saves explicit confirmations to `room_frame_state`;
+  Home refreshes all active rooms on load/resume/realtime reconnect. Hive
+  `room_frame_styles` is fallback/cache only, never automatically uploaded.
+  Server timestamps reject stale responses; Home/session teardown invalidates
+  pending work. Frame sync stays dark below the existing `3.0.0` UI gate.
 - Shared backgrounds, furniture, and pets require version-gated visibility,
   old-client render fallback, and the compatibility prompt.
 - Multi-pet v2 keeps one canonical `pets` row per room for old clients; extras
