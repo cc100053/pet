@@ -2,27 +2,37 @@
 
 ### Verification is local, not CI
 
-There is no CI gate. `.github/workflows/ci.yml` was deleted on 2026-08-16: it
-ran only on push to an unprotected `main`, so it could never block anything,
-and it had never once passed — `lib/firebase_options.dart` and `.env` are both
-gitignored, so `flutter analyze` failed on every run and the test step never
-executed. A permanently red check that gates nothing is worse than none. If it
-is ever restored, those two files must be materialised from templates first.
+There is no CI gate. Before pushing code or runtime-asset changes, run on the
+final tree, in this order:
 
-Run this before every push, in this order:
-
-```
+```sh
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
 ```
 
-- **Format first, always.** Several tests assert on source text, so an
-  unformatted tree surfaces as unrelated test failures rather than as a
-  formatting complaint.
-- **Use the pinned SDK** — Flutter `3.44.0`, per `.fvmrc`. A different SDK
-  ships a different formatter, which is what let the tree drift out of
-  canonical form in the first place (see `412cb1b`).
+Use the SDK pinned in `.fvmrc` (Flutter 3.44.0). Format only touched Dart files;
+the whole-tree command above is non-writing. Several tests inspect source text,
+so formatting comes before tests. Run Flutter test processes sequentially:
+concurrent processes share `build/unit_test_assets` shader outputs.
+
+For documentation-only changes, validate affected instructions, links, and
+commands instead. Do not use this exception for executable scripts or runtime
+assets. If CI is restored, materialize gitignored `lib/firebase_options.dart`
+and `.env` from appropriate templates before analyzer/tests.
+
+### Live-test boundary
+
+The feed integration test reads credentials from process variables **and `.env`**.
+When all required values are present, even a full `flutter test` can invoke live
+services. Verify the target, dedicated test account, and authorization before
+enabling it. Missing credentials produce a documented skip; do not inject
+production credentials merely to turn that skip green. Cleanup is best-effort,
+not proof that the test has no lasting effects.
+
+The webhook helper sends to the configured recipient. Run it only for an
+authorized notification test. Transactional SQL checks also require a verified
+target and authorized scope, even when they roll back writes.
 
 ### Edge Function auth
 - `feed_validate` and `avatar_upload` validate callers inside the function with
@@ -32,11 +42,11 @@ flutter test
 
 ### Integration test: feed -> Edge -> DB -> chat
 - Required env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_TEST_REFRESH_TOKEN`.
-- Obtain `SUPABASE_TEST_REFRESH_TOKEN` by logging in and printing
-  `Supabase.instance.client.auth.currentSession?.refreshToken`.
+- Obtain `SUPABASE_TEST_REFRESH_TOKEN` through the dedicated test account
+  authentication flow; keep it out of logs and committed files.
 - Run: `flutter test test/feed_flow_integration_test.dart`.
 - Test creates a room via `create_room`, calls `feed_validate`, asserts the
-  message record, then deletes the room to clean up.
+  message record, then attempts to delete the room to clean up.
 - Feed upload pipeline behavior, response compatibility, latency diagnosis, and
   existing-user queue reconciliation are documented in
   `docs/feed_upload_pipeline.md`.
@@ -92,3 +102,12 @@ flutter test
   - payload contains `aps.mutable-content = 1`
   - extension target is signed and embedded in Runner app
   - extension bundle id matches provisioning profile.
+
+### Sign in with Apple secret maintenance
+
+For authorized secret rotation, `tool/generate_secret.sh` reads `APPLE_*` values
+from `.env`, generates the client secret, and updates the reminder date.
+`scripts/generate_apple_client_secret.mjs` is the raw JWT helper. Keep `.p8`
+files and generated secrets out of Git and logs. The monthly
+`.github/workflows/apple_key_reminder.yml` checks
+`LAST_UPDATED_APPLE_SECRET.txt` for expiry within 60 days.

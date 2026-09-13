@@ -1,420 +1,153 @@
-# AGENTS.md (PicPet)
+# AGENTS.md — PicPet / PetTomo
 
-This file is for agentic coding agents working in this repo.
+## Scope and completion
 
-## Core workflow (non-negotiable)
-- Read all `memory-bank/*.md` (excluding `archive/`) before making non-trivial code changes; update them if your work changes current behavior/decisions.
-- Optional: `memory-bank/archive/progress_archive.md` (Archive) contains historical development logs for deeper context when needed.
-- After changes, run, in this order:
-  `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`,
-  `flutter test`. There is no CI gate — this is the only thing standing between
-  a bad commit and `main`, so run it on the final tree, not mid-edit. Format
-  comes first because several tests assert on source text: an unformatted tree
-  shows up as unrelated test failures. Never reformat whole files you did not
-  otherwise touch (see `docs/testing.md`).
-- After completing any requested repo change, commit and push all resulting
-  changes before handoff; always keep the working tree clean.
-- When instructions require a website/dashboard step, mark it as `[USER ACTION REQUIRED]`.
-- If you touch Supabase schema/functions, prefer the Supabase MCP workflow first (see "Supabase" section).
-- Before any high-risk compatibility task (server/API/RPC/migration/auth/reward/
-  notification/purchase/local durable state), read
-  `docs/ai_collaboration_workflow.md` and follow its contract-inventory,
-  server-vs-app-fix, compatibility-test, and production-verification workflow.
-- Before release, upload, submission, server hotfix, Edge Function deploy, or
-  migration work, read and update `docs/release_status.md`; do not rely on git
-  commit messages as the release-status source of truth.
-- UI should refresh automatically after any action that causes a state transition.
-- Backward-compatibility rule: If a parameter change can affect behavior of old app versions, ask for user approval before implementing/releasing it.
-- Backward-compatibility rule: Before proceeding with such a change, propose alternatives that avoid impacting old versions (e.g., version-gated flags, backward-compatible defaults, new optional params, phased rollout), then wait for approval.
-- Keep active `memory-bank/*.md` files compact and current-state focused; move long historical detail or full snapshots to `memory-bank/archive/` so mandatory reads stay cheap.
-- For repo-specific workflows, read the matching local skill before editing:
-  - Crashlytics triage: `.codex/skills/firebase-crashlytics-triage/SKILL.md`
-  - Release notes / App Store Connect metadata: `.codex/skills/release-notes-sync/SKILL.md`
-  - Shared room items (backgrounds, furniture, pets): `.codex/skills/shared-item-rollout/SKILL.md`
-  - Pet socket calibration / Godot exports: `.codex/skills/pet-socket-calibration/SKILL.md`
-    - TODO: This skill's helper commands currently use bare `scripts/...`
-      paths; from the repo root, prefix them with
-      `.codex/skills/pet-socket-calibration/` until the skill is corrected.
-  - UI/UX implementation or review: `.codex/skills/ui-ux-pro-max/SKILL.md`
-    - TODO: This local skill's copied examples still mention `.claude/skills/...`;
-      use `.codex/skills/ui-ux-pro-max/scripts/search.py` for this repo unless
-      the skill is corrected.
-- For pet PNG sequence / socket / equipment-preview work, read `docs/godot-png-sequence-socket-workflow.md` before editing `assets/pet_sequences/`, `lib/features/pet/`, or related equipment placement code.
-- Before setting or changing the coin price of any shop item, read
-  `docs/shop_pricing.md` and take a rung off its ladder. Do not re-derive the
-  economy or invent a price — the doc carries the calibrated earn rate, the
-  guardrails, and the queries that refresh them.
-- For human-reviewed Level 2 socket exports, preserve every intentional
-  non-zero track with `python3 .codex/skills/pet-socket-calibration/scripts/generate_flutter_tracks.py --track-threshold 0`;
-  the 10 px threshold is for provisional automatic review only.
+- This repo contains the Flutter app and its Supabase integration. Hosting,
+  legal/support pages, invite fallbacks, and universal-link files live in
+  `/Users/fatboy/geo-marketing/projects/pettomo`; do not recreate or deploy
+  hosting files here.
+- Complete implementation and verification within the requested scope.
+  Review-only work remains read-only. Reuse approval already given for the
+  same scope; retain the explicit approvals below.
+- After requested repository changes, commit and push this task's changes
+  unless the user requested otherwise. Preserve unrelated edits; report
+  verification or push blockers without claiming completion.
+- Use `tasks/todo.md` for substantial work needing a durable plan or handoff.
+  Update relevant memory/runbooks when contracts or product decisions change.
+  Archive historical detail rather than adding unconditional reading rules.
 
-# Agent Workflows & Core Principles
+## Context routing
 
-## Workflow Orchestration
+Read the sources relevant to the operation, not every linked document:
 
-### 1. Plan Node Default
-- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
-- If something goes sideways, STOP and re-plan immediately - don't keep pushing
-- Use plan mode for verification steps, not just building
-- Write detailed specs upfront to reduce ambiguity
+| Operation | Source |
+| --- | --- |
+| Ownership, state flow, split views | `memory-bank/architecture.md` |
+| Backend contracts | `memory-bank/database-schema.md` |
+| Product UI | `memory-bank/ui-ux-guidelines.md` |
+| Current work / dependencies | `memory-bank/progress.md` / `memory-bank/tech-stack.md` |
+| Related regression history | `tasks/lessons.md` |
+| Server behavior, client/server contracts, upgrade-persistent state | `docs/ai_collaboration_workflow.md` |
+| Release or deployment decisions | `docs/release_status.md` |
+| Feed/reward/upload behavior | `docs/feed_upload_pipeline.md` |
+| Hunger scheduling | `docs/hunger_tick_schedule_report.md` |
+| Photo cleanup | `docs/abandoned_room_cleanup.md` |
+| Coin pricing | `docs/shop_pricing.md` — use its calibrated ladder and guardrails |
 
-### 2. Subagent Strategy
-- Use subagents liberally to keep main context window clean
-- Offload research, exploration, and parallel analysis to subagents
-- For complex problems, throw more compute at it via subagents
-- One tack per subagent for focused execution
+Load the matching repository skill:
 
-### 3. Self-Improvement Loop
-- After ANY correction from the user: update `tasks/lessons.md` with the pattern
-- Write rules for yourself that prevent the same mistake
-- Ruthlessly iterate on these lessons until mistake rate drops
-- Review lessons at session start for relevant project
+- Crashlytics evidence: `.codex/skills/firebase-crashlytics-triage/SKILL.md`.
+- Release notes / ASC metadata: `.codex/skills/release-notes-sync/SKILL.md`.
+- Shared item rollout or compatibility: `.codex/skills/shared-item-rollout/SKILL.md`.
+- Godot sockets, sequence exports, equipment placement:
+  `.codex/skills/pet-socket-calibration/SKILL.md`; consult the relevant socket or
+  equipment sections of `docs/godot-png-sequence-socket-workflow.md`.
+- Visual-pattern or accessibility questions beyond existing product guidance:
+  `.codex/skills/ui-ux-pro-max/SKILL.md`.
 
-### 4. Verification Before Done
-- Never mark a task complete without proving it works
-- Diff behavior between main and your changes when relevant
-- Ask yourself: "Would a staff engineer approve this?"
-- Run tests, check logs, demonstrate correctness
+When `.codegraph/` exists, use `codegraph_explore` or `codegraph explore` first
+for code discovery. Fall back to source search when its results are insufficient.
 
-### 5. Demand Elegance (Balanced)
-- For non-trivial changes: pause and ask "is there a more elegant way?"
-- If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
-- Skip this for simple, obvious fixes - don't over-engineer
-- Challenge your own work before presenting it
+## Compatibility and backend safety
 
-### 6. Autonomous Bug Fixing
-- When given a bug report: just fix it. Don't ask for hand-holding
-- Point at logs, errors, failing tests - then resolve them
-- Zero context switching required from the user
-- Go fix failing CI tests without being told how
+- Installed clients remain supported. Before implementing or releasing a
+  parameter change that can affect released versions, present compatible
+  alternatives and obtain approval. Incompatible contract changes also need
+  approval. Follow the compatibility runbook for current contracts, old
+  request/response shapes, RPC overloads, persisted state, rollback, and
+  deployed verification. A future app fix does not protect installed clients.
+- Use Supabase MCP for authorized backend changes. Verify project
+  `ilxzpszgirhwxpeocygs` before mutation. Save schema changes as timestamped
+  migrations in `supabase/migrations/`.
+- Review-only, draft, and approval-pending SQL remains unapplied. Do not ask
+  the user to run SQL the agent is authorized and equipped to run. Photo
+  cleanup remains explicitly human-reviewed and snapshot-scoped.
+- On authentication failure, run `codex mcp login supabase` and retry after
+  login completes. Diagnose other failures from their actual error.
+- Establish live DB behavior from the current definition and latest applied
+  relevant migration, not the first historical match.
+- Enable RLS on user tables. Room access requires active `room_members`
+  membership; use `(select auth.uid())`, `TO authenticated`, explicit grants,
+  and indexes appropriate to the actual query and authorization paths.
+- Default new client-facing RPCs to SECURITY INVOKER. Preserve intentional
+  privileged functions and their authentication, grants, and authorization
+  checks. Validate inputs and retain named `p_` RPC parameters.
+- Never scan `pg_timezone_names` in RPCs; use `public.normalize_timezone(text)`
+  or `AT TIME ZONE` with the documented `22023` fallback.
+- Before authorized Edge Function deployment, verify deployed `verify_jwt`
+  settings and required secrets; these are not centralized in a checked-in
+  Supabase config. Follow the relevant runbook and verify deployed behavior.
+- Never commit credentials, `.env`, service-account keys, `.p8` files, or
+  generated secrets.
 
-## Task Management
+## Runtime invariants
 
-1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
-2. **Verify Plan**: Check in before starting implementation
-3. **Track Progress**: Mark items complete as you go
-4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: Add review section to `tasks/todo.md`
-6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
-7. **Keep Tasks Compact**: Keep `tasks/todo.md` current-state focused; move
-   long completed plans/reviews to `tasks/archive/`
+- Refresh affected UI state after successful state transitions.
+- Furniture dual-writes canvas and legacy positions. Preserve separate legacy
+  4-argument and non-defaulted 6-argument RPC overloads.
+- New shared items require version-gated visibility and old-client rendering
+  fallbacks. Decor catalog, purchase predicates, and RLS must agree.
+- Preserve GIF paths as stable source/fallback identifiers until explicit
+  cleanup approval. PNG playback uses PetAnimationFrames,
+  PetAnimationFrameBuilder, and PetAnimatedImage.
+- Preserve every intentional non-zero Level 2 socket track using the calibration
+  skill's `--track-threshold 0` rule; provisional captures require human review.
+- Keep feed reward/message writes on the response path and partner push in
+  `EdgeRuntime.waitUntil(...)`; preserve legacy response field types.
+- Keep Hive initialization before UncleanExitService starts its sentinel.
 
-## Core Principles
+## Flutter conventions
 
-- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
-- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
-- **Minimat Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
-- **Prefer Mature Reuse**: If a mature, well-maintained package or library can solve the problem cleanly, use that first. Avoid building generic components from scratch unless there is a clear product-specific reason not to reuse an existing solution.
+- Match `.fvmrc` (currently Flutter 3.44.0 / Dart 3.12.0); use matching
+  `flutter` and `dart` binaries. Keep Flutter SPM integration and checked-in
+  resolved packages aligned with the pinned SDK.
+- In split-view `part` extensions, call the State's `_setStateForXxx` wrapper,
+  qualify static members, and use the correct relative `part of` path.
+  Moving symbols may require updating source-introspection tests.
+- Use `userFacingError` for localized handled failures,
+  `reportUserVisibleError` for bespoke visible copy, and
+  `reportSwallowedError` with a stack trace for silent best-effort failures.
+  Do not display raw exception text or classify errors by localized messages.
+- ImageStreamListener callbacks own their ImageInfo clone: dispose it after
+  reading, and use the already-sized provider for aspect-ratio probes.
+- Use localized UI strings and regenerate localization after ARB changes.
+- Follow the existing Juice UI system: JuicyScaleButton actions execute
+  immediately on release; showJuiceToast is blocking and showJuiceSnackbar
+  is non-blocking. Validate dialog input before closing. Visual and feedback
+  rules live in `memory-bank/ui-ux-guidelines.md`.
 
-## Repo layout
-- `lib/`: Flutter app (features, shared UI, services, app entry points).
-- `test/`: Flutter tests (`*_test.dart`).
-- `supabase/`: migrations, seed, edge functions.
-- `docs/`: project notes (see `docs/testing.md`).
-- `android/`, `ios/`, `web/`, `macos/`, `windows/`, `linux/`: Flutter-managed platform folders.
+## Verification
 
-## Cursor/Copilot rules
-- No `.cursor/rules/`, `.cursorrules`, or `.github/copilot-instructions.md` found in this repo.
+- `docs/testing.md` owns the validation policy; there is no CI gate. Before
+  pushing code or runtime-asset changes, run its final-tree format/analyze/test
+  sequence. Format only touched Dart files; run Flutter test processes
+  sequentially because they share generated assets.
+- Documentation-only changes require instruction/link/command validation
+  instead of Flutter checks. Preserve the full code gate for executable changes.
+- Live integration/webhook tests may mutate configured services or send
+  notifications. Verify target, test account, and authorization before enabling
+  them; credentials can also come from `.env`.
+- For nested asset or sequence changes, run `flutter build bundle` and inspect
+  the manifest and copied assets.
+- Pet animations loop indefinitely; pump bounded durations in those widget
+  tests instead of relying on pumpAndSettle.
 
-## Commands
+## Releases
 
-### Install / bootstrap
-- Install deps: `flutter pub get`
-- Run app: `flutter run`
-- Repo pins Flutter via `.fvmrc` (`3.44.0`); the default/global `flutter`
-  binary should resolve to Flutter `3.44.0` / Dart `3.12.0`. Use bare
-  `flutter ...` for get, analyze, test, build, and run commands; if FVM is
-  used, confirm it resolves to the same pinned SDK.
-
-### Lint / typecheck
-- Analyzer (required before shipping): `flutter analyze`
-
-### Format
-- During feature work, format only files you touched:
-  `dart format lib/path/to/file.dart test/path/to/test.dart`.
-- Do not run a writing whole-repo format merely to tidy a feature; it can
-  rewrite unrelated files and source-text assertions. The final required
-  whole-tree check is the non-writing command in "Core workflow" above.
-
-### Tests
-- Run all tests: `flutter test`
-- Run a single test file: `flutter test test/widget_test.dart`
-- Run a single test by name: `flutter test test/widget_test.dart --plain-name "Sign-in view renders"`
-- Run with more logs: `flutter test -r expanded`
-
-### Localization (gen-l10n)
-- ARB files live in `lib/l10n/` (see `l10n.yaml`).
-- After editing ARB files, regenerate via build (usually automatic) or run: `flutter gen-l10n`.
-
-### Asset bundle verification
-- When adding nested asset folders or debugging missing Flutter assets, run: `flutter build bundle`
-- Then verify `build/flutter_assets/AssetManifest.bin` and copied files under `build/flutter_assets/assets/...`.
-
-### Scripts
-- Notify webhook test: `scripts/test_notify_friend.sh` (see env vars in `docs/testing.md`).
-- Feed upload/reward pipeline and latency debugging: `docs/feed_upload_pipeline.md`.
-- AI collaboration / compatibility workflow: `docs/ai_collaboration_workflow.md`.
-- Firebase Crashlytics MCP wrapper: `./scripts/start_firebase_mcp_crashlytics.sh --generate-tool-list`
-- iOS App Store export/upload without Apple's immediate symbol-upload step:
-  `scripts/export_ios_appstore_no_apple_symbols.sh "/path/to/Runner.xcarchive"`.
-  It preserves the archive and uploads every archive dSYM to Crashlytics; use
-  `ios/scripts/upload_archive_dsyms.sh "/path/to/Runner.xcarchive"` to re-upload
-  symbols from a preserved archive (see `docs/ios_app_store_export.md`).
-- Apple client secret (Sign in with Apple):
-  - Generate and update reminder: `./tool/generate_secret.sh` (Reads `APPLE_*` vars from `.env`)
-  - Manual override: `./tool/generate_secret.sh --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
-  - Raw JWT generator: `node scripts/generate_apple_client_secret.mjs --team-id ... --client-id ... --key-id ... --p8 path/to/AuthKey_XXXX.p8`
-  - Reminder system: `.github/workflows/apple_key_reminder.yml` checks `LAST_UPDATED_APPLE_SECRET.txt` monthly and alerts if expiry (< 60 days) is near.
-  - Never commit `.p8` files or generated secrets.
-
-### App Store Connect metadata
-- Track current release/build/backend deployment state in
-  `docs/release_status.md`; git commit messages are historical evidence, not
-  the release source of truth.
-- List versions: `asc versions list --app 6757725650`
-- Upload localized version metadata from `.strings`: `asc localizations upload --version <VERSION_ID> --locale ja --path .asc/version-localizations/ja.strings`
-- Verify localized metadata: `asc localizations list --version <VERSION_ID> --output table`
-- Upload an IPA: `asc builds upload --app 6757725650 --ipa <IPA_PATH>`
-- Wait for build processing: `asc builds wait --app 6757725650 --build-number <BUILD> --version <VERSION> --platform IOS --timeout 10m --poll-interval 30s`
-- If an uploaded build is not discoverable yet, check processing uploads:
-  `asc builds uploads list --app 6757725650 --output table`
-- Build a release IPA with explicit versioning:
-  `flutter build ipa --release --build-name=<VERSION> --build-number=<BUILD>`
-- Immediately after the build, before anything else touches `build/ios/archive`,
-  run `ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive`.
-  It uploads the dSYMs to Crashlytics, preserves the archive under
-  `Archives/shipped`, and prints the UUIDs. The next `flutter build ipa` destroys
-  the archive and App Store Connect never holds a usable copy, so skipping this
-  makes that build's crashes permanently unsymbolicatable. Non-zero exit is a
-  release blocker. After the release, confirm none of the printed UUIDs appears
-  in Crashlytics → Settings → Missing dSYMs `[USER ACTION REQUIRED]`.
-- After the build is `VALID`, attach it with
-  `asc versions attach-build --version-id <VERSION_ID> --build <BUILD_ID>`;
-  do not submit for App Review without an explicit submission request.
-- Auto-renewable subscription submissions require a functional Terms of Use /
-  EULA footer in every `.asc/version-localizations/*.strings` description; run
-  `flutter test test/app_store_metadata_terms_test.dart` before ASC upload.
-- If `asc versions create`, `asc versions view`, or
-  `asc localizations upload` returns App Store Connect `-50`, use
-  `scripts/asc_version_localization_sync.py` with the bundled Codex Python as
-  the direct API fallback; it creates/reuses the ASC version, syncs local
-  `.strings`, and verifies `whatsNew`/`promotionalText` plus EULA footers.
-
-### Build
-- Debug builds are usually done via `flutter run`.
-- Release builds (examples):
-  - Android APK: `flutter build apk --release`
-  - iOS (Xcode signing required): `flutter build ios --release`
-  - Web: `flutter build web --release`
-
-### iOS clean build (when CocoaPods/Xcode gets flaky)
-```sh
-flutter clean
-flutter pub get
-cd ios && pod install && cd ..
-flutter run
-```
-
-## Supabase
-
-### Setup
-- Repo target Supabase project: `ilxzpszgirhwxpeocygs` (`https://ilxzpszgirhwxpeocygs.supabase.co`)
-- Migrations: `supabase/migrations/` (apply through Supabase MCP per the workflow below).
-- Seed data: `supabase/seed.sql`.
-- Login (for MCP tooling): `codex mcp login supabase`.
-
-### Edge functions
-- Functions live in `supabase/functions/`.
-- If an edge function uses auth quirks, document it in `docs/testing.md` and keep security tradeoffs explicit.
-- Hunger tick scheduling is server-side: see `docs/hunger_tick_schedule_report.md` for the `pg_cron` job, `hunger_tick_dispatch` behavior, and manual verification SQL.
-- Abandoned-room R2 photo cleanup is server-side and human-in-the-loop: see `docs/abandoned_room_cleanup.md` for the `cleanup_abandoned_rooms` function (scan/purge modes), the `room_cleanup_review` Studio approval flow, `pg_cron` jobs, and the `cleanup_rooms_secret` vault auth.
-- Function config/secrets are not centralized in a checked-in `supabase/config.toml`; verify deployed `verify_jwt` settings and required env vars before changing or redeploying functions.
-- R2-backed functions (`notify_friend/feed_validate`, `avatar_upload`) require `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, and `R2_PUBLIC_BASE_URL`.
-- Push/scheduler functions use `NOTIFY_WEBHOOK_SECRET`; `notify_friend` also needs FCM service-account config, and `hunger_tick_dispatch` uses the vault `hunger_tick_secret` or `HUNGER_TICK_SECRET` fallback.
-- Keep `feed_validate` reward/message writes on the response path, but keep
-  partner push dispatch off that path with `EdgeRuntime.waitUntil(...)`; old
-  response fields such as `webhook_skipped` must keep backward-compatible
-  types. See `docs/feed_upload_pipeline.md`.
-
-## Repo-specific workflows
-
-### Shared item rollout
-- Use `.codex/skills/shared-item-rollout/SKILL.md` for new shared backgrounds, furniture, or pets.
-- Do not expose new shared items to old app versions by default; add version-gated visibility plus old-client render fallbacks.
-- For shop-backed decor, keep catalog visibility, purchase RPC predicates, and table RLS policies aligned.
-- If notification payloads include item-specific names or assets, update the related Edge Function/native notification handling too.
-
-### Room furniture canvas coordinates
-- Furniture placement uses a fixed virtual room canvas with
-  nullable `room_furniture.canvas_position_x/y` plus optional RPC params in
-  `supabase/migrations/20260530120000_add_room_furniture_canvas_coords.sql`.
-- New clients dual-write canvas coordinates and legacy `position_x/y`; old
-  clients keep using the legacy columns.
-- Keep legacy 4-arg furniture RPCs separate from 6-arg canvas-coordinate
-  overloads. Migration `20260530125134_fix_room_furniture_canvas_rpc_overloads`
-  removed default values from the 6-arg overloads so old PostgREST calls remain
-  unambiguous.
-
-### Release notes and App Store metadata
-- Use `.codex/skills/release-notes-sync/SKILL.md` when adding bundled What's New entries or syncing App Store Connect release notes.
-- Keep bundled in-app What's New copy separate from ASC `whatsNew` / `promotionalText`; do not upload shortened in-app bullets as ASC release notes.
-- Preserve the direct Apple Standard EULA footer in ASC descriptions for every
-  locale; App Review treats it as required for auto-renewable subscriptions.
-- Present localized drafts for approval before applying local release-note files and ASC metadata changes.
-
-### Firebase Crashlytics triage
-- Use `.codex/skills/firebase-crashlytics-triage/SKILL.md` and Firebase MCP for crash/non-fatal investigation.
-- Repo Firebase project: `pet-app-702be`; prefer the iOS app ID unless Android is explicitly requested.
-- Setup and wrapper details live in `docs/firebase_crashlytics_mcp_workflow.md` and `scripts/start_firebase_mcp_crashlytics.sh`.
-- Copy `.firebase-mcp.env.example` to the gitignored `.firebase-mcp.env` and point it at the local service-account JSON key before using the wrapper.
-- Prefer ADC via the local `.firebase-mcp.env` service-account path over `firebase login` for long-lived MCP access.
-- If Crashlytics stacks are unsymbolicated, inspect `ios/scripts/upload_crashlytics_symbols.sh` before debugging app logic.
-- OOM/SIGKILL events cannot be caught in-process. For missing-kill reports,
-  inspect `UncleanExitService`, its Hive sentinel, memory-warning context, and
-  Android `pet/process_exit_reasons`; preserve Hive initialization before the
-  sentinel starts in `lib/main.dart`.
-
-### Firebase Hosting / GEO marketing
-- Static marketing, GEOFlow guides, support/legal pages, invite fallback pages, and app/universal-link files live outside this Flutter app repo in `/Users/fatboy/geo-marketing`.
-- Do not recreate `html/`, `.firebase/`, `.firebaserc`, or `firebase.json` here for GEO/hosting work; use `/Users/fatboy/geo-marketing/projects/pettomo`.
-- Keep this repo focused on the Flutter app and its runtime/backend integration docs.
-
-### Pet PNG sequence / socket workflow
-- Use `docs/godot-png-sequence-socket-workflow.md` for the current Godot-to-Flutter authoring flow.
-- Keep GIF asset paths as stable source/fallback ids until explicit cleanup approval; runtime PNG sequence playback should stay wired through `PetAnimationFrames`, `PetAnimationFrameBuilder`, and `PetAnimatedImage`.
-- When sequence assets or nested animation folders change, verify them with `flutter build bundle` before treating the rollout as complete.
-
-## Testing notes
-
-### Integration test: feed -> edge -> db -> chat
-- File: `test/feed_flow_integration_test.dart`
-- Requires env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_TEST_REFRESH_TOKEN`
-- Run: `flutter test test/feed_flow_integration_test.dart`
-
-### Webhook test helper
-- Script: `scripts/test_notify_friend.sh`
-- Requires env vars (see `docs/testing.md`): `NOTIFY_WEBHOOK_URL`, `NOTIFY_WEBHOOK_SECRET`, `RECIPIENT_ID`, `ROOM_ID`, `SENDER_ID`, `MESSAGE_ID`
-
-## Code style guidelines (Dart/Flutter)
-
-### Formatting
-- Use `dart format` (2-space indentation enforced by formatter).
-- Keep lines readable; let the formatter wrap; avoid manual alignment.
-
-### Imports
-- Prefer this ordering with blank lines between groups:
-  1) `dart:`
-  2) `package:`
-  3) relative (`../` or `./`)
-- Avoid unused imports; keep imports minimal.
-
-### Naming
-- Files: `snake_case.dart`.
-- Types (classes/enums/typedefs): `PascalCase`.
-- Members/locals/functions: `lowerCamelCase`.
-- Constants: `lowerCamelCase` (use `static const` for widget constants); avoid `ALL_CAPS`.
-
-### Types and null-safety
-- Prefer explicit types at boundaries: public APIs, service returns, providers, and JSON/parsing.
-- Avoid `dynamic` unless you are at a JSON boundary; convert to typed values ASAP.
-- Do not suppress type errors (`as any`, `// ignore:`, etc.) unless there is a documented, narrow reason.
-
-### Error handling and logging
-- No empty `catch` blocks. If intentionally ignored, use `catch (_) { /* reason */ }`.
-- Surface actionable errors to the UI where appropriate (this app often stores a `*_error` string in state).
-- Prefer structured error messages; include context (feature, RPC name, ids) but never secrets.
-- Route user-visible failures through `userFacingError(...)` so copy stays
-  localized and the handled error is classified/reported to Crashlytics. If a
-  surface renders bespoke error copy, call `reportUserVisibleError(...)`; for
-  silent best-effort failures, capture the stack trace and call
-  `reportSwallowedError(...)` instead of adding a bare catch.
-- Never interpolate raw `error.toString()` values into user-facing copy.
-
-### Flutter UI/state
-- Avoid side effects in `build`; do async work in `initState` / callbacks.
-- When an action changes state (Supabase write, RPC, purchase, etc.), refresh the relevant UI state automatically.
-- Prefer `mounted` checks before calling `setState` after `await`.
-- Use `withValues(alpha: ...)` instead of deprecated `withOpacity(...)`.
-- Large views (`home_view`, `chat_room_view_v2`, `shop_view`) are split into
-  `part`/`part of` files with `extension _Xxx on _<View>State`. In those
-  extensions you must call a `_setStateForXxx(...)` wrapper (not the protected
-  `setState`), qualify `static` members as `_<View>State._foo`, and use
-  `part of '../core.dart';` from subdirectories. See
-  `memory-bank/architecture.md` "View Layer Structure".
-
-### Riverpod
-- Prefer `ref.watch(...)` in `build` and `ref.read(...)` in callbacks.
-- Keep providers pure; do I/O in services/repositories.
-- Avoid creating providers in widgets; define them at file/library scope.
-
-### Supabase Postgres Best Practices
-
-> **MCP-First**: Always use Supabase MCP tools for schema/function/policy changes.
-> **Execute immediately** — do NOT just write or display SQL; apply it directly via MCP tools (`execute_sql` / `apply_migration`).
-> Never ask user to open dashboard or run SQL manually.
-> **Current-state rule**: When tracing a DB behavior implemented through migrations/RPCs, never infer the live rule from the first/oldest matching migration. Identify the latest migration actually applied on the target project that rewrites the relevant function/object, and cross-check with the current schema/memory docs before proposing or applying a change.
-
-#### MCP Workflow
-- Auth: `codex mcp login supabase` (one-time)
-- **If MCP tools fail or are unauthenticated**, run `codex mcp login supabase` directly in the terminal so the user can complete the interactive login, then retry the MCP operation.
-- Before any mutating Supabase MCP call (`apply_migration`, `execute_sql`, function deploys), verify the current MCP project URL/ref matches the repo's intended project (`.env`, known project ref, or explicit user confirmation). If they do not match, stop and resolve the target first.
-- Use MCP to explore schema, **execute SQL directly** (not just display it), and run migrations
-- Save migrations to `supabase/migrations/` with timestamp prefix, commit to Git
-
-#### Schema
-- `snake_case` names, plural tables, `uuid` PKs, `timestamptz` for dates
-- Add indexes on columns in `WHERE`, `JOIN`, or RLS policies
-
-#### RLS
-- Enable on all user tables; use `(select auth.uid())` to cache per query
-- Add `TO authenticated` in policies; index policy columns
-- Room-scoped: `exists (select 1 from room_members rm where rm.room_id = <table>.room_id and rm.user_id = (select auth.uid()) and rm.is_active)`
-
-#### RPC Functions
-- Use `SECURITY INVOKER`; prefix params with `p_`; validate inputs; raise meaningful errors
-- Never scan `pg_timezone_names` inside an RPC; it re-reads the timezone
-  database and has caused statement timeouts here. Use
-  `public.normalize_timezone(text)` or `at time zone` with `22023` fallback.
-
-#### Flutter Queries
-- Use explicit `.select('col1, col2')`; convert to typed models at boundary
-- Include param names in `.rpc()` calls; surface errors to UI
-
-#### Realtime
-- Unsubscribe before re-subscribing; cleanup in `dispose()`
-
-### Testing style
-- Name tests descriptively; keep widget tests deterministic (`pumpAndSettle` with bounded animations).
-- For integration tests requiring network/env, use `skip:` with a clear reason (see `test/feed_flow_integration_test.dart`).
-
-### Localization
-- Use `AppLocalizations.of(context)!` for user-facing strings.
-- Avoid hard-coded strings in UI (tests can assert on visible text, but production UI should be localized).
-
-### Assets
-- If adding assets, ensure they are referenced in `pubspec.yaml` (this repo includes `assets/lottie/`).
-- An `ImageStreamListener` callback owns its `ImageInfo` clone; dispose it after
-  reading, and use the already-sized provider for aspect-ratio probes so a
-  listener cannot pin full-resolution decoded images for the session.
-
-### Juice UI System (Game-style Design)
-
-To maintain the playful, game-like feel of PicPet, follow these UI standards:
-
-- **Bouncy Interactions**: ALWAYS use `JuicyScaleButton` for clickable elements. It triggers the action IMMEDIATELY on release while performing a squish-and-pop animation in the background.
-- **Floating Toasts**: Use `showJuiceToast` for blocking alerts, inputs, and confirmations.
-    - `JuicePosition.bottom`: Standard feedback/warnings.
-    - `JuicePosition.center`: Dialogs, complex inputs (using `body`), and critical confirmations.
-    - `JuicePosition.top`: Background task notifications.
-- **Non-intrusive Feedback**: Use `showJuiceSnackbar` for success messages or information that should NOT dim the screen or block user interaction. It uses an Overlay and auto-dismisses.
-- **Visual Style**:
-    - **Borders**: Thick black borders (typically 2px to 3px) for containers and buttons.
-    - **Shadows**: Use `BoxShadow` with vertical offsets (depth) and soft transparency (`alpha: 0.15`) instead of solid colored blocks.
-    - **Gradients**: Soft gradients (e.g., White to `#FFF7EA`) for card backgrounds.
-    - **Typography**: Use `GoogleFonts.mPlusRounded1c` for a friendly, rounded game aesthetic.
-- **Validation**: User input in `showJuiceToast` should be validated inside the dialog (using `StatefulBuilder`) to prevent premature closing and provide instant error feedback.
-
-## PR/commit hygiene
-- Do not commit secrets (no `.env`, tokens, credentials).
-- Commits: concise, imperative ("Add ...", "Fix ...").
-- PRs should include: what changed, why, how tested (`flutter analyze`, `flutter test`), and screenshots for UI changes.
+- Read the release skill before release-note changes. Localized drafts require
+  approval before applying release-note files or ASC metadata. Explain the
+  execution scope before approval; the approved full flow includes build,
+  upload, and attachment. Preserve bundled/ASC copy separation, maintained
+  locale mappings, older bundled entries, and the direct Apple Standard EULA.
+- For every iOS release path, immediately after building the archive run:
+  `ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive`.
+  Preserve the archive before another build can overwrite it. A non-zero exit
+  blocks release. See `docs/ios_app_store_export.md`.
+- Preserve existing iPhone-only settings; release work does not authorize
+  adding iPad or Mac Catalyst support. App Review submission requires an
+  explicit request.
+- Record repository baseline, exact ASC state, and verified public availability
+  separately in `docs/release_status.md`; update it when actual release,
+  deployment, or compatibility decisions change.
+- Label required human dashboard/device checks `[USER ACTION REQUIRED]`.
+  Report pending checks accurately rather than claiming full completion.

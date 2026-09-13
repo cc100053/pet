@@ -1,221 +1,64 @@
 ---
 name: shared-item-rollout
-description: Use when adding or updating shared room items such as backgrounds, furniture, or pets, especially when old and new app versions may coexist. Covers the PicPet mixed-version rollout workflow: version-gated catalog visibility, old-client fallback rendering, update prompting, Supabase migration rules, notification sync, and verification.
+description: Add shared backgrounds, furniture, or pets, or change their version gates, purchase eligibility, or fallback behavior.
 ---
 
 # Shared Item Rollout
 
-Use this workflow for any shared room item that can appear across members on mixed app versions:
-- backgrounds
-- furniture
-- pets
+Use for shared room state, not local-only cosmetic assets, profile/avatar edits,
+or App Store metadata. Reuse existing compatibility helpers rather than adding
+another system.
 
-Do not treat these as simple asset drops. In this repo, shared items must ship with a compatibility plan.
+## Compatibility invariants
 
-## Core Rule
+- New shared items must not be exposed to old app versions by default. Keep
+  visibility gating separate from render fallback: a room can use an item that
+  another member cannot discover or buy.
+- Unsupported backgrounds use the default background; unsupported furniture is
+  skipped; unsupported pets use `PetCatalog.defaultPetId`. Apply fallbacks to
+  active rooms, room lists/summaries, and other remote-room preview surfaces.
+- Reuse the generic room compatibility update prompt for unsupported pets,
+  furniture, and backgrounds.
+- Do not set new decor globally `is_active = true` without the user's explicit
+  acceptance of old-client exposure. Follow root compatibility-approval and
+  production-target rules for backend work.
 
-Never expose a new shared item to old app versions by default.
+## Conditional contracts
 
-Every rollout has 2 separate layers:
-- visibility gating
-  controls which app versions can discover or buy the item
-- render fallback
-  controls what an older client shows when a room is already using the new item
+For backgrounds/furniture catalog, inventory, or purchase changes, read
+[decor-contracts.md](references/decor-contracts.md). Catalog visibility,
+purchase RPC predicates, and table RLS must agree; visible catalog alone is
+not sufficient for owned inventory hydration or authorization.
 
-If you only do one layer, mixed-version rooms will drift.
+Pets are not shop items. Use `PetCatalog` metadata, `minAppVersion`, and
+`visiblePetsForAppVersion(...)` for selection, with default-pet fallback.
+Relevant surfaces are `lib/features/pet/pet_catalog.dart`,
+`lib/features/pet/pet_selection_page.dart`, `lib/features/home/home_view.dart`,
+and `lib/features/home/room_selection_view.dart`. For PNG sequence or socket
+work, use the pet-socket skill and
+[the sequence workflow](../../../docs/godot-png-sequence-socket-workflow.md).
 
-## Repo Contracts
+## Complete the affected rollout
 
-### Shop-backed decor
-- Shop compatibility metadata lives on `public.items.metadata`
-- Current SQL gate:
-  - `visibility_mode`
-  - `min_app_version`
-  - `shop_visibility`
-  - `fallback_behavior`
-  - `fallback_background_key`
-- Compatibility-aware clients fetch:
-  - `public.get_visible_shop_items(p_app_version text)`
-- Legacy clients still read:
-  - `items.is_active = true`
-- Purchase authorization for decor is separate from catalog visibility:
-  - purchase RPCs must accept the same version-gated rows that Shop can show
-  - table RLS policies must also allow inserts for those same rows
-- Hidden rollout-only decor uses:
-  - `metadata.shop_visibility = 'hidden'`
-  - keep it out of the Shop UI and purchase path while still allowing room seeding / compatibility ownership
-- Room backpack/catalog hydration must not depend only on the visible Shop catalog:
-  - load the room's owned furniture inventory first
-  - if an owned `item_id` is missing from `get_visible_shop_items(...)`, fetch
-    the item row by id and merge it into the room furniture catalog
-  - still apply `ShopItem.isSupportedOnAppVersion(...)` before rendering/placing
-- Client app-version gates should prefer the live platform version from
-  `PackageInfo.fromPlatform()` and use `lastLaunchedAppVersion` only as a
-  fallback. A stale cached launch version can hide newly supported items after
-  an app update.
+Change only the required asset, catalog, localization, prompt, and notification
+surfaces; reuse gates/fallbacks that already work. Add localized item copy in
+all supported ARBs for that item type and generate localizations when changed.
+Register assets as needed; nested asset folders may need explicit entries.
 
-Relevant files:
-- `supabase/migrations/20260403121500_add_version_gated_shop_catalog_rpc.sql`
-- `supabase/migrations/20260404103000_fix_version_gated_background_purchase.sql`
-- `supabase/migrations/20260404104500_fix_room_backgrounds_insert_policy.sql`
-- `lib/features/shop/models/shop_item.dart`
-- `lib/features/shop/shop_view.dart`
-- `lib/features/shop/services/shop_purchase_handler.dart`
-- `lib/features/home/home_view.dart`
+If item-specific names or avatar assets occur in notification payloads, update
+`supabase/functions/notify_friend/index.ts` and, for pet avatar handling,
+`android/app/src/main/kotlin/com/example/pet/PetTomoFirebaseMessagingService.kt`
+as needed. Apply migrations and deploy required function changes within the
+authorized rollout using root compatibility, target/config verification, and
+production-verification rules; an asset-edit request alone does not authorize
+unrelated external operations.
 
-### Pets
-- Pets are not shop items in this repo.
-- Pet compatibility is app-side through `PetCatalog` metadata plus old-client fallback to the default pet.
-
-Relevant files:
-- `lib/features/pet/pet_catalog.dart`
-- `lib/features/pet/pet_selection_page.dart`
-- `lib/features/home/home_view.dart`
-- `lib/features/home/room_selection_view.dart`
-- `android/app/src/main/kotlin/com/example/pet/PetTomoFirebaseMessagingService.kt`
-- `supabase/functions/notify_friend/index.ts`
-
-## Rollout Workflow
-
-### 1. Classify the shared item
-- `background` or `furniture`
-  use Shop visibility gate + Home render fallback
-- `pet`
-  use `PetCatalog` min-version gate + Home/Room Selection fallback
-
-### 2. Add assets and localization
-- Register new assets in Flutter and `pubspec.yaml` when needed.
-- If assets live in nested subfolders, do not assume the parent directory entry is enough. Verify the generated bundle actually includes them; add explicit nested directory entries in `pubspec.yaml` when required.
-- Add localized names/descriptions/taglines in every supported ARB touched by that item type.
-- Run `flutter gen-l10n`.
-
-### 3. Add visibility gating
-
-For backgrounds/furniture:
-- Insert or update `items` rows with:
-  - `is_active = false`
-  - `metadata.visibility_mode = 'version_gated'`
-  - `metadata.min_app_version = '<target version>'`
-  - `metadata.shop_visibility = 'hidden'` for rollout-only free items that should not appear in Shop
-  - fallback metadata appropriate to the item
-- Save the migration under `supabase/migrations/`
-- Apply it through Supabase MCP, not as dashboard-only SQL
-
-For pets:
-- Add the new pet to `PetCatalog`
-- Set `minAppVersion`
-- Make selection surfaces use `visiblePetsForAppVersion(...)`
-
-### 4. Add render fallback
-
-For backgrounds:
-- Unsupported active background must fall back to the default background
-
-For furniture:
-- Unsupported placed furniture must be skipped entirely
-
-For pets:
-- Unsupported shared pet type must fall back to `PetCatalog.defaultPetId`
-
-Fallback must be applied on:
-- active room rendering
-- room list / room summary rendering
-- any other shared preview surface that can display remote room state
-
-### 5. Reuse the update prompt
-- If a room is using a newer shared item than the client supports, reuse the room compatibility update prompt instead of inventing a new flow.
-- Keep the prompt generic enough to cover pet, furniture, and background conflicts.
-
-### 6. Sync notifications if payloads depend on the item
-- If notification payloads include item-specific names or avatar assets, update them too.
-
-Current examples:
-- shop purchase item-name localization:
-  - `supabase/functions/notify_friend/index.ts`
-- pet avatar asset/type handling:
-  - `supabase/functions/notify_friend/index.ts`
-  - `android/app/src/main/kotlin/com/example/pet/PetTomoFirebaseMessagingService.kt`
-
-If an Edge Function changes, deploy it after the code change.
-
-### 7. Keep purchase enforcement in sync
-
-For Shop-backed decor, there are 3 separate enforcement layers:
-- catalog visibility
-  `get_visible_shop_items(...)`, `ShopItem`, and Shop surface filters decide what the user can see
-- purchase validation
-  purchase RPCs decide whether the selected item is a valid decor purchase target
-- write authorization
-  RLS policies on tables such as `room_backgrounds` and `room_item_inventories` decide whether the insert/update is allowed
-
-When a decor rollout changes one layer, audit the other 2 in the same pass.
-
-Current background example:
-- version-gated paid backgrounds can be visible in Shop while `is_active = false`
-- therefore purchase RPCs and `room_backgrounds_insert` policy must not require `is_active = true`
-- hidden free rollout backgrounds must stay excluded from both purchase RPCs and insert policies
-
-### 8. Keep purchase feedback aligned
-
-For Shop consumables that grant an existing currency balance, such as a diamond
-to candy exchange pack:
-- update the balance immediately from the purchase RPC result
-- trigger the existing currency-gain SFX from the purchase-success path
-- trigger the matching balance animation with an explicit reward event id
-- do not rely on a passive balance refresh or widget rebuild alone for feedback
-
-For Flutter reward micro-animations:
-- do not feed `TweenSequence` with overshooting curve output such as
-  `Curves.easeOutBack` or elastic curves, because `TweenSequence` asserts when
-  its input `t` falls outside `0..1`
-- put the visual overshoot in the tween values, or use a non-overshooting curve
-  before the sequence
-
-## Guardrails
-
-- Do not globally flip new shared decor to `is_active = true` unless the user explicitly accepts old-client exposure.
-- Do not assume Shop gating is enough for shared room state.
-- Do not assume Shop visibility fixes purchaseability. Catalog RPCs, purchase RPCs, and RLS can drift independently.
-- Do not assume asset registration is done just because the files exist on disk. Confirm the generated Flutter bundle contains them.
-- Do not invent a second compatibility system when the existing prompt, RPC, metadata, or fallback helpers already cover the use case.
-- Do not update only Flutter without updating Supabase or notification payloads when the item type needs them.
-
-## Expected Deliverables
-
-When this skill is used, the final change should usually include:
-- assets wired
-- localization updated
-- compatibility gate added
-- fallback rendering added
-- prompt path preserved or expanded
-- Supabase migration committed and applied if decor catalog changed
-- notification payload changes deployed if touched
-- tests added or updated
-
-## Verification
-
-Always run:
-- `flutter gen-l10n` if ARB files changed
-- `flutter analyze`
-- `flutter test`
-
-For decor catalog changes, also sanity-check visibility behavior against version boundaries, for example:
-- old version does not see the new item
-- target version does see the new item
-
-For decor asset changes, also sanity-check the generated asset bundle:
-- `flutter build bundle`
-- confirm `build/flutter_assets/AssetManifest.bin` contains the new asset paths
-- confirm the copied files exist under `build/flutter_assets/assets/...`
-
-For decor purchase-path changes, also sanity-check live Supabase enforcement:
-- verify purchase RPC definitions on the target project if the rollout changes item predicates
-- verify related table RLS policies if the purchase flow writes through protected tables
-- confirm hidden rollout-only items remain excluded while paid version-gated items pass
-
-## When Not To Use
-
-Do not use this skill for:
-- purely local cosmetic assets with no shared room state
-- non-shared profile/avatar changes
-- unrelated App Store metadata updates
+Follow [the final validation requirements](../../../docs/testing.md). Verify
+affected old/target-version behavior and fallback surfaces. When assets change,
+run `flutter build bundle` and confirm both `AssetManifest.bin` and copied files
+under `build/flutter_assets/assets/` contain the new paths. For backend changes,
+verify live enforcement under the decor/compatibility workflow. Completion
+for implementation includes relevant regression coverage and, within the
+approved rollout scope, applied/committed migrations and deployed payload
+changes. For review-only or code-only work, report pending operations without
+executing them.

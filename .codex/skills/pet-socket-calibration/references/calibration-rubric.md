@@ -20,7 +20,9 @@ Score each animation × slot separately. The pet's overall level is the minimum 
 
 ## Quantitative warnings
 
-- Axis range over 10 px: generate a motion track.
+- For provisional captures, axis range over 10 px flags a candidate motion track.
+  Level 2 reviewed captures retain every intentional non-zero track as specified
+  in the [calibration workflow](../SKILL.md).
 - Single-frame step over 12 px: inspect with onion skin; it may be valid locomotion.
 - Loop delta over 10 px: inspect the last-to-first transition.
 - Normalized coordinate mismatch over 0.001: reject export.

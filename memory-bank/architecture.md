@@ -1,6 +1,6 @@
 # Architecture
 
-Compact current-state map for mandatory reads. Full snapshots live in
+Current-state map for architecture and ownership changes. Full snapshots live in
 `memory-bank/archive/`; latest:
 `memory-bank/archive/architecture_20260818_pre_compaction.md`.
 

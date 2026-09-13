@@ -1,85 +1,52 @@
 ---
 name: firebase-crashlytics-triage
-description: Investigate Firebase Crashlytics issues for this PicPet repo through Firebase MCP. Use when the user asks to inspect the top/latest Crashlytics issue, fetch sample events or stack traces, diagnose a crash or non-fatal, compare issue impact by app version/device, or map Crashlytics evidence back to this codebase.
+description: Triage PicPet Firebase Crashlytics crashes and non-fatals against shipped versions and current code.
 ---
 
 # Firebase Crashlytics Triage
 
-Use Firebase MCP first. This repo already targets Firebase project `pet-app-702be`.
+Use Firebase MCP and confirm project `pet-app-702be` with `firebase_get_environment`.
+Default to iOS (`1:69520994244:ios:d6fc14579fda1a1ca33e91`); use Android
+(`1:69520994244:android:c686a4d86c55fa1ca33e91`) when requested and verify it has
+data rather than assuming a `404` means the issue is absent.
 
-## Repo-Specific Defaults
-- Prefer the iOS app ID unless the user explicitly asks for Android:
-  - iOS: `1:69520994244:ios:d6fc14579fda1a1ca33e91`
-  - Android: `1:69520994244:android:c686a4d86c55fa1ca33e91`
-- The repo-local MCP wrapper and setup doc are:
-  - `scripts/start_firebase_mcp_crashlytics.sh`
-  - `docs/firebase_crashlytics_mcp_workflow.md`
-- Current repo version lives in `pubspec.yaml`.
+For access/setup problems, use `scripts/start_firebase_mcp_crashlytics.sh` and
+[the MCP runbook](../../../docs/firebase_crashlytics_mcp_workflow.md). Prefer its
+service-account ADC setup; keep credentials outside version control.
 
-## Fast Workflow
-1. Call `firebase_get_environment` once and confirm the active Firebase project is `pet-app-702be`.
-2. Read only the Firebase guides you need:
-   - Always read `firebase://guides/crashlytics/reports` before `crashlytics_get_report`.
-   - Read `firebase://guides/crashlytics/issues` when prioritizing.
-   - Read `firebase://guides/crashlytics/investigations` when diagnosing root cause.
-3. Start with `crashlytics_get_report(report: "topIssues")`.
-4. If the user says "top crash", filter `issueErrorTypes: ["FATAL"]`.
-5. If the user says "top issue" without specifying crash vs non-fatal, do not force a fatal-only filter.
-6. Fetch `topVersions` for the same app ID so you can tell whether the issue affects the newest shipped app version.
-7. For the chosen issue:
-   - `crashlytics_get_issue`
-   - `crashlytics_batch_get_events` for the sample event from the issue
-   - `crashlytics_list_events` with `issueId` to get a few recent examples
-   - optional: `topAppleDevices`, `topOperatingSystems`, or `topVariants` filtered by `issueId`
-8. Map the crashing path into the repo with `rg`, `sed`, `nl`, and when needed `git blame` / `git log`.
-9. Before concluding the repo is still broken, check whether the current code already contains the likely fix and whether Crashlytics is dominated by older app versions.
-10. If you make code changes, update `memory-bank/*.md` as needed, update `tasks/todo.md`, then run `flutter analyze` and `flutter test`.
+## Evidence
 
-## Efficient Investigation Pattern
-- Use parallel reads:
-  - Crashlytics reports/issues/events in parallel where filters allow it.
-  - Repo searches and file reads in parallel.
-- Prefer this question order:
-  1. Which platform/app ID actually has data?
-  2. What is the top issue by event volume?
-  3. Does it affect the newest shipped version?
-  4. What exact request/frame/error repeats in sample events?
-  5. Is the problem current code, old shipped code, or external/transient noise?
+- For a named issue, fetch that issue directly. For rankings, use `topIssues`;
+  filter `issueErrorTypes: ["FATAL"]` only when the user asks for crashes.
+- Read `firebase://guides/crashlytics/reports` before `crashlytics_get_report`.
+  Read the issues or investigations guides when prioritizing or diagnosing.
+- Use issue metadata and enough recent sample events to establish impact,
+  affected versions, and the repeated failing path. Device/OS/variant reports
+  are conditional on the question, not a mandatory report bundle.
+- Compare affected versions with verified release state in
+  [release_status.md](../../../docs/release_status.md). `pubspec.yaml` identifies
+  the local version, not proof of public availability. Check current source
+  before using history to date a fix; follow the root code-discovery guidance.
+- If stacks are unsymbolicated, inspect
+  `ios/scripts/upload_crashlytics_symbols.sh` and the
+  [dSYM runbook](../../../docs/ios_app_store_export.md) before diagnosing app logic.
+- For update-gate errors, inspect `AppConfigService`, `force_update_check`, and
+  `app_config`; distinguish transient network reports from user-visible crashes.
+  Reporting context lives in `lib/services/crash/crash_reporting_service.dart`
+  and `lib/main.dart`; keys such as `feature`, `last_action`,
+  `last_error_source`, `route`, and `room_id` help identify the failing surface.
 
-## PicPet-Specific Heuristics
-- Force-update / app-config noise:
-  - Search for `force_update_check`, `AppConfigService`, `minimum_required_version`, `latest_available_version`, `soft_update_message`, and `app_config`.
-  - Check whether failures are transient network errors reported from the update gate rather than user-visible crashes.
-  - Compare Crashlytics-affected versions with the current `pubspec.yaml` version and recent git history for `lib/services/app_config/`.
-- Crash reporting context:
-  - Search `lib/services/crash/crash_reporting_service.dart` and `lib/main.dart` for how exceptions are recorded and tagged.
-  - Use Crashlytics custom keys like `feature`, `last_action`, `last_error_source`, `route`, and `room_id` to narrow the feature area quickly.
-- Unsymbolicated iOS crashes:
-  - If stacks are poor, inspect dSYM upload flow before spending time on app logic.
-- Chat/Home issues:
-  - Search the exact method or file name from the Crashlytics title first, then expand to the owning feature module.
+## Result and scope
 
-## Output Expectations
-- Report:
-  - issue ID
-  - title/subtitle
-  - event count / impacted users
-  - affected versions
-  - one or more sample event timestamps
-  - the key stack path
-- Then state:
-  - most likely root cause
-  - whether it is still present in the current repo or already fixed
-  - the exact local files/lines supporting that conclusion
-- Then add a dedicated action section:
-  - explicitly answer whether action is needed right now
-  - explain that action decision in detail (what should or should not be done, why, urgency, and remaining risk)
-  - if action is recommended, summarize the concrete next implementation/investigation steps
-- End by asking the user whether they want you to execute the recommended action.
-- If the repo already contains the likely fix, say so explicitly and cite the relevant commit or progress note.
+Report issue ID/title, impact counts, affected versions, sample timestamps,
+key stack path, and source evidence. State whether a defect remains in current
+code, was already fixed (cite its commit or note), or is still uncertain.
+Do not claim a root cause from one event when recent events show different modes.
+Explain whether action is needed, its urgency and remaining uncertainty, and
+concrete next steps.
 
-## Guardrails
-- Do not assume Android has usable Crashlytics data; verify. In this repo it may return `404`.
-- Do not infer live behavior from the first historical commit you find; check the current file, then use git history only to explain when the behavior changed.
-- Do not claim a fix from one sample event alone when multiple recent events show different error modes; look for the common failing path.
-- If there is not enough stack or event detail to identify a plausible root cause, say that instead of guessing.
+For investigation-only requests, ask before implementing a fix. If a fix is
+already requested, complete the authorized change and the root validation
+requirements. Changing issue state, adding external notes, deploying, or making
+compatibility changes still requires the applicable authorization; triage alone
+does not grant it.

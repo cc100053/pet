@@ -9,7 +9,8 @@ not `firebase login`.
 ## What this gives you
 - Ask Codex for the latest crashes or non-fatals in Firebase Crashlytics
 - Pull sample events, stack traces, notes, and report summaries through Firebase MCP
-- Triage against the local codebase, patch the app, and verify with `flutter analyze` and `flutter test`
+- Triage against the local codebase; requested fixes use the validation policy
+  in `docs/testing.md`
 
 ## One-time setup
 
@@ -106,23 +107,24 @@ You should see Firebase core tools plus Crashlytics tools such as:
 Once the MCP server is loaded, use prompts like:
 
 ```text
-Use Firebase Crashlytics MCP to find the top open iOS crash and non-fatal issues for the latest app version, fetch sample events and stack traces, identify the most likely root cause in this repo, implement the fix, and run flutter analyze plus flutter test.
+Use Firebase Crashlytics MCP to find the top open iOS crash and non-fatal issues for the latest app version, fetch sample events and stack traces, identify the most likely root cause in this repo, implement the fix, and follow the final checks in docs/testing.md.
 ```
 
 ```text
 Use Firebase Crashlytics MCP to inspect issue <ISSUE_ID>, summarize impact, fetch the latest 3 events, map the stack trace to this Flutter/iOS codebase, and propose or implement a fix.
 ```
 
-## Suggested triage sequence for the agent
+## Triage scope
 
-1. Read the latest Crashlytics report summary with `crashlytics_get_report`.
-2. Pick the highest-impact open issue for the current iOS version.
-3. Fetch issue metadata with `crashlytics_get_issue`.
-4. Pull recent sample events and stack traces with `crashlytics_list_events` or `crashlytics_batch_get_events`.
-5. Correlate the failing frames with local Dart, iOS, or plugin code.
-6. Patch the code in this repo.
-7. Run `flutter analyze` and `flutter test`.
-8. Optionally add a Crashlytics note back onto the issue with the diagnosis or fix summary.
+Use `.codex/skills/firebase-crashlytics-triage/SKILL.md` for evidence selection
+and reporting. Inspect a named issue directly; use rankings only when requested.
+Compare event versions with verified release state and current source.
+
+Investigation-only requests end with findings and a proposed action; obtain
+approval before implementing. A requested fix includes implementation and the
+canonical validation in `docs/testing.md`. Adding Crashlytics notes or changing
+issue state is an external action and requires explicit authorization; it is
+not an automatic follow-up to triage.
 
 ## Boundary conditions
 

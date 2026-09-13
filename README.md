@@ -34,8 +34,9 @@ flutter pub get
 cd ios && pod install && cd ..
 flutter run
 ```
-If `pod install` fails with cache permission errors, clear the CocoaPods cache
-or run it with elevated permissions.
+If `pod install` fails with permissions errors, inspect the failing path and
+ownership first. Use a targeted repair; do not clear caches or elevate the
+whole operation as a default workaround.
 
 ## Current Docs
 - Agent workflow and repo rules: `AGENTS.md`

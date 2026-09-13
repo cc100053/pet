@@ -48,5 +48,12 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   only close when validation passes.
 - Prefer `AppTheme.primaryColor`, `successColor`, `secondaryColor`, and
   `errorColor` for semantic feedback states.
-- For broader UI/UX implementation or review, read
-  `.codex/skills/ui-ux-pro-max/SKILL.md` first.
+- Use `.codex/skills/ui-ux-pro-max/SKILL.md` only for design/accessibility
+  questions not answered by existing product patterns.
+- Currency-grant purchases update balances immediately from the RPC result,
+  trigger gain SFX from purchase success, and animate with an explicit reward
+  event id; a passive balance rebuild is not the feedback trigger.
+- Keep TweenSequence input in `0..1`: put overshoot in tween values rather
+  than feeding it an overshooting curve.
+- `JuicePosition.top` is for background task notifications; complex inputs
+  validate inside the dialog before closing.

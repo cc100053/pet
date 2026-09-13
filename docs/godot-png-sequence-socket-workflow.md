@@ -176,10 +176,10 @@ Fish idle body moves ~24 px vertically (ribbon visibly bobs without a track). Ca
 
 Rule of thumb: if the body's per-frame range exceeds ~10 px on a 450 px canvas (i.e. delta > 0.022), add a motion track.
 
-The 10 px value is an automation/review threshold, not a reason to discard
-human-authored movement. Once an export has completed Level 2 equipment review,
-generate with `--track-threshold 0` and sync every intentional non-zero track,
-including smaller head/body/back adjustments that are visible in preview.
+For provisional versus human-reviewed exports, follow the generation threshold
+policy in the [calibration skill](../.codex/skills/pet-socket-calibration/SKILL.md).
+Human-reviewed movement must not be discarded because it falls below the
+automatic-review threshold.
 
 **Step 4 — sleepHiddenSlots**
 
@@ -347,7 +347,7 @@ Use this each time the user re-exports socket JSONs.
 □ Record sleep animation frame[0] — if different from idle, set sleepOverrides
 □ Calculate per-frame deltas (frame[i] - frame[0]) for each slot
 □ For provisional data, review any slot where max(|delta|) > 0.022 (≈10px on 450px canvas)
-□ For Level 2 human-reviewed data, generate with `--track-threshold 0` and sync every intentional non-zero track
+□ Preserve reviewed movement using the calibration skill's generation threshold policy
 □ Motion track frame count must equal PetAnimationFrames frameAssets count
 □ If a slot should be invisible in sleep, add sleepHiddenSlots
 ```

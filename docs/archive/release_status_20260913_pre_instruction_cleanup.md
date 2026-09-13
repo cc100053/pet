@@ -10,15 +10,13 @@ explain code history; this file records the operational state. Use git tags as
 immutable snapshots only after a release is actually shipped or a deployment is
 worth pinning.
 
-## Current Repository Release Baseline
+## Current Public Release
 
-This is the internal source/build baseline, not proof of public availability.
-The recorded ASC state below is unchanged; no new store verification was made
-during the instruction cleanup.
+Verify live store state before relying on these values for release decisions.
 
-| Platform | Baseline version | Build | Store status | Verified at | Source | Git tag |
+| Platform | Public version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 3.2.0 | 24 | Current internal baseline; ASC version `4ae6f075-36a9-48ad-9592-a9b27d085600` is `PREPARE_FOR_SUBMISSION`, build `2524cff5-2c7d-4c01-b8f9-4e945f48dff9` is `VALID` and attached; localizations synced (en-US `5b83c202-2b73-45fb-a879-9897aecdafb8`, ja `ef040a99-0eae-434a-b3ba-6ea5adc6ca81`, ko `d4ff8aff-915c-4a94-ab00-3f2e74cde79e`, zh-Hant `2b84f708-ae10-4dfc-95c1-3ef557286a09`); not submitted for App Review | 2026-09-13 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for shared room frame sync and room reliability | none |
+| iOS | 3.2.0 | 24 | Repo workflow assumes current; ASC version `4ae6f075-36a9-48ad-9592-a9b27d085600` is `PREPARE_FOR_SUBMISSION`, build `2524cff5-2c7d-4c01-b8f9-4e945f48dff9` is `VALID` and attached; localizations synced (en-US `5b83c202-2b73-45fb-a879-9897aecdafb8`, ja `ef040a99-0eae-434a-b3ba-6ea5adc6ca81`, ko `d4ff8aff-915c-4a94-ab00-3f2e74cde79e`, zh-Hant `2b84f708-ae10-4dfc-95c1-3ef557286a09`); not submitted for App Review | 2026-09-13 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for shared room frame sync and room reliability | none |
 | Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
 
 ## Crashlytics dSYM Status Per Build
@@ -49,27 +47,38 @@ into `ios/scripts/upload_archive_dsyms.sh` so both paths get it from one
 command, and making the in-build fallback phase warn/fail instead of exiting
 silently.
 
-## Last Recorded Public Availability
+## Last Repo-Known Public Release
 
-Historical evidence, not a fresh store check. Verify live availability before
-making release or compatibility decisions.
+This section is a historical repo hint, not a live-store guarantee.
 
-| Platform | Version | Build | Recorded evidence | Recorded at |
-| --- | --- | --- | --- | --- |
-| iOS | 3.1.0 | 23 | ASC `READY_FOR_DISTRIBUTION`; version `00203205-22bc-4b4d-94bc-8802b7839892`, build `00e52973-ae37-4ce9-9b70-47eb50762e3c` | 2026-09-13 |
-| Android | Not tracked | - | No recorded verification | - |
+| Platform | Version | Build | Status note | Evidence | Git tag |
+| --- | --- | --- | --- | --- | --- |
+| iOS | 3.1.0 | 23 | Superseded in repo workflow by completed `3.2.0+24` release-notes-sync; ASC state is `READY_FOR_DISTRIBUTION` as of 2026-09-13 | ASC version `00203205-22bc-4b4d-94bc-8802b7839892`, attached build `00e52973-ae37-4ce9-9b70-47eb50762e3c` | none |
+| iOS | 3.0.2 | 22 | Superseded in repo workflow by completed `3.1.0+23` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-09-01 | ASC version `b3a0c116-cd88-4997-82ff-e9dcb7ae8603`, attached build `c997fdc5-61fe-4984-9273-957630da97e5` | none |
+| iOS | 3.0.1 | 21 | Superseded in repo workflow by completed `3.0.2+22` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-20 | ASC version `a5d1ca1d-81be-47d5-a63c-1aa80413a47a`, attached build `7d5bf932-2b30-4dad-9a15-30392f183a1e` | none |
+| iOS | 3.0.0 | 20 | Superseded in repo workflow by completed `3.0.1+21` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-16 | ASC version `9c8da611-140f-42aa-be58-e3b019978793`, attached build `2fec6cc5-c143-42a4-97b6-aed587726311` | none |
+| iOS | 2.4.0 | 19 | Superseded in repo workflow by completed `3.0.0+20` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-13 | ASC version `4737153b-dd0b-43d1-89b9-5bb93f16e7f8`, attached build `67e4a4b7-7a64-4e73-b647-17bdbaccf38a` | none |
+| iOS | 2.3.4 | 18 | Superseded in repo workflow by completed `2.4.0+19` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-09, already public per App Store lookup (live since 2.3.4) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, attached build `142aeed9-852f-43c6-8114-3f5a30f80505` | none |
+| iOS | 2.3.4 | 17 | Superseded by build 18 on the same ASC version 2026-08-09; build 17 was uploaded/attached to ASC but its local files were never committed (fixed retroactively in commit `e3829dd`) | ASC version `9f8120ca-91be-4875-aa4e-eb8e3106cae9`, previously attached build `42b5c164-d1e4-45f3-b485-a26116d70d76` | none |
+| iOS | 2.3.3 | 16 | Superseded in repo workflow by completed `2.3.4+17` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-05 | ASC version `717272d6-bcf3-4d3e-a6e4-48438305b196`, attached build `daa5e0e0-c9b1-4e4e-b8d6-277a82fd9a7d` | none |
+| iOS | 2.3.2 | 15 | Superseded in repo workflow by completed `2.3.3+16` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-03 | ASC version `2120a1f4-f8cf-4f2a-9527-b177b20e9210`, attached build `36348531-630d-47a7-b0b8-be9ea7fc89b6` | none |
+| iOS | 2.3.1 | 14 | Superseded in repo workflow by completed `2.3.2+15` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-02 | ASC version `91382e2c-a755-42cc-96e6-5e3628b426cf` | none |
+| iOS | 2.3.0 | 13 | Superseded in repo workflow by completed `2.3.1+14` release-notes-sync; ASC state was `PREPARE_FOR_SUBMISSION` on 2026-08-02 | ASC version `5a4313f5-29c6-4fc6-9ecf-0a5f9806670c`, attached build `cab2d2f1-e325-4c66-bab5-ea974a6f5ab6` | none |
+| iOS | 2.2.6 | 12 | Superseded in repo workflow by completed `2.3.0+13` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-26 | ASC version `b7b48f69-f839-41da-ba4f-60cc0bc9647b` | none |
+| iOS | 2.2.5 | 11 | Superseded in repo workflow by completed `2.2.6+12` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-16 | ASC version `38afa02d-dc0a-4dff-a91c-4cedfe3095a0` | none |
+| iOS | 2.2.4 | 10 | Superseded in repo workflow by completed `2.2.5+11` release-notes-sync; ASC state was `READY_FOR_DISTRIBUTION` on 2026-07-15 | ASC version `ca26e644-9448-4ee3-8640-bac50a810057` | none |
+| iOS | 2.2.3 | 9 | Superseded in repo workflow by completed `2.2.4+10` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-26 | ASC version `4f01124f-01d8-46c9-a5bf-106abb0d9f8d` | none |
+| iOS | 2.2.2 | 8 | Superseded in repo workflow by completed `2.2.3+9` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-22 | ASC version `1761de51-ec73-46e4-8b6f-134d9c650e1d` | none |
+| iOS | 2.2.1 | 7 | Superseded in repo workflow by completed `2.2.2+8` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-19 | ASC version `8eaa2a4f-8bc2-4044-a6e1-b3e510e609bb` | none |
+| iOS | 2.2.0 | 6 | Superseded in repo workflow by completed `2.2.1+7` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-16 | ASC version `ca6b8b89-a99e-4cc7-a23c-886853467b58` | none |
+| iOS | 2.1.0 | 5 | Superseded in repo workflow by completed `2.2.0+6` release-notes-sync; ASC version state was `READY_FOR_DISTRIBUTION` on 2026-06-11 | ASC version `37897d26-cc47-492c-867f-c7bc3ee4d44b` | none |
+| iOS | 2.0.2 | 4 | Previously recorded as public in archived release notes | Commit `ce4c85e` (`chore(release): bump to 2.0.2+4 with localized What's New`) | none |
 
-Earlier release rows and the original ledger are preserved in
-[the historical snapshot](archive/release_status_20260913_pre_instruction_cleanup.md).
+## Next Release Candidate
 
-## Pending Release Actions
-
-- iOS `3.2.0+24` is the current repository baseline, uploaded and attached in
-  ASC, with recorded state `PREPARE_FOR_SUBMISSION`. Submit for App Review only
-  after an explicit request; do not infer public availability from attachment.
-- Complete the build 24 Missing dSYMs check listed above
-  `[USER ACTION REQUIRED]`. Record verified automated progress while that
-  human check remains pending; the full release verification is not complete.
+| Platform | Version | Build | Local source | Store status | Store IDs | Next action | Git reference | Git tag |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| iOS | None pending | - | `pubspec.yaml` is `3.2.0+24`; the completed `release-notes-sync` flow for `3.2.0` (shared room frame sync) is the repo's current release baseline per the Update Checklist below, even though ASC still shows `PREPARE_FOR_SUBMISSION`/not submitted | ASC version `4ae6f075-36a9-48ad-9592-a9b27d085600`, attached build `2524cff5-2c7d-4c01-b8f9-4e945f48dff9` (build 24) | Monitor review/store outcome; submit for App Review only after an explicit request; complete the Crashlytics Missing dSYMs check | branch `main` | none |
 
 ## Feature Version Gates
 
@@ -136,18 +145,19 @@ gate is moved.
 Before uploading or submitting an app build:
 
 - Update `pubspec.yaml` and bundled What's New / ASC metadata as needed.
-- Record the target build and pending release actions without changing
-  verified public availability.
+- Add or update the candidate row in "Next Release Candidate".
 - Record ASC version IDs, build IDs, upload time, and processing status.
 - Record compatibility notes for old app versions.
 
 After App Store/TestFlight state changes:
 
-- Update the recorded ASC state and pending release actions.
-- After the approved `release-notes-sync` flow, update the Current Repository
-  Release Baseline. Track verified public availability independently; uploading,
-  attaching, or submitting a build does not establish public availability.
-  Preserve exact ASC states, IDs, evidence times, and pending human checks.
+- Update the candidate status and next action.
+- After the full approved `release-notes-sync` flow completes for a target
+  version, treat that target version as the repo's Current Public Release for
+  workflow purposes, even if ASC still reports a post-submit state such as
+  `WAITING_FOR_REVIEW` or `PENDING_DEVELOPER_RELEASE`. Record the exact ASC
+  state and IDs in the tables, but do not leave the completed target tracked
+  only as a next release candidate.
 - Add the release git tag after the shipped state is verified.
 
 After backend deployment or migration:

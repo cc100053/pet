@@ -130,14 +130,10 @@ flutter test test/feed_validate_function_test.dart
 flutter test test/features/feed/feed_upload_queue_test.dart
 ```
 
-Full checks before shipping:
+Before pushing code, follow the canonical final checks in `docs/testing.md`.
 
-```sh
-flutter analyze
-flutter test
-```
-
-Live integration test, when env vars are available:
+Live integration test, only with verified target/account and authorized scope
+(see the live-test boundary in `docs/testing.md`):
 
 ```sh
 flutter test test/feed_flow_integration_test.dart

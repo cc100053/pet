@@ -4,6 +4,10 @@ Compact current state only. Full snapshots live in `memory-bank/archive/`;
 latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 
 ## Current State
+- Agent guidance uses contextual document/skill routing; `docs/testing.md` owns
+  the full code validation gate and documentation-only checks. Historical
+  lessons/task logs are archived; release baseline and recorded public
+  availability are separate in `docs/release_status.md`.
 - Repo release baseline is iOS `3.2.0+24` (shared room frame sync).
   Build 24 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
   not submitted for App Review. Exact ASC, dSYM, localization, and backend

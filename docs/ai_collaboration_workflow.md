@@ -6,7 +6,7 @@ inside explicit compatibility guardrails, not as one-shot bug fixers.
 
 ## When This Is Required
 
-Read and follow this document before any task that touches one or more of:
+Read the relevant sections when changing the behavior or contracts of:
 
 - Supabase migrations, RPCs, RLS policies, triggers, cron, or Edge Functions.
 - Client/server request or response contracts.
@@ -38,7 +38,10 @@ propose backward-compatible alternatives, such as:
 - Version-gating visibility or behavior by app version.
 - Phasing rollout through server defaults before requiring new client behavior.
 
-Wait for user approval before implementing or deploying an incompatible change.
+Before implementing or releasing a parameter change that can affect released
+versions, present compatible alternatives and obtain approval. Incompatible
+contract changes also require approval. Reuse approval already given for the
+same scope. Review-only and draft requests do not authorize mutations.
 
 ## Contract Inventory
 
@@ -67,8 +70,9 @@ Separate proposed fixes into two lanes:
   retries, or client parsing, but it cannot be assumed to protect existing
   installed clients until that build is adopted.
 
-When both are needed, usually deploy the compatible server hotfix first, then
-land the app-side fix with tests.
+When both are authorized, usually deploy the compatible server hotfix first,
+then land the app-side fix with tests. Code-only work must identify pending
+deployments rather than execute them automatically.
 
 ## Tests
 
@@ -82,13 +86,8 @@ and old state:
 - Retry/reconciliation behavior does not replay stale user-facing errors.
 - Server work that should be async is not accidentally awaited again.
 
-Prefer focused tests at the contract seam, then run the repo-required full
-checks before shipping code changes:
-
-```sh
-flutter analyze
-flutter test
-```
+Use focused contract tests during implementation and the canonical final checks
+in `docs/testing.md` before pushing code changes.
 
 For Edge Functions, source-level contract tests are acceptable when local
 execution cannot reliably reproduce production runtime behavior.
@@ -108,38 +107,13 @@ local tests:
 If production symptoms differ from the hypothesis, stop and re-plan instead of
 stacking unrelated fixes.
 
-## Documentation
+## Documentation and completion
 
-When the behavior or operational contract changes, update the relevant docs in
-the same task:
+Update the relevant current-state memory or runbook when its contract changes.
+Record actual release/deployment changes in `docs/release_status.md`. Use
+`tasks/todo.md` for work needing a durable handoff; do not duplicate the same
+rule across every document or add generic advice to `AGENTS.md`.
 
-- `memory-bank/*.md` for current state.
-- `docs/*.md` runbooks for operational behavior.
-- `docs/release_status.md` for app release state, ASC build/version state,
-  backend hotfixes, migrations, and compatibility-impacting deployments.
-- `AGENTS.md` when future agents must follow a new rule before editing.
-- `tasks/todo.md` review section for what changed and how it was verified.
-
-Keep docs current-state focused. Move long historical detail to archive notes
-when it stops being useful as mandatory reading.
-
-## Prompt Template
-
-Use this shape for high-risk requests:
-
-```text
-This is a high-risk compatibility task.
-
-Before editing:
-1. Read AGENTS.md, active memory-bank docs, and relevant docs/*.md runbooks.
-2. List the client/server contract and existing-user compatibility risks.
-3. Separate server hotfix vs app-side fix.
-4. Propose backward-compatible alternatives for any param/response/RPC/schema
-   change that can affect old app versions.
-5. Add regression tests for current behavior plus old contract/persisted state.
-6. Deploy only after target project/config is verified.
-7. Verify with production logs after deploy.
-```
-
-This template is intentionally explicit. It helps the agent avoid making a
-current-HEAD-only change that breaks old clients.
+Complete the authorized implementation, compatibility checks, and any requested
+deployment verification. Identify unapplied migrations, undeployed functions,
+and required human checks explicitly. Keep historical incidents in archives.
