@@ -5,6 +5,10 @@ for exact historical versions. Latest snapshot:
 `memory-bank/archive/tech_stack_20260704_pre_compaction.md`.
 
 ## Core App
+- iOS-only product. Android has never been released: the `android/` tree and its
+  Firebase registration exist because Flutter generates them, so the Android
+  Crashlytics app holds no data and Android-only plugin behavior is unverified.
+  Treat any Android finding as untested, not as a regression.
 - Flutter/Dart
 - Riverpod state management
 - Hive local cache

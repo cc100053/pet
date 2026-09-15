@@ -78,6 +78,9 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   snapshot. User-initiated writes pass `timeout: _HomeViewState._writeTimeout`
   (12s, matching Profile): a timed-out write loses the edit with nothing to
   fall back to.
+- Crashlytics coverage is iOS-only, matching the shipped platforms: the Android
+  app in the Firebase project has never received an event, so its absence from
+  reports is expected and not a reporting gap.
 - `UncleanExitService` reports likely OOM/SIGKILL on the next launch; keep Hive
   initialization before its sentinel. On iOS pressure,
   `SystemMemoryPressureService` releases cache and live-image handles.

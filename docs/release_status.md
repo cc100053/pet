@@ -19,7 +19,7 @@ during the instruction cleanup.
 | Platform | Baseline version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
 | iOS | 3.2.0 | 24 | Current internal baseline; ASC version `4ae6f075-36a9-48ad-9592-a9b27d085600` is `PREPARE_FOR_SUBMISSION`, build `2524cff5-2c7d-4c01-b8f9-4e945f48dff9` is `VALID` and attached; localizations synced (en-US `5b83c202-2b73-45fb-a879-9897aecdafb8`, ja `ef040a99-0eae-434a-b3ba-6ea5adc6ca81`, ko `d4ff8aff-915c-4a94-ab00-3f2e74cde79e`, zh-Hant `2b84f708-ae10-4dfc-95c1-3ef557286a09`); not submitted for App Review | 2026-09-13 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for shared room frame sync and room reliability | none |
-| Android | Not tracked in current repo snapshot | - | Not tracked | - | - | none |
+| Android | Never released | - | Not published; iOS-only product | 2026-09-15 | Confirmed by the product owner | none |
 
 ## Crashlytics dSYM Status Per Build
 
@@ -57,7 +57,7 @@ making release or compatibility decisions.
 | Platform | Version | Build | Recorded evidence | Recorded at |
 | --- | --- | --- | --- | --- |
 | iOS | 3.1.0 | 23 | ASC `READY_FOR_DISTRIBUTION`; version `00203205-22bc-4b4d-94bc-8802b7839892`, build `00e52973-ae37-4ce9-9b70-47eb50762e3c` | 2026-09-13 |
-| Android | Not tracked | - | No recorded verification | - |
+| Android | Never released | - | Not published; iOS-only product | 2026-09-15 |
 
 Earlier release rows and the original ledger are preserved in
 [the historical snapshot](archive/release_status_20260913_pre_instruction_cleanup.md).
