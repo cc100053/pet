@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' show ClientException;
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/errors/user_facing_error.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -56,6 +57,21 @@ void main() {
       );
       expect(
         classifyUserFacingError(Exception('Connection timed out')),
+        UserFacingErrorCategory.network,
+      );
+      // Dropped sockets reach us as `ClientException` with an OS-worded
+      // message that matches none of the keywords above.
+      expect(
+        classifyUserFacingError(
+          ClientException(
+            'Connection reset by peer',
+            Uri.parse('https://example.supabase.co/rest/v1/rpc/create_room'),
+          ),
+        ),
+        UserFacingErrorCategory.network,
+      );
+      expect(
+        classifyUserFacingError(ClientException('Bad file descriptor')),
         UserFacingErrorCategory.network,
       );
     });

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' show ClientException;
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/services/crash/crash_reporting_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -236,7 +237,13 @@ UserFacingErrorCategory _classify(Object error, String rawSummary) {
   // Transport failures whose only human-readable text is an OS message: iOS
   // renders those in the device locale ("要求逾時。"), so the keyword matching
   // below never sees them. The type is the locale-independent signal.
+  // `ClientException` is how `package:http` (and therefore every postgrest,
+  // storage and functions call) surfaces a dropped socket. Its message is an
+  // OS string — "Connection reset by peer", "Bad file descriptor" — that the
+  // keyword matching below does not recognise, so without the type check these
+  // land in `unexpected` and tell the user the app is broken.
   if (error is TimeoutException ||
+      error is ClientException ||
       error is AuthRetryableFetchException ||
       (error is FirebaseException && error.plugin == 'firebase_messaging') ||
       (error is PlatformException &&

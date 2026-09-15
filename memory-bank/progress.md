@@ -75,6 +75,10 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   `[USER ACTION REQUIRED]`.
 - The room-decor transient-failure fix shipped in `3.0.1+21`; Crashlytics
   issue `0183b64515477452f62329d7d3a83a4f` stays OPEN until live verification.
+- Crashlytics `572d36c880cdbb5b0bf49e5694d08713` (create_room `ClientException`)
+  and `5f5325b85f7205abe05a09582e05cf7e` (onboarding profile save 4s timeout)
+  are first-seen in `3.2.0+24`; both fixes land post-24 and need live
+  verification.
 - Convert remaining source-text app tests to behavioral tests where practical;
   SQL migration text tests remain legitimate.
 - Live-verify feed satiety, visible hunger movement, and presigned-upload logs.

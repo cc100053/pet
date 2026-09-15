@@ -68,7 +68,14 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   failures. Bespoke visible copy uses `reportUserVisibleError(...)`; silent
   best-effort work uses `reportSwallowedError(...)`. Classify on exception type
   or code, never on message keywords: iOS returns OS messages in the device
-  locale, so English substring matching mislabels them `unexpected`.
+  locale, so English substring matching mislabels them `unexpected`. `http`'s
+  `ClientException` carries the same OS wording for dropped sockets and is
+  matched by type for that reason; `http` is a direct dependency only so this
+  type is nameable.
+- Home's 4s `_networkTimeout` budgets reads that fall back to the cached
+  snapshot. User-initiated writes pass `timeout: _HomeViewState._writeTimeout`
+  (12s, matching Profile): a timed-out write loses the edit with nothing to
+  fall back to.
 - `UncleanExitService` reports likely OOM/SIGKILL on the next launch; keep Hive
   initialization before its sentinel. On iOS pressure,
   `SystemMemoryPressureService` releases cache and live-image handles.

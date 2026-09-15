@@ -299,6 +299,12 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const String _proEntitlementId = 'Petmonthly';
   static const Duration _networkTimeout = Duration(seconds: 4);
 
+  /// Reads run against a cached snapshot, so a short budget is cheap: falling
+  /// back fast is better than a long spinner. User-initiated writes have no
+  /// fallback — timing one out loses the edit — so they get the same budget the
+  /// profile screen uses.
+  static const Duration _writeTimeout = Duration(seconds: 12);
+
   /// How long a cold room entry may run before the full-screen entry overlay
   /// takes over. Under this, the room scaffold itself is a better placeholder —
   /// it paints the real background and shows a small spinner in the pet's place
@@ -1051,8 +1057,8 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Future<T> _withNetworkTimeout<T>(Future<T> future) async {
-    return future.timeout(_networkTimeout);
+  Future<T> _withNetworkTimeout<T>(Future<T> future, {Duration? timeout}) async {
+    return future.timeout(timeout ?? _networkTimeout);
   }
 
   void _showOfflineSnackBar() {

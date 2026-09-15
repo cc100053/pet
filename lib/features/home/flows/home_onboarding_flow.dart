@@ -288,6 +288,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
             .from('profiles')
             .update({'nickname': nickname})
             .eq('user_id', user.id),
+        timeout: _HomeViewState._writeTimeout,
       );
       _myNickname = nickname;
       ProfileCacheService.instance.prime(
@@ -490,7 +491,10 @@ extension _HomeOnboardingFlow on _HomeViewState {
         String token,
         String operation,
       ) async {
-        final response = await _withNetworkTimeout(invokeWithToken(token));
+        final response = await _withNetworkTimeout(
+          invokeWithToken(token),
+          timeout: _HomeViewState._writeTimeout,
+        );
         if (response.status < 200 || response.status >= 300) {
           throw Exception(
             'avatar_upload_failed:$operation:${responseErrorSummary(response)}',
@@ -545,6 +549,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
               .from('profiles')
               .update({'avatar_url': framedAvatarUrl})
               .eq('user_id', user.id),
+          timeout: _HomeViewState._writeTimeout,
         );
       }
 
