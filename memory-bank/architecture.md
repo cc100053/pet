@@ -71,7 +71,9 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   locale, so English substring matching mislabels them `unexpected`. `http`'s
   `ClientException` carries the same OS wording for dropped sockets and is
   matched by type for that reason; `http` is a direct dependency only so this
-  type is nameable.
+  type is nameable. `userFacingError` trims its own frames off the captured
+  trace (`callerStackTrace()`): Crashlytics titles an issue after the first
+  app-owned frame, so an untrimmed trace files every call site as one issue.
 - Home's 4s `_networkTimeout` budgets reads that fall back to the cached
   snapshot. User-initiated writes pass `timeout: _HomeViewState._writeTimeout`
   (12s, matching Profile): a timed-out write loses the edit with nothing to

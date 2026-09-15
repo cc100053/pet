@@ -31,6 +31,14 @@ Future<String> _resolveMessage(WidgetTester tester, Object error) async {
 void main() {
   setUp(resetUserFacingErrorDedupCache);
 
+  group('callerStackTrace', () {
+    test('drops this library\'s frames so Crashlytics blames the call site', () {
+      final trace = callerStackTrace().toString().split('\n');
+      expect(trace.first, isNot(contains('user_facing_error.dart')));
+      expect(trace.first, contains('user_facing_error_test.dart'));
+    });
+  });
+
   group('classifyUserFacingError', () {
     test('maps 401 edge function failures to a re-auth prompt', () {
       expect(

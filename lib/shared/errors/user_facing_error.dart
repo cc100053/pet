@@ -52,11 +52,10 @@ String userFacingError(
   final category = _classify(error, summary);
 
   // Captured here rather than at the call site: most callers pass no stack
-  // trace, and `StackTrace.current` still includes the calling frames, which is
-  // what gives Crashlytics per-call-site grouping.
+  // trace of their own.
   _report(
     error: error,
-    stackTrace: stackTrace ?? StackTrace.current,
+    stackTrace: stackTrace ?? callerStackTrace(),
     category: category,
     summary: summary,
     source: source,
@@ -208,6 +207,24 @@ bool _shouldReport(
 
   _recentReports[signature] = now;
   return true;
+}
+
+/// `StackTrace.current` taken inside this file puts this file on top.
+/// Crashlytics groups a non-fatal by its leading frames and titles the issue
+/// after the first frame the app owns, so an untrimmed trace collapses every
+/// call site of [userFacingError] into one unreadable issue — a shop RPC, a
+/// room-decor load and a Postgres statement timeout all filed together.
+/// Dropping our own leading frames puts the real caller on top.
+@visibleForTesting
+StackTrace callerStackTrace() {
+  final frames = StackTrace.current.toString().split('\n');
+  final firstCaller = frames.indexWhere(
+    (frame) => !frame.contains('errors/user_facing_error.dart'),
+  );
+  if (firstCaller <= 0) {
+    return StackTrace.current;
+  }
+  return StackTrace.fromString(frames.sublist(firstCaller).join('\n'));
 }
 
 @visibleForTesting
