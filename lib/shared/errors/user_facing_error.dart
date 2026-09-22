@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show HandshakeException;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -260,6 +261,7 @@ UserFacingErrorCategory _classify(Object error, String rawSummary) {
   // keyword matching below does not recognise, so without the type check these
   // land in `unexpected` and tell the user the app is broken.
   if (error is TimeoutException ||
+      error is HandshakeException ||
       error is ClientException ||
       error is AuthRetryableFetchException ||
       (error is FirebaseException && error.plugin == 'firebase_messaging') ||

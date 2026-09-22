@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show HandshakeException;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -32,11 +33,14 @@ void main() {
   setUp(resetUserFacingErrorDedupCache);
 
   group('callerStackTrace', () {
-    test('drops this library\'s frames so Crashlytics blames the call site', () {
-      final trace = callerStackTrace().toString().split('\n');
-      expect(trace.first, isNot(contains('user_facing_error.dart')));
-      expect(trace.first, contains('user_facing_error_test.dart'));
-    });
+    test(
+      'drops this library\'s frames so Crashlytics blames the call site',
+      () {
+        final trace = callerStackTrace().toString().split('\n');
+        expect(trace.first, isNot(contains('user_facing_error.dart')));
+        expect(trace.first, contains('user_facing_error_test.dart'));
+      },
+    );
   });
 
   group('classifyUserFacingError', () {
@@ -91,6 +95,10 @@ void main() {
         classifyUserFacingError(
           TimeoutException('\u8981\u6c42\u903e\u6642\u3002'),
         ),
+        UserFacingErrorCategory.network,
+      );
+      expect(
+        classifyUserFacingError(HandshakeException('WRONG_VERSION_NUMBER')),
         UserFacingErrorCategory.network,
       );
       expect(
