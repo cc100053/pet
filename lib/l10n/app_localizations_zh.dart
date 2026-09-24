@@ -2155,6 +2155,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 
   @override
+  String get whatsNew321Title => '喂食与文字修复';
+
+  @override
+  String get whatsNew321Bullet1 => '现在每次喂食都会增加饥饿度，取消了此前的短暂冷却时间。';
+
+  @override
+  String get whatsNew321Bullet2 => '文字大小现在会正确跟随设备的系统文字大小设置。';
+
+  @override
+  String get whatsNew321Bullet3 => '改善喂食发送流程与字幕计数器显示。';
+
+  @override
   String get whatsNew320Title => '同步共享房间相框';
 
   @override
@@ -4348,6 +4360,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew321Title => '餵食與文字修正';
+
+  @override
+  String get whatsNew321Bullet1 => '現在每次餵食都會增加飢餓度，取消了先前的短暫冷卻時間。';
+
+  @override
+  String get whatsNew321Bullet2 => '文字大小現在會正確跟隨裝置的系統文字大小設定。';
+
+  @override
+  String get whatsNew321Bullet3 => '改善餵食傳送流程與字幕計數器顯示。';
 
   @override
   String get whatsNew320Title => '同步共享房間相框';

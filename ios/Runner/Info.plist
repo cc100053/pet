@@ -35,31 +35,31 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
 	<false/>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-5585639540156039~1962619513</string>
-	<key>NSCameraUsageDescription</key>
-	<string>PetTomo needs camera access to capture pet feed photos.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>PetTomo uses tracking permission to improve analytics and app experience.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>PetTomo needs photo access to choose feed images.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>PetTomo needs access to save photos to your gallery.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>PetTomo uses local network access for development-time debugger connection.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_dartVmService._tcp</string>
 		<string>_dartobservatory._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>PetTomo needs camera access to capture pet feed photos.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>PetTomo uses local network access for development-time debugger connection.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PetTomo needs access to save photos to your gallery.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PetTomo needs photo access to choose feed images.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>PetTomo uses tracking permission to improve analytics and app experience.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -83,8 +83,6 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UIRequiresFullScreen</key>
-	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
@@ -93,6 +91,8 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

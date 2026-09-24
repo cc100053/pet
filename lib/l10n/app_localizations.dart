@@ -4017,6 +4017,30 @@ abstract class AppLocalizations {
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
 
+  /// No description provided for @whatsNew321Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed & Text Fixes'**
+  String get whatsNew321Title;
+
+  /// No description provided for @whatsNew321Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Feeding your pet always raises hunger now — the short feed cooldown is gone.'**
+  String get whatsNew321Bullet1;
+
+  /// No description provided for @whatsNew321Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Text now correctly follows your device\'s system text size.'**
+  String get whatsNew321Bullet2;
+
+  /// No description provided for @whatsNew321Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoother feed sending with a redesigned caption counter.'**
+  String get whatsNew321Bullet3;
+
   /// No description provided for @whatsNew320Title.
   ///
   /// In en, this message translates to:

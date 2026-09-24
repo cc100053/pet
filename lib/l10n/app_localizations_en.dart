@@ -2272,6 +2272,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved app stability for a smoother everyday experience.';
 
   @override
+  String get whatsNew321Title => 'Feed & Text Fixes';
+
+  @override
+  String get whatsNew321Bullet1 =>
+      'Feeding your pet always raises hunger now — the short feed cooldown is gone.';
+
+  @override
+  String get whatsNew321Bullet2 =>
+      'Text now correctly follows your device\'s system text size.';
+
+  @override
+  String get whatsNew321Bullet3 =>
+      'Smoother feed sending with a redesigned caption counter.';
+
+  @override
   String get whatsNew320Title => 'Shared Room Frames';
 
   @override

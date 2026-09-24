@@ -2167,6 +2167,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 
   @override
+  String get whatsNew321Title => '給餌とテキストの修正';
+
+  @override
+  String get whatsNew321Bullet1 => '給餌するたびに必ず空腹度が上がるようになりました。短いクールダウンは廃止しました。';
+
+  @override
+  String get whatsNew321Bullet2 => '端末のシステム文字サイズ設定が正しく反映されるようになりました。';
+
+  @override
+  String get whatsNew321Bullet3 => '給餌の送信操作とキャプションのカウンター表示を改善しました。';
+
+  @override
   String get whatsNew320Title => '共有ルームのフレームを同期';
 
   @override

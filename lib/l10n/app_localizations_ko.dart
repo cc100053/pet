@@ -2179,6 +2179,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 
   @override
+  String get whatsNew321Title => '먹이 주기와 텍스트 수정';
+
+  @override
+  String get whatsNew321Bullet1 => '이제 먹이를 줄 때마다 항상 허기가 올라가요. 짧은 대기 시간은 없앴어요.';
+
+  @override
+  String get whatsNew321Bullet2 => '기기의 시스템 텍스트 크기 설정이 이제 올바르게 반영돼요.';
+
+  @override
+  String get whatsNew321Bullet3 => '먹이 전송 화면과 캡션 카운터를 더 매끄럽게 개선했어요.';
+
+  @override
   String get whatsNew320Title => '공유 방 프레임 동기화';
 
   @override
