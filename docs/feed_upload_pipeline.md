@@ -41,8 +41,9 @@ The response fields consumed by clients are:
 - `pet_state` (optional, v21+): authoritative committed post-feed state read from
   `room_pet_state` — `hunger`, `mood`, `hygiene`, `last_decay_at`,
   `last_feed_at`, `last_overfed_at`, `poop_at`, `poop_count`, `poop_positions`.
-- `overfed` (optional, v21+): true when the feed added no hunger (fed again
-  inside the 10-minute burst window).
+- `overfed` (optional, v21+): true when the feed added no hunger. Since
+  `20260924120000` every feed adds +25 (burst gate removed), so it is always
+  false; the field stays for installed clients.
 
 `pet_state`/`overfed` exist because the reward path historically returned no
 hunger, so the satiety bar depended on a realtime event / refetch that could

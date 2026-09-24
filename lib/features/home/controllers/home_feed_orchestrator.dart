@@ -877,10 +877,8 @@ extension _HomeFeedOrchestrator on _HomeViewState {
   }
 
   /// Predicts the +25 satiety gain locally on enqueue so a slow upload still
-  /// shows immediate feedback. Skipped when the pet was fed within the 10-minute
-  /// burst window (the next feed is likely overfed -> no gain); either way the
-  /// authoritative `feed_validate` value reconciles the true result on
-  /// completion. Deliberately does NOT advance the freshness clock, so a genuine
+  /// shows immediate feedback. The authoritative `feed_validate` value
+  /// reconciles the true result on completion. Deliberately does NOT advance the freshness clock, so a genuine
   /// newer server snapshot can still apply over this prediction.
   void _applyOptimisticFeedHunger(String feedRoomId) {
     if (!mounted) {
@@ -896,14 +894,6 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     }
     final current = petStatusHunger(petState)?.toDouble();
     if (current == null) {
-      return;
-    }
-    final lastFeed = _parseOptionalDate(petState['last_feed_at'])?.toUtc();
-    final recentlyFed =
-        lastFeed != null &&
-        DateTime.now().toUtc().difference(lastFeed) <
-            const Duration(minutes: 10);
-    if (recentlyFed) {
       return;
     }
     final optimistic = min(
