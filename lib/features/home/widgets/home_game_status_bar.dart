@@ -157,8 +157,8 @@ class _LeftCluster extends StatelessWidget {
       builder: (context, constraints) {
         final scale = homeUiScale(MediaQuery.sizeOf(context).width);
         final maxNameWidth = max(120.0, constraints.maxWidth * 0.72);
-        final levelFontSize = 11.0 * scale;
-        final nameFontSize = 14.0 * scale;
+        final levelFontSize = 11.0;
+        final nameFontSize = 14.0;
         final chipGap = 6.0 * scale;
 
         return Row(
@@ -436,7 +436,7 @@ class _InventoryGuidanceHighlightState
                       child: Text(
                         guidanceTitle,
                         style: TextStyle(
-                          fontSize: 10.5 * scale,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w800,
                           color: Colors.black,
                           height: 1,
@@ -623,7 +623,7 @@ class _ActionChip extends StatelessWidget {
                               fontSize: 10.5,
                               fontWeight: FontWeight.w800,
                               color: Colors.black,
-                            ).copyWith(fontSize: 10.5 * scale),
+                            ).copyWith(fontSize: 10.5),
                           ),
                         ),
                       ],

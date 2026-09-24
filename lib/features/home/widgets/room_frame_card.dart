@@ -488,7 +488,7 @@ class RoomFrameCard extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontSize: (isStatus ? 10.0 : 10.5) * scale,
+        fontSize: isStatus ? 10.0 : 10.5,
         fontWeight: isStatus ? FontWeight.w500 : FontWeight.w600,
         color: isStatus
             ? skin.captionColor.withValues(alpha: 0.72)
@@ -647,7 +647,7 @@ class _PetNameText extends StatelessWidget {
   }
 
   TextStyle _styleFor(double fontSize) => TextStyle(
-    fontSize: fontSize * scale,
+    fontSize: fontSize,
     fontWeight: FontWeight.w900,
     color: skin.nameColor,
     height: 1,
@@ -682,7 +682,7 @@ class _LevelChip extends StatelessWidget {
         level == null ? 'Lv --' : 'Lv $level',
         maxLines: 1,
         style: TextStyle(
-          fontSize: 9.5 * scale,
+          fontSize: 9.5,
           fontWeight: FontWeight.w900,
           color: skin.levelInk,
           height: 1,
@@ -832,7 +832,7 @@ class _HungerRing extends StatelessWidget {
           Text(
             '${(clamped * 100).round()}',
             style: TextStyle(
-              fontSize: 11 * scale,
+              fontSize: 11,
               fontWeight: FontWeight.w900,
               color: skin.hungerValueColor,
               height: 1,
@@ -1014,7 +1014,7 @@ class _UnreadBadge extends StatelessWidget {
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w900,
-          fontSize: 11 * scale,
+          fontSize: 11,
           height: 1,
         ),
       ),

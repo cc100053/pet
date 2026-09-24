@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
@@ -200,7 +199,7 @@ class RoomSelectionView extends StatelessWidget {
                               text: l10n.roomSelectionTitle,
                               height: 30 * uiScale,
                               style: TextStyle(
-                                fontSize: 22 * uiScale,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w900,
                                 color: AppTheme.textPrimary,
                                 height: 1.1,
@@ -226,7 +225,7 @@ class RoomSelectionView extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13.5 * uiScale,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.textSecondary,
                           height: 1.3,
@@ -426,7 +425,7 @@ class RoomSelectionView extends StatelessWidget {
               ]
             : const [],
       ),
-      child: _HardShadowPressButton(
+      child: HardShadowPressButton(
         onTap: joiningRoom ? null : onJoinRoom,
         borderRadius: radius,
         shadowDepth: 3 * uiScale,
@@ -451,7 +450,7 @@ class RoomSelectionView extends StatelessWidget {
                   : l10n.roomSelectionEnterInvite,
               maxLines: 1,
               style: TextStyle(
-                fontSize: 12 * uiScale,
+                fontSize: 12,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.textPrimary,
                 height: 1,
@@ -609,7 +608,7 @@ class RoomSelectionView extends StatelessWidget {
         text,
         style: TextStyle(
           color: Colors.white,
-          fontSize: 9.5 * uiScale,
+          fontSize: 9.5,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.4,
           height: 1,
@@ -785,7 +784,7 @@ class RoomSelectionView extends StatelessWidget {
               Text(
                 l10n.roomSelectionEmptySlot,
                 style: TextStyle(
-                  fontSize: 12 * uiScale,
+                  fontSize: 12,
                   fontWeight: FontWeight.w900,
                   color: _emptySlotLabel,
                   height: 1,
@@ -825,7 +824,7 @@ class RoomSelectionView extends StatelessWidget {
                 ]
               : const [],
         ),
-        child: _HardShadowPressButton(
+        child: HardShadowPressButton(
           onTap: creatingRoom ? null : onCreateRoom,
           borderRadius: radius,
           shadowDepth: 5 * uiScale,
@@ -844,96 +843,13 @@ class RoomSelectionView extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
-                  fontSize: 16 * uiScale,
+                  fontSize: 16,
                   height: 1,
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// A hard-shadow surface that presses into its own shadow: `translateY(depth)`
-/// with the shadow collapsing to 0, per the design's press state.
-///
-/// It keeps the [JuicyScaleButton] contract that matters — `lightImpact` on
-/// press, `mediumImpact` on release, and the callback fired immediately on
-/// release rather than after the animation.
-class _HardShadowPressButton extends StatefulWidget {
-  const _HardShadowPressButton({
-    required this.child,
-    required this.onTap,
-    required this.borderRadius,
-    required this.shadowDepth,
-    required this.color,
-    required this.borderWidth,
-    this.padding,
-    this.height,
-  });
-
-  final Widget child;
-  final VoidCallback? onTap;
-  final BorderRadius borderRadius;
-  final double shadowDepth;
-  final Color color;
-  final double borderWidth;
-  final EdgeInsets? padding;
-  final double? height;
-
-  @override
-  State<_HardShadowPressButton> createState() => _HardShadowPressButtonState();
-}
-
-class _HardShadowPressButtonState extends State<_HardShadowPressButton> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value || widget.onTap == null) {
-      return;
-    }
-    setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final depth = _pressed ? 0.0 : widget.shadowDepth;
-    return GestureDetector(
-      onTapDown: (_) {
-        if (widget.onTap == null) {
-          return;
-        }
-        HapticFeedback.lightImpact();
-        _setPressed(true);
-      },
-      onTapUp: (_) {
-        if (widget.onTap == null) {
-          return;
-        }
-        // Fire immediately; the release animation is cosmetic.
-        widget.onTap!.call();
-        HapticFeedback.mediumImpact();
-        _setPressed(false);
-      },
-      onTapCancel: () => _setPressed(false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 90),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, widget.shadowDepth - depth, 0),
-        height: widget.height,
-        padding: widget.padding,
-        alignment: widget.height != null ? Alignment.center : null,
-        decoration: BoxDecoration(
-          color: widget.color,
-          borderRadius: widget.borderRadius,
-          border: Border.all(color: Colors.black87, width: widget.borderWidth),
-          boxShadow: depth <= 0
-              ? const []
-              : [BoxShadow(color: Colors.black87, offset: Offset(0, depth))],
-        ),
-        child: widget.child,
       ),
     );
   }

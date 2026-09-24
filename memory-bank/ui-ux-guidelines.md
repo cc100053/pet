@@ -4,7 +4,8 @@ Compact current-state summary. Keep product UI playful and game-like. Latest
 snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 
 ## Interaction
-- Use `JuicyScaleButton` for clickable elements.
+- Use `JuicyScaleButton` for clickable elements; primary CTAs use
+  `HardShadowPressButton` (black border, presses into its hard shadow).
 - Fire business logic immediately on release; do not await bounce animation.
 - Standard haptics: `lightImpact` on press, `mediumImpact` on release.
 
@@ -14,7 +15,8 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Soft cream gradients and translucent vertical `BoxShadow` depth.
 - Primary typeface: `GoogleFonts.mPlusRounded1c`.
 - Text scale = system text size (capped at `kMaxUserTextScale`) × `appUiScale`,
-  applied once in `MaterialApp.builder`; never also scale theme font sizes.
+  applied once in `MaterialApp.builder`; never also scale theme font sizes
+  or multiply a `fontSize` by `homeUiScale`/`appUiScale`.
 - Legal/subscription disclosure text: at least 11pt, fully opaque.
 
 ## Feedback

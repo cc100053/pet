@@ -148,3 +148,87 @@ class JuicyFloat extends StatelessWidget {
         ); // Subtle breathing
   }
 }
+
+/// A hard-shadow surface that presses into its own shadow: `translateY(depth)`
+/// with the shadow collapsing to 0, per the design's press state.
+///
+/// It keeps the [JuicyScaleButton] contract that matters — `lightImpact` on
+/// press, `mediumImpact` on release, and the callback fired immediately on
+/// release rather than after the animation.
+class HardShadowPressButton extends StatefulWidget {
+  const HardShadowPressButton({
+    super.key,
+    required this.child,
+    required this.onTap,
+    required this.borderRadius,
+    required this.shadowDepth,
+    required this.color,
+    required this.borderWidth,
+    this.padding,
+    this.height,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final BorderRadius borderRadius;
+  final double shadowDepth;
+  final Color color;
+  final double borderWidth;
+  final EdgeInsets? padding;
+  final double? height;
+
+  @override
+  State<HardShadowPressButton> createState() => HardShadowPressButtonState();
+}
+
+class HardShadowPressButtonState extends State<HardShadowPressButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value || widget.onTap == null) {
+      return;
+    }
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final depth = _pressed ? 0.0 : widget.shadowDepth;
+    return GestureDetector(
+      onTapDown: (_) {
+        if (widget.onTap == null) {
+          return;
+        }
+        HapticFeedback.lightImpact();
+        _setPressed(true);
+      },
+      onTapUp: (_) {
+        if (widget.onTap == null) {
+          return;
+        }
+        // Fire immediately; the release animation is cosmetic.
+        widget.onTap!.call();
+        HapticFeedback.mediumImpact();
+        _setPressed(false);
+      },
+      onTapCancel: () => _setPressed(false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, widget.shadowDepth - depth, 0),
+        height: widget.height,
+        padding: widget.padding,
+        alignment: widget.height != null ? Alignment.center : null,
+        decoration: BoxDecoration(
+          color: widget.color,
+          borderRadius: widget.borderRadius,
+          border: Border.all(color: Colors.black87, width: widget.borderWidth),
+          boxShadow: depth <= 0
+              ? const []
+              : [BoxShadow(color: Colors.black87, offset: Offset(0, depth))],
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}

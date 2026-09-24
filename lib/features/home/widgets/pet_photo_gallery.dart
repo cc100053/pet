@@ -500,7 +500,7 @@ class _GalleryPolaroidFrame extends StatelessWidget {
                                   caption.trim(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 13 * scale,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     height: 1.12,
                                     color: AppTheme.textPrimary,

@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -88,6 +89,8 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
   bool _sending = false;
   bool _picking = false;
   String? _error;
+
+  static const int _captionCounterThreshold = 10;
 
   @override
   void initState() {
@@ -477,44 +480,63 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                           required bool isFocused,
                                           required int? maxLength,
                                         }) {
-                                          return null;
+                                          // Only surface the limit once it's close.
+                                          if (maxLength == null ||
+                                              currentLength <
+                                                  maxLength -
+                                                      _captionCounterThreshold) {
+                                            return null;
+                                          }
+                                          return Text(
+                                            '$currentLength/$maxLength',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: currentLength >= maxLength
+                                                  ? AppTheme.errorColor
+                                                  : AppTheme.textSecondary,
+                                            ),
+                                          );
                                         },
                                   ),
-                                  FilledButton(
-                                    onPressed:
-                                        _sending || _selectedImage == null
-                                        ? null
-                                        : _sendFeed,
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: AppTheme.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      minimumSize: const Size.fromHeight(56),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          _sending
-                                              ? Icons.sync_rounded
-                                              : Icons.send_rounded,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          _sending
-                                              ? l10n.commonSending
-                                              : l10n.feedSendButton,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w800,
+                                  const SizedBox(height: 12),
+                                  Opacity(
+                                    opacity: _sending || _selectedImage == null
+                                        ? 0.5
+                                        : 1,
+                                    child: HardShadowPressButton(
+                                      onTap: _sending || _selectedImage == null
+                                          ? null
+                                          : _sendFeed,
+                                      borderRadius: BorderRadius.circular(18),
+                                      shadowDepth: 5,
+                                      color: AppTheme.primaryColor,
+                                      borderWidth: 3,
+                                      height: 56,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            _sending
+                                                ? Icons.sync_rounded
+                                                : Icons.send_rounded,
+                                            size: 18,
+                                            color: Colors.white,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            _sending
+                                                ? l10n.commonSending
+                                                : l10n.feedSendButton,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   if (_error != null) ...[

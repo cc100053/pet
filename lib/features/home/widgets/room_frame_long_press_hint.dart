@@ -163,7 +163,7 @@ class _RoomFrameLongPressHintState extends State<RoomFrameLongPressHint>
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 12 * scale,
+                fontSize: 12,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.textPrimary,
                 height: 1.15,

@@ -59,8 +59,8 @@ class HomePolaroidMemoryFrame extends StatelessWidget {
         final scale = homeUiScale(screenWidth);
         final innerPadding = 14.0 * scale;
         final avatarSize = 46.0 * scale;
-        final captionFontSize = 14.0 * scale;
-        final labelFontSize = 11.0 * scale;
+        final captionFontSize = 14.0;
+        final labelFontSize = 11.0;
         final resolvedCaptionTopInset = captionTopInset * scale;
         final resolvedCaptionLines = captionMaxLines;
         final minPhotoHeight = 72.0 * scale;

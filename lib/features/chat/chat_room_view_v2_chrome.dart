@@ -187,7 +187,7 @@ class _ChatTopBar extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: (15 * uiScale).clamp(13.0, 15.0),
+                              fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: useLightForeground
                                   ? Colors.white
@@ -198,7 +198,7 @@ class _ChatTopBar extends StatelessWidget {
                             Text(
                               memberCount!,
                               style: TextStyle(
-                                fontSize: (11 * uiScale).clamp(10.0, 11.0),
+                                fontSize: 11,
                                 color: useLightForeground
                                     ? Colors.white.withValues(alpha: 0.75)
                                     : Colors.black.withValues(alpha: 0.55),

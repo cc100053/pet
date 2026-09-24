@@ -49,7 +49,7 @@ class _RewardPendingPill extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 9.5 * scale,
+                  fontSize: 9.5,
                   fontWeight: FontWeight.w800,
                   color: Colors.black87,
                   height: 1,
@@ -265,7 +265,7 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                                       '${widget.diamonds}',
                                       style: TextStyle(
                                         fontWeight: FontWeight.w800,
-                                        fontSize: 13 * scale,
+                                        fontSize: 13,
                                         height: 1,
                                       ),
                                     ),
@@ -308,7 +308,7 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                                               '${widget.coins}',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w800,
-                                                fontSize: 13 * scale,
+                                                fontSize: 13,
                                                 height: 1,
                                               ),
                                             ),
@@ -356,7 +356,7 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                                                   ),
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w900,
-                                                    fontSize: 14 * scale,
+                                                    fontSize: 14,
                                                     color: Colors.white,
                                                     height: 1,
                                                   ),
