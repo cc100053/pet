@@ -54,28 +54,40 @@ class PicPetApp extends ConsumerWidget {
           CrashRouteObserver.instance,
         ],
         builder: (context, child) {
+          if (child == null) {
+            return const SizedBox.shrink();
+          }
           final mediaQuery = MediaQuery.of(context);
           final scale = appUiScale(
             mediaQuery.size.width,
             log: true,
             logSource: 'MaterialApp.builder',
           );
-          if (child == null || (scale - 1.0).abs() < 0.001) {
-            return child ?? const SizedBox.shrink();
+          // Keep the user's system text size (capped so game layouts hold),
+          // then apply the narrow-screen factor. Text is scaled only here;
+          // scaling the theme too would shrink themed text twice.
+          final userTextScale =
+              mediaQuery.textScaler
+                  .clamp(maxScaleFactor: kMaxUserTextScale)
+                  .scale(14) /
+              14;
+          final scaledChild = MediaQuery(
+            data: mediaQuery.copyWith(
+              textScaler: TextScaler.linear(userTextScale * scale),
+            ),
+            child: child,
+          );
+          if ((scale - 1.0).abs() < 0.001) {
+            return scaledChild;
           }
           final theme = Theme.of(context);
-          final scaledTheme = theme.copyWith(
-            textTheme: theme.textTheme.apply(fontSizeFactor: scale),
-            primaryTextTheme: theme.primaryTextTheme.apply(
-              fontSizeFactor: scale,
+          return Theme(
+            data: theme.copyWith(
+              iconTheme: theme.iconTheme.copyWith(
+                size: (theme.iconTheme.size ?? 24) * scale,
+              ),
             ),
-            iconTheme: theme.iconTheme.copyWith(
-              size: (theme.iconTheme.size ?? 24) * scale,
-            ),
-          );
-          return MediaQuery(
-            data: mediaQuery.copyWith(textScaler: TextScaler.linear(scale)),
-            child: Theme(data: scaledTheme, child: child),
+            child: scaledChild,
           );
         },
         home: const CrashUpdateGuard(child: ForceUpdateGate(child: AuthGate())),

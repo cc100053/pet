@@ -399,14 +399,12 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                   child: Text(
                                     '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
                                     style: GoogleFonts.mPlusRounded1c(
-                                      color: const Color(
-                                        0xFF303F9F,
-                                      ).withValues(alpha: 0.7),
-                                      fontSize: 8,
+                                      color: const Color(0xFF303F9F),
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                     ),
                                     textAlign: TextAlign.center,
-                                    maxLines: 1,
+                                    maxLines: 2,
                                   ),
                                 ),
                               ],

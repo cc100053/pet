@@ -13,6 +13,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Rounded corners: large cards/toasts around `32`, dialogs/actions around `16`.
 - Soft cream gradients and translucent vertical `BoxShadow` depth.
 - Primary typeface: `GoogleFonts.mPlusRounded1c`.
+- Text scale = system text size (capped at `kMaxUserTextScale`) × `appUiScale`,
+  applied once in `MaterialApp.builder`; never also scale theme font sizes.
+- Legal/subscription disclosure text: at least 11pt, fully opaque.
 
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.

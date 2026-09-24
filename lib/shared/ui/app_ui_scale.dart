@@ -3,6 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'adaptive_layout.dart';
 
 const double kUiScaleTabletWidth = 540;
+
+/// Cap on the system text size so fixed-size game surfaces keep their layout.
+const double kMaxUserTextScale = 1.3;
 String? _lastLoggedAppUiScaleKey;
 
 double appUiScale(
