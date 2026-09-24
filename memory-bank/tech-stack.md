@@ -40,3 +40,11 @@ for exact historical versions. Latest snapshot:
 - Flutter SPM integration is enabled for iOS/macOS. Keep checked-in
   `Package.resolved` files and `ios/Flutter/GeneratedPluginSwiftPackage`
   aligned with Flutter 3.44.0.
+- `ios/Flutter/GeneratedPluginSwiftPackage/Package.swift` hardcodes each SPM
+  plugin's resolved version in its `../ephemeral/Packages/.packages/<name>-<version>`
+  path. `flutter pub get`/`flutter build` do NOT rewrite this checked-in file
+  when a plugin version bumps in `pubspec.yaml` — only `.flutter-plugins-dependencies`
+  and the ephemeral packages dir get regenerated, so the path goes stale and
+  `xcodebuild` fails with "package ... cannot be accessed". After bumping any
+  iOS-native plugin version (e.g. `purchases_flutter`), manually update its
+  path(s) in this file to match the new resolved version.
