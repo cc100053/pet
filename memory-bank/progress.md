@@ -28,6 +28,11 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   body/caption is never stale), and a realtime caption update rewrites the home
   gallery + room-card preview in place. Clearing a caption to empty is still
   rejected (`message_body_required`).
+- Every feed adds +25 hunger: the one-feed-per-10-minute burst gate is gone
+  from `apply_pet_action` / `apply_room_pet_action` (live since 2026-09-24,
+  migration `20260924120000`). The "I'm full!" overfed bubble no longer fires.
+  Home always applies the optimistic +25 on enqueue (next build); older builds
+  reconcile it from `feed_validate`. Feed coin/exp cooldown is unchanged.
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - `leave_room` is idempotent: leaving a room you have no active membership
   in is a silent no-op, not a `not_member` error, and an already-inactive

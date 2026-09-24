@@ -28,7 +28,10 @@ migration that rewrites the object.
   `room_extra_pets`; `rooms.main_pet_id` identifies the canonical pet and
   `rooms.name` mirrors its name.
 - `room_pet_state` is shared stat truth; `pet_state` mirrors the main pet.
-  Successful feed actions anchor decay at feed time; rejected feeds do not.
+  Every feed adds +25 hunger (capped at 100) and anchors decay at feed time;
+  there is no 10-minute burst/overfed gate since `20260924120000`, so
+  `last_overfed_at` is no longer stamped. The feed coin/exp reward keeps its
+  separate 10-minute cooldown in `claim_action_reward`.
 - `pet_equipment.pet_id` may reference either pet table; RLS/RPC validation
   must cover both.
 - `items.metadata` carries compatibility, visibility, asset/fallback, and slot

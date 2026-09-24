@@ -51,7 +51,12 @@ race and lose on slow uploads (intermittent "fed but hunger didn't move"). The
 client now applies `pet_state` directly. They are additive and optional: old
 clients ignore them. New clients also keep a `last_decay_at` freshness guard so
 a stale pre-feed snapshot can never regress a fresher value, plus an optimistic
-+25 prediction on enqueue that the authoritative value reconciles.
++25 prediction on every enqueue (no recently-fed skip since the burst gate was
+removed) that the authoritative value reconciles.
+
+Hunger and rewards are gated separately: every feed adds +25 hunger, while the
+coin/exp reward stays behind the 10-minute feed cooldown
+(`claim_action_reward`, surfaced as `cooldown.*`).
 
 Compatibility fields should stay stable for old clients and debug tools:
 
