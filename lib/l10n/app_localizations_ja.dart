@@ -2167,6 +2167,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew231Bullet2 => '毎日の利用がより快適になるよう、アプリの安定性を改善しました。';
 
   @override
+  String get whatsNew330Title => 'アプリ内サポート';
+
+  @override
+  String get whatsNew330Bullet1 =>
+      'プロフィールからアプリを離れずにサポートチームへ直接メッセージを送れるようになりました。';
+
+  @override
+  String get whatsNew330Bullet2 => '返信は端末へのプッシュ通知で届きます。';
+
+  @override
   String get whatsNew321Title => '給餌とテキストの修正';
 
   @override

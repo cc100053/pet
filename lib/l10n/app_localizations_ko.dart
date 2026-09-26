@@ -2179,6 +2179,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew231Bullet2 => '일상적인 사용이 더 원활하도록 앱 안정성과 신뢰성을 개선했습니다.';
 
   @override
+  String get whatsNew330Title => '인앱 지원';
+
+  @override
+  String get whatsNew330Bullet1 => '프로필에서 앱을 벗어나지 않고 지원팀에 바로 메시지를 보낼 수 있어요.';
+
+  @override
+  String get whatsNew330Bullet2 => '답장은 기기로 푸시 알림을 통해 받아요.';
+
+  @override
   String get whatsNew321Title => '먹이 주기와 텍스트 수정';
 
   @override

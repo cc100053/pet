@@ -4017,6 +4017,24 @@ abstract class AppLocalizations {
   /// **'Improved app stability for a smoother everyday experience.'**
   String get whatsNew231Bullet2;
 
+  /// No description provided for @whatsNew330Title.
+  ///
+  /// In en, this message translates to:
+  /// **'In-App Support'**
+  String get whatsNew330Title;
+
+  /// No description provided for @whatsNew330Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Message our team directly from your profile — no more leaving the app for a web form.'**
+  String get whatsNew330Bullet1;
+
+  /// No description provided for @whatsNew330Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Get replies as push notifications right on your device.'**
+  String get whatsNew330Bullet2;
+
   /// No description provided for @whatsNew321Title.
   ///
   /// In en, this message translates to:

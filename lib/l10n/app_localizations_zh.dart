@@ -2155,6 +2155,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew231Bullet2 => '提升 App 稳定性，让日常使用更加顺畅。';
 
   @override
+  String get whatsNew330Title => '应用内客服';
+
+  @override
+  String get whatsNew330Bullet1 => '现在可以直接在个人资料页面向客服团队发送消息，无需离开应用。';
+
+  @override
+  String get whatsNew330Bullet2 => '客服回复会以推送通知的方式发送到您的设备。';
+
+  @override
   String get whatsNew321Title => '喂食与文字修复';
 
   @override
@@ -4360,6 +4369,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew231Bullet2 => '改善 App 穩定性，讓日常使用更順暢。';
+
+  @override
+  String get whatsNew330Title => '應用內客服';
+
+  @override
+  String get whatsNew330Bullet1 => '現在可以直接在個人資料頁面向客服團隊發送訊息，不必離開應用程式。';
+
+  @override
+  String get whatsNew330Bullet2 => '客服回覆會以推播通知的方式傳送到您的裝置。';
 
   @override
   String get whatsNew321Title => '餵食與文字修正';

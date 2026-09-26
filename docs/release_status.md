@@ -16,13 +16,18 @@ This is the internal source/build baseline, not proof of public availability.
 
 | Platform | Baseline version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 3.2.1 | 25 | Current internal baseline; ASC version `0e7d3abb-bf4b-4be8-816b-af86c3481d35` is `PREPARE_FOR_SUBMISSION`, build `a4b227dc-765e-4976-8b8a-66a7235cfde8` is `VALID` and attached; localizations synced (en-US `9f96cfa1-624e-41d5-95e9-31adfe9b5ad8`, ja `78db40f9-1be3-404e-9d14-b879a6aa2b2b`, ko `d16a793a-b4ef-4410-9d6d-bdf378970143`, zh-Hant `093ba937-e0e3-4c48-a124-ebcde626e51f`); not submitted for App Review | 2026-09-24 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the feed-always-adds-hunger change, system text-size fix, and feed-send/caption polish | none |
+| iOS | 3.3.0 | 26 | Current internal baseline; ASC version `8ddfabc4-38b7-4068-81bf-b453866d71e9` is `PREPARE_FOR_SUBMISSION`, build `ceae9820-b70f-4cf5-8222-58daf67893d2` is `VALID` and attached; localizations synced from `.asc/version-localizations/*.strings` (en-US `9d7dd715-d6fa-4536-a336-bfcdce77c209`, ja `2e2fd929-394d-467f-95f5-2449916013bb`, ko `ed9232fa-7b1b-4e99-8ae0-450e0752b3c1`, zh-Hant `a22dfe9a-7434-4647-ac19-e508b2e8802f`); not submitted for App Review | 2026-09-26 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the in-app support thread feature | none |
 | Android | Never released | - | Not published; iOS-only product | 2026-09-15 | Confirmed by the product owner | none |
 
 Correction: on 2026-09-24 `asc versions list` showed 3.2.0 (`4ae6f075-...`) already
 `READY_FOR_SALE`/`READY_FOR_DISTRIBUTION` in ASC — the prior baseline row here
 (recorded 2026-09-13 as `PREPARE_FOR_SUBMISSION`, not submitted) was stale by
 the time of this update. 3.2.0+24 had already shipped to the public.
+
+Correction: on 2026-09-26 `asc versions view` showed 3.2.1 (`0e7d3abb-...`,
+build 25) as `READY_FOR_SALE`/`READY_FOR_DISTRIBUTION` — it had shipped to the
+public since the prior baseline row here (recorded 2026-09-24 as
+`PREPARE_FOR_SUBMISSION`, not submitted).
 
 ## Crashlytics dSYM Status Per Build
 
@@ -32,6 +37,7 @@ this is unrecoverable after the fact. Record every release here.
 
 | Version | Build | dSYMs uploaded | Archive preserved | Note |
 | --- | --- | --- | --- | --- |
+| 3.3.0 | 26 | Yes — 2026-09-26, all 13 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.3.0 (26).xcarchive` | Runner UUID `732606A6-BDBB-3658-99EC-A7FF4E553C6D`, App.framework `0C7143A3-B591-9C00-485E-50E653F7F91A`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.2.1 | 25 | Yes — 2026-09-24, all 13 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.2.1 (25).xcarchive` | Runner UUID `77F014EF-0AF7-3F27-A69A-40C4E92B9A18`, App.framework `0C7143A3-76B1-2E4C-485E-50E6074D255F`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.2.0 | 24 | Yes — 2026-09-13, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.2.0 (24).xcarchive` | Runner UUID `899B069B-543E-33E9-B307-4C78FBEC276A`, App.framework `0C7143A3-E8A1-4BD6-485E-50E684619EE5`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.1.0 | 23 | Yes — 2026-09-01, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.1.0 (23).xcarchive` | Runner UUID `1074123E-B8C3-3470-9A05-F5D2ACAF3F78`, App.framework `0C7143A3-F470-6FF3-485E-50E695C70643`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
@@ -60,6 +66,7 @@ making release or compatibility decisions.
 
 | Platform | Version | Build | Recorded evidence | Recorded at |
 | --- | --- | --- | --- | --- |
+| iOS | 3.2.1 | 25 | ASC `READY_FOR_SALE`/`READY_FOR_DISTRIBUTION`; version `0e7d3abb-bf4b-4be8-816b-af86c3481d35` | 2026-09-26 |
 | iOS | 3.2.0 | 24 | ASC `READY_FOR_SALE`/`READY_FOR_DISTRIBUTION`; version `4ae6f075-36a9-48ad-9592-a9b27d085600` | 2026-09-24 |
 | Android | Never released | - | Not published; iOS-only product | 2026-09-15 |
 
@@ -68,12 +75,15 @@ Earlier release rows and the original ledger are preserved in
 
 ## Pending Release Actions
 
-- iOS `3.2.1+25` is the current repository baseline, uploaded and attached in
+- iOS `3.3.0+26` is the current repository baseline, uploaded and attached in
   ASC, with recorded state `PREPARE_FOR_SUBMISSION`. Submit for App Review only
   after an explicit request; do not infer public availability from attachment.
-- Complete the build 25 Missing dSYMs check listed above
+- Complete the build 26 Missing dSYMs check listed above
   `[USER ACTION REQUIRED]`. Record verified automated progress while that
   human check remains pending; the full release verification is not complete.
+- Also outstanding from the prior cycle: confirm build 25's Missing dSYMs
+  check `[USER ACTION REQUIRED]` — 3.2.1+25 has since shipped to the public
+  (`READY_FOR_SALE`), so this check still needs closing out.
 
 ## Feature Version Gates
 

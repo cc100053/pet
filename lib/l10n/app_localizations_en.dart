@@ -2272,6 +2272,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Improved app stability for a smoother everyday experience.';
 
   @override
+  String get whatsNew330Title => 'In-App Support';
+
+  @override
+  String get whatsNew330Bullet1 =>
+      'Message our team directly from your profile — no more leaving the app for a web form.';
+
+  @override
+  String get whatsNew330Bullet2 =>
+      'Get replies as push notifications right on your device.';
+
+  @override
   String get whatsNew321Title => 'Feed & Text Fixes';
 
   @override
