@@ -32,6 +32,7 @@ Read the sources relevant to the operation, not every linked document:
 | Feed/reward/upload behavior | `docs/feed_upload_pipeline.md` |
 | Hunger scheduling | `docs/hunger_tick_schedule_report.md` |
 | Photo cleanup | `docs/abandoned_room_cleanup.md` |
+| Support inbox / replying to users | `docs/support_inbox.md` |
 | Coin pricing | `docs/shop_pricing.md` — use its calibrated ladder and guardrails |
 
 Load the matching repository skill:

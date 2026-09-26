@@ -15,6 +15,8 @@ for exact historical versions. Latest snapshot:
 - `supabase_flutter` client SDK
 - `flutter_dotenv` env loading
 - `flutter_timezone` timezone lookup
+- `device_info_plus` / `package_info_plus` for device and app-version meta on
+  support messages
 
 ## Media And UI
 - Lottie + image assets (GIF/PNG sequence runtime)
@@ -27,6 +29,7 @@ for exact historical versions. Latest snapshot:
 - Supabase Auth, Postgres, Realtime, Edge Functions
 - Cloudflare R2 for feed/avatar media
 - Firebase Cloud Messaging, Analytics, Crashlytics
+- Resend (email) for support-inbox alerts from `support_notify`
 - RevenueCat for IAP/subscriptions
 - Google AdMob 8.x for iOS banner/rewarded ads
 

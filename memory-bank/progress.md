@@ -33,6 +33,12 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   migration `20260924120000`). The "I'm full!" overfed bubble no longer fires.
   Home always applies the optimistic +25 on enqueue (next build); older builds
   reconcile it from `feed_validate`. Feed coin/exp cooldown is unchanged.
+- In-app support replaces the external feedback web form (next build):
+  Profile → Send Feedback opens `SupportView`, a single thread per user that
+  records app version, device model, OS, and locale on each message. User
+  messages are emailed to the team; replies are inserted from the SQL editor and
+  pushed to the user's devices. Backend has been live since 2026-09-26; the
+  runbook is `docs/support_inbox.md`.
 - Room invite creation/regeneration uses reusable 24-hour codes.
 - `leave_room` is idempotent: leaving a room you have no active membership
   in is a silent no-op, not a `not_member` error, and an already-inactive

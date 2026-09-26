@@ -100,7 +100,8 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   JWT functions still validate users internally.
 - Profile → Send Feedback opens the in-app `SupportView`
   (`lib/features/support/`), which replaces the external support web form.
-  The backend contract is `support_messages` in `database-schema.md`.
+  The backend contract is `support_messages` in `database-schema.md`;
+  the ops runbook is `docs/support_inbox.md`.
 - Room-photo cleanup is human-reviewed/fail-closed. Firebase Hosting/GEOFlow
   lives in `/Users/fatboy/geo-marketing`.
 - For iOS releases, the export helper preserves the `.xcarchive` and uploads all
