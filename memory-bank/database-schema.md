@@ -49,6 +49,15 @@ migration that rewrites the object.
   client grants remain denied while service roles retain access.
 - Timezone-aware functions use `public.normalize_timezone(text)`; do not
   reintroduce executable `pg_timezone_names` scans.
+- `support_messages` (since `20260926120000`) is one support thread per user.
+  Clients may only SELECT their own rows and INSERT `(body, meta)`;
+  `user_id`/`sender` come from defaults, so a client cannot fake an admin reply.
+  A rate-limit trigger allows 20 user messages/hour. Admin replies are inserted
+  from the dashboard with `sender = 'admin'`. An AFTER INSERT trigger sends
+  `{id}` through pg_net to `support_notify` (verify_jwt off, bearer is vault
+  `support_notify_secret` = env `SUPPORT_NOTIFY_SECRET`). User rows are emailed
+  via Resend (`RESEND_API_KEY`, `SUPPORT_EMAIL`), and admin rows go out as FCM
+  push with `type = support_reply` and no `room_id`.
 
 ## Compatibility And Additive RPCs
 - Public PostgREST objects need explicit Data API grants; RLS remains the

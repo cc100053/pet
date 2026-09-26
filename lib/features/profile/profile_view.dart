@@ -11,13 +11,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/auth/session_utils.dart';
-import '../../services/env.dart';
 import '../../services/profile/profile_bootstrap_service.dart';
+import '../support/support_view.dart';
 import '../../shared/errors/user_facing_error.dart';
-import '../../shared/localization/app_locale_controller.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/upload_limits.dart';
 import '../../shared/ui/app_dialog.dart';
@@ -51,15 +49,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     super.initState();
   }
 
-  Future<void> _openExternalUrl(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri != null) {
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        debugPrint('Could not launch $url');
-      }
-    }
-  }
-
   Future<T> _withNetworkTimeout<T>(
     Future<T> future, {
     required String operation,
@@ -90,33 +79,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return;
     }
     setState(_reloadProfileFuture);
-  }
-
-  String _feedbackBaseUrlForLanguageTag(String languageTag) {
-    final normalized = languageTag.toLowerCase();
-    if (normalized.startsWith('ko')) {
-      return Env.feedbackUrlKo;
-    }
-    if (normalized.startsWith('ja')) {
-      return Env.feedbackUrlJa;
-    }
-    if (normalized.startsWith('zh-hant') ||
-        normalized.startsWith('zh-tw') ||
-        normalized.startsWith('zh-hk') ||
-        normalized.startsWith('zh-mo')) {
-      return Env.feedbackUrlZhTw;
-    }
-    return Env.feedbackUrlEn;
-  }
-
-  String _resolvedLanguageTag(BuildContext context) {
-    final selectedLocale = ref.read(appLocaleProvider).locale;
-    final activeLocale = selectedLocale ?? Localizations.localeOf(context);
-    return activeLocale.toLanguageTag();
-  }
-
-  String _feedbackUrl(BuildContext context) {
-    return _feedbackBaseUrlForLanguageTag(_resolvedLanguageTag(context));
   }
 
   @override
@@ -1242,7 +1204,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           _buildMenuTile(
             icon: Icons.feedback_outlined,
             title: l10n.profileFeedback,
-            onTap: () => _openExternalUrl(_feedbackUrl(context)),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const SupportView()),
+            ),
           ),
         ],
       ),

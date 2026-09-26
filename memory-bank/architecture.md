@@ -98,6 +98,9 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   `EdgeRuntime.waitUntil(...)`.
 - `notify_friend` keeps `verify_jwt=false` for webhook compatibility; gateway
   JWT functions still validate users internally.
+- Profile → Send Feedback opens the in-app `SupportView`
+  (`lib/features/support/`), which replaces the external support web form.
+  The backend contract is `support_messages` in `database-schema.md`.
 - Room-photo cleanup is human-reviewed/fail-closed. Firebase Hosting/GEOFlow
   lives in `/Users/fatboy/geo-marketing`.
 - For iOS releases, the export helper preserves the `.xcarchive` and uploads all
