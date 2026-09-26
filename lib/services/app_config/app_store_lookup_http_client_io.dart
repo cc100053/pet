@@ -9,7 +9,7 @@ Future<String?> fetchAppStoreLookupBody(Uri uri) async {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return null;
     }
-    return response.transform(SystemEncoding().decoder).join();
+    return await response.transform(SystemEncoding().decoder).join();
   } finally {
     client.close(force: true);
   }
