@@ -1,5 +1,18 @@
 # TODO
 
+## Plan — "Mori" UI polish (2026-09-30)
+
+Mockup: https://claude.ai/artifact/QkgrW69ooC6F5YwnuACR8r. Decisions: kana
+labels only for `ja`; room frame casings unchanged; Kiwi Maru bundled as a
+kana-only subset with M PLUS Rounded fallback.
+
+- [x] Phase 1: `AppTheme` Mori tokens, `HardShadowPressButton`, juice
+      toast/snackbar, `AppDialog`.
+- [ ] Phase 2: Home HUD, photo card, bottom dock (+ `ja` kana label widget/font).
+- [ ] Phase 3: Room selection + frame picker chrome.
+- [ ] Phase 4: Shop (noren header, pill tabs, gold rarity only here).
+- [ ] Phase 5: Chat, calendar, profile, sign-in color sweep.
+
 ## Plan — Repository instruction cleanup (2026-09-13)
 
 - [x] Audit actual instructions and agree the full cleanup scope.

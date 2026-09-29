@@ -5,14 +5,21 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 
 ## Interaction
 - Use `JuicyScaleButton` for clickable elements; primary CTAs use
-  `HardShadowPressButton` (black border, presses into its hard shadow).
+  `HardShadowPressButton` (ink border, presses into its same-hue shadow).
 - Fire business logic immediately on release; do not await bounce animation.
 - Standard haptics: `lightImpact` on press, `mediumImpact` on release.
 
-## Visuals
-- Thick black borders, usually `2..3` px on primary surfaces.
+## Visuals ("Mori" direction, 2026-09-30)
+- Modern Japanese social-game feel (Animal Crossing warmth). Use `AppTheme`
+  Mori tokens (`paper`, `ink`, `leaf`, `leafStrong`, `leafDeep`, `sky`,
+  `sakura`, `kinako`, `wood`, `gold`, `softLine`) instead of new hex literals.
+- Outlines use warm-brown `AppTheme.ink`, `2..2.5` px, never pure black.
+  Press shadows are solid same-hue offsets (e.g. `leafStrong` over `leafDeep`).
+- White text only on `leafStrong` or darker; `leaf` is for accents/fills.
+- `gold` rarity frames / NEW badges are reserved for shop and reward moments.
+- Kana decorative labels (おへや, ショップ) render only for the `ja` locale.
+- Room frame casings keep their original (black-outlined) art; do not reskin.
 - Rounded corners: large cards/toasts around `32`, dialogs/actions around `16`.
-- Soft cream gradients and translucent vertical `BoxShadow` depth.
 - Primary typeface: `GoogleFonts.mPlusRounded1c`.
 - Text scale = system text size (capped at `kMaxUserTextScale`) × `appUiScale`,
   applied once in `MaterialApp.builder`; never also scale theme font sizes

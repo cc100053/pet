@@ -3,11 +3,25 @@ import 'package:flutter/material.dart';
 import '../ui/status_bar_style.dart';
 
 class AppTheme {
-  // Main accent: lighter green to pair with the pale yellow base.
-  static const Color primaryColor = Color(0xFF5FBF9E); // Soft Green Accent
+  // "Mori" palette: soft leaf greens on warm paper, warm-brown outlines
+  // instead of black. See memory-bank/ui-ux-guidelines.md.
+  static const Color primaryColor = leaf;
   static const Color secondaryColor = Color(0xFFFFB36B); // Warm Orange Accent
-  static const Color surfaceColor = Color(0xFFFFFFFF);
-  static const Color backgroundColor = Color(0xFFFFFBF3); // Warm Cream Base
+  static const Color surfaceColor = Color(0xFFFFFDF7);
+  static const Color backgroundColor = paper;
+
+  static const Color paper = Color(0xFFFBF6EA);
+  static const Color ink = Color(0xFF5A4636); // outlines, hard shadows
+  static const Color leaf = Color(0xFF6DBE8C);
+  // Filled buttons with white text: 3.15:1 on white, OK for large bold labels.
+  static const Color leafStrong = Color(0xFF47A26E);
+  static const Color leafDeep = Color(0xFF2F7650); // press shadow
+  static const Color sky = Color(0xFFA8D8EA);
+  static const Color sakura = Color(0xFFF5B8C4);
+  static const Color kinako = Color(0xFFF3DDAA);
+  static const Color wood = Color(0xFFC79A6B);
+  static const Color gold = Color(0xFFF0B83C); // rarity/rewards only
+  static const Color softLine = Color(0xFFEADBC3);
   static const Color errorColor = Color(0xFFFF4D4D);
   static const Color successColor = Color(0xFF00C853);
 
@@ -78,10 +92,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(
-            color: Color(0xFFE6E0D6),
-            width: 1,
-          ), // Warmer border
+          side: const BorderSide(color: softLine, width: 2),
         ),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
@@ -114,7 +125,7 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Color(0xFFE6E0D6)),
+          borderSide: const BorderSide(color: softLine, width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
@@ -135,7 +146,7 @@ class AppTheme {
 
   // Custom Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF5FBF9E), Color(0xFF7BD3B3)],
+    colors: [leaf, Color(0xFF8FD3A6)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../theme/app_theme.dart';
+
 /// A widget that adds "Juicy" physics to touch interactions (Squish & Pop).
 class JuicyScaleButton extends StatefulWidget {
   final Widget child;
@@ -194,6 +196,8 @@ class HardShadowPressButtonState extends State<HardShadowPressButton> {
   @override
   Widget build(BuildContext context) {
     final depth = _pressed ? 0.0 : widget.shadowDepth;
+    // Same-hue shadow reads softer than black while keeping the press depth.
+    final shadow = Color.lerp(widget.color, AppTheme.ink, 0.45)!;
     return GestureDetector(
       onTapDown: (_) {
         if (widget.onTap == null) {
@@ -222,10 +226,10 @@ class HardShadowPressButtonState extends State<HardShadowPressButton> {
         decoration: BoxDecoration(
           color: widget.color,
           borderRadius: widget.borderRadius,
-          border: Border.all(color: Colors.black87, width: widget.borderWidth),
+          border: Border.all(color: AppTheme.ink, width: widget.borderWidth),
           boxShadow: depth <= 0
               ? const []
-              : [BoxShadow(color: Colors.black87, offset: Offset(0, depth))],
+              : [BoxShadow(color: shadow, offset: Offset(0, depth))],
         ),
         child: widget.child,
       ),

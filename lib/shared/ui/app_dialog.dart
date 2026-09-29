@@ -47,7 +47,7 @@ Future<T?> showAppDialog<T>({
   return showDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
-    barrierColor: Colors.black.withValues(alpha: 0.45),
+    barrierColor: const Color(0x663A4C34),
     builder: builder,
   );
 }
@@ -177,10 +177,10 @@ class _JuiceSnackbarWidgetState extends State<_JuiceSnackbarWidget>
                         gradient: const LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [Colors.white, Color(0xFFFFF7EA)],
+                          colors: [AppTheme.surfaceColor, AppTheme.paper],
                         ),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white, width: 2.5),
+                        border: Border.all(color: AppTheme.ink, width: 2),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.1),
@@ -208,7 +208,7 @@ class _JuiceSnackbarWidgetState extends State<_JuiceSnackbarWidget>
                             child: Text(
                               widget.message,
                               style: GoogleFonts.mPlusRounded1c(
-                                color: widget.accent,
+                                color: AppTheme.textPrimary,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -250,7 +250,7 @@ Future<T?> showJuiceToast<T>({
     context: context,
     barrierDismissible: barrierDismissible,
     barrierLabel: 'JuiceToast',
-    barrierColor: Colors.black45,
+    barrierColor: const Color(0x663A4C34), // leafy dim instead of black
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -314,10 +314,10 @@ Future<T?> showJuiceToast<T>({
                   gradient: const LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.white, Color(0xFFFFF7EA)],
+                    colors: [AppTheme.surfaceColor, AppTheme.paper],
                   ),
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(color: AppTheme.ink, width: 2.5),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.12),
@@ -441,12 +441,20 @@ Future<T?> showJuiceToast<T>({
                                     vertical: 14,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: AppTheme.surfaceColor,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: accent.withValues(alpha: 0.35),
+                                      color: AppTheme.ink,
                                       width: 2,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.ink.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
                                   child: Center(
                                     child: Text(
@@ -454,7 +462,7 @@ Future<T?> showJuiceToast<T>({
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.mPlusRounded1c(
                                         fontWeight: FontWeight.w900,
-                                        color: accent,
+                                        color: AppTheme.textPrimary,
                                         fontSize: 18,
                                         letterSpacing: 1.2,
                                       ),
@@ -478,19 +486,16 @@ Future<T?> showJuiceToast<T>({
                                     vertical: 14,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFFFD600),
+                                    color: AppTheme.leafStrong,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.white,
+                                      color: AppTheme.ink,
                                       width: 2,
                                     ),
-                                    boxShadow: [
+                                    boxShadow: const [
                                       BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        offset: const Offset(0, 4),
-                                        blurRadius: 4,
+                                        color: AppTheme.leafDeep,
+                                        offset: Offset(0, 4),
                                       ),
                                     ],
                                   ),
@@ -500,8 +505,14 @@ Future<T?> showJuiceToast<T>({
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.mPlusRounded1c(
                                         fontWeight: FontWeight.w900,
-                                        color: Colors.black,
+                                        color: Colors.white,
                                         fontSize: 18,
+                                        shadows: const [
+                                          Shadow(
+                                            color: AppTheme.leafDeep,
+                                            offset: Offset(0, 1.5),
+                                          ),
+                                        ],
                                         letterSpacing: 1.2,
                                       ),
                                     ),
@@ -564,7 +575,6 @@ class AppDialog extends StatelessWidget {
     final toneStyle = _toneStyle(theme, tone);
     final accent = toneStyle.accent;
     final accentSoft = accent.withValues(alpha: 0.12);
-    final outline = theme.colorScheme.outlineVariant.withValues(alpha: 0.45);
     final cardColor = theme.colorScheme.surface.withValues(alpha: 0.92);
 
     final icon =
@@ -593,14 +603,7 @@ class AppDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: cardColor,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: outline),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 26,
-                    offset: const Offset(0, 16),
-                  ),
-                ],
+                border: Border.all(color: AppTheme.ink, width: 2.5),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
