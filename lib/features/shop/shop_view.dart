@@ -970,11 +970,19 @@ class _ShopViewState extends State<ShopView> {
         if (_subscriptionItems.isNotEmpty)
           IconButton(
             onPressed: _iapLoading ? null : _restorePurchases,
-            icon: const Icon(
-              Icons.history_rounded,
-              size: 28,
-              color: AppTheme.ink,
-            ),
+            icon: _iapLoading
+                ? const SizedBox.square(
+                    dimension: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: AppTheme.ink,
+                    ),
+                  )
+                : const Icon(
+                    Icons.history_rounded,
+                    size: 28,
+                    color: AppTheme.ink,
+                  ),
             tooltip: l10n.storeRestoreTooltip,
           ),
         Padding(

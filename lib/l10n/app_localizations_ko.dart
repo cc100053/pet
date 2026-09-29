@@ -1290,6 +1290,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeRestoreTooltip => '구매 복원';
 
   @override
+  String get storeRestoreSuccess => '구매가 복원되었습니다.';
+
+  @override
+  String get storeRestoreNothing => '복원할 구매 내역이 없습니다.';
+
+  @override
   String get shopSectionCoinPacks => '캔디 팩';
 
   @override

@@ -693,6 +693,8 @@
     }
   },
   "storeRestoreTooltip": "購入を復元",
+  "storeRestoreSuccess": "購入を復元しました。",
+  "storeRestoreNothing": "復元できる購入はありません。",
   "shopSectionCoinPacks": "キャンディパック",
   "shopSectionCoinShop": "キャンディショップ",
   "shopSectionDiamondPacks": "ダイヤパック",

@@ -1281,6 +1281,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeRestoreTooltip => '購入を復元';
 
   @override
+  String get storeRestoreSuccess => '購入を復元しました。';
+
+  @override
+  String get storeRestoreNothing => '復元できる購入はありません。';
+
+  @override
   String get shopSectionCoinPacks => 'キャンディパック';
 
   @override

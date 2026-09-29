@@ -680,6 +680,8 @@
     }
   },
   "storeRestoreTooltip": "恢复购买",
+  "storeRestoreSuccess": "已恢复购买。",
+  "storeRestoreNothing": "没有可恢复的购买。",
   "shopSectionCoinPacks": "糖果包",
   "shopSectionCoinShop": "糖果商店",
   "shopSectionDiamondPacks": "钻石包",

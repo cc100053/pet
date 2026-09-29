@@ -1320,6 +1320,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeRestoreTooltip => 'Restore purchases';
 
   @override
+  String get storeRestoreSuccess => 'Purchases restored.';
+
+  @override
+  String get storeRestoreNothing => 'No purchases to restore.';
+
+  @override
   String get shopSectionCoinPacks => 'Candy Packs';
 
   @override

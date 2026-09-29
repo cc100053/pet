@@ -1277,6 +1277,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeRestoreTooltip => '恢复购买';
 
   @override
+  String get storeRestoreSuccess => '已恢复购买。';
+
+  @override
+  String get storeRestoreNothing => '没有可恢复的购买。';
+
+  @override
   String get shopSectionCoinPacks => '糖果包';
 
   @override
@@ -3501,6 +3507,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeRestoreTooltip => '恢復購買';
+
+  @override
+  String get storeRestoreSuccess => '已恢復購買。';
+
+  @override
+  String get storeRestoreNothing => '沒有可恢復的購買。';
 
   @override
   String get shopSectionCoinPacks => '糖果包';

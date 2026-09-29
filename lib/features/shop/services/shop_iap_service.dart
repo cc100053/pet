@@ -320,24 +320,43 @@ extension _ShopIapService on _ShopViewState {
 
     try {
       final info = await _revenueCatService.restorePurchases();
-      if (info != null && mounted) {
-        _setStoreState(() {
-          _activeEntitlements = info.entitlements.active.keys.toSet();
-        });
-        AnalyticsService.instance.logEvent(
-          'restore_purchases_result',
-          parameters: {'result': 'success'},
-        );
+      if (!mounted) {
+        return;
       }
+      final l10n = AppLocalizations.of(context)!;
+      if (info == null) {
+        throw StateError(l10n.storeProductUnavailable);
+      }
+      final restored = info.entitlements.active.keys.toSet();
+      _setStoreState(() {
+        _activeEntitlements = restored;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            restored.isEmpty
+                ? l10n.storeRestoreNothing
+                : l10n.storeRestoreSuccess,
+          ),
+        ),
+      );
+      AnalyticsService.instance.logEvent(
+        'restore_purchases_result',
+        parameters: {'result': restored.isEmpty ? 'empty' : 'success'},
+      );
     } catch (error) {
       if (!mounted) {
         return;
       }
-      _setStoreState(() {
-        _iapError = AppLocalizations.of(
-          context,
-        )!.storeRestoreFailed(userFacingError(context, error));
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.storeRestoreFailed(userFacingError(context, error)),
+          ),
+        ),
+      );
       AnalyticsService.instance.logEvent(
         'restore_purchases_result',
         parameters: {'result': 'failure'},

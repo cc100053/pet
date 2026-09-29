@@ -714,6 +714,8 @@
     }
   },
   "storeRestoreTooltip": "Restore purchases",
+  "storeRestoreSuccess": "Purchases restored.",
+  "storeRestoreNothing": "No purchases to restore.",
   "shopSectionCoinPacks": "Candy Packs",
   "shopSectionCoinShop": "Candy Shop",
   "shopSectionDiamondPacks": "Diamond Packs",

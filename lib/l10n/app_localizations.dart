@@ -2363,6 +2363,18 @@ abstract class AppLocalizations {
   /// **'Restore purchases'**
   String get storeRestoreTooltip;
 
+  /// No description provided for @storeRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored.'**
+  String get storeRestoreSuccess;
+
+  /// No description provided for @storeRestoreNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchases to restore.'**
+  String get storeRestoreNothing;
+
   /// No description provided for @shopSectionCoinPacks.
   ///
   /// In en, this message translates to:
