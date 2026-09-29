@@ -1,75 +1,75 @@
 {
   "@@locale": "zh",
-  "appleSignInRejected": "Apple 登录被拒絕，请检查 Supabase Apple 供應商的 Client ID。",
+  "appleSignInRejected": "Apple 登录被拒绝，请检查 Supabase Apple 供应商的 Client ID。",
   "authReauthRequired": "请重新登录。",
-  "blockedUserIdTruncated": "ID（縮略）：{id}",
+  "blockedUserIdTruncated": "ID（缩略）：{id}",
   "@blockedUserIdTruncated": {
     "placeholders": {
       "id": {}
     }
   },
-  "blockedUsersEmpty": "目前沒有封鎖的用户。",
-  "blockedUsersLoadFailed": "加载封鎖名單失敗：{error}",
+  "blockedUsersEmpty": "目前没有屏蔽的用户。",
+  "blockedUsersLoadFailed": "加载屏蔽名单失败：{error}",
   "@blockedUsersLoadFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "blockedUsersTitle": "已封鎖的用户",
-  "blockedUserUnblocked": "已解除封鎖。",
-  "blockedUserUnblockFailed": "解除封鎖失敗：{error}",
+  "blockedUsersTitle": "已屏蔽的用户",
+  "blockedUserUnblocked": "已解除屏蔽。",
+  "blockedUserUnblockFailed": "解除屏蔽失败：{error}",
   "@blockedUserUnblockFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "calendarAddMemory": "新增回憶",
-  "calendarEarlier": "較早",
+  "calendarAddMemory": "新增回忆",
+  "calendarEarlier": "较早",
   "calendarLatestPhoto": "最新的照片",
-  "calendarLoadFailed": "加载回憶失敗：{error}",
+  "calendarLoadFailed": "加载回忆失败：{error}",
   "@calendarLoadFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "calendarNoEarlierMemories": "暂无較早的回憶。",
-  "calendarNoMemoriesForDay": "这天沒有回憶。",
-  "calendarNoPhotoYet": "尚無照片",
-  "calendarTitle": "回憶錄",
+  "calendarNoEarlierMemories": "暂无较早的回忆。",
+  "calendarNoMemoriesForDay": "这天没有回忆。",
+  "calendarNoPhotoYet": "尚无照片",
+  "calendarTitle": "回忆录",
   "calendarToday": "今天",
-  "chatBlockFailed": "封鎖失敗：{error}",
+  "chatBlockFailed": "屏蔽失败：{error}",
   "@chatBlockFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatBlockUser": "封鎖用户",
+  "chatBlockUser": "屏蔽用户",
   "chatCoinsAwarded": "糖果 +{count}",
   "@chatCoinsAwarded": {
     "placeholders": {
       "count": {}
     }
   },
-  "chatEmptyState": "尚無消息，從下方開始聊天吧。",
-  "chatLoadBlockedUsersFailed": "加载封鎖名單失敗：{error}",
+  "chatEmptyState": "尚无消息，从下方开始聊天吧。",
+  "chatLoadBlockedUsersFailed": "加载屏蔽名单失败：{error}",
   "@chatLoadBlockedUsersFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatLoadCacheFailed": "加载快取消息失敗：{error}",
+  "chatLoadCacheFailed": "加载缓存消息失败：{error}",
   "@chatLoadCacheFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatLoadMessagesFailed": "加载消息失敗：{error}",
+  "chatLoadMessagesFailed": "加载消息失败：{error}",
   "@chatLoadMessagesFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatLoadMoreFailed": "加载更多失敗：{error}",
+  "chatLoadMoreFailed": "加载更多失败：{error}",
   "@chatLoadMoreFailed": {
     "placeholders": {
       "error": {}
@@ -88,21 +88,21 @@
   "chatMessageEdited": "已编辑",
   "chatMessageDeleted": "消息已删除",
   "chatEditNoChanges": "没有需要保存的更改。",
-  "chatEditFailed": "编辑失敗：{error}",
+  "chatEditFailed": "编辑失败：{error}",
   "@chatEditFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatDeleteFailed": "删除失敗：{error}",
+  "chatDeleteFailed": "删除失败：{error}",
   "@chatDeleteFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatNoOlderMessages": "沒有更早的消息。",
-  "chatPartnerLabel": "對方",
-  "chatReplyAction": "回覆",
+  "chatNoOlderMessages": "没有更早的消息。",
+  "chatPartnerLabel": "对方",
+  "chatReplyAction": "回复",
   "chatMoreReactionsAction": "更多",
   "chatAllEmojiAction": "全部表情",
   "chatReactionCount": "{count} 个表情反应",
@@ -113,7 +113,7 @@
       }
     }
   },
-  "chatReplyingTo": "回覆 {name}",
+  "chatReplyingTo": "回复 {name}",
   "@chatReplyingTo": {
     "placeholders": {
       "name": {}
@@ -121,23 +121,23 @@
   },
   "chatReplyMessageFallback": "原消息",
   "chatReplyPhotoFallback": "照片",
-  "chatRefreshFailed": "更新失敗：{error}",
+  "chatRefreshFailed": "更新失败：{error}",
   "@chatRefreshFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatReportFailed": "举报失敗：{error}",
+  "chatReportFailed": "举报失败：{error}",
   "@chatReportFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "chatReportHint": "簡單說明原因",
+  "chatReportHint": "简单说明原因",
   "chatReportMessageTitle": "举报消息",
-  "chatReportNoReason": "無原因",
+  "chatReportNoReason": "无原因",
   "chatReportSent": "已送出举报。",
-  "chatSendFailed": "傳送失敗：{error}",
+  "chatSendFailed": "发送失败：{error}",
   "@chatSendFailed": {
     "placeholders": {
       "error": {}
@@ -176,9 +176,9 @@
   },
   "chatRoomMemberRoleOwner": "房主",
   "chatRoomMemberYou": "你",
-  "chatUserAlreadyBlocked": "已封鎖",
-  "chatUserBlocked": "已封鎖用户。",
-  "chatMemberCount": "{count} 位成員",
+  "chatUserAlreadyBlocked": "已屏蔽",
+  "chatUserBlocked": "已屏蔽用户。",
+  "chatMemberCount": "{count} 位成员",
   "@chatMemberCount": {
     "placeholders": {
       "count": {
@@ -187,22 +187,22 @@
     }
   },
   "calendarYesterday": "昨天",
-  "commonBuy": "購買",
-  "commonBuyMore": "繼續購買",
-  "commonCamera": "相機",
+  "commonBuy": "购买",
+  "commonBuyMore": "继续购买",
+  "commonCamera": "相机",
   "commonCancel": "取消",
   "commonClose": "关闭",
   "commonSkip": "跳过",
-  "onboardingCreatePetPromptTitle": "選擇寵物入住你的新房間！",
+  "onboardingCreatePetPromptTitle": "选择宠物入住你的新房间！",
   "onboardingRoomEntryPromptTitle": "创建新房间，或输入邀请码加入。",
-  "onboardingRoomEntryPromptBody": "你可以自己建立宠物房间，或者用邀请码加入朋友的房间。",
-  "onboardingProfileSetupTitle": "先設定你的個人資料",
-  "onboardingProfileSetupSubtitle": "請設定朋友會看到的名稱。照片現在可以上傳，也可以稍後再加。",
-  "onboardingProfileSetupAvatarOptional": "照片可稍後再加",
-  "onboardingProfileSetupContinue": "繼續",
-  "onboardingProfileSetupNameRequiredError": "請輸入你要使用的名稱。",
-  "onboardingProfileSetupNameChangeHint": "請先設定名稱，再繼續下一步。",
-  "commonGallery": "相簿",
+  "onboardingRoomEntryPromptBody": "你可以自己创建宠物房间，或者用邀请码加入朋友的房间。",
+  "onboardingProfileSetupTitle": "先设置你的个人资料",
+  "onboardingProfileSetupSubtitle": "请设置朋友会看到的名称。照片现在可以上传，也可以稍后再加。",
+  "onboardingProfileSetupAvatarOptional": "照片可稍后再加",
+  "onboardingProfileSetupContinue": "继续",
+  "onboardingProfileSetupNameRequiredError": "请输入你要使用的名称。",
+  "onboardingProfileSetupNameChangeHint": "请先设置名称，再继续下一步。",
+  "commonGallery": "相册",
   "commonJoin": "加入",
   "commonLeave": "离开",
   "commonOwned": "已拥有",
@@ -214,102 +214,102 @@
   "photoViewerReplySendAction": "发送",
   "photoViewerReplySent": "已发送回复。",
   "photoViewerReplySentState": "已发送",
-  "photoViewerSavedToGallery": "已保存到你的相簿。",
-  "photoViewerSaveFailed": "无法保存到你的相簿。",
+  "photoViewerSavedToGallery": "已保存到你的相册。",
+  "photoViewerSaveFailed": "无法保存到你的相册。",
   "commonSend": "送出",
   "commonSending": "送出中...",
-  "commonSignOut": "登出",
+  "commonSignOut": "退出登录",
   "commonSubmit": "送出",
-  "commonTryAgain": "再試一次",
-  "commonUnblock": "解除封鎖",
-  "commonUploading": "上傳中",
+  "commonTryAgain": "再试一次",
+  "commonUnblock": "解除屏蔽",
+  "commonUploading": "上传中",
   "commonUser": "用户",
-  "errorInvalidInviteCode": "邀请碼無效或已過期。",
-  "errorNetwork": "网络異常，请检查连接後再試一次。",
-  "errorNotFound": "找不到指定資料。",
-  "errorPermissionDenied": "你沒有权限執行这个操作。",
-  "errorMediaPermissionDenied": "相机或照片存取权限已关闭，请到设定中允许后再试一次。",
-  "errorImageTooLarge": "图片档案太大，请选择较小的图片。",
-  "errorPetNameInvalid": "这个宠物名称不可用，请換一個名称。",
-  "errorUnexpected": "發生错误，请稍后再試。",
+  "errorInvalidInviteCode": "邀请码无效或已过期。",
+  "errorNetwork": "网络异常，请检查连接后再试一次。",
+  "errorNotFound": "找不到指定资料。",
+  "errorPermissionDenied": "你没有权限执行这个操作。",
+  "errorMediaPermissionDenied": "相机或照片访问权限已关闭，请到设置中允许后再试一次。",
+  "errorImageTooLarge": "图片文件太大，请选择较小的图片。",
+  "errorPetNameInvalid": "这个宠物名称不可用，请换一个名称。",
+  "errorUnexpected": "发生错误，请稍后再试。",
   "currencyJpy": "JPY {amount}",
   "@currencyJpy": {
     "placeholders": {
       "amount": {}
     }
   },
-  "drawerCreateRoom": "建立新房间",
-  "drawerDebugTools": "除錯工具",
-  "drawerFreePlan": "免費方案",
+  "drawerCreateRoom": "创建新房间",
+  "drawerDebugTools": "除错工具",
+  "drawerFreePlan": "免费方案",
   "drawerProPlan": "Pro 方案",
   "drawerDebugAddCandy": "+100 糖果",
-  "drawerDebugAddDiamonds": "+100 鑽石",
-  "drawerDebugTogglePlan": "切換方案",
-  "drawerDebugForceOnboarding": "每次都顯示新手引導",
-  "drawerDebugForceOnboardingEnabled": "每次打開 App 都顯示",
-  "drawerDebugForceOnboardingDisabled": "使用正常一次性顯示",
-  "drawerDebugTestProfileSetupOnboarding": "測試個人資料設定",
-  "drawerDebugTestProfileSetupOnboardingSubtitle": "立即打開新用戶改名與上傳照片步驟",
-  "drawerDebugHungerDown": "宠物飢餓度 -10",
-  "drawerDebugHungerUp": "宠物飽食度 +20",
-  "drawerDebugAddExp": "+10 經驗",
-  "drawerDebugSpawnPoop": "讓宠物便便",
-  "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
-  "drawerDebugShowSocketOverlay": "顯示掛點調試",
-  "drawerDebugDressUpFitTool": "裝扮調整工具",
-  "drawerDebugCaptureMemorySnapshot": "記錄記憶體快照",
-  "drawerDebugClearImageCacheSnapshot": "清除圖片快取並記錄",
-  "drawerDebugOpenMemoryDiagnostics": "開啟記憶體診斷",
-  "drawerDebugMemorySnapshotCaptured": "已記錄記憶體快照。",
-  "drawerDebugImageCacheCleared": "已清除圖片快取並記錄快照。",
-  "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
-  "drawerDebugTestHardUpdate": "測試強制更新彈窗",
-  "drawerDebugTestWhatsNew": "預覽 What's New 視窗",
-  "drawerDebugTestCrashReport": "測試崩潰上報",
-  "debugMemoryDiagnosticsTitle": "記憶體診斷",
-  "debugMemoryDiagnosticsEmpty": "尚未記錄任何記憶體快照。",
-  "drawerInviteCode": "代碼：{code}",
+  "drawerDebugAddDiamonds": "+100 钻石",
+  "drawerDebugTogglePlan": "切换方案",
+  "drawerDebugForceOnboarding": "每次都显示新手引导",
+  "drawerDebugForceOnboardingEnabled": "每次打开 App 都显示",
+  "drawerDebugForceOnboardingDisabled": "使用正常一次性显示",
+  "drawerDebugTestProfileSetupOnboarding": "测试个人资料设置",
+  "drawerDebugTestProfileSetupOnboardingSubtitle": "立即打开新用户改名与上传照片步骤",
+  "drawerDebugHungerDown": "宠物饥饿度 -10",
+  "drawerDebugHungerUp": "宠物饱食度 +20",
+  "drawerDebugAddExp": "+10 经验",
+  "drawerDebugSpawnPoop": "让宠物便便",
+  "drawerDebugShowFullBubble": "显示「我吃饱了！」气泡",
+  "drawerDebugShowSocketOverlay": "显示挂点调试",
+  "drawerDebugDressUpFitTool": "装扮调整工具",
+  "drawerDebugCaptureMemorySnapshot": "记录内存快照",
+  "drawerDebugClearImageCacheSnapshot": "清除图片缓存并记录",
+  "drawerDebugOpenMemoryDiagnostics": "开启内存诊断",
+  "drawerDebugMemorySnapshotCaptured": "已记录内存快照。",
+  "drawerDebugImageCacheCleared": "已清除图片缓存并记录快照。",
+  "drawerDebugTestSoftUpdate": "测试可选更新弹窗",
+  "drawerDebugTestHardUpdate": "测试强制更新弹窗",
+  "drawerDebugTestWhatsNew": "预览 What's New 窗口",
+  "drawerDebugTestCrashReport": "测试崩溃上报",
+  "debugMemoryDiagnosticsTitle": "内存诊断",
+  "debugMemoryDiagnosticsEmpty": "尚未记录任何内存快照。",
+  "drawerInviteCode": "代码：{code}",
   "@drawerInviteCode": {
     "placeholders": {
       "code": {}
     }
   },
-  "drawerJoinWithCode": "使用邀请碼加入",
+  "drawerJoinWithCode": "使用邀请码加入",
   "drawerMyRooms": "我的房间",
-  "drawerNoRooms": "目前沒有房间。",
+  "drawerNoRooms": "目前没有房间。",
   "drawerPetError": "宠物错误",
-  "drawerRegenerateInviteCode": "重新生成邀请碼",
-  "drawerSimulateFeed": "模擬喂食",
-  "drawerTestNotification": "測試本地通知",
-  "feedCameraSubtitle": "拍照後送出。",
-  "feedCameraTitle": "喂食相機",
+  "drawerRegenerateInviteCode": "重新生成邀请码",
+  "drawerSimulateFeed": "模拟喂食",
+  "drawerTestNotification": "测试本地通知",
+  "feedCameraSubtitle": "拍照后送出。",
+  "feedCameraTitle": "喂食相机",
   "feedPickPhotoHint": "选择照片",
-  "feedCanonicalTags": "標準标签：{tags}",
+  "feedCanonicalTags": "标准标签：{tags}",
   "@feedCanonicalTags": {
     "placeholders": {
       "tags": {}
     }
   },
-  "feedCaptionLabel": "說明（選填）",
+  "feedCaptionLabel": "说明（选填）",
   "feedDetectedLabels": "检测到的标签",
-  "feedLabelingFailed": "標註失敗：{error}",
+  "feedLabelingFailed": "标注失败：{error}",
   "@feedLabelingFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "feedLabelingNotSupported": "Web 不支援 ML Kit 影像標註。",
-  "feedLabelMappingsFailed": "加载标签对应失敗：{error}",
+  "feedLabelingNotSupported": "Web 不支持 ML Kit 图像标注。",
+  "feedLabelMappingsFailed": "加载标签对应失败：{error}",
   "@feedLabelMappingsFailed": {
     "placeholders": {
       "error": {}
     }
   },
   "feedLabelMappingsLoading": "加载标签对应中...",
-  "feedLabelMappingsReady": "标签对应已就緒。",
+  "feedLabelMappingsReady": "标签对应已就绪。",
   "feedLabelMappingsUnavailable": "无法使用标签对应。",
   "feedNoLabels": "尚未检测到标签。",
-  "feedResponse": "回應：{response}",
+  "feedResponse": "回应：{response}",
   "@feedResponse": {
     "placeholders": {
       "response": {}
@@ -317,14 +317,14 @@
   },
   "feedSelectImageFirst": "请先选择图片。",
   "feedSendButton": "送出喂食",
-  "feedSendFailed": "送出失敗：{error}",
+  "feedSendFailed": "送出失败：{error}",
   "@feedSendFailed": {
     "placeholders": {
       "error": {}
     }
   },
   "feedTitle": "喂食",
-  "feedUploadFailed": "喂食上傳失敗：{error}",
+  "feedUploadFailed": "喂食上传失败：{error}",
   "@feedUploadFailed": {
     "placeholders": {
       "error": {}
@@ -339,29 +339,29 @@
       "error": {}
     }
   },
-  "feedRewardPending": "獎勵計算中...",
+  "feedRewardPending": "奖励计算中...",
   "crashRecoveryAction": "知道了",
   "crashRecoveryMessage": "游戏刚才似乎异常中断，请关闭 App 后重新打开再试一次。如果问题持续，请稍后再试。",
   "crashRecoveryPetCaption": "小宠物先陪你休息一下。",
   "crashRecoveryPetSemanticLabel": "正在休息的小宠物",
   "crashRecoveryTitle": "游戏发生错误",
   "forceUpdateAction": "立即更新",
-  "forceUpdateLinkError": "无法打开商店連結。",
-  "forceUpdateMessage": "需要更新到新版本才能繼續使用，请立即更新。",
+  "forceUpdateLinkError": "无法打开商店链接。",
+  "forceUpdateMessage": "需要更新到新版本才能继续使用，请立即更新。",
   "forceUpdateTitle": "需要更新",
   "softUpdateAction": "更新",
   "softUpdateLater": "稍后",
-  "softUpdateMessage": "有新版本可用，更新後可獲得更順暢的共同養寵体验。",
+  "softUpdateMessage": "有新版本可用，更新后可获得更顺畅的共同养宠体验。",
   "softUpdateTitle": "可更新新版本",
   "whatsNewDialogTitle": "版本更新",
   "whatsNewContinueAction": "继续",
-  "whatsNewSuggestFeatureAction": "建議新功能",
+  "whatsNewSuggestFeatureAction": "建议新功能",
   "whatsNewSuggestFeatureTitle": "你希望有咩新功能？",
   "whatsNewSuggestFeaturePlaceholder": "描述你嘅想法...",
-  "whatsNewSuggestFeatureSubmit": "發送",
-  "whatsNewSuggestFeatureSuccess": "多謝你嘅建議！",
-  "whatsNewContentLabel": "更新內容",
-  "whatsNewHighlightsLabel": "這個版本的重點",
+  "whatsNewSuggestFeatureSubmit": "发送",
+  "whatsNewSuggestFeatureSuccess": "多谢你嘅建议！",
+  "whatsNewContentLabel": "更新内容",
+  "whatsNewHighlightsLabel": "这个版本的重点",
   "whatsNewVersionLabel": "版本 {version}",
   "@whatsNewVersionLabel": {
     "placeholders": {
@@ -373,28 +373,28 @@
   "whatsNew105Bullet2": "商店购买通知现在会显示房间里实际买到的道具名称。",
   "whatsNew105Bullet3": "成功喂食后恢复的饥饿值提升了，从 +20 提高到 +25。",
   "languageChineseSimplified": "简体中文",
-  "languageChineseTraditional": "繁體中文",
+  "languageChineseTraditional": "繁体中文",
   "languageEnglish": "英语",
   "languageJapanese": "日语",
   "languageKorean": "韩语",
   "languageSystem": "系统",
-  "languageSystemSubtitle": "跟隨裝置语言",
+  "languageSystemSubtitle": "跟随设备语言",
   "languageTitle": "语言",
   "launchAppName": "PetTomo",
-  "launchTagline": "分享日常，一起成長。",
+  "launchTagline": "分享日常，一起成长。",
   "moodHigh": "高",
   "moodLow": "低",
   "moodMid": "中",
   "moodNeutral": "普通",
-  "moodSad": "難過",
-  "petActionFailed": "操作失敗：{error}",
+  "moodSad": "难过",
+  "petActionFailed": "操作失败：{error}",
   "@petActionFailed": {
     "placeholders": {
       "error": {}
     }
   },
   "petHomeTitle": "宠物的家",
-  "petNameEditTitle": "編輯宠物名字",
+  "petNameEditTitle": "编辑宠物名字",
   "petNameLabel": "宠物名字",
   "petNameHint": "输入宠物名字",
   "petNameEmptyError": "请输入名字。",
@@ -404,7 +404,7 @@
       "error": {}
     }
   },
-  "chatPetRenamedMessage": "{user}把宠物名字從{oldName}改為{petName}。",
+  "chatPetRenamedMessage": "{user}把宠物名字从{oldName}改为{petName}。",
   "@chatPetRenamedMessage": {
     "placeholders": {
       "user": {},
@@ -443,15 +443,15 @@
     }
   },
   "photoLabel": "照片",
-  "profileDefaultNickname": "宠物爸媽",
-  "profileEmpty": "沒有个人资料。",
-  "profileLoadFailed": "加载个人资料失敗：{error}",
+  "profileDefaultNickname": "宠物爸妈",
+  "profileEmpty": "没有个人资料。",
+  "profileLoadFailed": "加载个人资料失败：{error}",
   "@profileLoadFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "profileNicknameLabel": "暱稱",
+  "profileNicknameLabel": "昵称",
   "profileTitle": "个人资料",
   "profileSectionAccount": "账号",
   "profileSectionAbout": "关于与支持",
@@ -460,14 +460,14 @@
   "profileVersionPrefix": "版本：",
   "profileSectionDangerZone": "危险区域",
   "profileUpdated": "已更新个人资料",
-  "profileAvatarTitle": "选择頭像",
-  "profileAvatarEdit": "編輯頭像",
-  "profileAvatarUpload": "上傳照片",
-  "profileAvatarAdjustCurrent": "調整目前照片",
-  "profileAvatarAdjustUnavailable": "沒有可調整的已上傳照片。",
-  "profileAvatarAdjustUnsupportedPlatform": "此平台暫不支援調整目前照片。",
-  "profileAvatarEditorHint": "拖曳調整位置，雙指縮放。",
-  "profileAvatarEditorZoom": "縮放",
+  "profileAvatarTitle": "选择头像",
+  "profileAvatarEdit": "编辑头像",
+  "profileAvatarUpload": "上传照片",
+  "profileAvatarAdjustCurrent": "调整目前照片",
+  "profileAvatarAdjustUnavailable": "没有可调整的已上传照片。",
+  "profileAvatarAdjustUnsupportedPlatform": "此平台暂不支持调整目前照片。",
+  "profileAvatarEditorHint": "拖动调整位置，双指缩放。",
+  "profileAvatarEditorZoom": "缩放",
   "profileAvatarEditorCenter": "置中",
   "profileAvatarRemove": "移除",
   "profileCoinsLabel": "糖果：{amount}",
@@ -476,34 +476,34 @@
       "amount": {}
     }
   },
-  "profileDeleteAccountSectionTitle": "刪除帳號",
-  "profileDeleteAccountSectionBody": "此操作會永久刪除你的帳號。共養房间與宠物會保留並轉移給其他成員。",
-  "profileDeleteAccountAction": "刪除帳號",
-  "profileDeleteAccountTitle": "要刪除帳號嗎？",
-  "profileDeleteAccountConfirmBody": "此操作會永久刪除你的帳號與個人資料。共養房间／宠物會保留並將所有權轉移給其他成員。此操作无法復原。",
-  "profileDeleteAccountConfirmAction": "刪除",
-  "profileDeleteFailed": "刪除帳號失敗：{error}",
+  "profileDeleteAccountSectionTitle": "删除账号",
+  "profileDeleteAccountSectionBody": "此操作会永久删除你的账号。共养房间与宠物会保留并转移给其他成员。",
+  "profileDeleteAccountAction": "删除账号",
+  "profileDeleteAccountTitle": "要删除账号吗？",
+  "profileDeleteAccountConfirmBody": "此操作会永久删除你的账号与个人资料。共养房间／宠物会保留并将所有权转移给其他成员。此操作无法复原。",
+  "profileDeleteAccountConfirmAction": "删除",
+  "profileDeleteFailed": "删除账号失败：{error}",
   "@profileDeleteFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "profileUserId": "使用者 ID：{id}",
+  "profileUserId": "用户 ID：{id}",
   "@profileUserId": {
     "placeholders": {
       "id": {}
     }
   },
   "drawerProfile": "个人资料",
-  "roomCreatedSuccess": "已建立房间！请查看側邊欄。",
-  "roomCreateFailed": "建立房间失敗：{error}",
+  "roomCreatedSuccess": "已创建房间！请查看侧边栏。",
+  "roomCreateFailed": "创建房间失败：{error}",
   "@roomCreateFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "roomCreateTitle": "建立房间",
-  "roomCreateAction": "建立",
+  "roomCreateTitle": "创建房间",
+  "roomCreateAction": "创建",
   "roomNameLabel": "房间名称",
   "roomNameHint": "房间名称",
   "roomNameEmptyError": "请输入房间名称。",
@@ -513,77 +513,65 @@
       "error": {}
     }
   },
-  "roomOptionsTitle": "房间選項",
-  "roomOptionRename": "變更房间名称",
-  "roomOptionLeave": "离开房间",
-  "roomRenameTitle": "變更房间名称",
+  "roomRenameTitle": "变更房间名称",
   "roomRenameMessage": "输入新的房间名称。",
   "roomDefaultName": "新房间",
   "roomInviteCta": "邀请",
   "roomInventoryCta": "背包",
   "roomInvitePromptTitle": "邀请朋友",
-  "roomInvitePromptBody": "目前只有你。產生邀请碼來邀请朋友加入。",
-  "roomInvitePromptAction": "產生邀请碼",
-  "roomInvitePromptGenerating": "產生中...",
-  "roomInviteCodeTitle": "邀请碼",
-  "roomInviteCodeMessage": "分享此邀请碼讓朋友加入房间。",
-  "roomInviteCodeTapHint": "點擊邀請碼即可複製。",
-  "roomInviteCopyCodeAction": "複製",
+  "roomInvitePromptBody": "目前只有你。产生邀请码来邀请朋友加入。",
+  "roomInvitePromptAction": "产生邀请码",
+  "roomInvitePromptGenerating": "产生中...",
+  "roomInviteCodeTitle": "邀请码",
+  "roomInviteCodeMessage": "分享此邀请码让朋友加入房间。",
+  "roomInviteCodeTapHint": "点击邀请码即可复制。",
+  "roomInviteCopyCodeAction": "复制",
   "roomInviteShareAction": "分享",
-  "roomInviteShareCaption": "來 PetTomo 和我一起玩",
-  "roomInviteShareFailed": "分享邀請失敗：{error}",
+  "roomInviteShareCaption": "来 PetTomo 和我一起玩",
+  "roomInviteShareFailed": "分享邀请失败：{error}",
   "@roomInviteShareFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "roomInviteLinkJoining": "正在透過邀請加入房間...",
-  "roomInviteCodeCopiedTitle": "已複製",
-  "roomInviteCodeCopiedMessage": "快邀請朋友加入，一起照顧寵物吧！",
-  "roomInviteCodeRegenerated": "邀请碼已重新生成。",
-  "roomInviteCodeRegenerateFailed": "重新生成邀请碼失敗：{error}",
+  "roomInviteLinkJoining": "正在通过邀请加入房间...",
+  "roomInviteCodeCopiedTitle": "已复制",
+  "roomInviteCodeCopiedMessage": "快邀请朋友加入，一起照顾宠物吧！",
+  "roomInviteCodeRegenerated": "邀请码已重新生成。",
+  "roomInviteCodeRegenerateFailed": "重新生成邀请码失败：{error}",
   "@roomInviteCodeRegenerateFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "roomJoinFailed": "加入房间失敗：{error}",
+  "roomJoinFailed": "加入房间失败：{error}",
   "@roomJoinFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "roomJoinHelper": "邀请碼不區分大小寫。",
-  "roomJoinHint": "输入 6 位邀请碼",
+  "roomJoinHelper": "邀请码不区分大小写。",
+  "roomJoinHint": "输入 6 位邀请码",
   "roomJoinSuccess": "加入房间成功。",
   "roomJoinTitle": "加入房间",
   "roomEnteringLoading": "正在进入房间",
-  "roomLeaveFailed": "离开房间失敗：{error}",
-  "@roomLeaveFailed": {
-    "placeholders": {
-      "error": {}
-    }
-  },
-  "roomLeaveMessage": "离开後在重新邀请前將无法存取这只宠物。",
-  "roomLeaveSuccess": "已离开房间。",
-  "roomLeaveTitle": "离开房间？",
-  "roomLimitReached": "已達免費上限（最多 2 個房间）。升級以新增更多！",
-  "roomNewInviteCode": "新的邀请碼：{code}",
+  "roomLimitReached": "已达免费上限（最多 2 个房间）。升级以新增更多！",
+  "roomNewInviteCode": "新的邀请码：{code}",
   "@roomNewInviteCode": {
     "placeholders": {
       "code": {}
     }
   },
-  "roomSelectionCreatePet": "建立新房间",
-  "roomSelectionCreating": "建立中...",
+  "roomSelectionCreatePet": "创建新房间",
+  "roomSelectionCreating": "创建中...",
   "roomSelectionEmptySlot": "空位",
-  "roomSelectionEnterInvite": "输入邀请碼",
+  "roomSelectionEnterInvite": "输入邀请码",
   "roomSelectionJoining": "加入中...",
   "roomSelectionRoomFallback": "房间",
   "roomSelectionStatusHungry": "肚子饿了",
   "roomSelectionStatusNewPhoto": "新照片",
   "roomSelectionStatusNoPhoto": "还没有照片",
-  "roomSelectionSubtitle": "选择宠物的家並繼續。",
+  "roomSelectionSubtitle": "选择宠物的家并继续。",
   "roomSelectionSubtitleFrames": "选择宠物的家并继续。长按可换相框。",
   "roomSelectionTitle": "房间选择",
   "roomFrameSheetTitle": "换相框",
@@ -601,11 +589,11 @@
   "roomFrameConfirm": "完成",
   "roomFrameChanged": "已换上{frameName}。",
   "roomFrameChangeAction": "换相框",
-  "roomOptionsTitle": "房间選項",
+  "roomOptionsTitle": "房间选项",
   "roomOptionRename": "重新命名房间",
   "roomOptionLeave": "离开房间",
-  "signInFailed": "登录失敗，请再試一次。",
-  "signInNote": "注意：需要在 Supabase 設定 OAuth 供應商。",
+  "signInFailed": "登录失败，请再试一次。",
+  "signInNote": "注意：需要在 Supabase 设置 OAuth 供应商。",
   "signInOpening": "正在打开登录...",
   "signInOpeningProvider": "正在打开 {provider}...",
   "@signInOpeningProvider": {
@@ -613,9 +601,9 @@
       "provider": {}
     }
   },
-  "signInSubtitle": "登录後開始一起養成宠物。",
-  "signInWithApple": "使用 Apple 繼續",
-  "signInWithGoogle": "使用 Google 繼續",
+  "signInSubtitle": "登录后开始一起养成宠物。",
+  "signInWithApple": "使用 Apple 继续",
+  "signInWithGoogle": "使用 Google 继续",
   "storeCoinPrice": "糖果：{amount}",
   "@storeCoinPrice": {
     "placeholders": {
@@ -629,13 +617,13 @@
     }
   },
   "storeCoinsReward": "糖果 +{amount}",
-  "storeDiamondsLabel": "鑽石：{amount}",
+  "storeDiamondsLabel": "钻石：{amount}",
   "@storeDiamondsLabel": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storeDiamondsReward": "鑽石 +{amount}",
+  "storeDiamondsReward": "钻石 +{amount}",
   "@storeDiamondsReward": {
     "placeholders": {
       "amount": {}
@@ -646,38 +634,38 @@
       "amount": {}
     }
   },
-  "shopEmpty": "商店目前沒有商品。",
-  "storeIapNotConfigured": "尚未設定 IAP。",
+  "shopEmpty": "商店目前没有商品。",
+  "storeIapNotConfigured": "尚未设置 IAP。",
   "storeIapUnavailable": "IAP 无法使用：{error}",
   "@storeIapUnavailable": {
     "placeholders": {
       "error": {}
     }
   },
-  "shopLoadFailed": "加载商店失敗：{error}",
+  "shopLoadFailed": "加载商店失败：{error}",
   "@storeLoadFailed": {
     "placeholders": {
       "error": {}
     }
   },
   "storeNotEnoughCoins": "糖果不足。",
-  "storeNotEnoughDiamonds": "鑽石不足。",
-  "storeOwnedCount": "已擁有 x{amount}",
+  "storeNotEnoughDiamonds": "钻石不足。",
+  "storeOwnedCount": "已拥有 x{amount}",
   "@storeOwnedCount": {
     "placeholders": {
       "amount": {}
     }
   },
-  "storePriceUnavailable": "價格不可用",
+  "storePriceUnavailable": "价格不可用",
   "storeProductNotFound": "在 RevenueCat 找不到商品。",
   "storeProductUnavailable": "商品不可用。",
-  "storePurchaseFailed": "購買失敗：{error}",
+  "storePurchaseFailed": "购买失败：{error}",
   "@storePurchaseFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "storePurchaseSuccess": "已購買 {name}。",
+  "storePurchaseSuccess": "已购买 {name}。",
   "@storePurchaseSuccess": {
     "placeholders": {
       "name": {}
@@ -685,45 +673,45 @@
   },
   "shopReturnToRoomCta": "返回房间",
   "shopReturnToRoomHint": "回到宠物房间后就可以开始布置。",
-  "storeRestoreFailed": "復原失敗：{error}",
+  "storeRestoreFailed": "复原失败：{error}",
   "@storeRestoreFailed": {
     "placeholders": {
       "error": {}
     }
   },
-  "storeRestoreTooltip": "恢復購買",
+  "storeRestoreTooltip": "恢复购买",
   "shopSectionCoinPacks": "糖果包",
   "shopSectionCoinShop": "糖果商店",
-  "shopSectionDiamondPacks": "鑽石包",
-  "shopSectionDiamondShop": "鑽石商店",
-  "shopSectionSubscription": "訂閱",
-  "storeTabPremium": "高級",
+  "shopSectionDiamondPacks": "钻石包",
+  "shopSectionDiamondShop": "钻石商店",
+  "shopSectionSubscription": "订阅",
+  "storeTabPremium": "高级",
   "storeTabFurniture": "家具",
-  "storeTabThemes": "主題",
-  "storeThemePreviewAction": "預覽",
-  "storeThemePreviewTitle": "{name} 預覽",
+  "storeTabThemes": "主题",
+  "storeThemePreviewAction": "预览",
+  "storeThemePreviewTitle": "{name} 预览",
   "@storeThemePreviewTitle": {
     "placeholders": {
       "name": {}
     }
   },
-  "storeItemNameProMonthly": "Pro 月度會員",
+  "storeItemNameProMonthly": "Pro 月度会员",
   "storeItemDescProMonthly": "广告全面移除、房间数量无上限。享受最完美的共育体验！",
   "storePremiumBenefitUnlimitedRooms": "房间数量无上限",
   "storePremiumBenefitNoAds": "广告全面移除",
   "storePremiumBenefitExclusiveItems": "解锁专属商品",
-  "storeItemNameDiamondPack300": "300 鑽石禮包",
-  "storeItemDescDiamondPack300": "一次購買，立即獲得 300 鑽石。",
+  "storeItemNameDiamondPack300": "300 钻石礼包",
+  "storeItemDescDiamondPack300": "一次购买，立即获得 300 钻石。",
   "storeItemNameCandyPack500": "500 糖果包",
-  "storeItemDescCandyPack500": "使用 50 鑽石兌換 500 糖果。",
+  "storeItemDescCandyPack500": "使用 50 钻石兑换 500 糖果。",
   "storeItemNameReturnLetter": "回家信",
   "storeItemDescReturnLetter": "召回离开的宠物。",
   "storeItemNamePetTicket": "宠物券",
   "storeItemDescPetTicket": "邀请另一只宠物加入这个房间。",
-  "storeItemNameBackgroundDefault": "預設背景",
-  "storeItemDescBackgroundDefault": "原始溫馨房间背景。",
+  "storeItemNameBackgroundDefault": "默认背景",
+  "storeItemDescBackgroundDefault": "原始温馨房间背景。",
   "storeItemNameBackgroundMoonlight": "银河背景",
-  "storeItemDescBackgroundMoonlight": "寧靜银河房间背景。",
+  "storeItemDescBackgroundMoonlight": "宁静银河房间背景。",
   "storeItemNameBackgroundSageFrame": "鼠尾草花边背景",
   "storeItemDescBackgroundSageFrame": "柔和纸感房间背景，搭配俏皮的鼠尾草色花边。",
   "storeItemNameBackgroundLilacFrame": "丁香花边背景",
@@ -732,45 +720,45 @@
   "storeItemDescBackgroundBubbleSky": "明亮蓝天里漂浮着白云与虹彩泡泡的房间背景。",
   "storeItemNameBackgroundStarlitDream": "星梦背景",
   "storeItemDescBackgroundStarlitDream": "粉彩行星、云朵与流星交织的梦幻夜空背景。",
-  "storeItemNameFurnitureSofa": "沙發",
-  "storeItemDescFurnitureSofa": "舒適沙發。",
+  "storeItemNameFurnitureSofa": "沙发",
+  "storeItemDescFurnitureSofa": "舒适沙发。",
   "storeItemNameFurniturePlant": "盆栽",
-  "storeItemDescFurniturePlant": "增添生氣的小綠角。",
+  "storeItemDescFurniturePlant": "增添生气的小绿角。",
   "storeItemNameFurnitureFrame": "画框",
   "storeItemDescFurnitureFrame": "照片画框。",
   "storeItemNameFurnitureTeddy": "泰迪熊",
-  "storeItemDescFurnitureTeddy": "柔軟玩偶。",
-  "storeItemNameFurnitureBricks": "積木牆",
-  "storeItemDescFurnitureBricks": "方塊風格點綴。",
-  "storeItemNameFurnitureTv": "電視",
-  "storeItemDescFurnitureTv": "迷你電視。",
+  "storeItemDescFurnitureTeddy": "柔软玩偶。",
+  "storeItemNameFurnitureBricks": "积木墙",
+  "storeItemDescFurnitureBricks": "方块风格点缀。",
+  "storeItemNameFurnitureTv": "电视",
+  "storeItemDescFurnitureTv": "迷你电视。",
   "storeItemNameFurnitureBath": "浴缸",
   "storeItemDescFurnitureBath": "迷你浴缸。",
-  "storeItemNameFurnitureRibbon": "緞帶",
-  "storeItemDescFurnitureRibbon": "裝飾緞帶。",
-  "storeItemNameFurnitureToilet": "馬桶",
-  "storeItemDescFurnitureToilet": "乾淨的小浴室家具。",
+  "storeItemNameFurnitureRibbon": "缎带",
+  "storeItemDescFurnitureRibbon": "装饰缎带。",
+  "storeItemNameFurnitureToilet": "马桶",
+  "storeItemDescFurnitureToilet": "干净的小浴室家具。",
   "storeItemNameFurnitureTub": "浴缸",
-  "storeItemDescFurnitureTub": "適合泡澡的舒適浴缸。",
-  "storeItemNameFurnitureBalloon": "氣球",
-  "storeItemDescFurnitureBalloon": "綁著緞帶的氣球束。",
+  "storeItemDescFurnitureTub": "适合泡澡的舒适浴缸。",
+  "storeItemNameFurnitureBalloon": "气球",
+  "storeItemDescFurnitureBalloon": "绑着缎带的气球束。",
   "storeItemNameFurnitureCactus": "仙人掌",
-  "storeItemDescFurnitureCactus": "開著小花的盆栽仙人掌。",
+  "storeItemDescFurnitureCactus": "开着小花的盆栽仙人掌。",
   "storeItemNameFurnitureCarpet": "地毯",
-  "storeItemDescFurnitureCarpet": "花朵圖案的橢圓地毯。",
-  "storeItemNameFurnitureVinyl": "黑膠唱片",
-  "storeItemDescFurnitureVinyl": "適合音樂角落的唱片。",
+  "storeItemDescFurnitureCarpet": "花朵图案的椭圆地毯。",
+  "storeItemNameFurnitureVinyl": "黑胶唱片",
+  "storeItemDescFurnitureVinyl": "适合音乐角落的唱片。",
   "storeItemNameEquipmentStrawHat": "草帽",
   "storeItemNameEquipmentCrown": "皇冠",
   "storeItemNameEquipmentSunglasses": "太阳眼镜",
   "storeItemNameEquipmentRibbon": "缎带",
   "shopSignInPrompt": "请先登录才能使用商店。",
-  "storeSubscribe": "訂閱",
-  "storeSubscriptionActive": "已啟用",
-  "storeSubscriptionDurationMonthly": "1 個月",
-  "storeSubscriptionRenewalNote": "每月自動續訂，可隨時取消。",
-  "storeSubscriptionDetailsTitle": "訂閱資訊",
-  "storeSubscriptionDetailsBody": "方案名稱：{title}\n訂閱期間：{duration}\n價格：{price}",
+  "storeSubscribe": "订阅",
+  "storeSubscriptionActive": "已启用",
+  "storeSubscriptionDurationMonthly": "1 个月",
+  "storeSubscriptionRenewalNote": "每月自动续订，可随时取消。",
+  "storeSubscriptionDetailsTitle": "订阅信息",
+  "storeSubscriptionDetailsBody": "方案名称：{title}\n订阅期间：{duration}\n价格：{price}",
   "@storeSubscriptionDetailsBody": {
     "placeholders": {
       "title": {},
@@ -778,24 +766,24 @@
       "price": {}
     }
   },
-  "storePrivacyPolicy": "隱私政策",
-  "storeTermsOfUse": "使用條款",
+  "storePrivacyPolicy": "隐私政策",
+  "storeTermsOfUse": "使用条款",
   "storeLegalSeparator": "|",
-  "storeLegalOpenFailed": "无法打开法律連結。",
-  "signInSafetyAgreementLabel": "我同意使用條款與隱私政策，並確認對不當內容或濫用行為採取零容忍。",
-  "signInSafetyAgreementRequired": "登入前请先同意使用條款與隱私政策。",
+  "storeLegalOpenFailed": "无法打开法律链接。",
+  "signInSafetyAgreementLabel": "我同意使用条款与隐私政策，并确认对不当内容或滥用行为采取零容忍。",
+  "signInSafetyAgreementRequired": "登录前请先同意使用条款与隐私政策。",
   "shopTitle": "商店",
   "storeTypeConsumable": "消耗品",
-  "storeTypeCosmetic": "外觀",
-  "storeTypeSubscription": "訂閱",
+  "storeTypeCosmetic": "外观",
+  "storeTypeSubscription": "订阅",
   "furnitureInventoryTitle": "房间背包",
-  "furnitureInventorySubtitle": "管理这个房间的家具與背景。",
-  "furnitureInventoryEmpty": "目前沒有家具，去商店買一些吧。",
-  "furnitureInventoryHint": "長按家具可編輯，點擊道具放置，拖曳移動，選取已放置家具後可用底部控制列調整大小，點空白退出。",
+  "furnitureInventorySubtitle": "管理这个房间的家具与背景。",
+  "furnitureInventoryEmpty": "目前没有家具，去商店买一些吧。",
+  "furnitureInventoryHint": "长按家具可编辑，点击道具放置，拖动移动，选取已放置家具后可用底部控制栏调整大小，点空白退出。",
   "furnitureScaleLabel": "大小",
   "furnitureScaleDecrease": "缩小",
   "furnitureScaleIncrease": "放大",
-  "furnitureFlipHorizontal": "左右反轉",
+  "furnitureFlipHorizontal": "左右反转",
   "furnitureAvailableCount": "可放置 x{count}",
   "@furnitureAvailableCount": {
     "placeholders": {
@@ -806,25 +794,25 @@
   "roomDecorCompatibilityTitle": "更新后即可查看最新房间物品",
   "roomDecorCompatibilityMessage": "这个房间正在使用较新的宠物、家具或背景。更新 App 后，就可以看到最新共享物品，而不是备用显示。",
   "roomDecorHintTitle": "装饰房间",
-  "roomDecorHintBody": "点一下 {buttonLabel} 进入房间修改模式，然后摆放家具或套用背景。",
+  "roomDecorHintBody": "点一下 {buttonLabel} 进入房间修改模式，然后摆放家具或应用背景。",
   "@roomDecorHintBody": {
     "placeholders": {
       "buttonLabel": {}
     }
   },
   "inventoryTabFurniture": "家具",
-  "inventoryTabEquipment": "裝扮",
-  "backgroundGalleryTab": "背景圖庫",
-  "backgroundInventoryEmpty": "還沒有背景，去商店看看吧。",
-  "backgroundInventoryHint": "點擊背景即可套用到房间所有成員。",
-  "equipmentInventoryHint": "先在這裡預覽造型，再為共享寵物穿上或卸下裝備。",
-  "equipmentNoneOwned": "你還沒有這個部位可用的裝備。",
+  "inventoryTabEquipment": "装扮",
+  "backgroundGalleryTab": "背景图库",
+  "backgroundInventoryEmpty": "还没有背景，去商店看看吧。",
+  "backgroundInventoryHint": "点击背景即可应用到房间所有成员。",
+  "equipmentInventoryHint": "先在这里预览造型，再为共享宠物穿上或卸下装备。",
+  "equipmentNoneOwned": "你还没有这个部位可用的装备。",
   "equipmentCopyInUse": "其他宠物使用中",
   "equipmentCopyUnavailable": "这件装备的所有数量都已装在其他宠物身上。想同时给多只宠物打扮，请再购买一件。",
   "equipmentNotCompatible": "这件装备不适合这只宠物。",
-  "equipmentSlotHead": "頭部",
+  "equipmentSlotHead": "头部",
   "equipmentSlotFace": "面部",
-  "equipmentSlotBody": "身體",
+  "equipmentSlotBody": "身体",
   "equipmentSlotBack": "背部",
   "equipmentEquipCta": "穿上",
   "equipmentUnequipCta": "卸下",
@@ -834,31 +822,31 @@
       "itemName": {}
     }
   },
-  "equipmentUnequipSuccess": "已卸下 {slotName} 的裝備。",
+  "equipmentUnequipSuccess": "已卸下 {slotName} 的装备。",
   "@equipmentUnequipSuccess": {
     "placeholders": {
       "slotName": {}
     }
   },
-  "backgroundApply": "套用",
-  "backgroundAppliedLabel": "已套用",
-  "backgroundApplyFailed": "套用背景失敗：{error}",
+  "backgroundApply": "应用",
+  "backgroundAppliedLabel": "已应用",
+  "backgroundApplyFailed": "应用背景失败：{error}",
   "@backgroundApplyFailed": {
     "placeholders": {
       "error": {}
     }
   },
   "shopSectionBackgrounds": "背景",
-  "shopSectionEquipment": "裝扮",
+  "shopSectionEquipment": "装扮",
   "shopSectionItems": "商品",
-  "storeBackgroundRoomRequired": "購買背景前请先选择房间。",
-  "storeBuyWithCandies": "用 {price} 糖果購買",
+  "storeBackgroundRoomRequired": "购买背景前请先选择房间。",
+  "storeBuyWithCandies": "用 {price} 糖果购买",
   "@storeBuyWithCandies": {
     "placeholders": {
       "price": {}
     }
   },
-  "storeBuyWithDiamonds": "用 {price} 鑽石購買",
+  "storeBuyWithDiamonds": "用 {price} 钻石购买",
   "@storeBuyWithDiamonds": {
     "placeholders": {
       "price": {}
@@ -866,8 +854,8 @@
   },
   "furnitureEditMode": "家具模式",
   "petSelectionTitle": "选择你的宠物",
-  "petSelectionSubtitle": "為这个房间挑一位夥伴。",
-  "petSelectionHint": "點一下宠物就能繼續。",
+  "petSelectionSubtitle": "为这个房间挑一位伙伴。",
+  "petSelectionHint": "点一下宠物就能继续。",
   "petSelectionSelected": "已选择：{name}",
   "@petSelectionSelected": {
     "description": "Label that shows the currently selected pet.",
@@ -875,7 +863,7 @@
       "name": {}
     }
   },
-  "petSelectionConfirm": "開始房间",
+  "petSelectionConfirm": "开始房间",
   "petTicketUseCta": "使用",
   "petTicketSelectionTitle": "邀请宠物",
   "petTicketSelectionSubtitle": "选一位新伙伴加入这个房间。",
@@ -902,26 +890,26 @@
       "sku": {}
     }
   },
-  "petSelectionStarterBadge": "入門",
-  "petSelectionFailed": "选择宠物失敗：{error}",
+  "petSelectionStarterBadge": "入门",
+  "petSelectionFailed": "选择宠物失败：{error}",
   "@petSelectionFailed": {
     "description": "Error message when applying selected pet fails.",
     "placeholders": {
       "error": {}
     }
   },
-  "petTypeGhostName": "小幽靈",
-  "petTypeGhostTagline": "害羞又愛零食的飄飄。",
-  "petTypeCatName": "小貓",
-  "petTypeCatTagline": "好奇又愛撒嬌的小獵手。",
-  "petTypeFishName": "小魚",
-  "petTypeFishTagline": "愛滑行的泡泡游泳家。",
+  "petTypeGhostName": "小幽灵",
+  "petTypeGhostTagline": "害羞又爱零食的飘飘。",
+  "petTypeCatName": "小猫",
+  "petTypeCatTagline": "好奇又爱撒娇的小猎手。",
+  "petTypeFishName": "小鱼",
+  "petTypeFishTagline": "爱滑行的泡泡游泳家。",
   "petTypeTigerName": "小老虎",
-  "petTypeTigerTagline": "帶著條紋氣勢大步前進的小探險家。",
-  "petTypeChickenName": "小雞",
-  "petTypeChickenTagline": "精神滿滿、昂首闊步的毛茸茸夥伴。",
-  "roomLeaveTitle": "要离开房间嗎？",
-  "roomLeaveMessage": "你將离开 {name}，並失去聊天室與宠物的存取權。",
+  "petTypeTigerTagline": "带着条纹气势大步前进的小探险家。",
+  "petTypeChickenName": "小鸡",
+  "petTypeChickenTagline": "精神满满、昂首阔步的毛茸茸伙伴。",
+  "roomLeaveTitle": "要离开房间吗？",
+  "roomLeaveMessage": "你将离开 {name}，并失去聊天和宠物的访问权限。",
   "@roomLeaveMessage": {
     "description": "Confirmation message when leaving a room.",
     "placeholders": {
@@ -929,44 +917,44 @@
     }
   },
   "roomLeaveConfirm": "离开房间",
-  "roomLockedBadge": "已鎖定",
-  "roomLockedTitle": "此房间在免費方案已鎖定",
-  "roomLockedMessage": "免費方案僅可保留最早的 2 個房间可互動。升級 Pro 可在此房间繼續喂食與成長。",
+  "roomLockedBadge": "已锁定",
+  "roomLockedTitle": "此房间在免费方案已锁定",
+  "roomLockedMessage": "免费方案仅可保留最早的 2 个房间可互动。升级 Pro 可在此房间继续喂食与成长。",
   "roomLeaveSuccess": "已离开房间。",
-  "roomLeaveFailed": "离开房间失敗：{error}",
+  "roomLeaveFailed": "离开房间失败：{error}",
   "@roomLeaveFailed": {
     "placeholders": {
       "error": {}
     }
   }
   ,
-  "petDepartureNoteMessage": "為什麼要這樣對我...",
-  "petDepartureGuideTitle": "來自宠物的信",
-  "petDepartureGuideMessage": "前往商店購買「信」來把你的宠物叫回來。",
+  "petDepartureNoteMessage": "为什么要这样对我...",
+  "petDepartureGuideTitle": "来自宠物的信",
+  "petDepartureGuideMessage": "前往商店购买「信」来把你的宠物叫回来。",
   "petDepartureGuideGoShop": "前往商店",
   "petDepartureLetterUnavailableTitle": "宠物还在喔",
   "petDepartureLetterUnavailableMessage": "宠物并没有离家出走，现在不需要用到这封信喔。",
   "petDepartureLetterSelectTitle": "选择宠物",
-  "petDepartureLetterSelectMessage": "要把哪隻宠物叫回來？",
-  "petDepartureLetterConfirmTitle": "要叫回 {petName} 嗎？",
+  "petDepartureLetterSelectMessage": "要把哪只宠物叫回来？",
+  "petDepartureLetterConfirmTitle": "要叫回 {petName} 吗？",
   "@petDepartureLetterConfirmTitle": {
     "placeholders": {
       "petName": {}
     }
   },
-  "petDepartureLetterConfirmMessage": "購買信件來把 {petName} 叫回家嗎？",
+  "petDepartureLetterConfirmMessage": "购买信件来把 {petName} 叫回家吗？",
   "@petDepartureLetterConfirmMessage": {
     "placeholders": {
       "petName": {}
     }
   },
-  "petDepartureLetterConfirmAction": "購買信",
-  "petDepartureFeedDisabledTitle": "沒有宠物可以喂食",
-  "petDepartureFeedDisabledMessage": "宠物已离开，現在沒有可以喂食的對象。",
-  "petOverfedBubble": "我吃飽了！",
+  "petDepartureLetterConfirmAction": "购买信",
+  "petDepartureFeedDisabledTitle": "没有宠物可以喂食",
+  "petDepartureFeedDisabledMessage": "宠物已离开，现在没有可以喂食的对象。",
+  "petOverfedBubble": "我吃饱了！",
   "petNameUnknown": "你的宠物",
   "roomNameUnknown": "未知的房间",
-  "petReturnFailed": "宠物回來失敗：{error}",
+  "petReturnFailed": "宠物回来失败：{error}",
   "@petReturnFailed": {
     "placeholders": {
       "error": {}
@@ -985,7 +973,7 @@
   "storeAdRewardDismissed": "奖励发放前已关闭广告。",
   "storeAdRewardCooldown": "广告奖励目前冷却中。",
   "storeAdRewardRoomRequired": "请先选择房间再领取广告奖励。",
-  "storeAdRewardFailed": "领取广告奖励失敗：{error}",
+  "storeAdRewardFailed": "领取广告奖励失败：{error}",
   "@storeAdRewardFailed": {
     "placeholders": {
       "error": {}
@@ -1004,7 +992,7 @@
       "amount": {}
     }
   },
-  "feedAdDoubleRewardFailed": "翻倍奖励领取失敗：{error}",
+  "feedAdDoubleRewardFailed": "翻倍奖励领取失败：{error}",
   "@feedAdDoubleRewardFailed": {
     "placeholders": {
       "error": {}
@@ -1022,7 +1010,7 @@
   "whatsNew110Title": "全新老虎宠物与家具缩放",
   "whatsNew110Bullet1": "认识全新的老虎宠物，并为你的房间选择它！",
   "whatsNew110Bullet2": "商店上架多款精美新背景。",
-  "whatsNew110Bullet3": "点击已放置的家具，使用底部大小控制列进行精确布局。",
+  "whatsNew110Bullet3": "点击已放置的家具，使用底部大小控制栏进行精确布局。",
   "whatsNew111Title": "稳定性与性能优化",
   "whatsNew111Bullet1": "修复可能导致意外崩溃的关键问题。",
   "whatsNew111Bullet2": "优化聊天消息处理与图片渲染。",
@@ -1111,7 +1099,7 @@
   "whatsNew321Bullet2": "文字大小现在会正确跟随设备的系统文字大小设置。",
   "whatsNew321Bullet3": "改善喂食发送流程与字幕计数器显示。",
   "whatsNew320Title": "同步共享房间相框",
-  "whatsNew320Bullet1": "共享房间卡片现在可以套用 5 款相框。",
+  "whatsNew320Bullet1": "共享房间卡片现在可以应用 5 款相框。",
   "whatsNew320Bullet2": "相框变更会自动同步给房间内的所有成员。",
   "whatsNew320Bullet3": "改善房间更新与网络错误处理。",
   "whatsNew310Title": "编辑照片说明",
@@ -1126,6 +1114,6 @@
   "whatsNew301Bullet1": "修复在网络暂时不稳定时，房间相框与装饰可能被错误提示遮盖的问题。",
   "whatsNew300Title": "全新房间相框！",
   "whatsNew300Bullet1": "用 5 款相框自定义共享房间卡片的风格。",
-  "whatsNew300Bullet2": "长按房间卡片即可预览相框，并套用你喜欢的设计。",
+  "whatsNew300Bullet2": "长按房间卡片即可预览相框，并应用你喜欢的设计。",
   "whatsNew300Bullet3": "提升房间等级，解锁更多相框样式。"
 }

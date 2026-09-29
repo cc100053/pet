@@ -526,9 +526,6 @@
       "error": {}
     }
   },
-  "roomOptionsTitle": "ルームオプション",
-  "roomOptionRename": "ルーム名を変更",
-  "roomOptionLeave": "ルームを退出",
   "roomRenameTitle": "ルーム名を変更",
   "roomRenameMessage": "新しいルーム名を入力してください。",
   "roomDefaultName": "新しいルーム",
@@ -571,15 +568,6 @@
   "roomJoinSuccess": "ルームに参加しました。",
   "roomJoinTitle": "ルームに参加",
   "roomEnteringLoading": "ルームに入室中",
-  "roomLeaveFailed": "退出に失敗しました: {error}",
-  "@roomLeaveFailed": {
-    "placeholders": {
-      "error": {}
-    }
-  },
-  "roomLeaveMessage": "再招待されるまでこのペットにアクセスできません。",
-  "roomLeaveSuccess": "ルームから退出しました。",
-  "roomLeaveTitle": "ルームを退出しますか？",
   "roomLimitReached": "無料枠に達しました（最大2ルーム）。アップグレードしてください。",
   "roomNewInviteCode": "新しい招待コード: {code}",
   "@roomNewInviteCode": {
@@ -942,7 +930,7 @@
     }
   },
   "roomLeaveConfirm": "退出する",
-  "roomLockedBadge": "LOCKED",
+  "roomLockedBadge": "ロック中",
   "roomLockedTitle": "このルームは無料プランでロック中",
   "roomLockedMessage": "無料プランでは参加・作成が古い順で最初の2ルームのみ利用できます。Proにアップグレードすると、このルームでもフィードと成長アクションを使えます。",
   "roomLeaveSuccess": "ルームを退出しました。",

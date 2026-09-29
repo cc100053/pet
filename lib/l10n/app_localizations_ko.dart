@@ -484,10 +484,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugShowFullBubble => '\"배불러요\" 말풍선 표시';
 
   @override
-  String get drawerDebugShowSocketOverlay => 'Show Socket Overlay';
+  String get drawerDebugShowSocketOverlay => '소켓 위치 표시';
 
   @override
-  String get drawerDebugDressUpFitTool => 'Dress-up Fit Tool';
+  String get drawerDebugDressUpFitTool => '꾸미기 조정 도구';
 
   @override
   String get drawerDebugCaptureMemorySnapshot => '메모리 스냅샷 기록';
@@ -988,15 +988,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get roomOptionsTitle => '방 옵션';
-
-  @override
-  String get roomOptionRename => '방 이름 변경';
-
-  @override
-  String get roomOptionLeave => '방 나가기';
-
-  @override
   String get roomRenameTitle => '방 이름 바꾸기';
 
   @override
@@ -1082,22 +1073,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get roomEnteringLoading => '방에 들어가는 중';
-
-  @override
-  String roomLeaveFailed(Object error) {
-    return '방 나가기 실패: $error';
-  }
-
-  @override
-  String roomLeaveMessage(Object name) {
-    return '$name에서 나가며, 해당 채팅과 펫에 대한 접근 권한을 잃게 됩니다.';
-  }
-
-  @override
-  String get roomLeaveSuccess => '방에서 나갔습니다.';
-
-  @override
-  String get roomLeaveTitle => '방을 나갈까요?';
 
   @override
   String get roomLimitReached => '무료 플랜 한도(최대 2개 방)에 도달했습니다. 더 만들려면 업그레이드하세요!';
@@ -1196,6 +1171,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get roomFrameChangeAction => '프레임 변경';
+
+  @override
+  String get roomOptionsTitle => '방 옵션';
+
+  @override
+  String get roomOptionRename => '방 이름 변경';
+
+  @override
+  String get roomOptionLeave => '방 나가기';
 
   @override
   String get signInFailed => '로그인에 실패했습니다. 다시 시도해 주세요.';
@@ -1695,7 +1679,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shopSectionBackgrounds => '배경';
 
   @override
-  String get shopSectionEquipment => 'Equipment';
+  String get shopSectionEquipment => '꾸미기';
 
   @override
   String get shopSectionItems => '아이템';
@@ -1818,6 +1802,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get petTypeChickenTagline => '활기차게 걷는 복슬복슬한 친구.';
 
   @override
+  String get roomLeaveTitle => '방을 나갈까요?';
+
+  @override
+  String roomLeaveMessage(Object name) {
+    return '$name에서 나가며, 해당 채팅과 펫에 대한 접근 권한을 잃게 됩니다.';
+  }
+
+  @override
   String get roomLeaveConfirm => '방 나가기';
 
   @override
@@ -1829,6 +1821,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get roomLockedMessage =>
       '무료 플랜에서는 처음 2개의 방만 활성 상태로 유지됩니다. 이 방에서 펫을 키우고 성장시키려면 Pro로 업그레이드하세요.';
+
+  @override
+  String get roomLeaveSuccess => '방에서 나갔습니다.';
+
+  @override
+  String roomLeaveFailed(Object error) {
+    return '방 나가기 실패: $error';
+  }
 
   @override
   String get petDepartureNoteMessage => '왜 나를 이렇게 대했어...';

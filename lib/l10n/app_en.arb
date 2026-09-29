@@ -526,9 +526,6 @@
       "error": {}
     }
   },
-  "roomOptionsTitle": "Room options",
-  "roomOptionRename": "Change room name",
-  "roomOptionLeave": "Leave room",
   "roomRenameTitle": "Change room name",
   "roomRenameMessage": "Enter a new name for this room.",
   "roomDefaultName": "New Room",
@@ -571,15 +568,6 @@
   "roomJoinSuccess": "Joined room successfully.",
   "roomJoinTitle": "Join Room",
   "roomEnteringLoading": "Entering room",
-  "roomLeaveFailed": "Failed to leave room: {error}",
-  "@roomLeaveFailed": {
-    "placeholders": {
-      "error": {}
-    }
-  },
-  "roomLeaveMessage": "You will lose access to this pet until you are invited again.",
-  "roomLeaveSuccess": "Left room successfully.",
-  "roomLeaveTitle": "Leave Room?",
   "roomLimitReached": "Free limit reached (2 rooms max). Upgrade to create more!",
   "roomNewInviteCode": "New invite code: {code}",
   "@roomNewInviteCode": {

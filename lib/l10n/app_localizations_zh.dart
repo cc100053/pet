@@ -10,71 +10,71 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appleSignInRejected =>
-      'Apple 登录被拒絕，请检查 Supabase Apple 供應商的 Client ID。';
+      'Apple 登录被拒绝，请检查 Supabase Apple 供应商的 Client ID。';
 
   @override
   String get authReauthRequired => '请重新登录。';
 
   @override
   String blockedUserIdTruncated(Object id) {
-    return 'ID（縮略）：$id';
+    return 'ID（缩略）：$id';
   }
 
   @override
-  String get blockedUsersEmpty => '目前沒有封鎖的用户。';
+  String get blockedUsersEmpty => '目前没有屏蔽的用户。';
 
   @override
   String blockedUsersLoadFailed(Object error) {
-    return '加载封鎖名單失敗：$error';
+    return '加载屏蔽名单失败：$error';
   }
 
   @override
-  String get blockedUsersTitle => '已封鎖的用户';
+  String get blockedUsersTitle => '已屏蔽的用户';
 
   @override
-  String get blockedUserUnblocked => '已解除封鎖。';
+  String get blockedUserUnblocked => '已解除屏蔽。';
 
   @override
   String blockedUserUnblockFailed(Object error) {
-    return '解除封鎖失敗：$error';
+    return '解除屏蔽失败：$error';
   }
 
   @override
-  String get calendarAddMemory => '新增回憶';
+  String get calendarAddMemory => '新增回忆';
 
   @override
-  String get calendarEarlier => '較早';
+  String get calendarEarlier => '较早';
 
   @override
   String get calendarLatestPhoto => '最新的照片';
 
   @override
   String calendarLoadFailed(Object error) {
-    return '加载回憶失敗：$error';
+    return '加载回忆失败：$error';
   }
 
   @override
-  String get calendarNoEarlierMemories => '暂无較早的回憶。';
+  String get calendarNoEarlierMemories => '暂无较早的回忆。';
 
   @override
-  String get calendarNoMemoriesForDay => '这天沒有回憶。';
+  String get calendarNoMemoriesForDay => '这天没有回忆。';
 
   @override
-  String get calendarNoPhotoYet => '尚無照片';
+  String get calendarNoPhotoYet => '尚无照片';
 
   @override
-  String get calendarTitle => '回憶錄';
+  String get calendarTitle => '回忆录';
 
   @override
   String get calendarToday => '今天';
 
   @override
   String chatBlockFailed(Object error) {
-    return '封鎖失敗：$error';
+    return '屏蔽失败：$error';
   }
 
   @override
-  String get chatBlockUser => '封鎖用户';
+  String get chatBlockUser => '屏蔽用户';
 
   @override
   String chatCoinsAwarded(Object count) {
@@ -82,26 +82,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get chatEmptyState => '尚無消息，從下方開始聊天吧。';
+  String get chatEmptyState => '尚无消息，从下方开始聊天吧。';
 
   @override
   String chatLoadBlockedUsersFailed(Object error) {
-    return '加载封鎖名單失敗：$error';
+    return '加载屏蔽名单失败：$error';
   }
 
   @override
   String chatLoadCacheFailed(Object error) {
-    return '加载快取消息失敗：$error';
+    return '加载缓存消息失败：$error';
   }
 
   @override
   String chatLoadMessagesFailed(Object error) {
-    return '加载消息失敗：$error';
+    return '加载消息失败：$error';
   }
 
   @override
   String chatLoadMoreFailed(Object error) {
-    return '加载更多失敗：$error';
+    return '加载更多失败：$error';
   }
 
   @override
@@ -145,22 +145,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatEditFailed(Object error) {
-    return '编辑失敗：$error';
+    return '编辑失败：$error';
   }
 
   @override
   String chatDeleteFailed(Object error) {
-    return '删除失敗：$error';
+    return '删除失败：$error';
   }
 
   @override
-  String get chatNoOlderMessages => '沒有更早的消息。';
+  String get chatNoOlderMessages => '没有更早的消息。';
 
   @override
-  String get chatPartnerLabel => '對方';
+  String get chatPartnerLabel => '对方';
 
   @override
-  String get chatReplyAction => '回覆';
+  String get chatReplyAction => '回复';
 
   @override
   String get chatMoreReactionsAction => '更多';
@@ -175,7 +175,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatReplyingTo(Object name) {
-    return '回覆 $name';
+    return '回复 $name';
   }
 
   @override
@@ -186,29 +186,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatRefreshFailed(Object error) {
-    return '更新失敗：$error';
+    return '更新失败：$error';
   }
 
   @override
   String chatReportFailed(Object error) {
-    return '举报失敗：$error';
+    return '举报失败：$error';
   }
 
   @override
-  String get chatReportHint => '簡單說明原因';
+  String get chatReportHint => '简单说明原因';
 
   @override
   String get chatReportMessageTitle => '举报消息';
 
   @override
-  String get chatReportNoReason => '無原因';
+  String get chatReportNoReason => '无原因';
 
   @override
   String get chatReportSent => '已送出举报。';
 
   @override
   String chatSendFailed(Object error) {
-    return '傳送失敗：$error';
+    return '发送失败：$error';
   }
 
   @override
@@ -253,27 +253,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatRoomMemberYou => '你';
 
   @override
-  String get chatUserAlreadyBlocked => '已封鎖';
+  String get chatUserAlreadyBlocked => '已屏蔽';
 
   @override
-  String get chatUserBlocked => '已封鎖用户。';
+  String get chatUserBlocked => '已屏蔽用户。';
 
   @override
   String chatMemberCount(num count) {
-    return '$count 位成員';
+    return '$count 位成员';
   }
 
   @override
   String get calendarYesterday => '昨天';
 
   @override
-  String get commonBuy => '購買';
+  String get commonBuy => '购买';
 
   @override
-  String get commonBuyMore => '繼續購買';
+  String get commonBuyMore => '继续购买';
 
   @override
-  String get commonCamera => '相機';
+  String get commonCamera => '相机';
 
   @override
   String get commonCancel => '取消';
@@ -285,34 +285,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonSkip => '跳过';
 
   @override
-  String get onboardingCreatePetPromptTitle => '選擇寵物入住你的新房間！';
+  String get onboardingCreatePetPromptTitle => '选择宠物入住你的新房间！';
 
   @override
   String get onboardingRoomEntryPromptTitle => '创建新房间，或输入邀请码加入。';
 
   @override
-  String get onboardingRoomEntryPromptBody => '你可以自己建立宠物房间，或者用邀请码加入朋友的房间。';
+  String get onboardingRoomEntryPromptBody => '你可以自己创建宠物房间，或者用邀请码加入朋友的房间。';
 
   @override
-  String get onboardingProfileSetupTitle => '先設定你的個人資料';
+  String get onboardingProfileSetupTitle => '先设置你的个人资料';
 
   @override
-  String get onboardingProfileSetupSubtitle => '請設定朋友會看到的名稱。照片現在可以上傳，也可以稍後再加。';
+  String get onboardingProfileSetupSubtitle => '请设置朋友会看到的名称。照片现在可以上传，也可以稍后再加。';
 
   @override
-  String get onboardingProfileSetupAvatarOptional => '照片可稍後再加';
+  String get onboardingProfileSetupAvatarOptional => '照片可稍后再加';
 
   @override
-  String get onboardingProfileSetupContinue => '繼續';
+  String get onboardingProfileSetupContinue => '继续';
 
   @override
-  String get onboardingProfileSetupNameRequiredError => '請輸入你要使用的名稱。';
+  String get onboardingProfileSetupNameRequiredError => '请输入你要使用的名称。';
 
   @override
-  String get onboardingProfileSetupNameChangeHint => '請先設定名稱，再繼續下一步。';
+  String get onboardingProfileSetupNameChangeHint => '请先设置名称，再继续下一步。';
 
   @override
-  String get commonGallery => '相簿';
+  String get commonGallery => '相册';
 
   @override
   String get commonJoin => '加入';
@@ -348,10 +348,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get photoViewerReplySentState => '已发送';
 
   @override
-  String get photoViewerSavedToGallery => '已保存到你的相簿。';
+  String get photoViewerSavedToGallery => '已保存到你的相册。';
 
   @override
-  String get photoViewerSaveFailed => '无法保存到你的相簿。';
+  String get photoViewerSaveFailed => '无法保存到你的相册。';
 
   @override
   String get commonSend => '送出';
@@ -360,46 +360,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonSending => '送出中...';
 
   @override
-  String get commonSignOut => '登出';
+  String get commonSignOut => '退出登录';
 
   @override
   String get commonSubmit => '送出';
 
   @override
-  String get commonTryAgain => '再試一次';
+  String get commonTryAgain => '再试一次';
 
   @override
-  String get commonUnblock => '解除封鎖';
+  String get commonUnblock => '解除屏蔽';
 
   @override
-  String get commonUploading => '上傳中';
+  String get commonUploading => '上传中';
 
   @override
   String get commonUser => '用户';
 
   @override
-  String get errorInvalidInviteCode => '邀请碼無效或已過期。';
+  String get errorInvalidInviteCode => '邀请码无效或已过期。';
 
   @override
-  String get errorNetwork => '网络異常，请检查连接後再試一次。';
+  String get errorNetwork => '网络异常，请检查连接后再试一次。';
 
   @override
-  String get errorNotFound => '找不到指定資料。';
+  String get errorNotFound => '找不到指定资料。';
 
   @override
-  String get errorPermissionDenied => '你沒有权限執行这个操作。';
+  String get errorPermissionDenied => '你没有权限执行这个操作。';
 
   @override
-  String get errorMediaPermissionDenied => '相机或照片存取权限已关闭，请到设定中允许后再试一次。';
+  String get errorMediaPermissionDenied => '相机或照片访问权限已关闭，请到设置中允许后再试一次。';
 
   @override
-  String get errorImageTooLarge => '图片档案太大，请选择较小的图片。';
+  String get errorImageTooLarge => '图片文件太大，请选择较小的图片。';
 
   @override
-  String get errorPetNameInvalid => '这个宠物名称不可用，请換一個名称。';
+  String get errorPetNameInvalid => '这个宠物名称不可用，请换一个名称。';
 
   @override
-  String get errorUnexpected => '發生错误，请稍后再試。';
+  String get errorUnexpected => '发生错误，请稍后再试。';
 
   @override
   String currencyJpy(Object amount) {
@@ -407,10 +407,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get drawerCreateRoom => '建立新房间';
+  String get drawerCreateRoom => '创建新房间';
 
   @override
-  String get drawerDebugTools => '除錯工具';
+  String get drawerDebugTools => '除错工具';
 
   @override
   String get drawerDebugCategorySimulation => '模拟与测试';
@@ -428,7 +428,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugCategorySystem => '更新与系统';
 
   @override
-  String get drawerFreePlan => '免費方案';
+  String get drawerFreePlan => '免费方案';
 
   @override
   String get drawerProPlan => 'Pro 方案';
@@ -437,145 +437,145 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugAddCandy => '+100 糖果';
 
   @override
-  String get drawerDebugAddDiamonds => '+100 鑽石';
+  String get drawerDebugAddDiamonds => '+100 钻石';
 
   @override
-  String get drawerDebugTogglePlan => '切換方案';
+  String get drawerDebugTogglePlan => '切换方案';
 
   @override
-  String get drawerDebugForceOnboarding => '每次都顯示新手引導';
+  String get drawerDebugForceOnboarding => '每次都显示新手引导';
 
   @override
-  String get drawerDebugForceOnboardingEnabled => '每次打開 App 都顯示';
+  String get drawerDebugForceOnboardingEnabled => '每次打开 App 都显示';
 
   @override
-  String get drawerDebugForceOnboardingDisabled => '使用正常一次性顯示';
+  String get drawerDebugForceOnboardingDisabled => '使用正常一次性显示';
 
   @override
-  String get drawerDebugTestProfileSetupOnboarding => '測試個人資料設定';
+  String get drawerDebugTestProfileSetupOnboarding => '测试个人资料设置';
 
   @override
   String get drawerDebugTestProfileSetupOnboardingSubtitle =>
-      '立即打開新用戶改名與上傳照片步驟';
+      '立即打开新用户改名与上传照片步骤';
 
   @override
-  String get drawerDebugHungerDown => '宠物飢餓度 -10';
+  String get drawerDebugHungerDown => '宠物饥饿度 -10';
 
   @override
-  String get drawerDebugHungerUp => '宠物飽食度 +20';
+  String get drawerDebugHungerUp => '宠物饱食度 +20';
 
   @override
-  String get drawerDebugAddExp => '+10 經驗';
+  String get drawerDebugAddExp => '+10 经验';
 
   @override
-  String get drawerDebugSpawnPoop => '讓宠物便便';
+  String get drawerDebugSpawnPoop => '让宠物便便';
 
   @override
-  String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
+  String get drawerDebugShowFullBubble => '显示「我吃饱了！」气泡';
 
   @override
-  String get drawerDebugShowSocketOverlay => '顯示掛點調試';
+  String get drawerDebugShowSocketOverlay => '显示挂点调试';
 
   @override
-  String get drawerDebugDressUpFitTool => '裝扮調整工具';
+  String get drawerDebugDressUpFitTool => '装扮调整工具';
 
   @override
-  String get drawerDebugCaptureMemorySnapshot => '記錄記憶體快照';
+  String get drawerDebugCaptureMemorySnapshot => '记录内存快照';
 
   @override
-  String get drawerDebugClearImageCacheSnapshot => '清除圖片快取並記錄';
+  String get drawerDebugClearImageCacheSnapshot => '清除图片缓存并记录';
 
   @override
-  String get drawerDebugOpenMemoryDiagnostics => '開啟記憶體診斷';
+  String get drawerDebugOpenMemoryDiagnostics => '开启内存诊断';
 
   @override
-  String get drawerDebugMemorySnapshotCaptured => '已記錄記憶體快照。';
+  String get drawerDebugMemorySnapshotCaptured => '已记录内存快照。';
 
   @override
-  String get drawerDebugImageCacheCleared => '已清除圖片快取並記錄快照。';
+  String get drawerDebugImageCacheCleared => '已清除图片缓存并记录快照。';
 
   @override
-  String get drawerDebugTestSoftUpdate => '測試可選更新彈窗';
+  String get drawerDebugTestSoftUpdate => '测试可选更新弹窗';
 
   @override
-  String get drawerDebugTestHardUpdate => '測試強制更新彈窗';
+  String get drawerDebugTestHardUpdate => '测试强制更新弹窗';
 
   @override
-  String get drawerDebugTestWhatsNew => '預覽 What\'s New 視窗';
+  String get drawerDebugTestWhatsNew => '预览 What\'s New 窗口';
 
   @override
-  String get drawerDebugTestCrashReport => '測試崩潰上報';
+  String get drawerDebugTestCrashReport => '测试崩溃上报';
 
   @override
-  String get debugMemoryDiagnosticsTitle => '記憶體診斷';
+  String get debugMemoryDiagnosticsTitle => '内存诊断';
 
   @override
-  String get debugMemoryDiagnosticsEmpty => '尚未記錄任何記憶體快照。';
+  String get debugMemoryDiagnosticsEmpty => '尚未记录任何内存快照。';
 
   @override
   String drawerInviteCode(Object code) {
-    return '代碼：$code';
+    return '代码：$code';
   }
 
   @override
-  String get drawerJoinWithCode => '使用邀请碼加入';
+  String get drawerJoinWithCode => '使用邀请码加入';
 
   @override
   String get drawerMyRooms => '我的房间';
 
   @override
-  String get drawerNoRooms => '目前沒有房间。';
+  String get drawerNoRooms => '目前没有房间。';
 
   @override
   String get drawerPetError => '宠物错误';
 
   @override
-  String get drawerRegenerateInviteCode => '重新生成邀请碼';
+  String get drawerRegenerateInviteCode => '重新生成邀请码';
 
   @override
-  String get drawerSimulateFeed => '模擬喂食';
+  String get drawerSimulateFeed => '模拟喂食';
 
   @override
-  String get drawerTestNotification => '測試本地通知';
+  String get drawerTestNotification => '测试本地通知';
 
   @override
-  String get feedCameraSubtitle => '拍照後送出。';
+  String get feedCameraSubtitle => '拍照后送出。';
 
   @override
-  String get feedCameraTitle => '喂食相機';
+  String get feedCameraTitle => '喂食相机';
 
   @override
   String get feedPickPhotoHint => '选择照片';
 
   @override
   String feedCanonicalTags(Object tags) {
-    return '標準标签：$tags';
+    return '标准标签：$tags';
   }
 
   @override
-  String get feedCaptionLabel => '說明（選填）';
+  String get feedCaptionLabel => '说明（选填）';
 
   @override
   String get feedDetectedLabels => '检测到的标签';
 
   @override
   String feedLabelingFailed(Object error) {
-    return '標註失敗：$error';
+    return '标注失败：$error';
   }
 
   @override
-  String get feedLabelingNotSupported => 'Web 不支援 ML Kit 影像標註。';
+  String get feedLabelingNotSupported => 'Web 不支持 ML Kit 图像标注。';
 
   @override
   String feedLabelMappingsFailed(Object error) {
-    return '加载标签对应失敗：$error';
+    return '加载标签对应失败：$error';
   }
 
   @override
   String get feedLabelMappingsLoading => '加载标签对应中...';
 
   @override
-  String get feedLabelMappingsReady => '标签对应已就緒。';
+  String get feedLabelMappingsReady => '标签对应已就绪。';
 
   @override
   String get feedLabelMappingsUnavailable => '无法使用标签对应。';
@@ -585,7 +585,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String feedResponse(Object response) {
-    return '回應：$response';
+    return '回应：$response';
   }
 
   @override
@@ -596,7 +596,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String feedSendFailed(Object error) {
-    return '送出失敗：$error';
+    return '送出失败：$error';
   }
 
   @override
@@ -604,7 +604,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String feedUploadFailed(Object error) {
-    return '喂食上傳失敗：$error';
+    return '喂食上传失败：$error';
   }
 
   @override
@@ -622,7 +622,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get feedRewardPending => '獎勵計算中...';
+  String get feedRewardPending => '奖励计算中...';
 
   @override
   String get crashRecoveryAction => '知道了';
@@ -644,10 +644,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get forceUpdateAction => '立即更新';
 
   @override
-  String get forceUpdateLinkError => '无法打开商店連結。';
+  String get forceUpdateLinkError => '无法打开商店链接。';
 
   @override
-  String get forceUpdateMessage => '需要更新到新版本才能繼續使用，请立即更新。';
+  String get forceUpdateMessage => '需要更新到新版本才能继续使用，请立即更新。';
 
   @override
   String get forceUpdateTitle => '需要更新';
@@ -659,7 +659,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get softUpdateLater => '稍后';
 
   @override
-  String get softUpdateMessage => '有新版本可用，更新後可獲得更順暢的共同養寵体验。';
+  String get softUpdateMessage => '有新版本可用，更新后可获得更顺畅的共同养宠体验。';
 
   @override
   String get softUpdateTitle => '可更新新版本';
@@ -671,7 +671,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNewContinueAction => '继续';
 
   @override
-  String get whatsNewSuggestFeatureAction => '建議新功能';
+  String get whatsNewSuggestFeatureAction => '建议新功能';
 
   @override
   String get whatsNewSuggestFeatureTitle => '你希望有咩新功能？';
@@ -680,16 +680,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNewSuggestFeaturePlaceholder => '描述你嘅想法...';
 
   @override
-  String get whatsNewSuggestFeatureSubmit => '發送';
+  String get whatsNewSuggestFeatureSubmit => '发送';
 
   @override
-  String get whatsNewSuggestFeatureSuccess => '多謝你嘅建議！';
+  String get whatsNewSuggestFeatureSuccess => '多谢你嘅建议！';
 
   @override
-  String get whatsNewContentLabel => '更新內容';
+  String get whatsNewContentLabel => '更新内容';
 
   @override
-  String get whatsNewHighlightsLabel => '這個版本的重點';
+  String get whatsNewHighlightsLabel => '这个版本的重点';
 
   @override
   String whatsNewVersionLabel(Object version) {
@@ -730,13 +730,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew110Bullet2 => '商店上架多款精美新背景。';
 
   @override
-  String get whatsNew110Bullet3 => '点击已放置的家具，使用底部大小控制列进行精确布局。';
+  String get whatsNew110Bullet3 => '点击已放置的家具，使用底部大小控制栏进行精确布局。';
 
   @override
   String get languageChineseSimplified => '简体中文';
 
   @override
-  String get languageChineseTraditional => '繁體中文';
+  String get languageChineseTraditional => '繁体中文';
 
   @override
   String get languageEnglish => '英语';
@@ -751,7 +751,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get languageSystem => '系统';
 
   @override
-  String get languageSystemSubtitle => '跟隨裝置语言';
+  String get languageSystemSubtitle => '跟随设备语言';
 
   @override
   String get languageTitle => '语言';
@@ -760,7 +760,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get launchAppName => 'PetTomo';
 
   @override
-  String get launchTagline => '分享日常，一起成長。';
+  String get launchTagline => '分享日常，一起成长。';
 
   @override
   String get moodHigh => '高';
@@ -775,18 +775,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moodNeutral => '普通';
 
   @override
-  String get moodSad => '難過';
+  String get moodSad => '难过';
 
   @override
   String petActionFailed(Object error) {
-    return '操作失敗：$error';
+    return '操作失败：$error';
   }
 
   @override
   String get petHomeTitle => '宠物的家';
 
   @override
-  String get petNameEditTitle => '編輯宠物名字';
+  String get petNameEditTitle => '编辑宠物名字';
 
   @override
   String get petNameLabel => '宠物名字';
@@ -804,7 +804,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String chatPetRenamedMessage(Object user, Object oldName, Object petName) {
-    return '$user把宠物名字從$oldName改為$petName。';
+    return '$user把宠物名字从$oldName改为$petName。';
   }
 
   @override
@@ -841,18 +841,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get photoLabel => '照片';
 
   @override
-  String get profileDefaultNickname => '宠物爸媽';
+  String get profileDefaultNickname => '宠物爸妈';
 
   @override
-  String get profileEmpty => '沒有个人资料。';
+  String get profileEmpty => '没有个人资料。';
 
   @override
   String profileLoadFailed(Object error) {
-    return '加载个人资料失敗：$error';
+    return '加载个人资料失败：$error';
   }
 
   @override
-  String get profileNicknameLabel => '暱稱';
+  String get profileNicknameLabel => '昵称';
 
   @override
   String get profileTitle => '个人资料';
@@ -880,28 +880,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileUpdated => '已更新个人资料';
 
   @override
-  String get profileAvatarTitle => '选择頭像';
+  String get profileAvatarTitle => '选择头像';
 
   @override
-  String get profileAvatarEdit => '編輯頭像';
+  String get profileAvatarEdit => '编辑头像';
 
   @override
-  String get profileAvatarUpload => '上傳照片';
+  String get profileAvatarUpload => '上传照片';
 
   @override
-  String get profileAvatarAdjustCurrent => '調整目前照片';
+  String get profileAvatarAdjustCurrent => '调整目前照片';
 
   @override
-  String get profileAvatarAdjustUnavailable => '沒有可調整的已上傳照片。';
+  String get profileAvatarAdjustUnavailable => '没有可调整的已上传照片。';
 
   @override
-  String get profileAvatarAdjustUnsupportedPlatform => '此平台暫不支援調整目前照片。';
+  String get profileAvatarAdjustUnsupportedPlatform => '此平台暂不支持调整目前照片。';
 
   @override
-  String get profileAvatarEditorHint => '拖曳調整位置，雙指縮放。';
+  String get profileAvatarEditorHint => '拖动调整位置，双指缩放。';
 
   @override
-  String get profileAvatarEditorZoom => '縮放';
+  String get profileAvatarEditorZoom => '缩放';
 
   @override
   String get profileAvatarEditorCenter => '置中';
@@ -915,51 +915,51 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get profileDeleteAccountSectionTitle => '刪除帳號';
+  String get profileDeleteAccountSectionTitle => '删除账号';
 
   @override
   String get profileDeleteAccountSectionBody =>
-      '此操作會永久刪除你的帳號。共養房间與宠物會保留並轉移給其他成員。';
+      '此操作会永久删除你的账号。共养房间与宠物会保留并转移给其他成员。';
 
   @override
-  String get profileDeleteAccountAction => '刪除帳號';
+  String get profileDeleteAccountAction => '删除账号';
 
   @override
-  String get profileDeleteAccountTitle => '要刪除帳號嗎？';
+  String get profileDeleteAccountTitle => '要删除账号吗？';
 
   @override
   String get profileDeleteAccountConfirmBody =>
-      '此操作會永久刪除你的帳號與個人資料。共養房间／宠物會保留並將所有權轉移給其他成員。此操作无法復原。';
+      '此操作会永久删除你的账号与个人资料。共养房间／宠物会保留并将所有权转移给其他成员。此操作无法复原。';
 
   @override
-  String get profileDeleteAccountConfirmAction => '刪除';
+  String get profileDeleteAccountConfirmAction => '删除';
 
   @override
   String profileDeleteFailed(Object error) {
-    return '刪除帳號失敗：$error';
+    return '删除账号失败：$error';
   }
 
   @override
   String profileUserId(Object id) {
-    return '使用者 ID：$id';
+    return '用户 ID：$id';
   }
 
   @override
   String get drawerProfile => '个人资料';
 
   @override
-  String get roomCreatedSuccess => '已建立房间！请查看側邊欄。';
+  String get roomCreatedSuccess => '已创建房间！请查看侧边栏。';
 
   @override
   String roomCreateFailed(Object error) {
-    return '建立房间失敗：$error';
+    return '创建房间失败：$error';
   }
 
   @override
-  String get roomCreateTitle => '建立房间';
+  String get roomCreateTitle => '创建房间';
 
   @override
-  String get roomCreateAction => '建立';
+  String get roomCreateAction => '创建';
 
   @override
   String get roomNameLabel => '房间名称';
@@ -976,16 +976,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get roomOptionsTitle => '房间選項';
-
-  @override
-  String get roomOptionRename => '重新命名房间';
-
-  @override
-  String get roomOptionLeave => '离开房间';
-
-  @override
-  String get roomRenameTitle => '變更房间名称';
+  String get roomRenameTitle => '变更房间名称';
 
   @override
   String get roomRenameMessage => '输入新的房间名称。';
@@ -1003,64 +994,64 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInvitePromptTitle => '邀请朋友';
 
   @override
-  String get roomInvitePromptBody => '目前只有你。產生邀请碼來邀请朋友加入。';
+  String get roomInvitePromptBody => '目前只有你。产生邀请码来邀请朋友加入。';
 
   @override
-  String get roomInvitePromptAction => '產生邀请碼';
+  String get roomInvitePromptAction => '产生邀请码';
 
   @override
-  String get roomInvitePromptGenerating => '產生中...';
+  String get roomInvitePromptGenerating => '产生中...';
 
   @override
-  String get roomInviteCodeTitle => '邀请碼';
+  String get roomInviteCodeTitle => '邀请码';
 
   @override
-  String get roomInviteCodeMessage => '分享此邀请碼讓朋友加入房间。';
+  String get roomInviteCodeMessage => '分享此邀请码让朋友加入房间。';
 
   @override
-  String get roomInviteCodeTapHint => '點擊邀請碼即可複製。';
+  String get roomInviteCodeTapHint => '点击邀请码即可复制。';
 
   @override
-  String get roomInviteCopyCodeAction => '複製';
+  String get roomInviteCopyCodeAction => '复制';
 
   @override
   String get roomInviteShareAction => '分享';
 
   @override
-  String get roomInviteShareCaption => '來 PetTomo 和我一起玩';
+  String get roomInviteShareCaption => '来 PetTomo 和我一起玩';
 
   @override
   String roomInviteShareFailed(Object error) {
-    return '分享邀請失敗：$error';
+    return '分享邀请失败：$error';
   }
 
   @override
-  String get roomInviteLinkJoining => '正在透過邀請加入房間...';
+  String get roomInviteLinkJoining => '正在通过邀请加入房间...';
 
   @override
-  String get roomInviteCodeCopiedTitle => '已複製';
+  String get roomInviteCodeCopiedTitle => '已复制';
 
   @override
-  String get roomInviteCodeCopiedMessage => '快邀請朋友加入，一起照顧寵物吧！';
+  String get roomInviteCodeCopiedMessage => '快邀请朋友加入，一起照顾宠物吧！';
 
   @override
-  String get roomInviteCodeRegenerated => '邀请碼已重新生成。';
+  String get roomInviteCodeRegenerated => '邀请码已重新生成。';
 
   @override
   String roomInviteCodeRegenerateFailed(Object error) {
-    return '重新生成邀请碼失敗：$error';
+    return '重新生成邀请码失败：$error';
   }
 
   @override
   String roomJoinFailed(Object error) {
-    return '加入房间失敗：$error';
+    return '加入房间失败：$error';
   }
 
   @override
-  String get roomJoinHelper => '邀请碼不區分大小寫。';
+  String get roomJoinHelper => '邀请码不区分大小写。';
 
   @override
-  String get roomJoinHint => '输入 6 位邀请碼';
+  String get roomJoinHint => '输入 6 位邀请码';
 
   @override
   String get roomJoinSuccess => '加入房间成功。';
@@ -1072,40 +1063,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomEnteringLoading => '正在进入房间';
 
   @override
-  String roomLeaveFailed(Object error) {
-    return '离开房间失敗：$error';
-  }
-
-  @override
-  String roomLeaveMessage(Object name) {
-    return '你將离开 $name，並失去聊天室與宠物的存取權。';
-  }
-
-  @override
-  String get roomLeaveSuccess => '已离开房间。';
-
-  @override
-  String get roomLeaveTitle => '要离开房间嗎？';
-
-  @override
-  String get roomLimitReached => '已達免費上限（最多 2 個房间）。升級以新增更多！';
+  String get roomLimitReached => '已达免费上限（最多 2 个房间）。升级以新增更多！';
 
   @override
   String roomNewInviteCode(Object code) {
-    return '新的邀请碼：$code';
+    return '新的邀请码：$code';
   }
 
   @override
-  String get roomSelectionCreatePet => '建立新房间';
+  String get roomSelectionCreatePet => '创建新房间';
 
   @override
-  String get roomSelectionCreating => '建立中...';
+  String get roomSelectionCreating => '创建中...';
 
   @override
   String get roomSelectionEmptySlot => '空位';
 
   @override
-  String get roomSelectionEnterInvite => '输入邀请碼';
+  String get roomSelectionEnterInvite => '输入邀请码';
 
   @override
   String get roomSelectionJoining => '加入中...';
@@ -1123,7 +1098,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomSelectionStatusNoPhoto => '还没有照片';
 
   @override
-  String get roomSelectionSubtitle => '选择宠物的家並繼續。';
+  String get roomSelectionSubtitle => '选择宠物的家并继续。';
 
   @override
   String get roomSelectionSubtitleFrames => '选择宠物的家并继续。长按可换相框。';
@@ -1185,10 +1160,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomFrameChangeAction => '换相框';
 
   @override
-  String get signInFailed => '登录失敗，请再試一次。';
+  String get roomOptionsTitle => '房间选项';
 
   @override
-  String get signInNote => '注意：需要在 Supabase 設定 OAuth 供應商。';
+  String get roomOptionRename => '重新命名房间';
+
+  @override
+  String get roomOptionLeave => '离开房间';
+
+  @override
+  String get signInFailed => '登录失败，请再试一次。';
+
+  @override
+  String get signInNote => '注意：需要在 Supabase 设置 OAuth 供应商。';
 
   @override
   String get signInOpening => '正在打开登录...';
@@ -1199,13 +1183,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get signInSubtitle => '登录後開始一起養成宠物。';
+  String get signInSubtitle => '登录后开始一起养成宠物。';
 
   @override
-  String get signInWithApple => '使用 Apple 繼續';
+  String get signInWithApple => '使用 Apple 继续';
 
   @override
-  String get signInWithGoogle => '使用 Google 繼續';
+  String get signInWithGoogle => '使用 Google 继续';
 
   @override
   String storeCoinPrice(Object amount) {
@@ -1224,19 +1208,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String storeDiamondsLabel(Object amount) {
-    return '鑽石：$amount';
+    return '钻石：$amount';
   }
 
   @override
   String storeDiamondsReward(Object amount) {
-    return '鑽石 +$amount';
+    return '钻石 +$amount';
   }
 
   @override
-  String get shopEmpty => '商店目前沒有商品。';
+  String get shopEmpty => '商店目前没有商品。';
 
   @override
-  String get storeIapNotConfigured => '尚未設定 IAP。';
+  String get storeIapNotConfigured => '尚未设置 IAP。';
 
   @override
   String storeIapUnavailable(Object error) {
@@ -1245,22 +1229,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String shopLoadFailed(Object error) {
-    return '加载商店失敗：$error';
+    return '加载商店失败：$error';
   }
 
   @override
   String get storeNotEnoughCoins => '糖果不足。';
 
   @override
-  String get storeNotEnoughDiamonds => '鑽石不足。';
+  String get storeNotEnoughDiamonds => '钻石不足。';
 
   @override
   String storeOwnedCount(Object amount) {
-    return '已擁有 x$amount';
+    return '已拥有 x$amount';
   }
 
   @override
-  String get storePriceUnavailable => '價格不可用';
+  String get storePriceUnavailable => '价格不可用';
 
   @override
   String get storeProductNotFound => '在 RevenueCat 找不到商品。';
@@ -1270,12 +1254,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String storePurchaseFailed(Object error) {
-    return '購買失敗：$error';
+    return '购买失败：$error';
   }
 
   @override
   String storePurchaseSuccess(Object name) {
-    return '已購買 $name。';
+    return '已购买 $name。';
   }
 
   @override
@@ -1286,11 +1270,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String storeRestoreFailed(Object error) {
-    return '復原失敗：$error';
+    return '复原失败：$error';
   }
 
   @override
-  String get storeRestoreTooltip => '恢復購買';
+  String get storeRestoreTooltip => '恢复购买';
 
   @override
   String get shopSectionCoinPacks => '糖果包';
@@ -1299,33 +1283,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shopSectionCoinShop => '糖果商店';
 
   @override
-  String get shopSectionDiamondPacks => '鑽石包';
+  String get shopSectionDiamondPacks => '钻石包';
 
   @override
-  String get shopSectionDiamondShop => '鑽石商店';
+  String get shopSectionDiamondShop => '钻石商店';
 
   @override
-  String get shopSectionSubscription => '訂閱';
+  String get shopSectionSubscription => '订阅';
 
   @override
-  String get storeTabPremium => '高級';
+  String get storeTabPremium => '高级';
 
   @override
   String get storeTabFurniture => '家具';
 
   @override
-  String get storeTabThemes => '主題';
+  String get storeTabThemes => '主题';
 
   @override
-  String get storeThemePreviewAction => '預覽';
+  String get storeThemePreviewAction => '预览';
 
   @override
   String storeThemePreviewTitle(Object name) {
-    return '$name 預覽';
+    return '$name 预览';
   }
 
   @override
-  String get storeItemNameProMonthly => 'Pro 月度會員';
+  String get storeItemNameProMonthly => 'Pro 月度会员';
 
   @override
   String get storeItemDescProMonthly => '广告全面移除、房间数量无上限。享受最完美的共育体验！';
@@ -1340,16 +1324,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storePremiumBenefitExclusiveItems => '解锁专属商品';
 
   @override
-  String get storeItemNameDiamondPack300 => '300 鑽石禮包';
+  String get storeItemNameDiamondPack300 => '300 钻石礼包';
 
   @override
-  String get storeItemDescDiamondPack300 => '一次購買，立即獲得 300 鑽石。';
+  String get storeItemDescDiamondPack300 => '一次购买，立即获得 300 钻石。';
 
   @override
   String get storeItemNameCandyPack500 => '500 糖果包';
 
   @override
-  String get storeItemDescCandyPack500 => '使用 50 鑽石兌換 500 糖果。';
+  String get storeItemDescCandyPack500 => '使用 50 钻石兑换 500 糖果。';
 
   @override
   String get storeItemNameReturnLetter => '回家信';
@@ -1364,16 +1348,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescPetTicket => '邀请另一只宠物加入这个房间。';
 
   @override
-  String get storeItemNameBackgroundDefault => '預設背景';
+  String get storeItemNameBackgroundDefault => '默认背景';
 
   @override
-  String get storeItemDescBackgroundDefault => '原始溫馨房间背景。';
+  String get storeItemDescBackgroundDefault => '原始温馨房间背景。';
 
   @override
   String get storeItemNameBackgroundMoonlight => '银河背景';
 
   @override
-  String get storeItemDescBackgroundMoonlight => '寧靜银河房间背景。';
+  String get storeItemDescBackgroundMoonlight => '宁静银河房间背景。';
 
   @override
   String get storeItemNameBackgroundSageFrame => '鼠尾草花边背景';
@@ -1400,16 +1384,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescBackgroundStarlitDream => '粉彩行星、云朵与流星交织的梦幻夜空背景。';
 
   @override
-  String get storeItemNameFurnitureSofa => '沙發';
+  String get storeItemNameFurnitureSofa => '沙发';
 
   @override
-  String get storeItemDescFurnitureSofa => '舒適沙發。';
+  String get storeItemDescFurnitureSofa => '舒适沙发。';
 
   @override
   String get storeItemNameFurniturePlant => '盆栽';
 
   @override
-  String get storeItemDescFurniturePlant => '增添生氣的小綠角。';
+  String get storeItemDescFurniturePlant => '增添生气的小绿角。';
 
   @override
   String get storeItemNameFurnitureFrame => '画框';
@@ -1421,19 +1405,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemNameFurnitureTeddy => '泰迪熊';
 
   @override
-  String get storeItemDescFurnitureTeddy => '柔軟玩偶。';
+  String get storeItemDescFurnitureTeddy => '柔软玩偶。';
 
   @override
-  String get storeItemNameFurnitureBricks => '積木牆';
+  String get storeItemNameFurnitureBricks => '积木墙';
 
   @override
-  String get storeItemDescFurnitureBricks => '方塊風格點綴。';
+  String get storeItemDescFurnitureBricks => '方块风格点缀。';
 
   @override
-  String get storeItemNameFurnitureTv => '電視';
+  String get storeItemNameFurnitureTv => '电视';
 
   @override
-  String get storeItemDescFurnitureTv => '迷你電視。';
+  String get storeItemDescFurnitureTv => '迷你电视。';
 
   @override
   String get storeItemNameFurnitureBath => '浴缸';
@@ -1442,46 +1426,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurnitureBath => '迷你浴缸。';
 
   @override
-  String get storeItemNameFurnitureRibbon => '緞帶';
+  String get storeItemNameFurnitureRibbon => '缎带';
 
   @override
-  String get storeItemDescFurnitureRibbon => '裝飾緞帶。';
+  String get storeItemDescFurnitureRibbon => '装饰缎带。';
 
   @override
-  String get storeItemNameFurnitureToilet => '馬桶';
+  String get storeItemNameFurnitureToilet => '马桶';
 
   @override
-  String get storeItemDescFurnitureToilet => '乾淨的小浴室家具。';
+  String get storeItemDescFurnitureToilet => '干净的小浴室家具。';
 
   @override
   String get storeItemNameFurnitureTub => '浴缸';
 
   @override
-  String get storeItemDescFurnitureTub => '適合泡澡的舒適浴缸。';
+  String get storeItemDescFurnitureTub => '适合泡澡的舒适浴缸。';
 
   @override
-  String get storeItemNameFurnitureBalloon => '氣球';
+  String get storeItemNameFurnitureBalloon => '气球';
 
   @override
-  String get storeItemDescFurnitureBalloon => '綁著緞帶的氣球束。';
+  String get storeItemDescFurnitureBalloon => '绑着缎带的气球束。';
 
   @override
   String get storeItemNameFurnitureCactus => '仙人掌';
 
   @override
-  String get storeItemDescFurnitureCactus => '開著小花的盆栽仙人掌。';
+  String get storeItemDescFurnitureCactus => '开着小花的盆栽仙人掌。';
 
   @override
   String get storeItemNameFurnitureCarpet => '地毯';
 
   @override
-  String get storeItemDescFurnitureCarpet => '花朵圖案的橢圓地毯。';
+  String get storeItemDescFurnitureCarpet => '花朵图案的椭圆地毯。';
 
   @override
-  String get storeItemNameFurnitureVinyl => '黑膠唱片';
+  String get storeItemNameFurnitureVinyl => '黑胶唱片';
 
   @override
-  String get storeItemDescFurnitureVinyl => '適合音樂角落的唱片。';
+  String get storeItemDescFurnitureVinyl => '适合音乐角落的唱片。';
 
   @override
   String get storeItemNameEquipmentStrawHat => '草帽';
@@ -1499,19 +1483,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shopSignInPrompt => '请先登录才能使用商店。';
 
   @override
-  String get storeSubscribe => '訂閱';
+  String get storeSubscribe => '订阅';
 
   @override
-  String get storeSubscriptionActive => '已啟用';
+  String get storeSubscriptionActive => '已启用';
 
   @override
-  String get storeSubscriptionDurationMonthly => '1 個月';
+  String get storeSubscriptionDurationMonthly => '1 个月';
 
   @override
-  String get storeSubscriptionRenewalNote => '每月自動續訂，可隨時取消。';
+  String get storeSubscriptionRenewalNote => '每月自动续订，可随时取消。';
 
   @override
-  String get storeSubscriptionDetailsTitle => '訂閱資訊';
+  String get storeSubscriptionDetailsTitle => '订阅信息';
 
   @override
   String storeSubscriptionDetailsBody(
@@ -1519,26 +1503,26 @@ class AppLocalizationsZh extends AppLocalizations {
     Object duration,
     Object price,
   ) {
-    return '方案名稱：$title\n訂閱期間：$duration\n價格：$price';
+    return '方案名称：$title\n订阅期间：$duration\n价格：$price';
   }
 
   @override
-  String get storePrivacyPolicy => '隱私政策';
+  String get storePrivacyPolicy => '隐私政策';
 
   @override
-  String get storeTermsOfUse => '使用條款';
+  String get storeTermsOfUse => '使用条款';
 
   @override
   String get storeLegalSeparator => '|';
 
   @override
-  String get storeLegalOpenFailed => '无法打开法律連結。';
+  String get storeLegalOpenFailed => '无法打开法律链接。';
 
   @override
-  String get signInSafetyAgreementLabel => '我同意使用條款與隱私政策，並確認對不當內容或濫用行為採取零容忍。';
+  String get signInSafetyAgreementLabel => '我同意使用条款与隐私政策，并确认对不当内容或滥用行为采取零容忍。';
 
   @override
-  String get signInSafetyAgreementRequired => '登入前请先同意使用條款與隱私政策。';
+  String get signInSafetyAgreementRequired => '登录前请先同意使用条款与隐私政策。';
 
   @override
   String get shopTitle => '商店';
@@ -1547,23 +1531,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeTypeConsumable => '消耗品';
 
   @override
-  String get storeTypeCosmetic => '外觀';
+  String get storeTypeCosmetic => '外观';
 
   @override
-  String get storeTypeSubscription => '訂閱';
+  String get storeTypeSubscription => '订阅';
 
   @override
   String get furnitureInventoryTitle => '房间背包';
 
   @override
-  String get furnitureInventorySubtitle => '管理这个房间的家具與背景。';
+  String get furnitureInventorySubtitle => '管理这个房间的家具与背景。';
 
   @override
-  String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
+  String get furnitureInventoryEmpty => '目前没有家具，去商店买一些吧。';
 
   @override
   String get furnitureInventoryHint =>
-      '長按家具可編輯，點擊道具放置，拖曳移動，選取已放置家具後可用底部控制列調整大小，點空白退出。';
+      '长按家具可编辑，点击道具放置，拖动移动，选取已放置家具后可用底部控制栏调整大小，点空白退出。';
 
   @override
   String get furnitureScaleLabel => '大小';
@@ -1575,7 +1559,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureScaleIncrease => '放大';
 
   @override
-  String get furnitureFlipHorizontal => '左右反轉';
+  String get furnitureFlipHorizontal => '左右反转';
 
   @override
   String furnitureAvailableCount(Object count) {
@@ -1597,29 +1581,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String roomDecorHintBody(Object buttonLabel) {
-    return '点一下 $buttonLabel 进入房间修改模式，然后摆放家具或套用背景。';
+    return '点一下 $buttonLabel 进入房间修改模式，然后摆放家具或应用背景。';
   }
 
   @override
   String get inventoryTabFurniture => '家具';
 
   @override
-  String get inventoryTabEquipment => '裝扮';
+  String get inventoryTabEquipment => '装扮';
 
   @override
-  String get backgroundGalleryTab => '背景圖庫';
+  String get backgroundGalleryTab => '背景图库';
 
   @override
-  String get backgroundInventoryEmpty => '還沒有背景，去商店看看吧。';
+  String get backgroundInventoryEmpty => '还没有背景，去商店看看吧。';
 
   @override
-  String get backgroundInventoryHint => '點擊背景即可套用到房间所有成員。';
+  String get backgroundInventoryHint => '点击背景即可应用到房间所有成员。';
 
   @override
-  String get equipmentInventoryHint => '先在這裡預覽造型，再為共享寵物穿上或卸下裝備。';
+  String get equipmentInventoryHint => '先在这里预览造型，再为共享宠物穿上或卸下装备。';
 
   @override
-  String get equipmentNoneOwned => '你還沒有這個部位可用的裝備。';
+  String get equipmentNoneOwned => '你还没有这个部位可用的装备。';
 
   @override
   String get equipmentCopyInUse => '其他宠物使用中';
@@ -1632,13 +1616,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentNotCompatible => '这件装备不适合这只宠物。';
 
   @override
-  String get equipmentSlotHead => '頭部';
+  String get equipmentSlotHead => '头部';
 
   @override
   String get equipmentSlotFace => '面部';
 
   @override
-  String get equipmentSlotBody => '身體';
+  String get equipmentSlotBody => '身体';
 
   @override
   String get equipmentSlotBack => '背部';
@@ -1656,40 +1640,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String equipmentUnequipSuccess(Object slotName) {
-    return '已卸下 $slotName 的裝備。';
+    return '已卸下 $slotName 的装备。';
   }
 
   @override
-  String get backgroundApply => '套用';
+  String get backgroundApply => '应用';
 
   @override
-  String get backgroundAppliedLabel => '已套用';
+  String get backgroundAppliedLabel => '已应用';
 
   @override
   String backgroundApplyFailed(Object error) {
-    return '套用背景失敗：$error';
+    return '应用背景失败：$error';
   }
 
   @override
   String get shopSectionBackgrounds => '背景';
 
   @override
-  String get shopSectionEquipment => '裝扮';
+  String get shopSectionEquipment => '装扮';
 
   @override
   String get shopSectionItems => '商品';
 
   @override
-  String get storeBackgroundRoomRequired => '購買背景前请先选择房间。';
+  String get storeBackgroundRoomRequired => '购买背景前请先选择房间。';
 
   @override
   String storeBuyWithCandies(Object price) {
-    return '用 $price 糖果購買';
+    return '用 $price 糖果购买';
   }
 
   @override
   String storeBuyWithDiamonds(Object price) {
-    return '用 $price 鑽石購買';
+    return '用 $price 钻石购买';
   }
 
   @override
@@ -1699,10 +1683,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petSelectionTitle => '选择你的宠物';
 
   @override
-  String get petSelectionSubtitle => '為这个房间挑一位夥伴。';
+  String get petSelectionSubtitle => '为这个房间挑一位伙伴。';
 
   @override
-  String get petSelectionHint => '點一下宠物就能繼續。';
+  String get petSelectionHint => '点一下宠物就能继续。';
 
   @override
   String petSelectionSelected(Object name) {
@@ -1710,7 +1694,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get petSelectionConfirm => '開始房间';
+  String get petSelectionConfirm => '开始房间';
 
   @override
   String get petTicketUseCta => '使用';
@@ -1759,63 +1743,79 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get petSelectionStarterBadge => '入門';
+  String get petSelectionStarterBadge => '入门';
 
   @override
   String petSelectionFailed(Object error) {
-    return '选择宠物失敗：$error';
+    return '选择宠物失败：$error';
   }
 
   @override
-  String get petTypeGhostName => '小幽靈';
+  String get petTypeGhostName => '小幽灵';
 
   @override
-  String get petTypeGhostTagline => '害羞又愛零食的飄飄。';
+  String get petTypeGhostTagline => '害羞又爱零食的飘飘。';
 
   @override
-  String get petTypeCatName => '小貓';
+  String get petTypeCatName => '小猫';
 
   @override
-  String get petTypeCatTagline => '好奇又愛撒嬌的小獵手。';
+  String get petTypeCatTagline => '好奇又爱撒娇的小猎手。';
 
   @override
-  String get petTypeFishName => '小魚';
+  String get petTypeFishName => '小鱼';
 
   @override
-  String get petTypeFishTagline => '愛滑行的泡泡游泳家。';
+  String get petTypeFishTagline => '爱滑行的泡泡游泳家。';
 
   @override
   String get petTypeTigerName => '小老虎';
 
   @override
-  String get petTypeTigerTagline => '帶著條紋氣勢大步前進的小探險家。';
+  String get petTypeTigerTagline => '带着条纹气势大步前进的小探险家。';
 
   @override
-  String get petTypeChickenName => '小雞';
+  String get petTypeChickenName => '小鸡';
 
   @override
-  String get petTypeChickenTagline => '精神滿滿、昂首闊步的毛茸茸夥伴。';
+  String get petTypeChickenTagline => '精神满满、昂首阔步的毛茸茸伙伴。';
+
+  @override
+  String get roomLeaveTitle => '要离开房间吗？';
+
+  @override
+  String roomLeaveMessage(Object name) {
+    return '你将离开 $name，并失去聊天和宠物的访问权限。';
+  }
 
   @override
   String get roomLeaveConfirm => '离开房间';
 
   @override
-  String get roomLockedBadge => '已鎖定';
+  String get roomLockedBadge => '已锁定';
 
   @override
-  String get roomLockedTitle => '此房间在免費方案已鎖定';
+  String get roomLockedTitle => '此房间在免费方案已锁定';
 
   @override
-  String get roomLockedMessage => '免費方案僅可保留最早的 2 個房间可互動。升級 Pro 可在此房间繼續喂食與成長。';
+  String get roomLockedMessage => '免费方案仅可保留最早的 2 个房间可互动。升级 Pro 可在此房间继续喂食与成长。';
 
   @override
-  String get petDepartureNoteMessage => '為什麼要這樣對我...';
+  String get roomLeaveSuccess => '已离开房间。';
 
   @override
-  String get petDepartureGuideTitle => '來自宠物的信';
+  String roomLeaveFailed(Object error) {
+    return '离开房间失败：$error';
+  }
 
   @override
-  String get petDepartureGuideMessage => '前往商店購買「信」來把你的宠物叫回來。';
+  String get petDepartureNoteMessage => '为什么要这样对我...';
+
+  @override
+  String get petDepartureGuideTitle => '来自宠物的信';
+
+  @override
+  String get petDepartureGuideMessage => '前往商店购买「信」来把你的宠物叫回来。';
 
   @override
   String get petDepartureGuideGoShop => '前往商店';
@@ -1830,29 +1830,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petDepartureLetterSelectTitle => '选择宠物';
 
   @override
-  String get petDepartureLetterSelectMessage => '要把哪隻宠物叫回來？';
+  String get petDepartureLetterSelectMessage => '要把哪只宠物叫回来？';
 
   @override
   String petDepartureLetterConfirmTitle(Object petName) {
-    return '要叫回 $petName 嗎？';
+    return '要叫回 $petName 吗？';
   }
 
   @override
   String petDepartureLetterConfirmMessage(Object petName) {
-    return '購買信件來把 $petName 叫回家嗎？';
+    return '购买信件来把 $petName 叫回家吗？';
   }
 
   @override
-  String get petDepartureLetterConfirmAction => '購買信';
+  String get petDepartureLetterConfirmAction => '购买信';
 
   @override
-  String get petDepartureFeedDisabledTitle => '沒有宠物可以喂食';
+  String get petDepartureFeedDisabledTitle => '没有宠物可以喂食';
 
   @override
-  String get petDepartureFeedDisabledMessage => '宠物已离开，現在沒有可以喂食的對象。';
+  String get petDepartureFeedDisabledMessage => '宠物已离开，现在没有可以喂食的对象。';
 
   @override
-  String get petOverfedBubble => '我吃飽了！';
+  String get petOverfedBubble => '我吃饱了！';
 
   @override
   String get petNameUnknown => '你的宠物';
@@ -1862,7 +1862,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String petReturnFailed(Object error) {
-    return '宠物回來失敗：$error';
+    return '宠物回来失败：$error';
   }
 
   @override
@@ -1893,7 +1893,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String storeAdRewardFailed(Object error) {
-    return '领取广告奖励失敗：$error';
+    return '领取广告奖励失败：$error';
   }
 
   @override
@@ -1911,7 +1911,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String feedAdDoubleRewardFailed(Object error) {
-    return '翻倍奖励领取失敗：$error';
+    return '翻倍奖励领取失败：$error';
   }
 
   @override
@@ -2179,7 +2179,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew320Title => '同步共享房间相框';
 
   @override
-  String get whatsNew320Bullet1 => '共享房间卡片现在可以套用 5 款相框。';
+  String get whatsNew320Bullet1 => '共享房间卡片现在可以应用 5 款相框。';
 
   @override
   String get whatsNew320Bullet2 => '相框变更会自动同步给房间内的所有成员。';
@@ -2224,7 +2224,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew300Bullet1 => '用 5 款相框自定义共享房间卡片的风格。';
 
   @override
-  String get whatsNew300Bullet2 => '长按房间卡片即可预览相框，并套用你喜欢的设计。';
+  String get whatsNew300Bullet2 => '长按房间卡片即可预览相框，并应用你喜欢的设计。';
 
   @override
   String get whatsNew300Bullet3 => '提升房间等级，解锁更多相框样式。';
@@ -2698,6 +2698,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugShowFullBubble => '顯示「我吃飽了！」氣泡';
+
+  @override
+  String get drawerDebugShowSocketOverlay => '顯示掛點除錯';
+
+  @override
+  String get drawerDebugDressUpFitTool => '裝扮調整工具';
 
   @override
   String get drawerDebugCaptureMemorySnapshot => '記錄記憶體快照';
@@ -3196,15 +3202,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get roomOptionsTitle => '房間選項';
-
-  @override
-  String get roomOptionRename => '重新命名房間';
-
-  @override
-  String get roomOptionLeave => '離開房間';
-
-  @override
   String get roomRenameTitle => '變更房間名稱';
 
   @override
@@ -3290,22 +3287,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomEnteringLoading => '正在進入房間';
-
-  @override
-  String roomLeaveFailed(Object error) {
-    return '離開房間失敗：$error';
-  }
-
-  @override
-  String roomLeaveMessage(Object name) {
-    return '你將離開 $name，並失去聊天室與寵物的存取權。';
-  }
-
-  @override
-  String get roomLeaveSuccess => '已離開房間。';
-
-  @override
-  String get roomLeaveTitle => '要離開房間嗎？';
 
   @override
   String get roomLimitReached => '已達免費上限（最多 2 個房間）。升級以新增更多！';
@@ -3403,6 +3384,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomFrameChangeAction => '換相框';
+
+  @override
+  String get roomOptionsTitle => '房間選項';
+
+  @override
+  String get roomOptionRename => '重新命名房間';
+
+  @override
+  String get roomOptionLeave => '離開房間';
 
   @override
   String get signInFailed => '登入失敗，請再試一次。';
@@ -3893,6 +3883,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get shopSectionBackgrounds => '背景';
 
   @override
+  String get shopSectionEquipment => '裝扮';
+
+  @override
   String get shopSectionItems => '商品';
 
   @override
@@ -4013,6 +4006,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get petTypeChickenTagline => '精神滿滿、昂首闊步的毛茸茸夥伴。';
 
   @override
+  String get roomLeaveTitle => '要離開房間嗎？';
+
+  @override
+  String roomLeaveMessage(Object name) {
+    return '你將離開 $name，並失去聊天室與寵物的存取權。';
+  }
+
+  @override
   String get roomLeaveConfirm => '離開房間';
 
   @override
@@ -4023,6 +4024,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get roomLockedMessage => '免費方案僅可保留最早的 2 個房間可互動。升級 Pro 可在此房間繼續餵食與成長。';
+
+  @override
+  String get roomLeaveSuccess => '已離開房間。';
+
+  @override
+  String roomLeaveFailed(Object error) {
+    return '離開房間失敗：$error';
+  }
 
   @override
   String get petDepartureNoteMessage => '為什麼要這樣對我...';

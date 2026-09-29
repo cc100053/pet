@@ -253,6 +253,8 @@
   "drawerDebugAddExp": "+10 經驗",
   "drawerDebugSpawnPoop": "讓寵物便便",
   "drawerDebugShowFullBubble": "顯示「我吃飽了！」氣泡",
+  "drawerDebugShowSocketOverlay": "顯示掛點除錯",
+  "drawerDebugDressUpFitTool": "裝扮調整工具",
   "drawerDebugCaptureMemorySnapshot": "記錄記憶體快照",
   "drawerDebugClearImageCacheSnapshot": "清除圖片快取並記錄",
   "drawerDebugOpenMemoryDiagnostics": "開啟記憶體診斷",
@@ -517,9 +519,6 @@
       "error": {}
     }
   },
-  "roomOptionsTitle": "房間選項",
-  "roomOptionRename": "變更房間名稱",
-  "roomOptionLeave": "離開房間",
   "roomRenameTitle": "變更房間名稱",
   "roomRenameMessage": "輸入新的房間名稱。",
   "roomDefaultName": "新房間",
@@ -562,15 +561,6 @@
   "roomJoinSuccess": "加入房間成功。",
   "roomJoinTitle": "加入房間",
   "roomEnteringLoading": "正在進入房間",
-  "roomLeaveFailed": "離開房間失敗：{error}",
-  "@roomLeaveFailed": {
-    "placeholders": {
-      "error": {}
-    }
-  },
-  "roomLeaveMessage": "離開後在重新邀請前將無法存取這隻寵物。",
-  "roomLeaveSuccess": "已離開房間。",
-  "roomLeaveTitle": "離開房間？",
   "roomLimitReached": "已達免費上限（最多 2 個房間）。升級以新增更多！",
   "roomNewInviteCode": "新的邀請碼：{code}",
   "@roomNewInviteCode": {
@@ -853,6 +843,7 @@
     }
   },
   "shopSectionBackgrounds": "背景",
+  "shopSectionEquipment": "裝扮",
   "shopSectionItems": "商品",
   "storeBackgroundRoomRequired": "購買背景前請先選擇房間。",
   "storeBuyWithCandies": "用 {price} 糖果購買",

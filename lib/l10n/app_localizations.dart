@@ -1841,24 +1841,6 @@ abstract class AppLocalizations {
   /// **'Couldn\'t update room name: {error}'**
   String roomNameUpdateFailed(Object error);
 
-  /// No description provided for @roomOptionsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Room options'**
-  String get roomOptionsTitle;
-
-  /// No description provided for @roomOptionRename.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename room'**
-  String get roomOptionRename;
-
-  /// No description provided for @roomOptionLeave.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave room'**
-  String get roomOptionLeave;
-
   /// No description provided for @roomRenameTitle.
   ///
   /// In en, this message translates to:
@@ -2020,30 +2002,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Entering room'**
   String get roomEnteringLoading;
-
-  /// No description provided for @roomLeaveFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to leave room: {error}'**
-  String roomLeaveFailed(Object error);
-
-  /// Confirmation message when leaving a room.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'ll leave {name} and lose access to its chat and pet.'**
-  String roomLeaveMessage(Object name);
-
-  /// No description provided for @roomLeaveSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Left the room.'**
-  String get roomLeaveSuccess;
-
-  /// No description provided for @roomLeaveTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave room?'**
-  String get roomLeaveTitle;
 
   /// No description provided for @roomLimitReached.
   ///
@@ -2218,6 +2176,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change frame'**
   String get roomFrameChangeAction;
+
+  /// No description provided for @roomOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Room options'**
+  String get roomOptionsTitle;
+
+  /// No description provided for @roomOptionRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename room'**
+  String get roomOptionRename;
+
+  /// No description provided for @roomOptionLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave room'**
+  String get roomOptionLeave;
 
   /// No description provided for @signInFailed.
   ///
@@ -3333,6 +3309,18 @@ abstract class AppLocalizations {
   /// **'A feathery friend with a lively little strut.'**
   String get petTypeChickenTagline;
 
+  /// No description provided for @roomLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave room?'**
+  String get roomLeaveTitle;
+
+  /// Confirmation message when leaving a room.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll leave {name} and lose access to its chat and pet.'**
+  String roomLeaveMessage(Object name);
+
   /// No description provided for @roomLeaveConfirm.
   ///
   /// In en, this message translates to:
@@ -3356,6 +3344,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only your first 2 rooms stay active on Free. Upgrade to Pro to feed and grow pets in this room.'**
   String get roomLockedMessage;
+
+  /// No description provided for @roomLeaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Left the room.'**
+  String get roomLeaveSuccess;
+
+  /// No description provided for @roomLeaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to leave room: {error}'**
+  String roomLeaveFailed(Object error);
 
   /// No description provided for @petDepartureNoteMessage.
   ///

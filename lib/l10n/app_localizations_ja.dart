@@ -980,15 +980,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get roomOptionsTitle => 'ルームオプション';
-
-  @override
-  String get roomOptionRename => 'ルーム名を変更';
-
-  @override
-  String get roomOptionLeave => 'ルームを退出';
-
-  @override
   String get roomRenameTitle => 'ルーム名を変更';
 
   @override
@@ -1074,22 +1065,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomEnteringLoading => 'ルームに入室中';
-
-  @override
-  String roomLeaveFailed(Object error) {
-    return '退出に失敗しました：$error';
-  }
-
-  @override
-  String roomLeaveMessage(Object name) {
-    return '$name から退出し、チャットとペットにアクセスできなくなります。';
-  }
-
-  @override
-  String get roomLeaveSuccess => 'ルームを退出しました。';
-
-  @override
-  String get roomLeaveTitle => 'ルームを退出しますか？';
 
   @override
   String get roomLimitReached => '無料枠に達しました（最大2ルーム）。アップグレードしてください。';
@@ -1187,6 +1162,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get roomFrameChangeAction => 'フレーム変更';
+
+  @override
+  String get roomOptionsTitle => 'ルームオプション';
+
+  @override
+  String get roomOptionRename => 'ルーム名を変更';
+
+  @override
+  String get roomOptionLeave => 'ルームを退出';
 
   @override
   String get signInFailed => 'サインインに失敗しました。もう一度お試しください。';
@@ -1806,10 +1790,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get petTypeChickenTagline => '元気いっぱいに歩く、ふわふわの友だち。';
 
   @override
+  String get roomLeaveTitle => 'ルームを退出しますか？';
+
+  @override
+  String roomLeaveMessage(Object name) {
+    return '$name から退出し、チャットとペットにアクセスできなくなります。';
+  }
+
+  @override
   String get roomLeaveConfirm => '退出する';
 
   @override
-  String get roomLockedBadge => 'LOCKED';
+  String get roomLockedBadge => 'ロック中';
 
   @override
   String get roomLockedTitle => 'このルームは無料プランでロック中';
@@ -1817,6 +1809,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get roomLockedMessage =>
       '無料プランでは参加・作成が古い順で最初の2ルームのみ利用できます。Proにアップグレードすると、このルームでもフィードと成長アクションを使えます。';
+
+  @override
+  String get roomLeaveSuccess => 'ルームを退出しました。';
+
+  @override
+  String roomLeaveFailed(Object error) {
+    return '退出に失敗しました：$error';
+  }
 
   @override
   String get petDepartureNoteMessage => 'どうしてこんな扱いをするの…';

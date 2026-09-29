@@ -1012,15 +1012,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get roomOptionsTitle => 'Room options';
-
-  @override
-  String get roomOptionRename => 'Rename room';
-
-  @override
-  String get roomOptionLeave => 'Leave room';
-
-  @override
   String get roomRenameTitle => 'Change room name';
 
   @override
@@ -1109,22 +1100,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roomEnteringLoading => 'Entering room';
-
-  @override
-  String roomLeaveFailed(Object error) {
-    return 'Failed to leave room: $error';
-  }
-
-  @override
-  String roomLeaveMessage(Object name) {
-    return 'You\'ll leave $name and lose access to its chat and pet.';
-  }
-
-  @override
-  String get roomLeaveSuccess => 'Left the room.';
-
-  @override
-  String get roomLeaveTitle => 'Leave room?';
 
   @override
   String get roomLimitReached =>
@@ -1224,6 +1199,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roomFrameChangeAction => 'Change frame';
+
+  @override
+  String get roomOptionsTitle => 'Room options';
+
+  @override
+  String get roomOptionRename => 'Rename room';
+
+  @override
+  String get roomOptionLeave => 'Leave room';
 
   @override
   String get signInFailed => 'Sign-in failed. Please try again.';
@@ -1864,6 +1848,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'A feathery friend with a lively little strut.';
 
   @override
+  String get roomLeaveTitle => 'Leave room?';
+
+  @override
+  String roomLeaveMessage(Object name) {
+    return 'You\'ll leave $name and lose access to its chat and pet.';
+  }
+
+  @override
   String get roomLeaveConfirm => 'Leave room';
 
   @override
@@ -1875,6 +1867,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get roomLockedMessage =>
       'Only your first 2 rooms stay active on Free. Upgrade to Pro to feed and grow pets in this room.';
+
+  @override
+  String get roomLeaveSuccess => 'Left the room.';
+
+  @override
+  String roomLeaveFailed(Object error) {
+    return 'Failed to leave room: $error';
+  }
 
   @override
   String get petDepartureNoteMessage => 'Why treat me like this...';

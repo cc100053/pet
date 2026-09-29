@@ -260,6 +260,8 @@
   "drawerDebugAddExp": "EXP +10",
   "drawerDebugSpawnPoop": "펫 배변 생성",
   "drawerDebugShowFullBubble": "\"배불러요\" 말풍선 표시",
+  "drawerDebugShowSocketOverlay": "소켓 위치 표시",
+  "drawerDebugDressUpFitTool": "꾸미기 조정 도구",
   "drawerDebugCaptureMemorySnapshot": "메모리 스냅샷 기록",
   "drawerDebugClearImageCacheSnapshot": "이미지 캐시 비우고 기록",
   "drawerDebugOpenMemoryDiagnostics": "메모리 진단 열기",
@@ -857,6 +859,7 @@
     }
   },
   "shopSectionBackgrounds": "배경",
+  "shopSectionEquipment": "꾸미기",
   "shopSectionItems": "아이템",
   "storeBackgroundRoomRequired": "배경을 구매하기 전에 방을 선택해 주세요.",
   "storeBuyWithCandies": "{price} 캔디로 구매",
