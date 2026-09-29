@@ -12,7 +12,7 @@ kana-only subset with M PLUS Rounded fallback.
 - [x] Phase 3: Room selection chrome, `MoriPaperBackground`, ja-only `KanaEyebrow`.
 - [ ] Bundle Kiwi Maru kana subset as `KiwiMaruKana` (needs download approval; falls back to M PLUS Rounded until then).
 - [x] Phase 4: Shop paper bg, noren strip (kana ja-only), green buy, gold frame = diamond-priced items, opaque pinned bar. Pro banner left as-is.
-- [ ] Phase 5: Chat, calendar, profile, sign-in color sweep.
+- [x] Phase 5: Calendar paper bg; profile + support ink sweep. Chat left as-is (chrome sits on the purchased room background); drawer + sign-in already harmonious.
 
 ## Plan — Repository instruction cleanup (2026-09-13)
 

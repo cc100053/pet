@@ -3,6 +3,8 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/profile/profile_cache_service.dart';
+import '../../shared/ui/mori.dart';
+import '../../shared/theme/app_theme.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/cached_network_image_view.dart';
 import '../../shared/ui/full_screen_photo_viewer.dart';
@@ -169,19 +171,21 @@ class _MemoryCalendarViewState extends State<MemoryCalendarView> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: _CalendarColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: _CalendarHeader(
-                label: _monthLabel(context, _focusedMonth),
-                subtitle: l10n.calendarTitle,
-                onMenuTap: () => _handleHeaderTap(context),
+      body: MoriPaperBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: _CalendarHeader(
+                  label: _monthLabel(context, _focusedMonth),
+                  subtitle: l10n.calendarTitle,
+                  onMenuTap: () => _handleHeaderTap(context),
+                ),
               ),
-            ),
-            Expanded(child: _buildCalendarBody(context)),
-          ],
+              Expanded(child: _buildCalendarBody(context)),
+            ],
+          ),
         ),
       ),
     );
@@ -960,7 +964,7 @@ class _MemoryDaySheet extends StatelessWidget {
 }
 
 class _CalendarColors {
-  static const Color background = Color(0xFFFFF8EE);
+  static const Color background = AppTheme.paper;
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFFFF1E3);
   static const Color outline = Color(0xFFF6D8B4);

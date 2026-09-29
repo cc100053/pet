@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/theme/app_theme.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/juice_wrappers.dart';
@@ -201,15 +202,24 @@ class _SupportViewState extends State<SupportView> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppTheme.textPrimary,
+                    width: 2,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppTheme.textPrimary,
+                    width: 2,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppTheme.textPrimary,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -222,9 +232,9 @@ class _SupportViewState extends State<SupportView> {
               decoration: BoxDecoration(
                 color: const Color(0xFFFFD600),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.black, width: 2),
+                border: Border.all(color: AppTheme.textPrimary, width: 2),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black, offset: Offset(0, 3)),
+                  BoxShadow(color: AppTheme.textPrimary, offset: Offset(0, 3)),
                 ],
               ),
               child: Text(
@@ -232,7 +242,7 @@ class _SupportViewState extends State<SupportView> {
                 style: GoogleFonts.mPlusRounded1c(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
-                  color: Colors.black,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ),
@@ -262,14 +272,14 @@ class _SupportBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: fromUser ? const Color(0xFFFFF3B0) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black, width: 2),
+          border: Border.all(color: AppTheme.textPrimary, width: 2),
         ),
         child: SelectableText(
           body,
           style: GoogleFonts.mPlusRounded1c(
             fontWeight: FontWeight.w600,
             fontSize: 15,
-            color: Colors.black87,
+            color: AppTheme.ink,
           ),
         ),
       ),

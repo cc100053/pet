@@ -188,7 +188,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             textInputAction: TextInputAction.done,
             style: GoogleFonts.mPlusRounded1c(
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: AppTheme.ink,
             ),
             inputFormatters: [
               LengthLimitingTextInputFormatter(_nicknameMaxLength),
@@ -202,7 +202,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Colors.black, width: 2),
+                borderSide: const BorderSide(
+                  color: AppTheme.textPrimary,
+                  width: 2,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -225,9 +228,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFEEEEEE),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 2),
+                      border: Border.all(color: AppTheme.textPrimary, width: 2),
                       boxShadow: const [
-                        BoxShadow(color: Colors.black, offset: Offset(0, 3)),
+                        BoxShadow(
+                          color: AppTheme.textPrimary,
+                          offset: Offset(0, 3),
+                        ),
                       ],
                     ),
                     child: Center(
@@ -237,7 +243,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
-                          color: Colors.black,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -253,9 +259,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFD600),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 2),
+                      border: Border.all(color: AppTheme.textPrimary, width: 2),
                       boxShadow: const [
-                        BoxShadow(color: Colors.black, offset: Offset(0, 3)),
+                        BoxShadow(
+                          color: AppTheme.textPrimary,
+                          offset: Offset(0, 3),
+                        ),
                       ],
                     ),
                     child: Center(
@@ -265,7 +274,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
-                          color: Colors.black,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -758,9 +767,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFEEEEEE),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 2),
+                      border: Border.all(color: AppTheme.textPrimary, width: 2),
                       boxShadow: const [
-                        BoxShadow(color: Colors.black, offset: Offset(0, 3)),
+                        BoxShadow(
+                          color: AppTheme.textPrimary,
+                          offset: Offset(0, 3),
+                        ),
                       ],
                     ),
                     child: Center(
@@ -770,7 +782,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         style: GoogleFonts.mPlusRounded1c(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
-                          color: Colors.black,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -786,9 +798,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.error,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black, width: 2),
+                      border: Border.all(color: AppTheme.textPrimary, width: 2),
                       boxShadow: const [
-                        BoxShadow(color: Colors.black, offset: Offset(0, 3)),
+                        BoxShadow(
+                          color: AppTheme.textPrimary,
+                          offset: Offset(0, 3),
+                        ),
                       ],
                     ),
                     child: Center(
@@ -957,9 +972,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               border: Border.all(color: Colors.white, width: 4),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: AppTheme.ink.withValues(alpha: 0.2),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
