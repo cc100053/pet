@@ -7,6 +7,7 @@ import 'package:pet/l10n/app_localizations.dart';
 
 import '../pet/pet_catalog.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/mori.dart';
 import '../../shared/ui/adaptive_layout.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/pet_name_text_style.dart';
@@ -102,15 +103,8 @@ class RoomSelectionView extends StatelessWidget {
   /// a player who long-pressed a card without needing to be told.
   final VoidCallback? onFrameHintSeen;
 
-  /// Warm cream vertical gradient behind the whole screen.
-  static const LinearGradient _backdrop = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFFBF3), Color(0xFFFFF3E2)],
-  );
-
-  static const Color _emptySlotBorder = Color(0x47000000);
-  static const Color _emptySlotLabel = Color(0xFF9A9187);
+  static const Color _emptySlotBorder = AppTheme.wood;
+  static const Color _emptySlotLabel = AppTheme.textSecondary;
   static String? _lastLayoutDebugLogKey;
 
   /// Whether 換相框 is live on this build. Every surface of the feature —
@@ -177,8 +171,7 @@ class RoomSelectionView extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxContentWidth),
-            child: DecoratedBox(
-              decoration: const BoxDecoration(gradient: _backdrop),
+            child: MoriPaperBackground(
               child: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -195,15 +188,22 @@ class RoomSelectionView extends StatelessWidget {
                           _buildMeButton(buttonSize: avatarSize),
                           Gap(10 * uiScale),
                           Expanded(
-                            child: _AdaptiveHeaderTitle(
-                              text: l10n.roomSelectionTitle,
-                              height: 30 * uiScale,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.textPrimary,
-                                height: 1.1,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const KanaEyebrow('おへやえらび'),
+                                _AdaptiveHeaderTitle(
+                                  text: l10n.roomSelectionTitle,
+                                  height: 30 * uiScale,
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.textPrimary,
+                                    height: 1.1,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           _buildRefreshIndicator(uiScale),
@@ -357,8 +357,8 @@ class RoomSelectionView extends StatelessWidget {
             padding: const EdgeInsets.all(1),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: Colors.black87, width: 2.5),
+              color: AppTheme.surfaceColor,
+              border: Border.all(color: AppTheme.ink, width: 2.5),
             ),
             child: ClipOval(
               child: UserAvatar(
@@ -429,7 +429,7 @@ class RoomSelectionView extends StatelessWidget {
         onTap: joiningRoom ? null : onJoinRoom,
         borderRadius: radius,
         shadowDepth: 3 * uiScale,
-        color: Colors.white,
+        color: AppTheme.surfaceColor,
         borderWidth: 2.5,
         padding: EdgeInsets.symmetric(
           horizontal: 12 * uiScale,
@@ -441,7 +441,7 @@ class RoomSelectionView extends StatelessWidget {
             Icon(
               Icons.key_rounded,
               size: 15 * uiScale,
-              color: AppTheme.primaryColor,
+              color: AppTheme.leafDeep,
             ),
             Gap(5 * uiScale),
             Text(
@@ -601,7 +601,7 @@ class RoomSelectionView extends StatelessWidget {
         vertical: 4 * uiScale,
       ),
       decoration: BoxDecoration(
-        color: Colors.black87,
+        color: AppTheme.ink,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -828,7 +828,7 @@ class RoomSelectionView extends StatelessWidget {
           onTap: creatingRoom ? null : onCreateRoom,
           borderRadius: radius,
           shadowDepth: 5 * uiScale,
-          color: AppTheme.primaryColor,
+          color: AppTheme.leafStrong,
           borderWidth: 3,
           height: 56 * uiScale,
           child: Row(
@@ -964,7 +964,7 @@ class _RoomActionTile extends StatelessWidget {
           child: Ink(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+              border: Border.all(color: AppTheme.softLine, width: 2),
             ),
             child: ListTile(
               leading: Icon(icon, color: color),

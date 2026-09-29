@@ -9,7 +9,8 @@ kana-only subset with M PLUS Rounded fallback.
 - [x] Phase 1: `AppTheme` Mori tokens, `HardShadowPressButton`, juice
       toast/snackbar, `AppDialog`.
 - [x] Phase 2: Home HUD, polaroid photo card, raised camera dock (icon-only).
-- [ ] Phase 3: Room selection + frame picker chrome (+ `ja` kana label widget/font).
+- [x] Phase 3: Room selection chrome, `MoriPaperBackground`, ja-only `KanaEyebrow`.
+- [ ] Bundle Kiwi Maru kana subset as `KiwiMaruKana` (needs download approval; falls back to M PLUS Rounded until then).
 - [ ] Phase 4: Shop (noren header, pill tabs, gold rarity only here).
 - [ ] Phase 5: Chat, calendar, profile, sign-in color sweep.
 
