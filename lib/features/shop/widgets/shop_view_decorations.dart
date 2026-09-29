@@ -20,64 +20,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Noren curtain strip under the shop app bar. Kana (しょっぷ) is shown only
-/// for Japanese; other locales get plain panels with a leaf crest.
-class _ShopNoren extends StatelessWidget {
-  const _ShopNoren();
-
-  static const _panelColor = Color(0xFF4D86AA);
-  static const _hemColor = Color(0xFF2F5670);
-
-  @override
-  Widget build(BuildContext context) {
-    final isJa = Localizations.localeOf(context).languageCode == 'ja';
-    const kana = ['し', 'ょ', 'っ', 'ぷ'];
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-      child: Row(
-        children: [
-          for (var i = 0; i < kana.length; i++) ...[
-            if (i > 0) const SizedBox(width: 4),
-            Expanded(
-              child: Container(
-                height: 40,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: _panelColor,
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(10),
-                  ),
-                  border: Border(
-                    bottom: BorderSide(color: _hemColor, width: 3),
-                  ),
-                ),
-                child: isJa
-                    ? Text(
-                        kana[i],
-                        style: TextStyle(
-                          fontFamily: KanaEyebrow.fontFamily,
-                          fontFamilyFallback: [
-                            ?GoogleFonts.mPlusRounded1c().fontFamily,
-                          ],
-                          fontSize: 20,
-                          color: Colors.white,
-                          height: 1,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.eco_rounded,
-                        size: 16,
-                        color: Color(0xCCFFFFFF),
-                      ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
 class _ShopStrokeText extends StatelessWidget {
   const _ShopStrokeText(
     this.text, {
@@ -360,26 +302,39 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                 ),
                                 const SizedBox(height: 8), // Reduced spacing
                                 // Visual Benefits List
+                                // The card height is fixed; long locales,
+                                // narrow phones and large text shrink the
+                                // benefits instead of overflowing the CTA.
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _BenefitItem(
-                                        icon: Icons.meeting_room_rounded,
-                                        text: l10n
-                                            .storePremiumBenefitUnlimitedRooms,
+                                  child: LayoutBuilder(
+                                    builder: (context, box) => FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.topLeft,
+                                      child: SizedBox(
+                                        width: box.maxWidth,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _BenefitItem(
+                                              icon: Icons.meeting_room_rounded,
+                                              text: l10n
+                                                  .storePremiumBenefitUnlimitedRooms,
+                                            ),
+                                            _BenefitItem(
+                                              icon: Icons.block_rounded,
+                                              text:
+                                                  l10n.storePremiumBenefitNoAds,
+                                            ),
+                                            _BenefitItem(
+                                              icon: Icons.star_rounded,
+                                              text: l10n
+                                                  .storePremiumBenefitExclusiveItems,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      _BenefitItem(
-                                        icon: Icons.block_rounded,
-                                        text: l10n.storePremiumBenefitNoAds,
-                                      ),
-                                      _BenefitItem(
-                                        icon: Icons.star_rounded,
-                                        text: l10n
-                                            .storePremiumBenefitExclusiveItems,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
 

@@ -10,7 +10,13 @@ kana-only subset with M PLUS Rounded fallback.
       toast/snackbar, `AppDialog`.
 - [x] Phase 2: Home HUD, polaroid photo card, raised camera dock (icon-only).
 - [x] Phase 3: Room selection chrome, `MoriPaperBackground`, ja-only `KanaEyebrow`.
-- [ ] Bundle Kiwi Maru kana subset as `KiwiMaruKana` (needs download approval; falls back to M PLUS Rounded until then).
+- [x] Bundled Kiwi Maru kana subset (59 KB) as `KiwiMaruKana`; removed shop noren.
+- [x] Overflow sweep: fixed Pro banner (ja), room header invite pill, shop buy
+      button at 320pt; added `test/ui_overflow_matrix_test.dart`. All 5 locales
+      checked on device pages at 402pt with zero overflow logs.
+- [ ] Copy gaps seen during sweep (pre-existing): ko "Equipment" untranslated,
+      zh (Hans) strings contain Traditional chars (訂閱/會員/鑽石包), ja
+      `roomLockedBadge` is "LOCKED".
 - [x] Phase 4: Shop paper bg, noren strip (kana ja-only), green buy, gold frame = diamond-priced items, opaque pinned bar. Pro banner left as-is.
 - [x] Phase 5: Calendar paper bg; profile + support ink sweep. Chat left as-is (chrome sits on the purchased room background); drawer + sign-in already harmonious.
 

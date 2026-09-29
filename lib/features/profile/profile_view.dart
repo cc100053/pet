@@ -226,14 +226,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEEEEE),
+                      color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.textPrimary, width: 2),
+                      border: Border.all(color: AppTheme.ink, width: 2),
                       boxShadow: const [
-                        BoxShadow(
-                          color: AppTheme.textPrimary,
-                          offset: Offset(0, 3),
-                        ),
+                        BoxShadow(color: AppTheme.ink, offset: Offset(0, 3)),
                       ],
                     ),
                     child: Center(
@@ -259,12 +256,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFD600),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.textPrimary, width: 2),
+                      border: Border.all(color: AppTheme.ink, width: 2),
                       boxShadow: const [
-                        BoxShadow(
-                          color: AppTheme.textPrimary,
-                          offset: Offset(0, 3),
-                        ),
+                        BoxShadow(color: AppTheme.ink, offset: Offset(0, 3)),
                       ],
                     ),
                     child: Center(
@@ -765,14 +759,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEEEEE),
+                      color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.textPrimary, width: 2),
+                      border: Border.all(color: AppTheme.ink, width: 2),
                       boxShadow: const [
-                        BoxShadow(
-                          color: AppTheme.textPrimary,
-                          offset: Offset(0, 3),
-                        ),
+                        BoxShadow(color: AppTheme.ink, offset: Offset(0, 3)),
                       ],
                     ),
                     child: Center(
@@ -798,12 +789,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.error,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.textPrimary, width: 2),
+                      border: Border.all(color: AppTheme.ink, width: 2),
                       boxShadow: const [
-                        BoxShadow(
-                          color: AppTheme.textPrimary,
-                          offset: Offset(0, 3),
-                        ),
+                        BoxShadow(color: AppTheme.ink, offset: Offset(0, 3)),
                       ],
                     ),
                     child: Center(

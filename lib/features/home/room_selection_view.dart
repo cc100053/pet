@@ -207,7 +207,14 @@ class RoomSelectionView extends StatelessWidget {
                             ),
                           ),
                           _buildRefreshIndicator(uiScale),
-                          _buildInvitePill(context, l10n, uiScale),
+                          // Cap the pill so long locales / large text shrink
+                          // its label instead of pushing the header off-screen.
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.sizeOf(context).width * 0.45,
+                            ),
+                            child: _buildInvitePill(context, l10n, uiScale),
+                          ),
                         ],
                       ),
                     ),
@@ -444,16 +451,21 @@ class RoomSelectionView extends StatelessWidget {
               color: AppTheme.leafDeep,
             ),
             Gap(5 * uiScale),
-            Text(
-              joiningRoom
-                  ? l10n.roomSelectionJoining
-                  : l10n.roomSelectionEnterInvite,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: AppTheme.textPrimary,
-                height: 1,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  joiningRoom
+                      ? l10n.roomSelectionJoining
+                      : l10n.roomSelectionEnterInvite,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textPrimary,
+                    height: 1,
+                  ),
+                ),
               ),
             ),
           ],

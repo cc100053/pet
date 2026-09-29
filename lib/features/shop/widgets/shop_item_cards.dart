@@ -546,8 +546,9 @@ class _GridBuyAction extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       shadowColor: isOwnedLocked ? Colors.grey.shade400 : AppTheme.leafDeep,
       faceBuilder: (context, isPressed) => Container(
-        constraints: const BoxConstraints(minWidth: 68, maxWidth: 104),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        // Fits a 320pt-wide phone's grid cell; the label scales down inside.
+        constraints: const BoxConstraints(minWidth: 56, maxWidth: 96),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isOwnedLocked ? Colors.grey.shade200 : AppTheme.leafStrong,
           borderRadius: BorderRadius.circular(20),

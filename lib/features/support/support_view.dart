@@ -202,24 +202,15 @@ class _SupportViewState extends State<SupportView> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: AppTheme.textPrimary,
-                    width: 2,
-                  ),
+                  borderSide: const BorderSide(color: AppTheme.ink, width: 2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: AppTheme.textPrimary,
-                    width: 2,
-                  ),
+                  borderSide: const BorderSide(color: AppTheme.ink, width: 2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: AppTheme.textPrimary,
-                    width: 2,
-                  ),
+                  borderSide: const BorderSide(color: AppTheme.ink, width: 2),
                 ),
               ),
             ),
@@ -230,11 +221,11 @@ class _SupportViewState extends State<SupportView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFD600),
+                color: AppTheme.leafStrong,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.textPrimary, width: 2),
+                border: Border.all(color: AppTheme.ink, width: 2),
                 boxShadow: const [
-                  BoxShadow(color: AppTheme.textPrimary, offset: Offset(0, 3)),
+                  BoxShadow(color: AppTheme.leafDeep, offset: Offset(0, 3)),
                 ],
               ),
               child: Text(
@@ -242,7 +233,7 @@ class _SupportViewState extends State<SupportView> {
                 style: GoogleFonts.mPlusRounded1c(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
-                  color: AppTheme.textPrimary,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -270,9 +261,9 @@ class _SupportBubble extends StatelessWidget {
           maxWidth: MediaQuery.sizeOf(context).width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: fromUser ? const Color(0xFFFFF3B0) : Colors.white,
+          color: fromUser ? const Color(0xFFDDF1E3) : AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.textPrimary, width: 2),
+          border: Border.all(color: AppTheme.ink, width: 2),
         ),
         child: SelectableText(
           body,

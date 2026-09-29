@@ -17,7 +17,12 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   Press shadows are solid same-hue offsets (e.g. `leafStrong` over `leafDeep`).
 - White text only on `leafStrong` or darker; `leaf` is for accents/fills.
 - `gold` rarity frames / NEW badges are reserved for shop and reward moments.
-- Kana decorative labels (おへや, ショップ) render only for the `ja` locale.
+- Kana decorative labels (`KanaEyebrow`) render only for the `ja` locale, in
+  the bundled `KiwiMaruKana` subset (kana + CJK punctuation only) with
+  M PLUS Rounded fallback. Do not put kanji or Latin in it.
+- Fixed-size game surfaces must shrink, not overflow: `test/ui_overflow_matrix_test.dart`
+  sweeps every locale × 320/375/402/440pt × text scale 1.0/1.3. Add new
+  fixed-size surfaces to it.
 - Room frame casings keep their original (black-outlined) art; do not reskin.
 - Rounded corners: large cards/toasts around `32`, dialogs/actions around `16`.
 - Primary typeface: `GoogleFonts.mPlusRounded1c`.

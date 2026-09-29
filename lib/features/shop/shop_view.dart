@@ -753,7 +753,7 @@ class _ShopViewState extends State<ShopView> {
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         _buildSliverAppBar(l10n),
-        const SliverToBoxAdapter(child: _ShopNoren()),
+        const SliverToBoxAdapter(child: SizedBox(height: 12)),
         if (_iapError != null)
           SliverToBoxAdapter(
             child: Padding(
