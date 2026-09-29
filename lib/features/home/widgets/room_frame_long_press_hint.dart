@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/ui/balanced_text.dart';
 
 /// The coach bubble that teaches 長按換相框 on 房間選擇.
 ///
@@ -158,7 +159,7 @@ class _RoomFrameLongPressHintState extends State<RoomFrameLongPressHint>
           ),
           Gap(6 * scale),
           Flexible(
-            child: Text(
+            child: BalancedText(
               l10n.roomFrameLongPressHint,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

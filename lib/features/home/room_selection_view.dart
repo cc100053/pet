@@ -17,6 +17,7 @@ import 'widgets/room_frame_card.dart';
 import 'widgets/room_frame_long_press_hint.dart';
 import 'widgets/room_frame_picker_sheet.dart';
 import 'widgets/room_frame_skins.dart';
+import '../../shared/ui/balanced_text.dart';
 
 /// Below this satiety, "feed me" outranks anything else the caption could say.
 const double _hungryCaptionThreshold = 0.3;
@@ -225,7 +226,7 @@ class RoomSelectionView extends StatelessWidget {
                         horizontalPadding,
                         18 * uiScale,
                       ),
-                      child: Text(
+                      child: BalancedText(
                         _framesEnabled
                             ? l10n.roomSelectionSubtitleFrames
                             : l10n.roomSelectionSubtitle,

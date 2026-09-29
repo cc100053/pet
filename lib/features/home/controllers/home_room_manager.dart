@@ -995,7 +995,7 @@ extension _HomeRoomManager on _HomeViewState {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              BalancedText(
                 l10n.roomJoinHelper,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.mPlusRounded1c(
@@ -1163,7 +1163,7 @@ extension _HomeRoomManager on _HomeViewState {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          BalancedText(
             l10n.roomLeaveMessage(
               petName == null || petName.isEmpty ? fallbackName : petName,
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import 'app_whats_new_entry.dart';
+import '../ui/balanced_text.dart';
 
 class WhatsNewToastBody extends StatelessWidget {
   const WhatsNewToastBody({
@@ -25,7 +26,7 @@ class WhatsNewToastBody extends StatelessWidget {
       children: [
         _VersionPill(version: version),
         const SizedBox(height: 10),
-        Text(
+        BalancedText(
           entry.title(l10n),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurface,
@@ -138,7 +139,7 @@ class _TimelinePanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
+                  child: BalancedText(
                     bullets[index],
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,

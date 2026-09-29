@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/utils/date_parsing.dart';
 import '../../shared/ui/user_avatar.dart';
+import '../../shared/ui/balanced_text.dart';
 
 class BlockedUsersSheet extends StatefulWidget {
   const BlockedUsersSheet({
@@ -234,7 +235,7 @@ class _BlockedUsersSheetState extends State<BlockedUsersSheet> {
             else if (_entries.isEmpty)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text(l10n.blockedUsersEmpty),
+                child: BalancedText(l10n.blockedUsersEmpty),
               )
             else
               Flexible(

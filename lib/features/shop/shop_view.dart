@@ -33,6 +33,7 @@ import 'services/shop_economy_state.dart';
 import 'services/shop_purchase_notifier.dart';
 import 'widgets/shop_legal_links_row.dart';
 import 'widgets/shop_item_visual.dart';
+import '../../shared/ui/balanced_text.dart';
 
 part 'services/shop_iap_service.dart';
 part 'services/shop_purchase_handler.dart';
@@ -741,7 +742,7 @@ class _ShopViewState extends State<ShopView> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(l10n.shopEmpty, textAlign: TextAlign.center),
+              child: BalancedText(l10n.shopEmpty, textAlign: TextAlign.center),
             ),
           ),
         ],

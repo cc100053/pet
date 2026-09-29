@@ -15,6 +15,7 @@ import '../../services/env.dart';
 import '../../services/settings/app_settings_repository.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_ui_scale.dart';
+import '../../shared/ui/balanced_text.dart';
 
 const String _googleLogoSvg = '''
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -385,7 +386,7 @@ class _SignInViewState extends State<SignInView> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
+                                          BalancedText(
                                             l10n.signInSafetyAgreementLabel,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
@@ -471,7 +472,7 @@ class _SignInViewState extends State<SignInView> {
                               ),
                               const SizedBox(width: 8),
                               Flexible(
-                                child: Text(
+                                child: BalancedText(
                                   _activeProvider == null
                                       ? l10n.signInOpening
                                       : l10n.signInOpeningProvider(

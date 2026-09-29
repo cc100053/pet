@@ -25,6 +25,7 @@ import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/status_bar_style.dart';
 import '../../shared/ui/user_avatar.dart';
 import '../../shared/utils/avatar_display_position.dart';
+import '../../shared/ui/balanced_text.dart';
 
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
@@ -741,7 +742,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          BalancedText(
             l10n.profileDeleteAccountConfirmBody,
             textAlign: TextAlign.center,
             style: GoogleFonts.mPlusRounded1c(
@@ -872,7 +873,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      BalancedText(
                         _isNetworkUnavailableError(snapshot.error!)
                             ? l10n.errorNetwork
                             : l10n.errorUnexpected,
@@ -908,7 +909,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
             final data = snapshot.data;
             if (data == null) {
-              return Center(child: Text(l10n.profileEmpty));
+              return Center(child: BalancedText(l10n.profileEmpty));
             }
 
             return _buildProfileContent(context, data, l10n);

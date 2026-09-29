@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/user_avatar.dart';
+import '../../shared/ui/balanced_text.dart';
 
 class RoomMembersSheet extends StatefulWidget {
   const RoomMembersSheet({
@@ -178,7 +179,7 @@ class _RoomMembersSheetState extends State<RoomMembersSheet> {
             else if (_entries.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Text(l10n.chatRoomMembersEmpty),
+                child: BalancedText(l10n.chatRoomMembersEmpty),
               )
             else
               Flexible(

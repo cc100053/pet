@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
 import 'juice_wrappers.dart';
+import 'balanced_text.dart';
 
 enum AppDialogTone { info, success, warning, danger }
 
@@ -205,7 +206,7 @@ class _JuiceSnackbarWidgetState extends State<_JuiceSnackbarWidget>
                           ),
                           const Gap(12),
                           Expanded(
-                            child: Text(
+                            child: BalancedText(
                               widget.message,
                               style: GoogleFonts.mPlusRounded1c(
                                 color: AppTheme.textPrimary,
@@ -393,7 +394,7 @@ Future<T?> showJuiceToast<T>({
                             children: [
                               const Gap(4),
                               if (message != null)
-                                Text(
+                                BalancedText(
                                   message,
                                   style: GoogleFonts.mPlusRounded1c(
                                     color: accent,
@@ -634,7 +635,7 @@ class AppDialog extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  BalancedText(
                                     title,
                                     style: theme.textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.w700,
@@ -642,7 +643,7 @@ class AppDialog extends StatelessWidget {
                                   ),
                                   if (message != null) ...[
                                     const SizedBox(height: 6),
-                                    Text(
+                                    BalancedText(
                                       message!,
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(

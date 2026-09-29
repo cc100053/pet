@@ -119,7 +119,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
           const Icon(Icons.lock_rounded, size: 18, color: Colors.black87),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
+            child: BalancedText(
               l10n.roomLockedMessage,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -339,7 +339,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                     ),
                   ],
                 ),
-                child: Text(
+                child: BalancedText(
                   l10n.petOverfedBubble,
                   style: const TextStyle(
                     fontSize: 12,
@@ -666,7 +666,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
+                BalancedText(
                   l10n.petDepartureGuideTitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(

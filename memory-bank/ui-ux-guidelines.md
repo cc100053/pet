@@ -20,6 +20,10 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Kana decorative labels (`KanaEyebrow`) render only for the `ja` locale, in
   the bundled `KiwiMaruKana` subset (kana + CJK punctuation only) with
   M PLUS Rounded fallback. Do not put kanji or Latin in it.
+- Short UI copy that can wrap (titles, subtitles, hints, empty states, dialog
+  and toast messages) uses `BalancedText` so lines break evenly instead of
+  leaving an orphan (e.g. a lone 「す。」). Keep plain `Text` for one-line
+  labels and long user content (chat bodies).
 - Fixed-size game surfaces must shrink, not overflow: `test/ui_overflow_matrix_test.dart`
   sweeps every locale × 320/375/402/440pt × text scale 1.0/1.3. Add new
   fixed-size surfaces to it.

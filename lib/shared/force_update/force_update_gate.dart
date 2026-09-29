@@ -18,6 +18,7 @@ import '../whats_new/feature_request_sheet.dart';
 import '../whats_new/whats_new_toast_body.dart';
 import 'force_update_debug_tool.dart';
 import 'update_policy.dart';
+import '../ui/balanced_text.dart';
 
 class ForceUpdateGate extends StatefulWidget {
   const ForceUpdateGate({
@@ -384,7 +385,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       await showJuiceToast<void>(
         context: context,
         message: l10n.softUpdateTitle,
-        body: Text(config.softUpdateMessage ?? l10n.softUpdateMessage),
+        body: BalancedText(config.softUpdateMessage ?? l10n.softUpdateMessage),
         position: JuicePosition.center,
         actionLabel: l10n.softUpdateAction,
         onActionPressed: () {
@@ -543,7 +544,7 @@ class ForceUpdateScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 12),
-              Text(
+              BalancedText(
                 config.hardUpdateMessage ?? l10n.forceUpdateMessage,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,

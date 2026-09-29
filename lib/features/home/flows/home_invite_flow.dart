@@ -168,7 +168,7 @@ extension _HomeInviteFlow on _HomeViewState {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          BalancedText(
             l10n.roomInviteCodeMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.black.withValues(alpha: 0.65),
@@ -211,7 +211,7 @@ extension _HomeInviteFlow on _HomeViewState {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          BalancedText(
             l10n.roomInviteCodeTapHint,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -352,7 +352,7 @@ extension _HomeInviteFlow on _HomeViewState {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
+                    child: BalancedText(
                       l10n.roomInvitePromptTitle,
                       style: const TextStyle(
                         fontSize: 13,
@@ -371,7 +371,7 @@ extension _HomeInviteFlow on _HomeViewState {
                 ],
               ),
               const Gap(6),
-              Text(
+              BalancedText(
                 l10n.roomInvitePromptBody,
                 style: TextStyle(
                   fontSize: 12,

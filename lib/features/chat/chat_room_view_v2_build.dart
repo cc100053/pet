@@ -237,7 +237,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
+                child: BalancedText(
                   l10n.chatEmptyState,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(

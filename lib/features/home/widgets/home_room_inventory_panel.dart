@@ -13,6 +13,7 @@ import '../room_backgrounds.dart';
 import '../../shop/models/shop_item.dart';
 import '../../shop/widgets/shop_item_visual.dart';
 import 'pet_equipment_overlay.dart';
+import '../../../shared/ui/balanced_text.dart';
 
 /// A pet that can be picked as the equipment dress-up target.
 class RoomPetOption {
@@ -385,7 +386,10 @@ class _FurnitureTab extends StatelessWidget {
     }
     if (items.isEmpty) {
       return Center(
-        child: Text(l10n.furnitureInventoryEmpty, textAlign: TextAlign.center),
+        child: BalancedText(
+          l10n.furnitureInventoryEmpty,
+          textAlign: TextAlign.center,
+        ),
       );
     }
 
@@ -468,7 +472,10 @@ class _BackgroundTab extends StatelessWidget {
     }
     if (items.isEmpty) {
       return Center(
-        child: Text(l10n.backgroundInventoryEmpty, textAlign: TextAlign.center),
+        child: BalancedText(
+          l10n.backgroundInventoryEmpty,
+          textAlign: TextAlign.center,
+        ),
       );
     }
 
@@ -964,7 +971,7 @@ class _EquipmentItemStrip extends StatelessWidget {
     }
     if (items.isEmpty) {
       return Center(
-        child: Text(
+        child: BalancedText(
           l10n.equipmentNoneOwned,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 12, color: Colors.black54),
@@ -1073,7 +1080,7 @@ class _EquipmentInventoryItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              Text(
+              BalancedText(
                 isUnavailable
                     ? l10n.equipmentCopyInUse
                     : item.localizedName(l10n),

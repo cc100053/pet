@@ -409,7 +409,7 @@ class _ShopFeaturedBannerState extends State<ShopFeaturedBanner>
                                 ),
                                 const SizedBox(height: 6),
                                 Center(
-                                  child: Text(
+                                  child: BalancedText(
                                     '${l10n.storeSubscriptionDurationMonthly} • ${l10n.storeSubscriptionRenewalNote}',
                                     style: GoogleFonts.mPlusRounded1c(
                                       color: const Color(0xFF303F9F),

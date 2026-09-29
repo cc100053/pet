@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
 import '../../services/feature_requests/feature_request_service.dart';
+import '../ui/balanced_text.dart';
 
 void showFeatureRequestSheet(BuildContext context) {
   final l10n = AppLocalizations.of(context)!;
@@ -126,7 +127,7 @@ class _FeatureRequestSheetState extends State<_FeatureRequestSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : Text(
+                  : BalancedText(
                       _submitted
                           ? l10n.whatsNewSuggestFeatureSuccess
                           : l10n.whatsNewSuggestFeatureSubmit,

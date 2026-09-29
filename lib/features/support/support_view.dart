@@ -12,6 +12,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/juice_wrappers.dart';
+import '../../shared/ui/balanced_text.dart';
 
 /// Single in-app support thread. User messages are emailed to the team by the
 /// support_notify Edge Function; replies come back as `sender = 'admin'` rows.
@@ -148,7 +149,7 @@ class _SupportViewState extends State<SupportView> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Text(
+          child: BalancedText(
             l10n.profileFeedbackEncouragement,
             textAlign: TextAlign.center,
             style: GoogleFonts.mPlusRounded1c(

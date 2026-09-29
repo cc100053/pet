@@ -14,6 +14,7 @@ import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import 'pet_animated_image.dart';
 import 'pet_catalog.dart';
+import '../../shared/ui/balanced_text.dart';
 
 class PetSelectionResult {
   const PetSelectionResult({required this.pet, required this.petName});
@@ -348,7 +349,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                 AnimatedSwitcher(
                                   duration: 200.ms,
                                   child: _selectedPetId == null
-                                      ? Text(
+                                      ? BalancedText(
                                           l10n.petSelectionHint,
                                           key: const ValueKey(
                                             'petSelectionHint',
@@ -568,7 +569,7 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                 ),
               ),
               const Gap(4),
-              Text(
+              BalancedText(
                 pet.tagline(l10n),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppTheme.textSecondary,

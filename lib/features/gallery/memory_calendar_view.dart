@@ -12,6 +12,7 @@ import '../../shared/ui/photo_viewer_item.dart';
 import '../../shared/ui/user_avatar.dart';
 import 'models/memory_feed.dart';
 import 'services/memory_calendar_data_service.dart';
+import '../../shared/ui/balanced_text.dart';
 
 part 'widgets/calendar_header.dart';
 part 'widgets/calendar_weekday_strip.dart';
@@ -857,7 +858,7 @@ class _MemoryDaySheet extends StatelessWidget {
             Expanded(
               child: feeds.isEmpty
                   ? Center(
-                      child: Text(
+                      child: BalancedText(
                         AppLocalizations.of(context)!.calendarNoMemoriesForDay,
                       ),
                     )

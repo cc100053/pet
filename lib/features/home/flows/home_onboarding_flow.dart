@@ -633,7 +633,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Text(
+                        BalancedText(
                           l10n.onboardingProfileSetupTitle,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.headlineSmall?.copyWith(
@@ -642,7 +642,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
                           ),
                         ),
                         SizedBox(height: 10 * scale),
-                        Text(
+                        BalancedText(
                           l10n.onboardingProfileSetupSubtitle,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -690,7 +690,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
                                 ),
                                 label: Text(l10n.profileAvatarUpload),
                               ),
-                              Text(
+                              BalancedText(
                                 l10n.onboardingProfileSetupAvatarOptional,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: AppTheme.textSecondary,

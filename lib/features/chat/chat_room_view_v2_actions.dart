@@ -149,7 +149,7 @@ extension _ChatMessageActions on _ChatRoomViewV2State {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
+              BalancedText(
                 isPhoto
                     ? l10n.feedRecallPhotoConfirm
                     : l10n.chatDeleteMessageConfirm,

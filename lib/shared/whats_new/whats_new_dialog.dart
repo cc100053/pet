@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../ui/user_avatar.dart';
 import 'app_whats_new_entry.dart';
 import 'feature_request_sheet.dart';
+import '../ui/balanced_text.dart';
 
 class WhatsNewDialog extends StatelessWidget {
   const WhatsNewDialog({super.key, required this.version, required this.entry});
@@ -72,7 +73,7 @@ class WhatsNewDialog extends StatelessWidget {
                           const SizedBox(height: 18),
                           Center(child: _VersionCard(version: version)),
                           const SizedBox(height: 8),
-                          Text(
+                          BalancedText(
                             entry.title(l10n),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,

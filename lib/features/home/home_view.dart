@@ -103,6 +103,7 @@ import 'widgets/pet_equipment_overlay.dart';
 import 'widgets/home_responsive.dart';
 import 'widgets/pet_photo_gallery.dart';
 import 'widgets/photo_food.dart';
+import '../../shared/ui/balanced_text.dart';
 
 part 'home_view_models.dart';
 part 'controllers/home_unread_manager.dart';
@@ -1057,7 +1058,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Future<T> _withNetworkTimeout<T>(Future<T> future, {Duration? timeout}) async {
+  Future<T> _withNetworkTimeout<T>(
+    Future<T> future, {
+    Duration? timeout,
+  }) async {
     return future.timeout(timeout ?? _networkTimeout);
   }
 

@@ -9,7 +9,7 @@ extension _ShopDepartedPetSelector on _ShopViewState {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          BalancedText(
             l10n.petDepartureLetterUnavailableMessage,
             textAlign: TextAlign.center,
             style: GoogleFonts.mPlusRounded1c(
@@ -61,7 +61,7 @@ extension _ShopDepartedPetSelector on _ShopViewState {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          BalancedText(
             l10n.petDepartureLetterConfirmMessage(pet.petName),
             textAlign: TextAlign.center,
             style: GoogleFonts.mPlusRounded1c(

@@ -58,6 +58,7 @@ import 'widgets/chat_message_envelope.dart';
 import 'widgets/chat_reaction_details_sheet.dart';
 import 'widgets/chat_reply_preview_panel.dart';
 import 'widgets/chat_keyboard_dismiss_shell.dart';
+import '../../shared/ui/balanced_text.dart';
 
 part 'chat_room_view_v2_overlays.dart';
 part 'chat_room_view_v2_composer.dart';
@@ -1775,7 +1776,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         message: l10n.roomLockedTitle,
         body: Column(
           children: [
-            Text(
+            BalancedText(
               l10n.roomLockedMessage,
               style: GoogleFonts.mPlusRounded1c(
                 fontSize: 14,
@@ -1795,7 +1796,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         message: l10n.petDepartureFeedDisabledTitle,
         body: Column(
           children: [
-            Text(
+            BalancedText(
               l10n.petDepartureFeedDisabledMessage,
               style: GoogleFonts.mPlusRounded1c(
                 fontSize: 14,

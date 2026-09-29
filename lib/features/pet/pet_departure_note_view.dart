@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/status_bar_style.dart';
+import '../../shared/ui/balanced_text.dart';
 
 class PetDepartureNoteView extends StatelessWidget {
   const PetDepartureNoteView({
@@ -190,7 +191,7 @@ class PetDepartureNoteView extends StatelessWidget {
                                                           0xFFE8D8B5,
                                                         ),
                                                       ),
-                                                      Text(
+                                                      BalancedText(
                                                         l10n.petDepartureGuideTitle,
                                                         textAlign:
                                                             TextAlign.center,
@@ -208,7 +209,7 @@ class PetDepartureNoteView extends StatelessWidget {
                                                             ),
                                                       ),
                                                       const SizedBox(height: 8),
-                                                      Text(
+                                                      BalancedText(
                                                         l10n.petDepartureGuideMessage,
                                                         textAlign:
                                                             TextAlign.center,
