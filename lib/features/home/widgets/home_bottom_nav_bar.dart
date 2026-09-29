@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/ui/juice_wrappers.dart';
 import 'home_responsive.dart';
 
 class HomeBottomNavBar extends StatelessWidget {
@@ -37,14 +38,13 @@ class HomeBottomNavBar extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 20 * scale),
       padding: EdgeInsets.symmetric(horizontal: 16 * scale),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.black87, width: 2),
+        border: Border.all(color: AppTheme.ink, width: 2.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
+            color: AppTheme.ink.withValues(alpha: 0.2),
+            offset: Offset(0, 5 * scale),
           ),
         ],
       ),
@@ -108,8 +108,8 @@ class _NavIconButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           customBorder: const CircleBorder(),
-          splashColor: Colors.black.withValues(alpha: 0.12),
-          highlightColor: Colors.black.withValues(alpha: 0.08),
+          splashColor: AppTheme.leaf.withValues(alpha: 0.25),
+          highlightColor: AppTheme.leaf.withValues(alpha: 0.15),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -119,7 +119,7 @@ class _NavIconButton extends StatelessWidget {
                   width: 32 * scale,
                   height: 32 * scale,
                   colorFilter: const ColorFilter.mode(
-                    Colors.black87,
+                    AppTheme.ink,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -133,9 +133,12 @@ class _NavIconButton extends StatelessWidget {
                     width: 10 * scale,
                     height: 10 * scale,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE53935),
+                      color: const Color(0xFFF26B6B),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.2),
+                      border: Border.all(
+                        color: AppTheme.surfaceColor,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -162,43 +165,29 @@ class _CameraButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        customBorder: const CircleBorder(),
-        splashColor: Colors.black.withValues(alpha: 0.12),
-        highlightColor: Colors.black.withValues(alpha: 0.08),
-        child: Container(
-          width: size,
+    // Raised "stamp": pokes above the dock and presses into its shadow.
+    return Transform.translate(
+      offset: Offset(0, -12 * scale),
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: HardShadowPressButton(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(size),
+          shadowDepth: 5 * scale,
+          color: AppTheme.leafStrong,
+          borderWidth: 3,
           height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: enabled ? 1 : 0.5),
-            border: Border.all(color: Colors.black87, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Container(
-            margin: EdgeInsets.all(6 * scale),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.primaryColor.withValues(alpha: enabled ? 1 : 0.5),
-            ),
-            child: SvgPicture.asset(
-              'assets/icon/solar--camera-linear.svg',
-              width: 32 * scale,
-              height: 32 * scale,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
+          child: SizedBox(
+            width: size,
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/icon/solar--camera-linear.svg',
+                width: 30 * scale,
+                height: 30 * scale,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),

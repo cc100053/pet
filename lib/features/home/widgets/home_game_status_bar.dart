@@ -183,14 +183,13 @@ class _LeftCluster extends StatelessWidget {
                     vertical: 4 * scale,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.92),
+                    color: AppTheme.surfaceColor,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.black87, width: 2),
+                    border: Border.all(color: AppTheme.ink, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 10,
-                        offset: const Offset(0, 6),
+                        color: AppTheme.ink.withValues(alpha: 0.2),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -220,14 +219,13 @@ class _LeftCluster extends StatelessWidget {
                           vertical: 8 * scale,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppTheme.surfaceColor,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.black87, width: 2),
+                          border: Border.all(color: AppTheme.ink, width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 12,
-                              offset: const Offset(0, 8),
+                              color: AppTheme.ink.withValues(alpha: 0.2),
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
@@ -237,7 +235,7 @@ class _LeftCluster extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: petNameTextStyle(
                             fontSize: nameFontSize,
-                            color: Colors.black,
+                            color: AppTheme.textPrimary,
                             height: 1,
                           ),
                         ),
@@ -422,14 +420,13 @@ class _InventoryGuidanceHighlightState
                         vertical: 5 * scale,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.96),
+                        color: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.black87, width: 1.5),
+                        border: Border.all(color: AppTheme.ink, width: 1.5),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 6),
+                            color: AppTheme.ink.withValues(alpha: 0.2),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -438,7 +435,7 @@ class _InventoryGuidanceHighlightState
                         style: TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
-                          color: Colors.black,
+                          color: AppTheme.textPrimary,
                           height: 1,
                         ),
                       ),
@@ -578,14 +575,13 @@ class _ActionChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           child: Ink(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppTheme.surfaceColor,
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.black87, width: 1.5),
+              border: Border.all(color: AppTheme.ink, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 6),
+                  color: AppTheme.ink.withValues(alpha: 0.2),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
@@ -622,7 +618,7 @@ class _ActionChip extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w800,
-                              color: Colors.black,
+                              color: AppTheme.textPrimary,
                             ).copyWith(fontSize: 10.5),
                           ),
                         ),
@@ -721,7 +717,7 @@ class _ExpRingAvatar extends StatelessWidget {
             painter: _CircularProgressPainter(
               progress: clamped,
               strokeWidth: ringStrokeWidth,
-              backgroundColor: Colors.black.withValues(alpha: 0.12),
+              backgroundColor: AppTheme.ink.withValues(alpha: 0.15),
               progressColor: AppTheme.secondaryColor,
             ),
           ),
@@ -732,12 +728,11 @@ class _ExpRingAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.black87, width: 2),
+              border: Border.all(color: AppTheme.ink, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.10),
-                  blurRadius: 12,
-                  offset: const Offset(0, 8),
+                  color: AppTheme.ink.withValues(alpha: 0.2),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
@@ -982,9 +977,9 @@ class _HealthBarState extends State<_HealthBar> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.92),
+                  color: const Color(0xFFEFE4D0), // empty track
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: Colors.black87, width: 2),
+                  border: Border.all(color: AppTheme.ink, width: 2),
                 ),
               ),
               Positioned(
@@ -1005,7 +1000,7 @@ class _HealthBarState extends State<_HealthBar> {
               Text(
                 debugText,
                 style: const TextStyle(
-                  color: Colors.black,
+                  color: AppTheme.textPrimary,
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
                 ),

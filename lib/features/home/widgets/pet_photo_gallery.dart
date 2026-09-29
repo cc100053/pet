@@ -436,7 +436,7 @@ class _GalleryPolaroidFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasCaption = caption.trim().isNotEmpty;
 
-    return Material(
+    final card = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
@@ -444,9 +444,15 @@ class _GalleryPolaroidFrame extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.all(tokens.innerPadding),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.black87, width: 3),
+            border: Border.all(color: AppTheme.softLine, width: 2.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.ink.withValues(alpha: 0.18),
+                offset: Offset(0, 5 * scale),
+              ),
+            ],
           ),
           child: CustomMultiChildLayout(
             delegate: _GalleryFrameLayoutDelegate(tokens: tokens),
@@ -457,7 +463,6 @@ class _GalleryPolaroidFrame extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8F4EF),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.black87, width: 2),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -524,14 +529,13 @@ class _GalleryPolaroidFrame extends StatelessWidget {
                     height: tokens.avatarSize,
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.surfaceColor,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black87, width: 2),
+                      border: Border.all(color: AppTheme.ink, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.10),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
+                          color: AppTheme.ink.withValues(alpha: 0.2),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -547,6 +551,30 @@ class _GalleryPolaroidFrame extends StatelessWidget {
           ),
         ),
       ),
+    );
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        card,
+        // Washi tape strip pinning the polaroid.
+        Positioned(
+          top: -6 * scale,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Center(
+              child: Transform.rotate(
+                angle: 0.05,
+                child: Container(
+                  width: 64 * scale,
+                  height: 18 * scale,
+                  color: AppTheme.sky.withValues(alpha: 0.8),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

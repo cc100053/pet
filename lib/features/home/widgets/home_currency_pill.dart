@@ -25,12 +25,11 @@ class _RewardPendingPill extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFFFF3CC),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.black87, width: 1.5),
+          border: Border.all(color: AppTheme.ink, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: AppTheme.ink.withValues(alpha: 0.2),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -51,7 +50,7 @@ class _RewardPendingPill extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                  color: AppTheme.ink,
                   height: 1,
                 ),
               ),
@@ -229,14 +228,13 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                         vertical: 5 * scale,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.92),
+                        color: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.black87, width: 2),
+                        border: Border.all(color: AppTheme.ink, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 10,
-                            offset: const Offset(0, 6),
+                            color: AppTheme.ink.withValues(alpha: 0.2),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -277,7 +275,7 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                           Container(
                             width: 1,
                             height: dividerHeight,
-                            color: Colors.black.withValues(alpha: 0.1),
+                            color: AppTheme.ink.withValues(alpha: 0.15),
                           ),
                           Expanded(
                             flex: 4,
@@ -374,7 +372,7 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                           Container(
                             width: 1,
                             height: dividerHeight,
-                            color: Colors.black.withValues(alpha: 0.1),
+                            color: AppTheme.ink.withValues(alpha: 0.15),
                           ),
                           Expanded(
                             flex: 2,
@@ -386,7 +384,7 @@ class _HomeCurrencyPillState extends State<HomeCurrencyPill>
                                   color: const Color(0xFFEE6D85),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.black87,
+                                    color: AppTheme.ink,
                                     width: 2,
                                   ),
                                 ),
