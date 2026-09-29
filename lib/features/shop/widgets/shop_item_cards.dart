@@ -106,14 +106,21 @@ class ShopGridItemCard extends StatelessWidget {
         ? l10n.commonBuyMore
         : (isOwnedLocked ? l10n.commonOwned : l10n.commonBuy);
 
+    // Gold frame marks premium (diamond-priced) items; shop-only accent.
+    final isPremium = item.priceDiamonds != null && !item.isIap;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isPremium ? AppTheme.gold : AppTheme.softLine,
+          width: isPremium ? 2.5 : 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
+            color: isPremium
+                ? const Color(0xFFD89E22)
+                : AppTheme.ink.withValues(alpha: 0.12),
             offset: const Offset(0, 3),
           ),
         ],
@@ -153,7 +160,7 @@ class ShopGridItemCard extends StatelessWidget {
                       text: item.localizedName(l10n),
                       fontSize: 20,
                       color: Colors.white,
-                      strokeColor: const Color(0xFF1A237E),
+                      strokeColor: AppTheme.ink,
                       strokeWidth: 3.5,
                       height: 24,
                       alignment: Alignment.center,
@@ -227,7 +234,7 @@ class ShopGridItemCard extends StatelessWidget {
                           _GridCurrencyPrice(
                             label: priceString,
                             fillColor: const Color(0xFFFFD700),
-                            strokeColor: const Color(0xFF795548),
+                            strokeColor: AppTheme.ink,
                           )
                         else ...[
                           if (item.priceCoins != null)
@@ -239,7 +246,7 @@ class ShopGridItemCard extends StatelessWidget {
                                 height: 24,
                               ),
                               fillColor: const Color(0xFFFFB1C6),
-                              strokeColor: Colors.black,
+                              strokeColor: AppTheme.ink,
                             ),
                           if (item.priceCoins != null &&
                               item.priceDiamonds != null)
@@ -253,7 +260,7 @@ class ShopGridItemCard extends StatelessWidget {
                                 height: 24,
                               ),
                               fillColor: const Color(0xFF91DBF9),
-                              strokeColor: Colors.black,
+                              strokeColor: AppTheme.ink,
                             ),
                         ],
                       ],
@@ -510,14 +517,8 @@ class _ShopRaisedButtonShell extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: borderRadius,
-          border: Border.all(color: Colors.black, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              offset: Offset(0, depth),
-              blurRadius: 4,
-            ),
-          ],
+          border: Border.all(color: AppTheme.ink, width: 2),
+          boxShadow: [BoxShadow(color: shadowColor, offset: Offset(0, depth))],
         ),
         clipBehavior: Clip.antiAlias,
         child: faceBuilder(context, false),
@@ -543,21 +544,12 @@ class _GridBuyAction extends StatelessWidget {
       onPressed: onPressed,
       depth: 3,
       borderRadius: BorderRadius.circular(20),
-      shadowColor: isOwnedLocked
-          ? Colors.grey.shade400
-          : const Color(0xFFE65100),
+      shadowColor: isOwnedLocked ? Colors.grey.shade400 : AppTheme.leafDeep,
       faceBuilder: (context, isPressed) => Container(
         constraints: const BoxConstraints(minWidth: 68, maxWidth: 104),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          gradient: isOwnedLocked
-              ? null
-              : const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFFD180), Color(0xFFFB8C00)],
-                ),
-          color: isOwnedLocked ? Colors.grey.shade200 : null,
+          color: isOwnedLocked ? Colors.grey.shade200 : AppTheme.leafStrong,
           borderRadius: BorderRadius.circular(20),
         ),
         child: FittedBox(
@@ -568,7 +560,7 @@ class _GridBuyAction extends StatelessWidget {
             color: Colors.white,
             strokeColor: isOwnedLocked
                 ? Colors.grey.shade500
-                : const Color(0xFFD54900),
+                : AppTheme.leafDeep,
             strokeWidth: 3.5,
           ),
         ),

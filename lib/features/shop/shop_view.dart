@@ -20,6 +20,7 @@ import '../../services/iap/revenuecat_service.dart';
 import '../../services/settings/app_settings_repository.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/mori.dart';
 import '../../shared/ui/app_dialog.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -38,12 +39,6 @@ part 'services/shop_purchase_handler.dart';
 part 'widgets/shop_departed_pet_selector.dart';
 part 'widgets/shop_item_cards.dart';
 part 'widgets/shop_view_decorations.dart';
-
-const List<Color> _storeBackgroundGradient = [
-  Color(0xFFE0F7FF), // Light Blue
-  Color(0xFFF3E5F5), // Soft Lavender
-  Color(0xFFFFF3E0), // Soft Peach/Pink
-];
 
 enum ShopCurrency { candy, diamonds }
 
@@ -646,14 +641,7 @@ class _ShopViewState extends State<ShopView> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppStatusBarStyles.light,
       child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: _storeBackgroundGradient,
-            ),
-          ),
+        body: MoriPaperBackground(
           child: Stack(
             children: [
               const _ShopBackgroundStars(),
@@ -765,7 +753,7 @@ class _ShopViewState extends State<ShopView> {
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         _buildSliverAppBar(l10n),
-        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+        const SliverToBoxAdapter(child: _ShopNoren()),
         if (_iapError != null)
           SliverToBoxAdapter(
             child: Padding(
@@ -956,7 +944,8 @@ class _ShopViewState extends State<ShopView> {
   Widget _buildSliverAppBar(AppLocalizations l10n) {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: Colors.transparent,
+      // Opaque so scrolled items don't slide under the title and wallet.
+      backgroundColor: AppTheme.paper,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
@@ -966,14 +955,14 @@ class _ShopViewState extends State<ShopView> {
         icon: const Icon(
           Icons.chevron_left_rounded,
           size: 40,
-          color: Color(0xFF5C6BC0),
+          color: AppTheme.ink,
         ),
       ),
       title: _ShopStrokeText(
         l10n.shopTitle,
         fontSize: 24,
         color: Colors.white,
-        strokeColor: const Color(0xFF1A237E),
+        strokeColor: AppTheme.ink,
         strokeWidth: 4.5,
       ),
       actions: [
@@ -983,7 +972,7 @@ class _ShopViewState extends State<ShopView> {
             icon: const Icon(
               Icons.history_rounded,
               size: 28,
-              color: Color(0xFF5C6BC0),
+              color: AppTheme.ink,
             ),
             tooltip: l10n.storeRestoreTooltip,
           ),

@@ -13,8 +13,66 @@ class _SectionHeader extends StatelessWidget {
         title,
         fontSize: 16,
         color: Colors.white,
-        strokeColor: Colors.black.withValues(alpha: 0.7),
+        strokeColor: AppTheme.ink,
         strokeWidth: 4.5,
+      ),
+    );
+  }
+}
+
+/// Noren curtain strip under the shop app bar. Kana (しょっぷ) is shown only
+/// for Japanese; other locales get plain panels with a leaf crest.
+class _ShopNoren extends StatelessWidget {
+  const _ShopNoren();
+
+  static const _panelColor = Color(0xFF4D86AA);
+  static const _hemColor = Color(0xFF2F5670);
+
+  @override
+  Widget build(BuildContext context) {
+    final isJa = Localizations.localeOf(context).languageCode == 'ja';
+    const kana = ['し', 'ょ', 'っ', 'ぷ'];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      child: Row(
+        children: [
+          for (var i = 0; i < kana.length; i++) ...[
+            if (i > 0) const SizedBox(width: 4),
+            Expanded(
+              child: Container(
+                height: 40,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: _panelColor,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(10),
+                  ),
+                  border: Border(
+                    bottom: BorderSide(color: _hemColor, width: 3),
+                  ),
+                ),
+                child: isJa
+                    ? Text(
+                        kana[i],
+                        style: TextStyle(
+                          fontFamily: KanaEyebrow.fontFamily,
+                          fontFamilyFallback: [
+                            ?GoogleFonts.mPlusRounded1c().fontFamily,
+                          ],
+                          fontSize: 20,
+                          color: Colors.white,
+                          height: 1,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.eco_rounded,
+                        size: 16,
+                        color: Color(0xCCFFFFFF),
+                      ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -851,7 +909,7 @@ class _CategoryItem extends StatelessWidget {
             label,
             fontSize: 16,
             color: Colors.white,
-            strokeColor: const Color(0xFF1A237E),
+            strokeColor: AppTheme.ink,
             strokeWidth: 4,
           ),
         ],
