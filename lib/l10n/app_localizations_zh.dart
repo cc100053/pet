@@ -2188,6 +2188,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew330Bullet2 => '客服回复会以推送通知的方式发送到您的设备。';
 
   @override
+  String get whatsNew400Title => '万圣节家具与全新外观';
+
+  @override
+  String get whatsNew400Bullet1 => '商店新增南瓜灯、糖果大锅与蝙蝠翼扶手椅。';
+
+  @override
+  String get whatsNew400Bullet2 => '首页、商店、日历与个人资料页面外观全面焕新。';
+
+  @override
+  String get whatsNew400Bullet3 => '可选择购买物品送达的房间，新上架商品会显示 NEW 标记。';
+
+  @override
   String get whatsNew321Title => '喂食与文字修复';
 
   @override
@@ -4486,6 +4498,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew330Bullet2 => '客服回覆會以推播通知的方式傳送到您的裝置。';
+
+  @override
+  String get whatsNew400Title => '萬聖節家具與全新外觀';
+
+  @override
+  String get whatsNew400Bullet1 => '商店新增南瓜燈、糖果大鍋與蝙蝠翼扶手椅。';
+
+  @override
+  String get whatsNew400Bullet2 => '首頁、商店、日曆與個人資料頁面外觀全面煥新。';
+
+  @override
+  String get whatsNew400Bullet3 => '可選擇購買物品要送達的房間，新上架商品會顯示 NEW 標記。';
 
   @override
   String get whatsNew321Title => '餵食與文字修正';

@@ -4083,6 +4083,30 @@ abstract class AppLocalizations {
   /// **'Get replies as push notifications right on your device.'**
   String get whatsNew330Bullet2;
 
+  /// No description provided for @whatsNew400Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Halloween Furniture & Fresh Look'**
+  String get whatsNew400Title;
+
+  /// No description provided for @whatsNew400Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pumpkin Lantern, Candy Cauldron and Bat-Wing Armchair are now in the Shop.'**
+  String get whatsNew400Bullet1;
+
+  /// No description provided for @whatsNew400Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'A refreshed look across Home, Shop, Calendar and Profile.'**
+  String get whatsNew400Bullet2;
+
+  /// No description provided for @whatsNew400Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which room a purchase is delivered to, and spot new arrivals with the NEW badge.'**
+  String get whatsNew400Bullet3;
+
   /// No description provided for @whatsNew321Title.
   ///
   /// In en, this message translates to:

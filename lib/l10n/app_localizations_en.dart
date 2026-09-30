@@ -2310,6 +2310,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Get replies as push notifications right on your device.';
 
   @override
+  String get whatsNew400Title => 'Halloween Furniture & Fresh Look';
+
+  @override
+  String get whatsNew400Bullet1 =>
+      'Pumpkin Lantern, Candy Cauldron and Bat-Wing Armchair are now in the Shop.';
+
+  @override
+  String get whatsNew400Bullet2 =>
+      'A refreshed look across Home, Shop, Calendar and Profile.';
+
+  @override
+  String get whatsNew400Bullet3 =>
+      'Choose which room a purchase is delivered to, and spot new arrivals with the NEW badge.';
+
+  @override
   String get whatsNew321Title => 'Feed & Text Fixes';
 
   @override

@@ -2212,6 +2212,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew330Bullet2 => '답장은 기기로 푸시 알림을 통해 받아요.';
 
   @override
+  String get whatsNew400Title => '할로윈 가구와 새로운 디자인';
+
+  @override
+  String get whatsNew400Bullet1 => '상점에 호박 랜턴, 캔디 가마솥, 박쥐 날개 안락의자가 등장했어요.';
+
+  @override
+  String get whatsNew400Bullet2 => '홈, 상점, 캘린더, 프로필의 디자인이 새롭게 바뀌었어요.';
+
+  @override
+  String get whatsNew400Bullet3 =>
+      '구매한 아이템을 받을 방을 고를 수 있고, 새 아이템에는 NEW 배지가 표시돼요.';
+
+  @override
   String get whatsNew321Title => '먹이 주기와 텍스트 수정';
 
   @override

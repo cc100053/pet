@@ -2201,6 +2201,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew330Bullet2 => '返信は端末へのプッシュ通知で届きます。';
 
   @override
+  String get whatsNew400Title => 'ハロウィン家具と新しいデザイン';
+
+  @override
+  String get whatsNew400Bullet1 =>
+      'ショップにジャック・オー・ランタン、キャンディ・カルドロン、コウモリの翼のアームチェアが登場。';
+
+  @override
+  String get whatsNew400Bullet2 => 'ホーム・ショップ・カレンダー・プロフィールのデザインを刷新しました。';
+
+  @override
+  String get whatsNew400Bullet3 => '購入品を届ける部屋を選べるようになり、新着アイテムには NEW バッジが付きます。';
+
+  @override
   String get whatsNew321Title => '給餌とテキストの修正';
 
   @override
