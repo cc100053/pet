@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
+import '../theme/app_theme.dart';
 import 'app_whats_new_entry.dart';
-import '../ui/balanced_text.dart';
 
+/// Version pill plus up to three icon rows (headline + optional detail).
+/// The entry title is the toast's `message`, so it is not repeated here.
 class WhatsNewToastBody extends StatelessWidget {
   const WhatsNewToastBody({
     super.key,
@@ -17,7 +20,6 @@ class WhatsNewToastBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final bullets = entry.bullets(l10n).take(3).toList(growable: false);
 
     return Column(
@@ -25,27 +27,14 @@ class WhatsNewToastBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _VersionPill(version: version),
-        const SizedBox(height: 10),
-        BalancedText(
-          entry.title(l10n),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            height: 1.4,
+        for (var index = 0; index < bullets.length; index++) ...[
+          const SizedBox(height: 12),
+          _IconRow(
+            icon: entry.bulletIcon(index),
+            headline: bullets[index],
+            detail: entry.bulletDetail(l10n, index),
           ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          l10n.whatsNewContentLabel,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.2,
-          ),
-        ),
-        const SizedBox(height: 10),
-        _TimelinePanel(bullets: bullets),
+        ],
       ],
     );
   }
@@ -59,23 +48,20 @@ class _VersionPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.12),
+        color: AppTheme.leaf.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.25),
-        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         child: Text(
           l10n.whatsNewVersionLabel(version),
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w900,
+          style: GoogleFonts.mPlusRounded1c(
+            color: AppTheme.leafDeep,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -83,76 +69,68 @@ class _VersionPill extends StatelessWidget {
   }
 }
 
-class _TimelinePanel extends StatelessWidget {
-  const _TimelinePanel({required this.bullets});
+class _IconRow extends StatelessWidget {
+  const _IconRow({required this.icon, required this.headline, this.detail});
 
-  final List<String> bullets;
+  final AppWhatsNewIcon icon;
+  final String headline;
+  final String? detail;
+
+  static (IconData, Color) _style(AppWhatsNewIcon icon) => switch (icon) {
+    AppWhatsNewIcon.newItem => (Icons.chair_rounded, AppTheme.secondaryColor),
+    AppWhatsNewIcon.newPet => (Icons.pets_rounded, AppTheme.wood),
+    AppWhatsNewIcon.design => (Icons.palette_rounded, AppTheme.sakura),
+    AppWhatsNewIcon.feature => (Icons.auto_awesome_rounded, AppTheme.leaf),
+    AppWhatsNewIcon.social => (Icons.forum_rounded, AppTheme.sky),
+    AppWhatsNewIcon.fix => (Icons.build_rounded, AppTheme.textSecondary),
+  };
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final (iconData, tint) = _style(icon);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        for (var index = 0; index < bullets.length; index++) ...[
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 32,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.14,
-                          ),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '${index + 1}',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      if (index < bullets.length - 1)
-                        Expanded(
-                          child: Container(
-                            width: 2,
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.15,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: BalancedText(
-                    bullets[index],
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 16,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: tint.withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(12),
           ),
-          if (index < bullets.length - 1) const SizedBox(height: 10),
-        ],
+          child: Icon(
+            iconData,
+            size: 22,
+            color: Color.lerp(tint, AppTheme.ink, 0.35),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                headline,
+                style: GoogleFonts.mPlusRounded1c(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  height: 1.3,
+                ),
+              ),
+              if (detail != null)
+                Text(
+                  detail!,
+                  style: GoogleFonts.mPlusRounded1c(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }

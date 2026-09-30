@@ -9,7 +9,6 @@ import '../../services/analytics/analytics_service.dart';
 import '../../services/app_config/app_config_service.dart';
 import '../../services/crash/crash_reporting_service.dart';
 import '../../shared/ui/app_dialog.dart';
-import '../../shared/ui/user_avatar.dart';
 import '../whats_new/app_whats_new_catalog.dart';
 import '../whats_new/app_whats_new_entry.dart';
 import '../whats_new/whats_new_policy.dart';
@@ -281,33 +280,8 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
     final l10n = AppLocalizations.of(context)!;
     await showJuiceToast<void>(
       context: context,
-      leading: Container(
-        height: 56,
-        width: 56,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: Image.asset(
-            UserAvatar.defaultAvatarAssetPath,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
+      message: entry.title(l10n),
+      fullWidthBody: true,
       body: WhatsNewToastBody(version: version, entry: entry),
       tone: AppDialogTone.info,
       position: JuicePosition.center,

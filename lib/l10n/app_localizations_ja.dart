@@ -2207,14 +2207,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew400Title => 'ハロウィン家具と新しいデザイン';
 
   @override
-  String get whatsNew400Bullet1 =>
-      'ショップにジャック・オー・ランタン、キャンディ・カルドロン、コウモリの翼のアームチェアが登場。';
+  String get whatsNew400Bullet1 => 'ハロウィン家具 3点';
 
   @override
-  String get whatsNew400Bullet2 => 'ホーム・ショップ・カレンダー・プロフィールのデザインを刷新しました。';
+  String get whatsNew400Bullet1Detail => 'かぼちゃランタンなど';
 
   @override
-  String get whatsNew400Bullet3 => '購入品を届ける部屋を選べるようになり、新着アイテムには NEW バッジが付きます。';
+  String get whatsNew400Bullet2 => 'デザインを刷新';
+
+  @override
+  String get whatsNew400Bullet2Detail => 'ホーム・ショップほか';
+
+  @override
+  String get whatsNew400Bullet3 => 'お届け先を選べる';
+
+  @override
+  String get whatsNew400Bullet3Detail => '新着に NEW バッジ';
 
   @override
   String get whatsNew321Title => '給餌とテキストの修正';

@@ -2316,16 +2316,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew400Title => 'Halloween Furniture & Fresh Look';
 
   @override
-  String get whatsNew400Bullet1 =>
-      'Pumpkin Lantern, Candy Cauldron and Bat-Wing Armchair are now in the Shop.';
+  String get whatsNew400Bullet1 => '3 Halloween pieces';
 
   @override
-  String get whatsNew400Bullet2 =>
-      'A refreshed look across Home, Shop, Calendar and Profile.';
+  String get whatsNew400Bullet1Detail => 'Pumpkin Lantern and more';
 
   @override
-  String get whatsNew400Bullet3 =>
-      'Choose which room a purchase is delivered to, and spot new arrivals with the NEW badge.';
+  String get whatsNew400Bullet2 => 'Refreshed design';
+
+  @override
+  String get whatsNew400Bullet2Detail => 'Home, Shop, Calendar, Profile';
+
+  @override
+  String get whatsNew400Bullet3 => 'Pick a delivery room';
+
+  @override
+  String get whatsNew400Bullet3Detail => 'New arrivals get a NEW badge';
 
   @override
   String get whatsNew321Title => 'Feed & Text Fixes';

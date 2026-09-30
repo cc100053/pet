@@ -6,10 +6,10 @@ import 'package:pet/services/app_config/app_store_lookup_service.dart';
 import 'package:pet/shared/force_update/force_update_debug_tool.dart';
 import 'package:pet/shared/force_update/force_update_gate.dart';
 import 'package:pet/shared/whats_new/whats_new_service.dart';
+import 'package:pet/shared/whats_new/whats_new_toast_body.dart';
 
 const _whatsNewVersionLabel = 'Version 1.0.5';
 const _whatsNewEntryTitle = 'Stability & Security Update';
-const _whatsNewSectionLabel = "What's new";
 const _whatsNewContinueLabel = 'Continue';
 
 void main() {
@@ -76,12 +76,12 @@ void main() {
 
     expect(find.text(_whatsNewEntryTitle), findsOneWidget);
     expect(find.text(_whatsNewVersionLabel), findsOneWidget);
-    expect(find.text(_whatsNewSectionLabel), findsOneWidget);
+    expect(find.byType(WhatsNewToastBody), findsOneWidget);
     final versionCardTopLeft = tester.getTopLeft(
       find.text(_whatsNewVersionLabel),
     );
     final titleTopLeft = tester.getTopLeft(find.text(_whatsNewEntryTitle));
-    expect(versionCardTopLeft.dy, lessThan(titleTopLeft.dy));
+    expect(titleTopLeft.dy, lessThan(versionCardTopLeft.dy));
     expect(settings.lastShownWhatsNewVersion, isNull);
     expect(settings.lastLaunchedAppVersion, '1.0.4');
     expect(settings.lastLaunchedAppReleaseSignature, '1.0.4+9');

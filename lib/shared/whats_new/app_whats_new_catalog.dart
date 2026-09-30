@@ -14,6 +14,16 @@ class AppWhatsNewCatalog {
         _version400Bullet2,
         _version400Bullet3,
       ],
+      bulletIcons: <AppWhatsNewIcon>[
+        AppWhatsNewIcon.newItem,
+        AppWhatsNewIcon.design,
+        AppWhatsNewIcon.feature,
+      ],
+      bulletDetailBuilders: <AppWhatsNewTextBuilder?>[
+        _version400Bullet1Detail,
+        _version400Bullet2Detail,
+        _version400Bullet3Detail,
+      ],
       actionLabelBuilder: _continueLabel,
     ),
     AppWhatsNewEntry(
@@ -346,6 +356,12 @@ class AppWhatsNewCatalog {
       l10n.whatsNew400Bullet2;
   static String _version400Bullet3(AppLocalizations l10n) =>
       l10n.whatsNew400Bullet3;
+  static String _version400Bullet1Detail(AppLocalizations l10n) =>
+      l10n.whatsNew400Bullet1Detail;
+  static String _version400Bullet2Detail(AppLocalizations l10n) =>
+      l10n.whatsNew400Bullet2Detail;
+  static String _version400Bullet3Detail(AppLocalizations l10n) =>
+      l10n.whatsNew400Bullet3Detail;
 
   static String _version330Title(AppLocalizations l10n) =>
       l10n.whatsNew330Title;

@@ -11,10 +11,24 @@ separate copy. Keep this skill's existing name for repository workflow routing.
 ## Copy and locales
 
 - Bundle: `lib/shared/whats_new/app_whats_new_catalog.dart` and
-  `lib/l10n/app_*.arb`. Use one title, up to three user-facing bullets, and an
-  optional CTA. Preserve older entries and ARB keys; update an existing version
-  rather than duplicating it. Version keys use the public version; ARB suffixes
-  remove dots (`1.2.1` → `121`).
+  `lib/l10n/app_*.arb`. Use one title, up to three rows, and an optional CTA.
+  Preserve older entries and ARB keys; update an existing version rather than
+  duplicating it. Version keys use the public version; ARB suffixes remove
+  dots (`1.2.1` → `121`).
+- Each bundle row is an icon, a headline, and an optional detail line; the
+  dialog renders them as scannable icon rows, not sentences:
+  - `whatsNew<V>BulletN`: headline, a noun phrase with no terminal
+    punctuation. Max ja/zh 12 chars, ko 14, en 28.
+  - `whatsNew<V>BulletNDetail`: optional, one fact only (e.g. the lead item
+    name plus "and more"), never a list of every item. Max ja/zh 16 chars,
+    ko 18, en 32.
+  - `bulletIcons`: pick from `AppWhatsNewIcon` — `newItem` (furniture,
+    equipment, backgrounds), `newPet`, `design` (visual refresh), `feature`
+    (new capability), `social` (chat, shared rooms, invites), `fix`
+    (bug fixes, stability). Add an enum value only with approval.
+  - Title stays short (it is the dialog heading): ja/zh ≤16 chars, ko ≤18, en ≤32.
+  - Use shop-visible item names (the localized `ShopItem` name), not
+    alternative names from marketing copy.
 - ASC: `.asc/version-localizations/*.strings`. Preserve approved long-form
   `whatsNew` (the repo uses `Ver X.X.X Update Details` headers). Never replace it
   with abbreviated bundle bullets. `promotionalText` describes relevant,

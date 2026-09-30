@@ -2194,13 +2194,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew400Title => '万圣节家具与全新外观';
 
   @override
-  String get whatsNew400Bullet1 => '商店新增南瓜灯、糖果大锅与蝙蝠翼扶手椅。';
+  String get whatsNew400Bullet1 => '万圣节家具 3 款';
 
   @override
-  String get whatsNew400Bullet2 => '首页、商店、日历与个人资料页面外观全面焕新。';
+  String get whatsNew400Bullet1Detail => '南瓜灯等新品';
 
   @override
-  String get whatsNew400Bullet3 => '可选择购买物品送达的房间，新上架商品会显示 NEW 标记。';
+  String get whatsNew400Bullet2 => '外观全面焕新';
+
+  @override
+  String get whatsNew400Bullet2Detail => '首页、商店等页面';
+
+  @override
+  String get whatsNew400Bullet3 => '可选送达房间';
+
+  @override
+  String get whatsNew400Bullet3Detail => '新品显示 NEW 标记';
 
   @override
   String get whatsNew321Title => '喂食与文字修复';
@@ -4509,13 +4518,22 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get whatsNew400Title => '萬聖節家具與全新外觀';
 
   @override
-  String get whatsNew400Bullet1 => '商店新增南瓜燈、糖果大鍋與蝙蝠翼扶手椅。';
+  String get whatsNew400Bullet1 => '萬聖節家具 3 款';
 
   @override
-  String get whatsNew400Bullet2 => '首頁、商店、日曆與個人資料頁面外觀全面煥新。';
+  String get whatsNew400Bullet1Detail => '南瓜燈等新品';
 
   @override
-  String get whatsNew400Bullet3 => '可選擇購買物品要送達的房間，新上架商品會顯示 NEW 標記。';
+  String get whatsNew400Bullet2 => '外觀全面煥新';
+
+  @override
+  String get whatsNew400Bullet2Detail => '首頁、商店等頁面';
+
+  @override
+  String get whatsNew400Bullet3 => '可選送達房間';
+
+  @override
+  String get whatsNew400Bullet3Detail => '新品顯示 NEW 標記';
 
   @override
   String get whatsNew321Title => '餵食與文字修正';

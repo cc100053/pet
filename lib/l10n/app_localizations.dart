@@ -4098,20 +4098,38 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew400Bullet1.
   ///
   /// In en, this message translates to:
-  /// **'Pumpkin Lantern, Candy Cauldron and Bat-Wing Armchair are now in the Shop.'**
+  /// **'3 Halloween pieces'**
   String get whatsNew400Bullet1;
+
+  /// No description provided for @whatsNew400Bullet1Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Pumpkin Lantern and more'**
+  String get whatsNew400Bullet1Detail;
 
   /// No description provided for @whatsNew400Bullet2.
   ///
   /// In en, this message translates to:
-  /// **'A refreshed look across Home, Shop, Calendar and Profile.'**
+  /// **'Refreshed design'**
   String get whatsNew400Bullet2;
+
+  /// No description provided for @whatsNew400Bullet2Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Home, Shop, Calendar, Profile'**
+  String get whatsNew400Bullet2Detail;
 
   /// No description provided for @whatsNew400Bullet3.
   ///
   /// In en, this message translates to:
-  /// **'Choose which room a purchase is delivered to, and spot new arrivals with the NEW badge.'**
+  /// **'Pick a delivery room'**
   String get whatsNew400Bullet3;
+
+  /// No description provided for @whatsNew400Bullet3Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'New arrivals get a NEW badge'**
+  String get whatsNew400Bullet3Detail;
 
   /// No description provided for @whatsNew321Title.
   ///
