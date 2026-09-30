@@ -33,6 +33,10 @@ section named in each step.
    preview to the user.
 7. **Wire it up.** Load `.codex/skills/shared-item-rollout/SKILL.md` and follow
    it together with "Where a new item gets wired" in `docs/shop_pricing.md`.
+   Read its `references/decor-contracts.md` and audit all three layers live
+   (catalog RPC, purchase/placement RPC predicates, RLS). Add the sku to
+   `supabase/functions/notify_friend/l10n.ts`; purchase pushes otherwise show
+   the raw sku (`test/notify_friend_store_item_names_test.dart` guards this).
    - Gate `min_app_version` to the first build that actually bundles the PNG.
      Check `docs/release_status.md`: an already-uploaded build without the asset
      does not count.
@@ -44,5 +48,6 @@ section named in each step.
 ## Done means
 
 PNG normalized and committed, sketch sources saved, rollout skill complete
-(including its `flutter build bundle` asset check), tests green, pushed, and any
+(including its `flutter build bundle` asset check and the full
+`docs/testing.md` validation: format, `flutter analyze`, full `flutter test`), tests green, pushed, and any
 unapplied migration reported as pending.
