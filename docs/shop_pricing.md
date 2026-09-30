@@ -136,7 +136,8 @@ in sync, and log it in `docs/release_status.md` under Backend Deployments.
 Pricing is one of five touch points. For a furniture item the full set is:
 
 1. `assets/furniture/<name>.png` — lowercase filename; `pubspec.yaml` already
-   globs the directory, so no pubspec edit.
+   globs the directory, so no pubspec edit. Art follows `docs/art_style.md`
+   and goes through `scripts/normalize_furniture.py`.
 2. A migration in `supabase/migrations/` inserting the `items` row. Gate it with
    `is_active=false` + `visibility_mode=version_gated` +
    `min_app_version=<the release that bundles the asset>` +

@@ -28,6 +28,8 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   sweeps every locale × 320/375/402/440pt × text scale 1.0/1.3. Add new
   fixed-size surfaces to it.
 - Room frame casings keep their original (black-outlined) art; do not reskin.
+- New furniture art follows `docs/art_style.md` (canon: Cactus/Carpet/Vinyl
+  gouache look; Gemini prompt templates; `scripts/normalize_furniture.py`).
 - Rounded corners: large cards/toasts around `32`, dialogs/actions around `16`.
 - Primary typeface: `GoogleFonts.mPlusRounded1c`.
 - Text scale = system text size (capped at `kMaxUserTextScale`) × `appUiScale`,
