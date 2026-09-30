@@ -128,6 +128,14 @@ Write `{ITEM}` as a short bullet list (shape, colours, each part and *what it at
 to*, the face or focal detail, mood). Naming the attachments up front prevents the
 floating-part and stray-line failures in §4.
 
+**Pale or white items** (ghosts, white strings, snow): keep the white background but
+require a coloured outline all the way round every white part (e.g. `the ghost has a
+soft lavender-grey outline all around`). The flood fill stops at outlines, so outlined
+white survives. Use `pure flat dark grey #4A4A4A background` + `--holes` (§7) only when
+white parts *cannot* be outlined (loose strings, mist) **and** the item has no dark
+colours: the script treats anything within ±24 per channel of `#4A4A4A` as background,
+so a dark-purple outline like `#3E345E` would be erased with it.
+
 ### 6.3 `{ITEM}` examples (Halloween 2026)
 
 ```

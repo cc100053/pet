@@ -21,8 +21,8 @@ section named in each step.
 3. **Gemini prompt.** Build the style image with
    `scripts/normalize_furniture.py --ref-sheet … --ref-items cactus`. Fill the
    §6.2 template, turning the approved sketch into the `{ITEM}` bullets and naming
-   what every part attaches to. Pale or white items get the dark-grey background
-   line. The user runs Gemini; you cannot.
+   what every part attaches to. Pale or white parts get a coloured outline
+   (see the pale-items rule after §6.2). The user runs Gemini; you cannot.
 4. **Review the output.** When the user returns an image, check it against §4.
    Draft §6.4 edit prompts for anything that fails, one fix per prompt.
 5. **Normalize.** Run `python3 scripts/normalize_furniture.py <raw> assets/furniture/<name>.png`,
