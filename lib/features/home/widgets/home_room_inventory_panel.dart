@@ -266,10 +266,19 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
               ],
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              // The equipment tab grows when the persistent pet selector shows;
-              // the furniture/background grids simply reveal more rows.
-              height: widget.equipPets.length >= 2 ? 348 : 246,
+            AnimatedBuilder(
+              animation: _tabController,
+              // Each tab gets its own height so furniture tiles stay square
+              // instead of stretching to fill the equipment tab's pet selector
+              // space.
+              builder: (context, child) => SizedBox(
+                height: switch (_tabController.index) {
+                  0 => 290,
+                  1 => 246,
+                  _ => widget.equipPets.length >= 2 ? 348 : 246,
+                },
+                child: child,
+              ),
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -401,26 +410,36 @@ class _FurnitureTab extends StatelessWidget {
     return Column(
       children: [
         Expanded(
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              mainAxisExtent: 74,
-            ),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final total = totalCount(item.id);
-              final available = availableCount(item.id);
-              final isSelected = selectedItemId == item.id;
-              return _FurnitureInventoryItem(
-                item: item,
-                total: total,
-                available: available,
-                isSelected: isSelected,
-                onTap: () => onItemTap(item.id),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Square tiles with a name label underneath; at least 4 columns,
+              // more on wide screens so tiles never balloon.
+              const spacing = 10.0;
+              final columns = (constraints.maxWidth / 86).floor().clamp(4, 8);
+              final tile =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return GridView.builder(
+                padding: const EdgeInsets.only(top: 4, bottom: 4),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: spacing,
+                  mainAxisExtent: tile + 19,
+                ),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final total = totalCount(item.id);
+                  final available = availableCount(item.id);
+                  final isSelected = selectedItemId == item.id;
+                  return _FurnitureInventoryItem(
+                    item: item,
+                    total: total,
+                    available: available,
+                    isSelected: isSelected,
+                    onTap: () => onItemTap(item.id),
+                  );
+                },
               );
             },
           ),
@@ -1170,96 +1189,85 @@ class _FurnitureInventoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final canSelect = available > 0;
     return JuicyScaleButton(
       onTap: canSelect ? onTap : null,
-      child: AnimatedContainer(
+      child: Column(
         key: Key('furniture_inventory_item_${item.id}'),
-        duration: 150.ms,
-        padding: const EdgeInsets.all(7),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFFFF2D6)
-              : (canSelect
-                    ? Colors.white.withValues(alpha: 0.9)
-                    : Colors.white.withValues(alpha: 0.55)),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFFFFB74D)
-                : (canSelect ? Colors.black12 : Colors.black26),
-            width: isSelected ? 1.8 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Center(
-              child: Opacity(
-                opacity: canSelect ? 1 : 0.45,
-                child: ShopFurnitureVisual(item: item, size: 30),
-              ),
-            ),
-            Positioned(
-              top: -2,
-              right: -2,
-              child: Container(
-                constraints: const BoxConstraints(minWidth: 26, minHeight: 22),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: canSelect
-                      ? const Color(0xFF5ABCA5)
-                      : Colors.black.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: Colors.white, width: 1.2),
-                ),
-                child: Text(
-                  'x$total',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 10,
-                    height: 1,
-                    fontWeight: FontWeight.w900,
-                    color: canSelect ? Colors.white : Colors.black45,
-                  ),
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: AnimatedContainer(
+              duration: 150.ms,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFFFFF2D6)
+                    : (canSelect
+                          ? const Color(0xFFFAF6EF)
+                          : const Color(0xFFF3F1ED)),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFFF0A53A)
+                      : (canSelect
+                            ? const Color(0xFFECE3D4)
+                            : const Color(0xFFD6D0C7)),
+                  width: isSelected ? 2 : 1,
                 ),
               ),
-            ),
-            if (isSelected)
-              const Positioned(
-                left: -2,
-                bottom: -2,
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  size: 18,
-                  color: Color(0xFFFFB74D),
-                ),
-              ),
-            if (!canSelect)
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.36),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.block_rounded,
-                      size: 18,
-                      color: Colors.black38,
+              child: Stack(
+                children: [
+                  Center(
+                    child: Opacity(
+                      opacity: canSelect ? 1 : 0.4,
+                      child: ShopFurnitureVisual(item: item, size: 40),
                     ),
                   ),
-                ),
+                  Positioned(
+                    top: 5,
+                    right: 5,
+                    child: Container(
+                      constraints: const BoxConstraints(minWidth: 20),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: canSelect
+                            ? const Color(0xFF2F8A76)
+                            : const Color(0xFFE4E0DA),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'x$total',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10,
+                          height: 1.2,
+                          fontWeight: FontWeight.w800,
+                          color: canSelect ? Colors.white : Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            item.localizedName(l10n),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.25,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              color: canSelect ? Colors.black87 : Colors.black45,
+            ),
+          ),
+        ],
       ),
     );
   }

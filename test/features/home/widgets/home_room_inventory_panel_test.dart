@@ -113,7 +113,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('x2'), findsOneWidget);
-    expect(find.text('Sofa'), findsOneWidget);
+    expect(find.text('Sofa'), findsNWidgets(2));
     expect(find.text('Owned x2  ·  Available x1'), findsOneWidget);
   });
 
