@@ -58,18 +58,22 @@ These came up in real reviews:
 ## 5. Workflow
 
 1. **Brief and sketch.** Claude draws an SVG composition sketch (shape, layout,
-   palette). Review and fix the composition here, where changes are cheap.
+   palette) to agree the design; it is never uploaded to Gemini. Review and fix
+   the composition here, where changes are cheap.
    Example: `design/furniture_sketches/halloween_2026/`. Regenerate the SVGs with
    `python3 gen_sketches.py`, then run `rsvg-convert -w 450 <name>.svg -o <name>.png`.
 2. **Generate in Gemini.** Attach one style image and describe the item in text (§6).
    Generate 3–4 variants and pick one.
 3. **Targeted edits in Gemini.** Fix issues one at a time with edit prompts (§6.4).
-4. **Hand cleanup** (Procreate / Krita). Fix anything the model can't:
-   stray pixels, a broken outline, a fuzzy edge. Do not skip this step.
+4. **Hand cleanup** (Procreate / Krita), whenever the §4 review finds something
+   edit prompts could not fix: stray pixels, a broken outline, a fuzzy edge.
+   Skip it only when the output passes §4 as-is.
 5. **Normalize.** Run `scripts/normalize_furniture.py` (§7).
-6. **In-room review.** View it in the app, next to the pet, at scale 1.0 and at
-   max scale, on a phone. Run the §4 checklist and the §2 squint test.
-7. **Ship.** Follow the five touch points in `docs/shop_pricing.md`.
+6. **In-room review.** Composite it on a room background at 1×/2×/3× (and, once
+   a build has it, view it in the app next to the pet). Run the §4 checklist
+   and the §2 squint test.
+7. **Ship.** Follow `.codex/skills/new-furniture-art/SKILL.md` step 7 (the six
+   touch points in `docs/shop_pricing.md`, via the shared-item-rollout skill).
 
 ## 6. Gemini prompting
 
@@ -78,7 +82,7 @@ model) and set the aspect ratio to **1:1**.
 
 ### 6.1 Method: one style image + text description
 
-**Proven on the Pumpkin Lantern (2026-09-30).** Upload **only one style image** and
+**Proven on all three Halloween 2026 pieces (2026-09-30).** Upload **only one style image** and
 describe the item in words. Two methods failed:
 
 - **Reference sheet uploaded first:** Gemini treats an uploaded image as *the
@@ -100,11 +104,14 @@ New chat per item, aspect ratio **1:1**, attach `style_ref.png`, then send §6.2
 
 ### 6.2 Base prompt template
 
-Write prompts in English. Change `{ITEM}`, `{THING}` (short name, e.g. "pumpkin")
-and the outline colours.
+Write prompts in English. Fill `{ITEM}` (short phrase), `{THING}` (one word, e.g.
+"pumpkin"), `{PARTS}` (bullet list) and the outline colour examples.
 
 ```
 Draw a NEW picture from scratch: {ITEM}, as a 2D item illustration for a cozy mobile pet game.
+
+The {THING}:
+{PARTS}
 
 The attached image is a STYLE REFERENCE ONLY. Do not draw a cactus, a pot, or anything
 from that image. Do not edit or redraw that image. Only copy HOW it is painted:
@@ -124,8 +131,8 @@ Output:
 - simple, bold shape that is still recognisable when very small
 ```
 
-Write `{ITEM}` as a short bullet list (shape, colours, each part and *what it attaches
-to*, the face or focal detail, mood). Naming the attachments up front prevents the
+Write `{PARTS}` as a short bullet list (shape, colours, each part and *what it
+attaches to*, the face or focal detail, mood). Naming the attachments up front prevents the
 floating-part and stray-line failures in §4.
 
 **Pale or white items** (ghosts, white strings, snow): keep the white background but
@@ -136,27 +143,53 @@ white parts *cannot* be outlined (loose strings, mist) **and** the item has no d
 colours: the script treats anything within ±24 per channel of `#4A4A4A` as background,
 so a dark-purple outline like `#3E345E` would be erased with it.
 
-### 6.3 `{ITEM}` examples (Halloween 2026)
+### 6.3 Examples (Halloween 2026, all shipped first try)
+
+First line = `{ITEM}`, bullets = `{PARTS}`.
+
+Pumpkin Lantern (`{THING}` = pumpkin):
 
 ```
-a smiling jack-o'-lantern pumpkin, soft orange with five rounded lobes, a short olive-green stem
-growing out of the top centre with one small leaf on a short vine attached to the stem, carved
-rounded eyes and a wide smile with one tooth, warm yellow light painted inside the carved holes,
-rosy pink cheeks
+a cute jack-o'-lantern pumpkin
+- soft orange, round and slightly wide, with five rounded vertical lobes
+- a short olive-green stem growing straight out of the top centre, touching the pumpkin
+- one small green leaf on a short vine that is attached to the stem
+- carved rounded eyes and a wide happy smile with one small tooth
+- warm yellow light painted inside the carved eyes and mouth only
+- soft pink blush on both cheeks
+- friendly and cozy, not scary
 ```
 
-```
-a round slate-purple witch's cauldron on three short stubby legs, overflowing with pastel
-wrapped candies (yellow, mint, lilac), a pink swirl lollipop on a stick standing up at the back,
-a tiny cute white ghost marshmallow peeking out of the candy, a small orange bat shape painted
-on the front
-```
+Candy Cauldron (`{THING}` = cauldron; front view slightly from above):
 
 ```
-a cozy plum-purple armchair with little bat ears on the top of the backrest and bat wings
-spreading from both sides of the back, button tufting on the backrest, a lighter lilac seat
-cushion, a sleeping crescent-moon pillow (butter yellow, closed eye, pink cheek) resting on
-the seat, a wavy pink trim on the front, short curved gold legs
+a cute witch's candy cauldron
+- a round, slightly squat slate-purple cauldron with a thick rolled rim
+- three short stubby dark-purple legs attached to the bottom of the cauldron
+- a small orange bat shape painted flat on the front of the cauldron
+- overflowing with candy piled above the rim: three wrapped candies (butter yellow,
+  mint green, lilac); one round pink lollipop with a white swirl on a cream stick that
+  goes down into the pile, the swirl staying inside the pink circle; one tiny white
+  ghost marshmallow peeking out, with a soft lavender-grey outline all around
+- every candy sits in or on the pile; nothing floats above it
+- cozy and playful, not scary
+```
+
+Bat-Wing Armchair (`{THING}` = armchair):
+
+```
+a cute bat-wing armchair
+- a cozy, plump plum-purple armchair seen from the front
+- a tall rounded backrest with button tufting (small cream buttons)
+- two small pointed bat ears growing from the top of the backrest, pink inside
+- two darker-purple bat wings attached to the left and right sides of the backrest,
+  spreading outward, scalloped lower edge; both clearly connect to the backrest
+- two rounded padded armrests; a lighter lilac seat cushion
+- a butter-yellow crescent-moon pillow resting on the seat, leaning on the backrest,
+  sleeping (one closed curved eye, small pink cheek); one clean crescent with an
+  outline only around its edge, no line through its middle
+- a wavy pink trim along the front of the seat; four short curved gold legs
+- cozy and cute, not scary
 ```
 
 ### 6.4 Edit prompts (same chat, after picking a variant)

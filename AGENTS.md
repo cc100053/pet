@@ -61,7 +61,11 @@ for code discovery. Fall back to source search when its results are insufficient
   deployed verification. A future app fix does not protect installed clients.
 - Use Supabase MCP for authorized backend changes. Verify project
   `ilxzpszgirhwxpeocygs` before mutation. Save schema changes as timestamped
-  migrations in `supabase/migrations/`.
+  migrations in `supabase/migrations/`. MCP `apply_migration` records its own
+  timestamp: before applying, check `schema_migrations` (and `git log`) for an
+  existing apply of the same change; after applying, rename the repo file to
+  the recorded version. Put catalog data (e.g. `metadata.new_until`) in the
+  migration, not a one-off SQL write, so the repo reproduces production.
 - Review-only, draft, and approval-pending SQL remains unapplied. Do not ask
   the user to run SQL the agent is authorized and equipped to run. Photo
   cleanup remains explicitly human-reviewed and snapshot-scoped.

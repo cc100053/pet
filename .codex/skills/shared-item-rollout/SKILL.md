@@ -45,7 +45,10 @@ surfaces; reuse gates/fallbacks that already work. Add localized item copy in
 all supported ARBs for that item type and generate localizations when changed.
 Register assets as needed; nested asset folders may need explicit entries.
 
-If item-specific names or avatar assets occur in notification payloads, update
+Every shop sku the app names must also be in `localizedStoreItemNames` in
+`supabase/functions/notify_friend/l10n.ts` (all five locales), or purchase pushes
+show the raw sku. Deploying that function is its own production operation and
+needs its own approval. For other item-specific payload data, update
 `supabase/functions/notify_friend/index.ts` and, for pet avatar handling,
 `android/app/src/main/kotlin/com/example/pet/PetTomoFirebaseMessagingService.kt`
 as needed. Apply migrations and deploy required function changes within the

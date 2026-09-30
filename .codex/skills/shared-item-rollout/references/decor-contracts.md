@@ -29,6 +29,15 @@ changing database behavior.
   - if an owned `item_id` is missing from `get_visible_shop_items(...)`, fetch
     the item row by id and merge it into the room furniture catalog
   - still apply `ShopItem.isSupportedOnAppVersion(...)` before rendering/placing
+- Furniture placement goes through SECURITY DEFINER `place_room_furniture`,
+  whose predicate accepts eligible version-gated rows. The direct
+  `room_furniture_insert` RLS policy still requires `items.is_active`, so never
+  route placement through a direct table insert.
+- `metadata.new_until` (shop NEW badge + in-room new-items popup) is part of a
+  drop's catalog data: set it for every item in the drop, inside the migration.
+- Purchase pushes name items from `localizedStoreItemNames` in
+  `supabase/functions/notify_friend/l10n.ts`; an unmapped sku shows raw.
+  `test/notify_friend_store_item_names_test.dart` enforces furniture coverage.
 - Client app-version gates should prefer the live platform version from
   `PackageInfo.fromPlatform()` and use `lastLaunchedAppVersion` only as a
   fallback. A stale cached launch version can hide newly supported items after

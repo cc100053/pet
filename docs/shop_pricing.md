@@ -133,7 +133,7 @@ in sync, and log it in `docs/release_status.md` under Backend Deployments.
 
 ## Where a new item gets wired
 
-Pricing is one of five touch points. For a furniture item the full set is:
+Pricing is one of six touch points. For a furniture item the full set is:
 
 1. `assets/furniture/<name>.png` — lowercase filename; `pubspec.yaml` already
    globs the directory, so no pubspec edit. Art follows `docs/art_style.md`
@@ -141,12 +141,21 @@ Pricing is one of five touch points. For a furniture item the full set is:
 2. A migration in `supabase/migrations/` inserting the `items` row. Gate it with
    `is_active=false` + `visibility_mode=version_gated` +
    `min_app_version=<the release that bundles the asset>` +
-   `fallback_behavior=skip`, so builds without the PNG never see it.
+   `fallback_behavior=skip`, so builds without the PNG never see it. An
+   already-uploaded build without the PNG does not count as bundling it. Put
+   `new_until` (NEW badge window) for every item of a drop in the same
+   migration. Apply, rename, and log per `AGENTS.md` and
+   `docs/release_status.md`.
 3. `lib/l10n/app_{en,ja,zh,zh_TW,ko}.arb` — `storeItemName…` and
    `storeItemDesc…` keys, then `flutter gen-l10n`.
 4. `lib/features/shop/shop_item_localization.dart` — sku → name case.
 5. `lib/features/shop/models/shop_item.dart` (`localizedDescription`) — sku →
    description case.
+6. `supabase/functions/notify_friend/l10n.ts` (`localizedStoreItemNames`) — sku
+   → push name in all five locales, copied from the ARBs. Needs an Edge Function
+   deploy; `test/notify_friend_store_item_names_test.dart` fails if missed.
 
 Reference implementation: `supabase/migrations/20260813120000_add_v235_furniture_catalog.sql`
-and the commit that accompanies it.
+and the commit that accompanies it. Latest drop with all six touch points: the
+Halloween 2026 furniture (`20260930005258`, `20260930012053`, commit `585defb`
+for the push names).
