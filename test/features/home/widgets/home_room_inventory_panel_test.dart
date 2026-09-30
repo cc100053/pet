@@ -392,6 +392,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(selected, ['p2']);
+
+    // Switching back must not shrink the tab area while the taller equipment
+    // page is still sliding out (that overflow tripped the crash screen).
+    await tester.tap(find.text('Furniture'));
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await tester.pumpAndSettle();
   });
 
   testWidgets('dims an item whose copies are all worn by other pets', (

@@ -266,19 +266,12 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
               ],
             ),
             const SizedBox(height: 8),
-            AnimatedBuilder(
-              animation: _tabController,
-              // Each tab gets its own height so furniture tiles stay square
-              // instead of stretching to fill the equipment tab's pet selector
-              // space.
-              builder: (context, child) => SizedBox(
-                height: switch (_tabController.index) {
-                  0 => 290,
-                  1 => 246,
-                  _ => widget.equipPets.length >= 2 ? 348 : 246,
-                },
-                child: child,
-              ),
+            SizedBox(
+              // One height for every tab: a per-tab height shrinks under the
+              // outgoing page mid-swipe and overflows. The equipment tab needs
+              // the extra room when the persistent pet selector shows; the
+              // furniture grid simply reveals more rows.
+              height: widget.equipPets.length >= 2 ? 348 : 290,
               child: TabBarView(
                 controller: _tabController,
                 children: [
