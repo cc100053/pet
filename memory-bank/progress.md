@@ -8,7 +8,9 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   the full code validation gate and documentation-only checks. Historical
   lessons/task logs are archived; release baseline and recorded public
   availability are separate in `docs/release_status.md`.
-- Repo release baseline is iOS `3.3.0+26` (in-app support thread).
+- `pubspec.yaml` is bumped to `4.0.0+27` (unreleased: new-item popup,
+  room-aware shop, Halloween furniture); no 4.0.0 in-app What's New entry yet.
+  Last uploaded release baseline is iOS `3.3.0+26` (in-app support thread).
   Build 26 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
   not submitted for App Review. Exact ASC, dSYM, localization, and backend
   deployment state lives in `docs/release_status.md`.
