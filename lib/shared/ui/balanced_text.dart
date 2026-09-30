@@ -104,8 +104,13 @@ class _RenderBalance extends RenderShiftedBox {
       return;
     }
     final loose = constraints.loosen();
-    child.layout(loose, parentUsesSize: true);
+    // Measure with unbounded height: a height cap (e.g. from IntrinsicHeight)
+    // clamps the child so narrower probes never look taller and the search
+    // collapses the text to ~0 width.
+    final probe = BoxConstraints(maxWidth: loose.maxWidth);
+    child.layout(probe, parentUsesSize: true);
     final paragraph = _findParagraph(child);
+    var width = loose.maxWidth;
     if (loose.hasBoundedWidth &&
         paragraph != null &&
         !paragraph.didExceedMaxLines) {
@@ -115,7 +120,7 @@ class _RenderBalance extends RenderShiftedBox {
       // ponytail: ~12 paragraph layouts per pass; fine for short copy.
       for (var i = 0; i < 12 && hi - lo > 1; i++) {
         final mid = (lo + hi) / 2;
-        child.layout(loose.copyWith(maxWidth: mid), parentUsesSize: true);
+        child.layout(probe.copyWith(maxWidth: mid), parentUsesSize: true);
         final keeps =
             child.size.height <= height + 0.5 && !paragraph.didExceedMaxLines;
         if (keeps) {
@@ -124,9 +129,9 @@ class _RenderBalance extends RenderShiftedBox {
           lo = mid;
         }
       }
-      final width = (hi.ceilToDouble() + 1).clamp(0.0, loose.maxWidth);
-      child.layout(loose.copyWith(maxWidth: width), parentUsesSize: true);
+      width = (hi.ceilToDouble() + 1).clamp(0.0, loose.maxWidth);
     }
+    child.layout(loose.copyWith(maxWidth: width), parentUsesSize: true);
     size = constraints.constrain(child.size);
     (child.parentData! as BoxParentData).offset = _alignment
         .resolve(_textDirection)
