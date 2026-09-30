@@ -160,7 +160,7 @@ extension _HomeNewShopItems on _HomeViewState {
       position: JuicePosition.center,
       // The item art lives in the body: the leading slot would leave the
       // room tag too narrow on 320pt phones.
-      leading: const SizedBox.shrink(),
+      fullWidthBody: true,
       body: StatefulBuilder(
         builder: (context, setDialogState) {
           ShopRoomTarget? selected;

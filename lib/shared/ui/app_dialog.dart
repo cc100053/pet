@@ -242,6 +242,7 @@ Future<T?> showJuiceToast<T>({
   VoidCallback? onSecondaryActionPressed,
   bool barrierDismissible = true,
   Widget? leading,
+  bool fullWidthBody = false,
 }) {
   final theme = Theme.of(context);
   final toneStyle = _toneStyle(theme, tone);
@@ -334,60 +335,62 @@ Future<T?> showJuiceToast<T>({
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Circular Icon Area with Badge
-                        leading ??
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Container(
-                                  width: 56,
-                                  height: 56,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        accent.withValues(alpha: 0.22),
-                                        accent.withValues(alpha: 0.38),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color: accent.withValues(alpha: 0.5),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      toneStyle.icon,
-                                      color: accent,
-                                      size: 28,
-                                    ),
-                                  ),
-                                ),
-                                // Top-left Badge
-                                Positioned(
-                                  top: -4,
-                                  left: -4,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
+                        if (!fullWidthBody) ...[
+                          leading ??
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
                                     decoration: BoxDecoration(
-                                      color: accent,
                                       shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          accent.withValues(alpha: 0.22),
+                                          accent.withValues(alpha: 0.38),
+                                        ],
+                                      ),
                                       border: Border.all(
-                                        color: Colors.white,
+                                        color: accent.withValues(alpha: 0.5),
                                         width: 2,
                                       ),
                                     ),
-                                    child: const Icon(
-                                      Icons.priority_high,
-                                      color: Colors.white,
-                                      size: 10,
+                                    child: Center(
+                                      child: Icon(
+                                        toneStyle.icon,
+                                        color: accent,
+                                        size: 28,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                        const Gap(14),
+                                  // Top-left Badge
+                                  Positioned(
+                                    top: -4,
+                                    left: -4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: accent,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.priority_high,
+                                        color: Colors.white,
+                                        size: 10,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          const Gap(14),
+                        ],
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,7 +406,7 @@ Future<T?> showJuiceToast<T>({
                                     height: 1.2,
                                   ),
                                 ),
-                              if (body != null) ...[
+                              if (body != null && !fullWidthBody) ...[
                                 if (message != null) const Gap(12),
                                 body,
                               ],
@@ -424,6 +427,12 @@ Future<T?> showJuiceToast<T>({
                         ),
                       ],
                     ),
+                    // Full-width body spans under the close button so its
+                    // left and right insets match the card padding.
+                    if (body != null && fullWidthBody) ...[
+                      Gap(message != null ? 12 : 4),
+                      body,
+                    ],
                     if (actionLabel != null ||
                         secondaryActionLabel != null) ...[
                       const Gap(16),
