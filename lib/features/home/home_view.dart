@@ -88,6 +88,7 @@ import 'widgets/room_frame_skins.dart';
 import 'onboarding_focus_utils.dart';
 import 'pet_hunger_projection.dart';
 import 'pet_status_snapshot.dart';
+import 'wait_until_uncovered.dart';
 import 'room_selection_view.dart';
 import 'room_backgrounds.dart';
 import 'room_canvas.dart';

@@ -13,12 +13,26 @@ extension _HomeNewShopItems on _HomeViewState {
         (ModalRoute.of(context)?.isCurrent ?? true);
   }
 
+  /// A launch dialog (What's New, update prompt) can still cover the room
+  /// here, most often on the first launch of the release that brings the
+  /// items. Wait for it to close instead of dropping the popup until the next
+  /// room entry.
+  Future<bool> _waitForRoomOnTop(String roomId) {
+    return waitUntilUncovered(
+      isCovered: () => mounted && !(ModalRoute.of(context)?.isCurrent ?? true),
+      isStillWanted: () => mounted && _roomId == roomId,
+    );
+  }
+
   Future<void> _maybeShowNewShopItems(String roomId) async {
     if (_newShopItemsCheckedThisSession) {
       return;
     }
     // Let the room entry settle so the popup never covers it.
     await Future<void>.delayed(const Duration(seconds: 2));
+    if (!await _waitForRoomOnTop(roomId)) {
+      return;
+    }
     final user = Supabase.instance.client.auth.currentUser;
     final appVersion = _currentAppVersion;
     if (_newShopItemsCheckedThisSession ||
@@ -57,7 +71,9 @@ extension _HomeNewShopItems on _HomeViewState {
     final settings = AppSettingsRepository.instance;
     final seen = settings.seenNewShopItemIds(user.id);
     final unseen = newItems.where((item) => !seen.contains(item.id)).toList();
-    if (unseen.isEmpty || !_canShowNewShopItemsFor(roomId)) {
+    if (unseen.isEmpty ||
+        !await _waitForRoomOnTop(roomId) ||
+        !_canShowNewShopItemsFor(roomId)) {
       return;
     }
     // Keep only ids still inside their NEW window so the set stays small.

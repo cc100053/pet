@@ -20,7 +20,9 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   illustrated furniture (`notify_friend` v36). Art workflow: `.codex/skills/new-furniture-art/SKILL.md`.
 - New shop items (`items.metadata.new_until`) get a gold NEW card badge and a
   one-time "just arrived" popup after room entry (once per account per item,
-  stored locally per user id in `app_settings`). The shop shows a
+  stored locally per user id in `app_settings`). The popup waits (up to 2 min)
+  for a covering launch dialog such as What's New to close instead of skipping
+  until the next room entry. The shop shows a
   "Delivering to <pet>'s room" tag with an in-shop room switcher, and
   multi-room users confirm the destination room before buying furniture,
   equipment or themes.

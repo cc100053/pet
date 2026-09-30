@@ -29,6 +29,27 @@ separate copy. Keep this skill's existing name for repository workflow routing.
 - Marketing URL remains `https://pet-app-702be.web.app/`. Preserve existing
   localized support/privacy URLs from the `.strings` assets and `README.md`.
 
+## Catalog items in this release
+
+Version-gated shop items (`metadata.min_app_version`) go live with the build,
+not with their migration. Before drafting copy for version `V`:
+
+- Diff `get_visible_shop_items('V')` against the last shipped version's result
+  on the verified project. Every newly visible item's asset must be in this
+  build: run `flutter build bundle` and check `AssetManifest.bin` plus
+  `build/flutter_assets/assets/`. A gate set for a version that was later
+  renumbered (e.g. `3.3.1` shipping as `4.0.0`) still has to resolve to this
+  build and no earlier one.
+- Name the newly visible items (at least a seasonal drop) in the bundled
+  What's New and ASC `whatsNew`. What's New is the first dialog on a new
+  version; the in-room new-items popup waits for it to close.
+- Compare each newly visible item's `new_until` with the expected on-sale date.
+  If the NEW window would be mostly spent before players have the build, draft
+  an extension migration for approval (rules: `AGENTS.md` migration bullet).
+- Seasonal `promotionalText` gets an end date recorded in
+  `docs/release_status.md`; refresh stale promotional copy (e.g. an old version
+  number) on every release. `promotionalText` can change without a build.
+
 ## Approval and execution
 
 Present localized drafts before applying local copy or ASC changes. Explain
@@ -38,6 +59,8 @@ and build attachment. Respect draft-only, local-only, or metadata-only scope.
 App Review submission always requires an explicit submission request.
 
 For approved execution, read [release-execution.md](references/release-execution.md).
+Include the catalog diff and any `new_until` or promotional-text proposal in the
+drafts you present.
 Before release operations, read/update
 [release_status.md](../../../docs/release_status.md). Pass local generation and
 required validation before metadata upload or release build. Immediately after

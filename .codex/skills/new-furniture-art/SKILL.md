@@ -50,7 +50,10 @@ section named in each step; do not restate it.
      inclusion. Log it in `docs/release_status.md`.
    - Deploy `notify_friend` if its name table changed, then verify per
      `docs/ai_collaboration_workflow.md` ("Production Verification").
-10. **Feed back.** Add any new failure mode or prompt fix to `docs/art_style.md`
+10. **Hand off to release.** The items appear only when the gated build ships;
+    `.codex/skills/release-notes-sync/SKILL.md` ("Catalog items in this
+    release") covers copy, the bundle check and the NEW window at release time.
+11. **Feed back.** Add any new failure mode or prompt fix to `docs/art_style.md`
     §4 or §6.5, and any rollout lesson to its canonical doc, in the same change.
 
 ## Done means
