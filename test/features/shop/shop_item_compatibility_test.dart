@@ -75,6 +75,23 @@ void main() {
     expect(item.backgroundKey, 'sage_frame');
   });
 
+  test('treats metadata.new_until as an open NEW window', () {
+    ShopItem parse(Object? newUntil) => ShopItem.fromJson({
+      'id': 'item-new-1',
+      'sku': 'furniture_cactus',
+      'type': 'cosmetic',
+      'name': 'Cactus',
+      'price_coins': 100,
+      'metadata': {'category': 'furniture', 'new_until': newUntil},
+    });
+    final now = DateTime.utc(2026, 10, 1);
+
+    expect(parse('2026-10-14T00:00:00Z').isNewAt(now), isTrue);
+    expect(parse('2026-09-30T00:00:00Z').isNewAt(now), isFalse);
+    expect(parse(null).isNewAt(now), isFalse);
+    expect(parse('not a date').isNewAt(now), isFalse);
+  });
+
   test('parses paid backgrounds as coin-only catalog items', () {
     final item = ShopItem.fromJson({
       'id': 'item-paid-1',

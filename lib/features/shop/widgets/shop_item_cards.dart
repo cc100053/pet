@@ -191,6 +191,12 @@ class ShopGridItemCard extends StatelessWidget {
                                     style: const TextStyle(fontSize: 56),
                                   ),
                           ),
+                        if (item.isNewAt(DateTime.now()))
+                          Positioned(
+                            top: 0,
+                            left: 4,
+                            child: _GridNewBadge(label: l10n.shopNewBadge),
+                          ),
                         if (item.isBackground)
                           Positioned(
                             top: 0,
@@ -482,6 +488,34 @@ class _GridOwnedCountBadge extends StatelessWidget {
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w800,
+          color: AppTheme.textPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Gold NEW tag; gold is reserved for shop/reward moments.
+class _GridNewBadge extends StatelessWidget {
+  const _GridNewBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppTheme.gold,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.ink, width: 2),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
           color: AppTheme.textPrimary,
         ),
       ),

@@ -2368,4 +2368,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew300Bullet3 =>
       'Unlock more frame styles as your room level grows.';
+
+  @override
+  String get shopDeliveringTo => 'Delivering to';
+
+  @override
+  String shopRoomOfPet(Object petName) {
+    return '$petName\'s room';
+  }
+
+  @override
+  String get shopSwitchRoom => 'Switch';
+
+  @override
+  String get shopSwitchRoomTitle => 'Which room is it for?';
+
+  @override
+  String shopDeliverConfirmTitle(Object petName) {
+    return 'Send to $petName\'s room?';
+  }
+
+  @override
+  String shopDeliverConfirmMessage(Object itemName, Object petName) {
+    return '$itemName will be delivered to $petName\'s room.';
+  }
+
+  @override
+  String shopDeliverConfirmAction(Object petName) {
+    return 'Buy for $petName';
+  }
+
+  @override
+  String get shopNewBadge => 'NEW';
+
+  @override
+  String get newItemsPopupTitle => 'Just arrived in the shop';
+
+  @override
+  String newItemsPopupMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count more new items',
+      one: '+1 more new item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get newItemsVisitShop => 'Visit the shop';
+
+  @override
+  String get newItemsLater => 'Maybe later';
 }

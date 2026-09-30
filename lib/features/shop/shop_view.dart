@@ -39,11 +39,26 @@ part 'services/shop_iap_service.dart';
 part 'services/shop_purchase_handler.dart';
 part 'widgets/shop_departed_pet_selector.dart';
 part 'widgets/shop_item_cards.dart';
+part 'widgets/shop_room_target.dart';
 part 'widgets/shop_view_decorations.dart';
 
 enum ShopCurrency { candy, diamonds }
 
 enum ShopNoticeKind { shortage, success }
+
+/// A room the shop can deliver room-bound items (furniture, equipment,
+/// themes) to, shown as the delivery tag and in the room switcher.
+class ShopRoomTarget {
+  const ShopRoomTarget({
+    required this.roomId,
+    required this.petName,
+    required this.petAssetPath,
+  });
+
+  final String roomId;
+  final String petName;
+  final String petAssetPath;
+}
 
 class ShopRouteResult {
   const ShopRouteResult({required this.roomId, this.showRoomDecorHint = false});
@@ -108,12 +123,17 @@ class ShopView extends StatefulWidget {
   const ShopView({
     super.key,
     this.roomId,
+    this.rooms = const [],
     this.isProUser = false,
     this.departedPets = const [],
     this.onReturnPet,
   });
 
   final String? roomId;
+
+  /// Rooms the user can shop for; the delivery tag shows the one matching
+  /// the active room and offers switching when there is more than one.
+  final List<ShopRoomTarget> rooms;
   final bool isProUser;
   final List<DepartedPetInfo> departedPets;
   final Future<bool> Function(DepartedPetInfo pet)? onReturnPet;
@@ -157,6 +177,7 @@ class _ShopViewState extends State<ShopView> {
   final GlobalKey _specialPacksSectionKey = GlobalKey();
   final GlobalKey _consumablesSectionKey = GlobalKey();
   late List<DepartedPetInfo> _departedPets;
+  late String? _roomId = _roomId;
   Uri? _privacyPolicyUri;
   late final Uri _termsOfUseUri;
   Timer? _storeNoticeTimer;
@@ -222,7 +243,7 @@ class _ShopViewState extends State<ShopView> {
     _roomInventoryRevisionChannel = channel;
 
     void refreshStore() {
-      if (!mounted || widget.roomId != roomId) {
+      if (!mounted || _roomId != roomId) {
         return;
       }
       unawaited(_loadStore(silent: true));
@@ -297,7 +318,7 @@ class _ShopViewState extends State<ShopView> {
     required bool showReturnToRoomAction,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final roomId = widget.roomId;
+    final roomId = _roomId;
     final canReturnToRoom = showReturnToRoomAction && roomId != null;
     _showStoreNotice(
       ShopNoticeData.success(
@@ -444,7 +465,7 @@ class _ShopViewState extends State<ShopView> {
           .select('item_id,quantity')
           .eq('user_id', user.id);
 
-      final roomId = widget.roomId;
+      final roomId = _roomId;
       List<dynamic> roomFurnitureInventoryRows = const [];
       List<dynamic> roomEquipmentInventoryRows = const [];
       var roomPetCount = 1;
@@ -754,6 +775,13 @@ class _ShopViewState extends State<ShopView> {
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         _buildSliverAppBar(l10n),
+        if (_activeRoomTarget case final target?)
+          SliverToBoxAdapter(
+            child: ShopDeliveryTag(
+              target: target,
+              onSwitch: _canSwitchShopRoom ? _showShopRoomSwitcher : null,
+            ),
+          ),
         const SliverToBoxAdapter(child: SizedBox(height: 12)),
         if (_iapError != null)
           SliverToBoxAdapter(

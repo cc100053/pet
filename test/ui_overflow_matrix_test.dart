@@ -247,4 +247,46 @@ void main() {
       );
     });
   });
+
+  testWidgets('shop room delivery tag and picker fit every locale and phone', (
+    tester,
+  ) async {
+    const rooms = [
+      ShopRoomTarget(
+        roomId: 'a',
+        petName: 'Mochimochi Dango Pudding',
+        petAssetPath: 'assets/pet/cat/cat_stay.gif',
+      ),
+      ShopRoomTarget(
+        roomId: 'b',
+        petName: 'Kuro',
+        petAssetPath: 'assets/pet/ghost/ghost_stay.gif',
+      ),
+    ];
+    await _sweep(tester, 'ShopDeliveryTag', (context) {
+      // Compact tag mirrors the new-items popup body: centered juice toast
+      // (24pt margins, 16pt padding) minus the leading gap and close button.
+      final popupBodyWidth = MediaQuery.sizeOf(context).width - 48 - 32 - 62;
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            ShopDeliveryTag(target: rooms.first, onSwitch: () {}),
+            SizedBox(
+              width: popupBodyWidth,
+              child: ShopDeliveryTag(
+                target: rooms.first,
+                compact: true,
+                onSwitch: () {},
+              ),
+            ),
+            const ShopRoomPickerSheet(
+              title: 'Which room is it for?',
+              rooms: rooms,
+              selectedRoomId: 'a',
+            ),
+          ],
+        ),
+      );
+    });
+  });
 }

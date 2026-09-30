@@ -4178,6 +4178,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock more frame styles as your room level grows.'**
   String get whatsNew300Bullet3;
+
+  /// No description provided for @shopDeliveringTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivering to'**
+  String get shopDeliveringTo;
+
+  /// No description provided for @shopRoomOfPet.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName}\'s room'**
+  String shopRoomOfPet(Object petName);
+
+  /// No description provided for @shopSwitchRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get shopSwitchRoom;
+
+  /// No description provided for @shopSwitchRoomTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which room is it for?'**
+  String get shopSwitchRoomTitle;
+
+  /// No description provided for @shopDeliverConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {petName}\'s room?'**
+  String shopDeliverConfirmTitle(Object petName);
+
+  /// No description provided for @shopDeliverConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{itemName} will be delivered to {petName}\'s room.'**
+  String shopDeliverConfirmMessage(Object itemName, Object petName);
+
+  /// No description provided for @shopDeliverConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy for {petName}'**
+  String shopDeliverConfirmAction(Object petName);
+
+  /// No description provided for @shopNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get shopNewBadge;
+
+  /// No description provided for @newItemsPopupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just arrived in the shop'**
+  String get newItemsPopupTitle;
+
+  /// No description provided for @newItemsPopupMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{+1 more new item} other{+{count} more new items}}'**
+  String newItemsPopupMore(int count);
+
+  /// No description provided for @newItemsVisitShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit the shop'**
+  String get newItemsVisitShop;
+
+  /// No description provided for @newItemsLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get newItemsLater;
 }
 
 class _AppLocalizationsDelegate

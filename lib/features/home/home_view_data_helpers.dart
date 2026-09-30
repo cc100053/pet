@@ -167,6 +167,28 @@ extension _HomeDataHelpers on _HomeViewState {
     return <DepartedPetInfo>[current];
   }
 
+  /// Rooms the shop can deliver to: every unlocked room, plus the current one.
+  List<ShopRoomTarget> _shopRoomTargets() {
+    final targets = <ShopRoomTarget>[];
+    for (final room in _myRooms) {
+      final roomId = room['id'] as String?;
+      if (roomId == null || (roomId != _roomId && _isRoomLocked(roomId))) {
+        continue;
+      }
+      targets.add(
+        ShopRoomTarget(
+          roomId: roomId,
+          petName: _resolvePetNameForRoom(roomId),
+          petAssetPath: PetCatalog.byIdForAppVersion(
+            _resolvePetTypeForRoom(roomId),
+            appVersion: _currentAppVersion,
+          ).stayAsset,
+        ),
+      );
+    }
+    return targets;
+  }
+
   String _resolvePetNameForRoom(String roomId) {
     if (roomId == _roomId) {
       final name = _petName?.trim();

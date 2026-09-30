@@ -2234,6 +2234,57 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get whatsNew300Bullet3 => '提升房间等级，解锁更多相框样式。';
+
+  @override
+  String get shopDeliveringTo => '送往';
+
+  @override
+  String shopRoomOfPet(Object petName) {
+    return '$petName的房间';
+  }
+
+  @override
+  String get shopSwitchRoom => '切换';
+
+  @override
+  String get shopSwitchRoomTitle => '要送到哪个房间？';
+
+  @override
+  String shopDeliverConfirmTitle(Object petName) {
+    return '要送到$petName的房间吗？';
+  }
+
+  @override
+  String shopDeliverConfirmMessage(Object itemName, Object petName) {
+    return '$itemName会送到$petName的房间。';
+  }
+
+  @override
+  String shopDeliverConfirmAction(Object petName) {
+    return '买给$petName';
+  }
+
+  @override
+  String get shopNewBadge => '新品';
+
+  @override
+  String get newItemsPopupTitle => '商店新品到货！';
+
+  @override
+  String newItemsPopupMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有$count件新品',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get newItemsVisitShop => '去商店看看';
+
+  @override
+  String get newItemsLater => '稍后再说';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4465,4 +4516,55 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew300Bullet3 => '提升房間等級，解鎖更多相框樣式。';
+
+  @override
+  String get shopDeliveringTo => '送往';
+
+  @override
+  String shopRoomOfPet(Object petName) {
+    return '$petName的房間';
+  }
+
+  @override
+  String get shopSwitchRoom => '切換';
+
+  @override
+  String get shopSwitchRoomTitle => '要送到哪個房間？';
+
+  @override
+  String shopDeliverConfirmTitle(Object petName) {
+    return '要送到$petName的房間嗎？';
+  }
+
+  @override
+  String shopDeliverConfirmMessage(Object itemName, Object petName) {
+    return '$itemName會送到$petName的房間。';
+  }
+
+  @override
+  String shopDeliverConfirmAction(Object petName) {
+    return '買給$petName';
+  }
+
+  @override
+  String get shopNewBadge => '新品';
+
+  @override
+  String get newItemsPopupTitle => '商店新品到貨！';
+
+  @override
+  String newItemsPopupMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '還有$count件新品',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get newItemsVisitShop => '去商店看看';
+
+  @override
+  String get newItemsLater => '稍後再說';
 }

@@ -1110,5 +1110,22 @@
   "whatsNew300Title": "全新房間相框！",
   "whatsNew300Bullet1": "用 5 款相框自訂共享房間卡片的風格。",
   "whatsNew300Bullet2": "長按房間卡片即可預覽相框，並套用你喜歡的設計。",
-  "whatsNew300Bullet3": "提升房間等級，解鎖更多相框樣式。"
+  "whatsNew300Bullet3": "提升房間等級，解鎖更多相框樣式。",
+  "shopDeliveringTo": "送往",
+  "shopRoomOfPet": "{petName}的房間",
+  "@shopRoomOfPet": {"placeholders": {"petName": {}}},
+  "shopSwitchRoom": "切換",
+  "shopSwitchRoomTitle": "要送到哪個房間？",
+  "shopDeliverConfirmTitle": "要送到{petName}的房間嗎？",
+  "@shopDeliverConfirmTitle": {"placeholders": {"petName": {}}},
+  "shopDeliverConfirmMessage": "{itemName}會送到{petName}的房間。",
+  "@shopDeliverConfirmMessage": {"placeholders": {"itemName": {}, "petName": {}}},
+  "shopDeliverConfirmAction": "買給{petName}",
+  "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
+  "shopNewBadge": "新品",
+  "newItemsPopupTitle": "商店新品到貨！",
+  "newItemsPopupMore": "{count, plural, other{還有{count}件新品}}",
+  "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
+  "newItemsVisitShop": "去商店看看",
+  "newItemsLater": "稍後再說"
 }

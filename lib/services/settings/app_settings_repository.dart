@@ -35,6 +35,7 @@ class AppSettingsRepository implements PendingInviteCodeStore {
   static const String _pendingInviteCodeKey = 'pending_invite_code';
   static const String _roomFrameStylesKey = 'room_frame_styles';
   static const String _roomFrameHintSeenKey = 'room_frame_hint_seen';
+  static const String _seenNewShopItemIdsKeyPrefix = 'seen_new_shop_item_ids_';
 
   Box<dynamic>? _box;
   bool _hadExistingBoxAtInit = false;
@@ -135,6 +136,16 @@ class AppSettingsRepository implements PendingInviteCodeStore {
       return;
     }
     await _box?.put(_lastShownWhatsNewVersionKey, version);
+  }
+
+  /// NEW shop item ids already announced to [userId] (once per account).
+  Set<String> seenNewShopItemIds(String userId) {
+    final raw = _box?.get('$_seenNewShopItemIdsKeyPrefix$userId');
+    return raw is List ? raw.whereType<String>().toSet() : <String>{};
+  }
+
+  Future<void> setSeenNewShopItemIds(String userId, Set<String> ids) async {
+    await _box?.put('$_seenNewShopItemIdsKeyPrefix$userId', ids.toList());
   }
 
   bool get hadExistingBoxAtInit => _hadExistingBoxAtInit;

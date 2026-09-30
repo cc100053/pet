@@ -12,6 +12,12 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   Build 26 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
   not submitted for App Review. Exact ASC, dSYM, localization, and backend
   deployment state lives in `docs/release_status.md`.
+- New shop items (`items.metadata.new_until`) get a gold NEW card badge and a
+  one-time "just arrived" popup after room entry (once per account per item,
+  stored locally per user id in `app_settings`). The shop shows a
+  "Delivering to <pet>'s room" tag with an in-shop room switcher, and
+  multi-room users confirm the destination room before buying furniture,
+  equipment or themes.
 - Flutter is pinned to `3.44.0` / Dart `3.12.0`. There is no CI gate; follow
   the local final-check order in `AGENTS.md` and `docs/testing.md`.
 - Chat reply-jump scrolls to the target's list index before centering it, so

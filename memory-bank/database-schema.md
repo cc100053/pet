@@ -37,6 +37,9 @@ migration that rewrites the object.
 - `items.metadata` carries compatibility, visibility, asset/fallback, and slot
   rules. Furniture uses nullable canvas center fractions and dual-writes legacy
   positions.
+- `items.metadata.new_until` (ISO 8601, optional) marks a catalog item NEW
+  until that instant: gold NEW badge in the shop and the in-room "just arrived"
+  popup. Client-only key; set/clear it with a metadata update, no migration.
 - Pet tickets are additive and v2-gated. New purchases use
   `purchase_and_use_pet_ticket(...)`; owned tickets use `use_pet_ticket(...)`.
 - Message senders may be null for system events. Image-feed recall clears media

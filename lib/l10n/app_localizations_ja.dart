@@ -2249,4 +2249,55 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNew300Bullet3 => 'ルームレベルが上がると、さらに多くのフレームを解放できます。';
+
+  @override
+  String get shopDeliveringTo => 'お届け先';
+
+  @override
+  String shopRoomOfPet(Object petName) {
+    return '$petNameのおへや';
+  }
+
+  @override
+  String get shopSwitchRoom => '切りかえ';
+
+  @override
+  String get shopSwitchRoomTitle => 'どのおへやに届けますか？';
+
+  @override
+  String shopDeliverConfirmTitle(Object petName) {
+    return '$petNameのおへやに届けますか？';
+  }
+
+  @override
+  String shopDeliverConfirmMessage(Object itemName, Object petName) {
+    return '$itemNameを$petNameのおへやに届けます。';
+  }
+
+  @override
+  String shopDeliverConfirmAction(Object petName) {
+    return '$petNameに買う';
+  }
+
+  @override
+  String get shopNewBadge => 'NEW';
+
+  @override
+  String get newItemsPopupTitle => 'ショップに新アイテム入荷！';
+
+  @override
+  String newItemsPopupMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ほかに$count個の新アイテム',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get newItemsVisitShop => 'ショップを見る';
+
+  @override
+  String get newItemsLater => 'あとで';
 }

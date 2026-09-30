@@ -4,7 +4,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
   bool get _hasDepartedPets => _departedPets.isNotEmpty;
 
   DepartedPetInfo? _currentRoomDepartedPet() {
-    final roomId = widget.roomId;
+    final roomId = _roomId;
     if (roomId != null) {
       for (final pet in _departedPets) {
         if (pet.roomId == roomId) {
@@ -82,7 +82,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
 
   Future<void> _handlePetTicketUse(ShopItem item) async {
     final l10n = AppLocalizations.of(context)!;
-    final roomId = widget.roomId;
+    final roomId = _roomId;
     if (_purchasing) {
       return;
     }
@@ -188,7 +188,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
 
   Future<void> _handlePetTicketPurchase(ShopItem item) async {
     final l10n = AppLocalizations.of(context)!;
-    final roomId = widget.roomId;
+    final roomId = _roomId;
     if (_purchasing) {
       return;
     }
@@ -434,6 +434,9 @@ extension _ShopPurchaseHandler on _ShopViewState {
     if (!_ensureCurrencyPurchasable(item, ShopCurrency.candy)) {
       return false;
     }
+    if (!await _confirmRoomDelivery(item) || !mounted) {
+      return false;
+    }
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -451,7 +454,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
           return false;
         }
       } else if (item.isFurniture) {
-        final roomId = widget.roomId;
+        final roomId = _roomId;
         if (roomId == null) {
           showJuiceToast(
             context: context,
@@ -465,7 +468,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
         _applyPurchaseResult(item, result);
         _notifyPurchaseIfNeeded(roomId: roomId, result: result);
       } else if (item.isEquipment) {
-        final roomId = widget.roomId;
+        final roomId = _roomId;
         if (roomId == null) {
           showJuiceToast(
             context: context,
@@ -533,6 +536,9 @@ extension _ShopPurchaseHandler on _ShopViewState {
     if (!_ensureCurrencyPurchasable(item, ShopCurrency.diamonds)) {
       return false;
     }
+    if (!await _confirmRoomDelivery(item) || !mounted) {
+      return false;
+    }
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -550,7 +556,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
           return false;
         }
       } else if (item.isFurniture) {
-        final roomId = widget.roomId;
+        final roomId = _roomId;
         if (roomId == null) {
           showJuiceToast(
             context: context,
@@ -564,7 +570,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
         _applyPurchaseResult(item, result);
         _notifyPurchaseIfNeeded(roomId: roomId, result: result);
       } else if (item.isEquipment) {
-        final roomId = widget.roomId;
+        final roomId = _roomId;
         if (roomId == null) {
           showJuiceToast(
             context: context,
@@ -626,7 +632,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
   }
 
   Future<bool> _purchaseBackgroundWithCoins(ShopItem item) async {
-    final roomId = widget.roomId;
+    final roomId = _roomId;
     if (roomId == null) {
       showJuiceToast(
         context: context,
@@ -644,7 +650,7 @@ extension _ShopPurchaseHandler on _ShopViewState {
   }
 
   Future<bool> _purchaseBackgroundWithDiamonds(ShopItem item) async {
-    final roomId = widget.roomId;
+    final roomId = _roomId;
     if (roomId == null) {
       showJuiceToast(
         context: context,

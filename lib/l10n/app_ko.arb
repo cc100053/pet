@@ -1116,5 +1116,22 @@
   "whatsNew300Title": "새로운 룸 프레임!",
   "whatsNew300Bullet1": "공유 방 카드를 5가지 개성 있는 프레임으로 꾸밀 수 있어요.",
   "whatsNew300Bullet2": "방 카드를 길게 눌러 프레임을 미리 보고 마음에 드는 디자인을 장착하세요.",
-  "whatsNew300Bullet3": "방 레벨이 오르면 더 많은 프레임이 잠금 해제됩니다."
+  "whatsNew300Bullet3": "방 레벨이 오르면 더 많은 프레임이 잠금 해제됩니다.",
+  "shopDeliveringTo": "배송지",
+  "shopRoomOfPet": "{petName}의 방",
+  "@shopRoomOfPet": {"placeholders": {"petName": {}}},
+  "shopSwitchRoom": "변경",
+  "shopSwitchRoomTitle": "어느 방으로 보낼까요?",
+  "shopDeliverConfirmTitle": "{petName}의 방으로 보낼까요?",
+  "@shopDeliverConfirmTitle": {"placeholders": {"petName": {}}},
+  "shopDeliverConfirmMessage": "{itemName}을(를) {petName}의 방으로 보내요.",
+  "@shopDeliverConfirmMessage": {"placeholders": {"itemName": {}, "petName": {}}},
+  "shopDeliverConfirmAction": "{petName}에게 사 주기",
+  "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
+  "shopNewBadge": "NEW",
+  "newItemsPopupTitle": "상점에 새 아이템 입고!",
+  "newItemsPopupMore": "{count, plural, other{새 아이템 {count}개 더}}",
+  "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
+  "newItemsVisitShop": "상점 보러 가기",
+  "newItemsLater": "나중에"
 }

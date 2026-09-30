@@ -72,6 +72,7 @@ import '../pet/pet_selection_page.dart';
 import '../profile/profile_view.dart';
 import '../shop/models/shop_item.dart';
 import '../shop/shop_view.dart';
+import '../shop/widgets/shop_item_visual.dart';
 import 'debug/dress_up_fit_tool_page.dart';
 import 'debug/equipment_preview_page.dart';
 import 'home_furniture_inventory_utils.dart';
@@ -116,6 +117,7 @@ part 'home_view_pet_scene_builders.dart';
 part 'home_view_drawer.dart';
 part 'home_view_data_helpers.dart';
 part 'home_view_room_decor.dart';
+part 'home_view_new_shop_items.dart';
 part 'home_view_equipment.dart';
 part 'home_view_pet_tick.dart';
 part 'home_view_debug.dart';
@@ -324,6 +326,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   static const Duration _onlineProbeThrottle = Duration(seconds: 10);
   bool _inviteCodeLoading = false;
   bool _roomEntryLoading = false;
+  bool _newShopItemsCheckedThisSession = false;
   bool _roomEntryOverlayVisible = false;
   DateTime? _roomEntryOverlayShownAt;
   Timer? _roomEntryOverlayRevealTimer;
@@ -2769,13 +2772,17 @@ class _HomeViewState extends ConsumerState<HomeView>
     return _showRoomDecorHint && _roomDecorHintRoomId == roomId;
   }
 
-  Future<void> _openStoreWithDepartures() async {
+  Future<void> _openStoreWithDepartures({String? shopRoomId}) async {
+    final targetRoomId = shopRoomId ?? _roomId;
     final result = await Navigator.of(context).push<ShopRouteResult>(
       MaterialPageRoute(
         builder: (_) => ShopView(
-          roomId: _roomId,
+          roomId: targetRoomId,
+          rooms: _shopRoomTargets(),
           isProUser: _hasProPlanAccess,
-          departedPets: _departedPetsForCurrentRoom(),
+          departedPets: targetRoomId == _roomId
+              ? _departedPetsForCurrentRoom()
+              : const [],
           onReturnPet: _returnDepartedPet,
         ),
       ),

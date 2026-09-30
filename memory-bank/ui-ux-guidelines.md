@@ -17,6 +17,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   Press shadows are solid same-hue offsets (e.g. `leafStrong` over `leafDeep`).
 - White text only on `leafStrong` or darker; `leaf` is for accents/fills.
 - `gold` rarity frames / NEW badges are reserved for shop and reward moments.
+- Room-bound shop purchases always name their room: the kinako luggage-tag
+  `ShopDeliveryTag` under the shop header (compact form in narrow dialogs) and
+  a "Send to <pet>'s room?" confirm for multi-room users.
 - Kana decorative labels (`KanaEyebrow`) render only for the `ja` locale, in
   the bundled `KiwiMaruKana` subset (kana + CJK punctuation only) with
   M PLUS Rounded fallback. Do not put kanji or Latin in it.

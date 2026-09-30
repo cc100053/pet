@@ -31,6 +31,7 @@ class ShopItem {
     this.shopVisibility,
     this.fallbackBehavior,
     this.fallbackBackgroundKey,
+    this.newUntil,
   });
 
   final String id;
@@ -58,6 +59,12 @@ class ShopItem {
   final String? shopVisibility;
   final String? fallbackBehavior;
   final String? fallbackBackgroundKey;
+
+  /// Catalog-driven NEW window (`metadata.new_until`, ISO 8601). Old clients
+  /// ignore the key, so marking an item new needs no schema change.
+  final DateTime? newUntil;
+
+  bool isNewAt(DateTime now) => newUntil != null && now.isBefore(newUntil!);
 
   bool get isIap => iapProductId != null && iapProductId!.isNotEmpty;
   bool get isBackground => category == 'background';
@@ -219,6 +226,10 @@ class ShopItem {
     final fallbackBehavior = metadata['fallback_behavior'] as String?;
     final fallbackBackgroundKey =
         metadata['fallback_background_key'] as String?;
+    final newUntilRaw = metadata['new_until'];
+    final newUntil = newUntilRaw is String
+        ? DateTime.tryParse(newUntilRaw)?.toUtc()
+        : null;
 
     int? priceJpy;
     if (priceJpyRaw is int) {
@@ -273,6 +284,7 @@ class ShopItem {
       shopVisibility: shopVisibility,
       fallbackBehavior: fallbackBehavior,
       fallbackBackgroundKey: fallbackBackgroundKey,
+      newUntil: newUntil,
     );
   }
 }

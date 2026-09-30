@@ -1117,5 +1117,22 @@
   "whatsNew300Title": "新しいルームフレーム！",
   "whatsNew300Bullet1": "共有ルームのカードを5種類のフレームで飾れます。",
   "whatsNew300Bullet2": "ルームカードを長押ししてプレビューし、お気に入りを設定できます。",
-  "whatsNew300Bullet3": "ルームレベルが上がると、さらに多くのフレームを解放できます。"
+  "whatsNew300Bullet3": "ルームレベルが上がると、さらに多くのフレームを解放できます。",
+  "shopDeliveringTo": "お届け先",
+  "shopRoomOfPet": "{petName}のおへや",
+  "@shopRoomOfPet": {"placeholders": {"petName": {}}},
+  "shopSwitchRoom": "切りかえ",
+  "shopSwitchRoomTitle": "どのおへやに届けますか？",
+  "shopDeliverConfirmTitle": "{petName}のおへやに届けますか？",
+  "@shopDeliverConfirmTitle": {"placeholders": {"petName": {}}},
+  "shopDeliverConfirmMessage": "{itemName}を{petName}のおへやに届けます。",
+  "@shopDeliverConfirmMessage": {"placeholders": {"itemName": {}, "petName": {}}},
+  "shopDeliverConfirmAction": "{petName}に買う",
+  "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
+  "shopNewBadge": "NEW",
+  "newItemsPopupTitle": "ショップに新アイテム入荷！",
+  "newItemsPopupMore": "{count, plural, other{ほかに{count}個の新アイテム}}",
+  "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
+  "newItemsVisitShop": "ショップを見る",
+  "newItemsLater": "あとで"
 }

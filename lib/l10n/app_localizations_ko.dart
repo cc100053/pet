@@ -2259,4 +2259,55 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get whatsNew300Bullet3 => '방 레벨이 오르면 더 많은 프레임이 잠금 해제됩니다.';
+
+  @override
+  String get shopDeliveringTo => '배송지';
+
+  @override
+  String shopRoomOfPet(Object petName) {
+    return '$petName의 방';
+  }
+
+  @override
+  String get shopSwitchRoom => '변경';
+
+  @override
+  String get shopSwitchRoomTitle => '어느 방으로 보낼까요?';
+
+  @override
+  String shopDeliverConfirmTitle(Object petName) {
+    return '$petName의 방으로 보낼까요?';
+  }
+
+  @override
+  String shopDeliverConfirmMessage(Object itemName, Object petName) {
+    return '$itemName을(를) $petName의 방으로 보내요.';
+  }
+
+  @override
+  String shopDeliverConfirmAction(Object petName) {
+    return '$petName에게 사 주기';
+  }
+
+  @override
+  String get shopNewBadge => 'NEW';
+
+  @override
+  String get newItemsPopupTitle => '상점에 새 아이템 입고!';
+
+  @override
+  String newItemsPopupMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '새 아이템 $count개 더',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get newItemsVisitShop => '상점 보러 가기';
+
+  @override
+  String get newItemsLater => '나중에';
 }

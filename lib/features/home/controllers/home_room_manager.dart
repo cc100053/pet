@@ -577,6 +577,7 @@ extension _HomeRoomManager on _HomeViewState {
       ),
     );
     _syncCrashContextFromHome(lastAction: 'switch_room_ready');
+    unawaited(_maybeShowNewShopItems(roomId));
   }
 
   /// Reveals the full-screen entry overlay only if the entry is still running
@@ -697,6 +698,7 @@ extension _HomeRoomManager on _HomeViewState {
           MaterialPageRoute(
             builder: (_) => ShopView(
               roomId: firstRoomId,
+              rooms: _shopRoomTargets(),
               isProUser: _hasProPlanAccess,
               departedPets: departedInfo != null ? [departedInfo] : const [],
               onReturnPet: _returnDepartedPet,
