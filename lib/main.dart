@@ -24,6 +24,7 @@ import 'services/performance/system_memory_pressure_service.dart';
 import 'services/settings/app_settings_repository.dart';
 import 'features/feed/feed_upload_repository.dart';
 import 'shared/force_update/crash_update_guard.dart';
+import 'shared/ui/balanced_text.dart';
 
 RawReceivePort? _isolateErrorPort;
 
@@ -36,6 +37,17 @@ Future<void> main() async {
       final appStartTime = DateTime.now();
       WidgetsFlutterBinding.ensureInitialized();
       _configureImageCache();
+      // Loads while the rest of bootstrap runs; awaited before runApp.
+      // A failed load only costs phrase-aware wrapping, never startup.
+      final phraseBreaks = PhraseBreaks.load().catchError(
+        (Object error, StackTrace stack) =>
+            CrashReportingService.instance.reportError(
+              error: error,
+              stackTrace: stack,
+              source: 'phrase_breaks_load',
+              fatal: false,
+            ),
+      );
       await dotenv.load(fileName: '.env');
 
       await Firebase.initializeApp(
@@ -120,6 +132,7 @@ Future<void> main() async {
       await FeedUploadRepository.instance.init();
       PerformanceService.instance.markAppStart(appStartTime);
 
+      await phraseBreaks;
       runApp(const ProviderScope(child: PicPetApp()));
       WidgetsBinding.instance.addPostFrameCallback((_) {
         PerformanceService.instance.markFirstFrameRendered();

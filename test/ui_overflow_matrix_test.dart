@@ -10,6 +10,7 @@ import 'package:pet/features/shop/models/shop_item.dart';
 import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/app_ui_scale.dart';
+import 'package:pet/shared/ui/balanced_text.dart';
 
 const _phones = <Size>[
   Size(320, 568), // iPhone SE 1st gen
@@ -117,6 +118,9 @@ Future<void> _sweep(
 }
 
 void main() {
+  // Phrase-aware wrapping makes longer unbreakable runs; check they still fit.
+  setUpAll(() => PhraseBreaks.load());
+
   testWidgets('room selection fits every locale and phone', (tester) async {
     await _sweep(
       tester,

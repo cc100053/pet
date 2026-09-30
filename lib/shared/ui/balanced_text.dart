@@ -1,5 +1,7 @@
+import 'package:budoux_dart/budoux.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 /// [Text] that wraps into even lines instead of leaving an orphan (a lone
 /// "す。" or "anytime." on the last line), like CSS `text-wrap: balance`.
@@ -8,6 +10,9 @@ import 'package:flutter/rendering.dart';
 /// without truncating, then aligns that block per [textAlign]. Text that fits
 /// on one line looks exactly like [Text]. Use it for short UI copy (titles,
 /// subtitles, hints, dialog messages), not long paragraphs or chat bodies.
+///
+/// Japanese, Chinese and Korean lines only break between phrases or words
+/// (see [PhraseBreaks]), never mid-word like "ア|イテム".
 class BalancedText extends StatelessWidget {
   const BalancedText(
     this.data, {
@@ -26,6 +31,10 @@ class BalancedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shown = PhraseBreaks.apply(
+      data,
+      Localizations.maybeLocaleOf(context),
+    );
     return _Balance(
       alignment: switch (textAlign) {
         TextAlign.center => Alignment.center,
@@ -33,13 +42,83 @@ class BalancedText extends StatelessWidget {
         _ => AlignmentDirectional.centerStart,
       },
       child: Text(
-        data,
+        shown,
+        semanticsLabel: identical(shown, data) ? null : data,
         style: style,
         textAlign: textAlign,
         maxLines: maxLines,
         overflow: overflow,
       ),
     );
+  }
+}
+
+/// Glues CJK text into phrases so wrapping never splits a word.
+///
+/// Flutter may break between any two Japanese, Chinese or Hangul characters.
+/// Japanese and Chinese are split into phrases with BudouX; Korean already
+/// separates words with spaces (like CSS `word-break: keep-all`). Characters
+/// inside a phrase are joined with invisible WORD JOINERs, so the only break
+/// opportunities left are between phrases. A phrase wider than the line still
+/// breaks as a last resort.
+abstract final class PhraseBreaks {
+  static const _wordJoiner = '\u2060';
+  static final _cjk = RegExp(
+    '[\u1100-\u11ff\u3040-\u30ff\u3130-\u318f\u3400-\u9fff'
+    '\uac00-\ud7af\uf900-\ufaff]',
+  );
+  static final _models = <String, BudouX>{};
+
+  /// Loads the phrase models; until then text wraps like plain [Text].
+  static Future<void> load([AssetBundle? bundle]) async {
+    final assets = bundle ?? rootBundle;
+    await Future.wait([
+      for (final name in const ['ja', 'zh-hans', 'zh-hant'])
+        assets
+            .loadString('packages/budoux_dart/models/$name.json')
+            .then((json) => _models[name] = BudouX(json)),
+    ]);
+  }
+
+  /// [text] with word joiners inside phrases, or [text] itself when the
+  /// locale needs none.
+  static String apply(String text, Locale? locale) {
+    if (locale == null || !_cjk.hasMatch(text)) return text;
+    final Iterable<String>? phrases = switch (locale.languageCode) {
+      // Words are space-separated: glue everything but whitespace.
+      'ko' => [text],
+      'ja' => _models['ja']?.parse(text),
+      'zh'
+          when locale.scriptCode == 'Hant' ||
+              const {'TW', 'HK', 'MO'}.contains(locale.countryCode) =>
+        _models['zh-hant']?.parse(text),
+      'zh' => _models['zh-hans']?.parse(text),
+      _ => null,
+    };
+    if (phrases == null) return text;
+
+    final breaks = <int>{};
+    var end = 0;
+    for (final phrase in phrases) {
+      breaks.add(end += phrase.length);
+    }
+    final out = StringBuffer();
+    var offset = 0;
+    String? previous;
+    // Iterate graphemes so a joiner never lands inside an emoji or a
+    // surrogate pair that the phrase model split.
+    for (final char in text.characters) {
+      if (previous != null &&
+          !breaks.contains(offset) &&
+          previous.trim().isNotEmpty &&
+          char.trim().isNotEmpty) {
+        out.write(_wordJoiner);
+      }
+      out.write(char);
+      offset += char.length;
+      previous = char;
+    }
+    return out.toString();
   }
 }
 
