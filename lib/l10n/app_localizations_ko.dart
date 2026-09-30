@@ -1498,6 +1498,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurniturePumpkinLantern => '방긋 웃는 할로윈 호박.';
 
   @override
+  String get storeItemNameFurnitureCandyCauldron => '사탕 가마솥';
+
+  @override
+  String get storeItemDescFurnitureCandyCauldron => '사탕이 가득 넘치는 마녀의 가마솥.';
+
+  @override
+  String get storeItemNameFurnitureBatArmchair => '박쥐 날개 안락의자';
+
+  @override
+  String get storeItemDescFurnitureBatArmchair => '작은 박쥐 날개가 달린 포근한 안락의자.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '밀짚모자';
 
   @override

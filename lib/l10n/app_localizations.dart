@@ -2765,6 +2765,30 @@ abstract class AppLocalizations {
   /// **'A smiling jack-o\'-lantern for spooky season.'**
   String get storeItemDescFurniturePumpkinLantern;
 
+  /// No description provided for @storeItemNameFurnitureCandyCauldron.
+  ///
+  /// In en, this message translates to:
+  /// **'Candy Cauldron'**
+  String get storeItemNameFurnitureCandyCauldron;
+
+  /// No description provided for @storeItemDescFurnitureCandyCauldron.
+  ///
+  /// In en, this message translates to:
+  /// **'A cauldron overflowing with treats.'**
+  String get storeItemDescFurnitureCandyCauldron;
+
+  /// No description provided for @storeItemNameFurnitureBatArmchair.
+  ///
+  /// In en, this message translates to:
+  /// **'Bat-Wing Armchair'**
+  String get storeItemNameFurnitureBatArmchair;
+
+  /// No description provided for @storeItemDescFurnitureBatArmchair.
+  ///
+  /// In en, this message translates to:
+  /// **'A cozy armchair with little bat wings.'**
+  String get storeItemDescFurnitureBatArmchair;
+
   /// No description provided for @storeItemNameEquipmentStrawHat.
   ///
   /// In en, this message translates to:

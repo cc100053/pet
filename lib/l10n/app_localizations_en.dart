@@ -1530,6 +1530,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'A smiling jack-o\'-lantern for spooky season.';
 
   @override
+  String get storeItemNameFurnitureCandyCauldron => 'Candy Cauldron';
+
+  @override
+  String get storeItemDescFurnitureCandyCauldron =>
+      'A cauldron overflowing with treats.';
+
+  @override
+  String get storeItemNameFurnitureBatArmchair => 'Bat-Wing Armchair';
+
+  @override
+  String get storeItemDescFurnitureBatArmchair =>
+      'A cozy armchair with little bat wings.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => 'Straw Hat';
 
   @override

@@ -1487,6 +1487,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescFurniturePumpkinLantern => 'にっこり笑うハロウィンのかぼちゃ。';
 
   @override
+  String get storeItemNameFurnitureCandyCauldron => 'お菓子の大鍋';
+
+  @override
+  String get storeItemDescFurnitureCandyCauldron => 'お菓子があふれる魔女の大鍋。';
+
+  @override
+  String get storeItemNameFurnitureBatArmchair => 'コウモリのアームチェア';
+
+  @override
+  String get storeItemDescFurnitureBatArmchair => '小さなコウモリの羽がついたふかふかの椅子。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '麦わら帽子';
 
   @override

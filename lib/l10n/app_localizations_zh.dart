@@ -1480,6 +1480,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurniturePumpkinLantern => '笑眯眯的万圣节南瓜灯。';
 
   @override
+  String get storeItemNameFurnitureCandyCauldron => '糖果魔法锅';
+
+  @override
+  String get storeItemDescFurnitureCandyCauldron => '装满糖果的女巫魔法锅。';
+
+  @override
+  String get storeItemNameFurnitureBatArmchair => '蝙蝠翅膀扶手椅';
+
+  @override
+  String get storeItemDescFurnitureBatArmchair => '长着小蝙蝠翅膀的舒适扶手椅。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '草帽';
 
   @override
@@ -3767,6 +3779,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescFurniturePumpkinLantern => '笑瞇瞇的萬聖節南瓜燈。';
+
+  @override
+  String get storeItemNameFurnitureCandyCauldron => '糖果魔法鍋';
+
+  @override
+  String get storeItemDescFurnitureCandyCauldron => '裝滿糖果的女巫魔法鍋。';
+
+  @override
+  String get storeItemNameFurnitureBatArmchair => '蝙蝠翅膀扶手椅';
+
+  @override
+  String get storeItemDescFurnitureBatArmchair => '長著小蝙蝠翅膀的舒適扶手椅。';
 
   @override
   String get storeItemNameEquipmentStrawHat => '草帽';
