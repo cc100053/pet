@@ -16,7 +16,8 @@ separate copy. Keep this skill's existing name for repository workflow routing.
   duplicating it. Version keys use the public version; ARB suffixes remove
   dots (`1.2.1` → `121`).
 - Each bundle row is an icon, a headline, and an optional detail line; the
-  dialog renders them as scannable icon rows, not sentences:
+  centered dialog renders each as a full-width tinted tile, not a sentence.
+  A headline must fit one line of the tile on a 320pt phone:
   - `whatsNew<V>BulletN`: headline, a noun phrase with no terminal
     punctuation. Max ja/zh 12 chars, ko 14, en 28.
   - `whatsNew<V>BulletNDetail`: optional, one fact only (e.g. the lead item

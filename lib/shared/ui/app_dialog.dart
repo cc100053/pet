@@ -243,7 +243,7 @@ Future<T?> showJuiceToast<T>({
   bool barrierDismissible = true,
   Widget? leading,
   bool fullWidthBody = false,
-  bool centerMessage = false,
+  bool centered = false,
 }) {
   final theme = Theme.of(context);
   final toneStyle = _toneStyle(theme, tone);
@@ -289,6 +289,74 @@ Future<T?> showJuiceToast<T>({
           end: Offset.zero,
         ),
       };
+
+      Widget secondaryButton(String label) => JuicyScaleButton(
+        onTap: () {
+          Navigator.of(context).pop();
+          onSecondaryActionPressed?.call();
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.ink, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.ink.withValues(alpha: 0.25),
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.mPlusRounded1c(
+                fontWeight: FontWeight.w900,
+                color: AppTheme.textPrimary,
+                fontSize: 18,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      Widget primaryButton(String label) => JuicyScaleButton(
+        onTap: () {
+          Navigator.of(context).pop();
+          onActionPressed?.call();
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.leafStrong,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.ink, width: 2),
+            boxShadow: const [
+              BoxShadow(color: AppTheme.leafDeep, offset: Offset(0, 4)),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.mPlusRounded1c(
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                fontSize: 18,
+                shadows: const [
+                  Shadow(color: AppTheme.leafDeep, offset: Offset(0, 1.5)),
+                ],
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ),
+      );
 
       Widget content = Material(
         color: Colors.transparent,
@@ -392,12 +460,9 @@ Future<T?> showJuiceToast<T>({
                               ),
                           const Gap(14),
                         ],
-                        // Mirrors the close button so a centered title sits
-                        // on the card's center line.
-                        if (centerMessage) const SizedBox(width: 20),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: centerMessage
+                            crossAxisAlignment: centered
                                 ? CrossAxisAlignment.center
                                 : CrossAxisAlignment.start,
                             children: [
@@ -405,9 +470,7 @@ Future<T?> showJuiceToast<T>({
                               if (message != null)
                                 BalancedText(
                                   message,
-                                  textAlign: centerMessage
-                                      ? TextAlign.center
-                                      : null,
+                                  textAlign: centered ? TextAlign.center : null,
                                   style: GoogleFonts.mPlusRounded1c(
                                     color: accent,
                                     fontSize: 22,
@@ -422,18 +485,20 @@ Future<T?> showJuiceToast<T>({
                             ],
                           ),
                         ),
-                        // Close button
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(
-                            Icons.close,
-                            color: accent.withValues(alpha: 0.5),
-                            size: 20,
+                        // Close button; the centered layout drops it so the
+                        // header stays symmetric and the primary action closes.
+                        if (!centered)
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: Icon(
+                              Icons.close,
+                              color: accent.withValues(alpha: 0.5),
+                              size: 20,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            visualDensity: VisualDensity.compact,
                           ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          visualDensity: VisualDensity.compact,
-                        ),
                       ],
                     ),
                     // Full-width body spans under the close button so its
@@ -442,103 +507,47 @@ Future<T?> showJuiceToast<T>({
                       Gap(message != null ? 12 : 4),
                       body,
                     ],
-                    if (actionLabel != null ||
+                    if (centered) ...[
+                      if (actionLabel != null) ...[
+                        const Gap(16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: primaryButton(actionLabel),
+                        ),
+                      ],
+                      if (secondaryActionLabel != null) ...[
+                        const Gap(6),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            onSecondaryActionPressed?.call();
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.textSecondary,
+                          ),
+                          child: Text(
+                            secondaryActionLabel,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.mPlusRounded1c(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ] else if (actionLabel != null ||
                         secondaryActionLabel != null) ...[
                       const Gap(16),
                       Row(
                         children: [
                           if (secondaryActionLabel != null) ...[
                             Expanded(
-                              child: JuicyScaleButton(
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  onSecondaryActionPressed?.call();
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.surfaceColor,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: AppTheme.ink,
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.ink.withValues(
-                                          alpha: 0.25,
-                                        ),
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      secondaryActionLabel,
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.mPlusRounded1c(
-                                        fontWeight: FontWeight.w900,
-                                        color: AppTheme.textPrimary,
-                                        fontSize: 18,
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              child: secondaryButton(secondaryActionLabel),
                             ),
                             if (actionLabel != null) const Gap(10),
                           ],
                           if (actionLabel != null)
-                            Expanded(
-                              child: JuicyScaleButton(
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  onActionPressed?.call();
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.leafStrong,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: AppTheme.ink,
-                                      width: 2,
-                                    ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: AppTheme.leafDeep,
-                                        offset: Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      actionLabel,
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.mPlusRounded1c(
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        shadows: const [
-                                          Shadow(
-                                            color: AppTheme.leafDeep,
-                                            offset: Offset(0, 1.5),
-                                          ),
-                                        ],
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            Expanded(child: primaryButton(actionLabel)),
                         ],
                       ),
                     ],

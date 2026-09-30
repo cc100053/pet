@@ -282,7 +282,7 @@ class _ForceUpdateGateState extends State<ForceUpdateGate>
       context: context,
       message: entry.title(l10n),
       fullWidthBody: true,
-      centerMessage: true,
+      centered: true,
       body: WhatsNewToastBody(version: version, entry: entry),
       tone: AppDialogTone.info,
       position: JuicePosition.center,

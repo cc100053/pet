@@ -5,8 +5,8 @@ import 'package:pet/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import 'app_whats_new_entry.dart';
 
-/// Centered version pill plus up to three icon rows (headline + optional
-/// detail).
+/// Centered version pill plus up to three tinted tiles (icon, headline,
+/// optional detail).
 /// The entry title is the toast's `message`, so it is not repeated here.
 class WhatsNewToastBody extends StatelessWidget {
   const WhatsNewToastBody({
@@ -23,28 +23,21 @@ class WhatsNewToastBody extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final bullets = entry.bullets(l10n).take(3).toList(growable: false);
 
-    // Pill is centered; rows form one centered block whose icons stay on a
-    // shared left edge so they still scan as a list.
+    // Full-width tinted tiles: their edges, not the ragged text, set the
+    // card's left and right lines.
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _VersionPill(version: version),
-        const SizedBox(height: 4),
-        IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var index = 0; index < bullets.length; index++) ...[
-                const SizedBox(height: 12),
-                _IconRow(
-                  icon: entry.bulletIcon(index),
-                  headline: bullets[index],
-                  detail: entry.bulletDetail(l10n, index),
-                ),
-              ],
-            ],
+        Center(child: _VersionPill(version: version)),
+        for (var index = 0; index < bullets.length; index++) ...[
+          SizedBox(height: index == 0 ? 14 : 8),
+          _Tile(
+            icon: entry.bulletIcon(index),
+            headline: bullets[index],
+            detail: entry.bulletDetail(l10n, index),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -79,8 +72,8 @@ class _VersionPill extends StatelessWidget {
   }
 }
 
-class _IconRow extends StatelessWidget {
-  const _IconRow({required this.icon, required this.headline, this.detail});
+class _Tile extends StatelessWidget {
+  const _Tile({required this.icon, required this.headline, this.detail});
 
   final AppWhatsNewIcon icon;
   final String headline;
@@ -99,49 +92,56 @@ class _IconRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final (iconData, tint) = _style(icon);
 
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: tint.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              iconData,
+              size: 22,
+              color: Color.lerp(tint, AppTheme.ink, 0.35),
+            ),
           ),
-          child: Icon(
-            iconData,
-            size: 22,
-            color: Color.lerp(tint, AppTheme.ink, 0.35),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                headline,
-                style: GoogleFonts.mPlusRounded1c(
-                  color: AppTheme.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3,
-                ),
-              ),
-              if (detail != null)
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  detail!,
+                  headline,
                   style: GoogleFonts.mPlusRounded1c(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
                     height: 1.3,
                   ),
                 ),
-            ],
+                if (detail != null)
+                  Text(
+                    detail!,
+                    style: GoogleFonts.mPlusRounded1c(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
