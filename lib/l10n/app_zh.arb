@@ -265,6 +265,7 @@
   "drawerDebugTestSoftUpdate": "测试可选更新弹窗",
   "drawerDebugTestHardUpdate": "测试强制更新弹窗",
   "drawerDebugTestWhatsNew": "预览 What's New 窗口",
+  "drawerDebugTestNewShopItems": "预览商店新品弹窗",
   "drawerDebugTestCrashReport": "测试崩溃上报",
   "debugMemoryDiagnosticsTitle": "内存诊断",
   "debugMemoryDiagnosticsEmpty": "尚未记录任何内存快照。",

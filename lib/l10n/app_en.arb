@@ -270,6 +270,7 @@
   "drawerDebugTestSoftUpdate": "Test Soft Update Prompt",
   "drawerDebugTestHardUpdate": "Test Hard Update Prompt",
   "drawerDebugTestWhatsNew": "Preview What's New Modal",
+  "drawerDebugTestNewShopItems": "Preview New Shop Items Popup",
   "drawerDebugTestCrashReport": "Test Crash Report",
   "debugMemoryDiagnosticsTitle": "Memory Diagnostics",
   "debugMemoryDiagnosticsEmpty": "No memory snapshots captured yet.",

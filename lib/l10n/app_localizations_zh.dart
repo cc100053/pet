@@ -504,6 +504,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get drawerDebugTestWhatsNew => '预览 What\'s New 窗口';
 
   @override
+  String get drawerDebugTestNewShopItems => '预览商店新品弹窗';
+
+  @override
   String get drawerDebugTestCrashReport => '测试崩溃上报';
 
   @override
@@ -2815,6 +2818,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get drawerDebugTestWhatsNew => '預覽 What\'s New 視窗';
+
+  @override
+  String get drawerDebugTestNewShopItems => '預覽商店新品彈窗';
 
   @override
   String get drawerDebugTestCrashReport => '測試崩潰上報';

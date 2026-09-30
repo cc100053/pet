@@ -263,6 +263,7 @@
   "drawerDebugTestSoftUpdate": "測試可選更新彈窗",
   "drawerDebugTestHardUpdate": "測試強制更新彈窗",
   "drawerDebugTestWhatsNew": "預覽 What's New 視窗",
+  "drawerDebugTestNewShopItems": "預覽商店新品彈窗",
   "drawerDebugTestCrashReport": "測試崩潰上報",
   "debugMemoryDiagnosticsTitle": "記憶體診斷",
   "debugMemoryDiagnosticsEmpty": "尚未記錄任何記憶體快照。",

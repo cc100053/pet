@@ -531,6 +531,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerDebugTestWhatsNew => 'Preview What\'s New Modal';
 
   @override
+  String get drawerDebugTestNewShopItems => 'Preview New Shop Items Popup';
+
+  @override
   String get drawerDebugTestCrashReport => 'Test Crash Report';
 
   @override

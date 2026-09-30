@@ -218,6 +218,13 @@ extension _HomeDrawerBuilder on _HomeViewState {
                       },
                     ),
                     ListTile(
+                      title: Text(l10n.drawerDebugTestNewShopItems),
+                      onTap: () {
+                        Navigator.pop(context);
+                        unawaited(_debugShowNewShopItems());
+                      },
+                    ),
+                    ListTile(
                       title: Text(l10n.drawerDebugTestCrashReport),
                       onTap: () {
                         Navigator.pop(context);

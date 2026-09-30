@@ -46,22 +46,10 @@ extension _HomeNewShopItems on _HomeViewState {
 
     final List<ShopItem> newItems;
     try {
-      final rows = await Supabase.instance.client.rpc(
-        'get_visible_shop_items',
-        params: {'p_app_version': appVersion},
-      );
       final now = DateTime.now();
-      newItems = (rows as List<dynamic>)
-          .whereType<Map<String, dynamic>>()
-          .map(ShopItem.fromJson)
-          .where(
-            (item) =>
-                item.isNewAt(now) &&
-                !item.isIap &&
-                !item.isHiddenFromShop &&
-                item.isSupportedOnAppVersion(appVersion),
-          )
-          .toList();
+      newItems = (await _fetchPopupShopItems(
+        appVersion,
+      )).where((item) => item.isNewAt(now)).toList();
     } catch (error, stackTrace) {
       _newShopItemsCheckedThisSession = false;
       reportSwallowedError(error, stackTrace, source: 'home_new_shop_items');
@@ -85,14 +73,7 @@ extension _HomeNewShopItems on _HomeViewState {
       return;
     }
 
-    int rank(ShopItem item) => item.isFurniture
-        ? 0
-        : item.isEquipment
-        ? 1
-        : item.isBackground
-        ? 2
-        : 3;
-    unseen.sort((a, b) => rank(a).compareTo(rank(b)));
+    _sortForNewShopItemsPopup(unseen);
 
     AnalyticsService.instance.logEvent(
       'new_items_popup_shown',
@@ -103,6 +84,66 @@ extension _HomeNewShopItems on _HomeViewState {
       return;
     }
     AnalyticsService.instance.logEvent('new_items_popup_visit');
+    await _openStoreWithDepartures(shopRoomId: shopRoomId);
+  }
+
+  /// Shop items the popup may feature: visible, non-IAP and supported on
+  /// [appVersion]. Callers apply the NEW-window filter.
+  Future<List<ShopItem>> _fetchPopupShopItems(String appVersion) async {
+    final rows = await Supabase.instance.client.rpc(
+      'get_visible_shop_items',
+      params: {'p_app_version': appVersion},
+    );
+    return (rows as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(ShopItem.fromJson)
+        .where(
+          (item) =>
+              !item.isIap &&
+              !item.isHiddenFromShop &&
+              item.isSupportedOnAppVersion(appVersion),
+        )
+        .toList();
+  }
+
+  void _sortForNewShopItemsPopup(List<ShopItem> items) {
+    int rank(ShopItem item) => item.isFurniture
+        ? 0
+        : item.isEquipment
+        ? 1
+        : item.isBackground
+        ? 2
+        : 3;
+    items.sort((a, b) => rank(a).compareTo(rank(b)));
+  }
+
+  /// Debug drawer preview: shows the popup for the current NEW items,
+  /// ignoring the seen set and session flag and recording nothing. Falls back
+  /// to a few catalog items when no NEW window is open.
+  Future<void> _debugShowNewShopItems() async {
+    final roomId = _roomId;
+    final appVersion = _currentAppVersion;
+    if (roomId == null || appVersion == null || appVersion.isEmpty) {
+      return;
+    }
+    final List<ShopItem> items;
+    try {
+      items = await _fetchPopupShopItems(appVersion);
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'debug_new_shop_items');
+      return;
+    }
+    final now = DateTime.now();
+    final newItems = items.where((item) => item.isNewAt(now)).toList();
+    final preview = newItems.isNotEmpty ? newItems : items.take(3).toList();
+    if (preview.isEmpty || !mounted) {
+      return;
+    }
+    _sortForNewShopItemsPopup(preview);
+    final shopRoomId = await _showNewShopItemsPopup(preview, roomId);
+    if (shopRoomId == null || !mounted) {
+      return;
+    }
     await _openStoreWithDepartures(shopRoomId: shopRoomId);
   }
 

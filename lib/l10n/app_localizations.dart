@@ -997,6 +997,12 @@ abstract class AppLocalizations {
   /// **'Preview What\'s New Modal'**
   String get drawerDebugTestWhatsNew;
 
+  /// No description provided for @drawerDebugTestNewShopItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview New Shop Items Popup'**
+  String get drawerDebugTestNewShopItems;
+
   /// No description provided for @drawerDebugTestCrashReport.
   ///
   /// In en, this message translates to:

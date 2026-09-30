@@ -514,6 +514,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get drawerDebugTestWhatsNew => 'What\'s New 모달 미리보기';
 
   @override
+  String get drawerDebugTestNewShopItems => '상점 신상품 팝업 미리보기';
+
+  @override
   String get drawerDebugTestCrashReport => '크래시 보고 테스트';
 
   @override

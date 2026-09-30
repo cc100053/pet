@@ -507,6 +507,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get drawerDebugTestWhatsNew => 'What\'s New モーダルを確認';
 
   @override
+  String get drawerDebugTestNewShopItems => 'ショップ新着ポップアップを確認';
+
+  @override
   String get drawerDebugTestCrashReport => 'クラッシュ報告をテスト';
 
   @override
