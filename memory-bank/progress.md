@@ -16,9 +16,8 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   deployment state lives in `docs/release_status.md`.
 - Halloween 2026 furniture (Pumpkin Lantern 100, Candy Cauldron 150, Bat-Wing
   Armchair 250) is in the live catalog, version-gated at `3.3.1` (first shown
-  in 4.0.0). Only the pumpkin has `new_until` (2026-11-01). Purchase-push item
-  names for illustrated furniture are fixed in `notify_friend/l10n.ts` but not
-  yet deployed. Art workflow: `.codex/skills/new-furniture-art/SKILL.md`.
+  in 4.0.0), all with `new_until` 2026-11-01. Purchase pushes name all
+  illustrated furniture (`notify_friend` v36). Art workflow: `.codex/skills/new-furniture-art/SKILL.md`.
 - New shop items (`items.metadata.new_until`) get a gold NEW card badge and a
   one-time "just arrived" popup after room entry (once per account per item,
   stored locally per user id in `app_settings`). The shop shows a
