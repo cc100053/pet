@@ -34,12 +34,14 @@ Read the sources relevant to the operation, not every linked document:
 | Photo cleanup | `docs/abandoned_room_cleanup.md` |
 | Support inbox / replying to users | `docs/support_inbox.md` |
 | Coin pricing | `docs/shop_pricing.md` — use its calibrated ladder and guardrails |
+| Furniture art (style, Gemini prompts, normalizing) | `docs/art_style.md` |
 
 Load the matching repository skill:
 
 - Crashlytics evidence: `.codex/skills/firebase-crashlytics-triage/SKILL.md`.
 - Release notes / ASC metadata: `.codex/skills/release-notes-sync/SKILL.md`.
 - Shared item rollout or compatibility: `.codex/skills/shared-item-rollout/SKILL.md`.
+- New furniture art (design through shippable PNG): `.codex/skills/new-furniture-art/SKILL.md`.
 - Godot sockets, sequence exports, equipment placement:
   `.codex/skills/pet-socket-calibration/SKILL.md`; consult the relevant socket or
   equipment sections of `docs/godot-png-sequence-socket-workflow.md`.
