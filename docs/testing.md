@@ -120,7 +120,7 @@ target and authorized scope, even when they roll back writes.
 
 ### Sign in with Apple secret maintenance
 
-For authorized secret rotation, `tool/generate_secret.sh` reads `APPLE_*` values
+For authorized secret rotation, `scripts/generate_apple_secret.sh` reads `APPLE_*` values
 from `.env`, generates the client secret, and updates the reminder date.
 `scripts/generate_apple_client_secret.mjs` is the raw JWT helper. Keep `.p8`
 files and generated secrets out of Git and logs. The monthly

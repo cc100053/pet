@@ -60,13 +60,13 @@ jobs:
 
             if (lastDate === "NEVER") {
               title = "🚨 URGENT: Apple Client Secret Date File Missing";
-              body = "The file `LAST_UPDATED_APPLE_SECRET.txt` was not found. Please run `./tool/generate_secret.sh` locally to initialize it.";
+              body = "The file `LAST_UPDATED_APPLE_SECRET.txt` was not found. Please run `./scripts/generate_apple_secret.sh` locally to initialize it.";
             } else {
               title = `🚨 URGENT: Apple Client Secret Expiration Warning (${daysLeft} days left)`;
               body = `The Apple Client Secret was last updated on **${lastDate}**.
             It is estimated to expire in **${daysLeft}** days.
             
-            Please run \`./tool/generate_secret.sh\` locally to generate a new secret and update the date file.
+            Please run \`./scripts/generate_apple_secret.sh\` locally to generate a new secret and update the date file.
             
             **Max validity:** 180 days
             **Warning threshold:** 60 days`;
