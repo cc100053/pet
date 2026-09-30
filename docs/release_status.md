@@ -16,7 +16,8 @@ This is the internal source/build baseline, not proof of public availability.
 
 | Platform | Baseline version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 3.3.0 | 26 | Current internal baseline; ASC version `8ddfabc4-38b7-4068-81bf-b453866d71e9` is `PREPARE_FOR_SUBMISSION`, build `ceae9820-b70f-4cf5-8222-58daf67893d2` is `VALID` and attached; localizations synced from `.asc/version-localizations/*.strings` (en-US `9d7dd715-d6fa-4536-a336-bfcdce77c209`, ja `2e2fd929-394d-467f-95f5-2449916013bb`, ko `ed9232fa-7b1b-4e99-8ae0-450e0752b3c1`, zh-Hant `a22dfe9a-7434-4647-ac19-e508b2e8802f`); not submitted for App Review | 2026-09-26 | App Store Connect metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for the in-app support thread feature | none |
+| iOS | 4.0.0 | 27 | Current internal baseline; ASC version `64c4ade8-b449-4aae-8523-ccbdfd5f477f` is `PREPARE_FOR_SUBMISSION`, build `c7d0f720-c656-4bca-8514-55a9ba1e55f2` is `VALID` and attached; localizations synced from `.asc/version-localizations/*.strings` and read back (en-US `dd742020-ddf7-4e87-8eac-600a0cf34d59`, ja `d9e4c19b-0a67-4f9c-8678-22c8440a002e`, ko `ce6ee435-e083-4fcb-8993-8c40fbedff6e`, zh-Hant `2388822f-91f0-42e9-ab6b-f347c2d2bf4c`); not submitted for App Review | 2026-09-30 | ASC metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for Halloween furniture, Mori UI refresh, room-aware shop delivery. IPA verified: 4.0.0 (27), `UIDeviceFamily` [1], portrait, full screen, three Halloween PNGs bundled | none |
+| iOS | 3.3.0 | 26 | Previous baseline (superseded 2026-09-30); ASC version `8ddfabc4-...` `READY_FOR_DISTRIBUTION` | 2026-09-30 | `asc versions list` | none |
 | Android | Never released | - | Not published; iOS-only product | 2026-09-15 | Confirmed by the product owner | none |
 
 Correction: on 2026-09-24 `asc versions list` showed 3.2.0 (`4ae6f075-...`) already
@@ -37,6 +38,7 @@ this is unrecoverable after the fact. Record every release here.
 
 | Version | Build | dSYMs uploaded | Archive preserved | Note |
 | --- | --- | --- | --- | --- |
+| 4.0.0 | 27 | Yes — 2026-09-30, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 4.0.0 (27).xcarchive` | Runner UUID `6A70A7F5-9345-312A-994F-B8ECE12176DD`, App.framework `0C7143A3-1939-39D4-485E-50E6FC43B1B0`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.3.0 | 26 | Yes — 2026-09-26, all 13 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.3.0 (26).xcarchive` | Runner UUID `732606A6-BDBB-3658-99EC-A7FF4E553C6D`, App.framework `0C7143A3-B591-9C00-485E-50E653F7F91A`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.2.1 | 25 | Yes — 2026-09-24, all 13 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.2.1 (25).xcarchive` | Runner UUID `77F014EF-0AF7-3F27-A69A-40C4E92B9A18`, App.framework `0C7143A3-76B1-2E4C-485E-50E6074D255F`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 3.2.0 | 24 | Yes — 2026-09-13, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 3.2.0 (24).xcarchive` | Runner UUID `899B069B-543E-33E9-B307-4C78FBEC276A`, App.framework `0C7143A3-E8A1-4BD6-485E-50E684619EE5`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
@@ -75,6 +77,11 @@ Earlier release rows and the original ledger are preserved in
 
 ## Pending Release Actions
 
+- iOS `4.0.0+27` is the current repository baseline, uploaded and attached in
+  ASC (`PREPARE_FOR_SUBMISSION`, not submitted). It ships the Halloween furniture
+  (`min_app_version 3.3.1`, NEW until 2026-11-01). Seasonal `promotionalText`
+  (Halloween) should be replaced after 2026-11-01. Complete the build 27 Missing
+  dSYMs check `[USER ACTION REQUIRED]`. Submit for App Review only on request.
 - iOS `3.3.0+26` is the current repository baseline, uploaded and attached in
   ASC, with recorded state `PREPARE_FOR_SUBMISSION`. Submit for App Review only
   after an explicit request; do not infer public availability from attachment.
