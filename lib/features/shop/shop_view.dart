@@ -177,7 +177,7 @@ class _ShopViewState extends State<ShopView> {
   final GlobalKey _specialPacksSectionKey = GlobalKey();
   final GlobalKey _consumablesSectionKey = GlobalKey();
   late List<DepartedPetInfo> _departedPets;
-  late String? _roomId = _roomId;
+  late String? _roomId = widget.roomId;
   Uri? _privacyPolicyUri;
   late final Uri _termsOfUseUri;
   Timer? _storeNoticeTimer;

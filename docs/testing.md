@@ -21,6 +21,21 @@ commands instead. Do not use this exception for executable scripts or runtime
 assets. If CI is restored, materialize gitignored `lib/firebase_options.dart`
 and `.env` from appropriate templates before analyzer/tests.
 
+### iOS simulator builds on Xcode 27
+
+`flutter build ios --simulator` / `flutter run` on a simulator fail in
+`debug_unpack_ios` ("does not contain architectures arm64 x86_64"): Xcode 27's
+`lipo -verify_arch` accepts only one architecture, and Flutter 3.44 passes two.
+Device and archive builds (arm64 only) are unaffected. Build arm64-only instead:
+
+```sh
+xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Debug \
+  -sdk iphonesimulator -destination 'id=<SIMULATOR_UDID>' \
+  ARCHS=arm64 ONLY_ACTIVE_ARCH=YES -derivedDataPath build/ios_sim build
+```
+
+then install `build/ios_sim/Build/Products/Debug-iphonesimulator/Runner.app`.
+
 ### Live-test boundary
 
 The feed integration test reads credentials from process variables **and `.env`**.
