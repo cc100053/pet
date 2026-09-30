@@ -1523,6 +1523,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeItemDescFurnitureVinyl => 'Records for a music corner.';
 
   @override
+  String get storeItemNameFurniturePumpkinLantern => 'Pumpkin Lantern';
+
+  @override
+  String get storeItemDescFurniturePumpkinLantern =>
+      'A smiling jack-o\'-lantern for spooky season.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => 'Straw Hat';
 
   @override

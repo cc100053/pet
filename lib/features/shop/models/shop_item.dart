@@ -199,6 +199,8 @@ class ShopItem {
         return l10n.storeItemDescFurnitureCarpet;
       case 'furniture_vinyl':
         return l10n.storeItemDescFurnitureVinyl;
+      case 'furniture_pumpkin_lantern':
+        return l10n.storeItemDescFurniturePumpkinLantern;
       default:
         return description;
     }

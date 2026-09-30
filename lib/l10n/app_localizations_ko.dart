@@ -1492,6 +1492,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurnitureVinyl => '음악 코너에 어울리는 레코드판.';
 
   @override
+  String get storeItemNameFurniturePumpkinLantern => '호박 랜턴';
+
+  @override
+  String get storeItemDescFurniturePumpkinLantern => '방긋 웃는 할로윈 호박.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '밀짚모자';
 
   @override

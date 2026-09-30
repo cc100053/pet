@@ -50,6 +50,8 @@ String localizedShopItemNameForSku(String sku, AppLocalizations l10n) {
       return l10n.storeItemNameFurnitureCarpet;
     case 'furniture_vinyl':
       return l10n.storeItemNameFurnitureVinyl;
+    case 'furniture_pumpkin_lantern':
+      return l10n.storeItemNameFurniturePumpkinLantern;
     case 'equip_straw_hat':
       return l10n.storeItemNameEquipmentStrawHat;
     case 'equip_crown':

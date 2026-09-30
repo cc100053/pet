@@ -1474,6 +1474,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurnitureVinyl => '适合音乐角落的唱片。';
 
   @override
+  String get storeItemNameFurniturePumpkinLantern => '南瓜灯';
+
+  @override
+  String get storeItemDescFurniturePumpkinLantern => '笑眯眯的万圣节南瓜灯。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '草帽';
 
   @override
@@ -3755,6 +3761,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescFurnitureVinyl => '適合音樂角落的唱片。';
+
+  @override
+  String get storeItemNameFurniturePumpkinLantern => '南瓜燈';
+
+  @override
+  String get storeItemDescFurniturePumpkinLantern => '笑瞇瞇的萬聖節南瓜燈。';
 
   @override
   String get storeItemNameEquipmentStrawHat => '草帽';

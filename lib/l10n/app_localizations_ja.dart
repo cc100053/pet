@@ -1481,6 +1481,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescFurnitureVinyl => '音楽コーナーにぴったりのレコード。';
 
   @override
+  String get storeItemNameFurniturePumpkinLantern => 'かぼちゃランタン';
+
+  @override
+  String get storeItemDescFurniturePumpkinLantern => 'にっこり笑うハロウィンのかぼちゃ。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '麦わら帽子';
 
   @override

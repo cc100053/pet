@@ -2753,6 +2753,18 @@ abstract class AppLocalizations {
   /// **'Records for a music corner.'**
   String get storeItemDescFurnitureVinyl;
 
+  /// No description provided for @storeItemNameFurniturePumpkinLantern.
+  ///
+  /// In en, this message translates to:
+  /// **'Pumpkin Lantern'**
+  String get storeItemNameFurniturePumpkinLantern;
+
+  /// No description provided for @storeItemDescFurniturePumpkinLantern.
+  ///
+  /// In en, this message translates to:
+  /// **'A smiling jack-o\'-lantern for spooky season.'**
+  String get storeItemDescFurniturePumpkinLantern;
+
   /// No description provided for @storeItemNameEquipmentStrawHat.
   ///
   /// In en, this message translates to:

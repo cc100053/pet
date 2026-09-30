@@ -61,8 +61,8 @@ These came up in real reviews:
    palette). Review and fix the composition here, where changes are cheap.
    Example: `design/furniture_sketches/halloween_2026/`. Regenerate the SVGs with
    `python3 gen_sketches.py`, then run `rsvg-convert -w 450 <name>.svg -o <name>.png`.
-2. **Style pass in Gemini.** Upload the style sheet and the sketch (§6), then generate
-   3–4 variants and pick one.
+2. **Generate in Gemini.** Attach one style image and describe the item in text (§6).
+   Generate 3–4 variants and pick one.
 3. **Targeted edits in Gemini.** Fix issues one at a time with edit prompts (§6.4).
 4. **Hand cleanup** (Procreate / Krita). Fix anything the model can't:
    stray pixels, a broken outline, a fuzzy edge. Do not skip this step.
@@ -76,56 +76,57 @@ These came up in real reviews:
 Use a Gemini image model (Gemini app, or Google AI Studio with an image-output
 model) and set the aspect ratio to **1:1**.
 
-### 6.1 References to upload
+### 6.1 Method: one style image + text description
 
-Upload in this order. The prompt refers to them by number.
+**Proven on the Pumpkin Lantern (2026-09-30).** Upload **only one style image** and
+describe the item in words. Two methods failed:
 
-1. **Style sheet.** Build it with
-   `python3 scripts/normalize_furniture.py --ref-sheet style_ref.png`.
-   This puts Cactus, Carpet and Vinyl on white. Do not upload the raw asset PNGs: their
-   transparent areas can show up as black and mislead the model.
-2. **Composition sketch** (optional but recommended). The SVG sketch from
-   step 1, rendered on white.
+- **Reference sheet uploaded first:** Gemini treats an uploaded image as *the
+  picture to edit*, so it redrew the reference almost unchanged.
+- **The word "sticker":** it triggers a die-cut look with a thick white border.
+  Never use it; say "item illustration".
 
-A new chat for each item keeps earlier items from bleeding into the next one.
+The SVG composition sketch (step 1) is for us to agree on the design. Its
+decisions go into the `{ITEM}` text; the sketch is not uploaded.
+
+Build the style image (Cactus on white; do not upload raw asset PNGs, their
+transparency can show up black):
+
+```bash
+python3 scripts/normalize_furniture.py --ref-sheet style_ref.png --ref-items cactus
+```
+
+New chat per item, aspect ratio **1:1**, attach `style_ref.png`, then send §6.2.
 
 ### 6.2 Base prompt template
 
-Write prompts in English. Only change the `{ITEM}` line and the background line.
+Write prompts in English. Change `{ITEM}`, `{THING}` (short name, e.g. "pumpkin")
+and the outline colours.
 
 ```
-Image 1 is a STYLE REFERENCE sheet of furniture stickers from my cozy mobile pet game.
-Image 2 is a COMPOSITION SKETCH for a new item.
+Draw a NEW picture from scratch: {ITEM}, as a 2D item illustration for a cozy mobile pet game.
 
-Create ONE new furniture sticker: {ITEM}.
+The attached image is a STYLE REFERENCE ONLY. Do not draw a cactus, a pot, or anything
+from that image. Do not edit or redraw that image. Only copy HOW it is painted:
+- hand-painted digital gouache, soft visible brush texture, light paper grain
+- outlines are a darker shade of each area's own colour (e.g. dark orange around orange,
+  dark green around green), slightly uneven like a hand-drawn line, never black
+- flat colour areas with 1-2 tones of simple shading and a few thin hatch or highlight strokes
+- muted, warm, earthy colours; not 3D, not clay, not glossy, not vector
 
-From Image 1 take ONLY the art style, never its objects:
-- 2D hand-painted digital gouache, soft visible brush texture, light paper grain
-- outlines are a darker shade of each area's own colour (dark green around green,
-  dark brown around brown), never black, slightly uneven like a hand-drawn line
-- muted, warm, earthy pastel palette
-- flat colour areas with 1-2 tones of simple shading and a few thin hatch/highlight strokes
-- cute and cozy, never scary, never realistic, not 3D, not clay, not vector
-
-From Image 2 take ONLY the layout: silhouette, proportions and where each part sits.
-Repaint everything in the Image 1 style; do not keep the sketch's clean vector look.
-
-Output rules:
-- exactly one object, centred, filling about 90% of the square
-- front view, or a slight 3/4 view from above
-- pure flat white #FFFFFF background: no floor, no cast shadow, no scenery,
-  no text, no border, no sticker outline
-- every part physically connected; nothing floating; no stray lines outside the object
-- decorations stay inside the shape they belong to
-- no transparency or glow that spills onto the background
-- bold, simple silhouette that is still recognisable at 40 pixels wide
+Output:
+- only the {THING}, centred, filling about 90% of a square image
+- front view
+- pure flat white #FFFFFF background, no floor, no cast shadow, no scenery, no text
+- the {THING}'s own coloured outline touches the white background directly:
+  no white border, no white outline, no halo around it
+- every part connected; nothing floating; no stray lines outside the {THING}
+- simple, bold shape that is still recognisable when very small
 ```
 
-**Pale or white items** (ghosts, white strings, snow): replace the background
-line with `pure flat dark grey #4A4A4A background` and normalize with `--holes`
-(§7). On white, the script cannot tell white parts of the object from the background.
-
-No sketch? Delete the `Image 2` lines and describe the layout in `{ITEM}`.
+Write `{ITEM}` as a short bullet list (shape, colours, each part and *what it attaches
+to*, the face or focal detail, mood). Naming the attachments up front prevents the
+floating-part and stray-line failures in §4.
 
 ### 6.3 `{ITEM}` examples (Halloween 2026)
 
@@ -174,7 +175,8 @@ Fix examples, based on §4:
 | Symptom | Add to the prompt |
 |---|---|
 | Glossy 3D / clay look | `flat 2D illustration, painted with a brush, no 3D rendering, no specular highlights` |
-| Copies the cactus or pot | `do not include any object from Image 1` |
+| Redraws the reference (the cactus comes back) | Make sure the first line is `Draw a NEW picture from scratch`. Add `the output must show a {THING}, not a cactus` |
+| White sticker border or halo | Remove any "sticker" wording. Repeat the `no white border` rule |
 | Black outlines | `outline colour = darker version of the fill colour, never black or dark grey` |
 | Off-white or gradient background | Re-ask for `#FFFFFF`, or raise `--thresh` to 40 when normalizing |
 | Too detailed | `simplify: fewer small details, bigger shapes, readable as a small game icon` |
