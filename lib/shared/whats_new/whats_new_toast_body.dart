@@ -5,7 +5,8 @@ import 'package:pet/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import 'app_whats_new_entry.dart';
 
-/// Version pill plus up to three icon rows (headline + optional detail).
+/// Centered version pill plus up to three icon rows (headline + optional
+/// detail).
 /// The entry title is the toast's `message`, so it is not repeated here.
 class WhatsNewToastBody extends StatelessWidget {
   const WhatsNewToastBody({
@@ -22,19 +23,28 @@ class WhatsNewToastBody extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final bullets = entry.bullets(l10n).take(3).toList(growable: false);
 
+    // Pill is centered; rows form one centered block whose icons stay on a
+    // shared left edge so they still scan as a list.
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _VersionPill(version: version),
-        for (var index = 0; index < bullets.length; index++) ...[
-          const SizedBox(height: 12),
-          _IconRow(
-            icon: entry.bulletIcon(index),
-            headline: bullets[index],
-            detail: entry.bulletDetail(l10n, index),
+        const SizedBox(height: 4),
+        IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var index = 0; index < bullets.length; index++) ...[
+                const SizedBox(height: 12),
+                _IconRow(
+                  icon: entry.bulletIcon(index),
+                  headline: bullets[index],
+                  detail: entry.bulletDetail(l10n, index),
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ],
     );
   }

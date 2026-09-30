@@ -243,6 +243,7 @@ Future<T?> showJuiceToast<T>({
   bool barrierDismissible = true,
   Widget? leading,
   bool fullWidthBody = false,
+  bool centerMessage = false,
 }) {
   final theme = Theme.of(context);
   final toneStyle = _toneStyle(theme, tone);
@@ -391,14 +392,22 @@ Future<T?> showJuiceToast<T>({
                               ),
                           const Gap(14),
                         ],
+                        // Mirrors the close button so a centered title sits
+                        // on the card's center line.
+                        if (centerMessage) const SizedBox(width: 20),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: centerMessage
+                                ? CrossAxisAlignment.center
+                                : CrossAxisAlignment.start,
                             children: [
                               const Gap(4),
                               if (message != null)
                                 BalancedText(
                                   message,
+                                  textAlign: centerMessage
+                                      ? TextAlign.center
+                                      : null,
                                   style: GoogleFonts.mPlusRounded1c(
                                     color: accent,
                                     fontSize: 22,
