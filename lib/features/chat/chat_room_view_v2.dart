@@ -1489,7 +1489,6 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
             _chatScrollController.offset <= 1
         ? globalRectForKey(_composerInputRegionKey)
         : null;
-    HapticFeedback.lightImpact();
 
     setState(() {
       _sending = true;
