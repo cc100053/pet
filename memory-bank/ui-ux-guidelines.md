@@ -12,6 +12,13 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   the bubble rises out of the composer input and older messages slide up with it.
   It runs only at the live bottom of the list and is skipped when the system
   reduce-motion setting is on. Its launch point survives the temp -> confirmed id swap.
+- Other Telegram-style chat motion (`chat_room_view_v2_motion.dart`, time-based so
+  it resumes across item rebuilds; none of it plays with reduce-motion on):
+  photos sent from the room camera fly in once the camera route has closed;
+  incoming messages at the live bottom grow in; own bubbles show a clock while
+  sending, then a check pops in on confirm; reaction chips pop in or bounce and
+  their counts roll on live changes (not on history loads); a floating date pill
+  shows the topmost day while dragging the timeline.
 
 ## Visuals ("Mori" direction, 2026-09-30)
 - Modern Japanese social-game feel (Animal Crossing warmth). Use `AppTheme`

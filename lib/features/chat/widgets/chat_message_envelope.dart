@@ -11,6 +11,7 @@ class ChatMessageEnvelope extends StatelessWidget {
     required this.isSentByMe,
     required this.isDarkBackground,
     required this.reactions,
+    this.reactionPulses,
     this.onReactionTap,
     this.avatar,
     this.fallbackText,
@@ -34,6 +35,7 @@ class ChatMessageEnvelope extends StatelessWidget {
   final bool isSentByMe;
   final bool isDarkBackground;
   final List<ChatMessageReactionSummary> reactions;
+  final Map<String, DateTime>? reactionPulses;
   final ValueChanged<ChatMessageReactionSummary>? onReactionTap;
   final String? avatar;
   final String? fallbackText;
@@ -124,6 +126,7 @@ class ChatMessageEnvelope extends StatelessWidget {
                   key: reactionBarKey,
                   child: ChatReactionBar(
                     reactions: reactions,
+                    pulses: reactionPulses,
                     onReactionTap: onReactionTap,
                     alignEnd: isSentByMe,
                     isDarkBackground: isDarkBackground,

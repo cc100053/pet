@@ -106,6 +106,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
               ),
               mentionCandidates: _mentionCandidates,
               onReplyTap: replyTap,
+              sendConfirmedAt: _sendConfirmedAt[message.id],
             );
           },
       composerBuilder: (context) => _TelegramComposer(
@@ -167,6 +168,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
               ),
               onReplyTap: replyTap,
               onTapImage: () => _openFeedViewer(_messagesById[message.id]),
+              sendConfirmedAt: _sendConfirmedAt[message.id],
             );
           },
       chatMessageBuilder:
@@ -196,6 +198,7 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
               isSentByMe: isSentByMe,
               isDarkBackground: widget.isDarkBackground,
               reactions: domainMessage.reactions,
+              reactionPulses: _reactionPulses[message.id],
               isGroupedWithPrevious:
                   groupStatus != null && !groupStatus.isFirst,
               isGroupedWithNext: groupStatus != null && !groupStatus.isLast,
@@ -233,6 +236,18 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
                   spec: flyIn,
                   messageId: message.id,
                   surfaceRegistry: _messageSurfaceContexts,
+                  child: content,
+                );
+              }
+            } else if (_entranceStartedAt.containsKey(message.id)) {
+              final startedAt = _entranceStartedAt[message.id] ??=
+                  DateTime.now();
+              if (_motionProgress(startedAt, _ChatEntrance.duration) >= 1) {
+                _entranceStartedAt.remove(message.id);
+              } else {
+                content = _ChatEntrance(
+                  startedAt: startedAt,
+                  isSentByMe: isSentByMe,
                   child: content,
                 );
               }

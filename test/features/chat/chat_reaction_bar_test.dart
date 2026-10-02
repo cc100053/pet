@@ -44,4 +44,43 @@ void main() {
     expect(tappedReaction?.emoji, '👍');
     expect(tappedReaction?.reactedByMe, isTrue);
   });
+
+  testWidgets('live count change bounces the chip; history does not', (
+    tester,
+  ) async {
+    double chipScale() => tester
+        .widget<ScaleTransition>(
+          find.ancestor(
+            of: find.text('👍'),
+            matching: find.byType(ScaleTransition),
+          ),
+        )
+        .scale
+        .value;
+
+    Widget bar(int count, {Map<String, DateTime>? pulses}) => _wrap(
+      ChatReactionBar(
+        reactions: [
+          ChatMessageReactionSummary(
+            emoji: '👍',
+            count: count,
+            reactedByMe: false,
+          ),
+        ],
+        pulses: pulses,
+      ),
+    );
+
+    await tester.pumpWidget(bar(1));
+    expect(chipScale(), 1);
+
+    await tester.pumpWidget(bar(2, pulses: {'👍': DateTime.now()}));
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(chipScale(), greaterThan(1));
+
+    await tester.pumpAndSettle();
+    expect(chipScale(), 1);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+  });
 }

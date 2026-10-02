@@ -381,15 +381,12 @@ void main() {
   }
 
   Finder findRenderedText(String text) {
-    return find.byWidgetPredicate((widget) {
-      if (widget is Text) {
-        return (widget.data ?? widget.textSpan?.toPlainText()) == text;
-      }
-      if (widget is RichText) {
-        return widget.text.toPlainText().contains(text);
-      }
-      return false;
-    });
+    // Every Text paints through a RichText, so matching RichText alone covers
+    // plain and span-built bubbles without double-counting Text.rich.
+    return find.byWidgetPredicate(
+      (widget) =>
+          widget is RichText && widget.text.toPlainText().contains(text),
+    );
   }
 
   double composerTop(WidgetTester tester) {
@@ -1910,15 +1907,19 @@ void main() {
             widget.text.toPlainText() != 'Message deleted') {
           return false;
         }
-        final textSpan = widget.text;
-        if (textSpan is! TextSpan || textSpan.children?.isEmpty != false) {
-          return false;
-        }
-        final deletedSpan = textSpan.children!.first;
+        // Text.rich wraps the bubble spans in a default-style root span.
+        InlineSpan? deletedSpan;
+        widget.text.visitChildren((span) {
+          if (span is TextSpan && span.text == 'Message deleted') {
+            deletedSpan = span;
+            return false;
+          }
+          return true;
+        });
         return deletedSpan is TextSpan &&
-            deletedSpan.style?.fontSize == 13 &&
-            deletedSpan.style?.fontStyle == FontStyle.italic &&
-            deletedSpan.style?.color != null;
+            deletedSpan!.style?.fontSize == 13 &&
+            deletedSpan!.style?.fontStyle == FontStyle.italic &&
+            deletedSpan!.style?.color != null;
       }),
       findsOneWidget,
     );

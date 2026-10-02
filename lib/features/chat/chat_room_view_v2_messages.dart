@@ -11,6 +11,7 @@ class _MentionTextMessageBubble extends StatelessWidget {
     required this.timeStyle,
     required this.isEdited,
     this.topWidget,
+    this.status,
   });
 
   final fc.TextMessage message;
@@ -22,6 +23,9 @@ class _MentionTextMessageBubble extends StatelessWidget {
   final TextStyle? timeStyle;
   final bool isEdited;
   final Widget? topWidget;
+
+  /// Own-message send status shown after the time.
+  final Widget? status;
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +47,11 @@ class _MentionTextMessageBubble extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Flexible(
-                  child: RichText(
+                  // Text.rich (not RichText) so own bubbles, which render here
+                  // for the status icon, keep honoring the system text scale.
+                  child: Text.rich(
                     key: ValueKey<String>('chatMentionRichText_${message.id}'),
-                    text: TextSpan(children: textSpans),
+                    TextSpan(children: textSpans),
                   ),
                 ),
                 if (bubbleTime != null) ...[
@@ -63,6 +69,10 @@ class _MentionTextMessageBubble extends StatelessWidget {
                           const SizedBox(width: 3),
                         ],
                         Text(bubbleTime, style: timeStyle),
+                        if (status != null) ...[
+                          const SizedBox(width: 2),
+                          status!,
+                        ],
                       ],
                     ),
                   ),
@@ -273,6 +283,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     required this.replySenderName,
     required this.mentionCandidates,
     required this.onReplyTap,
+    this.sendConfirmedAt,
   });
 
   final Map<String, BuildContext> surfaceRegistry;
@@ -289,6 +300,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
   final String? replySenderName;
   final List<ChatMentionCandidate> mentionCandidates;
   final VoidCallback? onReplyTap;
+  final DateTime? sendConfirmedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -418,7 +430,10 @@ class _TelegramTextMessageBubble extends StatelessWidget {
           child: _MessageSurfaceAnchor(
             messageId: message.id,
             registry: surfaceRegistry,
-            child: (hasHighlightedMention || isEdited || isDeleted)
+            // Own bubbles render here too: SimpleTextMessage has no slot for
+            // the animated send status.
+            child:
+                (hasHighlightedMention || isEdited || isDeleted || isSentByMe)
                 ? _MentionTextMessageBubble(
                     message: message,
                     constraints: const BoxConstraints(maxWidth: 296),
@@ -434,6 +449,16 @@ class _TelegramTextMessageBubble extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                     isEdited: isEdited,
+                    status: isSentByMe && !isDeleted
+                        ? _SendStatusIcon(
+                            isSending:
+                                metadata[PetChatMessageAdapter
+                                    .isOptimisticKey] ==
+                                true,
+                            confirmedAt: sendConfirmedAt,
+                            color: timeColor,
+                          )
+                        : null,
                     topWidget: _buildTextMessageTopWidget(
                       context: context,
                       isSentByMe: isSentByMe,
@@ -785,6 +810,7 @@ class _FeedCard extends StatelessWidget {
     required this.replySenderName,
     required this.onReplyTap,
     required this.onTapImage,
+    this.sendConfirmedAt,
   });
 
   final Map<String, BuildContext> surfaceRegistry;
@@ -800,6 +826,7 @@ class _FeedCard extends StatelessWidget {
   final String? replySenderName;
   final VoidCallback? onReplyTap;
   final VoidCallback onTapImage;
+  final DateTime? sendConfirmedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -854,6 +881,17 @@ class _FeedCard extends StatelessWidget {
     final overlayShadow = Colors.black.withValues(alpha: 0.18);
     final overlayPrimaryText = Colors.white;
     final overlaySecondaryText = Colors.white.withValues(alpha: 0.76);
+    Widget? sendStatus(Color color) => isMe
+        ? Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: _SendStatusIcon(
+              isSending:
+                  metadata[PetChatMessageAdapter.isOptimisticKey] == true,
+              confirmedAt: sendConfirmedAt,
+              color: color,
+            ),
+          )
+        : null;
     final cardRadius = _buildGroupedBubbleRadius(
       isSentByMe: isMe,
       isGroupedWithPrevious: isGroupedWithPrevious,
@@ -1042,16 +1080,23 @@ class _FeedCard extends StatelessWidget {
                                     horizontal: 8,
                                     vertical: 6,
                                   ),
-                                  child: Text(
-                                    isEdited
-                                        ? '$editedLabel $bubbleTime'
-                                        : bubbleTime,
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: overlaySecondaryText,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      height: 1,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        isEdited
+                                            ? '$editedLabel $bubbleTime'
+                                            : bubbleTime,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: overlaySecondaryText,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              height: 1,
+                                            ),
+                                      ),
+                                      ?sendStatus(overlaySecondaryText),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -1079,15 +1124,22 @@ class _FeedCard extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 1),
-                                  child: Text(
-                                    isEdited
-                                        ? '$editedLabel $bubbleTime'
-                                        : bubbleTime,
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: metadataTimeColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        isEdited
+                                            ? '$editedLabel $bubbleTime'
+                                            : bubbleTime,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: metadataTimeColor,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                      ),
+                                      ?sendStatus(metadataTimeColor),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -1191,134 +1243,4 @@ class _MessageSurfaceAnchorState extends State<_MessageSurfaceAnchor> {
 
   @override
   Widget build(BuildContext context) => widget.child;
-}
-
-/// Launch point and landing geometry of a just-sent bubble. Lives in the room
-/// state, not the widget, so the temp -> confirmed id swap (which rebuilds the
-/// list item under a new key) resumes the flight instead of restarting it.
-class _SendFlyInSpec {
-  _SendFlyInSpec({required this.source});
-
-  static const Duration duration = Duration(milliseconds: 340);
-
-  /// Global rect of the composer input when send was tapped.
-  final Rect source;
-  DateTime? startedAt;
-  double? itemBottom;
-  double? bubbleLeft;
-
-  bool get isDone =>
-      startedAt != null && DateTime.now().difference(startedAt!) >= duration;
-}
-
-/// Telegram-style send: the bubble rises out of the composer input and glides
-/// to its slot while the item grows from zero height, so older messages slide
-/// up in step instead of jumping.
-class _SendFlyIn extends StatefulWidget {
-  const _SendFlyIn({
-    required this.spec,
-    required this.messageId,
-    required this.surfaceRegistry,
-    required this.child,
-  });
-
-  final _SendFlyInSpec spec;
-  final String messageId;
-  final Map<String, BuildContext> surfaceRegistry;
-  final Widget child;
-
-  @override
-  State<_SendFlyIn> createState() => _SendFlyInState();
-}
-
-class _SendFlyInState extends State<_SendFlyIn>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: _SendFlyInSpec.duration,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    final startedAt = widget.spec.startedAt;
-    if (startedAt == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _measureAndStart());
-    } else {
-      final elapsed =
-          DateTime.now().difference(startedAt).inMicroseconds /
-          _SendFlyInSpec.duration.inMicroseconds;
-      _controller.forward(from: elapsed.clamp(0.0, 1.0));
-    }
-  }
-
-  void _measureAndStart() {
-    if (!mounted) {
-      return;
-    }
-    final spec = widget.spec;
-    final item = context.findRenderObject();
-    final surface = widget.surfaceRegistry[widget.messageId]
-        ?.findRenderObject();
-    if (item is! RenderBox ||
-        !item.hasSize ||
-        surface is! RenderBox ||
-        !surface.hasSize) {
-      // Can't place the launch point; land in place rather than guess.
-      spec.startedAt = DateTime.now().subtract(_SendFlyInSpec.duration);
-      _controller.value = 1;
-      return;
-    }
-    // Measured at heightFactor 0, where the item's top == bottom. In the
-    // reversed list that bottom edge stays put while the item grows.
-    spec
-      ..itemBottom = item.localToGlobal(Offset.zero).dy
-      ..bubbleLeft = surface.localToGlobal(Offset.zero).dx
-      ..startedAt = DateTime.now();
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      child: widget.child,
-      builder: (context, child) {
-        if (_controller.isCompleted) {
-          return child!;
-        }
-        final spec = widget.spec;
-        final itemBottom = spec.itemBottom;
-        final bubbleLeft = spec.bubbleLeft;
-        if (itemBottom == null || bubbleLeft == null) {
-          // First frame: laid out for measuring, not yet visible.
-          return Align(
-            alignment: Alignment.topCenter,
-            heightFactor: 0,
-            child: Opacity(opacity: 0, child: child),
-          );
-        }
-        final t = Curves.easeOutCubic.transform(_controller.value);
-        // Align alone moves the bubble up by its own height; the translate
-        // adds the rest of the path from the input, shrinking to zero at t=1.
-        return Align(
-          alignment: Alignment.topCenter,
-          heightFactor: t,
-          child: Transform.translate(
-            offset: Offset(
-              (spec.source.left - bubbleLeft) * (1 - t),
-              (spec.source.top - itemBottom) * (1 - t),
-            ),
-            child: child,
-          ),
-        );
-      },
-    );
-  }
 }

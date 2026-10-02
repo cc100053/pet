@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter_chat_core/flutter_chat_core.dart' as fc;
@@ -113,7 +115,7 @@ int? chatListRawIndexForMessageId(List<fc.Message> messages, String messageId) {
   return null;
 }
 
-class DeterministicChatList extends StatelessWidget {
+class DeterministicChatList extends StatefulWidget {
   const DeterministicChatList({
     super.key,
     required this.itemBuilder,
@@ -136,7 +138,74 @@ class DeterministicChatList extends StatelessWidget {
   final VoidCallback? onBackgroundTap;
 
   @override
+  State<DeterministicChatList> createState() => _DeterministicChatListState();
+}
+
+class _DeterministicChatListState extends State<DeterministicChatList> {
+  /// Day of the topmost visible item, shown Telegram-style while dragging.
+  final ValueNotifier<DateTime?> _floatingDate = ValueNotifier<DateTime?>(null);
+  final ValueNotifier<bool> _floatingDateVisible = ValueNotifier<bool>(false);
+  Timer? _floatingDateHideTimer;
+
+  /// Day per raw list index (messages and separators), rebuilt with the items.
+  List<DateTime?> _rawItemDates = const <DateTime?>[];
+
+  @override
+  void dispose() {
+    _floatingDateHideTimer?.cancel();
+    _floatingDate.dispose();
+    _floatingDateVisible.dispose();
+    super.dispose();
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth != 0) {
+      return false;
+    }
+    final isUserScroll =
+        (notification is ScrollStartNotification &&
+            notification.dragDetails != null) ||
+        (notification is ScrollUpdateNotification &&
+            notification.dragDetails != null);
+    if (isUserScroll) {
+      _floatingDateHideTimer?.cancel();
+      _floatingDateVisible.value = true;
+    } else if (notification is ScrollEndNotification &&
+        _floatingDateVisible.value) {
+      _floatingDateHideTimer?.cancel();
+      _floatingDateHideTimer = Timer(
+        const Duration(milliseconds: 900),
+        () => _floatingDateVisible.value = false,
+      );
+    }
+    return false;
+  }
+
+  void _handleObserve(ListViewObserveModel model) {
+    // Reversed list: the highest index is the oldest, i.e. the topmost item.
+    // Skip items that sit entirely under the top bar (the top padding).
+    var topIndex = -1;
+    for (final child in model.displayingChildModelList) {
+      final bottomFromTop = child.trailingMarginToViewport + child.mainAxisSize;
+      if (bottomFromTop > widget.topPadding && child.index > topIndex) {
+        topIndex = child.index;
+      }
+    }
+    if (topIndex >= 0 && topIndex < _rawItemDates.length) {
+      final date = _rawItemDates[topIndex];
+      if (date != null &&
+          (_floatingDate.value == null ||
+              !isSameLocalChatDay(_floatingDate.value!, date))) {
+        _floatingDate.value = date;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final messages = widget.messages;
+    final itemBuilder = widget.itemBuilder;
+    final onMessageLongPress = widget.onMessageLongPress;
     // RangeMaintainingScrollPhysics can sometimes overcompensate and cause jumps
     // in a reverse: true list when elements are added to the maxScrollExtent.
     // Using the default physics allows the native bottom-anchoring to work smoothly.
@@ -148,6 +217,7 @@ class DeterministicChatList extends StatelessWidget {
     // message into flutter_chat_ui's itemBuilder, we must translate the visual
     // index back to the canonical ascending index used by ChatController.
     final List<Widget> items = [];
+    final List<DateTime?> rawItemDates = [];
     for (var index = 0; index < messages.length; index += 1) {
       final message = messages[index];
       final canonicalIndex = messages.length - 1 - index;
@@ -165,10 +235,12 @@ class DeterministicChatList extends StatelessWidget {
           ),
         ),
       );
+      rawItemDates.add(chatSeparatorTimeFor(message));
 
       if (shouldShowChatDateSeparatorAfter(messages, index)) {
         final time = chatSeparatorTimeFor(message);
         if (time != null) {
+          rawItemDates.add(time);
           items.add(
             _DateSeparator(
               key: ValueKey('dateSeparator_${time.toIso8601String()}'),
@@ -185,27 +257,75 @@ class DeterministicChatList extends StatelessWidget {
     // that subtree can leave an InheritedElement below the LayoutBuilder with
     // live dependents, tripping framework.dart's `_dependents.isEmpty`
     // assertion during deactivation.
-    return ListViewObserver(
-      controller: observerController,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onBackgroundTap,
-        child: ListView.builder(
-          key: const ValueKey('chatTimelineList'),
-          controller: scrollController,
-          physics: physics,
-          reverse: true, // Key to anchoring at the bottom
-          // Keep a modest off-screen buffer to smooth load-more without
-          // holding many full-size image bubbles decoded in memory at once.
-          // A large extent (e.g. 2500) kept ~14 image bubbles live and
-          // could trip the iOS memory limit while scrolling long history.
-          scrollCacheExtent: const ScrollCacheExtent.pixels(600),
-          padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-          keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
-          itemCount: items.length,
-          itemBuilder: (context, index) => items[index],
+    _rawItemDates = rawItemDates;
+    final list = ListViewObserver(
+      controller: widget.observerController,
+      onObserve: _handleObserve,
+      triggerOnObserveType: ObserverTriggerOnObserveType.directly,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onBackgroundTap,
+          child: ListView.builder(
+            key: const ValueKey('chatTimelineList'),
+            controller: widget.scrollController,
+            physics: physics,
+            reverse: true, // Key to anchoring at the bottom
+            // Keep a modest off-screen buffer to smooth load-more without
+            // holding many full-size image bubbles decoded in memory at once.
+            // A large extent (e.g. 2500) kept ~14 image bubbles live and
+            // could trip the iOS memory limit while scrolling long history.
+            scrollCacheExtent: const ScrollCacheExtent.pixels(600),
+            padding: EdgeInsets.fromLTRB(
+              0,
+              widget.topPadding,
+              0,
+              widget.bottomPadding,
+            ),
+            keyboardDismissBehavior: chatTimelineKeyboardDismissBehavior,
+            itemCount: items.length,
+            itemBuilder: (context, index) => items[index],
+          ),
         ),
       ),
+    );
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        list,
+        Positioned(
+          top: widget.topPadding + 4,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _floatingDateVisible,
+              builder: (context, visible, child) => AnimatedOpacity(
+                opacity: visible ? 1 : 0,
+                duration: Duration(milliseconds: visible ? 120 : 280),
+                child: child,
+              ),
+              child: ValueListenableBuilder<DateTime?>(
+                valueListenable: _floatingDate,
+                builder: (context, date, _) => Center(
+                  child: date == null
+                      ? const SizedBox.shrink()
+                      : AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 160),
+                          child: _DatePill(
+                            key: ValueKey<String>(
+                              'chatFloatingDate_${formatChatDateSeparatorLabel(context, date)}',
+                            ),
+                            date: date,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -248,23 +368,36 @@ class _DateSeparator extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
-        child: Container(
+        child: _DatePill(
           key: ValueKey<String>(
             'chat_date_separator_${date!.toLocal().toIso8601String()}',
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            formatChatDateSeparatorLabel(context, date!),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          date: date!,
+        ),
+      ),
+    );
+  }
+}
+
+class _DatePill extends StatelessWidget {
+  const _DatePill({super.key, required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        formatChatDateSeparatorLabel(context, date),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

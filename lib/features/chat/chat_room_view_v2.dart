@@ -68,6 +68,7 @@ part 'chat_room_view_v2_data_helpers.dart';
 part 'chat_room_view_v2_scroll.dart';
 part 'chat_room_view_v2_actions.dart';
 part 'chat_room_view_v2_build.dart';
+part 'chat_room_view_v2_motion.dart';
 
 bool canSwipeReplyToMessage(ChatMessage message) =>
     !message.isSystem && !message.isDeleted;
@@ -203,6 +204,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   // Telegram-style send fly-in per just-sent bubble id; follows the
   // temp -> confirmed id swap so the animation is not restarted mid-flight.
   final Map<String, _SendFlyInSpec> _sendFlyIns = <String, _SendFlyInSpec>{};
+  // When an own message was confirmed this session, so its check mark pops.
+  final Map<String, DateTime> _sendConfirmedAt = <String, DateTime>{};
+  // Incoming entrance start per message id; null until its first build.
+  final Map<String, DateTime?> _entranceStartedAt = <String, DateTime?>{};
+  // messageId -> emoji -> when that chip's count changed live.
+  final Map<String, Map<String, DateTime>> _reactionPulses =
+      <String, Map<String, DateTime>>{};
+  bool _feedCameraOpen = false;
   final Set<String> _loadingReplyPreviewIds = <String>{};
 
   RealtimeChannel? _channel;
@@ -1061,8 +1070,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
   }
 
   Future<void> _ensureReactionSummariesForMessages(
-    List<ChatMessage> messages,
-  ) async {
+    List<ChatMessage> messages, {
+    bool animateChanges = false,
+  }) async {
     final currentUserId =
         _runtime?.currentUserId ??
         Supabase.instance.client.auth.currentUser?.id;
@@ -1089,7 +1099,11 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       if (!mounted) {
         return;
       }
-      _applyReactionSummaries(messageIds, summaries);
+      _applyReactionSummaries(
+        messageIds,
+        summaries,
+        animateChanges: animateChanges,
+      );
     } catch (_) {
       // Best-effort reaction loading in the spike view.
     }
@@ -1097,8 +1111,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
 
   void _applyReactionSummaries(
     List<String> messageIds,
-    Map<String, List<ChatMessageReactionSummary>> summariesByMessageId,
-  ) {
+    Map<String, List<ChatMessageReactionSummary>> summariesByMessageId, {
+    bool animateChanges = false,
+  }) {
     final shouldKeepLatestVisible = _shouldKeepLatestVisible();
     var changed = false;
     for (var index = 0; index < _messages.length; index += 1) {
@@ -1111,6 +1126,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
           const <ChatMessageReactionSummary>[];
       if (_sameReactions(message.reactions, nextReactions)) {
         continue;
+      }
+      if (animateChanges) {
+        _markReactionPulses(message.id, message.reactions, nextReactions);
       }
       _window.replaceVisibleMessage(message.copyWith(reactions: nextReactions));
       changed = true;
@@ -1258,7 +1276,11 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         !_messagesById.containsKey(messageId)) {
       return;
     }
-    unawaited(_ensureReactionSummariesForMessages([_messagesById[messageId]!]));
+    unawaited(
+      _ensureReactionSummariesForMessages([
+        _messagesById[messageId]!,
+      ], animateChanges: true),
+    );
   }
 
   void _handleIncomingMessage(ChatMessage message) {
@@ -1293,6 +1315,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
           pixels: _chatScrollController.position.pixels,
           maxScrollExtent: _chatScrollController.position.maxScrollExtent,
         );
+    if (_canAnimateAtLiveBottom) {
+      _entranceStartedAt[message.id] = null;
+    }
     unawaited(
       _insertMessage(
         message,
@@ -1410,6 +1435,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       _sendFlyIns[confirmedMessage.id] = flyIn;
     }
     if (hasTemp) {
+      _markSendConfirmed(confirmedMessage.id);
+    }
+    if (hasTemp) {
       _window.removeVisibleMessage(tempId);
     }
     if (hasConfirmed) {
@@ -1452,6 +1480,91 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     );
   }
 
+  /// Timeline motion only plays where the user is watching the live bottom,
+  /// and never with the system reduce-motion setting on.
+  bool get _canAnimateAtLiveBottom =>
+      !MediaQuery.disableAnimationsOf(context) &&
+      !_isHistoryMode &&
+      _pendingLiveMessageCount == 0 &&
+      _chatScrollController.hasClients &&
+      _chatScrollController.offset <= 1;
+
+  void _markSendConfirmed(String messageId) {
+    final now = DateTime.now();
+    // ponytail: prune on write; marks only matter for ~300ms after confirm.
+    _sendConfirmedAt.removeWhere(
+      (_, at) => now.difference(at) > const Duration(seconds: 2),
+    );
+    _sendConfirmedAt[messageId] = now;
+  }
+
+  void _markReactionPulses(
+    String messageId,
+    List<ChatMessageReactionSummary> previous,
+    List<ChatMessageReactionSummary> next,
+  ) {
+    // A failed toggle rolls back after an await, possibly once unmounted.
+    if (!mounted || MediaQuery.disableAnimationsOf(context)) {
+      return;
+    }
+    final now = DateTime.now();
+    _reactionPulses.removeWhere(
+      (_, pulses) => pulses.values.every(
+        (at) => now.difference(at) > const Duration(seconds: 2),
+      ),
+    );
+    final previousCounts = {
+      for (final reaction in previous) reaction.emoji: reaction.count,
+    };
+    for (final reaction in next) {
+      if (previousCounts[reaction.emoji] != reaction.count) {
+        (_reactionPulses[messageId] ??= <String, DateTime>{})[reaction.emoji] =
+            now;
+      }
+    }
+  }
+
+  /// Launches photo fly-ins held hidden while the camera route covered the
+  /// room, once that route has finished closing. Drops them (the photo lands in
+  /// place) when the room is no longer at the live bottom.
+  Future<void> _launchPendingPhotoFlyIns() async {
+    if (!_sendFlyIns.values.any((spec) => spec.source == null)) {
+      return;
+    }
+    final secondary = ModalRoute.of(context)?.secondaryAnimation;
+    if (secondary != null && !secondary.isDismissed) {
+      final uncovered = Completer<void>();
+      void listener(AnimationStatus status) {
+        if (status == AnimationStatus.dismissed && !uncovered.isCompleted) {
+          uncovered.complete();
+        }
+      }
+
+      secondary.addStatusListener(listener);
+      await uncovered.future.timeout(
+        const Duration(milliseconds: 800),
+        onTimeout: () {},
+      );
+      secondary.removeStatusListener(listener);
+    }
+    if (!mounted) {
+      return;
+    }
+    final source = _canAnimateAtLiveBottom
+        ? globalRectForKey(_composerInputRegionKey)
+        : null;
+    setState(() {
+      // Re-scan: an upload may have swapped the temp id while we waited.
+      _sendFlyIns.removeWhere((_, spec) {
+        if (spec.source != null) {
+          return false;
+        }
+        spec.source = source;
+        return source == null;
+      });
+    });
+  }
+
   Future<void> _handleSendMessage(String rawText) async {
     final text = rawText.trim();
     if (text.isEmpty || _sending) {
@@ -1481,12 +1594,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     // Read before any await: the composer cleared its text this frame but has
     // not relaid out, so the input still has the geometry the user saw.
     // Only fly in when the bubble will land at the live bottom of the list.
-    final flyInSource =
-        !MediaQuery.disableAnimationsOf(context) &&
-            !_isHistoryMode &&
-            _pendingLiveMessageCount == 0 &&
-            _chatScrollController.hasClients &&
-            _chatScrollController.offset <= 1
+    final flyInSource = _canAnimateAtLiveBottom
         ? globalRectForKey(_composerInputRegionKey)
         : null;
 
@@ -1690,6 +1798,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     if (_sameReactions(message.reactions, reactions)) {
       return;
     }
+    _markReactionPulses(messageId, message.reactions, reactions);
     _window.replaceVisibleMessage(message.copyWith(reactions: reactions));
     _rebuildMessageIndex();
     unawaited(_persistCache());
@@ -1834,18 +1943,24 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     }
 
     AnalyticsService.instance.logEvent('feed_camera_open');
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FeedCaptureView(
-          roomId: widget.roomId,
-          onOptimisticMessage: _handleOptimisticFeed,
-          onSendStarted: _handleFeedSendStarted,
+    _feedCameraOpen = true;
+    try {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => FeedCaptureView(
+            roomId: widget.roomId,
+            onOptimisticMessage: _handleOptimisticFeed,
+            onSendStarted: _handleFeedSendStarted,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      _feedCameraOpen = false;
+    }
     if (!mounted) {
       return;
     }
+    unawaited(_launchPendingPhotoFlyIns());
     await _refreshLatest();
     if (!mounted) {
       return;
@@ -1948,6 +2063,11 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       return;
     }
     _optimisticFeedImageByTempId[entry.tempId] = entry.localImagePath;
+    // Sent from this room's camera: hold the bubble hidden until the camera
+    // route has closed, then fly it out of the composer.
+    if (_feedCameraOpen && !MediaQuery.disableAnimationsOf(context)) {
+      _sendFlyIns[entry.tempId] = _SendFlyInSpec();
+    }
     final optimisticMessage = ChatMessage(
       id: entry.tempId,
       roomId: entry.roomId,
@@ -1978,6 +2098,14 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {
     _optimisticFeedImageByTempId.remove(result.tempId);
+    final flyIn = _sendFlyIns.remove(result.tempId);
+    final messageId = result.messageId;
+    if (messageId != null) {
+      if (flyIn != null) {
+        _sendFlyIns[messageId] = flyIn;
+      }
+      _markSendConfirmed(messageId);
+    }
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
     if (!mounted) {
       return;
@@ -1988,6 +2116,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
 
   void _handleFeedUploadFailed(String tempId, Object error) {
     _optimisticFeedImageByTempId.remove(tempId);
+    _sendFlyIns.remove(tempId);
     if (!mounted) {
       return;
     }
