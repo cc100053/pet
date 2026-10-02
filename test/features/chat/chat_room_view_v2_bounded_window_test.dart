@@ -1066,6 +1066,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('chatComposerSendButton')));
       await tester.pump();
+      // The send fly-in sits at zero height while it measures its landing
+      // slot and its ticker starts, then the bubble begins rising.
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.pump(const Duration(milliseconds: 16));
       offsets.add(controller.position.pixels);
       expect(composerText(tester), isEmpty);
       expect(find.text('smooth send'), findsOneWidget);

@@ -224,6 +224,19 @@ extension _ChatBuildHelpers on _ChatRoomViewV2State {
                 child: content,
               );
             }
+            final flyIn = _sendFlyIns[message.id];
+            if (flyIn != null) {
+              if (flyIn.isDone) {
+                _sendFlyIns.remove(message.id);
+              } else {
+                content = _SendFlyIn(
+                  spec: flyIn,
+                  messageId: message.id,
+                  surfaceRegistry: _messageSurfaceContexts,
+                  child: content,
+                );
+              }
+            }
             return content;
           },
       chatAnimatedListBuilder: (context, itemBuilder) {

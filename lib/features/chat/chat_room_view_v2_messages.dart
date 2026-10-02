@@ -1192,3 +1192,133 @@ class _MessageSurfaceAnchorState extends State<_MessageSurfaceAnchor> {
   @override
   Widget build(BuildContext context) => widget.child;
 }
+
+/// Launch point and landing geometry of a just-sent bubble. Lives in the room
+/// state, not the widget, so the temp -> confirmed id swap (which rebuilds the
+/// list item under a new key) resumes the flight instead of restarting it.
+class _SendFlyInSpec {
+  _SendFlyInSpec({required this.source});
+
+  static const Duration duration = Duration(milliseconds: 340);
+
+  /// Global rect of the composer input when send was tapped.
+  final Rect source;
+  DateTime? startedAt;
+  double? itemBottom;
+  double? bubbleLeft;
+
+  bool get isDone =>
+      startedAt != null && DateTime.now().difference(startedAt!) >= duration;
+}
+
+/// Telegram-style send: the bubble rises out of the composer input and glides
+/// to its slot while the item grows from zero height, so older messages slide
+/// up in step instead of jumping.
+class _SendFlyIn extends StatefulWidget {
+  const _SendFlyIn({
+    required this.spec,
+    required this.messageId,
+    required this.surfaceRegistry,
+    required this.child,
+  });
+
+  final _SendFlyInSpec spec;
+  final String messageId;
+  final Map<String, BuildContext> surfaceRegistry;
+  final Widget child;
+
+  @override
+  State<_SendFlyIn> createState() => _SendFlyInState();
+}
+
+class _SendFlyInState extends State<_SendFlyIn>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _SendFlyInSpec.duration,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    final startedAt = widget.spec.startedAt;
+    if (startedAt == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measureAndStart());
+    } else {
+      final elapsed =
+          DateTime.now().difference(startedAt).inMicroseconds /
+          _SendFlyInSpec.duration.inMicroseconds;
+      _controller.forward(from: elapsed.clamp(0.0, 1.0));
+    }
+  }
+
+  void _measureAndStart() {
+    if (!mounted) {
+      return;
+    }
+    final spec = widget.spec;
+    final item = context.findRenderObject();
+    final surface = widget.surfaceRegistry[widget.messageId]
+        ?.findRenderObject();
+    if (item is! RenderBox ||
+        !item.hasSize ||
+        surface is! RenderBox ||
+        !surface.hasSize) {
+      // Can't place the launch point; land in place rather than guess.
+      spec.startedAt = DateTime.now().subtract(_SendFlyInSpec.duration);
+      _controller.value = 1;
+      return;
+    }
+    // Measured at heightFactor 0, where the item's top == bottom. In the
+    // reversed list that bottom edge stays put while the item grows.
+    spec
+      ..itemBottom = item.localToGlobal(Offset.zero).dy
+      ..bubbleLeft = surface.localToGlobal(Offset.zero).dx
+      ..startedAt = DateTime.now();
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        if (_controller.isCompleted) {
+          return child!;
+        }
+        final spec = widget.spec;
+        final itemBottom = spec.itemBottom;
+        final bubbleLeft = spec.bubbleLeft;
+        if (itemBottom == null || bubbleLeft == null) {
+          // First frame: laid out for measuring, not yet visible.
+          return Align(
+            alignment: Alignment.topCenter,
+            heightFactor: 0,
+            child: Opacity(opacity: 0, child: child),
+          );
+        }
+        final t = Curves.easeOutCubic.transform(_controller.value);
+        // Align alone moves the bubble up by its own height; the translate
+        // adds the rest of the path from the input, shrinking to zero at t=1.
+        return Align(
+          alignment: Alignment.topCenter,
+          heightFactor: t,
+          child: Transform.translate(
+            offset: Offset(
+              (spec.source.left - bubbleLeft) * (1 - t),
+              (spec.source.top - itemBottom) * (1 - t),
+            ),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}

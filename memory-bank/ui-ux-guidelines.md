@@ -8,6 +8,10 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   `HardShadowPressButton` (ink border, presses into its same-hue shadow).
 - Fire business logic immediately on release; do not await bounce animation.
 - Standard haptics: `lightImpact` on press, `mediumImpact` on release.
+- Chat text send uses a Telegram-style fly-in (`_SendFlyIn`, 340ms easeOutCubic):
+  the bubble rises out of the composer input and older messages slide up with it.
+  It runs only at the live bottom of the list and is skipped when the system
+  reduce-motion setting is on. Its launch point survives the temp -> confirmed id swap.
 
 ## Visuals ("Mori" direction, 2026-09-30)
 - Modern Japanese social-game feel (Animal Crossing warmth). Use `AppTheme`

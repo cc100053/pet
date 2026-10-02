@@ -200,6 +200,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       <ChatMentionCandidate>[];
   final Set<String> _blockedUserIds = <String>{};
   final Set<String> _optimisticIds = <String>{};
+  // Telegram-style send fly-in per just-sent bubble id; follows the
+  // temp -> confirmed id swap so the animation is not restarted mid-flight.
+  final Map<String, _SendFlyInSpec> _sendFlyIns = <String, _SendFlyInSpec>{};
   final Set<String> _loadingReplyPreviewIds = <String>{};
 
   RealtimeChannel? _channel;
@@ -1402,6 +1405,10 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
     final hasConfirmed = _window.containsVisibleMessage(confirmedMessage.id);
     _optimisticIds.remove(tempId);
     _optimisticIds.remove(confirmedMessage.id);
+    final flyIn = _sendFlyIns.remove(tempId);
+    if (flyIn != null) {
+      _sendFlyIns[confirmedMessage.id] = flyIn;
+    }
     if (hasTemp) {
       _window.removeVisibleMessage(tempId);
     }
@@ -1471,6 +1478,19 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         ? null
         : _messagesById[replyTargetId];
 
+    // Read before any await: the composer cleared its text this frame but has
+    // not relaid out, so the input still has the geometry the user saw.
+    // Only fly in when the bubble will land at the live bottom of the list.
+    final flyInSource =
+        !MediaQuery.disableAnimationsOf(context) &&
+            !_isHistoryMode &&
+            _pendingLiveMessageCount == 0 &&
+            _chatScrollController.hasClients &&
+            _chatScrollController.offset <= 1
+        ? globalRectForKey(_composerInputRegionKey)
+        : null;
+    HapticFeedback.lightImpact();
+
     setState(() {
       _sending = true;
       _replyTargetMessageId = null;
@@ -1505,6 +1525,9 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
             ? null
             : ChatReplyPreview.fromMessage(replyTarget),
       );
+      if (flyInSource != null) {
+        _sendFlyIns[tempId] = _SendFlyInSpec(source: flyInSource);
+      }
 
       await _insertMessage(
         optimisticMessage,
@@ -1573,6 +1596,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       unawaited(_setChatCrashContext(lastAction: 'chat_send_failed'));
       unawaited(_chatBreadcrumb('chat_send_failed', error: error));
       if (tempId != null) {
+        _sendFlyIns.remove(tempId);
         await _removeMessageById(tempId, animated: false);
       }
       if (!mounted) {
