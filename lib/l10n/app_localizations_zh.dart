@@ -2212,6 +2212,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew400Bullet3Detail => '新品显示 NEW 标记';
 
   @override
+  String get whatsNew410Title => '聊天互动更生动';
+
+  @override
+  String get whatsNew410Bullet1 => '消息顺畅登场';
+
+  @override
+  String get whatsNew410Bullet1Detail => '发送时自然移动';
+
+  @override
+  String get whatsNew410Bullet2 => '表情回应活泼跳动';
+
+  @override
+  String get whatsNew410Bullet2Detail => '数量变化更流畅';
+
+  @override
+  String get whatsNew410Bullet3 => '滚动时显示日期';
+
+  @override
+  String get whatsNew410Bullet3Detail => '轻松查看对话日期';
+
+  @override
   String get whatsNew321Title => '喂食与文字修复';
 
   @override
@@ -4534,6 +4555,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew400Bullet3Detail => '新品顯示 NEW 標記';
+
+  @override
+  String get whatsNew410Title => '聊天互動更生動';
+
+  @override
+  String get whatsNew410Bullet1 => '訊息滑順登場';
+
+  @override
+  String get whatsNew410Bullet1Detail => '傳送時自然移動';
+
+  @override
+  String get whatsNew410Bullet2 => '表情回應彈跳呈現';
+
+  @override
+  String get whatsNew410Bullet2Detail => '數量變化更流暢';
+
+  @override
+  String get whatsNew410Bullet3 => '捲動時顯示日期';
+
+  @override
+  String get whatsNew410Bullet3Detail => '輕鬆掌握對話日期';
 
   @override
   String get whatsNew321Title => '餵食與文字修正';

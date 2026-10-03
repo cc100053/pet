@@ -8,12 +8,12 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
   the full code validation gate and documentation-only checks. Historical
   lessons/task logs are archived; release baseline and recorded public
   availability are separate in `docs/release_status.md`.
-- `pubspec.yaml` is bumped to `4.0.0+27` (unreleased: new-item popup,
-  room-aware shop, Halloween furniture); no 4.0.0 in-app What's New entry yet.
-  Last uploaded release baseline is iOS `3.3.0+26` (in-app support thread).
-  Build 26 is `VALID`, attached, dSYMs uploaded/preserved, and intentionally
-  not submitted for App Review. Exact ASC, dSYM, localization, and backend
-  deployment state lives in `docs/release_status.md`.
+- `pubspec.yaml` is `4.1.0+30`. ASC version `0f40a6d3-7c16-490a-aaa0-54d9e17b4a81`
+  is `PREPARE_FOR_SUBMISSION`; build `401f9a0b-1cbe-46db-917f-f62361f705d0`
+  is `VALID` and attached. It has not been submitted for App Review, and public
+  availability is unverified. Build 30 adds the smoother chat timeline,
+  message/photo entrance motion, animated reactions, and floating date marker.
+  Exact release and dSYM state lives in `docs/release_status.md`.
 - Halloween 2026 furniture (Pumpkin Lantern 100, Candy Cauldron 150, Bat-Wing
   Armchair 250) is in the live catalog, version-gated at `3.3.1` (first shown
   in 4.0.0), all with `new_until` 2026-11-01. Purchase pushes name all
@@ -45,7 +45,7 @@ latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 - Every feed adds +25 hunger: the one-feed-per-10-minute burst gate is gone
   from `apply_pet_action` / `apply_room_pet_action` (live since 2026-09-24,
   migration `20260924120000`). The "I'm full!" overfed bubble no longer fires.
-  Home always applies the optimistic +25 on enqueue (next build); older builds
+  Home always applies the optimistic +25 on enqueue; older builds
   reconcile it from `feed_validate`. Feed coin/exp cooldown is unchanged.
 - In-app support replaces the external feedback web form (live in `3.3.0+26`):
   Profile → Send Feedback opens `SupportView`, a single thread per user that

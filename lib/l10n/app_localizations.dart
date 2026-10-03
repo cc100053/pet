@@ -4131,6 +4131,48 @@ abstract class AppLocalizations {
   /// **'New arrivals get a NEW badge'**
   String get whatsNew400Bullet3Detail;
 
+  /// No description provided for @whatsNew410Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A More Lively Chat'**
+  String get whatsNew410Title;
+
+  /// No description provided for @whatsNew410Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages glide into view'**
+  String get whatsNew410Bullet1;
+
+  /// No description provided for @whatsNew410Bullet1Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Text and photos animate in'**
+  String get whatsNew410Bullet1Detail;
+
+  /// No description provided for @whatsNew410Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactions pop into place'**
+  String get whatsNew410Bullet2;
+
+  /// No description provided for @whatsNew410Bullet2Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts roll as they change'**
+  String get whatsNew410Bullet2Detail;
+
+  /// No description provided for @whatsNew410Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates stay easy to follow'**
+  String get whatsNew410Bullet3;
+
+  /// No description provided for @whatsNew410Bullet3Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'See the day while scrolling'**
+  String get whatsNew410Bullet3Detail;
+
   /// No description provided for @whatsNew321Title.
   ///
   /// In en, this message translates to:

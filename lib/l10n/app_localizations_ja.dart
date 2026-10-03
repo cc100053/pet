@@ -2225,6 +2225,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew400Bullet3Detail => '新着に NEW バッジ';
 
   @override
+  String get whatsNew410Title => 'チャットをもっと快適に';
+
+  @override
+  String get whatsNew410Bullet1 => 'メッセージが自然に登場';
+
+  @override
+  String get whatsNew410Bullet1Detail => '送信時に滑らかに動く';
+
+  @override
+  String get whatsNew410Bullet2 => 'リアクションが弾む';
+
+  @override
+  String get whatsNew410Bullet2Detail => '数も滑らかに変化';
+
+  @override
+  String get whatsNew410Bullet3 => '日付を追いやすく';
+
+  @override
+  String get whatsNew410Bullet3Detail => 'スクロール中に表示';
+
+  @override
   String get whatsNew321Title => '給餌とテキストの修正';
 
   @override

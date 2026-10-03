@@ -2334,6 +2334,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew400Bullet3Detail => 'New arrivals get a NEW badge';
 
   @override
+  String get whatsNew410Title => 'A More Lively Chat';
+
+  @override
+  String get whatsNew410Bullet1 => 'Messages glide into view';
+
+  @override
+  String get whatsNew410Bullet1Detail => 'Text and photos animate in';
+
+  @override
+  String get whatsNew410Bullet2 => 'Reactions pop into place';
+
+  @override
+  String get whatsNew410Bullet2Detail => 'Counts roll as they change';
+
+  @override
+  String get whatsNew410Bullet3 => 'Dates stay easy to follow';
+
+  @override
+  String get whatsNew410Bullet3Detail => 'See the day while scrolling';
+
+  @override
   String get whatsNew321Title => 'Feed & Text Fixes';
 
   @override
