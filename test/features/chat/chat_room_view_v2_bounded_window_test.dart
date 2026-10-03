@@ -925,6 +925,38 @@ void main() {
     );
   });
 
+  testWidgets('incoming message grows in without drifting sideways', (
+    tester,
+  ) async {
+    final incomingController = StreamController<ChatMessage>();
+    addTearDown(incomingController.close);
+    final repository = _FakeChatMessageRepository(
+      cachedMessages: <ChatMessage>[message(1)],
+      canonicalMessages: <ChatMessage>[message(1)],
+    );
+    final runtime = ChatRoomViewRuntime(
+      currentUserId: 'me',
+      incomingMessages: incomingController.stream,
+      loadBlockedUserIds: (_) async => <String>{},
+    );
+    await pumpChatRoom(tester, repository: repository, runtime: runtime);
+
+    repository.appendCanonical(message(2));
+    incomingController.add(message(2));
+    final surface = find.byKey(const ValueKey('chatMessageSurface_m2'));
+    // Let the insert land and the entrance get partway through.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pump(const Duration(milliseconds: 80));
+    final midLeft = tester.getTopLeft(surface).dx;
+    await tester.pumpAndSettle();
+    final finalLeft = tester.getTopLeft(surface).dx;
+
+    // The bubble scales toward its sender side, so allow a few px of scale
+    // drift but never the old center-then-snap jump.
+    expect(midLeft, closeTo(finalLeft, 8));
+  });
+
   testWidgets(
     'history mode buffers live messages and jump button resets to latest',
     (tester) async {

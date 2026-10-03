@@ -11,6 +11,26 @@ double _motionProgress(DateTime startedAt, Duration duration) {
   return (elapsed / duration.inMicroseconds).clamp(0.0, 1.0);
 }
 
+/// Lays [child] out exactly as the list would (full width) but reports only
+/// [factor] of its height, so the item grows from zero while the child paints
+/// from the item's top down. A bare Align would loosen the width and let a
+/// narrow row center itself, then snap back to the side once motion ends.
+class _GrowFromTop extends StatelessWidget {
+  const _GrowFromTop({required this.factor, required this.child});
+
+  final double factor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      heightFactor: factor,
+      child: SizedBox(width: double.infinity, child: child),
+    );
+  }
+}
+
 /// Launch point and landing geometry of a just-sent bubble.
 class _SendFlyInSpec {
   _SendFlyInSpec({this.source});
@@ -135,18 +155,16 @@ class _SendFlyInState extends State<_SendFlyIn>
         final bubbleLeft = spec.bubbleLeft;
         if (source == null || itemBottom == null || bubbleLeft == null) {
           // Waiting to launch: laid out for measuring, not yet visible.
-          return Align(
-            alignment: Alignment.topCenter,
-            heightFactor: 0,
+          return _GrowFromTop(
+            factor: 0,
             child: Opacity(opacity: 0, child: child),
           );
         }
         final t = Curves.easeOutCubic.transform(_controller.value);
         // Align alone moves the bubble up by its own height; the translate
         // adds the rest of the path from the input, shrinking to zero at t=1.
-        return Align(
-          alignment: Alignment.topCenter,
-          heightFactor: t,
+        return _GrowFromTop(
+          factor: t,
           child: Transform.translate(
             offset: Offset(
               (source.left - bubbleLeft) * (1 - t),
@@ -203,9 +221,8 @@ class _ChatEntranceState extends State<_ChatEntrance>
           return child!;
         }
         final t = Curves.easeOutCubic.transform(_controller.value);
-        return Align(
-          alignment: Alignment.topCenter,
-          heightFactor: t,
+        return _GrowFromTop(
+          factor: t,
           child: Opacity(
             opacity: (_controller.value * 1.6).clamp(0.0, 1.0),
             child: Transform.scale(
