@@ -12,7 +12,9 @@ durable queue state, rewards, hunger, and push notifications.
 
 1. Flutter enqueues a `FeedUploadJob` in the durable Hive/Riverpod queue.
 2. Home shows the optimistic feed image and increments the reward-pending UI.
-3. `SupabaseFeedUploadClient` compresses the image and calls
+3. `SupabaseFeedUploadClient` compresses the image (WebP, long edge 1600px,
+   q85; 1600/q78 fallback; emergency profiles only above 10MB; originals
+   under 512KB upload as-is — sized to stretch the R2 10GB free tier) and calls
    `feed_validate` with the user's Supabase Auth JWT.
 4. `feed_validate` validates membership/image data, uploads to R2 when needed,
    maps labels, and calls `process_feed_event`.

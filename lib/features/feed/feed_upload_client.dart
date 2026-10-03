@@ -37,8 +37,7 @@ class SupabaseFeedUploadClient implements FeedUploadClient {
   static const int _feedCompressionMinBytesToAttempt = 512 * 1024;
   static const List<_FeedCompressionProfile> _feedCompressionProfiles =
       <_FeedCompressionProfile>[
-        _FeedCompressionProfile(maxDimension: 2048, quality: 90),
-        _FeedCompressionProfile(maxDimension: 1920, quality: 84),
+        _FeedCompressionProfile(maxDimension: 1600, quality: 85),
         _FeedCompressionProfile(maxDimension: 1600, quality: 78),
       ];
   static const List<_FeedCompressionProfile> _feedCompressionEmergencyProfiles =
