@@ -321,4 +321,65 @@ void main() {
       expect(chatListRawIndexForMessageId(const <fc.Message>[], 'a'), isNull);
     });
   });
+
+  testWidgets(
+    'floating date shows mid-day and hides when its separator is on screen',
+    (tester) async {
+      final controller = ScrollController();
+      addTearDown(controller.dispose);
+      // Newest first: one Sep 2 message, then a long Sep 1 run.
+      final messages = <fc.Message>[
+        fc.Message.text(
+          id: 'new',
+          authorId: 'a',
+          createdAt: DateTime(2026, 9, 2, 12),
+          text: 'new',
+        ),
+        for (var i = 0; i < 30; i += 1)
+          fc.Message.text(
+            id: 'old-$i',
+            authorId: 'a',
+            createdAt: DateTime(2026, 9, 1, 12, 30 - i),
+            text: 'old $i',
+          ),
+      ];
+      await tester.pumpWidget(
+        buildList(controller: controller, messages: messages),
+      );
+
+      final pill = find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith(
+              'chatFloatingDate_',
+            ),
+      );
+      double pillOpacity() => tester
+          .widget<AnimatedOpacity>(
+            find.ancestor(of: pill, matching: find.byType(AnimatedOpacity)),
+          )
+          .opacity;
+
+      // Hold a drag in the middle of Sep 1: its separator is off screen.
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(ListView)),
+      );
+      for (var step = 0; step < 8; step += 1) {
+        await gesture.moveBy(const Offset(0, 40));
+        await tester.pump();
+      }
+      expect(pill, findsOneWidget);
+      expect(pillOpacity(), 1);
+
+      // Drag to the oldest end, where the inline Sep 1 separator is visible.
+      for (var step = 0; step < 60; step += 1) {
+        await gesture.moveBy(const Offset(0, 40));
+        await tester.pump();
+      }
+      expect(find.text('Sep 1'), findsWidgets);
+      expect(pillOpacity(), 0);
+      await gesture.up();
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+    },
+  );
 }

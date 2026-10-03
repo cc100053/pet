@@ -18,7 +18,8 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   incoming messages at the live bottom grow in; own bubbles show a clock while
   sending, then a check pops in on confirm; reaction chips pop in or bounce and
   their counts roll on live changes (not on history loads); a floating date pill
-  shows the topmost day while dragging the timeline.
+  shows the topmost day while dragging the timeline, hidden while that day's
+  inline separator is itself on screen.
 
 ## Visuals ("Mori" direction, 2026-09-30)
 - Modern Japanese social-game feel (Animal Crossing warmth). Use `AppTheme`

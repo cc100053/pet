@@ -145,16 +145,24 @@ class _DeterministicChatListState extends State<DeterministicChatList> {
   /// Day of the topmost visible item, shown Telegram-style while dragging.
   final ValueNotifier<DateTime?> _floatingDate = ValueNotifier<DateTime?>(null);
   final ValueNotifier<bool> _floatingDateVisible = ValueNotifier<bool>(false);
+
+  /// True while that day's inline separator is itself on screen, so the
+  /// floating pill would only duplicate it.
+  final ValueNotifier<bool> _floatingDateSuppressed = ValueNotifier<bool>(
+    false,
+  );
   Timer? _floatingDateHideTimer;
 
   /// Day per raw list index (messages and separators), rebuilt with the items.
   List<DateTime?> _rawItemDates = const <DateTime?>[];
+  Set<int> _separatorRawIndices = const <int>{};
 
   @override
   void dispose() {
     _floatingDateHideTimer?.cancel();
     _floatingDate.dispose();
     _floatingDateVisible.dispose();
+    _floatingDateSuppressed.dispose();
     super.dispose();
   }
 
@@ -184,21 +192,34 @@ class _DeterministicChatListState extends State<DeterministicChatList> {
   void _handleObserve(ListViewObserveModel model) {
     // Reversed list: the highest index is the oldest, i.e. the topmost item.
     // Skip items that sit entirely under the top bar (the top padding).
+    final visible = model.displayingChildModelList.where(
+      (child) =>
+          child.trailingMarginToViewport + child.mainAxisSize >
+          widget.topPadding,
+    );
     var topIndex = -1;
-    for (final child in model.displayingChildModelList) {
-      final bottomFromTop = child.trailingMarginToViewport + child.mainAxisSize;
-      if (bottomFromTop > widget.topPadding && child.index > topIndex) {
+    for (final child in visible) {
+      if (child.index > topIndex) {
         topIndex = child.index;
       }
     }
-    if (topIndex >= 0 && topIndex < _rawItemDates.length) {
-      final date = _rawItemDates[topIndex];
-      if (date != null &&
-          (_floatingDate.value == null ||
-              !isSameLocalChatDay(_floatingDate.value!, date))) {
-        _floatingDate.value = date;
-      }
+    if (topIndex < 0 || topIndex >= _rawItemDates.length) {
+      return;
     }
+    final date = _rawItemDates[topIndex];
+    if (date == null) {
+      return;
+    }
+    if (_floatingDate.value == null ||
+        !isSameLocalChatDay(_floatingDate.value!, date)) {
+      _floatingDate.value = date;
+    }
+    _floatingDateSuppressed.value = visible.any(
+      (child) =>
+          _separatorRawIndices.contains(child.index) &&
+          child.index < _rawItemDates.length &&
+          isSameLocalChatDay(_rawItemDates[child.index]!, date),
+    );
   }
 
   @override
@@ -218,6 +239,7 @@ class _DeterministicChatListState extends State<DeterministicChatList> {
     // index back to the canonical ascending index used by ChatController.
     final List<Widget> items = [];
     final List<DateTime?> rawItemDates = [];
+    final Set<int> separatorRawIndices = {};
     for (var index = 0; index < messages.length; index += 1) {
       final message = messages[index];
       final canonicalIndex = messages.length - 1 - index;
@@ -240,6 +262,7 @@ class _DeterministicChatListState extends State<DeterministicChatList> {
       if (shouldShowChatDateSeparatorAfter(messages, index)) {
         final time = chatSeparatorTimeFor(message);
         if (time != null) {
+          separatorRawIndices.add(rawItemDates.length);
           rawItemDates.add(time);
           items.add(
             _DateSeparator(
@@ -258,6 +281,7 @@ class _DeterministicChatListState extends State<DeterministicChatList> {
     // live dependents, tripping framework.dart's `_dependents.isEmpty`
     // assertion during deactivation.
     _rawItemDates = rawItemDates;
+    _separatorRawIndices = separatorRawIndices;
     final list = ListViewObserver(
       controller: widget.observerController,
       onObserve: _handleObserve,
@@ -299,13 +323,21 @@ class _DeterministicChatListState extends State<DeterministicChatList> {
           left: 0,
           right: 0,
           child: IgnorePointer(
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _floatingDateVisible,
-              builder: (context, visible, child) => AnimatedOpacity(
-                opacity: visible ? 1 : 0,
-                duration: Duration(milliseconds: visible ? 120 : 280),
-                child: child,
-              ),
+            child: ListenableBuilder(
+              listenable: Listenable.merge([
+                _floatingDateVisible,
+                _floatingDateSuppressed,
+              ]),
+              builder: (context, child) {
+                final visible =
+                    _floatingDateVisible.value &&
+                    !_floatingDateSuppressed.value;
+                return AnimatedOpacity(
+                  opacity: visible ? 1 : 0,
+                  duration: Duration(milliseconds: visible ? 120 : 200),
+                  child: child,
+                );
+              },
               child: ValueListenableBuilder<DateTime?>(
                 valueListenable: _floatingDate,
                 builder: (context, date, _) => Center(
