@@ -34,15 +34,14 @@ for exact historical versions. Latest snapshot:
 - Google AdMob 8.x for iOS banner/rewarded ads
 
 ## Repo-Specific Notes
-- `.fvmrc` pins Flutter `3.44.0` / Dart `3.12.0`; the default/global
-  `flutter` binary should match that pin; use bare `flutter ...` for normal
-  get/analyze/test/build/run commands.
+- The global `flutter` binary matches the `.fvmrc` pin; use bare
+  `flutter ...` for normal get/analyze/test/build/run commands.
 - Edge Function gateway `verify_jwt=true` expects HS256 Supabase Auth JWTs; old
   `notify_friend` webhook compatibility still relies on `verify_jwt=false` plus
   function-level auth checks.
 - Flutter SPM integration is enabled for iOS/macOS. Keep checked-in
   `Package.resolved` files and `ios/Flutter/GeneratedPluginSwiftPackage`
-  aligned with Flutter 3.44.0.
+  aligned with the pinned Flutter.
 - `ios/Flutter/GeneratedPluginSwiftPackage/Package.swift` hardcodes each SPM
   plugin's resolved version in its `../ephemeral/Packages/.packages/<name>-<version>`
   path. `flutter pub get`/`flutter build` do NOT rewrite this checked-in file

@@ -1,6 +1,6 @@
 ---
 name: pet-socket-calibration
-description: Use when calibrating pet equipment sockets, validating Godot exports, or syncing socket tracks into Flutter.
+description: Calibrate pet equipment sockets, validate Godot exports, or sync socket tracks into Flutter.
 ---
 
 # Pet Socket Calibration

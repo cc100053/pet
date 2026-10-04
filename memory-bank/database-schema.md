@@ -22,6 +22,8 @@ migration that rewrites the object.
   or timestamp writes. Invoker trigger enforces levels 1/1/3/5/8, immutable
   room ids, and grandfathered shared casings (including upserts); server owns
   timestamps. Published to Realtime; existing RPCs/catalogs are unchanged.
+- `leave_room` is idempotent: leaving without an active membership is a silent
+  no-op, and an already-inactive membership keeps its original `left_at`.
 - Invite-code RPCs are reusable and default first-party creation/regeneration
   to 24 hours; successful joins do not consume codes or impose a user cap.
 - `pets.room_id` stays unique for old clients. Extras use
@@ -50,8 +52,9 @@ migration that rewrites the object.
   state lives in `room_debug_overrides`.
 - Internal schedule/cleanup tables have RLS enabled with no client policies;
   client grants remain denied while service roles retain access.
-- Timezone-aware functions use `public.normalize_timezone(text)`; do not
-  reintroduce executable `pg_timezone_names` scans.
+- Timezone-aware functions validate through `public.normalize_timezone(text)`
+  or `AT TIME ZONE` with a `22023` fallback; executable `pg_timezone_names`
+  scans cost ~0.8s each and are banned from RPCs.
 - `support_messages` (since `20260926120000`) is one support thread per user.
   Clients may only SELECT their own rows and INSERT `(body, meta)`;
   `user_id`/`sender` come from defaults, so a client cannot fake an admin reply.
@@ -87,8 +90,6 @@ migration that rewrites the object.
   `(select auth.uid())`, `TO authenticated`, and matching indexes.
 - Function truth lives in `supabase/functions/`; feed/R2 behavior is in
   `docs/feed_upload_pipeline.md`.
-- Room-photo cleanup remains human-reviewed and fail-closed; see
-  `docs/abandoned_room_cleanup.md`.
 
 ## Read More
 - Schema truth: Supabase MCP plus `supabase/migrations/`

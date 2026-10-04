@@ -1,124 +1,17 @@
 # Progress
 
-Compact current state only. Full snapshots live in `memory-bank/archive/`;
-latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
+Current baseline and where live state is recorded. Full snapshots live in
+`memory-bank/archive/`; latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 
 ## Current State
-- Agent guidance uses contextual document/skill routing; `docs/testing.md` owns
-  the full code validation gate and documentation-only checks. Historical
-  lessons/task logs are archived; release baseline and recorded public
-  availability are separate in `docs/release_status.md`.
-- `pubspec.yaml` is `4.1.0+30`. ASC version `0f40a6d3-7c16-490a-aaa0-54d9e17b4a81`
-  is `PREPARE_FOR_SUBMISSION`; build `401f9a0b-1cbe-46db-917f-f62361f705d0`
-  is `VALID` and attached. It has not been submitted for App Review, and public
-  availability is unverified. Build 30 adds the smoother chat timeline,
-  message/photo entrance motion, animated reactions, and floating date marker.
-  Exact release and dSYM state lives in `docs/release_status.md`.
+- `pubspec.yaml` version is the in-flight build; release, ASC, dSYM, and
+  deployment state live only in `docs/release_status.md`.
 - Halloween 2026 furniture (Pumpkin Lantern 100, Candy Cauldron 150, Bat-Wing
-  Armchair 250) is in the live catalog, version-gated at `3.3.1` (first shown
-  in 4.0.0), all with `new_until` 2026-11-01. Purchase pushes name all
-  illustrated furniture (`notify_friend` v36). Art workflow: `.codex/skills/new-furniture-art/SKILL.md`.
-- New shop items (`items.metadata.new_until`) get a gold NEW card badge and a
-  one-time "just arrived" popup after room entry (once per account per item,
-  stored locally per user id in `app_settings`). The popup waits (up to 2 min)
-  for a covering launch dialog such as What's New to close instead of skipping
-  until the next room entry. The shop shows a
-  "Delivering to <pet>'s room" tag with an in-shop room switcher, and
-  multi-room users confirm the destination room before buying furniture,
-  equipment or themes.
-- Flutter is pinned to `3.44.0` / Dart `3.12.0`. There is no CI gate; follow
-  the local final-check order in `AGENTS.md` and `docs/testing.md`.
-- Chat reply-jump scrolls to the target's list index before centering it, so
-  tapping a reply preview works even when the target bubble (typically a photo,
-  or history just loaded by the jump itself) was never built. A nearby target
-  is animated the whole way; a distant one is searched for behind a frozen
-  `SnapshotWidget` frame under a faint delayed scrim, then glides in over the
-  last three quarters of a screen, so it arrives as a scroll without replaying
-  the history in between. A jump that still cannot land rewinds and reports
-  instead of failing silently.
-- A sent photo's caption is editable by its sender, alongside text bodies:
-  `edit_message` writes `caption` for `image_feed` rows, the feed card shows the
-  `edited` marker, reply previews resolve from the loaded message (so an edited
-  body/caption is never stale), and a realtime caption update rewrites the home
-  gallery + room-card preview in place. Clearing a caption to empty is still
-  rejected (`message_body_required`).
-- Every feed adds +25 hunger: the one-feed-per-10-minute burst gate is gone
-  from `apply_pet_action` / `apply_room_pet_action` (live since 2026-09-24,
-  migration `20260924120000`). The "I'm full!" overfed bubble no longer fires.
-  Home always applies the optimistic +25 on enqueue; older builds
-  reconcile it from `feed_validate`. Feed coin/exp cooldown is unchanged.
-- In-app support replaces the external feedback web form (live in `3.3.0+26`):
-  Profile → Send Feedback opens `SupportView`, a single thread per user that
-  records app version, device model, OS, and locale on each message. User
-  messages are emailed to the team; replies are inserted from the SQL editor and
-  pushed to the user's devices. Backend has been live since 2026-09-26; the
-  runbook is `docs/support_inbox.md`.
-- Room invite creation/regeneration uses reusable 24-hour codes.
-- `leave_room` is idempotent: leaving a room you have no active membership
-  in is a silent no-op, not a `not_member` error, and an already-inactive
-  membership keeps its original `left_at`. A stale client (relaunched after
-  a background termination with a room it already left) no longer shows
-  "leave failed". Server-only, live since 2026-09-03; see
-  `docs/release_status.md`.
-- Internal hunger-schedule and abandoned-room review tables use RLS as
-  defense-in-depth while remaining service-only.
-- Pet rendering prefers PNG sequences while preserving GIF ids. Chicken is
-  visible from `2.3.0`; reviewed Level 2 tracks preserve intentional movement.
-- Handled UI/media errors report classified non-fatals. `UncleanExitService`
-  detects likely OOM/process kills on next launch; known image listeners dispose
-  their `ImageInfo` clones and iOS pressure releases cache/live images.
-- Every iOS release path must run
-  `ios/scripts/upload_archive_dsyms.sh build/ios/archive/Runner.xcarchive`
-  immediately after the IPA build. It uploads all dSYMs and preserves the
-  archive; see `docs/ios_app_store_export.md`.
-- Timezone-aware RPCs use `public.normalize_timezone(text)`; no public
-  function scans `pg_timezone_names`.
-- Failed pet-state and room-background refreshes keep the last successful
-  visible snapshot; both decor loaders are re-run by realtime callbacks, so
-  they report through `reportSwallowedError` unless the room has no loaded
-  decor to show.
-- Room-photo cleanup remains human-reviewed/fail-closed; GEOFlow/hosting lives
-  in `/Users/fatboy/geo-marketing`.
-- ASC subscription metadata must retain the direct Apple Standard EULA footer.
-- Room-frame casings ship in `3.0.0` and are dark below that version. The
-  pre-redesign `original` casing remains the default, and the equipped style
-  now syncs through `room_frame_state` in `3.2.0+24`; Hive remains a
-  fallback/cache and legacy choices are not automatically uploaded.
-- Frame unlocks are room-level based: `original` and `polaroidClassic` Lv1,
-  `corkboard` Lv3, `goldLeaf` Lv5, `nightGlow` Lv8. Equipped casings are
-  grandfathered; unknown room level reads as Lv1. Source and calibration
-  queries live in `RoomFrameSkins`.
-- Pet names cap at 12 through shared client/server validation; first-time naming
-  uses `set_initial_pet_name`.
+  Armchair 250) is live in the catalog, version-gated at `3.3.1` (first shown
+  in 4.0.0), with `new_until` 2026-11-01.
+- Pet rendering prefers PNG sequences; Chicken is visible from `2.3.0`.
+- Behaviour and contracts live in their canonical sources: architecture,
+  schema, and UI in this folder; runbooks under `docs/`.
 
 ## Open Items
-- Decide whether any room-frame casing belongs in Shop. This needs a product
-  decision, a price from `docs/shop_pricing.md`, and a migration.
-- Submit iOS `3.2.0+24` for App Review only after an explicit request, and
-  confirm build 24's Runner/App.framework UUIDs are absent from Crashlytics
-  Missing dSYMs
-  `[USER ACTION REQUIRED]`.
-- The room-decor transient-failure fix shipped in `3.0.1+21`; Crashlytics
-  issue `0183b64515477452f62329d7d3a83a4f` stays OPEN until live verification.
-- Crashlytics `572d36c880cdbb5b0bf49e5694d08713` (create_room `ClientException`)
-  and `5f5325b85f7205abe05a09582e05cf7e` (onboarding profile save 4s timeout)
-  are first-seen in `3.2.0+24`; both fixes land post-24 and need live
-  verification.
-- Convert remaining source-text app tests to behavioral tests where practical;
-  SQL migration text tests remain legitimate.
-- Live-verify feed satiety, visible hunger movement, and presigned-upload logs.
-- Confirm Supabase secrets/config for `delete_account` and `avatar_upload`.
-- Implement Sign in with Apple token revocation on account deletion.
-- Confirm organic post-deploy timing for timezone-normalized pet RPCs.
-- Add a leak regression test for `CachedNetworkImageView` if its cache-manager
-  harness can be stabilized.
-- Instrument remaining best-effort bare catches with
-  `reportSwallowedError(...)` opportunistically.
-- Smoke-test iOS ads after the `google_mobile_ads` 8.0.0 upgrade.
-
-## Read More
-- Release/backend ledger: `docs/release_status.md`
-- Architecture/schema: `memory-bank/architecture.md`,
-  `memory-bank/database-schema.md`
-- Room-frame design rules: `memory-bank/ui-ux-guidelines.md`
-- History: `memory-bank/archive/`
+Tracked in `tasks/todo.md` ("Active follow-ups").

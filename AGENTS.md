@@ -6,15 +6,15 @@
   legal/support pages, invite fallbacks, and universal-link files live in
   `/Users/fatboy/geo-marketing/projects/pettomo`; do not recreate or deploy
   hosting files here.
-- Complete implementation and verification within the requested scope.
-  Review-only work remains read-only. Reuse approval already given for the
+- Review-only work remains read-only. Reuse approval already given for the
   same scope; retain the explicit approvals below.
 - After requested repository changes, commit and push this task's changes
   unless the user requested otherwise. Preserve unrelated edits; report
   verification or push blockers without claiming completion.
 - Use `tasks/todo.md` for substantial work needing a durable plan or handoff.
-  Update relevant memory/runbooks when contracts or product decisions change.
-  Archive historical detail rather than adding unconditional reading rules.
+  A change that alters current behaviour or a decision is unfinished until the
+  routed memory-bank file or runbook below says so, in the same commit. Keep
+  each rule in one source; archive historical detail.
 
 ## Context routing
 
@@ -56,9 +56,9 @@ for code discovery. Fall back to source search when its results are insufficient
 - Installed clients remain supported. Before implementing or releasing a
   parameter change that can affect released versions, present compatible
   alternatives and obtain approval. Incompatible contract changes also need
-  approval. Follow the compatibility runbook for current contracts, old
-  request/response shapes, RPC overloads, persisted state, rollback, and
-  deployed verification. A future app fix does not protect installed clients.
+  approval. A future app fix does not protect installed clients; the runbook
+  (`docs/ai_collaboration_workflow.md`) carries the contract inventory and
+  verification steps.
 - Use Supabase MCP for authorized backend changes. Verify project
   `ilxzpszgirhwxpeocygs` before mutation. Save schema changes as timestamped
   migrations in `supabase/migrations/`. MCP `apply_migration` records its own
@@ -69,8 +69,8 @@ for code discovery. Fall back to source search when its results are insufficient
 - Review-only, draft, and approval-pending SQL remains unapplied. Do not ask
   the user to run SQL the agent is authorized and equipped to run. Photo
   cleanup remains explicitly human-reviewed and snapshot-scoped.
-- On authentication failure, run `codex mcp login supabase` and retry after
-  login completes. Diagnose other failures from their actual error.
+- Codex: on Supabase MCP authentication failure, run
+  `codex mcp login supabase` and retry after login completes.
 - Establish live DB behavior from the current definition and latest applied
   relevant migration, not the first historical match.
 - Enable RLS on user tables. Room access requires active `room_members`
@@ -79,8 +79,6 @@ for code discovery. Fall back to source search when its results are insufficient
 - Default new client-facing RPCs to SECURITY INVOKER. Preserve intentional
   privileged functions and their authentication, grants, and authorization
   checks. Validate inputs and retain named `p_` RPC parameters.
-- Never scan `pg_timezone_names` in RPCs; use `public.normalize_timezone(text)`
-  or `AT TIME ZONE` with the documented `22023` fallback.
 - Before authorized Edge Function deployment, verify deployed `verify_jwt`
   settings and required secrets; these are not centralized in a checked-in
   Supabase config. Follow the relevant runbook and verify deployed behavior.
@@ -89,9 +87,6 @@ for code discovery. Fall back to source search when its results are insufficient
 
 ## Runtime invariants
 
-- Refresh affected UI state after successful state transitions.
-- Furniture dual-writes canvas and legacy positions. Preserve separate legacy
-  4-argument and non-defaulted 6-argument RPC overloads.
 - New shared items require version-gated visibility and old-client rendering
   fallbacks. Decor catalog, purchase predicates, and RLS must agree.
 - Preserve GIF paths as stable source/fallback identifiers until explicit
@@ -99,22 +94,18 @@ for code discovery. Fall back to source search when its results are insufficient
   PetAnimationFrameBuilder, and PetAnimatedImage.
 - Preserve every intentional non-zero Level 2 socket track using the calibration
   skill's `--track-threshold 0` rule; provisional captures require human review.
-- Keep feed reward/message writes on the response path and partner push in
-  `EdgeRuntime.waitUntil(...)`; preserve legacy response field types.
 - Keep Hive initialization before UncleanExitService starts its sentinel.
 
 ## Flutter conventions
 
-- Match `.fvmrc` (currently Flutter 3.44.0 / Dart 3.12.0); use matching
-  `flutter` and `dart` binaries. Keep Flutter SPM integration and checked-in
+- Match `.fvmrc` with the `flutter` and `dart` binaries you run. Keep Flutter SPM integration and checked-in
   resolved packages aligned with the pinned SDK.
 - In split-view `part` extensions, call the State's `_setStateForXxx` wrapper,
   qualify static members, and use the correct relative `part of` path.
   Moving symbols may require updating source-introspection tests.
-- Use `userFacingError` for localized handled failures,
-  `reportUserVisibleError` for bespoke visible copy, and
-  `reportSwallowedError` with a stack trace for silent best-effort failures.
-  Do not display raw exception text or classify errors by localized messages.
+- Report errors through the `userFacingError` / `reportUserVisibleError` /
+  `reportSwallowedError` trio in `memory-bank/architecture.md`; show users
+  localized copy, never raw exception text.
 - ImageStreamListener callbacks own their ImageInfo clone: dispose it after
   reading, and use the already-sized provider for aspect-ratio probes.
 - Use localized UI strings and regenerate localization after ARB changes.

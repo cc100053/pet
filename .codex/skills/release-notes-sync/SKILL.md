@@ -6,7 +6,7 @@ description: Report PicPet's current version, suggest a version bump, and draft 
 # Release Notes Sync
 
 Bundled What's New and ASC release notes describe the same release but use
-separate copy. Keep this skill's existing name for repository workflow routing.
+separate copy.
 
 ## Two-phase flow
 
@@ -92,16 +92,13 @@ not with their migration. Before drafting copy for version `V`:
 
 ## Approval and execution
 
-Phase 1 drafts come before any local copy or ASC change. Approval of the full
-flow (Phase 2 "OK") authorizes local edits, version bump in `pubspec.yaml`,
+Approval of the full flow (Phase 2 "OK") authorizes local edits, version bump in `pubspec.yaml`,
 ASC metadata sync, IPA build, dSYM upload/archive preservation, IPA upload,
 processing verification, build attachment, and the commit/push required by
 `AGENTS.md`. Respect draft-only, local-only, or metadata-only scope.
 App Review submission always requires an explicit submission request.
 
 For approved execution, read [release-execution.md](references/release-execution.md).
-Include the catalog diff and any `new_until` or promotional-text proposal in the
-drafts you present.
 Before release operations, read/update
 [release_status.md](../../../docs/release_status.md). Pass local generation and
 required validation before metadata upload or release build. Immediately after

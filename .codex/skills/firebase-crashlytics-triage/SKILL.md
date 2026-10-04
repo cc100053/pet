@@ -6,9 +6,10 @@ description: Triage PicPet Firebase Crashlytics crashes and non-fatals against s
 # Firebase Crashlytics Triage
 
 Use Firebase MCP and confirm project `pet-app-702be` with `firebase_get_environment`.
-Default to iOS (`1:69520994244:ios:d6fc14579fda1a1ca33e91`); use Android
-(`1:69520994244:android:c686a4d86c55fa1ca33e91`) when requested and verify it has
-data rather than assuming a `404` means the issue is absent.
+Use iOS (`1:69520994244:ios:d6fc14579fda1a1ca33e91`). The Android app
+(`1:69520994244:android:c686a4d86c55fa1ca33e91`) has never received an event
+(`memory-bank/architecture.md`); query it only when asked, and read an empty
+result as expected.
 
 For access/setup problems, use `scripts/start_firebase_mcp_crashlytics.sh` and
 [the MCP runbook](../../../docs/firebase_crashlytics_mcp_workflow.md). Prefer its

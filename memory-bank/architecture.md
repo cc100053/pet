@@ -17,12 +17,8 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   pet, ads, `services`, and `shared` cover remaining feature/platform work.
 
 ## Structural And Compatibility Contracts
-- Large Home/Chat/Shop views use core files plus `part` extensions. Extensions
-  call State wrappers instead of protected `setState`, qualify static members,
-  and use `part of '../<core>.dart';` from subdirectories. Moving symbols can
-  require source-introspection test updates. Those tests can be formatting
-  sensitive; format only touched files and follow the final check order in
-  `AGENTS.md` / `docs/testing.md`.
+- Large Home/Chat/Shop views use core files plus `part` extensions (rules in
+  `AGENTS.md`).
 - `ProfileBootstrapService` owns profile bootstrap.
 - `RoomFrameNotifier` saves explicit confirmations to `room_frame_state`;
   Home refreshes all active rooms on load/resume/realtime reconnect. Hive
@@ -35,8 +31,7 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   live in `room_extra_pets`, shared stats in `room_pet_state`, and
   `pet_state`/`rooms.name` mirror the main pet.
 - Equipment is room-scoped and per-pet across head/face/body/back. Furniture
-  dual-writes fixed-canvas and legacy positions; retain separate 4-arg and
-  non-defaulted 6-arg RPCs.
+  positions dual-write (contract in `database-schema.md`).
 - Pet rendering prefers PNG sequences while preserving GIF paths as stable
   source/fallback ids; Godot is the socket/equipment authoring source.
 - Feed uploads are queue-owned. `feed_validate` returns authoritative satiety;
@@ -62,8 +57,6 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   room-decor refreshes keep the last successful visible snapshot and report
   silently; they surface an error only when nothing is on screen to fall back
   to, and a good load clears any banner a previous failure left.
-- Never scan `pg_timezone_names` in an RPC; validate through
-  `public.normalize_timezone(text)` or `at time zone` with `22023` fallback.
 - `userFacingError(...)` localizes, classifies, deduplicates, and reports handled
   failures. Bespoke visible copy uses `reportUserVisibleError(...)`; silent
   best-effort work uses `reportSwallowedError(...)`. Classify on exception type
@@ -81,31 +74,23 @@ Current-state map for architecture and ownership changes. Full snapshots live in
 - Crashlytics coverage is iOS-only, matching the shipped platforms: the Android
   app in the Firebase project has never received an event, so its absence from
   reports is expected and not a reporting gap.
-- `UncleanExitService` reports likely OOM/SIGKILL on the next launch; keep Hive
-  initialization before its sentinel. On iOS pressure,
-  `SystemMemoryPressureService` releases cache and live-image handles.
-- Every `ImageStreamListener` callback owns its `ImageInfo` clone and must
-  dispose it after reading. Aspect-ratio probes use the already-sized provider;
-  cache trim thresholds remain fractions of configured caps and include live
-  image count.
+- `UncleanExitService` reports likely OOM/SIGKILL on the next launch. On iOS
+  pressure, `SystemMemoryPressureService` releases cache and live-image handles.
+  Image cache trim thresholds remain fractions of configured caps and include
+  live image count.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
 
 ## Backend And Platform
 - Supabase Auth/Postgres/Realtime back shared gameplay and chat; active Edge
   Function source lives in `supabase/functions/`.
-- Feed/R2 contracts live in `docs/feed_upload_pipeline.md`: preserve response
-  field types, keep reward writes on-path, and partner push in
-  `EdgeRuntime.waitUntil(...)`.
+- Feed/R2 contracts (response field types, on-path reward writes, partner
+  push in `EdgeRuntime.waitUntil(...)`) live in `docs/feed_upload_pipeline.md`.
 - `notify_friend` keeps `verify_jwt=false` for webhook compatibility; gateway
   JWT functions still validate users internally.
 - Profile → Send Feedback opens the in-app `SupportView`
   (`lib/features/support/`), which replaces the external support web form.
   The backend contract is `support_messages` in `database-schema.md`;
   the ops runbook is `docs/support_inbox.md`.
-- Room-photo cleanup is human-reviewed/fail-closed. Firebase Hosting/GEOFlow
-  lives in `/Users/fatboy/geo-marketing`.
-- For iOS releases, the export helper preserves the `.xcarchive` and uploads all
-  archive dSYMs to Crashlytics; see `docs/ios_app_store_export.md`.
 
 ## Read More
 - Schema/RPC watchlist: `memory-bank/database-schema.md`

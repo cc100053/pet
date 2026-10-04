@@ -11,7 +11,7 @@ flutter analyze
 flutter test
 ```
 
-Use the SDK pinned in `.fvmrc` (Flutter 3.44.0). Format only touched Dart files;
+Use the SDK pinned in `.fvmrc`. Format only touched Dart files;
 the whole-tree command above is non-writing. Several tests inspect source text,
 so formatting comes before tests. Run Flutter test processes sequentially:
 concurrent processes share `build/unit_test_assets` shader outputs.
