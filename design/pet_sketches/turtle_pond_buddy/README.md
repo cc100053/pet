@@ -3,8 +3,9 @@
 The owner selected the [generated master illustration](selected_master.png) on
 2026-10-05. Preserve this character's painted texture, proportions, compact shell
 and leaf-shaped tail through production. The original is saved unchanged:
-1254 × 1254 RGB PNG with an opaque white background. Transparency, layered
-animation art and runtime exports are not prepared yet.
+1254 × 1254 RGB PNG with an opaque white background. A nine-frame
+[idle trial](idle_trial/README.md) has been split and aligned for review.
+Transparency, layered animation art and runtime exports are not prepared yet.
 
 ## Character brief
 
@@ -38,10 +39,10 @@ not a claim about the app's exact pet scale.
 
 ## Next stage
 
-1. Run the [idle sprite-sheet trial](idle_prompt.txt), attaching only the selected
-   turtle master. Request nine frames in a 3 × 3 square grid. Split and preview
-   the output before accepting it; check identity, texture, shell markings, foot
-   alignment and the loop transition. Use layered animation if the trial drifts.
+1. Review the [received idle trial](idle_trial/README.md), including the loop
+   transition and remaining shape/texture variations after translation alignment.
+   Its [prompt](idle_prompt.txt) requested nine frames in a 3 × 3 square grid.
+   Use layered animation if the remaining variations are unacceptable.
 2. Prepare a transparent cutout from the selected master at original resolution.
    Check light and dark backgrounds for white fringes and lost painted edges;
    keep the cream belly and eye whites intact.

@@ -1,0 +1,42 @@
+# Turtle idle trial
+
+Received on 2026-10-05. This is a review candidate, not approved runtime art.
+The supplied [source sheet](source_sheet.png) is preserved byte-for-byte:
+1254 × 1254 RGB, nine 418 × 418 cells, opaque white background.
+
+## Review outputs
+
+- [Raw looping preview](raw_preview.gif): exact cell crops padded to 450 × 450.
+- [Aligned looping preview](aligned_preview.gif): integer translation only.
+- [Aligned frame contact sheet](aligned_contact_sheet.png).
+- [Frame measurements and assigned timing](alignment_report.json).
+
+The source cells show approximately 33.5 px of horizontal foot-centre range
+and 26 px of baseline range. Measurements use coloured foreground in the bottom
+27 rows of each character; they are technical alignment estimates, not manual
+socket captures. Alignment places the estimated foot centre at x=212 and the
+baseline at y=414 on the review canvas. It does not resize, warp, redraw or
+independently centre the silhouette. No measured foreground is clipped.
+
+All nine exact crops live in `raw_frames/`; nine translated 450 × 450 PNGs live
+in `aligned_frames/`. Both remain opaque. The GIFs share one review palette;
+the PNGs retain their RGB pixels without GIF quantization.
+
+Assigned trial timing: 600, 200, 250, 200, 80, 80, 80, 200, 350 ms (2040 ms total).
+Both GIFs were decoded to verify nine frames, those durations and infinite loop.
+Timing is a review choice; it was not embedded in the AI sheet.
+
+## Visual assessment and pending work
+
+- The intended open → half-closed → closed → half-open → open blink is present.
+- The leaf tail rises and returns while the standing pose stays recognizable.
+- Translation corrects the large sheet-placement differences. Minor differences
+  in foot shape, shell markings and painted texture remain and are not repaired.
+- Frame 9 resembles frame 1 but is not identical. Review the loop transition
+  and acceptability of the remaining variations at actual room size.
+- Transparency, background-edge review, art acceptance, equipment calibration,
+  runtime catalog integration and release gates remain pending.
+
+The selected [character master](../selected_master.png) remains the identity
+reference. Do not treat the normalized furniture workflow as a per-frame crop
+and recenter operation.

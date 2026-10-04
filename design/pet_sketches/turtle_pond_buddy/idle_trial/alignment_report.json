@@ -1,0 +1,166 @@
+{
+  "source_size": [
+    1254,
+    1254
+  ],
+  "source_cell_size": [
+    418,
+    418
+  ],
+  "preview_canvas_size": [
+    450,
+    450
+  ],
+  "registration": "integer translation only; lower-foot-region centre and baseline",
+  "target_source_foot_centre_x": 196,
+  "target_source_baseline_y": 398,
+  "frame_durations_ms": [
+    600,
+    200,
+    250,
+    200,
+    80,
+    80,
+    80,
+    200,
+    350
+  ],
+  "total_duration_ms": 2040,
+  "frames": [
+    {
+      "frame": 1,
+      "source_bounds": [
+        96,
+        49,
+        384,
+        399
+      ],
+      "foot_centre_x": 210.0,
+      "baseline_y": 398,
+      "translation_px": [
+        -14,
+        0
+      ]
+    },
+    {
+      "frame": 2,
+      "source_bounds": [
+        78,
+        48,
+        366,
+        399
+      ],
+      "foot_centre_x": 196.0,
+      "baseline_y": 398,
+      "translation_px": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 3,
+      "source_bounds": [
+        59,
+        46,
+        350,
+        399
+      ],
+      "foot_centre_x": 179.0,
+      "baseline_y": 398,
+      "translation_px": [
+        17,
+        0
+      ]
+    },
+    {
+      "frame": 4,
+      "source_bounds": [
+        96,
+        30,
+        385,
+        384
+      ],
+      "foot_centre_x": 212.0,
+      "baseline_y": 383,
+      "translation_px": [
+        -16,
+        15
+      ]
+    },
+    {
+      "frame": 5,
+      "source_bounds": [
+        78,
+        38,
+        369,
+        383
+      ],
+      "foot_centre_x": 196.0,
+      "baseline_y": 382,
+      "translation_px": [
+        0,
+        16
+      ]
+    },
+    {
+      "frame": 6,
+      "source_bounds": [
+        58,
+        37,
+        350,
+        384
+      ],
+      "foot_centre_x": 178.5,
+      "baseline_y": 383,
+      "translation_px": [
+        18,
+        15
+      ]
+    },
+    {
+      "frame": 7,
+      "source_bounds": [
+        95,
+        20,
+        382,
+        373
+      ],
+      "foot_centre_x": 211.0,
+      "baseline_y": 372,
+      "translation_px": [
+        -15,
+        26
+      ]
+    },
+    {
+      "frame": 8,
+      "source_bounds": [
+        78,
+        22,
+        369,
+        373
+      ],
+      "foot_centre_x": 196.5,
+      "baseline_y": 372,
+      "translation_px": [
+        0,
+        26
+      ]
+    },
+    {
+      "frame": 9,
+      "source_bounds": [
+        59,
+        22,
+        350,
+        374
+      ],
+      "foot_centre_x": 180.0,
+      "baseline_y": 373,
+      "translation_px": [
+        16,
+        25
+      ]
+    }
+  ]
+}
