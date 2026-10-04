@@ -6,6 +6,9 @@ The supplied [source sheet](source_sheet.png) is preserved byte-for-byte:
 
 ## Review outputs
 
+- [Slower-blink preview](aligned_preview_slower_blink.gif): revised timing for
+  owner review; the same nine visual frames as the aligned preview.
+- [Slower-blink timing](slower_blink_timing.json).
 - [Raw looping preview](raw_preview.gif): exact cell crops padded to 450 × 450.
 - [Aligned looping preview](aligned_preview.gif): integer translation only.
 - [Aligned frame contact sheet](aligned_contact_sheet.png).
@@ -25,6 +28,14 @@ the PNGs retain their RGB pixels without GIF quantization.
 Assigned trial timing: 600, 200, 250, 200, 80, 80, 80, 200, 350 ms (2040 ms total).
 Both GIFs were decoded to verify nine frames, those durations and infinite loop.
 Timing is a review choice; it was not embedded in the AI sheet.
+
+The owner found the blink noticeably faster on 2026-10-05. A timing-only
+alternative holds frames 5–7 for 120, 160 and 120 ms instead of 80 ms each:
+400 ms for the blink section and 2200 ms for the full loop. All other holds
+are unchanged. Decoded RGB pixels were compared with the original aligned
+GIF to verify identical artwork, nine frames, the new timing and infinite loop.
+Review this timing before adding in-between drawings; extra frames would address
+stepped eyelid movement, while longer holds address the perceived speed.
 
 ## Visual assessment and pending work
 

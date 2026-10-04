@@ -1,0 +1,22 @@
+{
+  "preview": "aligned_preview_slower_blink.gif",
+  "frame_durations_ms": [
+    600,
+    200,
+    250,
+    200,
+    120,
+    160,
+    120,
+    200,
+    350
+  ],
+  "total_duration_ms": 2200,
+  "blink_frames": [
+    5,
+    6,
+    7
+  ],
+  "blink_duration_ms": 400,
+  "change": "GIF delay fields only; decoded frame pixels identical to aligned_preview.gif"
+}
