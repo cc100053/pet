@@ -1,7 +1,9 @@
 # Little Pond Buddy
 
-Concept selected with the owner on 2026-10-04. Composition sketch v1 awaits
-visual review; it is not production pet art.
+Concept selected with the owner on 2026-10-04. On 2026-10-05 the owner requested
+a smaller shell and a more distinctive tail. Composition sketch v2 reduces shell
+width by 16% and height by 10%; tail selection and visual review remain pending.
+These are composition studies, not production pet art.
 
 ## Character brief
 
@@ -21,6 +23,12 @@ visual review; it is not production pet art.
 - [Editable composition](turtle_pond_buddy.svg)
 - [Transparent 450 × 450 render](turtle_pond_buddy.png)
 - [Comparison and small-size review](review.png)
+- [Tail alternatives on the smaller-shell composition](tail_options.png)
+
+Tail alternatives are A: leaf-shaped, B: curved droplet, C: soft curl. These
+explore silhouette only; none has been selected. Each tail originates behind the
+lower torso. Leaf-shaped means the tail's own shape, not an attached plant.
+Editable studies: [A](tail_leaf.svg), [B](tail_droplet.svg), [C](tail_curl.svg).
 
 The review compares the sketch with the shipped cat and shows both on the
 existing free room background. The 64 px and 96 px views are readability probes,

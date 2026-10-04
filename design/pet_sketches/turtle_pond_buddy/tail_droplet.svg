@@ -2,15 +2,13 @@
   <title>Little Pond Buddy — turtle composition sketch</title>
   <desc>Upright sage-green turtle with a round face, olive shell visible on its right, cream belly, broad feet and one small raised hand. Transparent background.</desc>
   <g stroke-linecap="round" stroke-linejoin="round">
+    <g id="tail"><path d="M264 334 C291 335 312 350 334 345 C346 342 343 326 355 321 C369 315 381 328 376 342 C373 356 360 365 346 363 C321 365 298 348 264 350 Z" fill="#A5C29A" stroke="#6C8965" stroke-width="3"/><path d="M358 329 Q366 326 368 333" fill="none" stroke="#C2D5B1" stroke-width="4"/></g>
     <g id="shell" transform="translate(39.2 28) scale(.84 .9)">
       <path d="M234 187 C268 165 309 180 331 212 C355 246 362 305 344 343 C334 365 313 380 287 376 L222 354 Z" fill="#849963" stroke="#5D7348" stroke-width="4"/>
       <path d="M274 191 C316 199 341 246 343 291 C345 325 331 352 310 364" fill="none" stroke="#A9B881" stroke-width="9"/>
       <path d="M287 229 L315 222 L335 246 L330 280 L301 290 L282 267 Z" fill="#92A56C" stroke="#667D4D" stroke-width="3.5"/>
       <path d="M301 290 L301 330 L327 343 M330 280 L347 288 M315 222 L313 202" fill="none" stroke="#667D4D" stroke-width="3.5"/>
       <path d="M289 240 L294 231 M313 237 L320 245" fill="none" stroke="#BAC797" stroke-width="3"/>
-    </g>
-    <g id="tail">
-      <path d="M309 343 Q340 346 345 361 Q326 369 306 359" fill="#9DBA93" stroke="#6C8965" stroke-width="3"/>
     </g>
     <g id="legs">
       <path d="M177 330 L172 361 C158 361 145 369 145 384 C145 397 163 401 187 397 C207 395 213 386 210 373 L212 336" fill="#9DBA93" stroke="#6C8965" stroke-width="3"/>
