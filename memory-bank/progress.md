@@ -10,6 +10,9 @@ Current baseline and where live state is recorded. Full snapshots live in
   Armchair 250) is live in the catalog, version-gated at `3.3.1` (first shown
   in 4.0.0), with `new_until` 2026-11-01.
 - Pet rendering prefers PNG sequences; Chicken is visible from `2.3.0`.
+- Turtle concept selected: [Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md),
+  an upright pond turtle. Composition review is pending; production art and
+  rollout have not started.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
 
