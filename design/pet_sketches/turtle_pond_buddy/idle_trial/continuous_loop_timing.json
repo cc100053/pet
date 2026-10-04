@@ -1,0 +1,17 @@
+{
+  "preview": "continuous_loop.gif",
+  "frame_durations_ms": [
+    200,
+    200,
+    250,
+    200,
+    120,
+    160,
+    120,
+    200,
+    200
+  ],
+  "total_duration_ms": 1650,
+  "loop": 0,
+  "change": "Frame 1 and 9 holds shortened to 200 ms each; original frames and slower blink unchanged."
+}

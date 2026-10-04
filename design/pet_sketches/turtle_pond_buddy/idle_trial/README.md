@@ -6,6 +6,9 @@ The supplied [source sheet](source_sheet.png) is preserved byte-for-byte:
 
 ## Review outputs
 
+- [Continuous loop for seam review](continuous_loop.gif): first and last holds
+  reduced to 200 ms each, preserving the slower blink and all original frames.
+- [Continuous-loop timing](continuous_loop_timing.json).
 - [Slower-blink preview](aligned_preview_slower_blink.gif): revised timing for
   owner review; the same nine visual frames as the aligned preview.
 - [Slower-blink timing](slower_blink_timing.json).
@@ -36,6 +39,12 @@ are unchanged. Decoded RGB pixels were compared with the original aligned
 GIF to verify identical artwork, nine frames, the new timing and infinite loop.
 Review this timing before adding in-between drawings; extra frames would address
 stepped eyelid movement, while longer holds address the perceived speed.
+
+The continuous-loop alternative runs for 1650 ms with infinite repeat. It removes
+the extra rest holds at the loop boundary (600 → 200 ms on frame 1; 350 → 200 ms
+on frame 9) so the owner can assess the actual 9 → 1 transition. No transition
+frames, fades or artwork corrections were added. Decoding verified the nine
+unchanged RGB frames, all durations and infinite loop setting.
 
 ## Visual assessment and pending work
 
