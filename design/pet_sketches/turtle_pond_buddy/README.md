@@ -4,7 +4,8 @@ The owner selected the [generated master illustration](selected_master.png) on
 2026-10-05. Preserve this character's painted texture, proportions, compact shell
 and leaf-shaped tail through production. The original is saved unchanged:
 1254 × 1254 RGB PNG with an opaque white background. A nine-frame
-[idle trial](idle_trial/README.md) has been split and aligned for review.
+[idle trial](idle_trial/README.md) has been split and aligned; its continuous-loop
+motion and timing were accepted on 2026-10-05.
 Transparency, layered animation art and runtime exports are not prepared yet.
 
 ## Character brief
@@ -16,7 +17,7 @@ Transparency, layered animation art and runtime exports are not prepared yet.
 - The master was generated with all five existing pets as style references,
   without the draft sketch. Its character design is now the visual source of truth.
 - Signature behaviour: a delayed reaction followed by an enthusiastic wave.
-- Planned states: idle (blink/wave), walk (small determined steps), sleep
+- Planned states: idle (accepted blink, breathing and tail sway), walk (small determined steps), sleep
   (head partly tucked into shell with face still readable).
 
 ## Review files
@@ -39,11 +40,10 @@ not a claim about the app's exact pet scale.
 
 ## Next stage
 
-1. Review the [received idle trial](idle_trial/README.md), including the loop
-   transition and remaining shape/texture variations after translation alignment.
-   Its [prompt](idle_prompt.txt) requested nine frames in a 3 × 3 square grid.
-   Use layered animation if the remaining variations are unacceptable.
-2. Prepare a transparent cutout from the selected master at original resolution.
+1. Prepare walk, then sleep sprite-sheet trials using the selected master for
+   character identity. Walk should be a small, determined in-place cycle at the
+   same camera angle. Split, align and review each loop as with idle.
+2. Prepare transparent frames for the selected idle, walk and sleep sequences.
    Check light and dark backgrounds for white fringes and lost painted edges;
    keep the cream belly and eye whites intact.
 3. If needed, prepare editable layers: shell, leaf tail, torso/belly, head, each arm,
@@ -51,8 +51,8 @@ not a claim about the app's exact pet scale.
    hands and other hidden joints so movement does not expose gaps. AI-separated
    parts require review for shape and texture consistency.
 4. Establish a shared 450 × 450 export canvas, consistent scale and foot baseline.
-   Make an idle loop first (gentle breathing, blink, slight tail sway; wave as a
-   secondary gesture), then walk and sleep. Do not crop and centre each frame
+   Use the accepted idle timing (1650 ms) and reviewed walk/sleep timing.
+   Do not crop and centre each frame
    independently with the furniture normalizer.
 5. Review looping motion and small-size readability before Godot equipment
    socket calibration, runtime PNG exports and pet-catalog integration.
@@ -67,8 +67,9 @@ Cat: 7 frames / 1300 ms, tail movement and blink. Tiger: 9 / 1600 ms, tail sway.
 Chicken: 5 / 1200 ms, slight feather/body movement and blink. Fish: 14 / 3400 ms,
 body bob, fin movement and bubbles. Ghost: 13 / 2600 ms, subtle body/silhouette
 movement. The proposed turtle trial combines a fixed stance, brief blink,
-gentle leaf-tail sway and tiny breathing motion. Its timing is not finalized;
-the image prompt cannot encode actual frame durations.
+gentle leaf-tail sway and tiny breathing motion. The continuous preview's
+1650 ms timing is accepted; verify parity when exporting runtime frames.
+The image prompt cannot encode actual frame durations.
 
 Follow the [art process](../../../.codex/skills/new-furniture-art/SKILL.md)
 for visual review, and the [pet authoring workflow](../../../docs/godot-png-sequence-socket-workflow.md)

@@ -12,8 +12,8 @@ Current baseline and where live state is recorded. Full snapshots live in
 - Pet rendering prefers PNG sequences; Chicken is visible from `2.3.0`.
 - Turtle concept selected: [Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md),
   an upright pond turtle. Generated master with compact shell and leaf-shaped
-  tail selected on 2026-10-05. Nine-frame idle trial is split and aligned, with
-  slower-blink and continuous-loop alternatives for review. Art acceptance, transparency,
+  tail selected on 2026-10-05. Nine-frame idle continuous-loop motion/timing
+  accepted; walk and sleep trials are next. Transparency, room-size review,
   equipment calibration and rollout remain pending.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.

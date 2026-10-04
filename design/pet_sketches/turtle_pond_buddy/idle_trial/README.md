@@ -1,6 +1,8 @@
 # Turtle idle trial
 
-Received on 2026-10-05. This is a review candidate, not approved runtime art.
+Received on 2026-10-05. The owner accepted the continuous-loop preview's motion
+and timing on 2026-10-05. Production transparency, room-size review and runtime
+integration are still pending.
 The supplied [source sheet](source_sheet.png) is preserved byte-for-byte:
 1254 × 1254 RGB, nine 418 × 418 cells, opaque white background.
 
@@ -52,9 +54,9 @@ unchanged RGB frames, all durations and infinite loop setting.
 - The leaf tail rises and returns while the standing pose stays recognizable.
 - Translation corrects the large sheet-placement differences. Minor differences
   in foot shape, shell markings and painted texture remain and are not repaired.
-- Frame 9 resembles frame 1 but is not identical. Review the loop transition
-  and acceptability of the remaining variations at actual room size.
-- Transparency, background-edge review, art acceptance, equipment calibration,
+- Frame 9 resembles frame 1 but is not identical. The owner accepted the preview
+  transition; verify remaining variations at actual room size during production.
+- Transparency, background-edge review, room-size acceptance, equipment calibration,
   runtime catalog integration and release gates remain pending.
 
 The selected [character master](../selected_master.png) remains the identity
