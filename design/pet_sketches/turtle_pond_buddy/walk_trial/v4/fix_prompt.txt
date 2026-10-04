@@ -1,0 +1,21 @@
+This sheet is close. Keep everything exactly the same: the character, painted texture, colours, shell, tail, camera, scale, white background and 3 x 3 layout. Frames 1, 2, 4, 5 and 9 must stay unchanged.
+
+Make ONLY these corrections, using the pose guide (image 2) again:
+
+FRAME 3 (top row, right): change only the eyes to HALF-CLOSED. The upper eyelids cover the top half of each eye, and the lower half of the brown pupils and the white highlights stay visible. Keep the same smile. The legs stay as they are. Frame 4 keeps its fully closed eyes.
+
+FRAMES 6-8 must be the second step, made by the IMAGE-LEFT leg (blue in the guide). They are the mirror of frames 2-4, which you drew correctly for the image-right leg. In all three frames the IMAGE-RIGHT foot stays planted flat on the ground, forward, where it landed in frame 5. Do NOT lift or kick the image-right foot.
+
+FRAME 6 (middle row, right): the IMAGE-LEFT foot lifts off the ground BEHIND the planted image-right leg and starts swinging forward. It is partly hidden behind the image-right leg, where they overlap.
+
+FRAME 7 (bottom row, left): passing pose. The IMAGE-LEFT foot is at its highest, clearly above the ground with a visible gap under its sole. It passes behind the image-right leg toward image-left. The body is at its highest. This mirrors frame 3.
+
+FRAME 8 (bottom row, middle): the IMAGE-LEFT foot reaches forward toward image-left and lowers, still slightly off the ground, just before touching down. The image-right foot is planted behind it. This must look different from frame 1, where both feet are already on the ground.
+
+IMAGE-LEFT and IMAGE-RIGHT mean the sides of each cell as the viewer sees them. Do not mirror the turtle or swap its body parts. Feet keep their short broad shape and stay attached to their legs, with no extra limbs. One foot always touches the same invisible ground line.
+
+Before outputting, check:
+- In frames 2-4 the image-right foot is lifted.
+- In frames 6-8 the image-left foot is lifted.
+- The image-right foot is planted throughout frames 6-8.
+- Frame 3 has half-closed eyes.

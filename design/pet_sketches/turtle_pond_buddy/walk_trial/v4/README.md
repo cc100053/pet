@@ -49,3 +49,8 @@ placement is kept. As in v3, the source's bottom row sits about 20 px higher.
 - Painted detail still varies a little between frames. Judge in the aligned
   loop whether the image-left step (frames 6-8) reads well enough, or whether
   it needs a targeted fix.
+
+On 2026-10-05 the owner chose a targeted fix. The [fix prompt](fix_prompt.txt),
+used in the same Gemini chat, changes frame 3 to half-closed eyes and redraws
+frames 6-8 as the image-left leg's step, mirroring frames 2-4, while the
+image-right foot stays planted.
