@@ -1,0 +1,80 @@
+{
+  "registration": "integer translation; raw horizontal placement kept (preserves generated lean), lowest-foot baseline to y=414",
+  "source": "1254x1254 webp, 418 px cells; bottom row drawn ~19 px higher in source",
+  "frame_durations_ms": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "closure_reference_frame": 9,
+  "frames": [
+    {
+      "frame": 1,
+      "baseline_y": 408,
+      "head_centre_x": 194.3,
+      "dx": 16,
+      "dy": 6
+    },
+    {
+      "frame": 2,
+      "baseline_y": 407,
+      "head_centre_x": 174.7,
+      "dx": 16,
+      "dy": 7
+    },
+    {
+      "frame": 3,
+      "baseline_y": 407,
+      "head_centre_x": 182.1,
+      "dx": 16,
+      "dy": 7
+    },
+    {
+      "frame": 4,
+      "baseline_y": 398,
+      "head_centre_x": 193.6,
+      "dx": 16,
+      "dy": 16
+    },
+    {
+      "frame": 5,
+      "baseline_y": 398,
+      "head_centre_x": 192.6,
+      "dx": 16,
+      "dy": 16
+    },
+    {
+      "frame": 6,
+      "baseline_y": 401,
+      "head_centre_x": 224.3,
+      "dx": 16,
+      "dy": 13
+    },
+    {
+      "frame": 7,
+      "baseline_y": 388,
+      "head_centre_x": 200.1,
+      "dx": 16,
+      "dy": 26
+    },
+    {
+      "frame": 8,
+      "baseline_y": 389,
+      "head_centre_x": 190.8,
+      "dx": 16,
+      "dy": 25
+    },
+    {
+      "frame": 9,
+      "baseline_y": 389,
+      "head_centre_x": 183.4,
+      "dx": 16,
+      "dy": 25
+    }
+  ]
+}

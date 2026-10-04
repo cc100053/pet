@@ -46,6 +46,8 @@ not a claim about the app's exact pet scale.
    has alternating steps and the blink but was rejected (no weight shift, sideways
    kicks). Regenerate with the [v3 march-in-place waddle prompt](walk_trial/v3_prompt.txt),
    attaching the master and the [tiger motion reference](walk_trial/tiger_walk_motion_reference.png).
+   The [v3 trial](walk_trial/v3/README.md) fixes the vertical step and lean. Only frame 6
+   (a sideways kick) needs a targeted fix before loop review.
    The [original trial](walk_trial/README.md) records the gait correction prompt.
    The [walk prompt](walk_prompt.txt) defines eight gait
    phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.

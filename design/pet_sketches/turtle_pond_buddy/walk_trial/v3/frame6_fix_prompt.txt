@@ -1,0 +1,11 @@
+Keep this turtle sprite sheet exactly the same: character, painted texture, colours, face, shell, tail, camera, scale, white background and 3 x 3 layout. Change ONLY frame 6 (middle row, right cell).
+
+Problem: in frame 6 the image-left foot kicks out sideways with splayed toes. It should step straight up, like the image-right foot does in frame 2.
+
+Redraw frame 6 like this:
+- Keep the image-right foot flat on the ground, supporting the turtle.
+- The image-left foot lifts STRAIGHT UP from its own footprint by bending the knee, with its sole just off the ground and roughly flat. It is LOWER than in frame 7. It does not move outward, forward or sideways, and its toes do not point.
+- The body leans gently toward image-right, the same amount as frame 2 leans toward image-left.
+- The eyes stay open. The head, face and shell drawing stay identical to frame 5.
+
+Leave frames 1-5 and 7-9 untouched. Before outputting, compare frame 6 with frame 2: it should look like the same step on the opposite foot.
