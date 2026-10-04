@@ -3,7 +3,8 @@
 Concept selected with the owner on 2026-10-04. On 2026-10-05 the owner requested
 a smaller shell and a more distinctive tail. Composition sketch v2 reduces shell
 width by 16% and height by 10%. The owner selected A (leaf-shaped tail) and
-requested a text-only AI exploration without uploading the sketch or references.
+requested free AI interpretation without uploading the draft sketch. The current
+prompt uses the existing cat and fish as style references only.
 These are composition studies, not production pet art.
 
 ## Character brief
@@ -12,9 +13,9 @@ These are composition studies, not production pet art.
   broad feet, small paddle-shaped hands, one raised in a gentle wave.
 - Sage body, olive shell, cream belly, peach cheeks, warm brown eyes.
 - Shell remains visible beside the torso, with sparse broad markings.
-- Existing cat informed the painted-texture direction. The first AI exploration
-  uses text only, with no reference upload; proportions, expression and pose can
-  vary while preserving the smaller shell and leaf-shaped tail.
+- Existing cat and fish guide the pet-family style, with the cat as the main
+  painted-texture reference. Proportions, expression and pose can vary while
+  preserving the smaller shell and leaf-shaped tail; upload no draft sketch.
 - Signature behaviour: a delayed reaction followed by an enthusiastic wave.
 - Planned states: idle (blink/wave), walk (small determined steps), sleep
   (head partly tucked into shell with face still readable).
@@ -37,9 +38,10 @@ not a claim about the app's exact pet scale.
 
 ## Next stage
 
-Use the [text-only exploration prompt](gemini_prompt.txt) in a new Gemini chat
-with a square image setting. Upload no sketch or style reference for this pass,
-as requested by the owner. Select and review the generated interpretation next.
+Use the [exploration prompt](gemini_prompt.txt) in a new Gemini chat with a
+square image setting. Upload only the [existing-pet style reference](pet_style_reference.png),
+which places the shipped cat and fish on white. Do not upload the turtle sketch
+or tail studies. Select and review the generated interpretation next.
 Review the resulting master illustration before separating animation layers.
 All frames must retain one shared canvas and alignment; do not normalize each
 frame with the furniture crop-and-centre process.

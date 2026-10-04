@@ -12,8 +12,8 @@ Current baseline and where live state is recorded. Full snapshots live in
 - Pet rendering prefers PNG sequences; Chicken is visible from `2.3.0`.
 - Turtle concept selected: [Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md),
   an upright pond turtle. Smaller shell and leaf-shaped tail selected on
-  2026-10-05; text-only AI exploration is next. Production art review and rollout
-  remain pending.
+  2026-10-05; AI exploration uses existing pets as style references without the
+  draft sketch. Production art review and rollout remain pending.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
 
