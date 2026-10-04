@@ -45,7 +45,9 @@ not a claim about the app's exact pet scale.
    same camera angle. The [walk prompt](walk_prompt.txt) is ready: eight gait
    phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.
    Preview frames 1–8 without doubling the endpoint hold. Split, align and review
-   each loop as with idle.
+   each loop as with idle. The [sleep prompt](sleep_prompt.txt) proposes a seated,
+   slightly tucked pose with the face visible, eight breathing phases and a
+   closure-comparison frame. Sleep pose and generated artwork await review.
 2. Prepare transparent frames for the selected idle, walk and sleep sequences.
    Check light and dark backgrounds for white fringes and lost painted edges;
    keep the cream belly and eye whites intact.
@@ -82,6 +84,16 @@ Chicken: 8 / 1600 ms; alternating leg movement and feather/tail changes. These
 PNG sequences and their catalog timing were inspected on 2026-10-05 for the
 walk prompt. The turtle trial isolates gait with open eyes and a small arm/tail
 swing; proposed playback is eight gait frames at approximately 200 ms each.
+
+## Existing sleep references inspected
+
+All five sleep PNG sequences were inspected on 2026-10-05. Cat is seated with
+closed eyes and rising z marks; chicken and ghost retain a closed-eye resting
+pose with z marks. Tiger reclines with snore bubbles, and fish has closed eyes,
+fin movement and bubbles. The turtle prompt borrows the closed-eye resting
+pose and z effect, using a slower breathing cycle. It does not generate an
+awake-to-sleep transition. Foot contact, facial visibility and loop continuity
+must be checked on the generated result.
 
 Follow the [art process](../../../.codex/skills/new-furniture-art/SKILL.md)
 for visual review, and the [pet authoring workflow](../../../docs/godot-png-sequence-socket-workflow.md)

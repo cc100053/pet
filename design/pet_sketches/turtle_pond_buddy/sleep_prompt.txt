@@ -1,0 +1,40 @@
+Create a SLEEP animation sprite sheet of the EXACT turtle in the attached image.
+
+The attached image is the approved character master. Preserve its head shape, facial proportions, sage skin, cream belly, peach cheeks, compact olive shell and markings, broad feet, leaf-shaped tail and soft painted texture. Create a sleeping pose for the same turtle without redesigning it.
+
+Sleeping pose:
+- A low, comfortable seated crouch, resting securely on the ground.
+- Neck slightly withdrawn toward the front opening of the shell; head lowered and nestled close to the body. Keep the whole face visible and its original size. Do not retract the head completely.
+- Eyes closed as two soft curved eyelid lines throughout, with a tiny peaceful smile.
+- Arms relaxed beside the belly, feet resting comfortably and leaf tail resting beside the shell.
+- Same three-quarter camera angle as the reference, with the shell visible on the same side.
+
+Animation direction, inspired by the existing cat, chicken and ghost sleep animations:
+- Already asleep in every frame: this is a sleeping loop, not a transition from awake to asleep.
+- One slow, gentle inhale and exhale, with extremely small chest and shoulder movement.
+- One to three tiny, hand-drawn warm olive-brown lowercase "z" marks drift upward beside the head and gradually fade. Keep them separate from the face and inside the cell margins.
+- Feet, seated contact points and tail base stay stable. No walking, rocking back and forth or tail wagging.
+
+Output EXACTLY 9 frames in a 3-column by 3-row grid, ordered left to right, then top to bottom. Equal square cells. One square sheet, ideally 1350 x 1350 pixels, with nine 450 x 450 cells.
+
+Frames 1-8 form one complete breathing cycle:
+1. Sleeping resting pose, chest relaxed, no z marks.
+2. Begin a tiny inhale; one small z appears beside the head.
+3. Continue inhaling slightly; first z drifts upward and a second small z appears.
+4. Peak of the gentle inhale; up to three small z marks drift diagonally upward.
+5. Begin exhaling; z marks continue rising and start fading.
+6. Continue the gentle exhale; z marks become smaller and fainter.
+7. Chest returns toward rest; only faint z marks remain.
+8. Finish the exhale, almost matching frame 1; z marks have disappeared.
+9. An exact repeat of frame 1, only for checking loop closure.
+
+Consistency requirements:
+- Fixed camera, perspective, character scale, seated position and ground contact line.
+- Head and shell never change size or shape. Breathing motion is at most about 1% of a cell's height, with no global scaling.
+- Shell stays attached and its markings never change. Tail retains the same leaf shape and length.
+- Preserve colours, belly markings and painted brush texture across frames.
+- Keep the entire turtle and z marks inside each cell with identical framing and comfortable margins. Do not independently recenter poses.
+- Pure flat white #FFFFFF background. No floor, cast shadow, bed, pillow, blanket, scenery, captions, frame numbers, grid lines or borders. The tiny sleep z marks are the only lettering allowed.
+- No opening eyes, blinking, waking, yawning, disappearing into the shell or changing sleeping pose between frames.
+
+Create one connected, peaceful loop, not nine unrelated poses. Frames 1-8 should loop at a calm pace of roughly three seconds, without an endpoint pause. Frame 9 is a comparison copy and will not be played as an additional held frame. Actual timing will be assigned after splitting the sheet.

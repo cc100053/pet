@@ -13,7 +13,8 @@ Current baseline and where live state is recorded. Full snapshots live in
 - Turtle concept selected: [Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md),
   an upright pond turtle. Generated master with compact shell and leaf-shaped
   tail selected on 2026-10-05. Nine-frame idle continuous-loop motion/timing
-  accepted; walk prompt is ready and walk/sleep trials are next. Transparency, room-size review,
+  accepted; walk and sleep prompts are ready, with generated trials pending.
+  Transparency, room-size review,
   equipment calibration and rollout remain pending.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
