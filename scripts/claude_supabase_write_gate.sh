@@ -49,7 +49,7 @@ if [ "$gated" -ne 1 ]; then
 fi
 
 read -r -d '' reason <<'EOF' || true
-AGENTS.md "Core workflow (non-negotiable)" applies to this write. Confirm before approving:
+AGENTS.md "Compatibility and backend safety" applies to this write. Confirm before approving:
 
 1. docs/ai_collaboration_workflow.md — read BEFORE this change, and its
    contract-inventory / server-vs-app-fix / compatibility-test /
