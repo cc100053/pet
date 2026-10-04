@@ -417,6 +417,11 @@ class _TelegramTextMessageBubble extends StatelessWidget {
     final hasHighlightedMention = mentionSpans.any(
       (span) => span.style?.fontWeight == FontWeight.w700,
     );
+    final textSpans = isDeleted
+        ? mentionSpans
+        : enlargeChatEmojiSpans(mentionSpans);
+    // SimpleTextMessage takes a plain string, so emoji need the span bubble.
+    final hasEmoji = !isDeleted && chatTextHasEmoji(message.text);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -433,7 +438,11 @@ class _TelegramTextMessageBubble extends StatelessWidget {
             // Own bubbles render here too: SimpleTextMessage has no slot for
             // the animated send status.
             child:
-                (hasHighlightedMention || isEdited || isDeleted || isSentByMe)
+                (hasHighlightedMention ||
+                    hasEmoji ||
+                    isEdited ||
+                    isDeleted ||
+                    isSentByMe)
                 ? _MentionTextMessageBubble(
                     message: message,
                     constraints: const BoxConstraints(maxWidth: 296),
@@ -442,7 +451,7 @@ class _TelegramTextMessageBubble extends StatelessWidget {
                         ? sentBackgroundColor
                         : receivedBackgroundColor,
                     padding: const EdgeInsets.fromLTRB(14, 10, 12, 9),
-                    textSpans: mentionSpans,
+                    textSpans: textSpans,
                     timeStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: timeColor,
                       fontSize: 10,
@@ -711,15 +720,21 @@ class _MessageActionTextPreviewBubble extends StatelessWidget {
                   onTap: onReplyTap,
                 ),
               ),
-            Text(
-              bodyText.isNotEmpty
-                  ? bodyText
-                  : AppLocalizations.of(context)!.chatMessageHint,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isSentByMe ? sentTextColor : receivedTextColor,
-                fontSize: 16,
-                height: 1.36,
-                fontWeight: FontWeight.w400,
+            Text.rich(
+              TextSpan(
+                children: enlargeChatEmojiSpans([
+                  TextSpan(
+                    text: bodyText.isNotEmpty
+                        ? bodyText
+                        : AppLocalizations.of(context)!.chatMessageHint,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isSentByMe ? sentTextColor : receivedTextColor,
+                      fontSize: 16,
+                      height: 1.36,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ]),
               ),
             ),
             if (bubbleTime != null)
@@ -1110,14 +1125,21 @@ class _FeedCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Expanded(
-                                child: Text(
-                                  caption,
+                                child: Text.rich(
+                                  TextSpan(
+                                    children: enlargeChatEmojiSpans([
+                                      TextSpan(
+                                        text: caption,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              height: 1.35,
+                                              color: cardTextColor,
+                                            ),
+                                      ),
+                                    ]),
+                                  ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    height: 1.35,
-                                    color: cardTextColor,
-                                  ),
                                 ),
                               ),
                               if (bubbleTime != null) ...[

@@ -45,6 +45,7 @@ import '../../shared/ui/user_avatar.dart';
 import 'adapters/pet_chat_message_adapter.dart';
 import 'blocked_users_sheet.dart';
 import 'chat_message.dart';
+import 'chat_emoji_text.dart';
 import 'chat_mentions.dart';
 import 'chat_room_view_runtime.dart';
 import 'chat_reaction_options.dart';

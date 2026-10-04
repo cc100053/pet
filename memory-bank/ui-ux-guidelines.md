@@ -20,6 +20,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   their counts roll on live changes (not on history loads); a floating date pill
   shows the topmost day while dragging the timeline, hidden while that day's
   inline separator is itself on screen.
+- Chat emoji follow Telegram (`chat_emoji_text.dart`): inline emoji in text
+  bodies, photo captions and the long-press preview render 1.25x the text size
+  without growing the line; a body of only 1-3 emoji renders 44/38/32pt.
 
 ## Visuals ("Mori" direction, 2026-09-30)
 - Modern Japanese social-game feel (Animal Crossing warmth). Use `AppTheme`
