@@ -1,12 +1,37 @@
 ---
 name: release-notes-sync
-description: Draft PicPet release notes and execute the approved metadata, build, upload, and attachment flow.
+description: Report PicPet's current version, suggest a version bump, and draft release notes; after the user replies OK, run the full metadata, build, upload, and attachment runbook.
 ---
 
 # Release Notes Sync
 
 Bundled What's New and ASC release notes describe the same release but use
 separate copy. Keep this skill's existing name for repository workflow routing.
+
+## Two-phase flow
+
+**Phase 1 — on trigger (read-only).** Reply with exactly these, and stop:
+
+1. **Current version**: `pubspec.yaml` `version` (name+build), the last shipped
+   baseline in `docs/release_status.md`, and the latest version in
+   `asc versions list --app 6757725650` (skip ASC if unavailable; say so).
+2. **Suggested bump**: from the shipped baseline, using the commits since it
+   (`git log <baseline commit>..HEAD --oneline`): `feat` or user-visible
+   content → minor, fixes/perf only → patch, breaking/major redesign → major.
+   Give the target version, next free build number, and a one-line reason.
+   If `pubspec.yaml` already holds an unshipped target, propose that instead.
+3. **Draft notes**: bundled What's New and ASC `whatsNew`/`promotionalText`
+   for every locale below, plus the catalog diff and any `new_until` or
+   promotional-text proposal (see "Catalog items in this release").
+
+End with: "Reply OK to run the full runbook, or tell me what to change."
+Make no file, ASC, or build changes in this phase.
+
+**Phase 2 — on "OK" (or equivalent).** Treat it as approval of the full
+flow for the version, build number, and drafts shown, then run
+"Approval and execution" end to end without further prompts. If the user
+edits the drafts or version first, revise and re-present Phase 1. A narrower
+reply ("local only", "metadata only") limits the scope accordingly.
 
 ## Copy and locales
 
@@ -67,10 +92,11 @@ not with their migration. Before drafting copy for version `V`:
 
 ## Approval and execution
 
-Present localized drafts before applying local copy or ASC changes. Explain
-that approval of the full flow authorizes local edits, ASC metadata sync, IPA
-build, dSYM upload/archive preservation, IPA upload, processing verification,
-and build attachment. Respect draft-only, local-only, or metadata-only scope.
+Phase 1 drafts come before any local copy or ASC change. Approval of the full
+flow (Phase 2 "OK") authorizes local edits, version bump in `pubspec.yaml`,
+ASC metadata sync, IPA build, dSYM upload/archive preservation, IPA upload,
+processing verification, build attachment, and the commit/push required by
+`AGENTS.md`. Respect draft-only, local-only, or metadata-only scope.
 App Review submission always requires an explicit submission request.
 
 For approved execution, read [release-execution.md](references/release-execution.md).
