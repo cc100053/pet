@@ -1,4 +1,4 @@
-Keep this turtle sprite sheet exactly the same: character, painted texture, colours, face, shell, tail, camera, scale, white background and 3 x 3 layout. Change ONLY frame 6 (middle row, right cell).
+Keep this turtle sprite sheet exactly the same: character, painted texture, colours, face, shell, tail, camera, scale, white background and 3 x 3 layout. Keep the current colours unchanged; any later colour correction is done separately. Change ONLY frame 6 (middle row, right cell).
 
 Problem: in frame 6 the image-left foot kicks out sideways with splayed toes. It should step straight up, like the image-right foot does in frame 2.
 

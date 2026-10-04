@@ -27,5 +27,13 @@ repainting was applied.
   leg, and it peaks too early. Frame 7 is the correct vertical lift. The
   image-left step therefore looks unlike the image-right step and causes a hitch.
 - The scale and texture vary slightly between rows.
+- The colours are darker and more saturated than the master. Median skin is
+  #8EAF68 against #B5CA95, shell #616A2B against #747B45, and belly #FDDFA1
+  against #FDECC5. Each generation has drifted darker (idle, then v2, then v3).
+  The shift is uniform across frames, so `colour_matched_frames/` applies one
+  per-channel curve through those measured anchors, keeping black and white
+  fixed. See the [colour comparison](colour_comparison.png) and the
+  [colour-matched loop](colour_matched_preview.gif). The prompt now gives the
+  master's hex values, but a post-process match remains the reliable fix.
 - Next, fix frame 6 in the same Gemini chat using the targeted prompt, then
   split and review the result again.

@@ -1,6 +1,7 @@
 Image 1 is the approved turtle character. Image 2 is a MOTION reference only: a tiger marching in place from the same game. Copy the tiger's leg motion and body bob, NOT its style, colours or anatomy.
 
 Create a WALK-IN-PLACE sprite sheet of the EXACT turtle in image 1. Keep its head shape and tilt, face, sage skin, cream belly, peach cheeks, compact olive shell and markings, short broad feet, leaf tail, soft painted texture and three-quarter camera angle. Do not redesign it.
+Match image 1's colours exactly; do not darken or saturate them. Sage skin about #B5CA95, olive shell about #747B45, cream belly about #FDECC5, with the same light, airy watercolour values.
 
 The walk is a cute, slow turtle WADDLE, marching in place and facing the viewer:
 - A stepping foot lifts STRAIGHT UP by bending the knee, then lowers straight down into the SAME footprint. Feet never move forward, backward or sideways, never kick out, and never point their toes. The sole stays roughly flat and parallel to the ground.
