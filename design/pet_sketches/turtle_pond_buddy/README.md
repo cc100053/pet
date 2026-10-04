@@ -1,27 +1,26 @@
 # Little Pond Buddy
 
-Concept selected with the owner on 2026-10-04. On 2026-10-05 the owner requested
-a smaller shell and a more distinctive tail. Composition sketch v2 reduces shell
-width by 16% and height by 10%. The owner selected A (leaf-shaped tail) and
-requested free AI interpretation without uploading the draft sketch. The current
-prompt uses all five existing pets as style references only.
-These are composition studies, not production pet art.
+The owner selected the [generated master illustration](selected_master.png) on
+2026-10-05. Preserve this character's painted texture, proportions, compact shell
+and leaf-shaped tail through production. The original is saved unchanged:
+1254 × 1254 RGB PNG with an opaque white background. Transparency, layered
+animation art and runtime exports are not prepared yet.
 
 ## Character brief
 
-- Upright turtle in a slight three-quarter pose; round head, short neck,
-  broad feet, small paddle-shaped hands, one raised in a gentle wave.
+- Upright turtle in a slight three-quarter pose; large round head with a slight
+  tilt, short neck, broad feet and small hands resting beside the belly.
 - Sage body, olive shell, cream belly, peach cheeks, warm brown eyes.
 - Shell remains visible beside the torso, with sparse broad markings.
-- Existing cat, tiger, fish, ghost and chicken guide the pet-family style
-  together. Proportions, expression and pose can vary while
-  preserving the smaller shell and leaf-shaped tail; upload no draft sketch.
+- The master was generated with all five existing pets as style references,
+  without the draft sketch. Its character design is now the visual source of truth.
 - Signature behaviour: a delayed reaction followed by an enthusiastic wave.
 - Planned states: idle (blink/wave), walk (small determined steps), sleep
   (head partly tucked into shell with face still readable).
 
 ## Review files
 
+- [Selected master, original resolution](selected_master.png)
 - [Editable composition](turtle_pond_buddy.svg)
 - [Transparent 450 × 450 render](turtle_pond_buddy.png)
 - [Comparison and small-size review](review.png)
@@ -32,19 +31,29 @@ These explore silhouette only. Each tail originates behind the
 lower torso. Leaf-shaped means the tail's own shape, not an attached plant.
 Editable studies: [A](tail_leaf.svg), [B](tail_droplet.svg), [C](tail_curl.svg).
 
-The review compares the sketch with the shipped cat and shows both on the
+The earlier composition and tail files remain design studies. The review
+compares the sketch with the shipped cat and shows both on the
 existing free room background. The 64 px and 96 px views are readability probes,
 not a claim about the app's exact pet scale.
 
 ## Next stage
 
-Use the [exploration prompt](gemini_prompt.txt) in a new Gemini chat with a
-square image setting. Upload only the [existing-pet style reference](pet_style_reference.png),
-which places all five shipped pets on white. Do not upload the turtle sketch
-or tail studies. Select and review the generated interpretation next.
-Review the resulting master illustration before separating animation layers.
-All frames must retain one shared canvas and alignment; do not normalize each
-frame with the furniture crop-and-centre process.
+1. Prepare a transparent cutout from the selected master at original resolution.
+   Check light and dark backgrounds for white fringes and lost painted edges;
+   keep the cream belly and eye whites intact.
+2. Prepare editable layers: shell, leaf tail, torso/belly, head, each arm,
+   each leg, and facial-expression layers. Reconstruct the torso behind the
+   hands and other hidden joints so movement does not expose gaps. AI-separated
+   parts require review for shape and texture consistency.
+3. Establish a shared 450 × 450 export canvas, consistent scale and foot baseline.
+   Make an idle loop first (gentle breathing, blink, slight tail sway; wave as a
+   secondary gesture), then walk and sleep. Do not crop and centre each frame
+   independently with the furniture normalizer.
+4. Review looping motion and small-size readability before Godot equipment
+   socket calibration, runtime PNG exports and pet-catalog integration.
+
+The [generation prompt](gemini_prompt.txt) and [existing-pet reference](pet_style_reference.png)
+record the exploration setup; future edits should use the selected master.
 
 Follow the [art process](../../../.codex/skills/new-furniture-art/SKILL.md)
 for visual review, and the [pet authoring workflow](../../../docs/godot-png-sequence-socket-workflow.md)
