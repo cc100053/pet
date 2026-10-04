@@ -43,7 +43,9 @@ not a claim about the app's exact pet scale.
 1. Prepare walk, then sleep sprite-sheet trials using the selected master for
    character identity. Walk should be a small, determined in-place cycle at the
    same camera angle. The [corrected walk trial](walk_trial/v2/README.md) now
-   has alternating steps and the blink; its continuous loop awaits owner review.
+   has alternating steps and the blink but was rejected (no weight shift, sideways
+   kicks). Regenerate with the [v3 march-in-place waddle prompt](walk_trial/v3_prompt.txt),
+   attaching the master and the [tiger motion reference](walk_trial/tiger_walk_motion_reference.png).
    The [original trial](walk_trial/README.md) records the gait correction prompt.
    The [walk prompt](walk_prompt.txt) defines eight gait
    phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.

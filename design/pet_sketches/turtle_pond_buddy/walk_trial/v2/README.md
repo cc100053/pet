@@ -33,3 +33,13 @@ remains within the canvas.
 - Review the actual frame 8 → frame 1 transition and support-foot changes in
   the aligned loop before accepting the motion. White backgrounds remain opaque;
   transparency, runtime exports and equipment calibration are pending.
+
+## Owner feedback (2026-10-05)
+
+Not accepted: the motion still does not read as walking. Root cause is the
+prompt. Its side-view gait wording (forward, behind, passes beneath) does not
+suit a front-facing turtle. The model drew sideways kicks and pointed toes
+(frames 3 and 7), the body has no weight shift, and the right and left lifts
+differ in size. The shipped tiger and cat march in place with vertical knee lifts
+and a visible bob. Next, generate from scratch with the [v3 prompt](../v3_prompt.txt),
+not as another correction.

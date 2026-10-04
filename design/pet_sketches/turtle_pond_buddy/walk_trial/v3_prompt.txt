@@ -1,0 +1,34 @@
+Image 1 is the approved turtle character. Image 2 is a MOTION reference only: a tiger marching in place from the same game. Copy the tiger's leg motion and body bob, NOT its style, colours or anatomy.
+
+Create a WALK-IN-PLACE sprite sheet of the EXACT turtle in image 1. Keep its head shape and tilt, face, sage skin, cream belly, peach cheeks, compact olive shell and markings, short broad feet, leaf tail, soft painted texture and three-quarter camera angle. Do not redesign it.
+
+The walk is a cute, slow turtle WADDLE, marching in place and facing the viewer:
+- A stepping foot lifts STRAIGHT UP by bending the knee, then lowers straight down into the SAME footprint. Feet never move forward, backward or sideways, never kick out, and never point their toes. The sole stays roughly flat and parallel to the ground.
+- The whole body leans gently, about 4 degrees, toward the planted foot, so the turtle rocks side to side. Head, shell and tail lean together as one piece.
+- The body is lowest when both feet are down and highest when one foot is at its peak. The bob is small but visible.
+- The arms stay beside the belly. The arm on the lifted-foot side rises slightly.
+- The leaf tail sways opposite the lean, one frame behind.
+
+Output EXACTLY 9 frames in a 3-column by 3-row grid of equal square cells, ordered left to right, then top to bottom. Use one square sheet, ideally 1350 x 1350.
+IMAGE-LEFT and IMAGE-RIGHT mean the sides of the cell as seen by the viewer. Never mirror the turtle.
+
+1. Both feet flat on the ground. Body low and upright. Eyes open.
+2. Lean toward image-left. The image-right foot lifts a little, its sole just off the ground. Eyes open.
+3. Image-right knee at its PEAK: the foot is raised about half a foot-height, directly under its hip. Body at its highest. Eyes half-closed.
+4. The image-right foot lowers back toward its footprint. Eyes fully closed as soft curved lines with the same smile.
+5. Both feet flat on the ground, the same as frame 1. Body low and upright. Eyes open.
+6. Lean toward image-right. The image-left foot lifts a little. Eyes open.
+7. Image-left knee at its PEAK: the foot is raised by the same height as in frame 3. Body at its highest. Eyes open.
+8. The image-left foot lowers back toward its footprint. Eyes open.
+9. An exact copy of frame 1, used only to check loop closure.
+
+Frames 6-8 mirror the LEG and LEAN motion of frames 2-4 only. The turtle itself stays unmirrored, with the shell and tail on the same side as image 1.
+
+Consistency:
+- Treat this as ONE drawing with the legs reposed. Keep the head, face, shell markings, belly lines, colours and brush texture identical in every cell. Only the legs, the lean, the small bob, the arms, the tail and the eyelids change.
+- Use the same character scale and fixed camera, and one invisible ground line that every planted foot touches.
+- Keep the whole turtle inside each cell with the same margins.
+- Use a pure flat white #FFFFFF background. No floor, shadow, text, numbers, grid lines or borders.
+- No travel across the cell, turning, jumping or waving.
+
+Frames 1-8 loop at about 200 ms each, with steady timing and no pause.
