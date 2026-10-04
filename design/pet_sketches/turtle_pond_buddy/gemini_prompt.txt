@@ -1,6 +1,6 @@
 Create a new, original turtle character called Little Pond Buddy for a cozy mobile pet game.
 
-The attached image shows two EXISTING pets from the game: a cat and a fish. Use it as a STYLE REFERENCE ONLY. Create a new turtle that looks like it belongs to the same pet family. Do not redraw the reference image or include the cat or fish in the output. Borrow their painted texture, simple expressive faces and playful character treatment; give the turtle its own silhouette and personality.
+The attached image shows ALL FIVE existing pets from the game: a cat, tiger, fish, ghost and chicken. Use the whole set as a STYLE REFERENCE ONLY. Create a new turtle that looks like it belongs to this same varied pet family. Blend their hand-drawn character treatment, painted textures, expressive faces and distinctive silhouettes into one coherent turtle design. Do not redraw the reference sheet or include any of those five pets in the output. Give the turtle its own silhouette and personality; do not combine their animal body parts.
 
 Character direction:
 - A cute upright pond turtle standing on two short, broad feet, with small rounded hands.
@@ -10,7 +10,7 @@ Character direction:
 - Gentle, curious, slightly awkward personality; a little friend who takes life slowly.
 
 Art direction:
-- Match the attached pets' flat 2D painted appearance, soft brush texture, subtle grain and slightly uneven edges. Use the cat as the main reference for texture and softness.
+- Match the set's flat 2D hand-drawn and painted appearance, with soft brush texture, subtle grain and slightly uneven edges. Draw inspiration from all five pets rather than imitating only one.
 - Muted, warm, earthy colours; simple colour areas with only one or two shading tones.
 - Soft contours, mostly defined by coloured edges and simple shading. Where outlines are needed, use darker versions of the surrounding colours, never thick black lines.
 - Bold, simple shapes and sparse shell markings, readable at small mobile-game size.
