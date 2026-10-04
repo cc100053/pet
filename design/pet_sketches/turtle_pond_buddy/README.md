@@ -42,7 +42,9 @@ not a claim about the app's exact pet scale.
 
 1. Prepare walk, then sleep sprite-sheet trials using the selected master for
    character identity. Walk should be a small, determined in-place cycle at the
-   same camera angle. The [walk prompt](walk_prompt.txt) is ready: eight gait
+   same camera angle. The [received walk trial](walk_trial/README.md) has the
+   blink but needs a corrected alternating gait; its targeted edit prompt is
+   recorded there. The [walk prompt](walk_prompt.txt) defines eight gait
    phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.
    Preview frames 1–8 without doubling the endpoint hold. Split, align and review
    each loop as with idle. The [sleep prompt](sleep_prompt.txt) proposes a seated,

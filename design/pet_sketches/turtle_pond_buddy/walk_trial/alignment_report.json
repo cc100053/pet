@@ -1,0 +1,161 @@
+{
+  "source_size": [
+    1254,
+    1254
+  ],
+  "source_cell_size": [
+    418,
+    418
+  ],
+  "review_canvas_size": [
+    450,
+    450
+  ],
+  "registration": "integer translation only; approximate left support-foot anchor",
+  "frame_durations_ms": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "playback_frames": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "closure_reference_frame": 9,
+  "total_duration_ms": 1600,
+  "blink_frames": [
+    3,
+    4
+  ],
+  "blink_section_ms": 400,
+  "frames": [
+    {
+      "frame": 1,
+      "left_foot_region_x": [
+        122,
+        196
+      ],
+      "left_foot_anchor_x": 158.5,
+      "source_baseline_y": 398,
+      "translation_px": [
+        -12,
+        0
+      ]
+    },
+    {
+      "frame": 2,
+      "left_foot_region_x": [
+        108,
+        184
+      ],
+      "left_foot_anchor_x": 145.5,
+      "source_baseline_y": 397,
+      "translation_px": [
+        0,
+        1
+      ]
+    },
+    {
+      "frame": 3,
+      "left_foot_region_x": [
+        105,
+        177
+      ],
+      "left_foot_anchor_x": 140.5,
+      "source_baseline_y": 400,
+      "translation_px": [
+        6,
+        -2
+      ]
+    },
+    {
+      "frame": 4,
+      "left_foot_region_x": [
+        125,
+        201
+      ],
+      "left_foot_anchor_x": 162.5,
+      "source_baseline_y": 383,
+      "translation_px": [
+        -16,
+        15
+      ]
+    },
+    {
+      "frame": 5,
+      "left_foot_region_x": [
+        106,
+        182
+      ],
+      "left_foot_anchor_x": 143.5,
+      "source_baseline_y": 383,
+      "translation_px": [
+        2,
+        15
+      ]
+    },
+    {
+      "frame": 6,
+      "left_foot_region_x": [
+        95,
+        171
+      ],
+      "left_foot_anchor_x": 132.5,
+      "source_baseline_y": 383,
+      "translation_px": [
+        14,
+        15
+      ]
+    },
+    {
+      "frame": 7,
+      "left_foot_region_x": [
+        132,
+        205
+      ],
+      "left_foot_anchor_x": 168.0,
+      "source_baseline_y": 367,
+      "translation_px": [
+        -22,
+        31
+      ]
+    },
+    {
+      "frame": 8,
+      "left_foot_region_x": [
+        102,
+        180
+      ],
+      "left_foot_anchor_x": 140.5,
+      "source_baseline_y": 365,
+      "translation_px": [
+        6,
+        33
+      ]
+    },
+    {
+      "frame": 9,
+      "left_foot_region_x": [
+        94,
+        170
+      ],
+      "left_foot_anchor_x": 131.5,
+      "source_baseline_y": 367,
+      "translation_px": [
+        14,
+        31
+      ]
+    }
+  ]
+}

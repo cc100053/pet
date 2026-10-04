@@ -1,0 +1,17 @@
+Keep this turtle sprite sheet's character design, painted texture, colours, head, face, shell markings, tail, camera angle, scale, white background and 3 x 3 layout exactly the same.
+
+The current sheet has an animation error: the image-right foot keeps lifting while the image-left foot stays on the ground. The second half must switch support to the OTHER foot.
+
+Make these targeted corrections:
+- Keep frames 1-4, including the blink, unchanged.
+- Frame 5: the IMAGE-RIGHT foot must be flat on the ground, supporting the turtle. The IMAGE-LEFT heel starts lifting. Eyes open as in the current frame.
+- Frame 6: the IMAGE-RIGHT foot remains planted. Lift the IMAGE-LEFT foot clearly above the ground, with a visible small gap beneath its sole. This must be the opposite support leg from frame 2.
+- Frame 7: the IMAGE-RIGHT foot still supports the body. The lifted IMAGE-LEFT foot passes beneath the body and begins reaching forward. This is the opposite step from frame 3.
+- Frame 8: the IMAGE-LEFT foot lowers toward its landing position, preparing to return to frame 1. The right foot finishes its support phase.
+- Frame 9: copy frame 1 exactly, including both feet, body, face and tail, as the loop-closure reference.
+
+IMAGE-LEFT and IMAGE-RIGHT mean the left and right sides of each cell as seen by the viewer. Do not mirror the turtle or swap its body parts. Preserve short broad feet and their connections to the legs; no extra feet or detached limbs.
+
+Only adjust leg poses and the minimum related weight/arm movement in frames 5-8. Keep the established character identity and all facial drawings unchanged. One foot supports the turtle at all times, on the same invisible ground line. No jumping, sliding across the cell or changing camera angle.
+
+Before outputting the corrected sheet, check that frames 1-4 have image-left support with image-right stepping, and frames 5-8 have image-right support with image-left stepping. This must be one complete left-right walking cycle, not repeated lifts of the same foot.
