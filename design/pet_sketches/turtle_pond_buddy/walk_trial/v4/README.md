@@ -17,5 +17,35 @@ swings in frames 2-4 and crosses in front of the image-left leg in frames 4-6.
 The image-left leg swings in frames 6-8. The blink is half-closed on frame 3
 and closed on frame 4. The prompt also gives the master's colour values.
 
-The result has not been generated yet. Split and review it as in v3, check that
-the legs really cross, and run the colour match if the colours drift.
+
+## Result (received 2026-10-05)
+
+The [original sheet](source_sheet.webp) is preserved unchanged: a 1254 × 1254
+WebP. `python3 ../split_sheet.py v4/source_sheet.webp v4` (run from `walk_trial/`)
+produced:
+
+- [Raw loop](raw_preview.gif), [aligned loop](aligned_preview.gif) and
+  [aligned contact sheet](aligned_contact_sheet.png).
+- [Alignment and colour measurements](alignment_report.json).
+
+The lowest foot of each frame is moved to y=414 and the generated horizontal
+placement is kept. As in v3, the source's bottom row sits about 20 px higher.
+
+## Review
+
+- The legs now cross. Frame 4 brings the image-right leg in front of the
+  image-left leg, and frame 5 lands it forward, overlapping. Frames 1-5 follow
+  the guide closely. This is the first AI trial with a true passing pose.
+- Frames 6-8 are weaker. Frame 6 reads as the image-right foot kicking back
+  rather than the image-left foot swinging behind it. Frame 7 lifts the
+  image-left foot only slightly, and frame 8 is a wide stance close to frame 1.
+  Frame 8 differs from frame 1 by about as much as frame 2 does (mean
+  greyscale difference 4.9 against 5.1), so it is not a held duplicate.
+- The blink is fully closed on both frame 3 and frame 4, where the prompt asked
+  for half-closed then closed. That makes the closed-eye time about 400 ms.
+- The colours are close to the master: skin (173, 199, 137) against
+  (181, 202, 149), and belly (253, 233, 186) against (253, 236, 197). The colour
+  match is optional, unlike in v3.
+- Painted detail still varies a little between frames. Judge in the aligned
+  loop whether the image-left step (frames 6-8) reads well enough, or whether
+  it needs a targeted fix.
