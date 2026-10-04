@@ -17,7 +17,7 @@ Transparency, layered animation art and runtime exports are not prepared yet.
 - The master was generated with all five existing pets as style references,
   without the draft sketch. Its character design is now the visual source of truth.
 - Signature behaviour: a delayed reaction followed by an enthusiastic wave.
-- Planned states: idle (accepted blink, breathing and tail sway), walk (small determined steps), sleep
+- Planned states: idle (accepted blink, breathing and tail sway), walk (small determined steps and blink), sleep
   (head partly tucked into shell with face still readable).
 
 ## Review files
@@ -82,8 +82,10 @@ Cat: 8 frames / 1200 ms; alternating steps, subtle body movement, blink and tail
 motion. Tiger: 7 / 1200 ms; clear foot lifts, body bob, blink and tail movement.
 Chicken: 8 / 1600 ms; alternating leg movement and feather/tail changes. These
 PNG sequences and their catalog timing were inspected on 2026-10-05 for the
-walk prompt. The turtle trial isolates gait with open eyes and a small arm/tail
-swing; proposed playback is eight gait frames at approximately 200 ms each.
+walk prompt. The owner requested a walk blink on 2026-10-05. The turtle prompt
+now adds half-closed eyes on frame 3, closed eyes on frame 4 and open eyes from
+frame 5, while gait and arm/tail motion continue. Proposed playback is eight
+gait frames at approximately 200 ms each, preserving cadence through the blink.
 
 ## Existing sleep references inspected
 
