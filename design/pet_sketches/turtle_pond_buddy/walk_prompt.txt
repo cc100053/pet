@@ -1,0 +1,39 @@
+Create a WALK animation sprite sheet of the EXACT turtle in the attached image.
+
+The attached image is the approved character master. Preserve the same head shape and tilt, facial proportions, sage skin, cream belly, peach cheeks, compact olive shell and its markings, short broad feet, leaf-shaped tail and soft hand-painted texture. Animate this character without redesigning it.
+
+Motion direction:
+- A small, determined WALK IN PLACE, inspired by the game's existing cat, tiger and chicken walking animations: alternating steps, a gentle body bob and secondary tail movement.
+- A slow, steady turtle pace with short steps, not running or exaggerated marching.
+- Keep the same three-quarter camera angle as the reference. The turtle stays in the same overall position within each cell.
+- Feet clearly alternate lifting and planting. At least one foot supports the body at all times.
+- Both arms swing slightly opposite the stepping legs, staying close to the belly.
+- The leaf tail follows with a gentle, slightly delayed sway. The shell remains attached and moves with the torso.
+- Keep the eyes open and the original friendly smile throughout this trial.
+
+Output EXACTLY 9 frames in a 3-column by 3-row grid, ordered left to right, then top to bottom. Every cell must be an equal square. One square sheet, ideally 1350 x 1350 pixels, with nine 450 x 450 cells.
+
+Keep the same image-left and image-right foot identities throughout. Do not mirror the turtle.
+
+Frames 1-8 form ONE complete walking cycle with both feet taking a turn:
+1. Image-left foot contacts the ground slightly forward; image-right foot is behind.
+2. Weight settles onto the image-left foot; image-right foot begins lifting. Body lowers very slightly.
+3. Image-right foot passes beneath the body, just above the ground; image-left foot supports the turtle. Body rises very slightly.
+4. Image-right foot reaches forward, ready to land. Arms reverse gently.
+5. Image-right foot contacts the ground slightly forward; image-left foot is behind. This is the opposite step from frame 1.
+6. Weight settles onto the image-right foot; image-left foot begins lifting. Body lowers very slightly.
+7. Image-left foot passes beneath the body, just above the ground; image-right foot supports the turtle. Body rises very slightly.
+8. Image-left foot reaches forward, preparing to return smoothly to frame 1.
+9. An exact repeat of frame 1, included only to check loop closure.
+
+Consistency requirements:
+- Fixed camera, perspective, character scale and torso's horizontal position across all cells.
+- One consistent invisible ground line. A planted foot touches that line; only the stepping foot lifts slightly above it.
+- Small vertical body bob, at most about 2% of the cell height. Preserve head size and short leg proportions.
+- Keep the shell pattern, belly markings, colours and painted brush texture consistent. No flickering details or extra limbs.
+- Tail bends without changing its length or leaf shape.
+- Keep the whole character inside every cell with identical framing and comfortable margins. Do not independently recenter each pose.
+- Pure flat white #FFFFFF background. No floor, cast shadows, scenery, text, frame numbers, grid lines or borders.
+- No horizontal travel across the sheet, turning, jumping, floating, waving or clothing.
+
+The poses must connect smoothly as a single walk cycle, not nine unrelated illustrations. Frames 1-8 should work at a steady pace of roughly 1.6 seconds per cycle, without a pause at the loop boundary. Frame 9 is a comparison copy and will not be played as an additional held frame. Actual timing will be assigned after splitting the sheet.

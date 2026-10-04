@@ -42,7 +42,10 @@ not a claim about the app's exact pet scale.
 
 1. Prepare walk, then sleep sprite-sheet trials using the selected master for
    character identity. Walk should be a small, determined in-place cycle at the
-   same camera angle. Split, align and review each loop as with idle.
+   same camera angle. The [walk prompt](walk_prompt.txt) is ready: eight gait
+   phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.
+   Preview frames 1–8 without doubling the endpoint hold. Split, align and review
+   each loop as with idle.
 2. Prepare transparent frames for the selected idle, walk and sleep sequences.
    Check light and dark backgrounds for white fringes and lost painted edges;
    keep the cream belly and eye whites intact.
@@ -70,6 +73,15 @@ movement. The proposed turtle trial combines a fixed stance, brief blink,
 gentle leaf-tail sway and tiny breathing motion. The continuous preview's
 1650 ms timing is accepted; verify parity when exporting runtime frames.
 The image prompt cannot encode actual frame durations.
+
+## Existing walk references inspected
+
+Cat: 8 frames / 1200 ms; alternating steps, subtle body movement, blink and tail
+motion. Tiger: 7 / 1200 ms; clear foot lifts, body bob, blink and tail movement.
+Chicken: 8 / 1600 ms; alternating leg movement and feather/tail changes. These
+PNG sequences and their catalog timing were inspected on 2026-10-05 for the
+walk prompt. The turtle trial isolates gait with open eyes and a small arm/tail
+swing; proposed playback is eight gait frames at approximately 200 ms each.
 
 Follow the [art process](../../../.codex/skills/new-furniture-art/SKILL.md)
 for visual review, and the [pet authoring workflow](../../../docs/godot-png-sequence-socket-workflow.md)
