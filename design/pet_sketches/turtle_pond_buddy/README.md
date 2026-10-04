@@ -2,7 +2,8 @@
 
 Concept selected with the owner on 2026-10-04. On 2026-10-05 the owner requested
 a smaller shell and a more distinctive tail. Composition sketch v2 reduces shell
-width by 16% and height by 10%; tail selection and visual review remain pending.
+width by 16% and height by 10%. The owner selected A (leaf-shaped tail) and
+requested a text-only AI exploration without uploading the sketch or references.
 These are composition studies, not production pet art.
 
 ## Character brief
@@ -11,9 +12,9 @@ These are composition studies, not production pet art.
   broad feet, small paddle-shaped hands, one raised in a gentle wave.
 - Sage body, olive shell, cream belly, peach cheeks, warm brown eyes.
 - Shell remains visible beside the torso, with sparse broad markings.
-- Existing cat is the proposed painted-texture reference. This SVG establishes
-  proportions and palette; the final illustration needs the cat's grain and
-  slightly uneven painted edges.
+- Existing cat informed the painted-texture direction. The first AI exploration
+  uses text only, with no reference upload; proportions, expression and pose can
+  vary while preserving the smaller shell and leaf-shaped tail.
 - Signature behaviour: a delayed reaction followed by an enthusiastic wave.
 - Planned states: idle (blink/wave), walk (small determined steps), sleep
   (head partly tucked into shell with face still readable).
@@ -25,8 +26,8 @@ These are composition studies, not production pet art.
 - [Comparison and small-size review](review.png)
 - [Tail alternatives on the smaller-shell composition](tail_options.png)
 
-Tail alternatives are A: leaf-shaped, B: curved droplet, C: soft curl. These
-explore silhouette only; none has been selected. Each tail originates behind the
+Tail alternatives are A: leaf-shaped (selected), B: curved droplet, C: soft curl.
+These explore silhouette only. Each tail originates behind the
 lower torso. Leaf-shaped means the tail's own shape, not an attached plant.
 Editable studies: [A](tail_leaf.svg), [B](tail_droplet.svg), [C](tail_curl.svg).
 
@@ -36,8 +37,9 @@ not a claim about the app's exact pet scale.
 
 ## Next stage
 
-After composition sign-off, prepare the Gemini prompt using one pet style
-reference. Describe the approved composition in text; do not upload the sketch.
+Use the [text-only exploration prompt](gemini_prompt.txt) in a new Gemini chat
+with a square image setting. Upload no sketch or style reference for this pass,
+as requested by the owner. Select and review the generated interpretation next.
 Review the resulting master illustration before separating animation layers.
 All frames must retain one shared canvas and alignment; do not normalize each
 frame with the furniture crop-and-centre process.

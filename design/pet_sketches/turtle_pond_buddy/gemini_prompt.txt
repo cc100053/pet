@@ -1,0 +1,19 @@
+Create a new, original turtle character called Little Pond Buddy for a cozy mobile pet game.
+
+Character direction:
+- A cute upright pond turtle standing on two short, broad feet, with small rounded hands.
+- A compact olive-green shell attached to its back, visible beside the body. Keep the shell modest in size so it does not dominate the character.
+- A distinctive leaf-shaped tail growing naturally from the lower body behind the shell. The tail itself has a soft leaf-like silhouette: it is part of the turtle's body, not a plant or an attached leaf. Make it visible and easy to recognise.
+- Sage-green skin, a warm cream belly, subtle peach cheeks, and expressive warm-brown eyes.
+- Gentle, curious, slightly awkward personality; a little friend who takes life slowly.
+
+Art direction:
+- Flat 2D hand-painted digital gouache illustration, soft brush texture, subtle grain and slightly uneven edges.
+- Muted, warm, earthy colours; simple colour areas with only one or two shading tones.
+- Soft outlines in darker versions of the surrounding colours, never pure black.
+- Bold, simple shapes and sparse shell markings, readable at small mobile-game size.
+- No glossy 3D rendering, plastic or clay appearance, photorealism, or white sticker border.
+
+Invent your own charming proportions, facial expression, shell pattern and natural standing pose. A slight three-quarter view should show both the face and shell. Keep the design simple enough to animate, with every limb and the tail visibly connected to the body.
+
+Output one complete full-body character, centred in a square image with a comfortable margin. Pure flat white #FFFFFF background. No scenery, floor, cast shadow, text, clothing or props. The character's coloured edges touch the background directly, with no white outline or halo.
