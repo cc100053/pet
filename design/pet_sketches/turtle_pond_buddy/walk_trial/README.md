@@ -1,5 +1,8 @@
 # Turtle walk trial
 
+The [corrected v2 trial](v2/README.md) now has alternating steps and awaits
+continuous-loop review. The files and findings below describe the original v1.
+
 Received on 2026-10-05. This candidate has the requested blink but does not
 complete the alternating gait. It is not accepted production animation.
 

@@ -1,0 +1,123 @@
+{
+  "source_size": [
+    1254,
+    1254
+  ],
+  "source_cell_size": [
+    418,
+    418
+  ],
+  "review_canvas_size": [
+    450,
+    450
+  ],
+  "registration": "integer translation only; head horizontal placement plus grounded-foot baseline",
+  "target_head_centre_x": 190.5,
+  "target_baseline_y": 414,
+  "anchor_reference": "idle_trial/aligned_frames/frame_01.png head centre and baseline",
+  "frame_durations_ms": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "playback_frames": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "closure_reference_frame": 9,
+  "total_duration_ms": 1600,
+  "frames": [
+    {
+      "frame": 1,
+      "head_centre_x": 180.5,
+      "source_baseline_y": 398,
+      "translation_px": [
+        -6,
+        0
+      ]
+    },
+    {
+      "frame": 2,
+      "head_centre_x": 159.5,
+      "source_baseline_y": 397,
+      "translation_px": [
+        15,
+        1
+      ]
+    },
+    {
+      "frame": 3,
+      "head_centre_x": 149.5,
+      "source_baseline_y": 400,
+      "translation_px": [
+        25,
+        -2
+      ]
+    },
+    {
+      "frame": 4,
+      "head_centre_x": 180.5,
+      "source_baseline_y": 383,
+      "translation_px": [
+        -6,
+        15
+      ]
+    },
+    {
+      "frame": 5,
+      "head_centre_x": 159.5,
+      "source_baseline_y": 381,
+      "translation_px": [
+        15,
+        17
+      ]
+    },
+    {
+      "frame": 6,
+      "head_centre_x": 149.5,
+      "source_baseline_y": 380,
+      "translation_px": [
+        25,
+        18
+      ]
+    },
+    {
+      "frame": 7,
+      "head_centre_x": 183.5,
+      "source_baseline_y": 361,
+      "translation_px": [
+        -9,
+        37
+      ]
+    },
+    {
+      "frame": 8,
+      "head_centre_x": 160.0,
+      "source_baseline_y": 362,
+      "translation_px": [
+        14,
+        36
+      ]
+    },
+    {
+      "frame": 9,
+      "head_centre_x": 150.0,
+      "source_baseline_y": 368,
+      "translation_px": [
+        24,
+        30
+      ]
+    }
+  ]
+}
