@@ -1,0 +1,34 @@
+Create a production-oriented idle animation sprite sheet of the EXACT turtle in the attached image.
+
+The attached turtle is the approved character master, not just a style reference. Preserve its identity: head shape and tilt, facial proportions, sage skin, cream belly, peach cheeks, compact olive shell with the same markings, broad feet, leaf-shaped tail, and the exact soft painted texture. Change only what is needed for the animation.
+
+Animation direction, inspired by the game's existing pet idle animations:
+- A stable standing pose with a brief blink, like the cat and chicken.
+- A readable tail movement, like the cat and tiger, adapted into a gentle leaf-tail sway.
+- A tiny breathing motion, borrowing the quiet body movement of the fish and ghost, while this turtle keeps both feet planted.
+- Calm and slightly shy. Both hands remain beside the belly in the original pose.
+
+Produce EXACTLY 9 frames in a 3-column by 3-row grid, ordered left to right, then top to bottom. Every cell must be an equal square. Output one square sheet, ideally 1350 x 1350 pixels, with nine 450 x 450 cells.
+
+Frame sequence:
+1. Original resting pose, eyes fully open, leaf tail neutral.
+2. Begin a very small inhale; leaf tail gently lifts.
+3. Peak of the small inhale; leaf tail slightly higher. Keep the head's shape unchanged.
+4. Ease back toward the resting pose; leaf tail begins returning.
+5. Eyes half-close to begin a blink; body near rest.
+6. Eyes fully closed as two soft curved eyelid lines; tail passes gently through neutral.
+7. Eyes half-open; leaf tail slightly lower.
+8. Eyes fully open; finish the gentle exhale and bring the tail back.
+9. Return to the original resting pose, matching frame 1 for a seamless loop.
+
+Technical consistency:
+- Fixed camera, the same three-quarter angle, constant character scale and identical framing in every cell.
+- Align both feet to exactly the same baseline and horizontal position. Feet never lift or slide.
+- Body/head motion is extremely small, roughly 1-2% of a cell's height at most. No global scaling, head-size changes or perspective changes.
+- Shell moves with the torso; its pattern never changes. Tail bends gently at its base without changing length or growing new details.
+- Keep painted grain and brush marks consistent across frames, as if animating the same artwork rather than repainting nine separate turtles.
+- Keep the entire character, including the tail, inside each cell with comfortable margins. Identical placement across cells; no independent recentering.
+- Pure flat white #FFFFFF background. No shadows, scenery, text, frame numbers, grid lines or decorative borders.
+- Only the nine turtle frames. No walking, jumping, waving, turning, floating, extra characters or redesigns.
+
+This is one connected animation sequence, not nine unrelated poses. Aim for a slow, gentle loop of about two seconds, with the blink much quicker than the breathing motion. Timing will be assigned after the sheet is split into frames.

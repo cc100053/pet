@@ -38,22 +38,36 @@ not a claim about the app's exact pet scale.
 
 ## Next stage
 
-1. Prepare a transparent cutout from the selected master at original resolution.
+1. Run the [idle sprite-sheet trial](idle_prompt.txt), attaching only the selected
+   turtle master. Request nine frames in a 3 × 3 square grid. Split and preview
+   the output before accepting it; check identity, texture, shell markings, foot
+   alignment and the loop transition. Use layered animation if the trial drifts.
+2. Prepare a transparent cutout from the selected master at original resolution.
    Check light and dark backgrounds for white fringes and lost painted edges;
    keep the cream belly and eye whites intact.
-2. Prepare editable layers: shell, leaf tail, torso/belly, head, each arm,
+3. If needed, prepare editable layers: shell, leaf tail, torso/belly, head, each arm,
    each leg, and facial-expression layers. Reconstruct the torso behind the
    hands and other hidden joints so movement does not expose gaps. AI-separated
    parts require review for shape and texture consistency.
-3. Establish a shared 450 × 450 export canvas, consistent scale and foot baseline.
+4. Establish a shared 450 × 450 export canvas, consistent scale and foot baseline.
    Make an idle loop first (gentle breathing, blink, slight tail sway; wave as a
    secondary gesture), then walk and sleep. Do not crop and centre each frame
    independently with the furniture normalizer.
-4. Review looping motion and small-size readability before Godot equipment
+5. Review looping motion and small-size readability before Godot equipment
    socket calibration, runtime PNG exports and pet-catalog integration.
 
 The [generation prompt](gemini_prompt.txt) and [existing-pet reference](pet_style_reference.png)
 record the exploration setup; future edits should use the selected master.
+
+## Existing idle references inspected
+
+All current PNG frames and their catalog timing were inspected on 2026-10-05.
+Cat: 7 frames / 1300 ms, tail movement and blink. Tiger: 9 / 1600 ms, tail sway.
+Chicken: 5 / 1200 ms, slight feather/body movement and blink. Fish: 14 / 3400 ms,
+body bob, fin movement and bubbles. Ghost: 13 / 2600 ms, subtle body/silhouette
+movement. The proposed turtle trial combines a fixed stance, brief blink,
+gentle leaf-tail sway and tiny breathing motion. Its timing is not finalized;
+the image prompt cannot encode actual frame durations.
 
 Follow the [art process](../../../.codex/skills/new-furniture-art/SKILL.md)
 for visual review, and the [pet authoring workflow](../../../docs/godot-png-sequence-socket-workflow.md)
