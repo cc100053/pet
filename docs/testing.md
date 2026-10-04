@@ -2,8 +2,11 @@
 
 ### Verification is local, not CI
 
-There is no CI gate. Before pushing code or runtime-asset changes, run on the
-final tree, in this order:
+There is no CI gate. `.githooks/pre-push` (enable per clone with
+`git config core.hooksPath .githooks`) format-checks pushed Dart files, runs
+`flutter analyze`, and link-checks pushed Markdown; it skips `flutter test`.
+Before pushing code or runtime-asset changes, run on the final tree, in this
+order:
 
 ```sh
 dart format --output=none --set-exit-if-changed lib test
@@ -16,8 +19,8 @@ the whole-tree command above is non-writing. Several tests inspect source text,
 so formatting comes before tests. Run Flutter test processes sequentially:
 concurrent processes share `build/unit_test_assets` shader outputs.
 
-For documentation-only changes, validate affected instructions, links, and
-commands instead. Do not use this exception for executable scripts or runtime
+For documentation-only changes, run `scripts/check_doc_links.sh <files>` and
+check affected instructions and commands instead. Do not use this exception for executable scripts or runtime
 assets. If CI is restored, materialize gitignored `lib/firebase_options.dart`
 and `.env` from appropriate templates before analyzer/tests.
 

@@ -11,7 +11,8 @@
 .atom/
 .build/
 .buildlog/
-.claude/
+.claude/*
+!.claude/settings.json
 .history
 .svn/
 .swiftpm/

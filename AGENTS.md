@@ -48,8 +48,7 @@ Load the matching repository skill:
 - Visual-pattern or accessibility questions beyond existing product guidance:
   `.codex/skills/ui-ux-pro-max/SKILL.md`.
 
-When `.codegraph/` exists, use `codegraph_explore` or `codegraph explore` first
-for code discovery. Fall back to source search when its results are insufficient.
+Discover code with `codegraph_explore` (or `codegraph explore`) before source search.
 
 ## Compatibility and backend safety
 

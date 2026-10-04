@@ -27,7 +27,7 @@ These are **independent**. Exporting socket positions does not export equipment 
 | Godot authoring project | `/Users/fatboy/pet-tomo` |
 | Godot socket add-on | `/Users/fatboy/pet-tomo/addons/socket_authoring/` |
 | Godot pet scenes | `/Users/fatboy/pet-tomo/pet/<pet>/<animation>.tscn` |
-| Godot exported socket JSON | beside the scene, e.g. `pet/ghost/ghost_stay_sockets.json` |
+| Godot exported socket JSON | beside the scene, e.g. `/Users/fatboy/pet-tomo/pet/ghost/ghost_stay_sockets.json` |
 | Godot global equipment overrides | `/Users/fatboy/pet-tomo/equipment_overrides.json` |
 | Flutter socket catalog | `/Users/fatboy/pet/lib/features/pet/pet_sockets.dart` |
 | Flutter equipment catalog | `/Users/fatboy/pet/lib/features/pet/equipment_catalog.dart` |

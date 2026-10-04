@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__supabase__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}/scripts/claude_supabase_write_gate.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking AGENTS.md obligations"
+          }
+        ]
+      }
+    ]
+  }
+}
