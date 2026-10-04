@@ -49,6 +49,8 @@ not a claim about the app's exact pet scale.
    The [v3 trial](walk_trial/v3/README.md) still did not read as walking (legs never
    cross). On 2026-10-05 the owner chose a [cut-out rig](rig/README.md) built from the
    master instead; the layers are split and a draft walk awaits review.
+   In parallel, a [v4 prompt with a rig-derived pose guide](walk_trial/v4/README.md)
+   is ready for one more AI attempt.
    The [original trial](walk_trial/README.md) records the gait correction prompt.
    The [walk prompt](walk_prompt.txt) defines eight gait
    phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.

@@ -1,0 +1,35 @@
+Image 1 is the approved turtle character. Image 2 is a POSE GUIDE: flat-colour shapes in a 3 x 3 grid that show the exact pose for each frame.
+
+Create a WALK CYCLE sprite sheet of the EXACT turtle in image 1, posed exactly like image 2.
+
+Reading the pose guide:
+- Grey is the head and body, dark grey is the shell, and light grey shapes are the arms. Green is the leaf tail.
+- BLUE is the turtle's IMAGE-LEFT leg. ORANGE is its IMAGE-RIGHT leg.
+- Where orange overlaps blue, the image-right leg passes IN FRONT of the image-left leg. Draw that overlap: the legs cross as they pass each other.
+- Copy each foot's position, its height above the grey ground line and the overlaps exactly. Copy the body's height in each cell, the arm angles and the tail angle.
+- The guide only shows pose. Do NOT copy its flat colours, grey or blue or orange tones, or the ground line. Paint the turtle from image 1.
+
+Character and colour, from image 1:
+- Same head shape and tilt, eyes, eyebrows, smile, peach cheeks, compact olive shell with its markings, cream belly lines, short broad feet with dark toe marks, leaf tail and soft hand-painted watercolour texture. Same three-quarter camera angle, facing slightly image-left.
+- Match image 1's colours exactly, without darkening or saturating them: sage skin about #B5CA95, olive shell about #747B45, cream belly about #FDECC5.
+
+The walk is a slow, cute turtle walk heading toward image-left, played in place:
+1. Contact. The blue (image-left) foot is planted forward, toward image-left. The orange (image-right) foot is planted back. The body is at its lowest. Eyes open.
+2. The orange foot lifts off the ground behind and starts swinging forward. The blue foot stays planted. Eyes open.
+3. Passing. The orange foot is at its highest, swinging toward the blue leg. The body is at its highest. Eyes HALF-CLOSED.
+4. The orange leg crosses IN FRONT of the blue leg, its foot lowering. Eyes FULLY CLOSED as soft curved lines, with the same smile.
+5. Contact. The orange foot lands forward, overlapping in front of the blue leg. The blue foot is back. The body is at its lowest. Eyes open again, the same as frame 1.
+6. The blue foot lifts behind and swings forward. The orange foot stays planted. Eyes open.
+7. Passing. The blue foot is at its highest. The body is at its highest. Eyes open.
+8. The blue foot lowers toward its forward landing position, ready to return to frame 1. Eyes open.
+9. An exact copy of frame 1, used only to check loop closure.
+
+At least one foot touches the ground in every frame. A planted foot stays flat on the ground line. The feet keep their short broad shape and stay attached to their legs, with no extra or missing limbs.
+
+Output EXACTLY 9 frames in the same 3 x 3 grid of equal square cells, ordered left to right, then top to bottom: one square sheet, ideally 1350 x 1350. Put the turtle in the same place and at the same size as in each guide cell. Keep the scale, the camera and one invisible ground line identical in every cell.
+
+Keep the head, face, shell markings, belly lines, colours and brush texture identical in every cell. Only the legs, the small body bob, the arms, the tail and the eyelids change.
+
+Use a pure flat white #FFFFFF background. No floor, shadows, text, numbers, grid lines or borders. No travel across the cell, turning, jumping or waving.
+
+Frames 1-8 loop at about 200 ms each, with no pause.
