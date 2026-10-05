@@ -17,7 +17,7 @@ Current baseline and where live state is recorded. Full snapshots live in
   runtime-style PNGs; the procedural nod sleep loop was accepted. Wired into the app
   as pet id `turtle`, gated at `minAppVersion` 5.0.0 (assets, catalog, frames,
   localization, tests). Sockets: level-1 estimates in Godot await human
-  equipment review (`design/.../sockets/README.md`); then a room-size
+  equipment review (`design/pet_sketches/turtle_pond_buddy/sockets/README.md`); then a room-size
   check on a device. A cut-out rig remains as a fallback.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
