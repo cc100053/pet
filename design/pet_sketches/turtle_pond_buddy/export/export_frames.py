@@ -70,69 +70,75 @@ def head_width(img):
     return max(np.ptp(np.nonzero(r)[0]) for r in rows if r.any())
 
 
-cut = {}
-for name, (paths, _) in SEQS.items():
-    frames = [Image.open(p).convert('RGB') for p in paths]
-    luts = colour_luts(colours(Image.fromarray(np.hstack([np.asarray(f) for f in frames]))))
-    cut[name] = [cut_out(apply_luts(f, luts)) for f in frames]
 
-# idle sets the size (TARGET_H tall); the walk sheet was drawn ~10% larger, so each
-# sequence is scaled to the idle's head width to keep the character one size.
-idle_h = np.median([b[3] - b[2] for b in map(bbox, cut['stay'])])
-idle_hw = np.median([head_width(f) for f in cut['stay']])
-scales = {n: TARGET_H / idle_h * idle_hw / np.median([head_width(f) for f in fr]) for n, fr in cut.items()}
-idle_cx = (bbox(cut['stay'][0])[0] + bbox(cut['stay'][0])[1]) / 2
-seq_head = {n: np.mean([head_centre_x(f) for f in fr]) for n, fr in cut.items()}
-# idle bbox centred on CENTRE_X; every sequence's mean head centre lands where the idle's does
-head_out_x = CENTRE_X + (seq_head['stay'] - idle_cx) * scales['stay']
+def main():
+    cut = {}
+    for name, (paths, _) in SEQS.items():
+        frames = [Image.open(p).convert('RGB') for p in paths]
+        luts = colour_luts(colours(Image.fromarray(np.hstack([np.asarray(f) for f in frames]))))
+        cut[name] = [cut_out(apply_luts(f, luts)) for f in frames]
 
-report = {'canvas': CANVAS, 'baseline_y': BASE_Y,
-          'scale': {n: round(float(v), 4) for n, v in scales.items()},
-          'sequences': {}}
-os.makedirs('export/review', exist_ok=True)
-for name, (_, durations) in SEQS.items():
-    os.makedirs(f'export/{name}', exist_ok=True)
-    seq_bottom = max(bbox(f)[3] for f in cut[name])  # lowest foot of the whole sequence
-    out = []
-    scale = scales[name]
-    for i, f in enumerate(cut[name]):
-        # premultiplied resize avoids dark fringes
-        small = f.convert('RGBa').resize((round(f.width * scale), round(f.height * scale)),
-                                         Image.LANCZOS).convert('RGBA')
-        x = round(head_out_x - seq_head[name] * scale)
-        y = round(BASE_Y - seq_bottom * scale)
-        canvas = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
-        canvas.alpha_composite(small, (x, y))
-        canvas.save(f'export/{name}/turtle_{name}-{i + 1:02d}.png', optimize=True)
-        out.append(canvas)
-    bxs = np.array([bbox(c) for c in out])
-    assert bxs[:, 0].min() > 4 and bxs[:, 1].max() < CANVAS - 4 and bxs[:, 2].min() > 4, f'{name} clipped'
-    assert abs(int(bxs[:, 3].max()) - BASE_Y) <= 2, f'{name} baseline {bxs[:, 3].max()}'
-    report['sequences'][name] = {'frames': len(out), 'frame_durations_ms': durations,
-                                 'total_ms': sum(durations),
-                                 'bounds_x': [int(bxs[:, 0].min()), int(bxs[:, 1].max())],
-                                 'bounds_y': [int(bxs[:, 2].min()), int(bxs[:, 3].max())]}
-    for label, bg in (('light', (244, 239, 230)), ('dark', (43, 43, 51))):
-        flat = [Image.alpha_composite(Image.new('RGBA', c.size, bg + (255,)), c).convert('RGB') for c in out]
-        flat[0].save(f'export/review/{name}_{label}.gif', save_all=True, append_images=flat[1:],
-                     duration=durations, loop=0)
-json.dump(report, open('export/timing.json', 'w'), indent=2)
+    # idle sets the size (TARGET_H tall); the walk sheet was drawn ~10% larger, so each
+    # sequence is scaled to the idle's head width to keep the character one size.
+    idle_h = np.median([b[3] - b[2] for b in map(bbox, cut['stay'])])
+    idle_hw = np.median([head_width(f) for f in cut['stay']])
+    scales = {n: TARGET_H / idle_h * idle_hw / np.median([head_width(f) for f in fr]) for n, fr in cut.items()}
+    idle_cx = (bbox(cut['stay'][0])[0] + bbox(cut['stay'][0])[1]) / 2
+    seq_head = {n: np.mean([head_centre_x(f) for f in fr]) for n, fr in cut.items()}
+    # idle bbox centred on CENTRE_X; every sequence's mean head centre lands where the idle's does
+    head_out_x = CENTRE_X + (seq_head['stay'] - idle_cx) * scales['stay']
 
-# contact sheet: every frame on dark (fringe check) plus 96/128 px size probes
-rows = [cut for cut in (sorted(os.listdir('export/stay')), sorted(os.listdir('export/walk')))]
-sheet = Image.new('RGB', (9 * 150, 2 * 170 + 150), (43, 43, 51))
-d = ImageDraw.Draw(sheet)
-for r, (name, files) in enumerate(zip(('stay', 'walk'), rows)):
-    for k, fn in enumerate(files):
-        im = Image.open(f'export/{name}/{fn}').resize((150, 150), Image.LANCZOS)
-        sheet.paste(im, (k * 150, r * 170), im)
-        d.text((k * 150 + 4, r * 170 + 152), fn, fill=(200, 200, 200))
-x = 0
-for size in (96, 128):
-    for name in ('stay', 'walk'):
-        im = Image.open(f'export/{name}/turtle_{name}-01.png').resize((size, size), Image.LANCZOS)
-        for bg in ((244, 239, 230), (43, 43, 51)):
-            tile = Image.new('RGB', (size, size), bg); tile.paste(im, (0, 0), im)
-            sheet.paste(tile, (x, 2 * 170 + (150 - size) // 2)); x += size + 8
-sheet.save('export/review/contact_sheet.png')
-print(json.dumps(report, indent=1))
+    report = {'canvas': CANVAS, 'baseline_y': BASE_Y,
+              'scale': {n: round(float(v), 4) for n, v in scales.items()},
+              'sequences': {}}
+    os.makedirs('export/review', exist_ok=True)
+    for name, (_, durations) in SEQS.items():
+        os.makedirs(f'export/{name}', exist_ok=True)
+        seq_bottom = max(bbox(f)[3] for f in cut[name])  # lowest foot of the whole sequence
+        out = []
+        scale = scales[name]
+        for i, f in enumerate(cut[name]):
+            # premultiplied resize avoids dark fringes
+            small = f.convert('RGBa').resize((round(f.width * scale), round(f.height * scale)),
+                                             Image.LANCZOS).convert('RGBA')
+            x = round(head_out_x - seq_head[name] * scale)
+            y = round(BASE_Y - seq_bottom * scale)
+            canvas = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+            canvas.alpha_composite(small, (x, y))
+            canvas.save(f'export/{name}/turtle_{name}-{i + 1:02d}.png', optimize=True)
+            out.append(canvas)
+        bxs = np.array([bbox(c) for c in out])
+        assert bxs[:, 0].min() > 4 and bxs[:, 1].max() < CANVAS - 4 and bxs[:, 2].min() > 4, f'{name} clipped'
+        assert abs(int(bxs[:, 3].max()) - BASE_Y) <= 2, f'{name} baseline {bxs[:, 3].max()}'
+        report['sequences'][name] = {'frames': len(out), 'frame_durations_ms': durations,
+                                     'total_ms': sum(durations),
+                                     'bounds_x': [int(bxs[:, 0].min()), int(bxs[:, 1].max())],
+                                     'bounds_y': [int(bxs[:, 2].min()), int(bxs[:, 3].max())]}
+        for label, bg in (('light', (244, 239, 230)), ('dark', (43, 43, 51))):
+            flat = [Image.alpha_composite(Image.new('RGBA', c.size, bg + (255,)), c).convert('RGB') for c in out]
+            flat[0].save(f'export/review/{name}_{label}.gif', save_all=True, append_images=flat[1:],
+                         duration=durations, loop=0)
+    json.dump(report, open('export/timing.json', 'w'), indent=2)
+
+    # contact sheet: every frame on dark (fringe check) plus 96/128 px size probes
+    rows = [cut for cut in (sorted(os.listdir('export/stay')), sorted(os.listdir('export/walk')))]
+    sheet = Image.new('RGB', (9 * 150, 2 * 170 + 150), (43, 43, 51))
+    d = ImageDraw.Draw(sheet)
+    for r, (name, files) in enumerate(zip(('stay', 'walk'), rows)):
+        for k, fn in enumerate(files):
+            im = Image.open(f'export/{name}/{fn}').resize((150, 150), Image.LANCZOS)
+            sheet.paste(im, (k * 150, r * 170), im)
+            d.text((k * 150 + 4, r * 170 + 152), fn, fill=(200, 200, 200))
+    x = 0
+    for size in (96, 128):
+        for name in ('stay', 'walk'):
+            im = Image.open(f'export/{name}/turtle_{name}-01.png').resize((size, size), Image.LANCZOS)
+            for bg in ((244, 239, 230), (43, 43, 51)):
+                tile = Image.new('RGB', (size, size), bg); tile.paste(im, (0, 0), im)
+                sheet.paste(tile, (x, 2 * 170 + (150 - size) // 2)); x += size + 8
+    sheet.save('export/review/contact_sheet.png')
+    print(json.dumps(report, indent=1))
+
+
+if __name__ == '__main__':
+    main()

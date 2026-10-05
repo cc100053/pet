@@ -60,7 +60,7 @@ not a claim about the app's exact pet scale.
    slightly tucked pose with the face visible, eight breathing phases and a
    closure-comparison frame. Sleep pose and generated artwork await review.
 2. Done for idle and walk on 2026-10-05: see the [runtime-style exports](export/README.md).
-   Sleep still needs transparent frames. Original step: prepare transparent frames for the selected idle, walk and sleep sequences.
+   Sleep: a [nod + breathing loop](sleep_trial/README.md) built from the generated pose awaits review. Original step: prepare transparent frames for the selected idle, walk and sleep sequences.
    Check light and dark backgrounds for white fringes and lost painted edges;
    keep the cream belly and eye whites intact.
 3. If needed, prepare editable layers: shell, leaf tail, torso/belly, head, each arm,

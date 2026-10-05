@@ -14,8 +14,8 @@ Current baseline and where live state is recorded. Full snapshots live in
   an upright pond turtle. Generated master with compact shell and leaf-shaped
   tail selected on 2026-10-05. Idle (9 frames, 1650 ms) and pose-guided AI walk
   v4 fix (8 frames, 1600 ms) accepted and exported as transparent 450 px
-  runtime-style PNGs in the design folder's `export/`. A cut-out rig remains as a
-  fallback. Sleep trial, room-size check, equipment calibration, catalog
+  runtime-style PNGs in the design folder's `export/`; a procedural nod sleep loop awaits review. A cut-out rig remains as a
+  fallback. Room-size check, equipment calibration, catalog
   integration (version gates, fallbacks) and rollout remain pending.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
