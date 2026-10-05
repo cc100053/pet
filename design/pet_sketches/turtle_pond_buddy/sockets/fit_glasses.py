@@ -22,6 +22,9 @@ GLASSES = 'assets/equipment/sunglasses.png'
 LENS_L, LENS_R = (140, 222), (312, 222)   # lens centres in the 450 px glasses image
 CANVAS = 450
 STATES = {'stay': 'idle', 'moving': 'walk', 'sleep': 'sleep'}
+# Owner's Godot tuning (2026-10-05): stay looked best smaller and slightly left/lower than
+# lens-on-eye. Set to None to return to the pure lens-on-eye fit.
+OWNER_TUNE = {'state': 'stay', 'anchor': (0.55, 0.15), 'sizeRatio': 0.45}
 
 
 def eyes(rgba, hx, hy):
@@ -55,11 +58,22 @@ for anim in STATES:
 
 lens_mid = ((LENS_L[0] + LENS_R[0]) / 2 / CANVAS, (LENS_L[1] + LENS_R[1]) / 2 / CANVAS)
 lens_gap = (LENS_R[0] - LENS_L[0]) / CANVAS
-spacing = np.median([f['spacing'] for f in fits.values()])
-width_ratio = round(spacing / CANVAS / lens_gap, 2)   # one size for every state
-item = width_ratio * CANVAS
+if OWNER_TUNE:
+    # The owner tuned one state in Godot: keep that size, and keep the lens midpoint at the
+    # same offset from the eye midpoint in every other state.
+    width_ratio = OWNER_TUNE['sizeRatio']
+    item = width_ratio * CANVAS
+    ref = fits[OWNER_TUNE['state']]
+    ax, ay = OWNER_TUNE['anchor']
+    eye_offset = ((lens_mid[0] - ax) * item - ref['dx'], (lens_mid[1] - ay) * item - ref['dy'])
+else:
+    spacing = np.median([f['spacing'] for f in fits.values()])
+    width_ratio = round(spacing / CANVAS / lens_gap, 2)   # lens centres exactly on the eyes
+    item = width_ratio * CANVAS
+    eye_offset = (0.0, 0.0)
 for f in fits.values():
-    f['anchor'] = (round(lens_mid[0] - f['dx'] / item, 3), round(lens_mid[1] - f['dy'] / item, 3))
+    f['anchor'] = (round(lens_mid[0] - (f['dx'] + eye_offset[0]) / item, 3),
+                   round(lens_mid[1] - (f['dy'] + eye_offset[1]) / item, 3))
     f['rotation'] = round(f['angle'], 1)
 
 print(json.dumps({'widthRatio': width_ratio, 'fits': fits}, indent=1))

@@ -258,12 +258,13 @@ class EquipmentCatalog {
             aspectRatio: 1,
           ),
         ),
-        // Turtle eyes tilt down toward image-right; values from
+        // Turtle eyes tilt down toward image-right. Idle is the owner's Godot
+        // tuning; walk/sleep keep the same eye offset. Values from
         // design/pet_sketches/turtle_pond_buddy/sockets/fit_glasses.py.
         'turtle': EquipmentFitOverride(
-          anchor: EquipmentAnchor(x: 0.524, y: 0.21),
+          anchor: EquipmentAnchor(x: 0.55, y: 0.15),
           sizeRatio: EquipmentSize.fromWidthAspect(
-            widthRatio: 0.52,
+            widthRatio: 0.45,
             aspectRatio: 1,
           ),
           rotationDegrees: 6.4,
@@ -272,17 +273,17 @@ class EquipmentCatalog {
       petStateOverrides: {
         'turtle': EquipmentStateFitOverrides(
           walk: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.535, y: 0.196),
+            anchor: EquipmentAnchor(x: 0.562, y: 0.134),
             sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.52,
+              widthRatio: 0.45,
               aspectRatio: 1,
             ),
             rotationDegrees: 6.2,
           ),
           sleep: EquipmentFitOverride(
-            anchor: EquipmentAnchor(x: 0.556, y: 0.103),
+            anchor: EquipmentAnchor(x: 0.587, y: 0.026),
             sizeRatio: EquipmentSize.fromWidthAspect(
-              widthRatio: 0.52,
+              widthRatio: 0.45,
               aspectRatio: 1,
             ),
             rotationDegrees: 10.2,

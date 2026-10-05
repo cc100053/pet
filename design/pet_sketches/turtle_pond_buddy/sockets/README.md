@@ -39,7 +39,14 @@ sleep (7-11° as the head nods). The eyes are about 89 px apart. The new
 centre, and the flip for moving right mirrors it with the pet.
 [`fit_glasses.py`](fit_glasses.py) measures the eyes against the current head
 sockets and solves the lens-on-eye fit: width 0.52, and per-state anchors with
-rotations, now in `equipment_catalog.dart`. Its mock of the Flutter placement
+rotations, now in `equipment_catalog.dart`.
+
+The owner then tuned stay in Godot to a smaller size: anchor (0.55, 0.15) and
+size 0.45, slightly left of and below lens-on-eye. `OWNER_TUNE` in the script
+keeps that size and that offset from the eyes for every state. The results
+are idle (0.55, 0.15) at 6.4°, walk (0.562, 0.134) at 6.2° and sleep
+(0.587, 0.026) at 10.2°, written to the Godot scene JSON and
+`equipment_catalog.dart`. Its mock of the Flutter placement
 is [`review_glasses.png`](review_glasses.png).
 
 Godot now previews the tilt. The dock has a **Rotation °** field, and
