@@ -1,0 +1,55 @@
+{
+  "canvas": 450,
+  "baseline_y": 432,
+  "scale": {
+    "stay": 1.1017,
+    "walk": 1.0011
+  },
+  "sequences": {
+    "stay": {
+      "frames": 9,
+      "frame_durations_ms": [
+        200,
+        200,
+        250,
+        200,
+        120,
+        160,
+        120,
+        200,
+        200
+      ],
+      "total_ms": 1650,
+      "bounds_x": [
+        57,
+        385
+      ],
+      "bounds_y": [
+        40,
+        433
+      ]
+    },
+    "walk": {
+      "frames": 8,
+      "frame_durations_ms": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "total_ms": 1600,
+      "bounds_x": [
+        58,
+        374
+      ],
+      "bounds_y": [
+        56,
+        432
+      ]
+    }
+  }
+}

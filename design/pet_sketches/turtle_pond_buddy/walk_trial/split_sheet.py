@@ -26,53 +26,66 @@ def colours(img):
     return {k: [int(x) for x in np.median(a[m], 0)] for k, m in masks.items()}
 
 
-src, out = sys.argv[1], sys.argv[2]
-sheet = Image.open(src).convert('RGB')
-c = sheet.width // 3
-for d in ('raw_frames', 'aligned_frames'):
-    os.makedirs(f'{out}/{d}', exist_ok=True)
-raw, aligned, rep = [], [], []
-for i in range(9):
-    f = sheet.crop(((i % 3) * c, (i // 3) * c, (i % 3 + 1) * c, (i // 3 + 1) * c))
-    f.save(f'{out}/raw_frames/frame_{i + 1:02d}.png')
-    fg = np.asarray(f).astype(int).min(2) < 235
-    ys, xs = np.nonzero(fg)
-    base = int(ys.max())
-    canvas = Image.new('RGB', (W, W), 'white')
-    canvas.paste(f, (DX, BASE_Y - base))
-    canvas.save(f'{out}/aligned_frames/frame_{i + 1:02d}.png')
-    raw.append(f); aligned.append(canvas)
-    rep.append({'frame': i + 1, 'baseline_y': base, 'top_y': int(ys.min()),
-                'head_centre_x': round(float(np.nonzero(fg[:int(c * .4)])[1].mean()), 1),
-                'dy': BASE_Y - base})
-for name, fr in (('raw', raw), ('aligned', aligned)):
-    fr[0].save(f'{out}/{name}_preview.gif', save_all=True, append_images=fr[1:8], duration=200, loop=0)
-cs = Image.new('RGB', (W * 3, W * 3), 'white'); d = ImageDraw.Draw(cs)
-for k, f in enumerate(aligned):
-    x, y = (k % 3) * W, (k // 3) * W
-    cs.paste(f, (x, y)); d.line([(x, y + BASE_Y), (x + W, y + BASE_Y)], fill=(170, 140, 110))
-    d.text((x + 8, y + 425), f'{k + 1:02d}' + (' / 200 ms' if k < 8 else ' closure ref'), fill=(90, 70, 50))
-cs.save(f'{out}/aligned_contact_sheet.png')
-report = {'source_size': list(sheet.size), 'cell': c,
-          'registration': 'integer translation; lowest foot to y=414, generated horizontal placement kept',
-          'frame_durations_ms': [200] * 8, 'closure_reference_frame': 9,
-          'master_colours': MASTER, 'sheet_colours': colours(sheet), 'frames': rep}
-# Colour match: one per-channel curve through black, shell, skin, belly and white (sheet -> master).
-sc = report['sheet_colours']
-luts = []
-for ch in range(3):
-    xs = [0, sc['shell'][ch], sc['skin'][ch], sc['belly'][ch], 255]
-    ys = [0, MASTER['shell'][ch], MASTER['skin'][ch], MASTER['belly'][ch], 255]
-    order = np.argsort(xs)
-    luts.append(np.interp(np.arange(256), np.array(xs)[order], np.array(ys)[order]).round().astype(np.uint8))
-os.makedirs(f'{out}/colour_matched_frames', exist_ok=True)
-matched = []
-for k, f in enumerate(aligned):
-    a = np.asarray(f)
-    m = Image.fromarray(np.stack([luts[ch][a[..., ch]] for ch in range(3)], -1))
-    m.save(f'{out}/colour_matched_frames/frame_{k + 1:02d}.png'); matched.append(m)
-matched[0].save(f'{out}/colour_matched_preview.gif', save_all=True, append_images=matched[1:8], duration=200, loop=0)
-report['colour_matched_check'] = colours(Image.fromarray(np.hstack([np.asarray(m) for m in matched])))
-json.dump(report, open(f'{out}/alignment_report.json', 'w'), indent=2)
-print(json.dumps({k: report[k] for k in ('source_size', 'sheet_colours', 'master_colours', 'colour_matched_check')}))
-for r in rep: print(r)
+def colour_luts(sheet_colours):
+    """Per-channel curves through black, shell, skin, belly and white (measured -> master)."""
+    luts = []
+    for ch in range(3):
+        xs = [0, sheet_colours['shell'][ch], sheet_colours['skin'][ch], sheet_colours['belly'][ch], 255]
+        ys = [0, MASTER['shell'][ch], MASTER['skin'][ch], MASTER['belly'][ch], 255]
+        order = np.argsort(xs)
+        luts.append(np.interp(np.arange(256), np.array(xs)[order], np.array(ys)[order]).round().astype(np.uint8))
+    return luts
+
+
+def apply_luts(img, luts):
+    a = np.asarray(img.convert('RGB'))
+    return Image.fromarray(np.stack([luts[ch][a[..., ch]] for ch in range(3)], -1))
+
+
+def main(src, out):
+    sheet = Image.open(src).convert('RGB')
+    c = sheet.width // 3
+    for d in ('raw_frames', 'aligned_frames'):
+        os.makedirs(f'{out}/{d}', exist_ok=True)
+    raw, aligned, rep = [], [], []
+    for i in range(9):
+        f = sheet.crop(((i % 3) * c, (i // 3) * c, (i % 3 + 1) * c, (i // 3 + 1) * c))
+        f.save(f'{out}/raw_frames/frame_{i + 1:02d}.png')
+        fg = np.asarray(f).astype(int).min(2) < 235
+        ys, xs = np.nonzero(fg)
+        base = int(ys.max())
+        canvas = Image.new('RGB', (W, W), 'white')
+        canvas.paste(f, (DX, BASE_Y - base))
+        canvas.save(f'{out}/aligned_frames/frame_{i + 1:02d}.png')
+        raw.append(f); aligned.append(canvas)
+        rep.append({'frame': i + 1, 'baseline_y': base, 'top_y': int(ys.min()),
+                    'head_centre_x': round(float(np.nonzero(fg[:int(c * .4)])[1].mean()), 1),
+                    'dy': BASE_Y - base})
+    for name, fr in (('raw', raw), ('aligned', aligned)):
+        fr[0].save(f'{out}/{name}_preview.gif', save_all=True, append_images=fr[1:8], duration=200, loop=0)
+    cs = Image.new('RGB', (W * 3, W * 3), 'white'); d = ImageDraw.Draw(cs)
+    for k, f in enumerate(aligned):
+        x, y = (k % 3) * W, (k // 3) * W
+        cs.paste(f, (x, y)); d.line([(x, y + BASE_Y), (x + W, y + BASE_Y)], fill=(170, 140, 110))
+        d.text((x + 8, y + 425), f'{k + 1:02d}' + (' / 200 ms' if k < 8 else ' closure ref'), fill=(90, 70, 50))
+    cs.save(f'{out}/aligned_contact_sheet.png')
+    report = {'source_size': list(sheet.size), 'cell': c,
+              'registration': 'integer translation; lowest foot to y=414, generated horizontal placement kept',
+              'frame_durations_ms': [200] * 8, 'closure_reference_frame': 9,
+              'master_colours': MASTER, 'sheet_colours': colours(sheet), 'frames': rep}
+    # Colour match: one per-channel curve through black, shell, skin, belly and white (sheet -> master).
+    luts = colour_luts(report['sheet_colours'])
+    os.makedirs(f'{out}/colour_matched_frames', exist_ok=True)
+    matched = []
+    for k, f in enumerate(aligned):
+        m = apply_luts(f, luts)
+        m.save(f'{out}/colour_matched_frames/frame_{k + 1:02d}.png'); matched.append(m)
+    matched[0].save(f'{out}/colour_matched_preview.gif', save_all=True, append_images=matched[1:8], duration=200, loop=0)
+    report['colour_matched_check'] = colours(Image.fromarray(np.hstack([np.asarray(m) for m in matched])))
+    json.dump(report, open(f'{out}/alignment_report.json', 'w'), indent=2)
+    print(json.dumps({k: report[k] for k in ('source_size', 'sheet_colours', 'master_colours', 'colour_matched_check')}))
+    for r in rep: print(r)
+
+
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2])

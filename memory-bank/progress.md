@@ -12,11 +12,11 @@ Current baseline and where live state is recorded. Full snapshots live in
 - Pet rendering prefers PNG sequences; Chicken is visible from `2.3.0`.
 - Turtle concept selected: [Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md),
   an upright pond turtle. Generated master with compact shell and leaf-shaped
-  tail selected on 2026-10-05. Nine-frame idle continuous-loop motion/timing
-  accepted; walk now uses a cut-out rig from the master (AI sheets abandoned); layers split, draft walk awaits review; pose-guided v4 AI trial fixed (both steps cross, colour-matched), awaiting loop review.
-  Sleep prompt is ready; generated sleep trial is pending.
-  Transparency, room-size review,
-  equipment calibration and rollout remain pending.
+  tail selected on 2026-10-05. Idle (9 frames, 1650 ms) and pose-guided AI walk
+  v4 fix (8 frames, 1600 ms) accepted and exported as transparent 450 px
+  runtime-style PNGs in the design folder's `export/`. A cut-out rig remains as a
+  fallback. Sleep trial, room-size check, equipment calibration, catalog
+  integration (version gates, fallbacks) and rollout remain pending.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
 
