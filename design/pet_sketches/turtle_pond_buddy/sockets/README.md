@@ -42,6 +42,15 @@ sockets and solves the lens-on-eye fit: width 0.52, and per-state anchors with
 rotations, now in `equipment_catalog.dart`. Its mock of the Flutter placement
 is [`review_glasses.png`](review_glasses.png).
 
+Godot now previews the tilt. The dock has a **Rotation °** field, and
+`fit_glasses.py` writes each state's sunglasses anchor, size and rotation into
+that scene's `equipmentSettings` and `equipmentPreview`, so opening the scene
+shows the tilted glasses. After editing the add-on, reload it (Project →
+Project Settings → Plugins: toggle socket_authoring off and on) or restart
+Godot. Running `estimate_sockets.py` again would reset the scene JSON,
+including any reviewed captures, so after the Godot review only re-run
+`fit_glasses.py`.
+
 The fit depends on the head sockets, so re-run the script after the Godot
 review moves them. The sleep tilt is one median value; the per-frame head
 tilt varies by about ±2°.

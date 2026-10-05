@@ -7,7 +7,8 @@ Measures both eyes in every frame (dark pupils, or closed-lid lines in sleep) an
 per state, the median eye tilt, spacing and eye-midpoint offset from the head socket. It
 then solves the face-slot override so the lens centres land on the eyes: one shared width
 from the median spacing, an anchor per state, and a rotation about the item centre (the
-lens midpoint). Prints the Dart override and writes review_glasses.png, a mock of the
+lens midpoint). Prints the Dart override, writes the same values (with rotationDegrees)
+into each Godot scene JSON's equipmentSettings/equipmentPreview, and writes review_glasses.png, a mock of the
 Flutter placement (socket - anchor * size, then rotated) on every frame.
 """
 import json, math
@@ -67,6 +68,18 @@ for anim, state in STATES.items():
     f = fits[anim]
     print(f"  {state}: anchor ({f['anchor'][0]}, {f['anchor'][1]}), widthRatio {width_ratio}, "
           f"rotationDegrees {f['rotation']}")
+
+# Godot: per-scene equipment settings (+ preview) so the dock shows the tilted glasses
+GLASSES_ABS = '/Users/fatboy/pet/' + GLASSES
+for anim in STATES:
+    path = f'{G}/turtle_{anim}_sockets.json'
+    d = json.load(open(path))
+    f = fits[anim]
+    entry = {'slot': 'head', 'anchor': {'x': f['anchor'][0], 'y': f['anchor'][1]},
+             'sizeRatio': width_ratio, 'rotationDegrees': f['rotation']}
+    d.setdefault('equipmentSettings', {})[GLASSES_ABS] = entry
+    d['equipmentPreview'] = {'enabled': True, 'assetPath': GLASSES_ABS, **entry}
+    json.dump(d, open(path, 'w'), indent=2)
 
 # mock Flutter placement on every frame
 glasses = Image.open(GLASSES).convert('RGBA').resize((round(item),) * 2, Image.LANCZOS)
