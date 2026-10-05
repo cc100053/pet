@@ -54,3 +54,27 @@ On 2026-10-05 the owner chose a targeted fix. The [fix prompt](fix_prompt.txt),
 used in the same Gemini chat, changes frame 3 to half-closed eyes and redraws
 frames 6-8 as the image-left leg's step, mirroring frames 2-4, while the
 image-right foot stays planted.
+
+## Fix result (received 2026-10-05)
+
+The [corrected sheet](fix/source_sheet.webp) is preserved unchanged. Running
+`python3 split_sheet.py v4/fix/source_sheet.webp v4/fix` produced
+[aligned](fix/aligned_preview.gif) and [colour-matched](fix/colour_matched_preview.gif)
+loops, the [contact sheet](fix/aligned_contact_sheet.png) and the
+[measurements](fix/alignment_report.json).
+
+- Frame 3 now has half-closed eyes, which read slightly heavy-lidded. Frame 4
+  stays closed.
+- Frames 6-8 are now the image-left step. The image-left foot lifts in frame 6,
+  peaks with a clear gap under it in frame 7 and reaches forward, slightly off
+  the ground, in frame 8. The image-right foot stays planted, and the kick-back
+  from v4 is gone. Frames 1, 2, 4 and 5 still cross the legs as before.
+- The edit darkened the colours again: skin (160, 192, 124) against the
+  master's (181, 202, 149). `split_sheet.py` now writes colour-matched frames
+  through one per-channel curve. After matching, skin measures (181, 203, 148)
+  and belly (253, 236, 197).
+- The background has faint green specks (minimum RGB 157, 169, 140 in the
+  top-left corner). The transparency step must remove them.
+- [USER ACTION REQUIRED] Review the continuous loop. If it is accepted, the
+  remaining work is transparency, export scale and baseline against the idle,
+  and the runtime PNGs.

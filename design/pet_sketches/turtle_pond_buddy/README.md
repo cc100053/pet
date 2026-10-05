@@ -50,7 +50,8 @@ not a claim about the app's exact pet scale.
    cross). On 2026-10-05 the owner chose a [cut-out rig](rig/README.md) built from the
    master instead; the layers are split and a draft walk awaits review.
    The [v4 pose-guided AI trial](walk_trial/v4/README.md) is the first to cross the
-   legs (frames 4-5); its image-left step (frames 6-8) is weaker. Both await owner review.
+   legs (frames 4-5). Its [targeted fix](walk_trial/v4/README.md#fix-result-received-2026-10-05)
+   adds the image-left step and the half-blink, and is colour-matched. It awaits loop review.
    The [original trial](walk_trial/README.md) records the gait correction prompt.
    The [walk prompt](walk_prompt.txt) defines eight gait
    phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.

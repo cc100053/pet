@@ -1,0 +1,135 @@
+{
+  "source_size": [
+    1254,
+    1254
+  ],
+  "cell": 418,
+  "registration": "integer translation; lowest foot to y=414, generated horizontal placement kept",
+  "frame_durations_ms": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "closure_reference_frame": 9,
+  "master_colours": {
+    "skin": [
+      181,
+      202,
+      149
+    ],
+    "shell": [
+      116,
+      123,
+      69
+    ],
+    "belly": [
+      253,
+      236,
+      197
+    ]
+  },
+  "sheet_colours": {
+    "skin": [
+      160,
+      192,
+      124
+    ],
+    "shell": [
+      99,
+      104,
+      53
+    ],
+    "belly": [
+      253,
+      229,
+      176
+    ]
+  },
+  "frames": [
+    {
+      "frame": 1,
+      "baseline_y": 409,
+      "top_y": 38,
+      "head_centre_x": 166.8,
+      "dy": 5
+    },
+    {
+      "frame": 2,
+      "baseline_y": 407,
+      "top_y": 37,
+      "head_centre_x": 164.4,
+      "dy": 7
+    },
+    {
+      "frame": 3,
+      "baseline_y": 407,
+      "top_y": 35,
+      "head_centre_x": 164.7,
+      "dy": 7
+    },
+    {
+      "frame": 4,
+      "baseline_y": 398,
+      "top_y": 28,
+      "head_centre_x": 164.1,
+      "dy": 16
+    },
+    {
+      "frame": 5,
+      "baseline_y": 401,
+      "top_y": 31,
+      "head_centre_x": 166.1,
+      "dy": 13
+    },
+    {
+      "frame": 6,
+      "baseline_y": 401,
+      "top_y": 29,
+      "head_centre_x": 162.7,
+      "dy": 13
+    },
+    {
+      "frame": 7,
+      "baseline_y": 382,
+      "top_y": 8,
+      "head_centre_x": 164.4,
+      "dy": 32
+    },
+    {
+      "frame": 8,
+      "baseline_y": 383,
+      "top_y": 11,
+      "head_centre_x": 163.9,
+      "dy": 31
+    },
+    {
+      "frame": 9,
+      "baseline_y": 385,
+      "top_y": 12,
+      "head_centre_x": 162.7,
+      "dy": 29
+    }
+  ],
+  "colour_matched_check": {
+    "skin": [
+      181,
+      203,
+      148
+    ],
+    "shell": [
+      115,
+      117,
+      65
+    ],
+    "belly": [
+      253,
+      236,
+      197
+    ]
+  }
+}

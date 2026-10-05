@@ -4,7 +4,8 @@
 
 Writes raw_frames/, aligned_frames/ (450 x 450; lowest foot moved to y=414, generated
 horizontal placement kept so any lean survives), raw/aligned GIFs (frames 1-8, 200 ms),
-aligned_contact_sheet.png and alignment_report.json with median skin/shell/belly colours.
+aligned_contact_sheet.png, alignment_report.json with median skin/shell/belly colours, and
+colour_matched_frames/ + colour_matched_preview.gif mapped to the master's colours.
 """
 import json, os, sys
 import numpy as np
@@ -56,6 +57,22 @@ report = {'source_size': list(sheet.size), 'cell': c,
           'registration': 'integer translation; lowest foot to y=414, generated horizontal placement kept',
           'frame_durations_ms': [200] * 8, 'closure_reference_frame': 9,
           'master_colours': MASTER, 'sheet_colours': colours(sheet), 'frames': rep}
+# Colour match: one per-channel curve through black, shell, skin, belly and white (sheet -> master).
+sc = report['sheet_colours']
+luts = []
+for ch in range(3):
+    xs = [0, sc['shell'][ch], sc['skin'][ch], sc['belly'][ch], 255]
+    ys = [0, MASTER['shell'][ch], MASTER['skin'][ch], MASTER['belly'][ch], 255]
+    order = np.argsort(xs)
+    luts.append(np.interp(np.arange(256), np.array(xs)[order], np.array(ys)[order]).round().astype(np.uint8))
+os.makedirs(f'{out}/colour_matched_frames', exist_ok=True)
+matched = []
+for k, f in enumerate(aligned):
+    a = np.asarray(f)
+    m = Image.fromarray(np.stack([luts[ch][a[..., ch]] for ch in range(3)], -1))
+    m.save(f'{out}/colour_matched_frames/frame_{k + 1:02d}.png'); matched.append(m)
+matched[0].save(f'{out}/colour_matched_preview.gif', save_all=True, append_images=matched[1:8], duration=200, loop=0)
+report['colour_matched_check'] = colours(Image.fromarray(np.hstack([np.asarray(m) for m in matched])))
 json.dump(report, open(f'{out}/alignment_report.json', 'w'), indent=2)
-print(json.dumps({k: report[k] for k in ('source_size', 'sheet_colours', 'master_colours')}))
+print(json.dumps({k: report[k] for k in ('source_size', 'sheet_colours', 'master_colours', 'colour_matched_check')}))
 for r in rep: print(r)
