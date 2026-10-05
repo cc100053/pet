@@ -12,14 +12,17 @@ class AppWhatsNewCatalog {
       bulletBuilders: <AppWhatsNewTextBuilder>[
         _version500Bullet1,
         _version500Bullet2,
+        _version500Bullet3,
       ],
       bulletIcons: <AppWhatsNewIcon>[
         AppWhatsNewIcon.newRoom,
         AppWhatsNewIcon.petTicket,
+        AppWhatsNewIcon.feature,
       ],
       bulletDetailBuilders: <AppWhatsNewTextBuilder?>[
         _version500Bullet1Detail,
         _version500Bullet2Detail,
+        _version500Bullet3Detail,
       ],
       actionLabelBuilder: _continueLabel,
       heroPetId: 'turtle',
@@ -396,6 +399,10 @@ class AppWhatsNewCatalog {
       l10n.whatsNew500Bullet2;
   static String _version500Bullet2Detail(AppLocalizations l10n) =>
       l10n.whatsNew500Bullet2Detail;
+  static String _version500Bullet3(AppLocalizations l10n) =>
+      l10n.whatsNew500Bullet3;
+  static String _version500Bullet3Detail(AppLocalizations l10n) =>
+      l10n.whatsNew500Bullet3Detail;
 
   static String _version410Title(AppLocalizations l10n) =>
       l10n.whatsNew410Title;

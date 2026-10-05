@@ -2278,6 +2278,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew500Bullet2Detail => '상점에서 거북이 초대';
 
   @override
+  String get whatsNew500Bullet3 => '채팅 이모지 확대';
+
+  @override
+  String get whatsNew500Bullet3Detail => '메시지와 캡션에서 더 크게';
+
+  @override
   String get whatsNew321Title => '먹이 주기와 텍스트 수정';
 
   @override

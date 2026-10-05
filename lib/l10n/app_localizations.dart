@@ -4215,6 +4215,18 @@ abstract class AppLocalizations {
   /// **'Invite Turtle from the shop'**
   String get whatsNew500Bullet2Detail;
 
+  /// No description provided for @whatsNew500Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Bigger chat emoji'**
+  String get whatsNew500Bullet3;
+
+  /// No description provided for @whatsNew500Bullet3Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji stand out in chat'**
+  String get whatsNew500Bullet3Detail;
+
   /// No description provided for @whatsNew321Title.
   ///
   /// In en, this message translates to:

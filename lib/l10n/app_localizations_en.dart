@@ -2377,6 +2377,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew500Bullet2Detail => 'Invite Turtle from the shop';
 
   @override
+  String get whatsNew500Bullet3 => 'Bigger chat emoji';
+
+  @override
+  String get whatsNew500Bullet3Detail => 'Emoji stand out in chat';
+
+  @override
   String get whatsNew321Title => 'Feed & Text Fixes';
 
   @override

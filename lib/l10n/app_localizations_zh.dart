@@ -2254,6 +2254,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew500Bullet2Detail => '在商店邀请小乌龟';
 
   @override
+  String get whatsNew500Bullet3 => '聊天表情放大';
+
+  @override
+  String get whatsNew500Bullet3Detail => '消息与字幕中的表情更醒目';
+
+  @override
   String get whatsNew321Title => '喂食与文字修复';
 
   @override
@@ -4618,6 +4624,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew500Bullet2Detail => '在商店邀請小烏龜';
+
+  @override
+  String get whatsNew500Bullet3 => '聊天表情放大';
+
+  @override
+  String get whatsNew500Bullet3Detail => '訊息與字幕中的表情更醒目';
 
   @override
   String get whatsNew321Title => '餵食與文字修正';

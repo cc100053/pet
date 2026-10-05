@@ -2267,6 +2267,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew500Bullet2Detail => 'ショップでカメをお迎え';
 
   @override
+  String get whatsNew500Bullet3 => 'チャットの絵文字';
+
+  @override
+  String get whatsNew500Bullet3Detail => 'メッセージや字幕で大きく表示';
+
+  @override
   String get whatsNew321Title => '給餌とテキストの修正';
 
   @override
