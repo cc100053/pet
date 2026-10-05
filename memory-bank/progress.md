@@ -10,15 +10,12 @@ Current baseline and where live state is recorded. Full snapshots live in
   Armchair 250) is live in the catalog, version-gated at `3.3.1` (first shown
   in 4.0.0), with `new_until` 2026-11-01.
 - Pet rendering prefers PNG sequences; Chicken is visible from `2.3.0`.
-- Turtle concept selected: [Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md),
-  an upright pond turtle. Generated master with compact shell and leaf-shaped
-  tail selected on 2026-10-05. Idle (9 frames, 1650 ms) and pose-guided AI walk
-  v4 fix (8 frames, 1600 ms) accepted and exported as transparent 450 px
-  runtime-style PNGs; the procedural nod sleep loop was accepted. Wired into the app
-  as pet id `turtle`, gated at `minAppVersion` 5.0.0 (assets, catalog, frames,
-  localization, tests). Sockets and equipment fits synced to Flutter
-  (`design/pet_sketches/turtle_pond_buddy/sockets/README.md`); next a room-size
-  check on a device. A cut-out rig remains as a fallback.
+- Turtle ([Little Pond Buddy](../design/pet_sketches/turtle_pond_buddy/README.md))
+  is production-complete as pet id `turtle`, gated at `minAppVersion` 5.0.0:
+  idle 9 frames/1650 ms, pose-guided walk 8/1600 ms, procedural nod sleep
+  16/2560 ms. Sockets and fits (tilted sunglasses) are synced, and the owner
+  checked it on a device on 2026-10-05. Open: 5.0.0 release timing and the
+  `notify_friend` push avatar (falls back to the ghost).
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
 

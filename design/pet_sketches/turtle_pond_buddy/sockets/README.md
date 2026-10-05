@@ -71,13 +71,8 @@ The fit depends on the head sockets, so re-run the script after the Godot
 review moves them. The sleep tilt is one median value; the per-frame head
 tilt varies by about ±2°.
 
-## Next
+## Status
 
-1. [USER ACTION REQUIRED] In Godot, use Scene Browser → turtle → each action,
-   with representative equipment (small and wide hat, glasses, narrow and wide
-   body item, close-fitting and large back item). Fix any frame, then Capture
-   and **Export Sockets** before switching scenes. Record any per-pet equipment
-   settings, then mark each animation × slot as level 2.
-2. Generate the Flutter tracks with `generate_flutter_tracks.py --track-threshold 0`,
-   add the `PetSocketConfig` and any `equipment_catalog.dart` fit overrides, and
-   run the full validation.
+Owner-reviewed (level 2), synced to Flutter and checked on a device on
+2026-10-05. If the turtle frames change, re-run `fit_glasses.py` only after a
+new Godot socket review. Never re-run `estimate_sockets.py` over reviewed JSON.

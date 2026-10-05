@@ -71,5 +71,7 @@ adapt the constants named here; they are not generic tools.
 | [rig/split_layers.py](../../../../design/pet_sketches/turtle_pond_buddy/rig/split_layers.py), [rig/compose.py](../../../../design/pet_sketches/turtle_pond_buddy/rig/compose.py), [rig/walk_test.py](../../../../design/pet_sketches/turtle_pond_buddy/rig/walk_test.py) | Cut-out rig and a procedural walk | Every polygon and pivot (hand-placed on the master) |
 | [rig/pose_guide.py](../../../../design/pet_sketches/turtle_pond_buddy/rig/pose_guide.py) | Flat-colour 3 × 3 pose guide from the rig poses | Colours, exaggerated lift |
 | [export/install_assets.py](../../../../design/pet_sketches/turtle_pond_buddy/export/install_assets.py) | Copy frames into `assets/` and build the fallback GIFs | Pet id and GIF names |
+| [sockets/estimate_sockets.py](../../../../design/pet_sketches/turtle_pond_buddy/sockets/estimate_sockets.py) | Godot scenes and level-1 sockets: hand-placed frame 0, template-tracked | `FRAME0` per state, `GODOT` path; run once before review |
+| [sockets/fit_glasses.py](../../../../design/pet_sketches/turtle_pond_buddy/sockets/fit_glasses.py) | Face-item fit from measured eye tilt and spacing, written to Godot and printed for Dart | Lens centres, `OWNER_TUNE` |
 
 Paths are relative to the turtle folder.

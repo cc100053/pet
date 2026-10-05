@@ -6,7 +6,27 @@ and leaf-shaped tail through production. The original is saved unchanged:
 1254 × 1254 RGB PNG with an opaque white background. A nine-frame
 [idle trial](idle_trial/README.md) has been split and aligned; its continuous-loop
 motion and timing were accepted on 2026-10-05.
-Transparency, layered animation art and runtime exports are not prepared yet.
+
+## Status (2026-10-05)
+
+Production complete and in the app, hidden behind `minAppVersion` 5.0.0. The
+owner checked it on a device at room size on 2026-10-05.
+
+| Stage | Result |
+| --- | --- |
+| Idle (`stay`) | AI sheet, prompt only: 9 frames, 1650 ms ([idle trial](idle_trial/README.md)) |
+| Walk | Pose-guided AI sheet plus one targeted fix: 8 frames, 1600 ms, crossing legs ([walk v4](walk_trial/v4/README.md)) |
+| Sleep | Generated pose with a procedural dozing nod, breathing and z marks: 16 frames, 2560 ms ([sleep loop](sleep_trial/README.md)) |
+| Export | Colour-matched to the master, transparent 450 px, one head size and baseline across states ([export](export/README.md)) |
+| App | Pet id `turtle`, catalog, frames, fallback GIFs, five-language copy and tests ([export § App integration](export/README.md#app-integration-2026-10-05)) |
+| Sockets | Owner-reviewed and synced to `pet_sockets.dart`; hats on the Godot default fit; sunglasses tilted to the eyes ([sockets](sockets/README.md)) |
+
+Still open: release timing for 5.0.0, and the push-notification avatar
+(`notify_friend` shows the ghost until an avatar is published and the function
+deployed under its own approval). Rejected attempts (walk v1-v3) and the unused
+[cut-out rig](rig/README.md) are kept as history. The full process and its
+lessons are in the `new-pet-character` skill
+(`.codex/skills/new-pet-character/SKILL.md`).
 
 ## Character brief
 
@@ -38,41 +58,15 @@ compares the sketch with the shipped cat and shows both on the
 existing free room background. The 64 px and 96 px views are readability probes,
 not a claim about the app's exact pet scale.
 
-## Next stage
+## Production history
 
-1. Prepare walk, then sleep sprite-sheet trials using the selected master for
-   character identity. Walk should be a small, determined in-place cycle at the
-   same camera angle. The [corrected walk trial](walk_trial/v2/README.md) now
-   has alternating steps and the blink but was rejected (no weight shift, sideways
-   kicks). Regenerate with the [v3 march-in-place waddle prompt](walk_trial/v3_prompt.txt),
-   attaching the master and the [tiger motion reference](walk_trial/tiger_walk_motion_reference.png).
-   The [v3 trial](walk_trial/v3/README.md) still did not read as walking (legs never
-   cross). On 2026-10-05 the owner chose a [cut-out rig](rig/README.md) built from the
-   master instead; the layers are split and a draft walk awaits review.
-   The [v4 pose-guided AI trial](walk_trial/v4/README.md) is the first to cross the
-   legs (frames 4-5). Its [targeted fix](walk_trial/v4/README.md#fix-result-received-2026-10-05)
-   adds the image-left step and the half-blink; accepted on 2026-10-05 and exported (see step 2).
-   The [original trial](walk_trial/README.md) records the gait correction prompt.
-   The [walk prompt](walk_prompt.txt) defines eight gait
-   phases plus a duplicate first frame for closure comparison in a 3 × 3 sheet.
-   Preview frames 1–8 without doubling the endpoint hold. Split, align and review
-   each loop as with idle. The [sleep prompt](sleep_prompt.txt) proposes a seated,
-   slightly tucked pose with the face visible, eight breathing phases and a
-   closure-comparison frame. Sleep pose and generated artwork await review.
-2. Done for idle and walk on 2026-10-05: see the [runtime-style exports](export/README.md).
-   Sleep: a [nod + breathing loop](sleep_trial/README.md) built from the generated pose awaits review. Original step: prepare transparent frames for the selected idle, walk and sleep sequences.
-   Check light and dark backgrounds for white fringes and lost painted edges;
-   keep the cream belly and eye whites intact.
-3. If needed, prepare editable layers: shell, leaf tail, torso/belly, head, each arm,
-   each leg, and facial-expression layers. Reconstruct the torso behind the
-   hands and other hidden joints so movement does not expose gaps. AI-separated
-   parts require review for shape and texture consistency.
-4. Establish a shared 450 × 450 export canvas, consistent scale and foot baseline.
-   Use the accepted idle timing (1650 ms) and reviewed walk/sleep timing.
-   Do not crop and centre each frame
-   independently with the furniture normalizer.
-5. Review looping motion and small-size readability before Godot equipment
-   socket calibration, runtime PNG exports and pet-catalog integration.
+Walk took four AI versions. v1 lifted only one foot. v2 had alternating steps
+but no weight shift. The v3 march-in-place waddle had sideways kicks and no
+crossing. The rig-derived pose guide in v4, plus a targeted fix for frames 3
+and 6-8, was accepted. Each trial README records its prompt, measurements and
+review. The [walk prompt](walk_prompt.txt) and [sleep prompt](sleep_prompt.txt)
+are the originals. The sleep prompt asked for too little motion, which is why
+the sleep loop is procedural.
 
 The [generation prompt](gemini_prompt.txt) and [existing-pet reference](pet_style_reference.png)
 record the exploration setup; future edits should use the selected master.

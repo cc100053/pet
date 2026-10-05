@@ -338,7 +338,7 @@ petStateOverrides: {
 
 **Step 5 — Cross-check: pets with no JSON entry use the global default**
 
-If a pet has no `equipmentSettings` entry in any of its JSONs and no `per_pet` entry in `equipment_overrides.json`, it falls back to `equipment_overrides.json`'s `default`. In Flutter, this means it uses `EquipmentDefinition.anchor` (the default field). Ensure the Flutter default matches the Godot global default, **not** a pet-specific value.
+If a pet has no `equipmentSettings` entry in any of its JSONs and no `per_pet` entry in `equipment_overrides.json`, it falls back to `equipment_overrides.json`'s `default`. In Flutter, it uses `EquipmentDefinition.anchor`, the default field. These two do **not** currently match: the Flutter base is the ghost fit (straw hat and crown at anchor y 0.55), while the Godot default is y 0.75 for the straw hat and 0.7 for the crown. A pet reviewed on Godot defaults therefore needs explicit Flutter `petOverrides` with the Godot default values, as the turtle has.
 
 ---
 

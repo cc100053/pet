@@ -44,6 +44,18 @@ Run helper commands from the repository root.
 - Review loop closure and isolated one-frame jumps before accepting generated tracks.
 - Equipment anchors/sizes are independent from pet sockets; do not mix the two data sets.
 - Do not sync level 0–1 captures to production Flutter unless the user explicitly requests a provisional implementation.
+- Level-1 seeding: hand-place frame 0, then template-track each socket patch through
+  the later frames (turtle `design/pet_sketches/turtle_pond_buddy/sockets/estimate_sockets.py`).
+  A seeding script rewrites the scene JSON; never re-run it over reviewed captures.
+- Before syncing a reported review, confirm it reached disk: the JSON's modification
+  time is newer than the last scripted write, and the expected `equipmentSettings` are
+  present. Captures and settings that were never exported exist only in the open editor.
+- Fallbacks differ: Godot falls back to `equipment_overrides.json` `default`, while
+  Flutter falls back to the `EquipmentDefinition` base (the ghost fit). When a pet was
+  reviewed on Godot defaults, mirror those values as that pet's Flutter overrides.
+- Faces drawn at an angle: set the dock's **Rotation °**, which exports
+  `rotationDegrees` and maps to Flutter `EquipmentFitOverride.rotationDegrees`. Derive
+  it from the measured eye tilt per state (turtle `design/pet_sketches/turtle_pond_buddy/sockets/fit_glasses.py`).
 
 ## Review scale
 

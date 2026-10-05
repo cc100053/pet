@@ -47,10 +47,8 @@ registered as `turtle` in `PetCatalog` with `minAppVersion: '5.0.0'` (see
 [release status](../../../../docs/release_status.md)) and has sequences in
 `PetAnimationFrames`. Its name and tagline are localized in all five languages.
 
-Still pending:
+Device check at room size: passed (owner, 2026-10-05). Still pending:
 
 - Equipment sockets are synced to Flutter; see [sockets](../sockets/README.md).
 - The `notify_friend` push avatar falls back to the ghost, as for the chicken.
   Fixing it needs an R2 avatar plus a separately approved function deploy.
-- [USER ACTION REQUIRED] Check the turtle on a device at room size. This needs a
-  build with app version 5.0.0 or later, or a temporary local version change.

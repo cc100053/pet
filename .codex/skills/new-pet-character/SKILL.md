@@ -72,7 +72,10 @@ was received, the measurements and the review, then update the pet's README and
    every frame and GIF, and the gate is recorded.
 
 7. **Calibrate sockets before shipping.** Without a `PetSocketConfig`, equipped
-   items silently disappear on the pet. Use the pet-socket-calibration skill.
+   items silently disappear on the pet. Use the pet-socket-calibration skill:
+   seed level-1 estimates by tracking, then the owner reviews in Godot with
+   equipment. Before syncing, confirm the review was exported, and mirror any
+   Godot-default fits as pet overrides.
    Animated heads (such as the sleep nod) need per-frame tracks; the
    procedural parameters give a starting track. If the face is drawn at an angle,
    measure the eye tilt and give face items a per-state `rotationDegrees` (see
@@ -80,6 +83,7 @@ was received, the measurements and the review, then update the pet's README and
    reaches review level 2 and the tracks are synced.
 
 8. **Hand over the human checks.** Mark these `[USER ACTION REQUIRED]`: room-size
-   review on a device (needs a build at or above the gate), the push avatar
+   review on a device (needs a build at or above the gate, or a temporary local
+   version change; the turtle passed on the first check), the push avatar
    (`notify_friend` falls back to the ghost until an avatar is published and
    the function deployed under its own approval), and release timing.

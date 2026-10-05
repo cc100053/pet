@@ -32,7 +32,7 @@ remains within the canvas.
   is not an exact duplicate of frame 1. Translation cannot repair these details.
 - Review the actual frame 8 → frame 1 transition and support-foot changes in
   the aligned loop before accepting the motion. White backgrounds remain opaque;
-  transparency, runtime exports and equipment calibration are pending.
+  The trial was rejected; see the owner feedback below and the accepted [v4](../v4/README.md).
 
 ## Owner feedback (2026-10-05)
 

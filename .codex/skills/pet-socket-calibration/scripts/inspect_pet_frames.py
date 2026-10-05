@@ -19,7 +19,8 @@ def alpha_count(path: Path) -> tuple[int, tuple[int, int, int, int] | None]:
     with Image.open(path) as image:
         alpha = image.convert("RGBA").getchannel("A")
         return (
-            sum(1 for value in alpha.get_flattened_data() if value),
+            # get_flattened_data replaced getdata in newer Pillow; support both
+            sum(1 for value in getattr(alpha, "get_flattened_data", alpha.getdata)() if value),
             alpha.getbbox(),
         )
 

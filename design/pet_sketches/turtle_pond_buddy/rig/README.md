@@ -40,7 +40,9 @@ values that have not been reviewed yet.
 
 ## Open items
 
-- [USER ACTION REQUIRED] Review the layer cuts and the motion in the draft walk.
+- Not used for production: the pose-guided AI walk (v4) was accepted instead.
+  The rig remains the source of the [v4 pose guide](../walk_trial/v4/pose_guide.png)
+  and a fallback for future poses.
 - Add a blink: eyelid overlays on the body layer for half-closed and closed eyes.
 - Small seams remain where the tail meets the shell and along the leg-A thigh
   edge in some poses. Check them at app size before touching them up by hand.

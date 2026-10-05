@@ -33,5 +33,5 @@ of the sleep head, which missed its widest row and drew the head about 20% too l
 ## Review
 
 - At the deepest nod (frames 10-11), a tiny dark mark shows where the head
-  meets the shell rim. Check it at room size.
+  meets the shell rim. It was not visible in the owner's device check on 2026-10-05.
 - The owner accepted the motion on 2026-10-05, after the head-size fix.

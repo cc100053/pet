@@ -1,8 +1,8 @@
 # Turtle idle trial
 
 Received on 2026-10-05. The owner accepted the continuous-loop preview's motion
-and timing on 2026-10-05. Production transparency, room-size review and runtime
-integration are still pending.
+and timing on 2026-10-05. It was exported, integrated and checked on a device on
+2026-10-05 (see [export](../export/README.md)).
 The supplied [source sheet](source_sheet.png) is preserved byte-for-byte:
 1254 × 1254 RGB, nine 418 × 418 cells, opaque white background.
 
@@ -56,8 +56,8 @@ unchanged RGB frames, all durations and infinite loop setting.
   in foot shape, shell markings and painted texture remain and are not repaired.
 - Frame 9 resembles frame 1 but is not identical. The owner accepted the preview
   transition; verify remaining variations at actual room size during production.
-- Transparency, background-edge review, room-size acceptance, equipment calibration,
-  runtime catalog integration and release gates remain pending.
+- Done on 2026-10-05: transparency, edge review, room-size check, equipment
+  calibration and catalog integration behind the 5.0.0 gate.
 
 The selected [character master](../selected_master.png) remains the identity
 reference. Do not treat the normalized furniture workflow as a per-frame crop
