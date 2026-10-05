@@ -42,6 +42,8 @@ Load the matching repository skill:
 - Release notes / ASC metadata: `.codex/skills/release-notes-sync/SKILL.md`.
 - Shared item rollout or compatibility: `.codex/skills/shared-item-rollout/SKILL.md`.
 - New furniture art (design through shippable PNG): `.codex/skills/new-furniture-art/SKILL.md`.
+- New pet character (master art, idle/walk/sleep animation, export, wiring):
+  `.codex/skills/new-pet-character/SKILL.md`.
 - Godot sockets, sequence exports, equipment placement:
   `.codex/skills/pet-socket-calibration/SKILL.md`; consult the relevant socket or
   equipment sections of `docs/godot-png-sequence-socket-workflow.md`.
