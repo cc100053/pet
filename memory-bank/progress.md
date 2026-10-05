@@ -14,9 +14,10 @@ Current baseline and where live state is recorded. Full snapshots live in
   an upright pond turtle. Generated master with compact shell and leaf-shaped
   tail selected on 2026-10-05. Idle (9 frames, 1650 ms) and pose-guided AI walk
   v4 fix (8 frames, 1600 ms) accepted and exported as transparent 450 px
-  runtime-style PNGs in the design folder's `export/`; a procedural nod sleep loop awaits review. A cut-out rig remains as a
-  fallback. Room-size check, equipment calibration, catalog
-  integration (version gates, fallbacks) and rollout remain pending.
+  runtime-style PNGs; the procedural nod sleep loop was accepted. Wired into the app
+  as pet id `turtle`, gated at `minAppVersion` 5.0.0 (assets, catalog, frames,
+  localization, tests). Next: Godot equipment socket calibration, then a room-size
+  check on a device. A cut-out rig remains as a fallback.
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.
 

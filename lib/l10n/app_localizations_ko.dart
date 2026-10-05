@@ -1829,6 +1829,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get petTypeChickenTagline => '활기차게 걷는 복슬복슬한 친구.';
 
   @override
+  String get petTypeTurtleName => '거북이';
+
+  @override
+  String get petTypeTurtleTagline => '어디서든 꾸벅꾸벅 조는 느긋한 연못 친구.';
+
+  @override
   String get roomLeaveTitle => '방을 나갈까요?';
 
   @override

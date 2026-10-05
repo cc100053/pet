@@ -34,4 +34,4 @@ of the sleep head, which missed its widest row and drew the head about 20% too l
 
 - At the deepest nod (frames 10-11), a tiny dark mark shows where the head
   meets the shell rim. Check it at room size.
-- [USER ACTION REQUIRED] Review the motion: nod depth, speed and the z marks.
+- The owner accepted the motion on 2026-10-05, after the head-size fix.

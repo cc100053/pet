@@ -64,7 +64,7 @@ void main() {
       ),
       PetAnimationFrames.ghostIdle,
     );
-    expect(PetAnimationFrames.all, hasLength(15));
+    expect(PetAnimationFrames.all, hasLength(18));
     for (final sequence in PetAnimationFrames.all) {
       expect(sequence.frameAssets, isNotEmpty);
       expect(sequence.frameDurationsMs, hasLength(sequence.frameAssets.length));
@@ -94,6 +94,25 @@ void main() {
     ]);
     expect(PetAnimationFrames.chickenWalk.frameDurationsMs, everyElement(200));
     expect(PetAnimationFrames.chickenWalk.frameAssets, hasLength(8));
+  });
+
+  test('turtle sequences follow the exported timing', () {
+    expect(PetAnimationFrames.turtleIdle.frameDurationsMs, [
+      200,
+      200,
+      250,
+      200,
+      120,
+      160,
+      120,
+      200,
+      200,
+    ]);
+    expect(PetAnimationFrames.turtleIdle.totalDurationMs, 1650);
+    expect(PetAnimationFrames.turtleWalk.frameDurationsMs, everyElement(200));
+    expect(PetAnimationFrames.turtleWalk.frameAssets, hasLength(8));
+    expect(PetAnimationFrames.turtleSleep.frameDurationsMs, everyElement(160));
+    expect(PetAnimationFrames.turtleSleep.frameAssets, hasLength(16));
   });
 
   test('ghost sleep sequence matches exported socket frame count', () {

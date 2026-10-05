@@ -125,6 +125,7 @@ gate is moved.
 | Feature | Gate | Declared in | Server component | Compatibility note | Verified at |
 | --- | --- | --- | --- | --- | --- |
 | 換相框 room-frame casings (picker, equipped casings, coach bubble, subtitle copy) | `min_app_version = 3.0.0` | `RoomFrameSkins.minAppVersion`, read by `RoomSelectionView._framesEnabled` and Home frame sync | Uploaded `3.2.0+24` uses additive `room_frame_state`; already uploaded older binaries use Hive only | Below the gate, long press remains room options, cards render `original`, coach/subtitle are dark, and frame sync does not write Hive. Existing binaries ignore shared state and cannot overwrite it; unknown remote styles render `original` | 2026-09-13 |
+| Turtle pet (Little Pond Buddy): catalog, selection, PNG stay/walk/sleep sequences | `minAppVersion = 5.0.0` | `PetCatalog` (`lib/features/pet/pet_catalog.dart`), read by `visiblePetsForAppVersion` / `byIdForAppVersion` | None. `notify_friend` maps unknown pet types (turtle, chicken) to the ghost avatar | Hidden in 4.1.0 (build 30, attached, not submitted) and all earlier binaries: they lack the id and render `PetCatalog.defaultPetId` (ghost). Repository builds below 5.0.0 also hide it. No equipment sockets yet, so equipped items do not draw on the turtle; calibrate before shipping 5.0.0 | 2026-10-05 |
 
 ## Backend Deployments
 

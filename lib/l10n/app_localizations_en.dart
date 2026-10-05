@@ -1878,6 +1878,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A feathery friend with a lively little strut.';
 
   @override
+  String get petTypeTurtleName => 'Turtle';
+
+  @override
+  String get petTypeTurtleTagline =>
+      'A slow and steady pond buddy who can nap anywhere.';
+
+  @override
   String get roomLeaveTitle => 'Leave room?';
 
   @override

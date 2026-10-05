@@ -951,6 +951,8 @@
   "petTypeTigerTagline": "A striped prowler with a bold little swagger.",
   "petTypeChickenName": "Chicken",
   "petTypeChickenTagline": "A feathery friend with a lively little strut.",
+  "petTypeTurtleName": "Turtle",
+  "petTypeTurtleTagline": "A slow and steady pond buddy who can nap anywhere.",
   "roomLeaveTitle": "Leave room?",
   "roomLeaveMessage": "You'll leave {name} and lose access to its chat and pet.",
   "@roomLeaveMessage": {

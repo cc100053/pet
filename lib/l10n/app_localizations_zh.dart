@@ -1808,6 +1808,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get petTypeChickenTagline => '精神满满、昂首阔步的毛茸茸伙伴。';
 
   @override
+  String get petTypeTurtleName => '小乌龟';
+
+  @override
+  String get petTypeTurtleTagline => '慢悠悠、随时随地都能打个盹的池塘小伙伴。';
+
+  @override
   String get roomLeaveTitle => '要离开房间吗？';
 
   @override
@@ -4151,6 +4157,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get petTypeChickenTagline => '精神滿滿、昂首闊步的毛茸茸夥伴。';
+
+  @override
+  String get petTypeTurtleName => '小烏龜';
+
+  @override
+  String get petTypeTurtleTagline => '慢悠悠、隨時隨地都能打個盹的池塘小夥伴。';
 
   @override
   String get roomLeaveTitle => '要離開房間嗎？';

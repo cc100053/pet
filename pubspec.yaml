@@ -148,6 +148,7 @@ flutter:
     - assets/pet/cat/
     - assets/pet/fish/
     - assets/pet/tiger/
+    - assets/pet/turtle/
     - assets/pet_sequences/ghost/stay/
     - assets/pet_sequences/ghost/sleep/
     - assets/pet_sequences/ghost/walk/
@@ -163,6 +164,9 @@ flutter:
     - assets/pet_sequences/chicken/chicken-stay/
     - assets/pet_sequences/chicken/chicken-sleep/
     - assets/pet_sequences/chicken/chicken-moving/
+    - assets/pet_sequences/turtle/stay/
+    - assets/pet_sequences/turtle/sleep/
+    - assets/pet_sequences/turtle/walk/
     - assets/icon/
     - assets/shop/
     - assets/shop/icon/

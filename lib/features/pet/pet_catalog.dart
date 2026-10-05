@@ -113,6 +113,21 @@ class PetCatalog {
       ),
       minAppVersion: '2.3.0',
     ),
+    PetDefinition(
+      id: 'turtle',
+      name: (l10n) => l10n.petTypeTurtleName,
+      tagline: (l10n) => l10n.petTypeTurtleTagline,
+      stayAsset: 'assets/pet/turtle/turtle_stay.gif',
+      sleepAsset: 'assets/pet/turtle/turtle_sleep.gif',
+      walkAsset: 'assets/pet/turtle/turtle_moving.gif',
+      accent: const Color(0xFF7FA35B),
+      gradient: const LinearGradient(
+        colors: [Color(0xFFB5CA95), Color(0xFF7FA35B)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      minAppVersion: '5.0.0',
+    ),
   ];
 
   static PetDefinition? _byIdOrNull(String? id) {

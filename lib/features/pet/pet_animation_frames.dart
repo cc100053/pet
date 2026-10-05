@@ -67,6 +67,9 @@ class PetAnimationFrames {
     chickenIdle,
     chickenSleep,
     chickenWalk,
+    turtleIdle,
+    turtleSleep,
+    turtleWalk,
   ];
 
   static const PetFrameSequence ghostIdle = PetFrameSequence(
@@ -382,6 +385,80 @@ class PetAnimationFrames {
       'assets/pet_sequences/chicken/chicken-moving/chicken-moving-06.png',
       'assets/pet_sequences/chicken/chicken-moving/chicken-moving-07.png',
       'assets/pet_sequences/chicken/chicken-moving/chicken-moving-08.png',
+    ],
+  );
+
+  static const PetFrameSequence turtleIdle = PetFrameSequence(
+    petId: 'turtle',
+    sourceAsset: 'assets/pet/turtle/turtle_stay.gif',
+    frameDurationsMs: [200, 200, 250, 200, 120, 160, 120, 200, 200],
+    frameAssets: [
+      'assets/pet_sequences/turtle/stay/turtle_stay-01.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-02.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-03.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-04.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-05.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-06.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-07.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-08.png',
+      'assets/pet_sequences/turtle/stay/turtle_stay-09.png',
+    ],
+  );
+
+  static const PetFrameSequence turtleSleep = PetFrameSequence(
+    petId: 'turtle',
+    sourceAsset: 'assets/pet/turtle/turtle_sleep.gif',
+    frameDurationsMs: [
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+      160,
+    ],
+    frameAssets: [
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-01.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-02.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-03.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-04.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-05.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-06.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-07.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-08.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-09.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-10.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-11.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-12.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-13.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-14.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-15.png',
+      'assets/pet_sequences/turtle/sleep/turtle_sleep-16.png',
+    ],
+  );
+
+  static const PetFrameSequence turtleWalk = PetFrameSequence(
+    petId: 'turtle',
+    sourceAsset: 'assets/pet/turtle/turtle_moving.gif',
+    frameDurationsMs: [200, 200, 200, 200, 200, 200, 200, 200],
+    frameAssets: [
+      'assets/pet_sequences/turtle/walk/turtle_walk-01.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-02.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-03.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-04.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-05.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-06.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-07.png',
+      'assets/pet_sequences/turtle/walk/turtle_walk-08.png',
     ],
   );
 

@@ -3363,6 +3363,18 @@ abstract class AppLocalizations {
   /// **'A feathery friend with a lively little strut.'**
   String get petTypeChickenTagline;
 
+  /// No description provided for @petTypeTurtleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Turtle'**
+  String get petTypeTurtleName;
+
+  /// No description provided for @petTypeTurtleTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A slow and steady pond buddy who can nap anywhere.'**
+  String get petTypeTurtleTagline;
+
   /// No description provided for @roomLeaveTitle.
   ///
   /// In en, this message translates to:

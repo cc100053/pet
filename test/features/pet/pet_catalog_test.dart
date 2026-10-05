@@ -46,4 +46,26 @@ void main() {
       PetCatalog.defaultPetId,
     );
   });
+
+  test('turtle stays gated until version 5.0.0', () {
+    expect(PetCatalog.supportsIdOnAppVersion('turtle', '4.1.0'), isFalse);
+    expect(PetCatalog.supportsIdOnAppVersion('turtle', '4.9.9'), isFalse);
+    expect(PetCatalog.supportsIdOnAppVersion('turtle', '5.0.0'), isTrue);
+    expect(
+      PetCatalog.visiblePetsForAppVersion(
+        '4.1.0',
+      ).map((pet) => pet.id).contains('turtle'),
+      isFalse,
+    );
+    expect(
+      PetCatalog.visiblePetsForAppVersion(
+        '5.0.0',
+      ).map((pet) => pet.id).contains('turtle'),
+      isTrue,
+    );
+    expect(
+      PetCatalog.resolveIdForAppVersion('turtle', appVersion: '4.1.0'),
+      PetCatalog.defaultPetId,
+    );
+  });
 }
