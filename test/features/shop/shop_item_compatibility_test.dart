@@ -42,6 +42,18 @@ void main() {
     expect(item.previewAssetPath, 'assets/shop/icon/pet_ticket.png');
   });
 
+  test('500 candy pack previews its bundled jar art', () {
+    final item = ShopItem.fromJson({
+      'id': 'pack',
+      'sku': 'diamond_candy_pack_500',
+      'type': 'consumable',
+      'name': '500 Candy Pack',
+      'metadata': {'category': 'candy_pack', 'coin_amount': 500},
+    });
+
+    expect(item.previewAssetPath, 'assets/shop/icon/candy_pack_500.png');
+  });
+
   test('supports ungated items on any app version', () {
     final item = buildItem();
 

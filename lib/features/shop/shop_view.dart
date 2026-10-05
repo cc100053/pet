@@ -347,7 +347,7 @@ class _ShopViewState extends State<ShopView> {
     if (item.isFurniture) {
       return ShopFurnitureVisual(item: item, size: 34);
     }
-    if (item.isEquipment || item.isPetTicket) {
+    if (item.isEquipment || item.bundledIconPath != null) {
       return ShopCatalogItemVisual(item: item, size: 34);
     }
     final emoji = item.emoji?.trim();

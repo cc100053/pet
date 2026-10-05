@@ -85,9 +85,16 @@ class ShopItem {
   String? get equipmentSlot => equipmentSlotValue;
   String? get equipmentAssetPath => isEquipment ? furnitureAssetPath : null;
   String? get previewAssetPath =>
-      equipmentAssetPath ??
-      furnitureAssetPath ??
-      (isPetTicket ? 'assets/shop/icon/pet_ticket.png' : null);
+      equipmentAssetPath ?? furnitureAssetPath ?? bundledIconPath;
+
+  /// App-bundled art for non-placeable products; older clients show emoji.
+  String? get bundledIconPath {
+    if (isPetTicket) return 'assets/shop/icon/pet_ticket.png';
+    if (sku == 'diamond_candy_pack_500') {
+      return 'assets/shop/icon/candy_pack_500.png';
+    }
+    return null;
+  }
 
   bool isSupportedOnAppVersion(String? appVersion) {
     return SharedDecorCompatibility.canUseShopItem(

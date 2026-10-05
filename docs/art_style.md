@@ -27,7 +27,8 @@ outlines. Use `assets/shop/icon/candy.png` on white as the single style image
 (`design/furniture_sketches/shop_products/style_ref_glossy.png`), keep the
 §6.2 template's output rules, and swap its style bullets for that look. They
 ship as `assets/shop/icon/<name>.png` via the same normalize script, wired
-client-side through `ShopItem.previewAssetPath` (no catalog migration).
+client-side through `ShopItem.bundledIconPath` (no catalog migration). Paint
+glass as solid pale colour (the candy jar), never see-through (§4.6).
 
 ## 2. Readability at room size
 

@@ -178,7 +178,8 @@ class ShopGridItemCard extends StatelessWidget {
                                     height: 80,
                                     fit: BoxFit.contain,
                                   )
-                                : item.isEquipment || item.isPetTicket
+                                : item.isEquipment ||
+                                      item.bundledIconPath != null
                                 ? ShopCatalogItemVisual(
                                     item: item,
                                     size: 86,
