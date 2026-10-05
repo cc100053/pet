@@ -291,6 +291,13 @@ Priority to apply in Flutter mirrors the Godot lookup:
 - If one specific animation state differs → use `petStateOverrides` (idle/walk/sleep)
 - If it varies by exact walk vs idle vs sleep → use `petStateOverrides` with all three fields
 
+Godot exports anchor and size only. `EquipmentFitOverride.rotationDegrees`
+(clockwise, about the item centre) is Flutter-only and is set by hand for
+faces drawn at an angle; the turtle's sunglasses use it, with values from
+`design/pet_sketches/turtle_pond_buddy/sockets/fit_glasses.py`. Re-run that
+script after the head sockets change and keep any rotation when applying a
+new Godot export.
+
 **Step 2 — Default anchor = ghost / global-default value**
 
 The `EquipmentDefinition.anchor` is the fallback used when no `petOverrides` or `petStateOverrides` matches. Set it to the ghost (or default-global) values from the JSON.

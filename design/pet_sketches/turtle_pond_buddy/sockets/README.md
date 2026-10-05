@@ -30,6 +30,22 @@ Checks on 2026-10-05:
 | moving | 6, 5 | 3, 6 | 4, 7 |
 | sleep | 10, 5 | 2, 6 | 0, 1 |
 
+## Sunglasses (2026-10-05)
+
+The turtle's eyes are not level: the image-right eye sits lower. Measured
+across every frame, the tilt is about 6.4° in idle, 6.2° in walk and 10.2° in
+sleep (7-11° as the head nods). The eyes are about 89 px apart. The new
+`EquipmentFitOverride.rotationDegrees` tilts the item clockwise about its
+centre, and the flip for moving right mirrors it with the pet.
+[`fit_glasses.py`](fit_glasses.py) measures the eyes against the current head
+sockets and solves the lens-on-eye fit: width 0.52, and per-state anchors with
+rotations, now in `equipment_catalog.dart`. Its mock of the Flutter placement
+is [`review_glasses.png`](review_glasses.png).
+
+The fit depends on the head sockets, so re-run the script after the Godot
+review moves them. The sleep tilt is one median value; the per-frame head
+tilt varies by about ±2°.
+
 ## Next
 
 1. [USER ACTION REQUIRED] In Godot, use Scene Browser → turtle → each action,

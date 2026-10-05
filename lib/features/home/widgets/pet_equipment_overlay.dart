@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../pet/equipment_catalog.dart';
@@ -89,14 +91,17 @@ class PetEquipmentOverlay extends StatelessWidget {
           ),
           left: placement.topLeft.dx,
           top: placement.topLeft.dy,
-          child: Image.asset(
-            definition.assetPath,
-            width: placement.itemSize.width,
-            height: placement.itemSize.height,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) =>
-                const SizedBox.shrink(),
+          child: Transform.rotate(
+            angle: override.rotationDegrees * math.pi / 180,
+            child: Image.asset(
+              definition.assetPath,
+              width: placement.itemSize.width,
+              height: placement.itemSize.height,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
+            ),
           ),
         ),
       );

@@ -74,7 +74,9 @@ was received, the measurements and the review, then update the pet's README and
 7. **Calibrate sockets before shipping.** Without a `PetSocketConfig`, equipped
    items silently disappear on the pet. Use the pet-socket-calibration skill.
    Animated heads (such as the sleep nod) need per-frame tracks; the
-   procedural parameters give a starting track. Done when every state and slot
+   procedural parameters give a starting track. If the face is drawn at an angle,
+   measure the eye tilt and give face items a per-state `rotationDegrees` (see
+   the turtle's [fit_glasses.py](../../../design/pet_sketches/turtle_pond_buddy/sockets/fit_glasses.py)). Done when every state and slot
    reaches review level 2 and the tracks are synced.
 
 8. **Hand over the human checks.** Mark these `[USER ACTION REQUIRED]`: room-size

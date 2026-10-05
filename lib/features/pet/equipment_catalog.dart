@@ -30,12 +30,16 @@ class EquipmentFitOverride {
     this.scale = 1,
     this.anchor,
     this.sizeRatio,
+    this.rotationDegrees = 0,
   });
 
   final Offset offset;
   final double scale;
   final EquipmentAnchor? anchor;
   final EquipmentSize? sizeRatio;
+
+  /// Clockwise tilt about the item's centre, for faces drawn at an angle.
+  final double rotationDegrees;
 }
 
 class EquipmentStateFitOverrides {
@@ -252,6 +256,36 @@ class EquipmentCatalog {
           sizeRatio: EquipmentSize.fromWidthAspect(
             widthRatio: 0.45,
             aspectRatio: 1,
+          ),
+        ),
+        // Turtle eyes tilt down toward image-right; values from
+        // design/pet_sketches/turtle_pond_buddy/sockets/fit_glasses.py.
+        'turtle': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.524, y: 0.21),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.52,
+            aspectRatio: 1,
+          ),
+          rotationDegrees: 6.4,
+        ),
+      },
+      petStateOverrides: {
+        'turtle': EquipmentStateFitOverrides(
+          walk: EquipmentFitOverride(
+            anchor: EquipmentAnchor(x: 0.535, y: 0.196),
+            sizeRatio: EquipmentSize.fromWidthAspect(
+              widthRatio: 0.52,
+              aspectRatio: 1,
+            ),
+            rotationDegrees: 6.2,
+          ),
+          sleep: EquipmentFitOverride(
+            anchor: EquipmentAnchor(x: 0.556, y: 0.103),
+            sizeRatio: EquipmentSize.fromWidthAspect(
+              widthRatio: 0.52,
+              aspectRatio: 1,
+            ),
+            rotationDegrees: 10.2,
           ),
         ),
       },

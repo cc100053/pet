@@ -193,6 +193,45 @@ void main() {
     expect(image.height, closeTo(10, 0.001));
   });
 
+  testWidgets('rotates equipment by the fit override tilt', (tester) async {
+    const definition = EquipmentDefinition(
+      sku: 'test_glasses',
+      slot: PetEquipmentSlot.face,
+      anchor: EquipmentAnchor(x: 0.5, y: 0.5),
+      sizeRatio: EquipmentSize(w: 0.4, h: 0.4),
+      assetPath: 'assets/equipment/sunglasses.png',
+      petOverrides: {'ghost': EquipmentFitOverride(rotationDegrees: 90)},
+    );
+
+    await tester.pumpWidget(
+      buildHarness(
+        const PetEquipmentOverlay(
+          petId: 'ghost',
+          equippedSkusBySlot: {PetEquipmentSlot.face: 'test_glasses'},
+          petSize: Size(100, 100),
+          layer: PetEquipmentOverlayLayer.frontPet,
+          definitions: [definition],
+        ),
+      ),
+    );
+
+    final transform = tester.widget<Transform>(
+      find.descendant(
+        of: find.byKey(
+          const ValueKey('pet-equipment-frontPet-face-test_glasses'),
+        ),
+        matching: find.byType(Transform),
+      ),
+    );
+    // 90 degrees clockwise maps +x to +y.
+    final origin = MatrixUtils.transformPoint(transform.transform, Offset.zero);
+    final rotated =
+        MatrixUtils.transformPoint(transform.transform, const Offset(1, 0)) -
+        origin;
+    expect(rotated.dx, closeTo(0, 1e-9));
+    expect(rotated.dy, closeTo(1, 1e-9));
+  });
+
   testWidgets('applies per-state anchor and size override', (tester) async {
     const definition = EquipmentDefinition(
       sku: 'test_hat',
