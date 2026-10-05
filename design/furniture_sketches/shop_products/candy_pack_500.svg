@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="450" height="450" viewBox="0 0 450 450"><defs>
+<filter id="paint" x="-8%" y="-8%" width="116%" height="116%">
+ <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4" result="warp"/>
+ <feDisplacementMap in="SourceGraphic" in2="warp" scale="5" xChannelSelector="R" yChannelSelector="G" result="w"/>
+ <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="9" result="n"/>
+ <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 -0.28" result="na"/>
+ <feComposite in="na" in2="w" operator="in" result="grain"/>
+ <feMerge><feMergeNode in="w"/><feMergeNode in="grain"/></feMerge>
+</filter>
+</defs><g filter="url(#paint)" stroke-linejoin="round" stroke-linecap="round">
+<path d="M110,200 L340,200 L362,404 C362,412 356,416 348,416 L102,416 C94,416 88,412 88,404 Z" fill="#F8E7CE" stroke="#C9A97A" stroke-width="6"/>
+<clipPath id="bag"><path d="M110,200 L340,200 L362,404 L88,404 Z"/></clipPath>
+<g clip-path="url(#bag)" fill="#F4B6BE">
+ <path d="M120,200 h36 l-14,216 h-36 Z"/><path d="M196,200 h36 l0,216 h-36 Z"/><path d="M272,200 h36 l16,216 h-36 Z"/>
+</g>
+<path d="M110,200 L340,200 L362,404 C362,412 356,416 348,416 L102,416 C94,416 88,412 88,404 Z" fill="none" stroke="#C9A97A" stroke-width="6"/>
+<g transform="translate(225,168) rotate(0) scale(1.1)">
+<path d="M-24,0 L-50,-18 L-44,0 L-50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<path d="M24,0 L50,-18 L44,0 L50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<circle r="30" fill="#F8E7CE" stroke="#C25C6C" stroke-width="4"/>
+<circle r="19" fill="none" stroke="#E46A7A" stroke-width="6"/>
+<path d="M0,-11 l3.5,7 8,1 -6,5.5 1.5,8 -7,-4 -7,4 1.5,-8 -6,-5.5 8,-1 Z" fill="#E46A7A"/></g><g transform="translate(158,196) rotate(-20) scale(1)">
+<path d="M-24,0 L-50,-18 L-44,0 L-50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<path d="M24,0 L50,-18 L44,0 L50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<circle r="30" fill="#F8E7CE" stroke="#C25C6C" stroke-width="4"/>
+<circle r="19" fill="none" stroke="#E46A7A" stroke-width="6"/>
+<path d="M0,-11 l3.5,7 8,1 -6,5.5 1.5,8 -7,-4 -7,4 1.5,-8 -6,-5.5 8,-1 Z" fill="#E46A7A"/></g><g transform="translate(292,194) rotate(22) scale(1)">
+<path d="M-24,0 L-50,-18 L-44,0 L-50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<path d="M24,0 L50,-18 L44,0 L50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<circle r="30" fill="#F8E7CE" stroke="#C25C6C" stroke-width="4"/>
+<circle r="19" fill="none" stroke="#E46A7A" stroke-width="6"/>
+<path d="M0,-11 l3.5,7 8,1 -6,5.5 1.5,8 -7,-4 -7,4 1.5,-8 -6,-5.5 8,-1 Z" fill="#E46A7A"/></g>
+<path d="M104,206 C150,222 300,222 346,206 L342,232 C300,248 150,248 108,232 Z" fill="#9DB59C" stroke="#6F8C6E" stroke-width="5"/>
+<path d="M225,226 C196,196 168,206 176,230 C184,250 210,240 225,226 C240,240 266,250 274,230 C282,206 254,196 225,226 Z" fill="#9DB59C" stroke="#6F8C6E" stroke-width="5"/>
+<circle cx="225" cy="228" r="11" fill="#7FA07E" stroke="#6F8C6E" stroke-width="4"/>
+<g transform="translate(226,330) rotate(-8) scale(1.25)">
+<path d="M-24,0 L-50,-18 L-44,0 L-50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<path d="M24,0 L50,-18 L44,0 L50,18 Z" fill="#EE8A96" stroke="#C25C6C" stroke-width="4"/>
+<circle r="30" fill="#F8E7CE" stroke="#C25C6C" stroke-width="4"/>
+<circle r="19" fill="none" stroke="#E46A7A" stroke-width="6"/>
+<path d="M0,-11 l3.5,7 8,1 -6,5.5 1.5,8 -7,-4 -7,4 1.5,-8 -6,-5.5 8,-1 Z" fill="#E46A7A"/></g>
+<path d="M112,262 L102,390" stroke="#FFFFFF" stroke-width="6" opacity=".6"/>
+</g></svg>

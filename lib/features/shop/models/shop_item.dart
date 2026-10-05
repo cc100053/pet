@@ -84,7 +84,10 @@ class ShopItem {
       (shopVisibility ?? '').trim().toLowerCase() == 'hidden';
   String? get equipmentSlot => equipmentSlotValue;
   String? get equipmentAssetPath => isEquipment ? furnitureAssetPath : null;
-  String? get previewAssetPath => equipmentAssetPath ?? furnitureAssetPath;
+  String? get previewAssetPath =>
+      equipmentAssetPath ??
+      furnitureAssetPath ??
+      (isPetTicket ? 'assets/shop/icon/pet_ticket.png' : null);
 
   bool isSupportedOnAppVersion(String? appVersion) {
     return SharedDecorCompatibility.canUseShopItem(

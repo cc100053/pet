@@ -20,6 +20,15 @@ outliers. Do not use them as references.
 | Mood | Cute and cozy. Halloween means "friendly", never scary, gory or realistic |
 | View | Straight-on front view or a slight ¾ from above. No strong perspective |
 
+**Shop product icons are the exception.** Non-placeable products (currency,
+Pet Ticket, candy packs) match the glossy currency icons in
+`assets/shop/icon/` instead: soft puffy 3D, gentle gradients, darker-shade
+outlines. Use `assets/shop/icon/candy.png` on white as the single style image
+(`design/furniture_sketches/shop_products/style_ref_glossy.png`), keep the
+§6.2 template's output rules, and swap its style bullets for that look. They
+ship as `assets/shop/icon/<name>.png` via the same normalize script, wired
+client-side through `ShopItem.previewAssetPath` (no catalog migration).
+
 ## 2. Readability at room size
 
 Furniture renders at about **42 pt wide at scale 1.0**

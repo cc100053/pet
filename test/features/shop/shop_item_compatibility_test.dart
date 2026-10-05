@@ -30,6 +30,18 @@ void main() {
     );
   }
 
+  test('pet ticket previews its bundled ticket art', () {
+    final item = ShopItem.fromJson({
+      'id': 'ticket',
+      'sku': 'pet_ticket',
+      'type': 'consumable',
+      'name': 'Pet Ticket',
+      'metadata': {'category': 'pet_ticket'},
+    });
+
+    expect(item.previewAssetPath, 'assets/shop/icon/pet_ticket.png');
+  });
+
   test('supports ungated items on any app version', () {
     final item = buildItem();
 
