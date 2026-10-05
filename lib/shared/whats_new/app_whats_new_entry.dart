@@ -3,7 +3,16 @@ import 'package:pet/l10n/app_localizations.dart';
 typedef AppWhatsNewTextBuilder = String Function(AppLocalizations l10n);
 
 /// Fixed icon set for What's New rows; the toast maps each to an icon and tint.
-enum AppWhatsNewIcon { newItem, newPet, design, feature, social, fix }
+enum AppWhatsNewIcon {
+  newItem,
+  newPet,
+  newRoom,
+  petTicket,
+  design,
+  feature,
+  social,
+  fix,
+}
 
 class AppWhatsNewEntry {
   const AppWhatsNewEntry({
@@ -13,6 +22,7 @@ class AppWhatsNewEntry {
     this.bulletIcons = const <AppWhatsNewIcon>[],
     this.bulletDetailBuilders = const <AppWhatsNewTextBuilder?>[],
     this.actionLabelBuilder,
+    this.heroPetId,
   });
 
   final String version;
@@ -28,6 +38,9 @@ class AppWhatsNewEntry {
   /// Optional one-line detail per row, parallel to [bulletBuilders].
   final List<AppWhatsNewTextBuilder?> bulletDetailBuilders;
   final AppWhatsNewTextBuilder? actionLabelBuilder;
+
+  /// Pet shown animated above the rows, for releases that introduce a pet.
+  final String? heroPetId;
 
   String title(AppLocalizations l10n) => titleBuilder(l10n);
 

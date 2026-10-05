@@ -2263,6 +2263,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '스크롤 중 표시돼요';
 
   @override
+  String get whatsNew500Title => '거북이가 왔어요';
+
+  @override
+  String get whatsNew500Bullet1 => '새 방 만들기';
+
+  @override
+  String get whatsNew500Bullet1Detail => '첫 펫으로 거북이 선택';
+
+  @override
+  String get whatsNew500Bullet2 => '펫 티켓 사용하기';
+
+  @override
+  String get whatsNew500Bullet2Detail => '상점에서 거북이 초대';
+
+  @override
   String get whatsNew321Title => '먹이 주기와 텍스트 수정';
 
   @override

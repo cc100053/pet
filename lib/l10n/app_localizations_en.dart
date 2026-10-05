@@ -2362,6 +2362,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'See the day while scrolling';
 
   @override
+  String get whatsNew500Title => 'Meet Turtle';
+
+  @override
+  String get whatsNew500Bullet1 => 'Start a new room';
+
+  @override
+  String get whatsNew500Bullet1Detail => 'Pick Turtle as your first pet';
+
+  @override
+  String get whatsNew500Bullet2 => 'Use a Pet Ticket';
+
+  @override
+  String get whatsNew500Bullet2Detail => 'Invite Turtle from the shop';
+
+  @override
   String get whatsNew321Title => 'Feed & Text Fixes';
 
   @override

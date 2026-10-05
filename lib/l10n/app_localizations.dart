@@ -4185,6 +4185,36 @@ abstract class AppLocalizations {
   /// **'See the day while scrolling'**
   String get whatsNew410Bullet3Detail;
 
+  /// No description provided for @whatsNew500Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet Turtle'**
+  String get whatsNew500Title;
+
+  /// No description provided for @whatsNew500Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new room'**
+  String get whatsNew500Bullet1;
+
+  /// No description provided for @whatsNew500Bullet1Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick Turtle as your first pet'**
+  String get whatsNew500Bullet1Detail;
+
+  /// No description provided for @whatsNew500Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a Pet Ticket'**
+  String get whatsNew500Bullet2;
+
+  /// No description provided for @whatsNew500Bullet2Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Turtle from the shop'**
+  String get whatsNew500Bullet2Detail;
+
   /// No description provided for @whatsNew321Title.
   ///
   /// In en, this message translates to:

@@ -2239,6 +2239,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '轻松查看对话日期';
 
   @override
+  String get whatsNew500Title => '小乌龟登场';
+
+  @override
+  String get whatsNew500Bullet1 => '创建新房间';
+
+  @override
+  String get whatsNew500Bullet1Detail => '选小乌龟当第一只宠物';
+
+  @override
+  String get whatsNew500Bullet2 => '使用宠物券';
+
+  @override
+  String get whatsNew500Bullet2Detail => '在商店邀请小乌龟';
+
+  @override
   String get whatsNew321Title => '喂食与文字修复';
 
   @override
@@ -4588,6 +4603,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew410Bullet3Detail => '輕鬆掌握對話日期';
+
+  @override
+  String get whatsNew500Title => '小烏龜登場';
+
+  @override
+  String get whatsNew500Bullet1 => '建立新房間';
+
+  @override
+  String get whatsNew500Bullet1Detail => '選小烏龜當第一隻寵物';
+
+  @override
+  String get whatsNew500Bullet2 => '使用寵物券';
+
+  @override
+  String get whatsNew500Bullet2Detail => '在商店邀請小烏龜';
 
   @override
   String get whatsNew321Title => '餵食與文字修正';

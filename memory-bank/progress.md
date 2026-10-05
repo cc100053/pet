@@ -14,7 +14,9 @@ Current baseline and where live state is recorded. Full snapshots live in
   is production-complete as pet id `turtle`, gated at `minAppVersion` 5.0.0:
   idle 9 frames/1650 ms, pose-guided walk 8/1600 ms, procedural nod sleep
   16/2560 ms. Sockets and fits (tilted sunglasses) are synced, and the owner
-  checked it on a device on 2026-10-05. Open: 5.0.0 release timing and the
+  checked it on a device on 2026-10-05. The bundled 5.0.0 What's New shows
+  Turtle animated with its two paths (new room, Pet Ticket); ASC copy is not
+  drafted yet. Open: 5.0.0 release timing and the
   `notify_friend` push avatar (falls back to the ghost).
 - Behaviour and contracts live in their canonical sources: architecture,
   schema, and UI in this folder; runbooks under `docs/`.

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pet/l10n/app_localizations.dart';
 
+import '../../features/pet/pet_animated_image.dart';
+import '../../features/pet/pet_catalog.dart';
 import '../theme/app_theme.dart';
 import 'app_whats_new_entry.dart';
 
-/// Centered version pill plus up to three tinted tiles (icon, headline,
-/// optional detail).
+/// Centered version pill, an optional animated hero pet, then up to three
+/// tinted tiles (icon, headline, optional detail).
 /// The entry title is the toast's `message`, so it is not repeated here.
 class WhatsNewToastBody extends StatelessWidget {
   const WhatsNewToastBody({
@@ -30,6 +32,10 @@ class WhatsNewToastBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Center(child: _VersionPill(version: version)),
+        if (entry.heroPetId case final petId?) ...[
+          const SizedBox(height: 12),
+          _HeroPet(pet: PetCatalog.byId(petId)),
+        ],
         for (var index = 0; index < bullets.length; index++) ...[
           SizedBox(height: index == 0 ? 14 : 8),
           _Tile(
@@ -72,6 +78,25 @@ class _VersionPill extends StatelessWidget {
   }
 }
 
+class _HeroPet extends StatelessWidget {
+  const _HeroPet({required this.pet});
+
+  final PetDefinition pet;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 112,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: pet.accent.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: PetAnimatedImage(sourceAsset: pet.stayAsset, fit: BoxFit.contain),
+    );
+  }
+}
+
 class _Tile extends StatelessWidget {
   const _Tile({required this.icon, required this.headline, this.detail});
 
@@ -82,6 +107,11 @@ class _Tile extends StatelessWidget {
   static (IconData, Color) _style(AppWhatsNewIcon icon) => switch (icon) {
     AppWhatsNewIcon.newItem => (Icons.chair_rounded, AppTheme.secondaryColor),
     AppWhatsNewIcon.newPet => (Icons.pets_rounded, AppTheme.wood),
+    AppWhatsNewIcon.newRoom => (Icons.add_home_rounded, AppTheme.wood),
+    AppWhatsNewIcon.petTicket => (
+      Icons.confirmation_number_rounded,
+      AppTheme.sky,
+    ),
     AppWhatsNewIcon.design => (Icons.palette_rounded, AppTheme.sakura),
     AppWhatsNewIcon.feature => (Icons.auto_awesome_rounded, AppTheme.leaf),
     AppWhatsNewIcon.social => (Icons.forum_rounded, AppTheme.sky),

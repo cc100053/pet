@@ -49,9 +49,13 @@ reply ("local only", "metadata only") limits the scope accordingly.
     name plus "and more"), never a list of every item. Max ja/zh 16 chars,
     ko 18, en 32.
   - `bulletIcons`: pick from `AppWhatsNewIcon` — `newItem` (furniture,
-    equipment, backgrounds), `newPet`, `design` (visual refresh), `feature`
+    equipment, backgrounds), `newPet`, `newRoom` (start a room), `petTicket`
+    (invite a pet with a Pet Ticket), `design` (visual refresh), `feature`
     (new capability), `social` (chat, shared rooms, invites), `fix`
     (bug fixes, stability). Add an enum value only with approval.
+  - `heroPetId`: optional; a release that introduces a pet shows it animated
+    above the rows (5.0.0 Turtle). Pair it with rows that say how to get the
+    pet (new room, Pet Ticket) rather than describing the pet.
   - Title stays short (it is the dialog heading): ja/zh ≤16 chars, ko ≤18, en ≤32.
   - Use shop-visible item names (the localized `ShopItem` name), not
     alternative names from marketing copy.
