@@ -15,7 +15,7 @@ from PIL import Image
 sys.path.insert(0, 'walk_trial')
 sys.path.insert(0, 'export')
 from split_sheet import colours, colour_luts, apply_luts  # noqa: E402
-from export_frames import cut_out, bbox, head_width, head_centre_x, BASE_Y  # noqa: E402
+from export_frames import cut_out, bbox, head_centre_x, BASE_Y  # noqa: E402
 
 FRAMES, MS = 16, 160                 # 2560 ms loop
 NOD_DROP, NOD_TILT = 9, 4.0          # cell px / degrees at the deepest point of the nod
@@ -99,7 +99,14 @@ def frame(i):
 def main():
     # same character size and placement as the exported stay frames
     stay = [Image.open(f'export/stay/turtle_stay-{i:02d}.png') for i in range(1, 10)]
-    scale = np.median([head_width(f) for f in stay]) / head_width(head_img)
+    # compare full head widths: widest row in the stay head band (top 40%, above the shell)
+    # against the widest row of the isolated sleep head layer
+    def widest(img, frac=1.0):
+        a = np.asarray(img)[..., 3] > 128
+        ys = np.nonzero(a.any(1))[0]
+        rows = a[ys.min(): ys.min() + int(frac * (ys.max() - ys.min())) + 1]
+        return max(np.ptp(np.nonzero(r)[0]) for r in rows if r.any())
+    scale = np.median([widest(f, 0.4) for f in stay]) / widest(head_img)
     target_head_x = np.mean([head_centre_x(f) for f in stay])
     ground = bbox(body_img)[3]
     hx = head_centre_x(head_img)

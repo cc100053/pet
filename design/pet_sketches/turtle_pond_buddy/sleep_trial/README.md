@@ -22,8 +22,12 @@ redrawn, so detail and colour do not change between frames:
   the top of the script.
 
 Running `python3 sleep_trial/animate_sleep.py` writes
-`export/sleep/turtle_sleep-01..16.png`. These are 450 × 450 RGBA, at the stay
-frames' head width and head position, with feet on y=432. It also writes
+`export/sleep/turtle_sleep-01..16.png`. These are 450 × 450 RGBA, with feet on
+y=432 and the head at the stay frames' position. Scaling compares full head
+widths: the widest row of the stay head band (the top 40%, above the shell)
+against the widest row of the isolated sleep head. Measured heads after export:
+stay 205 px, walk 205 px, sleep 207 px. The first export used a top-30% band
+of the sleep head, which missed its widest row and drew the head about 20% too large. It also writes
 `export/review/sleep_{light,dark}.gif`.
 
 ## Review
