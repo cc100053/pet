@@ -75,6 +75,5 @@ loops, the [contact sheet](fix/aligned_contact_sheet.png) and the
   and belly (253, 236, 197).
 - The background has faint green specks (minimum RGB 157, 169, 140 in the
   top-left corner). The transparency step must remove them.
-- [USER ACTION REQUIRED] Review the continuous loop. If it is accepted, the
-  remaining work is transparency, export scale and baseline against the idle,
-  and the runtime PNGs.
+- The owner accepted the loop on 2026-10-05. Frames 1-8 are exported in
+  [`../../export/`](../../export/README.md).
