@@ -143,6 +143,14 @@ class EquipmentCatalog {
             aspectRatio: 1821 / 700,
           ),
         ),
+        // Turtle was reviewed in Godot on the global default fit.
+        'turtle': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.75),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.8,
+            aspectRatio: 1821 / 700,
+          ),
+        ),
       },
       zOrder: 1,
     ),
@@ -182,6 +190,14 @@ class EquipmentCatalog {
         ),
         'chicken': EquipmentFitOverride(
           anchor: EquipmentAnchor(x: 0.35, y: 0.85),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
+        // Turtle was reviewed in Godot on the global default fit.
+        'turtle': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.7),
           sizeRatio: EquipmentSize.fromWidthAspect(
             widthRatio: 0.32,
             aspectRatio: 1,

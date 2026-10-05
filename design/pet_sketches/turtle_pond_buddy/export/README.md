@@ -49,9 +49,7 @@ registered as `turtle` in `PetCatalog` with `minAppVersion: '5.0.0'` (see
 
 Still pending:
 
-- Equipment sockets are at review level 1 in the Godot project; see
-  [sockets](../sockets/README.md). Until they are synced, equipped items do not
-  draw on the turtle.
+- Equipment sockets are synced to Flutter; see [sockets](../sockets/README.md).
 - The `notify_friend` push avatar falls back to the ghost, as for the chicken.
   Fixing it needs an R2 avatar plus a separately approved function deploy.
 - [USER ACTION REQUIRED] Check the turtle on a device at room size. This needs a

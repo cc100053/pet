@@ -251,4 +251,35 @@ void main() {
     expect(track.sample(700 / 800), const Offset(2, 0));
     expect(track.sample(1), const Offset(2, 0));
   });
+
+  test('turtle sockets cover every exported frame of each sequence', () {
+    final turtle = PetSocketCatalog.forPet('turtle')!;
+    expect(
+      turtle.resolve(PetEquipmentSlot.head),
+      isA<PetSocket>()
+          .having((socket) => socket.x, 'x', 0.377777778)
+          .having((socket) => socket.y, 'y', 0.16),
+    );
+    final cases = {
+      PetAnimationFrames.turtleIdle: turtle.idleMotionTracksBySlot,
+      PetAnimationFrames.turtleWalk: turtle.walkMotionTracksBySlot,
+      PetAnimationFrames.turtleSleep: turtle.sleepMotionTracksBySlot,
+    };
+    for (final entry in cases.entries) {
+      for (final slot in [
+        PetEquipmentSlot.head,
+        PetEquipmentSlot.body,
+        PetEquipmentSlot.back,
+      ]) {
+        final track = entry.value[slot];
+        if (track == null) {
+          continue;
+        }
+        expect(track.frameDurationsMs, entry.key.frameDurationsMs);
+      }
+    }
+    expect(turtle.idleMotionTracksBySlot, isNotEmpty);
+    expect(turtle.walkMotionTracksBySlot, isNotEmpty);
+    expect(turtle.sleepMotionTracksBySlot, isNotEmpty);
+  });
 }

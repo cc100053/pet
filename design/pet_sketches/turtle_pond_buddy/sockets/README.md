@@ -1,6 +1,15 @@
 # Turtle equipment sockets
 
-Started on 2026-10-05. **Review level 1 (estimated): not synced to Flutter.**
+Started on 2026-10-05. On 2026-10-05 the owner reported hats and the back socket
+as calibrated (level 2), and the sockets were **synced to Flutter**:
+`PetSocketConfig('turtle')` in `pet_sockets.dart` comes from
+`generate_flutter_tracks.py --track-threshold 0`, with motion tracks for all
+three states. At sync time the Godot JSON still matched the level-1 estimates,
+with no hat or back equipment settings exported. Hats therefore use the Godot
+global default fit, mirrored as turtle overrides in `equipment_catalog.dart`
+(straw hat anchor (0.5, 0.75) at 0.8; crown (0.5, 0.7) at 0.32), because the
+Flutter fallback is the ghost fit. No back-slot equipment exists yet. If any
+hat was tuned without **Export Sockets**, export it and sync again.
 
 [`estimate_sockets.py`](estimate_sockets.py), run from the repository root:
 
