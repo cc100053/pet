@@ -49,9 +49,9 @@ registered as `turtle` in `PetCatalog` with `minAppVersion: '5.0.0'` (see
 
 Still pending:
 
-- Godot equipment socket calibration (pet-socket-calibration skill). Until it is
-  done, equipped items do not draw on the turtle. The calibration also needs
-  equipment fit overrides in `equipment_catalog.dart`.
+- Equipment sockets are at review level 1 in the Godot project; see
+  [sockets](../sockets/README.md). Until they are synced, equipped items do not
+  draw on the turtle.
 - The `notify_friend` push avatar falls back to the ghost, as for the chicken.
   Fixing it needs an R2 avatar plus a separately approved function deploy.
 - [USER ACTION REQUIRED] Check the turtle on a device at room size. This needs a
