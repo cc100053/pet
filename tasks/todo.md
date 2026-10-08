@@ -1,6 +1,13 @@
 # TODO
 
 ## Active follow-ups
+- [ ] Rotate the R2 access key and `NOTIFY_WEBHOOK_SECRET`: the app bundles
+      `.env` as a Flutter asset, and the 5.0.0 archive's
+      `flutter_assets/.env` contains both in plain text (the app uses
+      neither). Then bundle a client-only env file `[USER ACTION REQUIRED]`.
+- [ ] The admin debug coin tool (`lib/features/home/home_view_debug.dart`)
+      writes `profiles.coins`/`diamonds` directly and now fails silently
+      since those columns are server-only; replace it with an admin RPC.
 - [ ] Onboarding redesign (B + C hybrid): plan and phase-0 approvals in
       `tasks/onboarding_redesign.md`.
 - [ ] Confirm build 31's Runner UUID `56233931-A031-3B30-BCF8-A5E536E9AF6B`

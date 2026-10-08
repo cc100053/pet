@@ -33,6 +33,15 @@ migration that rewrites the object.
   `source = 'onboarding'`, and a partial unique index on
   `(user_id, metadata->>'task')` limits each task to one grant per account.
   `authenticated` only.
+- Currency columns are server-only (since `20261008150000` and
+  `20261008151000`, run by the owner in the SQL Editor on 2026-10-08, so not
+  in `schema_migrations`). Clients cannot write `coin_ledger` at all (no
+  INSERT policy, no write grants; SELECT own rows only) and may only INSERT
+  `profiles (user_id, nickname, avatar_url, locale, timezone)` and UPDATE
+  `profiles (nickname, avatar_url, locale, timezone)`. `coins`/`diamonds`
+  change only inside SECURITY DEFINER functions;
+  `purchase_room_background_with_coins` became definer for this. A new
+  client-writable `profiles` column needs its own column grant.
 - `leave_room` is idempotent: leaving without an active membership is a silent
   no-op, and an already-inactive membership keeps its original `left_at`.
 - Invite-code RPCs are reusable and default first-party creation/regeneration
