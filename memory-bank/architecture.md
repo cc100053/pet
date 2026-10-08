@@ -84,6 +84,10 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   `SignInView(invited: true)`. Any pending invite code (link or typed) shows
   the invited sign-in; joining still happens after sign-in through the home
   pending-invite path. Back from invited clears the pending code.
+- The post-sign-in profile step stays in `HomeView`
+  (`home_onboarding_flow.dart`), which `build()` returns as a full page
+  whenever that step is active. Apple's given name is copied to auth
+  `user_metadata.given_name` at sign-in (Apple sends it only once).
 
 ## Backend And Platform
 - Supabase Auth/Postgres/Realtime back shared gameplay and chat; active Edge

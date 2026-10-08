@@ -2439,4 +2439,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onboardingInviteLandingSubtitle => '로그인하고 친구의 펫 방에 참여하세요.';
+
+  @override
+  String onboardingProfileSignedInWith(String provider) {
+    return '$provider로 로그인됨';
+  }
+
+  @override
+  String get onboardingSignInTitle => '펫이 당신을 찾을 수 있도록';
+
+  @override
+  String get onboardingSignInSubtitle =>
+      '함께 키우려면 두 사람 모두 계정이 필요해요. 이름은 Apple 또는 Google에서 가져와요.';
 }

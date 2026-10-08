@@ -66,6 +66,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Signed-out entry is a two-option Welcome ("Start a new pet" / "I was
   invited"). The invited sign-in shows generic copy only: no room, pet or
   inviter data before sign-in.
+- After sign-in, the `profile_setup` step is a full Mori page (provider chip,
+  optional photo, required name prefilled from Apple/Google), shown even
+  inside a joined room so invited users get it too.
 
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.

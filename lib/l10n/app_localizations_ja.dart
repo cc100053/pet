@@ -2429,4 +2429,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingInviteLandingSubtitle => 'サインインして友だちのペットのお部屋に参加しよう。';
+
+  @override
+  String onboardingProfileSignedInWith(String provider) {
+    return '$providerでサインイン済み';
+  }
+
+  @override
+  String get onboardingSignInTitle => 'ペットがあなたを見つけられるように';
+
+  @override
+  String get onboardingSignInSubtitle =>
+      'いっしょに育てるには、ふたりともアカウントが必要です。名前はAppleまたはGoogleから入力します。';
 }

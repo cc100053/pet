@@ -21,10 +21,11 @@ extension _HomeOnboardingFlow on _HomeViewState {
     return !_basicOnboardingDismissed && !_basicOnboardingCompleted;
   }
 
+  // Full page, not tied to room selection: an invited user may already be in
+  // the joined room when this step runs, and still needs a name.
   bool get _isProfileSetupOnboardingStepActive {
     return _isBasicOnboardingActive &&
-        _basicOnboardingStep == _BasicOnboardingStep.profileSetup &&
-        _showRoomSelection;
+        _basicOnboardingStep == _BasicOnboardingStep.profileSetup;
   }
 
   bool get _isCreatePetOnboardingStepActive {
@@ -229,8 +230,9 @@ extension _HomeOnboardingFlow on _HomeViewState {
     bool overwriteExistingText = false,
   }) {
     final currentNickname = (_myNickname ?? '').trim();
-    final resolvedNickname = currentNickname.isEmpty
-        ? _defaultProfileNickname
+    final resolvedNickname =
+        (currentNickname.isEmpty || currentNickname == _defaultProfileNickname)
+        ? _providerDisplayName()
         : currentNickname;
     final currentText = _onboardingProfileNicknameController.text.trim();
     final shouldOverwrite =
@@ -251,6 +253,28 @@ extension _HomeOnboardingFlow on _HomeViewState {
             (resolvedAvatar ?? '').isNotEmpty)) {
       _onboardingProfileAvatarUrl = resolvedAvatar;
     }
+  }
+
+  /// Apple returns the name only on first authorization; `SignInView` stores
+  /// it as `given_name` so it survives until this step.
+  String _providerDisplayName() => providerDisplayName(
+    Supabase.instance.client.auth.currentUser?.userMetadata,
+    _HomeViewState._profileNicknameMaxLength,
+  );
+
+  String? _signedInProviderLabel() {
+    final provider = Supabase
+        .instance
+        .client
+        .auth
+        .currentUser
+        ?.appMetadata['provider']
+        ?.toString();
+    return switch (provider) {
+      'apple' => 'Apple',
+      'google' => 'Google',
+      _ => null,
+    };
   }
 
   Future<void> _completeProfileSetupOnboarding() async {
@@ -299,7 +323,15 @@ extension _HomeOnboardingFlow on _HomeViewState {
         ),
       );
       await _cacheHomeBootstrapSnapshot();
+      AnalyticsService.instance.logEvent(
+        'onboarding_profile_saved',
+        parameters: {
+          'has_photo': (_myAvatarUrl ?? '').trim().isNotEmpty ? 1 : 0,
+        },
+      );
       await _advanceBasicOnboardingTo(_BasicOnboardingStep.createPet);
+      // An invited user may already own a room: move straight past createPet.
+      _evaluateBasicOnboardingAgainstCurrentData();
     } catch (error, stackTrace) {
       if (!mounted) {
         return;
@@ -586,193 +618,274 @@ extension _HomeOnboardingFlow on _HomeViewState {
     }
   }
 
-  Widget _buildProfileSetupOnboardingOverlay() {
+  /// Second half of sign-in: who you'll appear as. Name required, photo
+  /// optional. Shared by the new-keeper and invited paths.
+  Widget _buildProfileSetupOnboardingPage() {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
     final avatar = _onboardingProfileAvatarUrl ?? _myAvatarUrl;
     final fallbackText = _onboardingProfileNicknameController.text.trim();
+    final provider = _signedInProviderLabel();
+    final saving = _onboardingProfileSaving;
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppTheme.ink, width: 2.5),
+    );
 
-    return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.44),
+    return Scaffold(
+      backgroundColor: AppTheme.paper,
+      body: MoriPaperBackground(
         child: SafeArea(
           child: Center(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: formScrollKeyboardDismissBehavior,
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: <Color>[Color(0xFFFFFCF5), Color(0xFFFFF1D7)],
-                    ),
-                    border: Border.all(
-                      color: AppTheme.secondaryColor.withValues(alpha: 0.88),
-                      width: 1.4,
-                    ),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.18),
-                        blurRadius: 24,
-                        offset: const Offset(0, 14),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      22 * scale,
-                      24 * scale,
-                      22 * scale,
-                      22 * scale,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        BalancedText(
-                          l10n.onboardingProfileSetupTitle,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: AppTheme.textPrimary,
-                            fontWeight: FontWeight.w900,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: formScrollKeyboardDismissBehavior,
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    if (provider != null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                        ),
-                        SizedBox(height: 10 * scale),
-                        BalancedText(
-                          l10n.onboardingProfileSetupSubtitle,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w600,
-                            height: 1.45,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: AppTheme.ink, width: 2),
                           ),
-                        ),
-                        SizedBox(height: 22 * scale),
-                        GestureDetector(
-                          onTap: _onboardingProfileSaving
-                              ? null
-                              : _uploadOnboardingProfileAvatar,
-                          child: Column(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              Container(
-                                width: 88 * scale,
-                                height: 88 * scale,
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppTheme.primaryColor.withValues(
-                                      alpha: 0.26,
-                                    ),
-                                    width: 1.4,
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                size: 18,
+                                color: AppTheme.leafStrong,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  l10n.onboardingProfileSignedInWith(provider),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary,
                                   ),
-                                  color: Colors.white.withValues(alpha: 0.72),
-                                ),
-                                child: UserAvatar(
-                                  avatar: avatar,
-                                  fallbackText: fallbackText.isEmpty
-                                      ? null
-                                      : fallbackText,
-                                  size: 80 * scale,
-                                ),
-                              ),
-                              SizedBox(height: 10 * scale),
-                              TextButton.icon(
-                                onPressed: _onboardingProfileSaving
-                                    ? null
-                                    : _uploadOnboardingProfileAvatar,
-                                icon: const Icon(
-                                  Icons.photo_camera_back_outlined,
-                                ),
-                                label: Text(l10n.profileAvatarUpload),
-                              ),
-                              BalancedText(
-                                l10n.onboardingProfileSetupAvatarOptional,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(height: 18 * scale),
-                        TextField(
-                          controller: _onboardingProfileNicknameController,
-                          onTapOutside: dismissKeyboardOnTapOutside,
-                          enabled: !_onboardingProfileSaving,
-                          autofocus: true,
-                          textInputAction: TextInputAction.done,
-                          inputFormatters: <TextInputFormatter>[
-                            LengthLimitingTextInputFormatter(
-                              _HomeViewState._profileNicknameMaxLength,
-                            ),
-                          ],
-                          decoration: InputDecoration(
-                            labelText: l10n.profileNicknameLabel,
-                            hintText: _defaultProfileNickname,
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.72),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onChanged: (_) {
-                            if (_onboardingProfileError != null && mounted) {
-                              _setStateForOnboarding(() {
-                                _onboardingProfileError = null;
-                              });
-                            }
-                          },
-                          onSubmitted: (_) =>
-                              unawaited(_completeProfileSetupOnboarding()),
-                        ),
-                        if (_onboardingProfileError != null) ...<Widget>[
-                          SizedBox(height: 10 * scale),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              _onboardingProfileError!,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.error,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                        SizedBox(height: 18 * scale),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: _onboardingProfileSaving
+                      ),
+                    const SizedBox(height: 24),
+                    const KanaEyebrow('ぷろふぃーる'),
+                    BalancedText(
+                      l10n.onboardingProfileSetupTitle,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    BalancedText(
+                      l10n.onboardingProfileSetupSubtitle,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textSecondary,
+                        height: 1.45,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      l10n.profileNicknameLabel,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: <Widget>[
+                        Semantics(
+                          button: true,
+                          label: l10n.profileAvatarUpload,
+                          excludeSemantics: true,
+                          child: JuicyScaleButton(
+                            onTap: saving
                                 ? null
-                                : _completeProfileSetupOnboarding,
-                            style: FilledButton.styleFrom(
-                              minimumSize: Size.fromHeight(52 * scale),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
+                                : _uploadOnboardingProfileAvatar,
+                            child: SizedBox(
+                              width: 66,
+                              height: 66,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: <Widget>[
+                                  Container(
+                                    width: 62,
+                                    height: 62,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppTheme.sakura,
+                                      border: Border.all(
+                                        color: AppTheme.ink,
+                                        width: 2.5,
+                                      ),
+                                    ),
+                                    child: ClipOval(
+                                      child: UserAvatar(
+                                        avatar: avatar,
+                                        fallbackText: fallbackText.isEmpty
+                                            ? null
+                                            : fallbackText,
+                                        size: 57,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppTheme.leafStrong,
+                                        border: Border.all(
+                                          color: AppTheme.ink,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: saving
+                                          ? const Padding(
+                                              padding: EdgeInsets.all(5),
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.photo_camera_rounded,
+                                              size: 15,
+                                              color: Colors.white,
+                                            ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: _onboardingProfileSaving
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : Text(l10n.onboardingProfileSetupContinue),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: TextField(
+                            controller: _onboardingProfileNicknameController,
+                            onTapOutside: dismissKeyboardOnTapOutside,
+                            enabled: !saving,
+                            autofocus: _onboardingProfileNicknameController.text
+                                .trim()
+                                .isEmpty,
+                            textInputAction: TextInputAction.done,
+                            inputFormatters: <TextInputFormatter>[
+                              LengthLimitingTextInputFormatter(
+                                _HomeViewState._profileNicknameMaxLength,
+                              ),
+                            ],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              border: inputBorder,
+                              enabledBorder: inputBorder,
+                              focusedBorder: inputBorder.copyWith(
+                                borderSide: const BorderSide(
+                                  color: AppTheme.leafStrong,
+                                  width: 2.5,
+                                ),
+                              ),
+                              disabledBorder: inputBorder,
+                            ),
+                            onChanged: (_) {
+                              if (_onboardingProfileError != null && mounted) {
+                                _setStateForOnboarding(() {
+                                  _onboardingProfileError = null;
+                                });
+                              }
+                            },
+                            onSubmitted: (_) =>
+                                unawaited(_completeProfileSetupOnboarding()),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.onboardingProfileSetupAvatarOptional,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    if (_onboardingProfileError != null) ...<Widget>[
+                      const SizedBox(height: 12),
+                      Text(
+                        _onboardingProfileError!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+                    Semantics(
+                      button: true,
+                      enabled: !saving,
+                      label: l10n.onboardingProfileSetupContinue,
+                      excludeSemantics: true,
+                      child: HardShadowPressButton(
+                        onTap: saving ? null : _completeProfileSetupOnboarding,
+                        borderRadius: BorderRadius.circular(18),
+                        shadowDepth: 4,
+                        color: AppTheme.leafStrong,
+                        borderWidth: 2.5,
+                        height: 54,
+                        child: saving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                l10n.onboardingProfileSetupContinue,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

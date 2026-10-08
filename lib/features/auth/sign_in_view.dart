@@ -16,6 +16,8 @@ import '../../services/settings/app_settings_repository.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_ui_scale.dart';
 import '../../shared/ui/balanced_text.dart';
+import '../../shared/ui/mori.dart';
+import '../../shared/theme/app_theme.dart';
 import '../onboarding/onboarding_entry_view.dart';
 
 const String _googleLogoSvg = '''
@@ -169,6 +171,7 @@ class _SignInViewState extends State<SignInView> {
         idToken: idToken,
         nonce: rawNonce,
       );
+      await _rememberAppleGivenName(credential.givenName);
     } catch (error, stackTrace) {
       if (!context.mounted) {
         return;
@@ -181,6 +184,22 @@ class _SignInViewState extends State<SignInView> {
           _activeProvider = null;
         });
       }
+    }
+  }
+
+  /// Apple sends the name only on first authorization and never in the token,
+  /// so keep it in auth metadata to prefill the profile step. Best effort.
+  Future<void> _rememberAppleGivenName(String? givenName) async {
+    final name = givenName?.trim() ?? '';
+    if (name.isEmpty) {
+      return;
+    }
+    try {
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(data: {'given_name': name}),
+      );
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'apple_given_name');
     }
   }
 
@@ -205,11 +224,11 @@ class _SignInViewState extends State<SignInView> {
     final scale = appUiScale(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF80CEF6),
+      backgroundColor: AppTheme.paper,
       appBar: widget.onBack == null
           ? null
           : AppBar(
-              backgroundColor: const Color(0xFF80CEF6),
+              backgroundColor: AppTheme.paper,
               elevation: 0,
               scrolledUnderElevation: 0,
               automaticallyImplyLeading: false,
@@ -221,8 +240,7 @@ class _SignInViewState extends State<SignInView> {
                 ),
               ),
             ),
-      body: ColoredBox(
-        color: const Color(0xFF80CEF6),
+      body: MoriPaperBackground(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -231,7 +249,7 @@ class _SignInViewState extends State<SignInView> {
                 constraints: const BoxConstraints(maxWidth: 390),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFB2E1FB),
+                    color: AppTheme.kinako,
                     borderRadius: BorderRadius.circular(22),
                   ),
                   padding: const EdgeInsets.all(12),
@@ -245,25 +263,29 @@ class _SignInViewState extends State<SignInView> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (widget.invited) ...[
+                        if (widget.onBack != null) ...[
                           BalancedText(
-                            l10n.onboardingInviteLandingTitle,
+                            widget.invited
+                                ? l10n.onboardingInviteLandingTitle
+                                : l10n.onboardingSignInTitle,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF18435E),
+                              color: AppTheme.leafDeep,
                               height: 1.25,
                             ),
                           ),
                           const SizedBox(height: 6),
                           BalancedText(
-                            l10n.onboardingInviteLandingSubtitle,
+                            widget.invited
+                                ? l10n.onboardingInviteLandingSubtitle
+                                : l10n.onboardingSignInSubtitle,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF505A62),
+                              color: AppTheme.textSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -310,9 +332,8 @@ class _SignInViewState extends State<SignInView> {
                                           ),
                                           label: Text(l10n.signInWithApple),
                                           style: FilledButton.styleFrom(
-                                            backgroundColor: const Color(
-                                              0xFF18435E,
-                                            ),
+                                            backgroundColor:
+                                                AppTheme.textPrimary,
                                             foregroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -434,9 +455,7 @@ class _SignInViewState extends State<SignInView> {
                                             l10n.signInSafetyAgreementLabel,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                                  color: const Color(
-                                                    0xFF505A62,
-                                                  ),
+                                                  color: AppTheme.textSecondary,
                                                   fontSize: 11,
                                                   height: 1.3,
                                                 ),
@@ -457,9 +476,8 @@ class _SignInViewState extends State<SignInView> {
                                                         .textTheme
                                                         .bodySmall
                                                         ?.copyWith(
-                                                          color: const Color(
-                                                            0xFF18435E,
-                                                          ),
+                                                          color:
+                                                              AppTheme.leafDeep,
                                                           fontSize: 11,
                                                           decoration:
                                                               TextDecoration
@@ -479,9 +497,8 @@ class _SignInViewState extends State<SignInView> {
                                                       .textTheme
                                                       .bodySmall
                                                       ?.copyWith(
-                                                        color: const Color(
-                                                          0xFF18435E,
-                                                        ),
+                                                        color:
+                                                            AppTheme.leafDeep,
                                                         fontSize: 11,
                                                         decoration:
                                                             TextDecoration
@@ -524,7 +541,7 @@ class _SignInViewState extends State<SignInView> {
                                         ),
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: const Color(0xFF18435E),
+                                    color: AppTheme.leafDeep,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

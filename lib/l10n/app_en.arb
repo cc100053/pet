@@ -1197,5 +1197,9 @@
   "onboardingInviteCodeTitle": "Enter your invite code",
   "onboardingInviteCodeSubtitle": "It's in the invite your friend sent. Opening their link fills it in for you.",
   "onboardingInviteLandingTitle": "You've been invited to raise a pet",
-  "onboardingInviteLandingSubtitle": "Sign in to join your friend's pet room."
+  "onboardingInviteLandingSubtitle": "Sign in to join your friend's pet room.",
+  "onboardingProfileSignedInWith": "Signed in with {provider}",
+  "@onboardingProfileSignedInWith": {"placeholders": {"provider": {"type": "String"}}},
+  "onboardingSignInTitle": "So your pet can find you",
+  "onboardingSignInSubtitle": "A shared pet needs an account on both phones. We'll fill in your name from Apple or Google."
 }

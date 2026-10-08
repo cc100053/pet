@@ -158,6 +158,11 @@ void main() {
       'SignInView(invited)',
       (context) => SignInView(invited: true, onBack: () {}),
     );
+    await _sweep(
+      tester,
+      'SignInView(new keeper)',
+      (context) => SignInView(onBack: () {}),
+    );
   });
 
   testWidgets('room selection fits every locale and phone', (tester) async {

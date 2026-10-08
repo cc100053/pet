@@ -1176,5 +1176,8 @@
   "onboardingInviteCodeTitle": "输入你的邀请码",
   "onboardingInviteCodeSubtitle": "邀请码在朋友发给你的邀请里。直接打开链接会自动填写。",
   "onboardingInviteLandingTitle": "你收到了一起养宠物的邀请",
-  "onboardingInviteLandingSubtitle": "登录后即可加入朋友的宠物房间。"
+  "onboardingInviteLandingSubtitle": "登录后即可加入朋友的宠物房间。",
+  "onboardingProfileSignedInWith": "已通过 {provider} 登录",
+  "onboardingSignInTitle": "让宠物找到你",
+  "onboardingSignInSubtitle": "一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。"
 }

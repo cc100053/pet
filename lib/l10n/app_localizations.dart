@@ -4502,6 +4502,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to join your friend\'s pet room.'**
   String get onboardingInviteLandingSubtitle;
+
+  /// No description provided for @onboardingProfileSignedInWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with {provider}'**
+  String onboardingProfileSignedInWith(String provider);
+
+  /// No description provided for @onboardingSignInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'So your pet can find you'**
+  String get onboardingSignInTitle;
+
+  /// No description provided for @onboardingSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A shared pet needs an account on both phones. We\'ll fill in your name from Apple or Google.'**
+  String get onboardingSignInSubtitle;
 }
 
 class _AppLocalizationsDelegate

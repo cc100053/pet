@@ -1169,5 +1169,8 @@
   "onboardingInviteCodeTitle": "輸入你的邀請碼",
   "onboardingInviteCodeSubtitle": "邀請碼在朋友傳給你的邀請裡。直接打開連結會自動填入。",
   "onboardingInviteLandingTitle": "你收到了一起養寵物的邀請",
-  "onboardingInviteLandingSubtitle": "登入後即可加入朋友的寵物房間。"
+  "onboardingInviteLandingSubtitle": "登入後即可加入朋友的寵物房間。",
+  "onboardingProfileSignedInWith": "已透過 {provider} 登入",
+  "onboardingSignInTitle": "讓寵物找到你",
+  "onboardingSignInSubtitle": "一起養寵物需要兩支手機都有帳號。我們會從 Apple 或 Google 幫你填好名字。"
 }

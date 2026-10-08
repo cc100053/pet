@@ -2412,6 +2412,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onboardingInviteLandingSubtitle => '登录后即可加入朋友的宠物房间。';
+
+  @override
+  String onboardingProfileSignedInWith(String provider) {
+    return '已通过 $provider 登录';
+  }
+
+  @override
+  String get onboardingSignInTitle => '让宠物找到你';
+
+  @override
+  String get onboardingSignInSubtitle =>
+      '一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4821,4 +4833,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get onboardingInviteLandingSubtitle => '登入後即可加入朋友的寵物房間。';
+
+  @override
+  String onboardingProfileSignedInWith(String provider) {
+    return '已透過 $provider 登入';
+  }
+
+  @override
+  String get onboardingSignInTitle => '讓寵物找到你';
+
+  @override
+  String get onboardingSignInSubtitle =>
+      '一起養寵物需要兩支手機都有帳號。我們會從 Apple 或 Google 幫你填好名字。';
 }

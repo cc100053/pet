@@ -2555,4 +2555,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingInviteLandingSubtitle =>
       'Sign in to join your friend\'s pet room.';
+
+  @override
+  String onboardingProfileSignedInWith(String provider) {
+    return 'Signed in with $provider';
+  }
+
+  @override
+  String get onboardingSignInTitle => 'So your pet can find you';
+
+  @override
+  String get onboardingSignInSubtitle =>
+      'A shared pet needs an account on both phones. We\'ll fill in your name from Apple or Google.';
 }

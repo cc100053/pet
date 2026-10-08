@@ -58,8 +58,6 @@ extension _HomeBuildHelpers on _HomeViewState {
                   !_loadingRoom,
               onFrameHintSeen: _markRoomFrameHintSeen,
             ),
-            if (_isProfileSetupOnboardingStepActive)
-              _buildProfileSetupOnboardingOverlay(),
             if (_shouldShowCreatePetOnboardingCoachCard)
               _buildBasicOnboardingFocusOverlay(),
             if (_shouldShowCreatePetOnboardingCoachCard)

@@ -1175,5 +1175,8 @@
   "onboardingInviteCodeTitle": "초대 코드를 입력하세요",
   "onboardingInviteCodeSubtitle": "친구가 보낸 초대에 코드가 있어요. 링크로 열면 자동으로 입력돼요.",
   "onboardingInviteLandingTitle": "펫을 함께 키우자는 초대를 받았어요",
-  "onboardingInviteLandingSubtitle": "로그인하고 친구의 펫 방에 참여하세요."
+  "onboardingInviteLandingSubtitle": "로그인하고 친구의 펫 방에 참여하세요.",
+  "onboardingProfileSignedInWith": "{provider}로 로그인됨",
+  "onboardingSignInTitle": "펫이 당신을 찾을 수 있도록",
+  "onboardingSignInSubtitle": "함께 키우려면 두 사람 모두 계정이 필요해요. 이름은 Apple 또는 Google에서 가져와요."
 }

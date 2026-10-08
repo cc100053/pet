@@ -1176,5 +1176,8 @@
   "onboardingInviteCodeTitle": "招待コードを入力してね",
   "onboardingInviteCodeSubtitle": "友だちから届いた招待にコードがあるよ。リンクから開くと自動で入力されます。",
   "onboardingInviteLandingTitle": "ペットの飼い主に招待されました",
-  "onboardingInviteLandingSubtitle": "サインインして友だちのペットのお部屋に参加しよう。"
+  "onboardingInviteLandingSubtitle": "サインインして友だちのペットのお部屋に参加しよう。",
+  "onboardingProfileSignedInWith": "{provider}でサインイン済み",
+  "onboardingSignInTitle": "ペットがあなたを見つけられるように",
+  "onboardingSignInSubtitle": "いっしょに育てるには、ふたりともアカウントが必要です。名前はAppleまたはGoogleから入力します。"
 }

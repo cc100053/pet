@@ -1,7 +1,7 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-(pre-auth shell) done 2026-10-08; phase 3 next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) and phase 3 (profile step) done 2026-10-08; phase 4 next.** Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -92,7 +92,23 @@ queries after this ships ("after any change to coin rewards").
 - Keep the existing terms/safety agreement checkbox and copy on both sign-in
   surfaces.
 
-### 3. Sign-in + name + photo (shared widget)
+### 3. Sign-in + name + photo — DONE, simplified
+
+As built: no extracted controller. Both paths reach `HomeView` right after
+sign-in, and HomeView already owns the profile save/upload, so the old
+overlay became `_buildProfileSetupOnboardingPage()`: a full Mori page shown
+whenever the `profile_setup` step is active, including inside a joined room
+(the old overlay only showed on room selection, so invited users skipped it).
+It shows a "Signed in with Apple/Google ✓" chip, the avatar with a camera
+badge (optional), and the name, prefilled from the provider
+(`lib/features/onboarding/provider_display_name.dart`; Apple's given name is
+saved to auth metadata at sign-in) and never prefilled with the localized
+default. The sign-in screen is restyled to Mori with a new-keeper title. The
+"disabled name/photo preview before sign-in" was dropped as ceremony.
+`[USER ACTION REQUIRED]`: device-check the profile page after a fresh Apple
+and Google sign-in (no widget test reaches it).
+
+Original plan:
 
 - Extract the save/upload logic out of `home_onboarding_flow.dart`
   (`_completeProfileSetupOnboarding`, `_compressOnboardingAvatar`,
