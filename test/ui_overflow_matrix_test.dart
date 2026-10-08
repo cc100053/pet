@@ -3,12 +3,16 @@
 // Text scaling mirrors MaterialApp.builder in lib/app/app.dart.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pet/features/auth/sign_in_view.dart';
+import 'package:pet/features/onboarding/onboarding_entry_view.dart';
 import 'package:pet/features/home/room_selection_view.dart';
 import 'package:pet/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:pet/features/home/widgets/home_game_status_bar.dart';
 import 'package:pet/features/shop/models/shop_item.dart';
 import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/services/invite/invite_link_service.dart';
+import 'package:pet/services/invite/pending_invite_code_store.dart';
 import 'package:pet/shared/ui/app_ui_scale.dart';
 import 'package:pet/shared/ui/balanced_text.dart';
 
@@ -117,9 +121,44 @@ Future<void> _sweep(
   expect(failures, isEmpty, reason: failures.join('\n'));
 }
 
+class _NoPendingInvite implements PendingInviteCodeStore, InviteLinkGateway {
+  @override
+  String? get pendingInviteCode => null;
+
+  @override
+  Future<void> setPendingInviteCode(String? code) async {}
+
+  @override
+  Future<Uri?> getInitialLink() async => null;
+
+  @override
+  Stream<Uri> get uriLinkStream => const Stream.empty();
+}
+
 void main() {
   // Phrase-aware wrapping makes longer unbreakable runs; check they still fit.
   setUpAll(() => PhraseBreaks.load());
+
+  testWidgets('onboarding welcome and invited sign-in fit every locale', (
+    tester,
+  ) async {
+    final noInvite = _NoPendingInvite();
+    await _sweep(
+      tester,
+      'OnboardingEntryView',
+      (context) => OnboardingEntryView(
+        inviteLinkService: AppInviteLinkService(
+          gateway: noInvite,
+          settingsStore: noInvite,
+        ),
+      ),
+    );
+    await _sweep(
+      tester,
+      'SignInView(invited)',
+      (context) => SignInView(invited: true, onBack: () {}),
+    );
+  });
 
   testWidgets('room selection fits every locale and phone', (tester) async {
     await _sweep(

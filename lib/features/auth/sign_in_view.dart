@@ -16,6 +16,7 @@ import '../../services/settings/app_settings_repository.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/ui/app_ui_scale.dart';
 import '../../shared/ui/balanced_text.dart';
+import '../onboarding/onboarding_entry_view.dart';
 
 const String _googleLogoSvg = '''
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -27,7 +28,11 @@ const String _googleLogoSvg = '''
 ''';
 
 class SignInView extends StatefulWidget {
-  const SignInView({super.key});
+  const SignInView({super.key, this.invited = false, this.onBack});
+
+  /// Shows the generic "you've been invited" header (no pre-auth room data).
+  final bool invited;
+  final VoidCallback? onBack;
 
   @override
   State<SignInView> createState() => _SignInViewState();
@@ -200,6 +205,22 @@ class _SignInViewState extends State<SignInView> {
     final scale = appUiScale(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
+      backgroundColor: const Color(0xFF80CEF6),
+      appBar: widget.onBack == null
+          ? null
+          : AppBar(
+              backgroundColor: const Color(0xFF80CEF6),
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              automaticallyImplyLeading: false,
+              leadingWidth: 64,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Center(
+                  child: OnboardingBackButton(onPressed: widget.onBack!),
+                ),
+              ),
+            ),
       body: ColoredBox(
         color: const Color(0xFF80CEF6),
         child: SafeArea(
@@ -224,6 +245,29 @@ class _SignInViewState extends State<SignInView> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        if (widget.invited) ...[
+                          BalancedText(
+                            l10n.onboardingInviteLandingTitle,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF18435E),
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          BalancedText(
+                            l10n.onboardingInviteLandingSubtitle,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF505A62),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
                         Image.asset(
                           'assets/app/LoginPage.png',
                           width: 260,

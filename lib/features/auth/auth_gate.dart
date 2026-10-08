@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../home/home_view.dart';
-import 'sign_in_view.dart';
+import '../onboarding/onboarding_entry_view.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/crash/crash_reporting_service.dart';
 import '../../services/fcm_service.dart';
@@ -80,7 +80,7 @@ class _AuthGateState extends ConsumerState<AuthGate>
             snapshot.data?.session ??
             Supabase.instance.client.auth.currentSession;
         if (session == null) {
-          return const SignInView();
+          return const OnboardingEntryView();
         }
         return const HomeView();
       },

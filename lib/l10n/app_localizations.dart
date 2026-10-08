@@ -4442,6 +4442,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maybe later'**
   String get newItemsLater;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise a pet together'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One pet, two keepers. Feed it photos of your day and it lives on both phones.'**
+  String get onboardingWelcomeSubtitle;
+
+  /// No description provided for @onboardingWelcomeStartNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new pet'**
+  String get onboardingWelcomeStartNew;
+
+  /// No description provided for @onboardingWelcomeStartNewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Then invite your person'**
+  String get onboardingWelcomeStartNewHint;
+
+  /// No description provided for @onboardingWelcomeInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'I was invited'**
+  String get onboardingWelcomeInvited;
+
+  /// No description provided for @onboardingWelcomeInvitedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an invite code'**
+  String get onboardingWelcomeInvitedHint;
+
+  /// No description provided for @onboardingInviteCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your invite code'**
+  String get onboardingInviteCodeTitle;
+
+  /// No description provided for @onboardingInviteCodeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s in the invite your friend sent. Opening their link fills it in for you.'**
+  String get onboardingInviteCodeSubtitle;
+
+  /// No description provided for @onboardingInviteLandingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve been invited to raise a pet'**
+  String get onboardingInviteLandingTitle;
+
+  /// No description provided for @onboardingInviteLandingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to join your friend\'s pet room.'**
+  String get onboardingInviteLandingSubtitle;
 }
 
 class _AppLocalizationsDelegate

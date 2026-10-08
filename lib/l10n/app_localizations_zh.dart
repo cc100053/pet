@@ -2382,6 +2382,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get newItemsLater => '稍后再说';
+
+  @override
+  String get onboardingWelcomeTitle => '一起养宠物吧';
+
+  @override
+  String get onboardingWelcomeSubtitle => '一只宠物，两位主人。用每天的照片喂它，它会同时住在你们俩的手机里。';
+
+  @override
+  String get onboardingWelcomeStartNew => '迎接新宠物';
+
+  @override
+  String get onboardingWelcomeStartNewHint => '然后邀请你重要的人';
+
+  @override
+  String get onboardingWelcomeInvited => '我收到了邀请';
+
+  @override
+  String get onboardingWelcomeInvitedHint => '输入邀请码';
+
+  @override
+  String get onboardingInviteCodeTitle => '输入你的邀请码';
+
+  @override
+  String get onboardingInviteCodeSubtitle => '邀请码在朋友发给你的邀请里。直接打开链接会自动填写。';
+
+  @override
+  String get onboardingInviteLandingTitle => '你收到了一起养宠物的邀请';
+
+  @override
+  String get onboardingInviteLandingSubtitle => '登录后即可加入朋友的宠物房间。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4761,4 +4791,34 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get newItemsLater => '稍後再說';
+
+  @override
+  String get onboardingWelcomeTitle => '一起養寵物吧';
+
+  @override
+  String get onboardingWelcomeSubtitle => '一隻寵物，兩位主人。用每天的照片餵牠，牠會同時住在你們倆的手機裡。';
+
+  @override
+  String get onboardingWelcomeStartNew => '迎接新寵物';
+
+  @override
+  String get onboardingWelcomeStartNewHint => '然後邀請你重要的人';
+
+  @override
+  String get onboardingWelcomeInvited => '我收到了邀請';
+
+  @override
+  String get onboardingWelcomeInvitedHint => '輸入邀請碼';
+
+  @override
+  String get onboardingInviteCodeTitle => '輸入你的邀請碼';
+
+  @override
+  String get onboardingInviteCodeSubtitle => '邀請碼在朋友傳給你的邀請裡。直接打開連結會自動填入。';
+
+  @override
+  String get onboardingInviteLandingTitle => '你收到了一起養寵物的邀請';
+
+  @override
+  String get onboardingInviteLandingSubtitle => '登入後即可加入朋友的寵物房間。';
 }

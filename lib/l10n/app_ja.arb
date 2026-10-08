@@ -1166,5 +1166,15 @@
   "newItemsPopupMore": "{count, plural, other{ほかに{count}個の新アイテム}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
   "newItemsVisitShop": "ショップを見る",
-  "newItemsLater": "あとで"
+  "newItemsLater": "あとで",
+  "onboardingWelcomeTitle": "いっしょにペットを育てよう",
+  "onboardingWelcomeSubtitle": "ペットはひとり、飼い主はふたり。毎日の写真をごはんにして、ふたりのスマホで育てよう。",
+  "onboardingWelcomeStartNew": "新しいペットをむかえる",
+  "onboardingWelcomeStartNewHint": "そのあと大切な人を招待",
+  "onboardingWelcomeInvited": "招待された",
+  "onboardingWelcomeInvitedHint": "招待コードを入力",
+  "onboardingInviteCodeTitle": "招待コードを入力してね",
+  "onboardingInviteCodeSubtitle": "友だちから届いた招待にコードがあるよ。リンクから開くと自動で入力されます。",
+  "onboardingInviteLandingTitle": "ペットの飼い主に招待されました",
+  "onboardingInviteLandingSubtitle": "サインインして友だちのペットのお部屋に参加しよう。"
 }

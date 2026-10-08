@@ -79,6 +79,11 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   Image cache trim thresholds remain fractions of configured caps and include
   live image count.
 - Invite links use `invite_code`; bare `code` can collide with Auth PKCE.
+- Signed-out users land on `OnboardingEntryView`
+  (`lib/features/onboarding/`): Welcome fork → `SignInView`, or invite code →
+  `SignInView(invited: true)`. Any pending invite code (link or typed) shows
+  the invited sign-in; joining still happens after sign-in through the home
+  pending-invite path. Back from invited clears the pending code.
 
 ## Backend And Platform
 - Supabase Auth/Postgres/Realtime back shared gameplay and chat; active Edge

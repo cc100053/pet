@@ -2407,4 +2407,36 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newItemsLater => '나중에';
+
+  @override
+  String get onboardingWelcomeTitle => '함께 펫을 키워요';
+
+  @override
+  String get onboardingWelcomeSubtitle =>
+      '펫은 하나, 키우는 사람은 둘. 하루의 사진을 먹이로 주면 두 사람의 폰에서 함께 자라요.';
+
+  @override
+  String get onboardingWelcomeStartNew => '새 펫 맞이하기';
+
+  @override
+  String get onboardingWelcomeStartNewHint => '그다음 소중한 사람을 초대해요';
+
+  @override
+  String get onboardingWelcomeInvited => '초대받았어요';
+
+  @override
+  String get onboardingWelcomeInvitedHint => '초대 코드 입력';
+
+  @override
+  String get onboardingInviteCodeTitle => '초대 코드를 입력하세요';
+
+  @override
+  String get onboardingInviteCodeSubtitle =>
+      '친구가 보낸 초대에 코드가 있어요. 링크로 열면 자동으로 입력돼요.';
+
+  @override
+  String get onboardingInviteLandingTitle => '펫을 함께 키우자는 초대를 받았어요';
+
+  @override
+  String get onboardingInviteLandingSubtitle => '로그인하고 친구의 펫 방에 참여하세요.';
 }

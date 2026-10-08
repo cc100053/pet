@@ -1166,5 +1166,15 @@
   "newItemsPopupMore": "{count, plural, other{还有{count}件新品}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
   "newItemsVisitShop": "去商店看看",
-  "newItemsLater": "稍后再说"
+  "newItemsLater": "稍后再说",
+  "onboardingWelcomeTitle": "一起养宠物吧",
+  "onboardingWelcomeSubtitle": "一只宠物，两位主人。用每天的照片喂它，它会同时住在你们俩的手机里。",
+  "onboardingWelcomeStartNew": "迎接新宠物",
+  "onboardingWelcomeStartNewHint": "然后邀请你重要的人",
+  "onboardingWelcomeInvited": "我收到了邀请",
+  "onboardingWelcomeInvitedHint": "输入邀请码",
+  "onboardingInviteCodeTitle": "输入你的邀请码",
+  "onboardingInviteCodeSubtitle": "邀请码在朋友发给你的邀请里。直接打开链接会自动填写。",
+  "onboardingInviteLandingTitle": "你收到了一起养宠物的邀请",
+  "onboardingInviteLandingSubtitle": "登录后即可加入朋友的宠物房间。"
 }

@@ -2521,4 +2521,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newItemsLater => 'Maybe later';
+
+  @override
+  String get onboardingWelcomeTitle => 'Raise a pet together';
+
+  @override
+  String get onboardingWelcomeSubtitle =>
+      'One pet, two keepers. Feed it photos of your day and it lives on both phones.';
+
+  @override
+  String get onboardingWelcomeStartNew => 'Start a new pet';
+
+  @override
+  String get onboardingWelcomeStartNewHint => 'Then invite your person';
+
+  @override
+  String get onboardingWelcomeInvited => 'I was invited';
+
+  @override
+  String get onboardingWelcomeInvitedHint => 'Enter an invite code';
+
+  @override
+  String get onboardingInviteCodeTitle => 'Enter your invite code';
+
+  @override
+  String get onboardingInviteCodeSubtitle =>
+      'It\'s in the invite your friend sent. Opening their link fills it in for you.';
+
+  @override
+  String get onboardingInviteLandingTitle =>
+      'You\'ve been invited to raise a pet';
+
+  @override
+  String get onboardingInviteLandingSubtitle =>
+      'Sign in to join your friend\'s pet room.';
 }

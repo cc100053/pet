@@ -1187,5 +1187,15 @@
   "newItemsPopupMore": "{count, plural, =1{+1 more new item} other{+{count} more new items}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
   "newItemsVisitShop": "Visit the shop",
-  "newItemsLater": "Maybe later"
+  "newItemsLater": "Maybe later",
+  "onboardingWelcomeTitle": "Raise a pet together",
+  "onboardingWelcomeSubtitle": "One pet, two keepers. Feed it photos of your day and it lives on both phones.",
+  "onboardingWelcomeStartNew": "Start a new pet",
+  "onboardingWelcomeStartNewHint": "Then invite your person",
+  "onboardingWelcomeInvited": "I was invited",
+  "onboardingWelcomeInvitedHint": "Enter an invite code",
+  "onboardingInviteCodeTitle": "Enter your invite code",
+  "onboardingInviteCodeSubtitle": "It's in the invite your friend sent. Opening their link fills it in for you.",
+  "onboardingInviteLandingTitle": "You've been invited to raise a pet",
+  "onboardingInviteLandingSubtitle": "Sign in to join your friend's pet room."
 }

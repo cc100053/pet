@@ -1,7 +1,7 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) done 2026-10-08; phase 3 next.** Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -82,7 +82,7 @@ queries after this ships ("after any change to coin rewards").
 - Update `memory-bank/database-schema.md` (Current Contracts) in the same
   commit.
 
-### 2. Pre-auth shell (new `lib/features/onboarding/`)
+### 2. Pre-auth shell — DONE (`lib/features/onboarding/onboarding_entry_view.dart`, `test/onboarding_entry_view_test.dart`; the invited sign-in is `SignInView(invited: true)`, restyled in phase 3)
 
 - `AuthGate`: signed-out → `WelcomeForkView` (instead of `SignInView`).
   A pending invite link skips the fork and opens `InviteLandingView`.

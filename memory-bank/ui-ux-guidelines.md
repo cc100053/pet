@@ -61,6 +61,12 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   or multiply a `fontSize` by `homeUiScale`/`appUiScale`.
 - Legal/subscription disclosure text: at least 11pt, fully opaque.
 
+## Onboarding (B+C hybrid, in progress)
+- Plan and status: `tasks/onboarding_redesign.md`; canvas linked there.
+- Signed-out entry is a two-option Welcome ("Start a new pet" / "I was
+  invited"). The invited sign-in shows generic copy only: no room, pet or
+  inviter data before sign-in.
+
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.
 - `showJuiceSnackbar`: non-blocking success/info feedback.

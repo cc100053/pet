@@ -2397,4 +2397,36 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get newItemsLater => 'あとで';
+
+  @override
+  String get onboardingWelcomeTitle => 'いっしょにペットを育てよう';
+
+  @override
+  String get onboardingWelcomeSubtitle =>
+      'ペットはひとり、飼い主はふたり。毎日の写真をごはんにして、ふたりのスマホで育てよう。';
+
+  @override
+  String get onboardingWelcomeStartNew => '新しいペットをむかえる';
+
+  @override
+  String get onboardingWelcomeStartNewHint => 'そのあと大切な人を招待';
+
+  @override
+  String get onboardingWelcomeInvited => '招待された';
+
+  @override
+  String get onboardingWelcomeInvitedHint => '招待コードを入力';
+
+  @override
+  String get onboardingInviteCodeTitle => '招待コードを入力してね';
+
+  @override
+  String get onboardingInviteCodeSubtitle =>
+      '友だちから届いた招待にコードがあるよ。リンクから開くと自動で入力されます。';
+
+  @override
+  String get onboardingInviteLandingTitle => 'ペットの飼い主に招待されました';
+
+  @override
+  String get onboardingInviteLandingSubtitle => 'サインインして友だちのペットのお部屋に参加しよう。';
 }
