@@ -1877,24 +1877,6 @@ abstract class AppLocalizations {
   /// **'Inventory'**
   String get roomInventoryCta;
 
-  /// No description provided for @roomInvitePromptTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Invite someone'**
-  String get roomInvitePromptTitle;
-
-  /// No description provided for @roomInvitePromptBody.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re the only one here. Generate a code to invite someone.'**
-  String get roomInvitePromptBody;
-
-  /// No description provided for @roomInvitePromptAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Generate code'**
-  String get roomInvitePromptAction;
-
   /// No description provided for @roomInvitePromptGenerating.
   ///
   /// In en, this message translates to:
@@ -1907,18 +1889,6 @@ abstract class AppLocalizations {
   /// **'Invite code'**
   String get roomInviteCodeTitle;
 
-  /// No description provided for @roomInviteCodeMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Share this code to invite someone to your room.'**
-  String get roomInviteCodeMessage;
-
-  /// No description provided for @roomInviteCodeTapHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap the code to copy it.'**
-  String get roomInviteCodeTapHint;
-
   /// No description provided for @roomInviteCopyCodeAction.
   ///
   /// In en, this message translates to:
@@ -1930,12 +1900,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get roomInviteShareAction;
-
-  /// No description provided for @roomInviteShareCaption.
-  ///
-  /// In en, this message translates to:
-  /// **'Join me in PetTomo'**
-  String get roomInviteShareCaption;
 
   /// No description provided for @roomInviteShareFailed.
   ///
@@ -4538,6 +4502,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That\'s you!'**
   String get onboardingPetNamingConfirm;
+
+  /// No description provided for @inviteCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName} needs a second keeper'**
+  String inviteCardTitle(String petName);
+
+  /// No description provided for @inviteCardCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Help me raise {petName}?'**
+  String inviteCardCaption(String petName);
+
+  /// No description provided for @inviteCardJoinReward.
+  ///
+  /// In en, this message translates to:
+  /// **'+50 coins when they join'**
+  String get inviteCardJoinReward;
+
+  /// No description provided for @inviteCardPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite someone to raise {petName} with you.'**
+  String inviteCardPromptBody(String petName);
+
+  /// No description provided for @inviteShareCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Help me raise {petName} in PetTomo!'**
+  String inviteShareCaption(String petName);
 }
 
 class _AppLocalizationsDelegate

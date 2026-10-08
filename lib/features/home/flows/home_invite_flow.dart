@@ -125,17 +125,30 @@ extension _HomeInviteFlow on _HomeViewState {
     );
   }
 
-  Future<void> _shareInviteCode(String code) async {
+  Future<void> _shareInviteCode(String code, {GlobalKey? cardKey}) async {
     final l10n = AppLocalizations.of(context)!;
     final displayCode = AppInviteLinkService.normalizeInviteCode(code);
     if (displayCode == null) {
       return;
     }
+    XFile? cardImage;
+    if (cardKey != null) {
+      try {
+        cardImage = await captureInviteCardImage(cardKey);
+      } catch (error, stackTrace) {
+        // The link alone still works; just lose the picture.
+        reportSwallowedError(error, stackTrace, source: 'invite_card_capture');
+      }
+    }
+    if (!mounted) {
+      return;
+    }
     try {
       await SharePlus.instance.share(
         ShareParams(
+          files: cardImage == null ? null : [cardImage],
           text: AppInviteLinkService.shareText(
-            caption: l10n.roomInviteShareCaption,
+            caption: l10n.inviteShareCaption(_invitePetName(l10n)),
             code: displayCode,
           ),
           title: l10n.roomInviteCodeTitle,
@@ -154,6 +167,15 @@ extension _HomeInviteFlow on _HomeViewState {
     }
   }
 
+  String _invitePetName(AppLocalizations l10n) {
+    final name = _petName?.trim() ?? '';
+    return name.isEmpty ? l10n.petNameUnknown : name;
+  }
+
+  // The one-time +50 (claim_onboarding_reward 'co_keeper_joined') is only
+  // promised while basic onboarding is still running.
+  bool get _showsCoKeeperReward => _isBasicOnboardingActive;
+
   Future<void> _showInviteCodeDialog(String code) async {
     final l10n = AppLocalizations.of(context)!;
     var showingCopiedPrompt = false;
@@ -161,64 +183,40 @@ extension _HomeInviteFlow on _HomeViewState {
     if (displayCode == null) {
       return;
     }
+    final petName = _invitePetName(l10n);
+    final cardKey = GlobalKey();
     showJuiceToast(
       context: context,
-      message: l10n.roomInviteCodeTitle,
+      message: l10n.inviteCardTitle(petName),
       position: JuicePosition.center,
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          BalancedText(
-            l10n.roomInviteCodeMessage,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.black.withValues(alpha: 0.65),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-          JuicyScaleButton(
-            onTap: () {
-              unawaited(() async {
-                if (showingCopiedPrompt) {
-                  return;
-                }
-                showingCopiedPrompt = true;
-                try {
-                  await _copyInviteCode(displayCode);
-                } finally {
-                  showingCopiedPrompt = false;
-                }
-              }());
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.black87, width: 1.5),
-              ),
-              child: Center(
-                child: Text(
-                  displayCode,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
-                  ),
-                ),
+          RepaintBoundary(
+            key: cardKey,
+            child: Padding(
+              // Room for the tilt and shadow inside the captured image.
+              padding: const EdgeInsets.all(10),
+              child: InvitePolaroidCard(
+                petAsset: PetCatalog.byId(_petType).stayAsset,
+                caption: l10n.inviteCardCaption(petName),
+                code: displayCode,
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          BalancedText(
-            l10n.roomInviteCodeTapHint,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.black.withValues(alpha: 0.65),
-              fontWeight: FontWeight.w600,
+          if (_showsCoKeeperReward) ...[
+            const SizedBox(height: 10),
+            BalancedText(
+              l10n.inviteCardJoinReward,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.ink,
+              ),
             ),
-          ),
+          ],
+          const SizedBox(height: 12),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -248,7 +246,7 @@ extension _HomeInviteFlow on _HomeViewState {
               Expanded(
                 child: JuicyScaleButton(
                   onTap: () {
-                    unawaited(_shareInviteCode(displayCode));
+                    unawaited(_shareInviteCode(displayCode, cardKey: cardKey));
                   },
                   child: _InviteActionButton(
                     icon: Icons.ios_share_rounded,
@@ -353,7 +351,7 @@ extension _HomeInviteFlow on _HomeViewState {
                 children: [
                   Expanded(
                     child: BalancedText(
-                      l10n.roomInvitePromptTitle,
+                      l10n.inviteCardTitle(_invitePetName(l10n)),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -372,7 +370,7 @@ extension _HomeInviteFlow on _HomeViewState {
               ),
               const Gap(6),
               BalancedText(
-                l10n.roomInvitePromptBody,
+                l10n.inviteCardPromptBody(_invitePetName(l10n)),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -399,7 +397,7 @@ extension _HomeInviteFlow on _HomeViewState {
                   child: Text(
                     _inviteCodeLoading
                         ? l10n.roomInvitePromptGenerating
-                        : l10n.roomInvitePromptAction,
+                        : l10n.roomInviteCta,
                   ),
                 ),
               ),

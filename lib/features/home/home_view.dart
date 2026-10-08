@@ -50,6 +50,7 @@ import '../../shared/ui/avatar_position_editor_page.dart';
 import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/mori.dart';
+import 'widgets/invite_polaroid_card.dart';
 import '../onboarding/provider_display_name.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';

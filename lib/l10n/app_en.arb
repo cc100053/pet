@@ -532,16 +532,10 @@
   "roomDefaultName": "New Room",
   "roomInviteCta": "Invite",
   "roomInventoryCta": "Inventory",
-  "roomInvitePromptTitle": "Invite someone",
-  "roomInvitePromptBody": "You're the only one here. Generate a code to invite someone.",
-  "roomInvitePromptAction": "Generate code",
   "roomInvitePromptGenerating": "Generating...",
   "roomInviteCodeTitle": "Invite code",
-  "roomInviteCodeMessage": "Share this code to invite someone to your room.",
-  "roomInviteCodeTapHint": "Tap the code to copy it.",
   "roomInviteCopyCodeAction": "Copy",
   "roomInviteShareAction": "Share",
-  "roomInviteShareCaption": "Join me in PetTomo",
   "roomInviteShareFailed": "Failed to share invite: {error}",
   "@roomInviteShareFailed": {
     "placeholders": {
@@ -1204,5 +1198,14 @@
   "onboardingSignInSubtitle": "A shared pet needs an account on both phones. We'll fill in your name from Apple or Google.",
   "onboardingPetMoveIn": "Move in",
   "onboardingPetNamingPrompt": "Hi! Nice room. Um… I don't have a name yet. What will you call me?",
-  "onboardingPetNamingConfirm": "That's you!"
+  "onboardingPetNamingConfirm": "That's you!",
+  "inviteCardTitle": "{petName} needs a second keeper",
+  "@inviteCardTitle": {"placeholders": {"petName": {"type": "String"}}},
+  "inviteCardCaption": "Help me raise {petName}?",
+  "@inviteCardCaption": {"placeholders": {"petName": {"type": "String"}}},
+  "inviteCardJoinReward": "+50 coins when they join",
+  "inviteCardPromptBody": "Invite someone to raise {petName} with you.",
+  "@inviteCardPromptBody": {"placeholders": {"petName": {"type": "String"}}},
+  "inviteShareCaption": "Help me raise {petName} in PetTomo!",
+  "@inviteShareCaption": {"placeholders": {"petName": {"type": "String"}}}
 }

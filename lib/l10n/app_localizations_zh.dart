@@ -994,34 +994,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roomInventoryCta => '背包';
 
   @override
-  String get roomInvitePromptTitle => '邀请朋友';
-
-  @override
-  String get roomInvitePromptBody => '目前只有你。产生邀请码来邀请朋友加入。';
-
-  @override
-  String get roomInvitePromptAction => '产生邀请码';
-
-  @override
   String get roomInvitePromptGenerating => '产生中...';
 
   @override
   String get roomInviteCodeTitle => '邀请码';
 
   @override
-  String get roomInviteCodeMessage => '分享此邀请码让朋友加入房间。';
-
-  @override
-  String get roomInviteCodeTapHint => '点击邀请码即可复制。';
-
-  @override
   String get roomInviteCopyCodeAction => '复制';
 
   @override
   String get roomInviteShareAction => '分享';
-
-  @override
-  String get roomInviteShareCaption => '来 PetTomo 和我一起玩';
 
   @override
   String roomInviteShareFailed(Object error) {
@@ -2433,6 +2415,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onboardingPetNamingConfirm => '就叫你这个！';
+
+  @override
+  String inviteCardTitle(String petName) {
+    return '$petName还需要一位主人';
+  }
+
+  @override
+  String inviteCardCaption(String petName) {
+    return '一起来养$petName吗？';
+  }
+
+  @override
+  String get inviteCardJoinReward => '对方加入后 +50 金币';
+
+  @override
+  String inviteCardPromptBody(String petName) {
+    return '邀请一个人和你一起养$petName。';
+  }
+
+  @override
+  String inviteShareCaption(String petName) {
+    return '来 PetTomo 和我一起养$petName吧！';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3425,34 +3430,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get roomInventoryCta => '背包';
 
   @override
-  String get roomInvitePromptTitle => '邀請朋友';
-
-  @override
-  String get roomInvitePromptBody => '目前只有你。產生邀請碼來邀請朋友加入。';
-
-  @override
-  String get roomInvitePromptAction => '產生邀請碼';
-
-  @override
   String get roomInvitePromptGenerating => '產生中...';
 
   @override
   String get roomInviteCodeTitle => '邀請碼';
 
   @override
-  String get roomInviteCodeMessage => '分享此邀請碼讓朋友加入房間。';
-
-  @override
-  String get roomInviteCodeTapHint => '點擊邀請碼即可複製。';
-
-  @override
   String get roomInviteCopyCodeAction => '複製';
 
   @override
   String get roomInviteShareAction => '分享';
-
-  @override
-  String get roomInviteShareCaption => '來 PetTomo 和我一起玩';
 
   @override
   String roomInviteShareFailed(Object error) {
@@ -4863,4 +4850,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get onboardingPetNamingConfirm => '就叫你這個！';
+
+  @override
+  String inviteCardTitle(String petName) {
+    return '$petName還需要一位主人';
+  }
+
+  @override
+  String inviteCardCaption(String petName) {
+    return '一起來養$petName嗎？';
+  }
+
+  @override
+  String get inviteCardJoinReward => '對方加入後 +50 金幣';
+
+  @override
+  String inviteCardPromptBody(String petName) {
+    return '邀請一個人和你一起養$petName。';
+  }
+
+  @override
+  String inviteShareCaption(String petName) {
+    return '來 PetTomo 和我一起養$petName吧！';
+  }
 }

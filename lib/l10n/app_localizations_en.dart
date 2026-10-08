@@ -1030,36 +1030,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomInventoryCta => 'Inventory';
 
   @override
-  String get roomInvitePromptTitle => 'Invite someone';
-
-  @override
-  String get roomInvitePromptBody =>
-      'You\'re the only one here. Generate a code to invite someone.';
-
-  @override
-  String get roomInvitePromptAction => 'Generate code';
-
-  @override
   String get roomInvitePromptGenerating => 'Generating...';
 
   @override
   String get roomInviteCodeTitle => 'Invite code';
 
   @override
-  String get roomInviteCodeMessage =>
-      'Share this code to invite someone to your room.';
-
-  @override
-  String get roomInviteCodeTapHint => 'Tap the code to copy it.';
-
-  @override
   String get roomInviteCopyCodeAction => 'Copy';
 
   @override
   String get roomInviteShareAction => 'Share';
-
-  @override
-  String get roomInviteShareCaption => 'Join me in PetTomo';
 
   @override
   String roomInviteShareFailed(Object error) {
@@ -2577,4 +2557,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPetNamingConfirm => 'That\'s you!';
+
+  @override
+  String inviteCardTitle(String petName) {
+    return '$petName needs a second keeper';
+  }
+
+  @override
+  String inviteCardCaption(String petName) {
+    return 'Help me raise $petName?';
+  }
+
+  @override
+  String get inviteCardJoinReward => '+50 coins when they join';
+
+  @override
+  String inviteCardPromptBody(String petName) {
+    return 'Invite someone to raise $petName with you.';
+  }
+
+  @override
+  String inviteShareCaption(String petName) {
+    return 'Help me raise $petName in PetTomo!';
+  }
 }

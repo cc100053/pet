@@ -1,8 +1,8 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-(pre-auth shell) phase 3 (profile step) and phase 4 (pet picker + naming) done 2026-10-08;
-phase 5 next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) phase 3 (profile step), phase 4 (pet picker + naming) and phase 5 (invite
+card) done 2026-10-08; phase 6 next.** Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -148,7 +148,19 @@ Original plan:
   with the real name.
 - Remove the separate "create room" step from onboarding.
 
-### 5. Invite card
+### 5. Invite card — DONE, as built
+
+The existing invite dialog (`_showInviteCodeDialog`, reached from the new-room
+prompt, the in-room Invite button and the room list) now shows
+`InvitePolaroidCard` (`lib/features/home/widgets/invite_polaroid_card.dart`).
+Share captures that card as a PNG and sends it with the link; if capture
+fails it shares the link alone. "+50 coins when they join" shows only while
+basic onboarding is active (the claim itself is phase 6). The card does not
+auto-open after naming: the new-room prompt ("<pet> needs a second keeper",
+Invite) opens it, so no code is created for people who skip. Six unused
+invite strings were removed.
+
+Original plan:
 
 - `InviteCardSheet`: polaroid widget (pet + "Help me raise <pet>?" + code),
   rendered to PNG via `RepaintBoundary` and shared with `share_plus` (already

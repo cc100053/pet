@@ -535,16 +535,10 @@
   "roomDefaultName": "새 방",
   "roomInviteCta": "초대",
   "roomInventoryCta": "인벤토리",
-  "roomInvitePromptTitle": "누군가를 초대하세요",
-  "roomInvitePromptBody": "현재 이 방에는 나만 있어요. 코드를 만들어 누군가를 초대해 보세요.",
-  "roomInvitePromptAction": "코드 생성",
   "roomInvitePromptGenerating": "생성 중...",
   "roomInviteCodeTitle": "초대 코드",
-  "roomInviteCodeMessage": "이 코드를 공유해 방에 초대하세요.",
-  "roomInviteCodeTapHint": "코드를 탭하면 복사돼요.",
   "roomInviteCopyCodeAction": "복사",
   "roomInviteShareAction": "공유",
-  "roomInviteShareCaption": "PetTomo에서 함께해요",
   "roomInviteShareFailed": "초대 공유 실패: {error}",
   "@roomInviteShareFailed": {
     "placeholders": {
@@ -1181,5 +1175,10 @@
   "onboardingSignInSubtitle": "함께 키우려면 두 사람 모두 계정이 필요해요. 이름은 Apple 또는 Google에서 가져와요.",
   "onboardingPetMoveIn": "입주시키기",
   "onboardingPetNamingPrompt": "안녕! 방이 멋지다. 음… 나 아직 이름이 없어. 뭐라고 불러 줄래?",
-  "onboardingPetNamingConfirm": "그게 네 이름이야!"
+  "onboardingPetNamingConfirm": "그게 네 이름이야!",
+  "inviteCardTitle": "{petName}에게 두 번째 보호자가 필요해요",
+  "inviteCardCaption": "{petName}를 함께 키워 줄래?",
+  "inviteCardJoinReward": "친구가 참여하면 +50 코인",
+  "inviteCardPromptBody": "누군가를 초대해 {petName}를 함께 키워요.",
+  "inviteShareCaption": "PetTomo에서 {petName}를 함께 키워요!"
 }

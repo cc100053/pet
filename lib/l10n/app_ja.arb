@@ -532,16 +532,10 @@
   "roomDefaultName": "新しいルーム",
   "roomInviteCta": "招待",
   "roomInventoryCta": "在庫",
-  "roomInvitePromptTitle": "誰かを招待",
-  "roomInvitePromptBody": "あなた一人だけです。コードを生成して招待しましょう。",
-  "roomInvitePromptAction": "コードを生成",
   "roomInvitePromptGenerating": "生成中...",
   "roomInviteCodeTitle": "招待コード",
-  "roomInviteCodeMessage": "このコードを共有してルームに招待してください。",
-  "roomInviteCodeTapHint": "コードをタップするとコピーできます。",
   "roomInviteCopyCodeAction": "コピー",
   "roomInviteShareAction": "共有",
-  "roomInviteShareCaption": "PetTomoで一緒に遊ぼう",
   "roomInviteShareFailed": "招待の共有に失敗しました: {error}",
   "@roomInviteShareFailed": {
     "placeholders": {
@@ -1182,5 +1176,10 @@
   "onboardingSignInSubtitle": "いっしょに育てるには、ふたりともアカウントが必要です。名前はAppleまたはGoogleから入力します。",
   "onboardingPetMoveIn": "おへやに招待",
   "onboardingPetNamingPrompt": "はじめまして！すてきなお部屋だね。えっと…まだ名前がないんだ。なんて呼んでくれる？",
-  "onboardingPetNamingConfirm": "それがきみの名前！"
+  "onboardingPetNamingConfirm": "それがきみの名前！",
+  "inviteCardTitle": "{petName}にはもうひとり飼い主が必要",
+  "inviteCardCaption": "いっしょに{petName}を育てない？",
+  "inviteCardJoinReward": "参加してくれたら+50コイン",
+  "inviteCardPromptBody": "だれかを招待して、{petName}をいっしょに育てよう。",
+  "inviteShareCaption": "PetTomoでいっしょに{petName}を育てよう！"
 }

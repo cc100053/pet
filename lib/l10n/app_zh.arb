@@ -519,16 +519,10 @@
   "roomDefaultName": "新房间",
   "roomInviteCta": "邀请",
   "roomInventoryCta": "背包",
-  "roomInvitePromptTitle": "邀请朋友",
-  "roomInvitePromptBody": "目前只有你。产生邀请码来邀请朋友加入。",
-  "roomInvitePromptAction": "产生邀请码",
   "roomInvitePromptGenerating": "产生中...",
   "roomInviteCodeTitle": "邀请码",
-  "roomInviteCodeMessage": "分享此邀请码让朋友加入房间。",
-  "roomInviteCodeTapHint": "点击邀请码即可复制。",
   "roomInviteCopyCodeAction": "复制",
   "roomInviteShareAction": "分享",
-  "roomInviteShareCaption": "来 PetTomo 和我一起玩",
   "roomInviteShareFailed": "分享邀请失败：{error}",
   "@roomInviteShareFailed": {
     "placeholders": {
@@ -1182,5 +1176,10 @@
   "onboardingSignInSubtitle": "一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。",
   "onboardingPetMoveIn": "搬进来吧",
   "onboardingPetNamingPrompt": "你好！房间好漂亮。嗯……我还没有名字呢。你要叫我什么？",
-  "onboardingPetNamingConfirm": "就叫你这个！"
+  "onboardingPetNamingConfirm": "就叫你这个！",
+  "inviteCardTitle": "{petName}还需要一位主人",
+  "inviteCardCaption": "一起来养{petName}吗？",
+  "inviteCardJoinReward": "对方加入后 +50 金币",
+  "inviteCardPromptBody": "邀请一个人和你一起养{petName}。",
+  "inviteShareCaption": "来 PetTomo 和我一起养{petName}吧！"
 }

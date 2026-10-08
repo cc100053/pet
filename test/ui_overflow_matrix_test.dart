@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/auth/sign_in_view.dart';
 import 'package:pet/features/onboarding/onboarding_entry_view.dart';
+import 'package:pet/features/pet/pet_catalog.dart';
 import 'package:pet/features/home/room_selection_view.dart';
 import 'package:pet/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:pet/features/home/widgets/home_game_status_bar.dart';
+import 'package:pet/features/home/widgets/invite_polaroid_card.dart';
 import 'package:pet/features/shop/models/shop_item.dart';
 import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
@@ -162,6 +164,23 @@ void main() {
       tester,
       'SignInView(new keeper)',
       (context) => SignInView(onBack: () {}),
+    );
+  });
+
+  testWidgets('invite polaroid fits every locale', (tester) async {
+    await _sweep(
+      tester,
+      'InvitePolaroidCard',
+      (context) => Center(
+        child: InvitePolaroidCard(
+          petAsset: PetCatalog.byId(PetCatalog.defaultPetId).stayAsset,
+          // Longest pet name a player can type (kPetNameMaxLength).
+          caption: AppLocalizations.of(
+            context,
+          )!.inviteCardCaption('Mochimochimo'),
+          code: 'AB12CD',
+        ),
+      ),
     );
   });
 
