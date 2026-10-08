@@ -1,6 +1,8 @@
 # TODO
 
 ## Active follow-ups
+- [ ] Onboarding redesign (B + C hybrid): plan and phase-0 approvals in
+      `tasks/onboarding_redesign.md`.
 - [ ] Confirm build 31's Runner UUID `56233931-A031-3B30-BCF8-A5E536E9AF6B`
       and App.framework UUID `0C7143A3-FD06-B831-485E-50E69C4B8751` are absent
       from Crashlytics → Settings → Missing dSYMs `[USER ACTION REQUIRED]`; the
