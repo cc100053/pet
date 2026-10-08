@@ -2468,6 +2468,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pushSoftAskLater => '以后再说';
+
+  @override
+  String joinedTitle(String petName) {
+    return '你成为$petName的第二位主人了';
+  }
+
+  @override
+  String joinedBody(String petName) {
+    return '$petName有点饿了，要带点零食来吗？';
+  }
+
+  @override
+  String joinedFeed(String petName) {
+    return '喂$petName一张照片';
+  }
+
+  @override
+  String get joinedLookAround => '先随便看看';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4933,4 +4951,22 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get pushSoftAskLater => '以後再說';
+
+  @override
+  String joinedTitle(String petName) {
+    return '你成為$petName的第二位主人了';
+  }
+
+  @override
+  String joinedBody(String petName) {
+    return '$petName有點餓了，要帶點零食來嗎？';
+  }
+
+  @override
+  String joinedFeed(String petName) {
+    return '餵$petName一張照片';
+  }
+
+  @override
+  String get joinedLookAround => '先隨便看看';
 }

@@ -2485,4 +2485,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pushSoftAskLater => 'あとで';
+
+  @override
+  String joinedTitle(String petName) {
+    return '$petNameのふたり目の飼い主になったよ';
+  }
+
+  @override
+  String joinedBody(String petName) {
+    return '$petNameはちょっとおなかがすいてるみたい。おやつを持ってきてくれる？';
+  }
+
+  @override
+  String joinedFeed(String petName) {
+    return '$petNameに写真をあげる';
+  }
+
+  @override
+  String get joinedLookAround => 'まずは見てまわる';
 }

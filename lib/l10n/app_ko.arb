@@ -1188,5 +1188,9 @@
   "pushSoftAskTitle": "배고플 때 알려 줄까?",
   "pushSoftAskBody": "몇 시간 뒤면 또 배고파질 거야. 그때 톡톡 알려 줘도 될까?",
   "pushSoftAskYes": "응, 알려 줘",
-  "pushSoftAskLater": "나중에"
+  "pushSoftAskLater": "나중에",
+  "joinedTitle": "{petName}의 두 번째 보호자가 되었어요",
+  "joinedBody": "{petName}가 조금 배고픈가 봐요. 간식을 가져다줄래요?",
+  "joinedFeed": "{petName}에게 사진 주기",
+  "joinedLookAround": "먼저 둘러보기"
 }

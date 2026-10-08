@@ -4580,6 +4580,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not now'**
   String get pushSoftAskLater;
+
+  /// No description provided for @joinedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re {petName}\'s second keeper'**
+  String joinedTitle(String petName);
+
+  /// No description provided for @joinedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName} is a little hungry. Want to bring a snack?'**
+  String joinedBody(String petName);
+
+  /// No description provided for @joinedFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed {petName} a photo'**
+  String joinedFeed(String petName);
+
+  /// No description provided for @joinedLookAround.
+  ///
+  /// In en, this message translates to:
+  /// **'Look around first'**
+  String get joinedLookAround;
 }
 
 class _AppLocalizationsDelegate

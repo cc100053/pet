@@ -318,6 +318,104 @@ extension _HomeInviteFlow on _HomeViewState {
     }
   }
 
+  /// "You're `petName`'s second keeper": both keepers and the pet, then straight
+  /// to the core loop. Waits for room entry and, for an invited new account,
+  /// for the profile step that the join ran behind.
+  Future<void> _showJoinedCelebration(String roomId) async {
+    final ready = await waitUntilUncovered(
+      isCovered: () =>
+          mounted &&
+          (_roomEntryLoading ||
+              _isProfileSetupOnboardingStepActive ||
+              !(ModalRoute.of(context)?.isCurrent ?? true)),
+      isStillWanted: () => mounted && _roomId == roomId,
+      timeout: const Duration(minutes: 10),
+    );
+    if (!ready || !mounted) {
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final me = Supabase.instance.client.auth.currentUser?.id;
+    ProfileSummary? other;
+    try {
+      final rows = await Supabase.instance.client
+          .from('room_members')
+          .select('user_id')
+          .eq('room_id', roomId)
+          .eq('is_active', true)
+          .neq('user_id', me ?? '')
+          .order('joined_at')
+          .limit(1);
+      final otherId = rows.isEmpty ? null : rows.first['user_id'] as String?;
+      if (otherId != null) {
+        other = await _ensureProfileSummary(otherId);
+      }
+    } catch (error, stackTrace) {
+      // The card still works with the pet alone.
+      reportSwallowedError(error, stackTrace, source: 'joined_celebration');
+    }
+    if (!mounted || _roomId != roomId) {
+      return;
+    }
+    final room = _myRooms.cast<Map<String, dynamic>?>().firstWhere(
+      (r) => r?['id'] == roomId,
+      orElse: () => null,
+    );
+    final rawName = (_petName ?? room?['pet_name'] as String?)?.trim() ?? '';
+    final petName = rawName.isEmpty ? l10n.petNameUnknown : rawName;
+    final petAsset = PetCatalog.byId(
+      room?['pet_type'] as String? ?? _petType,
+    ).stayAsset;
+    AnalyticsService.instance.logEvent('onboarding_joined');
+
+    Widget keeper(String? avatar, String? name) => Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppTheme.ink, width: 2.5),
+      ),
+      child: UserAvatar(avatar: avatar, fallbackText: name, size: 54),
+    );
+
+    await showJuiceToast<void>(
+      context: context,
+      tone: AppDialogTone.success,
+      position: JuicePosition.center,
+      message: l10n.joinedTitle(petName),
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (other != null) keeper(other.avatarUrl, other.nickname),
+              PetAnimatedImage(
+                sourceAsset: petAsset,
+                width: 100,
+                height: 100,
+                fit: BoxFit.contain,
+              ),
+              keeper(_myAvatarUrl, _myNickname),
+            ],
+          ),
+          const SizedBox(height: 8),
+          BalancedText(
+            l10n.joinedBody(petName),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondary,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+      actionLabel: l10n.joinedFeed(petName),
+      onActionPressed: () => unawaited(_openFeedCamera()),
+      secondaryActionLabel: l10n.joinedLookAround,
+    );
+  }
+
   void _dismissNewRoomInvitePrompt() {
     _dismissNewRoomInvitePromptState();
   }

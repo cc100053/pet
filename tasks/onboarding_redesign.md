@@ -1,9 +1,18 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-(pre-auth shell) phases 3–7 (profile step, pet picker + naming, invite card, first-day
-checklist, first-meal card + push soft ask) done 2026-10-08; phase 8
-(joined celebration) next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) phases 3–8 (profile step, pet picker + naming, invite card, first-day
+checklist, first-meal card + push soft ask, joined celebration) done
+2026-10-08. v1 is code-complete; device checks below are pending
+`[USER ACTION REQUIRED]`.**
+
+Device checks before release:
+- New Apple and Google accounts: profile prefill, photo, Continue → picker.
+- Create: pick → naming → room; invite card share to Messages/LINE.
+- First feed: +20, checklist tick, first-meal card, soft ask → iOS prompt.
+- Second account via link: invited sign-in → profile → joined celebration;
+  owner gets +50 on next open; invitee chat task.
+- Existing account reinstall: sign-in shows the iOS prompt, no checklist. Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -235,7 +244,17 @@ Original plan:
   `pushSoftAskSnoozedUntil` (+3 days) in app settings and re-asks once after
   a later feed.
 
-### 8. Invited keeper
+### 8. Invited keeper — DONE, as built
+
+Landing and invitee checklist came with phases 2 and 6. A successful join
+(any join into an unlocked room) now shows `_showJoinedCelebration`
+(`lib/features/home/flows/home_invite_flow.dart`): the first other keeper's
+avatar, the pet and yours, "You're <pet>'s second keeper", "Feed <pet> a
+photo" / "Look around first". It waits for room entry and for the profile
+step an invited new account is still on. No push to the inviter yet
+(phase 9); the copy does not promise one.
+
+Original plan:
 
 - `InviteLandingView` → sign-in + profile → existing
   `join_room_by_code` (through the pending-code path in `home_room_manager`)

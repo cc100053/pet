@@ -1189,5 +1189,9 @@
   "pushSoftAskTitle": "我饿了要提醒你吗？",
   "pushSoftAskBody": "过几个小时我又会饿了。到时候要我拍拍你的肩膀吗？",
   "pushSoftAskYes": "好，提醒我",
-  "pushSoftAskLater": "以后再说"
+  "pushSoftAskLater": "以后再说",
+  "joinedTitle": "你成为{petName}的第二位主人了",
+  "joinedBody": "{petName}有点饿了，要带点零食来吗？",
+  "joinedFeed": "喂{petName}一张照片",
+  "joinedLookAround": "先随便看看"
 }

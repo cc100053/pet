@@ -2608,4 +2608,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushSoftAskLater => 'Not now';
+
+  @override
+  String joinedTitle(String petName) {
+    return 'You\'re $petName\'s second keeper';
+  }
+
+  @override
+  String joinedBody(String petName) {
+    return '$petName is a little hungry. Want to bring a snack?';
+  }
+
+  @override
+  String joinedFeed(String petName) {
+    return 'Feed $petName a photo';
+  }
+
+  @override
+  String get joinedLookAround => 'Look around first';
 }

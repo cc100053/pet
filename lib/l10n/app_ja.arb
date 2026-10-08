@@ -1189,5 +1189,9 @@
   "pushSoftAskTitle": "おなかがすいたら知らせようか？",
   "pushSoftAskBody": "数時間したらまたおなかがすくよ。そのとき声をかけてもいい？",
   "pushSoftAskYes": "うん、知らせて",
-  "pushSoftAskLater": "あとで"
+  "pushSoftAskLater": "あとで",
+  "joinedTitle": "{petName}のふたり目の飼い主になったよ",
+  "joinedBody": "{petName}はちょっとおなかがすいてるみたい。おやつを持ってきてくれる？",
+  "joinedFeed": "{petName}に写真をあげる",
+  "joinedLookAround": "まずは見てまわる"
 }

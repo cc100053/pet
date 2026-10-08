@@ -1218,5 +1218,12 @@
   "pushSoftAskTitle": "Want a nudge when I'm hungry?",
   "pushSoftAskBody": "I get hungry again in a few hours. Want me to tap you on the shoulder?",
   "pushSoftAskYes": "Yes, remind me",
-  "pushSoftAskLater": "Not now"
+  "pushSoftAskLater": "Not now",
+  "joinedTitle": "You're {petName}'s second keeper",
+  "@joinedTitle": {"placeholders": {"petName": {"type": "String"}}},
+  "joinedBody": "{petName} is a little hungry. Want to bring a snack?",
+  "@joinedBody": {"placeholders": {"petName": {"type": "String"}}},
+  "joinedFeed": "Feed {petName} a photo",
+  "@joinedFeed": {"placeholders": {"petName": {"type": "String"}}},
+  "joinedLookAround": "Look around first"
 }

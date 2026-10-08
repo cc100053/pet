@@ -2495,4 +2495,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get pushSoftAskLater => '나중에';
+
+  @override
+  String joinedTitle(String petName) {
+    return '$petName의 두 번째 보호자가 되었어요';
+  }
+
+  @override
+  String joinedBody(String petName) {
+    return '$petName가 조금 배고픈가 봐요. 간식을 가져다줄래요?';
+  }
+
+  @override
+  String joinedFeed(String petName) {
+    return '$petName에게 사진 주기';
+  }
+
+  @override
+  String get joinedLookAround => '먼저 둘러보기';
 }

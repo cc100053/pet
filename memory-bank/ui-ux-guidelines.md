@@ -83,6 +83,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   feed that earns the first-meal reward, a card shows the reward and, while
   iOS is undecided, asks in the pet's voice; the system prompt appears only
   on "Yes, remind me". "Not now" re-asks once, at least 3 days later.
+- Joining a room by code or link shows a celebration card (both keepers and
+  the pet, "Feed <pet> a photo") instead of the old "joined" snackbar; a
+  locked room keeps the snackbar.
 
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.

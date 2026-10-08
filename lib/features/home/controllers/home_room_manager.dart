@@ -950,7 +950,13 @@ extension _HomeRoomManager on _HomeViewState {
         parameters: {'method': method, 'result': 'success'},
       );
       _syncCrashContextFromHome(lastAction: 'join_room_success');
-      showJuiceSnackbar(context: context, message: l10n.roomJoinSuccess);
+      if (joinedRoomId != null &&
+          joinedRoomId.isNotEmpty &&
+          !_isRoomLocked(joinedRoomId)) {
+        unawaited(_showJoinedCelebration(joinedRoomId));
+      } else {
+        showJuiceSnackbar(context: context, message: l10n.roomJoinSuccess);
+      }
       return true;
     } catch (error) {
       if (clearPendingInviteCode) {
