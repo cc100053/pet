@@ -8,8 +8,8 @@
       `flutter_assets/.env`.
 - [ ] Delete the old R2 API token in Cloudflare (created ~2026-01) so the
       key in 5.0.0 stops working `[USER ACTION REQUIRED]`.
-- [ ] Bundle a client-only env file instead of `.env` (the app needs only
-      Supabase URL/anon key, RevenueCat public key, AdMob ids, legal URLs).
+- [x] The app bundles `.env.app` (public keys only, `scripts/write_app_env.sh`)
+      instead of `.env` from the next build on.
 - [ ] The admin debug coin tool (`lib/features/home/home_view_debug.dart`)
       writes `profiles.coins`/`diamonds` directly and now fails silently
       since those columns are server-only; replace it with an admin RPC.

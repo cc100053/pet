@@ -24,7 +24,9 @@ archive and uploads its dSYMs automatically (see below).
 
 ## Export And Upload
 
-Create the archive from Xcode or `flutter build ipa` / `xcodebuild archive`,
+First run `scripts/write_app_env.sh` so the bundled `.env.app` matches the
+current `.env` (public client keys only; see `docs/testing.md`). Then create
+the archive from Xcode or `flutter build ipa` / `xcodebuild archive`,
 then upload the archive with:
 
 ```sh

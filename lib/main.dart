@@ -48,7 +48,7 @@ Future<void> main() async {
               fatal: false,
             ),
       );
-      await dotenv.load(fileName: '.env');
+      await dotenv.load(fileName: '.env.app');
 
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,

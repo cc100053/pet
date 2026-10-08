@@ -24,6 +24,13 @@ check affected instructions and commands instead. Do not use this exception for 
 assets. If CI is restored, materialize gitignored `lib/firebase_options.dart`
 and `.env` from appropriate templates before analyzer/tests.
 
+The app bundles `.env.app`, not `.env`. Run `scripts/write_app_env.sh` after
+creating or changing `.env` and before any `flutter run`, `test` or `build`;
+without it the build stops at "Error detected in pubspec.yaml". It copies
+only the public client keys `lib/services/env.dart` reads, because every
+bundled asset ships to users in plain text; server secrets (R2, webhook
+secrets, Apple keys) must never reach it.
+
 ### iOS simulator builds on Xcode 27
 
 `flutter build ios --simulator` / `flutter run` on a simulator fail in
