@@ -1,10 +1,15 @@
 # TODO
 
 ## Active follow-ups
-- [ ] Rotate the R2 access key and `NOTIFY_WEBHOOK_SECRET`: the app bundles
-      `.env` as a Flutter asset, and the 5.0.0 archive's
-      `flutter_assets/.env` contains both in plain text (the app uses
-      neither). Then bundle a client-only env file `[USER ACTION REQUIRED]`.
+- [x] Rotated the R2 access key (new Cloudflare token, Supabase secrets set
+      2026-10-08 08:17 UTC, upload tested) and `NOTIFY_WEBHOOK_SECRET`
+      (08:19 UTC; hunger cron 200, notify_friend accepts new / rejects
+      wrong). Both had shipped in plain text in the 5.0.0 archive's
+      `flutter_assets/.env`.
+- [ ] Delete the old R2 API token in Cloudflare (created ~2026-01) so the
+      key in 5.0.0 stops working `[USER ACTION REQUIRED]`.
+- [ ] Bundle a client-only env file instead of `.env` (the app needs only
+      Supabase URL/anon key, RevenueCat public key, AdMob ids, legal URLs).
 - [ ] The admin debug coin tool (`lib/features/home/home_view_debug.dart`)
       writes `profiles.coins`/`diamonds` directly and now fails silently
       since those columns are server-only; replace it with an admin RPC.
