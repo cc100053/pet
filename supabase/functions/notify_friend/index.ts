@@ -10,12 +10,7 @@ import {
   PET_AVATAR_ASSET_BY_TYPE,
   PET_AVATAR_URL_BY_TYPE,
 } from "./pets.ts";
-import {
-  getL10n,
-  localizedAppName,
-  localizedStoreItemName,
-} from "./l10n.ts";
-
+import { getL10n, localizedAppName, localizedStoreItemName } from "./l10n.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -30,9 +25,13 @@ const FCM_PRIVATE_KEY = (Deno.env.get("FCM_PRIVATE_KEY") ?? "").replace(
   "\n",
 );
 
-
 type NotifyPayload = {
-  type: "feed_event" | "chat_message" | "hunger_alert" | "store_purchase";
+  type:
+    | "feed_event"
+    | "chat_message"
+    | "hunger_alert"
+    | "store_purchase"
+    | "member_joined";
   room_id: string;
   sender_id?: string;
   recipient_ids?: string[];
@@ -105,7 +104,6 @@ async function importPrivateKey(privateKey: string) {
   );
 }
 
-
 async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
   const iat = getNumericDate(0);
   const exp = getNumericDate(3600);
@@ -166,7 +164,6 @@ function fillTemplate(
     (_full, key: string) => values[key] ?? _full,
   );
 }
-
 
 function tokenPrefix(token: string): string {
   return token.length <= 12 ? token : token.slice(0, 12);
@@ -301,7 +298,6 @@ function parseStorePurchaseMessage(
   }
 }
 
-
 function notificationMessageKind(
   payloadType: NotifyPayload["type"],
   hungerAlertLevel: 50 | 30 | 10 | null,
@@ -314,6 +310,11 @@ function notificationMessageKind(
   }
   if (payloadType === "store_purchase") {
     return "store_purchase";
+  }
+  if (payloadType === "member_joined") {
+    // Unknown to older clients: they show title_full/body_full and open the
+    // room home on tap, which is what this push wants.
+    return "member_joined";
   }
   return "image_feed";
 }
@@ -346,6 +347,13 @@ serve(async (req) => {
 
   const isHungerAlert = payload.type === "hunger_alert";
   const isStorePurchase = payload.type === "store_purchase";
+  const isMemberJoined = payload.type === "member_joined";
+  // "X joined" is sent by the joiner's own app right after joining; there is
+  // no message row behind it, so the webhook path does not take it.
+  const memberJoinedWindowMs = 10 * 60 * 1000;
+  if (isMemberJoined && isWebhookRequest) {
+    return jsonResponse(400, { error: "member_joined_requires_user" });
+  }
   let senderId = payload.sender_id ?? null;
   let recipientIds = Array.isArray(payload.recipient_ids)
     ? payload.recipient_ids.filter((id) => typeof id === "string")
@@ -452,7 +460,53 @@ serve(async (req) => {
     }
     senderId = authData.user.id;
 
-    if (isHungerAlert) {
+    if (isMemberJoined) {
+      const { data: membershipRow, error: membershipError } =
+        await supabaseAdmin
+          .from("room_members")
+          .select("joined_at")
+          .eq("room_id", payload.room_id)
+          .eq("user_id", senderId)
+          .eq("is_active", true)
+          .maybeSingle();
+      if (membershipError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membershipError.message,
+        });
+      }
+      if (!membershipRow) {
+        return jsonResponse(403, { error: "not_room_member" });
+      }
+      const joinedAt = Date.parse(String(membershipRow.joined_at ?? ""));
+      if (
+        !Number.isFinite(joinedAt) ||
+        Date.now() - joinedAt > memberJoinedWindowMs
+      ) {
+        return jsonResponse(403, { error: "not_recent_join" });
+      }
+      // Synthetic id: dedupe key and delivery-log id only. Devices get an
+      // empty message_id so no client tries to load it as a message.
+      payload.message_id = `member_joined:${senderId}`;
+      payload.body = null;
+      payload.caption = null;
+      payload.image_url = null;
+
+      const { data: memberRows, error: membersError } = await supabaseAdmin
+        .from("room_members")
+        .select("user_id")
+        .eq("room_id", payload.room_id)
+        .eq("is_active", true);
+      if (membersError) {
+        return jsonResponse(500, {
+          error: "db_error",
+          details: membersError.message,
+        });
+      }
+      recipientIds = (memberRows ?? [])
+        .map((row) => row.user_id as string | null)
+        .filter((id): id is string => !!id && id !== senderId);
+    } else if (isHungerAlert) {
       const { data: membershipRow, error: membershipError } =
         await supabaseAdmin
           .from("room_members")
@@ -682,13 +736,14 @@ serve(async (req) => {
     }
   }
 
-  if (isHungerAlert) {
+  if (isHungerAlert || isMemberJoined) {
     const { data: existingDelivery, error: existingDeliveryError } =
       await supabaseAdmin
         .from("notification_delivery_logs")
         .select("id")
+        .eq("room_id", payload.room_id)
         .eq("message_id", payload.message_id)
-        .eq("payload_type", "hunger_alert")
+        .eq("payload_type", payload.type)
         .eq("success", true)
         .limit(1);
     if (existingDeliveryError) {
@@ -877,8 +932,8 @@ serve(async (req) => {
       strings.defaultPetName;
     const resolvedSenderName =
       nonEmptyOrNull(storePurchaseMessage?.user_name) ??
-      senderNameRaw ??
-      strings.defaultSenderName;
+        senderNameRaw ??
+        strings.defaultSenderName;
     const collapsedPetName = collapseName(resolvedPetName, 7);
     const collapsedPetNameForTitle = collapseName(resolvedPetName, 15);
     const collapsedSenderName = collapseName(resolvedSenderName, 7);
@@ -910,20 +965,24 @@ serve(async (req) => {
         pet: collapsedPetNameForTitle,
       });
     const messageType = notificationMessageKind(payload.type, hungerAlertLevel);
+    const memberJoinedBody = fillTemplate(strings.memberJoinedTemplate, {
+      sender: collapsedSenderName,
+      pet: collapsedPetName,
+    });
     const pushBody = payload.type === "chat_message"
       ? textBody
       : (payload.type === "hunger_alert"
         ? hungerBody
         : (payload.type === "store_purchase"
           ? (storePurchaseBody ?? strings.defaultTextBody)
-          : feedBody));
+          : (payload.type === "member_joined" ? memberJoinedBody : feedBody)));
     const pushSenderName = payload.type === "hunger_alert"
       ? ""
       : collapsedSenderName;
 
     const dataPayload: Record<string, string> = {
       room_id: payload.room_id,
-      message_id: payload.message_id,
+      message_id: isMemberJoined ? "" : payload.message_id,
       // FCM reserves "message_type" as an internal key.
       message_kind: messageType,
       pet_name: collapsedPetNameForTitle,

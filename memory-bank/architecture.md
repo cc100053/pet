@@ -109,6 +109,14 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   push in `EdgeRuntime.waitUntil(...)`) live in `docs/feed_upload_pipeline.md`.
 - `notify_friend` keeps `verify_jwt=false` for webhook compatibility; gateway
   JWT functions still validate users internally.
+- `notify_friend` type `member_joined` (since v39, 2026-10-08): body
+  `{type, room_id}`, user JWT only (webhook → 400). The caller must be an
+  active member who joined within 10 minutes; it pushes "<sender> joined to
+  raise <pet>" to the other active members, once per joiner per room
+  (delivery-log `message_id = member_joined:<user>`). Devices receive
+  `message_kind = member_joined` and an empty `message_id`; older clients show
+  `title_full`/`body_full` and open the room home on tap. Sent by the joiner's
+  app after `join_room_by_code`.
 - Profile → Send Feedback opens the in-app `SupportView`
   (`lib/features/support/`), which replaces the external support web form.
   The backend contract is `support_messages` in `database-schema.md`;

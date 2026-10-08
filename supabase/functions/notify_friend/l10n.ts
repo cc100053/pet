@@ -17,6 +17,7 @@ type L10nStrings = {
   hungerReminderTemplate: string;
   hungerUrgentTemplate: string;
   storePurchaseTemplate: string;
+  memberJoinedTemplate: string;
 };
 
 const l10n: Record<string, L10nStrings> = {
@@ -28,6 +29,7 @@ const l10n: Record<string, L10nStrings> = {
     hungerReminderTemplate: "{pet} is getting hungry. Time to feed!",
     hungerUrgentTemplate: "{pet} is very hungry! Please feed now!",
     storePurchaseTemplate: "{sender} bought {item} for {pet}",
+    memberJoinedTemplate: "{sender} joined to raise {pet} with you!",
   },
   ja: {
     defaultTextBody: "新しいメッセージ",
@@ -38,6 +40,7 @@ const l10n: Record<string, L10nStrings> = {
       "{pet}がお腹を空かせています。ごはんをあげてください！",
     hungerUrgentTemplate: "{pet}がとてもお腹を空かせています！今すぐごはんを！",
     storePurchaseTemplate: "{sender}が{pet}に{item}を買いました",
+    memberJoinedTemplate: "{sender}さんが{pet}の飼い主になりました！",
   },
   ko: {
     defaultTextBody: "새 메시지",
@@ -47,6 +50,7 @@ const l10n: Record<string, L10nStrings> = {
     hungerReminderTemplate: "{pet}가 배고파하고 있어요. 먹이를 주세요!",
     hungerUrgentTemplate: "{pet}가 매우 배고파요! 지금 바로 먹이를 주세요!",
     storePurchaseTemplate: "{sender}님이 {pet}에게 {item}을 사줬어요",
+    memberJoinedTemplate: "{sender}님이 함께 {pet}를 키우게 됐어요!",
   },
   zh: {
     defaultTextBody: "新消息",
@@ -56,6 +60,7 @@ const l10n: Record<string, L10nStrings> = {
     hungerReminderTemplate: "{pet}有点饿了，记得喂食！",
     hungerUrgentTemplate: "{pet}非常饿！请立即喂食！",
     storePurchaseTemplate: "{sender}给{pet}买了{item}",
+    memberJoinedTemplate: "{sender}加入了，一起来养{pet}吧！",
   },
   "zh-TW": {
     defaultTextBody: "新訊息",
@@ -65,6 +70,7 @@ const l10n: Record<string, L10nStrings> = {
     hungerReminderTemplate: "{pet} 有點餓了，記得餵食！",
     hungerUrgentTemplate: "{pet} 非常餓！請立即餵食！",
     storePurchaseTemplate: "{sender}買了{item}給{pet}",
+    memberJoinedTemplate: "{sender}加入了，一起來養{pet}吧！",
   },
 };
 

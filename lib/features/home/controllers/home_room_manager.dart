@@ -950,6 +950,9 @@ extension _HomeRoomManager on _HomeViewState {
         parameters: {'method': method, 'result': 'success'},
       );
       _syncCrashContextFromHome(lastAction: 'join_room_success');
+      if (joinedRoomId != null && joinedRoomId.isNotEmpty) {
+        unawaited(_notifyKeepersOfJoin(joinedRoomId));
+      }
       if (joinedRoomId != null &&
           joinedRoomId.isNotEmpty &&
           !_isRoomLocked(joinedRoomId)) {
@@ -983,6 +986,19 @@ extension _HomeRoomManager on _HomeViewState {
       if (mounted) {
         _setStateForRoomManager(() => _joiningRoom = false);
       }
+    }
+  }
+
+  /// Tells the room's other keepers "`you` joined". Best effort: the server
+  /// sends it once per keeper per room, only within 10 minutes of joining.
+  Future<void> _notifyKeepersOfJoin(String roomId) async {
+    try {
+      await Supabase.instance.client.functions.invoke(
+        'notify_friend',
+        body: {'type': 'member_joined', 'room_id': roomId},
+      );
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'notify_member_joined');
     }
   }
 

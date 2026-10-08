@@ -3,7 +3,8 @@
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
 (pre-auth shell) phases 3–8 (profile step, pet picker + naming, invite card, first-day
 checklist, first-meal card + push soft ask, joined celebration) done
-2026-10-08. v1 is code-complete; device checks below are pending
+2026-10-08; phase 9 (inviter push on join) deployed as notify_friend v39.
+v1 is code-complete; device checks below are pending
 `[USER ACTION REQUIRED]`.**
 
 Device checks before release:
@@ -11,7 +12,8 @@ Device checks before release:
 - Create: pick → naming → room; invite card share to Messages/LINE.
 - First feed: +20, checklist tick, first-meal card, soft ask → iOS prompt.
 - Second account via link: invited sign-in → profile → joined celebration;
-  owner gets +50 on next open; invitee chat task.
+  owner gets the "X joined to raise <pet>" push (needs the new app on the
+  joiner's phone) and +50 on next open; invitee chat task.
 - Existing account reinstall: sign-in shows the iOS prompt, no checklist. Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
@@ -265,7 +267,10 @@ Original plan:
 - Expired or invalid code: return to code entry with localized copy via
   `userFacingError`.
 
-### 9. Later (not in v1)
+### 9. Inviter push — DONE (member_joined in notify_friend v39); pre-auth
+invite preview stays not done (owner chose generic copy).
+
+Original notes:
 
 - `member_joined` push to the inviter (`notify_friend` type + client tap
   route + old-client fallback check).
