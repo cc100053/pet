@@ -32,8 +32,6 @@ class AppSettingsRepository implements PendingInviteCodeStore {
       'onboarding_basic_started_at_iso';
   static const String _onboardingBasicCompletedAtIsoKey =
       'onboarding_basic_completed_at_iso';
-  static const String _onboardingFirstDayEligibleKey =
-      'onboarding_first_day_eligible';
   static const String _pendingInviteCodeKey = 'pending_invite_code';
   static const String _roomFrameStylesKey = 'room_frame_styles';
   static const String _roomFrameHintSeenKey = 'room_frame_hint_seen';
@@ -175,15 +173,6 @@ class AppSettingsRepository implements PendingInviteCodeStore {
 
   Future<void> setOnboardingBasicDismissed(bool dismissed) async {
     await _box?.put(_onboardingBasicDismissedKey, dismissed);
-  }
-
-  /// Set when a fresh onboarding starts in a build with the first-day
-  /// checklist, so installs from before it never get the checklist.
-  bool get onboardingFirstDayEligible =>
-      (_box?.get(_onboardingFirstDayEligibleKey) as bool?) ?? false;
-
-  Future<void> setOnboardingFirstDayEligible(bool eligible) async {
-    await _box?.put(_onboardingFirstDayEligibleKey, eligible);
   }
 
   bool get onboardingBasicCompleted =>

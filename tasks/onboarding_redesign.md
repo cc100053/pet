@@ -176,11 +176,15 @@ Original plan:
   `source = 'onboarding'`; no client-side task state. Sync claims every open
   task on room refresh (10s throttle), first room render, feed completed,
   chat closed and decor closed. All three claimed → onboarding `completed`.
-- Eligibility: a new Hive flag `onboarding_first_day_eligible`, set only when
-  a fresh onboarding starts. Every install from before this sits in the old,
-  never-finishing `invite_friend` step, so without the flag all existing
-  users would get the checklist and the +50 invite promise. (A reinstall
-  counts as fresh; the server still pays each task once per account.)
+- Eligibility (owner decision 2026-10-08): new accounts only, created
+  on/after 2026-10-08 UTC, enforced by the server
+  (`20261008074506_onboarding_rewards_new_accounts_only.sql`) and mirrored
+  by the client (`kFirstDayAccountCutoff`). Existing players are never paid
+  and never see the checklist; every older install sits in the old,
+  never-finishing `invite_friend` step, so a client-only gate would have
+  shown it to everyone. A reinstall of a new account starts onboarding
+  again and shows whichever tasks it hasn't claimed; each task still pays
+  once per account.
 - After saving the profile, a new keeper with no room and no pending invite
   goes straight to the pet picker. That replaced the create-pet coach card;
   the coach card, focus overlay and `onboarding_focus_utils.dart` (and its

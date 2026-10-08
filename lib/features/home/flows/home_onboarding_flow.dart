@@ -65,10 +65,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
     if (!dismissed && !completed && startedAt == null) {
       await settings.setOnboardingBasicStartedAt(DateTime.now().toUtc());
     }
-    if (isFreshOnboarding) {
-      await settings.setOnboardingFirstDayEligible(true);
-    }
-    _firstDayEligible = settings.onboardingFirstDayEligible;
 
     if (!mounted) {
       _basicOnboardingDismissed = dismissed;

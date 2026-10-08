@@ -4,8 +4,20 @@ import 'package:pet/l10n/app_localizations.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/ui/juice_wrappers.dart';
 
+/// Accounts created from this instant get the first-day checklist and its
+/// rewards; older accounts never do. Mirrors the check in
+/// `claim_onboarding_reward` (supabase/migrations/20261008074506_*).
+final DateTime kFirstDayAccountCutoff = DateTime.utc(2026, 10, 8);
+
+/// Whether an account (auth `created_at`, ISO 8601) is new enough for the
+/// first-day checklist. Unknown or unparsable dates count as not eligible.
+bool isFirstDayEligibleAccount(String? createdAt) {
+  final created = DateTime.tryParse(createdAt ?? '');
+  return created != null && !created.isBefore(kFirstDayAccountCutoff);
+}
+
 /// One-time onboarding tasks. [key] and [coins] mirror
-/// `claim_onboarding_reward` (supabase/migrations/20261008065402_*); the
+/// `claim_onboarding_reward` (supabase/migrations/20261008074506_*); the
 /// server is the authority, [coins] is only what the card promises.
 enum FirstDayTask {
   firstFeed('first_feed', 20),

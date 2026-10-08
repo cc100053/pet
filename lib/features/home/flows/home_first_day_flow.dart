@@ -4,11 +4,14 @@ part of '../home_view.dart';
 /// state is the server's: claimed = an `onboarding` row in the caller's own
 /// `coin_ledger`; `claim_onboarding_reward` checks eligibility and pays once.
 extension _HomeFirstDayFlow on _HomeViewState {
-  /// Only accounts whose onboarding started in a build with this checklist;
-  /// installs from before it sit in the old, never-finished invite step.
+  /// New accounts only (the server pays nobody older). A reinstall of a new
+  /// account starts onboarding again and shows the tasks it has left.
   bool get _isFirstDayChecklistActive {
+    final eligible = isFirstDayEligibleAccount(
+      Supabase.instance.client.auth.currentUser?.createdAt,
+    );
     if (!_basicOnboardingReady ||
-        !(_firstDayEligible || _isDebugForceOnboardingActive)) {
+        !(eligible || _isDebugForceOnboardingActive)) {
       return false;
     }
     return _isBasicOnboardingActive &&

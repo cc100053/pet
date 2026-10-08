@@ -451,7 +451,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _showingFeedDoubleRewardPrompt = false;
   String? _lastCrashContextRoomId;
   String? _lastCrashContextNetworkState;
-  bool _firstDayEligible = false;
   Set<String>? _firstDayClaimed;
   bool _firstDaySyncing = false;
   DateTime? _firstDayLastSyncAt;

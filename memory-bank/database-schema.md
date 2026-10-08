@@ -22,10 +22,12 @@ migration that rewrites the object.
   or timestamp writes. Invoker trigger enforces levels 1/1/3/5/8, immutable
   room ids, and grandfathered shared casings (including upserts); server owns
   timestamps. Published to Realtime; existing RPCs/catalogs are unchanged.
-- `claim_onboarding_reward(p_room_id, p_task)` (since `20261008065402`) is a
-  definer RPC for the onboarding checklist. It requires active membership,
-  checks eligibility from server data, and returns the coins granted (0 if
-  ineligible or already claimed). Amounts are fixed in the function:
+- `claim_onboarding_reward(p_room_id, p_task)` (since `20261008065402`;
+  new-accounts-only since `20261008074506`) is a definer RPC for the
+  onboarding checklist. It pays only accounts whose `auth.users.created_at`
+  is on/after 2026-10-08 UTC, requires active membership, checks eligibility
+  from server data, and returns the coins granted (0 if the account is
+  older, the task is not done, or it was already claimed). Amounts are fixed in the function:
   `first_feed` 20, `co_keeper_joined` 50 (someone joined after the caller),
   `first_furniture` 10, `first_chat` 10. Rows land in `coin_ledger` with
   `source = 'onboarding'`, and a partial unique index on

@@ -48,7 +48,7 @@ void main() {
 
   test('promised coins match claim_onboarding_reward', () {
     final sql = File(
-      'supabase/migrations/20261008065402_add_onboarding_rewards.sql',
+      'supabase/migrations/20261008074506_onboarding_rewards_new_accounts_only.sql',
     ).readAsStringSync();
     for (final task in FirstDayTask.values) {
       expect(
@@ -57,6 +57,25 @@ void main() {
         reason: '${task.key} amount drifted from the server',
       );
     }
+  });
+
+  test('only accounts created on or after the cutoff are eligible', () {
+    expect(isFirstDayEligibleAccount('2026-10-08T00:00:00Z'), isTrue);
+    expect(
+      isFirstDayEligibleAccount('2026-11-01T09:30:00.123456+00:00'),
+      isTrue,
+    );
+    expect(isFirstDayEligibleAccount('2026-10-07T23:59:59Z'), isFalse);
+    expect(isFirstDayEligibleAccount(null), isFalse);
+    expect(isFirstDayEligibleAccount('not a date'), isFalse);
+  });
+
+  test('account cutoff matches the server', () {
+    final sql = File(
+      'supabase/migrations/20261008074506_onboarding_rewards_new_accounts_only.sql',
+    ).readAsStringSync();
+    expect(sql, contains("created_at >= timestamptz '2026-10-08 00:00:00+00'"));
+    expect(kFirstDayAccountCutoff, DateTime.utc(2026, 10, 8));
   });
 
   testWidgets('shows progress, strikes done tasks, taps open tasks', (
