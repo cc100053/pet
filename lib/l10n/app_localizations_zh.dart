@@ -2424,6 +2424,15 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get onboardingSignInSubtitle =>
       '一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。';
+
+  @override
+  String get onboardingPetMoveIn => '搬进来吧';
+
+  @override
+  String get onboardingPetNamingPrompt => '你好！房间好漂亮。嗯……我还没有名字呢。你要叫我什么？';
+
+  @override
+  String get onboardingPetNamingConfirm => '就叫你这个！';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4845,4 +4854,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String get onboardingSignInSubtitle =>
       '一起養寵物需要兩支手機都有帳號。我們會從 Apple 或 Google 幫你填好名字。';
+
+  @override
+  String get onboardingPetMoveIn => '搬進來吧';
+
+  @override
+  String get onboardingPetNamingPrompt => '你好！房間好漂亮。嗯……我還沒有名字呢。你要叫我什麼？';
+
+  @override
+  String get onboardingPetNamingConfirm => '就叫你這個！';
 }

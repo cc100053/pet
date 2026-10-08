@@ -1,7 +1,8 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-(pre-auth shell) and phase 3 (profile step) done 2026-10-08; phase 4 next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) phase 3 (profile step) and phase 4 (pet picker + naming) done 2026-10-08;
+phase 5 next.** Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -127,7 +128,17 @@ Original plan:
   (`_isProfileSetupComplete` rule) back to this panel, so killing the app
   mid-flow resumes correctly.
 
-### 4. Pick pet + naming dialogue (new keeper)
+### 4. Pick pet + naming dialogue — DONE, as built
+
+`PetSelectionPage` is now two steps: pick ("Move in", local only), then the pet
+asks its name in a dialogue box over the default room background ("That's
+you!" submits; create still calls `create_room(p_name)` unchanged). The room
+preview lives on the naming step, not the picker. Shop pet-ticket adoption
+uses the same page and gets the naming step with its own confirm label. Also
+fixed: pet cards overflowed at max text size on 320pt phones (name 1 line,
+tagline 2). The createPet coach card is removed in phase 6.
+
+Original plan:
 
 - Restyle the picker in `room_selection_view.dart`: the preview shows the pet
   in the free room background. "Move in" is **local only**.

@@ -1179,5 +1179,8 @@
   "onboardingInviteLandingSubtitle": "サインインして友だちのペットのお部屋に参加しよう。",
   "onboardingProfileSignedInWith": "{provider}でサインイン済み",
   "onboardingSignInTitle": "ペットがあなたを見つけられるように",
-  "onboardingSignInSubtitle": "いっしょに育てるには、ふたりともアカウントが必要です。名前はAppleまたはGoogleから入力します。"
+  "onboardingSignInSubtitle": "いっしょに育てるには、ふたりともアカウントが必要です。名前はAppleまたはGoogleから入力します。",
+  "onboardingPetMoveIn": "おへやに招待",
+  "onboardingPetNamingPrompt": "はじめまして！すてきなお部屋だね。えっと…まだ名前がないんだ。なんて呼んでくれる？",
+  "onboardingPetNamingConfirm": "それがきみの名前！"
 }

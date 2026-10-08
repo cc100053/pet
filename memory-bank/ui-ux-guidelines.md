@@ -69,6 +69,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - After sign-in, the `profile_setup` step is a full Mori page (provider chip,
   optional photo, required name prefilled from Apple/Google), shown even
   inside a joined room so invited users get it too.
+- `PetSelectionPage` (create room and shop pet tickets) is two steps: pick,
+  then the pet asks its name in a game-style dialogue box over the room. Only
+  the naming step pads for the keyboard; the page itself does not resize.
 
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.

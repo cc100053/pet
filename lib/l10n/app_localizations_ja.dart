@@ -2441,4 +2441,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get onboardingSignInSubtitle =>
       'いっしょに育てるには、ふたりともアカウントが必要です。名前はAppleまたはGoogleから入力します。';
+
+  @override
+  String get onboardingPetMoveIn => 'おへやに招待';
+
+  @override
+  String get onboardingPetNamingPrompt =>
+      'はじめまして！すてきなお部屋だね。えっと…まだ名前がないんだ。なんて呼んでくれる？';
+
+  @override
+  String get onboardingPetNamingConfirm => 'それがきみの名前！';
 }

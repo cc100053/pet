@@ -9,6 +9,8 @@ import 'package:pet/l10n/app_localizations.dart';
 
 import '../../services/settings/app_settings_repository.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/ui/juice_wrappers.dart';
+import '../home/room_backgrounds.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -104,6 +106,8 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
   String? _petNameError;
   String? _submitError;
   bool _submitting = false;
+  // Two steps: pick a pet, then the pet asks for its name in the room.
+  bool _naming = false;
   bool _didRefreshStatusBar = false;
   String? _currentAppVersion =
       AppSettingsRepository.instance.lastLaunchedAppVersion;
@@ -250,8 +254,16 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
       value: AppStatusBarStyles.light,
       child: PopScope(
         canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _naming && !_submitting) {
+            setState(() => _naming = false);
+          }
+        },
         child: Scaffold(
           backgroundColor: AppTheme.backgroundColor,
+          // Only the naming step has a text field; it pads itself for the
+          // keyboard so the picker underneath never gets squeezed.
+          resizeToAvoidBottomInset: false,
           body: LayoutBuilder(
             builder: (context, viewport) {
               final responsive = ResponsiveLayout.fromSize(viewport.biggest);
@@ -377,16 +389,155 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                               ),
                                         ),
                                 ),
-                                const SizedBox(height: 10),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            child: FilledButton(
+                              onPressed: _selectedPetId == null
+                                  ? null
+                                  : () => setState(() => _naming = true),
+                              child: Text(l10n.onboardingPetMoveIn),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_naming)
+                    Positioned.fill(
+                      // Hides the pick step underneath from screen readers.
+                      child: BlockSemantics(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.viewInsetsOf(context).bottom,
+                          ),
+                          child: _buildNamingStep(
+                            context,
+                            l10n,
+                            confirmText,
+                            submittingText,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNamingStep(
+    BuildContext context,
+    AppLocalizations l10n,
+    String confirmText,
+    String submittingText,
+  ) {
+    final pet = PetCatalog.byIdForAppVersion(
+      _selectedPetId,
+      appVersion: _currentAppVersion,
+    );
+    final room = RoomBackgrounds.definitions[RoomBackgrounds.defaultKey]!;
+    final theme = Theme.of(context);
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppTheme.ink, width: 2.5),
+    );
+    return Stack(
+      children: [
+        Positioned.fill(child: DecoratedBox(decoration: room.decoration)),
+        SafeArea(
+          child: IgnorePointer(
+            ignoring: _submitting,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).backButtonTooltip,
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      color: AppTheme.textPrimary,
+                      onPressed: () => setState(() => _naming = false),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: PetAnimatedImage(
+                      sourceAsset: pet.stayAsset,
+                      width: 190,
+                      height: 190,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                // Flexible so the dialogue scrolls instead of overflowing on
+                // small phones with the keyboard up; the pet gives way first.
+                Flexible(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(18, 26, 18, 18),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceColor,
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(color: AppTheme.ink, width: 3),
+                          ),
+                          child: SingleChildScrollView(
+                            keyboardDismissBehavior:
+                                formScrollKeyboardDismissBehavior,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                BalancedText(
+                                  l10n.onboardingPetNamingPrompt,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 TextField(
                                   controller: _petNameController,
+                                  autofocus: true,
                                   onTapOutside: dismissKeyboardOnTapOutside,
                                   textInputAction: TextInputAction.done,
                                   maxLength: widget.maxPetNameLength,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary,
+                                  ),
                                   decoration: InputDecoration(
-                                    labelText: l10n.petNameLabel,
-                                    helperText: l10n.petNameHint,
-                                    errorText: _petNameError,
+                                    hintText: l10n.petNameHint,
+                                    errorText: _petNameError ?? _submitError,
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    counterText: '',
+                                    border: inputBorder,
+                                    enabledBorder: inputBorder,
+                                    focusedBorder: inputBorder.copyWith(
+                                      borderSide: const BorderSide(
+                                        color: AppTheme.leafStrong,
+                                        width: 2.5,
+                                      ),
+                                    ),
                                   ),
                                   onChanged: (_) {
                                     if (_petNameError == null &&
@@ -400,106 +551,121 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
                                   },
                                   onSubmitted: (_) => _submitSelection(),
                                 ),
-                                if (_submitError != null) ...[
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _submitError!,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.errorColor,
-                                      fontWeight: FontWeight.w600,
+                                const SizedBox(height: 14),
+                                Semantics(
+                                  button: true,
+                                  enabled: !_submitting,
+                                  label: confirmText,
+                                  excludeSemantics: true,
+                                  child: HardShadowPressButton(
+                                    onTap: _submitting
+                                        ? null
+                                        : _submitSelection,
+                                    borderRadius: BorderRadius.circular(18),
+                                    shadowDepth: 4,
+                                    color: AppTheme.leafStrong,
+                                    borderWidth: 2.5,
+                                    height: 54,
+                                    child: Text(
+                                      confirmText,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                            child: FilledButton(
-                              onPressed: _selectedPetId == null || _submitting
-                                  ? null
-                                  : _submitSelection,
-                              child: _submitting
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Text(submittingText),
-                                      ],
-                                    )
-                                  : Text(confirmText),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (_submitting)
-                    Positioned.fill(
-                      child: ColoredBox(
-                        color: Colors.black.withValues(alpha: 0.24),
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.16),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppTheme.primaryColor,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  submittingText,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: AppTheme.textPrimary,
-                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                      ),
+                        Positioned(
+                          top: -16,
+                          left: 20,
+                          child: Transform.rotate(
+                            angle: -0.05,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.kinako,
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: AppTheme.ink,
+                                  width: 2.5,
+                                ),
+                              ),
+                              child: const Text(
+                                '???',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                ],
-              );
-            },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+        if (_submitting)
+          Positioned.fill(
+            child: ColoredBox(
+              color: Colors.black.withValues(alpha: 0.24),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.16),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.primaryColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        submittingText,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -564,6 +730,8 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
               const Gap(10),
               Text(
                 pet.name(l10n),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -571,6 +739,8 @@ class _PetSelectionPageState extends State<PetSelectionPage> {
               const Gap(4),
               BalancedText(
                 pet.tagline(l10n),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppTheme.textSecondary,
                 ),

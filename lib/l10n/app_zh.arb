@@ -1179,5 +1179,8 @@
   "onboardingInviteLandingSubtitle": "登录后即可加入朋友的宠物房间。",
   "onboardingProfileSignedInWith": "已通过 {provider} 登录",
   "onboardingSignInTitle": "让宠物找到你",
-  "onboardingSignInSubtitle": "一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。"
+  "onboardingSignInSubtitle": "一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。",
+  "onboardingPetMoveIn": "搬进来吧",
+  "onboardingPetNamingPrompt": "你好！房间好漂亮。嗯……我还没有名字呢。你要叫我什么？",
+  "onboardingPetNamingConfirm": "就叫你这个！"
 }

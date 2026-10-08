@@ -674,6 +674,7 @@ extension _HomeRoomManager on _HomeViewState {
     await Navigator.of(context).push<PetSelectionResult>(
       PetSelectionPage.route(
         maxPetNameLength: _HomeViewState._petNameMaxLength,
+        confirmText: AppLocalizations.of(context)!.onboardingPetNamingConfirm,
         onSubmitSelection: _submitCreateRoomFromPetSelection,
       ),
     );

@@ -2451,4 +2451,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get onboardingSignInSubtitle =>
       '함께 키우려면 두 사람 모두 계정이 필요해요. 이름은 Apple 또는 Google에서 가져와요.';
+
+  @override
+  String get onboardingPetMoveIn => '입주시키기';
+
+  @override
+  String get onboardingPetNamingPrompt =>
+      '안녕! 방이 멋지다. 음… 나 아직 이름이 없어. 뭐라고 불러 줄래?';
+
+  @override
+  String get onboardingPetNamingConfirm => '그게 네 이름이야!';
 }

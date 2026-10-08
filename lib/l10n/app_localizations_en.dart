@@ -2567,4 +2567,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingSignInSubtitle =>
       'A shared pet needs an account on both phones. We\'ll fill in your name from Apple or Google.';
+
+  @override
+  String get onboardingPetMoveIn => 'Move in';
+
+  @override
+  String get onboardingPetNamingPrompt =>
+      'Hi! Nice room. Um… I don\'t have a name yet. What will you call me?';
+
+  @override
+  String get onboardingPetNamingConfirm => 'That\'s you!';
 }

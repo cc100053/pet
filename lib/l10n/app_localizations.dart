@@ -4520,6 +4520,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A shared pet needs an account on both phones. We\'ll fill in your name from Apple or Google.'**
   String get onboardingSignInSubtitle;
+
+  /// No description provided for @onboardingPetMoveIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Move in'**
+  String get onboardingPetMoveIn;
+
+  /// No description provided for @onboardingPetNamingPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! Nice room. Um… I don\'t have a name yet. What will you call me?'**
+  String get onboardingPetNamingPrompt;
+
+  /// No description provided for @onboardingPetNamingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s you!'**
+  String get onboardingPetNamingConfirm;
 }
 
 class _AppLocalizationsDelegate
