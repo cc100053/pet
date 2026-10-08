@@ -298,18 +298,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSkip => 'Skip';
 
   @override
-  String get onboardingCreatePetPromptTitle =>
-      'Choose a pet to move into your new room!';
-
-  @override
-  String get onboardingRoomEntryPromptTitle =>
-      'Create a room or enter an invite code.';
-
-  @override
-  String get onboardingRoomEntryPromptBody =>
-      'Start your pet home by creating a new room, or join one with a code.';
-
-  @override
   String get onboardingProfileSetupTitle => 'Set up your profile';
 
   @override
@@ -2580,4 +2568,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String inviteShareCaption(String petName) {
     return 'Help me raise $petName in PetTomo!';
   }
+
+  @override
+  String firstDayTitle(String petName) {
+    return '$petName\'s first day';
+  }
+
+  @override
+  String firstDayTaskFeed(String petName) {
+    return 'Feed $petName a photo';
+  }
+
+  @override
+  String get firstDayTaskCoKeeper => 'Get a co-keeper';
+
+  @override
+  String get firstDayTaskFurniture => 'Place your first furniture';
+
+  @override
+  String get firstDayTaskChat => 'Say hi in chat';
 }

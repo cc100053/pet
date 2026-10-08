@@ -47,9 +47,7 @@ extension _HomeBuildHelpers on _HomeViewState {
               userAvatarUrl: _myAvatarUrl,
               currentAppVersion: _currentAppVersion,
               highlightCreateRoomCta: _isCreatePetOnboardingStepActive,
-              createRoomCtaKey: _onboardingCreateRoomCtaKey,
               highlightJoinRoomCta: _isCreatePetOnboardingStepActive,
-              joinRoomCtaKey: _onboardingJoinRoomCtaKey,
               // One coach mark at a time: while onboarding is still asking for
               // a first pet, the frame hint has nothing to point at anyway.
               showFrameHint:
@@ -58,10 +56,6 @@ extension _HomeBuildHelpers on _HomeViewState {
                   !_loadingRoom,
               onFrameHintSeen: _markRoomFrameHintSeen,
             ),
-            if (_shouldShowCreatePetOnboardingCoachCard)
-              _buildBasicOnboardingFocusOverlay(),
-            if (_shouldShowCreatePetOnboardingCoachCard)
-              _buildBasicOnboardingCoachCard(),
           ],
         ),
       ),

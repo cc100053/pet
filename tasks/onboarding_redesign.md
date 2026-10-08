@@ -1,8 +1,8 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-(pre-auth shell) phase 3 (profile step), phase 4 (pet picker + naming) and phase 5 (invite
-card) done 2026-10-08; phase 6 next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) phases 3–6 (profile step, pet picker + naming, invite card, first-day
+checklist) done 2026-10-08; phase 7 next.** Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -168,7 +168,30 @@ Original plan:
   join".
 - "Later" just closes it; the checklist keeps the task.
 
-### 6. First-day checklist (replaces coach cards)
+### 6. First-day checklist — DONE, as built
+
+- `lib/features/onboarding/first_day_checklist.dart` (tasks + card) and
+  `lib/features/home/flows/home_first_day_flow.dart` (HomeView wiring).
+- Claimed state = the caller's own `coin_ledger` rows with
+  `source = 'onboarding'`; no client-side task state. Sync claims every open
+  task on room refresh (10s throttle), first room render, feed completed,
+  chat closed and decor closed. All three claimed → onboarding `completed`.
+- Eligibility: a new Hive flag `onboarding_first_day_eligible`, set only when
+  a fresh onboarding starts. Every install from before this sits in the old,
+  never-finishing `invite_friend` step, so without the flag all existing
+  users would get the checklist and the +50 invite promise. (A reinstall
+  counts as fresh; the server still pays each task once per account.)
+- After saving the profile, a new keeper with no room and no pending invite
+  goes straight to the pet picker. That replaced the create-pet coach card;
+  the coach card, focus overlay and `onboarding_focus_utils.dart` (and its
+  test) are deleted, along with three unused strings.
+- The new-room invite prompt hides while the checklist shows (it has an
+  invite row).
+- Skipped: the keeper-slot avatars in the room header. The checklist's
+  invite row keeps the invite visible; add slots if testing shows people
+  miss it.
+
+Original plan:
 
 - `FirstDayChecklistCard` in the home room, three rows; tapping a row runs
   its action (camera, invite sheet, furniture inventory).

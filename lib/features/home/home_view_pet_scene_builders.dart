@@ -2,6 +2,12 @@ part of 'home_view.dart';
 
 extension _HomePetSceneBuilders on _HomeViewState {
   Widget _buildPetHomeCard() {
+    // First room on screen with the checklist on: load what's already claimed.
+    if (_isFirstDayChecklistActive && _firstDayClaimed == null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => unawaited(_syncFirstDayChecklist()),
+      );
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final fieldSize = constraints.biggest;
@@ -64,6 +70,13 @@ extension _HomePetSceneBuilders on _HomeViewState {
                   top: promptInset,
                   right: promptInset,
                   child: _buildNewRoomInvitePrompt(),
+                ),
+              if (_shouldShowFirstDayChecklist && !_furnitureMode)
+                Positioned(
+                  left: promptInset,
+                  right: promptInset,
+                  bottom: promptInset,
+                  child: _buildFirstDayChecklist(),
                 ),
               if (_furnitureMode)
                 Positioned(

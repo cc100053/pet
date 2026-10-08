@@ -565,24 +565,6 @@ abstract class AppLocalizations {
   /// **'Skip'**
   String get commonSkip;
 
-  /// No description provided for @onboardingCreatePetPromptTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a pet to move into your new room!'**
-  String get onboardingCreatePetPromptTitle;
-
-  /// No description provided for @onboardingRoomEntryPromptTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create a room or enter an invite code.'**
-  String get onboardingRoomEntryPromptTitle;
-
-  /// No description provided for @onboardingRoomEntryPromptBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Start your pet home by creating a new room, or join one with a code.'**
-  String get onboardingRoomEntryPromptBody;
-
   /// No description provided for @onboardingProfileSetupTitle.
   ///
   /// In en, this message translates to:
@@ -4532,6 +4514,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Help me raise {petName} in PetTomo!'**
   String inviteShareCaption(String petName);
+
+  /// No description provided for @firstDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{petName}\'s first day'**
+  String firstDayTitle(String petName);
+
+  /// No description provided for @firstDayTaskFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed {petName} a photo'**
+  String firstDayTaskFeed(String petName);
+
+  /// No description provided for @firstDayTaskCoKeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a co-keeper'**
+  String get firstDayTaskCoKeeper;
+
+  /// No description provided for @firstDayTaskFurniture.
+  ///
+  /// In en, this message translates to:
+  /// **'Place your first furniture'**
+  String get firstDayTaskFurniture;
+
+  /// No description provided for @firstDayTaskChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hi in chat'**
+  String get firstDayTaskChat;
 }
 
 class _AppLocalizationsDelegate

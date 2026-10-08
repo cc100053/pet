@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/auth/sign_in_view.dart';
+import 'package:pet/features/onboarding/first_day_checklist.dart';
 import 'package:pet/features/onboarding/onboarding_entry_view.dart';
 import 'package:pet/features/pet/pet_catalog.dart';
 import 'package:pet/features/home/room_selection_view.dart';
@@ -165,6 +166,33 @@ void main() {
       'SignInView(new keeper)',
       (context) => SignInView(onBack: () {}),
     );
+  });
+
+  testWidgets('first-day checklist fits every locale and phone', (
+    tester,
+  ) async {
+    for (final isOwner in [true, false]) {
+      await _sweep(
+        tester,
+        'FirstDayChecklistCard(owner: $isOwner)',
+        (context) => Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: FirstDayChecklistCard(
+              // Longest pet name a player can type (kPetNameMaxLength).
+              petName: 'Mochimochimo',
+              tasks: FirstDayTask.forKeeper(isOwner: isOwner),
+              claimed: {FirstDayTask.firstFeed.key},
+              collapsed: false,
+              onToggleCollapsed: () {},
+              onTapTask: (_) {},
+              onDismiss: () {},
+            ),
+          ),
+        ),
+      );
+    }
   });
 
   testWidgets('invite polaroid fits every locale', (tester) async {

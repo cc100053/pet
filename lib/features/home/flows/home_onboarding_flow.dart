@@ -34,10 +34,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
         _showRoomSelection;
   }
 
-  bool get _shouldShowCreatePetOnboardingCoachCard {
-    return _isCreatePetOnboardingStepActive && !_loadingRoom;
-  }
-
   String get _defaultProfileNickname {
     return AppLocalizations.of(context)!.profileDefaultNickname.trim();
   }
@@ -69,6 +65,10 @@ extension _HomeOnboardingFlow on _HomeViewState {
     if (!dismissed && !completed && startedAt == null) {
       await settings.setOnboardingBasicStartedAt(DateTime.now().toUtc());
     }
+    if (isFreshOnboarding) {
+      await settings.setOnboardingFirstDayEligible(true);
+    }
+    _firstDayEligible = settings.onboardingFirstDayEligible;
 
     if (!mounted) {
       _basicOnboardingDismissed = dismissed;
@@ -130,6 +130,7 @@ extension _HomeOnboardingFlow on _HomeViewState {
   }
 
   void _evaluateBasicOnboardingAgainstCurrentData() {
+    unawaited(_syncFirstDayChecklist());
     if (!_basicOnboardingReady ||
         _basicOnboardingDismissed ||
         _basicOnboardingCompleted) {
@@ -332,6 +333,14 @@ extension _HomeOnboardingFlow on _HomeViewState {
       await _advanceBasicOnboardingTo(_BasicOnboardingStep.createPet);
       // An invited user may already own a room: move straight past createPet.
       _evaluateBasicOnboardingAgainstCurrentData();
+      // A new keeper goes straight to choosing a pet; an invited one is
+      // joined through the pending code instead.
+      final pendingInvite = AppInviteLinkService.instance.pendingInviteCode;
+      if (mounted &&
+          _myRooms.isEmpty &&
+          (pendingInvite == null || pendingInvite.isEmpty)) {
+        unawaited(_createRoom());
+      }
     } catch (error, stackTrace) {
       if (!mounted) {
         return;
@@ -893,277 +902,6 @@ extension _HomeOnboardingFlow on _HomeViewState {
         ),
       ),
     );
-  }
-
-  Widget _buildBasicOnboardingCoachCard() {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scale = homeUiScale(MediaQuery.sizeOf(context).width);
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final bottomOffset = (92 * scale) + bottomInset;
-    final title = l10n.onboardingRoomEntryPromptTitle;
-    final body = l10n.onboardingRoomEntryPromptBody;
-    const icon = Icons.meeting_room_rounded;
-    final cardRadius = BorderRadius.circular(24);
-    final horizontalPadding = 18 * scale;
-    final verticalPadding = 16 * scale;
-
-    return Positioned(
-      left: 16,
-      right: 16,
-      bottom: bottomOffset,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, child) {
-              return Transform.translate(
-                offset: Offset(0, (1 - value) * 12),
-                child: Opacity(opacity: value, child: child),
-              );
-            },
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: <Widget>[
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: cardRadius,
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: <Color>[
-                        Color(0xFFFFFCF4),
-                        Color(0xFFFFF4DB),
-                        Color(0xFFFFE8B8),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: AppTheme.secondaryColor.withValues(alpha: 0.92),
-                      width: 1.4,
-                    ),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                        color: const Color(0xFFE7B754).withValues(alpha: 0.22),
-                        blurRadius: 26,
-                        offset: const Offset(0, 14),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPadding,
-                      verticalPadding,
-                      horizontalPadding,
-                      16 * scale,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          width: 42 * scale,
-                          height: 42 * scale,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: <Color>[
-                                AppTheme.primaryColor.withValues(alpha: 0.24),
-                                AppTheme.secondaryColor.withValues(alpha: 0.18),
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              width: 1.2,
-                            ),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: AppTheme.primaryColor,
-                            size: 22 * scale,
-                          ),
-                        ),
-                        SizedBox(width: 12 * scale),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                title,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: FontWeight.w900,
-                                  height: 1.1,
-                                ),
-                              ),
-                              SizedBox(height: 4 * scale),
-                              Text(
-                                body,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.25,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 10 * scale),
-                        OutlinedButton(
-                          onPressed: _dismissBasicOnboarding,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.textSecondary,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.52,
-                            ),
-                            side: BorderSide(
-                              color: AppTheme.primaryColor.withValues(
-                                alpha: 0.16,
-                              ),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14 * scale,
-                              vertical: 12 * scale,
-                            ),
-                            textStyle: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            minimumSize: Size(0, 44 * scale),
-                          ),
-                          child: Text(l10n.commonSkip),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -9,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Transform.rotate(
-                      angle: 0.78539816339,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFEDC1),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: AppTheme.secondaryColor.withValues(
-                              alpha: 0.82,
-                            ),
-                            width: 1.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBasicOnboardingFocusOverlay() {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Builder(
-          builder: (overlayContext) {
-            final targetRects = _resolveOnboardingFocusRects(overlayContext);
-            if (targetRects.isEmpty) {
-              return const SizedBox.shrink();
-            }
-            return CustomPaint(
-              painter: _OnboardingFocusPainter(
-                targetRects: targetRects
-                    .map((rect) => rect.inflate(6))
-                    .toList(growable: false),
-                cornerRadius: 28,
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  List<Rect> _resolveOnboardingFocusRects(BuildContext overlayContext) {
-    if (_isCreatePetOnboardingStepActive) {
-      return resolveOnboardingFocusTargetRects(
-        overlayContext: overlayContext,
-        targetKeys: <GlobalKey>[
-          _onboardingCreateRoomCtaKey,
-          _onboardingJoinRoomCtaKey,
-        ],
-      );
-    }
-    return const <Rect>[];
-  }
-}
-
-class _OnboardingFocusPainter extends CustomPainter {
-  const _OnboardingFocusPainter({
-    required this.targetRects,
-    required this.cornerRadius,
-  });
-
-  final List<Rect> targetRects;
-  final double cornerRadius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fullRect = Offset.zero & size;
-
-    canvas.saveLayer(fullRect, Paint());
-    canvas.drawRect(
-      fullRect,
-      Paint()..color = Colors.black.withValues(alpha: 0.34),
-    );
-    for (final targetRect in targetRects) {
-      final focusRRect = RRect.fromRectAndRadius(
-        targetRect,
-        Radius.circular(cornerRadius),
-      );
-      canvas.drawRRect(focusRRect, Paint()..blendMode = BlendMode.clear);
-    }
-    canvas.restore();
-
-    for (final targetRect in targetRects) {
-      final focusRRect = RRect.fromRectAndRadius(
-        targetRect,
-        Radius.circular(cornerRadius),
-      );
-      canvas.drawRRect(
-        focusRRect.inflate(2),
-        Paint()
-          ..color = AppTheme.secondaryColor.withValues(alpha: 0.95)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.2,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _OnboardingFocusPainter oldDelegate) {
-    return !listEquals(oldDelegate.targetRects, targetRects) ||
-        oldDelegate.cornerRadius != cornerRadius;
   }
 }
 

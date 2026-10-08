@@ -193,9 +193,6 @@
   "commonCancel": "Cancel",
   "commonClose": "Close",
   "commonSkip": "Skip",
-  "onboardingCreatePetPromptTitle": "Choose a pet to move into your new room!",
-  "onboardingRoomEntryPromptTitle": "Create a room or enter an invite code.",
-  "onboardingRoomEntryPromptBody": "Start your pet home by creating a new room, or join one with a code.",
   "onboardingProfileSetupTitle": "Set up your profile",
   "onboardingProfileSetupSubtitle": "Choose the name your friends will see. You can add a photo now or later.",
   "onboardingProfileSetupAvatarOptional": "Photo optional",
@@ -1207,5 +1204,12 @@
   "inviteCardPromptBody": "Invite someone to raise {petName} with you.",
   "@inviteCardPromptBody": {"placeholders": {"petName": {"type": "String"}}},
   "inviteShareCaption": "Help me raise {petName} in PetTomo!",
-  "@inviteShareCaption": {"placeholders": {"petName": {"type": "String"}}}
+  "@inviteShareCaption": {"placeholders": {"petName": {"type": "String"}}},
+  "firstDayTitle": "{petName}'s first day",
+  "@firstDayTitle": {"placeholders": {"petName": {"type": "String"}}},
+  "firstDayTaskFeed": "Feed {petName} a photo",
+  "@firstDayTaskFeed": {"placeholders": {"petName": {"type": "String"}}},
+  "firstDayTaskCoKeeper": "Get a co-keeper",
+  "firstDayTaskFurniture": "Place your first furniture",
+  "firstDayTaskChat": "Say hi in chat"
 }

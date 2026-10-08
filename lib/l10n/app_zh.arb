@@ -193,9 +193,6 @@
   "commonCancel": "取消",
   "commonClose": "关闭",
   "commonSkip": "跳过",
-  "onboardingCreatePetPromptTitle": "选择宠物入住你的新房间！",
-  "onboardingRoomEntryPromptTitle": "创建新房间，或输入邀请码加入。",
-  "onboardingRoomEntryPromptBody": "你可以自己创建宠物房间，或者用邀请码加入朋友的房间。",
   "onboardingProfileSetupTitle": "先设置你的个人资料",
   "onboardingProfileSetupSubtitle": "请设置朋友会看到的名称。照片现在可以上传，也可以稍后再加。",
   "onboardingProfileSetupAvatarOptional": "照片可稍后再加",
@@ -1181,5 +1178,10 @@
   "inviteCardCaption": "一起来养{petName}吗？",
   "inviteCardJoinReward": "对方加入后 +50 金币",
   "inviteCardPromptBody": "邀请一个人和你一起养{petName}。",
-  "inviteShareCaption": "来 PetTomo 和我一起养{petName}吧！"
+  "inviteShareCaption": "来 PetTomo 和我一起养{petName}吧！",
+  "firstDayTitle": "{petName}的第一天",
+  "firstDayTaskFeed": "喂{petName}一张照片",
+  "firstDayTaskCoKeeper": "迎来另一位主人",
+  "firstDayTaskFurniture": "摆放第一件家具",
+  "firstDayTaskChat": "在聊天里打个招呼"
 }

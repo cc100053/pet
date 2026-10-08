@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' show lerpDouble;
 
-import 'package:flutter/foundation.dart' show kIsWeb, listEquals;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,6 +51,7 @@ import '../../shared/ui/juice_wrappers.dart';
 import '../../shared/ui/keyboard_dismiss_utils.dart';
 import '../../shared/ui/mori.dart';
 import 'widgets/invite_polaroid_card.dart';
+import '../onboarding/first_day_checklist.dart';
 import '../onboarding/provider_display_name.dart';
 import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
@@ -88,7 +89,6 @@ import 'providers/home_unread_counts_provider.dart';
 import 'providers/home_rooms_provider.dart';
 import 'providers/room_frame_provider.dart';
 import 'widgets/room_frame_skins.dart';
-import 'onboarding_focus_utils.dart';
 import 'pet_hunger_projection.dart';
 import 'pet_status_snapshot.dart';
 import 'wait_until_uncovered.dart';
@@ -117,6 +117,7 @@ part 'controllers/home_feed_orchestrator.dart';
 part 'controllers/home_room_manager.dart';
 part 'flows/home_invite_flow.dart';
 part 'flows/home_onboarding_flow.dart';
+part 'flows/home_first_day_flow.dart';
 part 'home_view_pet_scene_builders.dart';
 part 'home_view_drawer.dart';
 part 'home_view_data_helpers.dart';
@@ -450,8 +451,11 @@ class _HomeViewState extends ConsumerState<HomeView>
   bool _showingFeedDoubleRewardPrompt = false;
   String? _lastCrashContextRoomId;
   String? _lastCrashContextNetworkState;
-  final GlobalKey _onboardingCreateRoomCtaKey = GlobalKey();
-  final GlobalKey _onboardingJoinRoomCtaKey = GlobalKey();
+  bool _firstDayEligible = false;
+  Set<String>? _firstDayClaimed;
+  bool _firstDaySyncing = false;
+  DateTime? _firstDayLastSyncAt;
+  bool _firstDayCollapsed = false;
   _BasicOnboardingStep _basicOnboardingStep = _BasicOnboardingStep.createPet;
   bool _basicOnboardingDismissed = false;
   bool _basicOnboardingCompleted = false;
@@ -2418,6 +2422,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           if (_chatOpenRoomId == roomId) {
             _chatOpenRoomId = null;
           }
+          unawaited(_syncFirstDayChecklist(force: true));
           unawaited(
             _captureHomeMemorySnapshot(
               source: 'home_chat_route_pop',

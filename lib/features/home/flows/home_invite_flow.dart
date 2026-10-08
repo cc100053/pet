@@ -30,7 +30,8 @@ extension _HomeInviteFlow on _HomeViewState {
     if (_newRoomInviteRoomId != roomId) {
       return false;
     }
-    return _isSoloRoom;
+    // The checklist's invite row replaces this prompt while it shows.
+    return _isSoloRoom && !_shouldShowFirstDayChecklist;
   }
 
   String? _extractInviteCode(dynamic response) {
@@ -173,8 +174,11 @@ extension _HomeInviteFlow on _HomeViewState {
   }
 
   // The one-time +50 (claim_onboarding_reward 'co_keeper_joined') is only
-  // promised while basic onboarding is still running.
-  bool get _showsCoKeeperReward => _isBasicOnboardingActive;
+  // promised to an owner on the first-day checklist who hasn't earned it.
+  bool get _showsCoKeeperReward =>
+      _isFirstDayChecklistActive &&
+      _isCurrentRoomOwner &&
+      !(_firstDayClaimed?.contains(FirstDayTask.coKeeperJoined.key) ?? false);
 
   Future<void> _showInviteCodeDialog(String code) async {
     final l10n = AppLocalizations.of(context)!;

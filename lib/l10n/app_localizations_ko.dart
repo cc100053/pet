@@ -292,16 +292,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonSkip => '건너뛰기';
 
   @override
-  String get onboardingCreatePetPromptTitle => '새 방에 함께할 펫을 선택해 주세요!';
-
-  @override
-  String get onboardingRoomEntryPromptTitle => '새 방을 만들거나 초대 코드를 입력해 참여해 주세요.';
-
-  @override
-  String get onboardingRoomEntryPromptBody =>
-      '직접 펫 홈을 만들거나, 코드를 입력해 친구의 방에 들어갈 수 있어요.';
-
-  @override
   String get onboardingProfileSetupTitle => '프로필을 먼저 설정해 주세요';
 
   @override
@@ -2466,4 +2456,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String inviteShareCaption(String petName) {
     return 'PetTomo에서 $petName를 함께 키워요!';
   }
+
+  @override
+  String firstDayTitle(String petName) {
+    return '$petName의 첫날';
+  }
+
+  @override
+  String firstDayTaskFeed(String petName) {
+    return '$petName에게 사진 주기';
+  }
+
+  @override
+  String get firstDayTaskCoKeeper => '두 번째 보호자 맞이하기';
+
+  @override
+  String get firstDayTaskFurniture => '첫 가구 놓기';
+
+  @override
+  String get firstDayTaskChat => '채팅으로 인사하기';
 }

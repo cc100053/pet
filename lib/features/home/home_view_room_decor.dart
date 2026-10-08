@@ -407,6 +407,7 @@ extension _HomeRoomDecor on _HomeViewState {
     });
     _furnitureWiggleController.stop();
     _furnitureWiggleController.value = 0;
+    unawaited(_syncFirstDayChecklist(force: true));
   }
 
   Future<void> _loadRoomBackgrounds(String roomId) async {

@@ -193,9 +193,6 @@
   "commonCancel": "취소",
   "commonClose": "닫기",
   "commonSkip": "건너뛰기",
-  "onboardingCreatePetPromptTitle": "새 방에 함께할 펫을 선택해 주세요!",
-  "onboardingRoomEntryPromptTitle": "새 방을 만들거나 초대 코드를 입력해 참여해 주세요.",
-  "onboardingRoomEntryPromptBody": "직접 펫 홈을 만들거나, 코드를 입력해 친구의 방에 들어갈 수 있어요.",
   "onboardingProfileSetupTitle": "프로필을 먼저 설정해 주세요",
   "onboardingProfileSetupSubtitle": "친구에게 보여질 이름을 정해 주세요. 사진은 지금 올리거나 나중에 추가할 수 있어요.",
   "onboardingProfileSetupAvatarOptional": "사진은 나중에 추가해도 돼요",
@@ -1180,5 +1177,10 @@
   "inviteCardCaption": "{petName}를 함께 키워 줄래?",
   "inviteCardJoinReward": "친구가 참여하면 +50 코인",
   "inviteCardPromptBody": "누군가를 초대해 {petName}를 함께 키워요.",
-  "inviteShareCaption": "PetTomo에서 {petName}를 함께 키워요!"
+  "inviteShareCaption": "PetTomo에서 {petName}를 함께 키워요!",
+  "firstDayTitle": "{petName}의 첫날",
+  "firstDayTaskFeed": "{petName}에게 사진 주기",
+  "firstDayTaskCoKeeper": "두 번째 보호자 맞이하기",
+  "firstDayTaskFurniture": "첫 가구 놓기",
+  "firstDayTaskChat": "채팅으로 인사하기"
 }

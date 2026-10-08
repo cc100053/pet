@@ -285,15 +285,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonSkip => '跳过';
 
   @override
-  String get onboardingCreatePetPromptTitle => '选择宠物入住你的新房间！';
-
-  @override
-  String get onboardingRoomEntryPromptTitle => '创建新房间，或输入邀请码加入。';
-
-  @override
-  String get onboardingRoomEntryPromptBody => '你可以自己创建宠物房间，或者用邀请码加入朋友的房间。';
-
-  @override
   String get onboardingProfileSetupTitle => '先设置你的个人资料';
 
   @override
@@ -2438,6 +2429,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String inviteShareCaption(String petName) {
     return '来 PetTomo 和我一起养$petName吧！';
   }
+
+  @override
+  String firstDayTitle(String petName) {
+    return '$petName的第一天';
+  }
+
+  @override
+  String firstDayTaskFeed(String petName) {
+    return '喂$petName一张照片';
+  }
+
+  @override
+  String get firstDayTaskCoKeeper => '迎来另一位主人';
+
+  @override
+  String get firstDayTaskFurniture => '摆放第一件家具';
+
+  @override
+  String get firstDayTaskChat => '在聊天里打个招呼';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2719,15 +2729,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get commonSkip => '略過';
-
-  @override
-  String get onboardingCreatePetPromptTitle => '選擇寵物入住你的新房間！';
-
-  @override
-  String get onboardingRoomEntryPromptTitle => '建立新房間，或輸入邀請碼加入。';
-
-  @override
-  String get onboardingRoomEntryPromptBody => '你可以建立新的寵物房間，或使用邀請碼加入朋友的房間。';
 
   @override
   String get onboardingProfileSetupTitle => '先設定你的個人資料';
@@ -4873,4 +4874,23 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String inviteShareCaption(String petName) {
     return '來 PetTomo 和我一起養$petName吧！';
   }
+
+  @override
+  String firstDayTitle(String petName) {
+    return '$petName的第一天';
+  }
+
+  @override
+  String firstDayTaskFeed(String petName) {
+    return '餵$petName一張照片';
+  }
+
+  @override
+  String get firstDayTaskCoKeeper => '迎來另一位主人';
+
+  @override
+  String get firstDayTaskFurniture => '擺放第一件家具';
+
+  @override
+  String get firstDayTaskChat => '在聊天裡打個招呼';
 }

@@ -88,6 +88,11 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   (`home_onboarding_flow.dart`), which `build()` returns as a full page
   whenever that step is active. Apple's given name is copied to auth
   `user_metadata.given_name` at sign-in (Apple sends it only once).
+- First-day checklist (`lib/features/home/flows/home_first_day_flow.dart`): task state is the
+  server's (own `coin_ledger` rows, `source = 'onboarding'`), claimed through
+  `claim_onboarding_reward`. Shown only when the Hive flag
+  `onboarding_first_day_eligible` was set by a fresh onboarding; older
+  installs never see it.
 
 ## Backend And Platform
 - Supabase Auth/Postgres/Realtime back shared gameplay and chat; active Edge

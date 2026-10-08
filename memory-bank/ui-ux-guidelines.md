@@ -73,7 +73,12 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   then the pet asks its name in a game-style dialogue box over the room. Only
   the naming step pads for the keyboard; the page itself does not resize.
 - Invites share `InvitePolaroidCard` as an image plus the link. The +50 line
-  appears only while basic onboarding is active.
+  appears only to a room owner on the first-day checklist who hasn't earned
+  it.
+- The first-day checklist (`FirstDayChecklistCard`) sits at the bottom of the
+  room: three tasks with coin rewards, any order, header tap collapses, ×
+  dismisses for good. It replaces the old coach cards and the new-room invite
+  prompt while shown.
 
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.
