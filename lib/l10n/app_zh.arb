@@ -1183,5 +1183,11 @@
   "firstDayTaskFeed": "喂{petName}一张照片",
   "firstDayTaskCoKeeper": "迎来另一位主人",
   "firstDayTaskFurniture": "摆放第一件家具",
-  "firstDayTaskChat": "在聊天里打个招呼"
+  "firstDayTaskChat": "在聊天里打个招呼",
+  "firstMealBadge": "第一餐",
+  "firstMealTitle": "好吃！+{coins} 金币",
+  "pushSoftAskTitle": "我饿了要提醒你吗？",
+  "pushSoftAskBody": "过几个小时我又会饿了。到时候要我拍拍你的肩膀吗？",
+  "pushSoftAskYes": "好，提醒我",
+  "pushSoftAskLater": "以后再说"
 }

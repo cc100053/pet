@@ -2475,4 +2475,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get firstDayTaskChat => '채팅으로 인사하기';
+
+  @override
+  String get firstMealBadge => '첫 식사';
+
+  @override
+  String firstMealTitle(int coins) {
+    return '냠냠! +$coins 코인';
+  }
+
+  @override
+  String get pushSoftAskTitle => '배고플 때 알려 줄까?';
+
+  @override
+  String get pushSoftAskBody => '몇 시간 뒤면 또 배고파질 거야. 그때 톡톡 알려 줘도 될까?';
+
+  @override
+  String get pushSoftAskYes => '응, 알려 줘';
+
+  @override
+  String get pushSoftAskLater => '나중에';
 }

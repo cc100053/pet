@@ -104,11 +104,16 @@ final fcmServiceProvider = Provider<FCMService>((ref) {
 });
 
 class FCMService {
-  FCMService({Future<NotificationSettings> Function()? requestPermission})
-    : _requestPermission = requestPermission;
+  FCMService({
+    Future<NotificationSettings> Function()? requestPermission,
+    Future<AuthorizationStatus> Function()? readAuthorizationStatus,
+  }) : _requestPermission = requestPermission,
+       _readAuthorizationStatusOverride = readAuthorizationStatus;
 
   final _localNotifications = FlutterLocalNotificationsPlugin();
   final Future<NotificationSettings> Function()? _requestPermission;
+  final Future<AuthorizationStatus> Function()?
+  _readAuthorizationStatusOverride;
   final _notificationIntentController =
       StreamController<AppNotificationIntent>.broadcast();
   final _recentIntentKeys = ListQueue<String>();
@@ -139,16 +144,26 @@ class FCMService {
   Stream<AppNotificationIntent> get notificationIntents =>
       _notificationIntentController.stream;
 
-  Future<void> initialize() async {
+  /// Registers for push. If iOS has never asked yet, the system prompt shows
+  /// only when [askIfUndecided] is true; otherwise this waits for the in-app
+  /// soft ask (new accounts get it after their first feed).
+  Future<void> initialize({bool askIfUndecided = false}) async {
     if (_initialized) {
       await _attemptTokenSync();
       await _captureInitialNotificationTap();
       return;
     }
 
-    final NotificationSettings settings;
+    final AuthorizationStatus status;
     try {
-      settings = await _requestNotificationPermission();
+      final current = await _readAuthorizationStatus();
+      if (current != AuthorizationStatus.notDetermined) {
+        status = current;
+      } else if (askIfUndecided) {
+        status = (await _requestNotificationPermission()).authorizationStatus;
+      } else {
+        return;
+      }
     } catch (error, stackTrace) {
       debugPrint(
         'FCM initialize skipped: notification permission request failed: '
@@ -158,8 +173,8 @@ class FCMService {
       reportSwallowedError(error, stackTrace, source: 'fcm_permission_request');
       return;
     }
-    final status = settings.authorizationStatus;
-    if (status == AuthorizationStatus.denied) {
+    if (status == AuthorizationStatus.denied ||
+        status == AuthorizationStatus.notDetermined) {
       debugPrint('FCM initialize skipped: notification permission denied');
       return;
     }
@@ -183,6 +198,26 @@ class FCMService {
     });
 
     _initialized = true;
+  }
+
+  /// True while the system prompt has never been shown, so the app should
+  /// soft-ask first. False on any lookup failure (never nag on errors).
+  Future<bool> isPermissionUndecided() async {
+    try {
+      return await _readAuthorizationStatus() ==
+          AuthorizationStatus.notDetermined;
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'fcm_permission_read');
+      return false;
+    }
+  }
+
+  Future<AuthorizationStatus> _readAuthorizationStatus() async {
+    final override = _readAuthorizationStatusOverride;
+    if (override != null) {
+      return override();
+    }
+    return (await _messaging.getNotificationSettings()).authorizationStatus;
   }
 
   Future<NotificationSettings> _requestNotificationPermission() {

@@ -2587,4 +2587,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstDayTaskChat => 'Say hi in chat';
+
+  @override
+  String get firstMealBadge => 'FIRST MEAL';
+
+  @override
+  String firstMealTitle(int coins) {
+    return 'Yum! +$coins coins';
+  }
+
+  @override
+  String get pushSoftAskTitle => 'Want a nudge when I\'m hungry?';
+
+  @override
+  String get pushSoftAskBody =>
+      'I get hungry again in a few hours. Want me to tap you on the shoulder?';
+
+  @override
+  String get pushSoftAskYes => 'Yes, remind me';
+
+  @override
+  String get pushSoftAskLater => 'Not now';
 }

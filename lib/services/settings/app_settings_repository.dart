@@ -32,6 +32,9 @@ class AppSettingsRepository implements PendingInviteCodeStore {
       'onboarding_basic_started_at_iso';
   static const String _onboardingBasicCompletedAtIsoKey =
       'onboarding_basic_completed_at_iso';
+  static const String _pushSoftAskCountKey = 'push_soft_ask_count';
+  static const String _pushSoftAskSnoozedUntilIsoKey =
+      'push_soft_ask_snoozed_until_iso';
   static const String _pendingInviteCodeKey = 'pending_invite_code';
   static const String _roomFrameStylesKey = 'room_frame_styles';
   static const String _roomFrameHintSeenKey = 'room_frame_hint_seen';
@@ -173,6 +176,20 @@ class AppSettingsRepository implements PendingInviteCodeStore {
 
   Future<void> setOnboardingBasicDismissed(bool dismissed) async {
     await _box?.put(_onboardingBasicDismissedKey, dismissed);
+  }
+
+  int get pushSoftAskCount => (_box?.get(_pushSoftAskCountKey) as int?) ?? 0;
+
+  DateTime? get pushSoftAskSnoozedUntil => DateTime.tryParse(
+    (_box?.get(_pushSoftAskSnoozedUntilIsoKey) as String?) ?? '',
+  );
+
+  Future<void> recordPushSoftAsk({DateTime? snoozedUntil}) async {
+    await _box?.put(_pushSoftAskCountKey, pushSoftAskCount + 1);
+    await _box?.put(
+      _pushSoftAskSnoozedUntilIsoKey,
+      snoozedUntil?.toUtc().toIso8601String(),
+    );
   }
 
   bool get onboardingBasicCompleted =>

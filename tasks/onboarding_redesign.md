@@ -1,8 +1,9 @@
 # Onboarding redesign — B + C hybrid
 
 Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
-(pre-auth shell) phases 3–6 (profile step, pet picker + naming, invite card, first-day
-checklist) done 2026-10-08; phase 7 next.** Phase 0 decisions: backend contract approved; invite landing uses
+(pre-auth shell) phases 3–7 (profile step, pet picker + naming, invite card, first-day
+checklist, first-meal card + push soft ask) done 2026-10-08; phase 8
+(joined celebration) next.** Phase 0 decisions: backend contract approved; invite landing uses
 generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
@@ -209,7 +210,20 @@ Original plan:
 - Delete `_buildBasicOnboardingCoachCard`, `_buildBasicOnboardingFocusOverlay`
   and `onboarding_focus_utils.dart` once nothing references them.
 
-### 7. First-meal reward + push soft-ask
+### 7. First-meal reward + push soft-ask — DONE, as built
+
+- `FCMService.initialize({askIfUndecided})` no longer shows the iOS prompt
+  while undecided unless asked. `AuthGate` passes `askIfUndecided: true`
+  only for accounts created before 2026-10-08, so existing players (and
+  their reinstalls, which reset iOS permission) keep the sign-in prompt.
+- New accounts: after a feed, `_afterFeedCompleted` claims first-day tasks;
+  if this feed earned `first_feed` it shows the "FIRST MEAL / Yum! +20"
+  card, and while iOS is undecided it adds the soft ask ("Yes, remind me" →
+  system prompt; "Not now"/dismiss → ask once more after a later feed ≥ 3
+  days on; never a third time). It waits for other dialogs (the
+  double-reward prompt) to close first. Rule: `shouldSoftAskForPush`.
+
+Original plan:
 
 - `FCMService.initialize()`: request permission **only** when status is
   already `authorized`/`provisional`, or when called from the soft-ask.

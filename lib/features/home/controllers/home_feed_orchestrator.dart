@@ -456,7 +456,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     }
     unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
     if (!result.reconciled) {
-      unawaited(_syncFirstDayChecklist(force: true));
+      unawaited(_afterFeedCompleted());
     }
   }
 

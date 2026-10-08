@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/services/fcm_service.dart';
 
@@ -89,9 +90,26 @@ void main() {
   });
 
   group('FCMService initialization', () {
+    test('never prompts while undecided unless asked to', () async {
+      var requestCount = 0;
+      final service = FCMService(
+        readAuthorizationStatus: () async => AuthorizationStatus.notDetermined,
+        requestPermission: () async {
+          requestCount += 1;
+          throw StateError('should not prompt');
+        },
+      );
+
+      await service.initialize();
+
+      expect(requestCount, 0);
+      expect(await service.isPermissionUndecided(), isTrue);
+    });
+
     test('contains notification permission request failures', () async {
       var requestCount = 0;
       final service = FCMService(
+        readAuthorizationStatus: () async => AuthorizationStatus.notDetermined,
         requestPermission: () async {
           requestCount += 1;
           throw PlatformException(
@@ -101,7 +119,7 @@ void main() {
         },
       );
 
-      await expectLater(service.initialize(), completes);
+      await expectLater(service.initialize(askIfUndecided: true), completes);
 
       expect(requestCount, 1);
     });

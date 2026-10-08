@@ -4544,6 +4544,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Say hi in chat'**
   String get firstDayTaskChat;
+
+  /// No description provided for @firstMealBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'FIRST MEAL'**
+  String get firstMealBadge;
+
+  /// No description provided for @firstMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Yum! +{coins} coins'**
+  String firstMealTitle(int coins);
+
+  /// No description provided for @pushSoftAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Want a nudge when I\'m hungry?'**
+  String get pushSoftAskTitle;
+
+  /// No description provided for @pushSoftAskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'I get hungry again in a few hours. Want me to tap you on the shoulder?'**
+  String get pushSoftAskBody;
+
+  /// No description provided for @pushSoftAskYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, remind me'**
+  String get pushSoftAskYes;
+
+  /// No description provided for @pushSoftAskLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get pushSoftAskLater;
 }
 
 class _AppLocalizationsDelegate

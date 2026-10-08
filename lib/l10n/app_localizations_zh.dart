@@ -2448,6 +2448,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get firstDayTaskChat => '在聊天里打个招呼';
+
+  @override
+  String get firstMealBadge => '第一餐';
+
+  @override
+  String firstMealTitle(int coins) {
+    return '好吃！+$coins 金币';
+  }
+
+  @override
+  String get pushSoftAskTitle => '我饿了要提醒你吗？';
+
+  @override
+  String get pushSoftAskBody => '过几个小时我又会饿了。到时候要我拍拍你的肩膀吗？';
+
+  @override
+  String get pushSoftAskYes => '好，提醒我';
+
+  @override
+  String get pushSoftAskLater => '以后再说';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4893,4 +4913,24 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get firstDayTaskChat => '在聊天裡打個招呼';
+
+  @override
+  String get firstMealBadge => '第一餐';
+
+  @override
+  String firstMealTitle(int coins) {
+    return '好吃！+$coins 金幣';
+  }
+
+  @override
+  String get pushSoftAskTitle => '我餓了要提醒你嗎？';
+
+  @override
+  String get pushSoftAskBody => '過幾個小時我又會餓了。到時候要我拍拍你的肩膀嗎？';
+
+  @override
+  String get pushSoftAskYes => '好，提醒我';
+
+  @override
+  String get pushSoftAskLater => '以後再說';
 }

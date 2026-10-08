@@ -79,6 +79,10 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   room: three tasks with coin rewards, any order, header tap collapses, ×
   dismisses for good. It replaces the old coach cards and the new-room invite
   prompt while shown.
+- New accounts never see the iOS notification prompt at sign-in. After the
+  feed that earns the first-meal reward, a card shows the reward and, while
+  iOS is undecided, asks in the pet's voice; the system prompt appears only
+  on "Yes, remind me". "Not now" re-asks once, at least 3 days later.
 
 ## Feedback
 - `showJuiceToast`: blocking alerts, confirmations, and input.

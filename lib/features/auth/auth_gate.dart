@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../home/home_view.dart';
+import '../onboarding/first_day_checklist.dart';
 import '../onboarding/onboarding_entry_view.dart';
 import '../../services/analytics/analytics_service.dart';
 import '../../services/crash/crash_reporting_service.dart';
@@ -32,7 +33,7 @@ class _AuthGateState extends ConsumerState<AuthGate>
       CrashReportingService.instance.setUserId(currentSession?.user.id),
     );
     if (currentSession != null) {
-      unawaited(_fcmService.initialize());
+      unawaited(_initializePush(currentSession.user));
     }
 
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
@@ -47,10 +48,18 @@ class _AuthGateState extends ConsumerState<AuthGate>
         AnalyticsService.instance.setUserId(session.user.id);
         AnalyticsService.instance.logEvent('sign_in');
         unawaited(CrashReportingService.instance.setUserId(session.user.id));
-        unawaited(_fcmService.initialize());
+        unawaited(_initializePush(session.user));
         unawaited(_fcmService.refreshTokenSync());
       }
     });
+  }
+
+  /// Accounts from before the first-day checklist keep the system prompt at
+  /// sign-in; new ones are asked in-app after their first feed instead.
+  Future<void> _initializePush(User user) {
+    return _fcmService.initialize(
+      askIfUndecided: !isFirstDayEligibleAccount(user.createdAt),
+    );
   }
 
   @override

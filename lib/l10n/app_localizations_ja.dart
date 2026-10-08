@@ -2465,4 +2465,24 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get firstDayTaskChat => 'チャットであいさつする';
+
+  @override
+  String get firstMealBadge => 'はじめてのごはん';
+
+  @override
+  String firstMealTitle(int coins) {
+    return 'おいしい！+$coinsコイン';
+  }
+
+  @override
+  String get pushSoftAskTitle => 'おなかがすいたら知らせようか？';
+
+  @override
+  String get pushSoftAskBody => '数時間したらまたおなかがすくよ。そのとき声をかけてもいい？';
+
+  @override
+  String get pushSoftAskYes => 'うん、知らせて';
+
+  @override
+  String get pushSoftAskLater => 'あとで';
 }

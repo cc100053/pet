@@ -1182,5 +1182,11 @@
   "firstDayTaskFeed": "{petName}에게 사진 주기",
   "firstDayTaskCoKeeper": "두 번째 보호자 맞이하기",
   "firstDayTaskFurniture": "첫 가구 놓기",
-  "firstDayTaskChat": "채팅으로 인사하기"
+  "firstDayTaskChat": "채팅으로 인사하기",
+  "firstMealBadge": "첫 식사",
+  "firstMealTitle": "냠냠! +{coins} 코인",
+  "pushSoftAskTitle": "배고플 때 알려 줄까?",
+  "pushSoftAskBody": "몇 시간 뒤면 또 배고파질 거야. 그때 톡톡 알려 줘도 될까?",
+  "pushSoftAskYes": "응, 알려 줘",
+  "pushSoftAskLater": "나중에"
 }

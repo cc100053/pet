@@ -70,6 +70,40 @@ void main() {
     expect(isFirstDayEligibleAccount('not a date'), isFalse);
   });
 
+  test('push soft ask: first feed, then once more after the snooze', () {
+    final now = DateTime.utc(2026, 10, 20);
+    expect(
+      shouldSoftAskForPush(askedCount: 0, snoozedUntil: null, now: now),
+      isTrue,
+    );
+    expect(
+      shouldSoftAskForPush(
+        askedCount: 1,
+        snoozedUntil: now.add(const Duration(hours: 1)),
+        now: now,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldSoftAskForPush(askedCount: 1, snoozedUntil: now, now: now),
+      isTrue,
+    );
+    // Said yes (no snooze recorded): never ask again.
+    expect(
+      shouldSoftAskForPush(askedCount: 1, snoozedUntil: null, now: now),
+      isFalse,
+    );
+    expect(
+      shouldSoftAskForPush(
+        askedCount: 2,
+        snoozedUntil: DateTime.utc(2000),
+        now: now,
+      ),
+      isFalse,
+    );
+    expect(kPushSoftAskSnooze, const Duration(days: 3));
+  });
+
   test('account cutoff matches the server', () {
     final sql = File(
       'supabase/migrations/20261008074506_onboarding_rewards_new_accounts_only.sql',

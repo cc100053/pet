@@ -57,17 +57,19 @@ extension _HomeFirstDayFlow on _HomeViewState {
   /// Claims every open task the server now agrees is done, then refreshes the
   /// card. Passive triggers (room refresh, build) are throttled; direct ones
   /// (feed done, chat or decor closed) pass [force].
-  Future<void> _syncFirstDayChecklist({bool force = false}) async {
+  /// Returns the tasks this call newly claimed (empty when skipped).
+  Future<Set<FirstDayTask>> _syncFirstDayChecklist({bool force = false}) async {
+    final newlyClaimed = <FirstDayTask>{};
     final roomId = _roomId;
     if (!_isFirstDayChecklistActive || roomId == null || _firstDaySyncing) {
-      return;
+      return newlyClaimed;
     }
     final now = DateTime.now();
     final last = _firstDayLastSyncAt;
     // ponytail: 10s throttle, up to 3 small RPCs per sync; move to a
     // realtime/trigger push if this ever shows up in request volume.
     if (!force && last != null && now.difference(last).inSeconds < 10) {
-      return;
+      return newlyClaimed;
     }
     _firstDaySyncing = true;
     _firstDayLastSyncAt = now;
@@ -83,6 +85,7 @@ extension _HomeFirstDayFlow on _HomeViewState {
           params: {'p_room_id': roomId, 'p_task': task.key},
         );
         if (coins is num && coins > 0) {
+          newlyClaimed.add(task);
           claimed = {...claimed, task.key};
           granted += coins.toInt();
           AnalyticsService.instance.logEvent(
@@ -92,7 +95,7 @@ extension _HomeFirstDayFlow on _HomeViewState {
         }
       }
       if (!mounted) {
-        return;
+        return newlyClaimed;
       }
       _setStateForOnboarding(() => _firstDayClaimed = claimed);
       if (granted > 0) {
@@ -107,6 +110,121 @@ extension _HomeFirstDayFlow on _HomeViewState {
     } finally {
       _firstDaySyncing = false;
     }
+    return newlyClaimed;
+  }
+
+  /// After a feed: the first-meal reward card (when this feed earned
+  /// `first_feed`) and/or the soft ask for push, for new accounts only.
+  Future<void> _afterFeedCompleted() async {
+    final newly = await _syncFirstDayChecklist(force: true);
+    final firstMeal = newly.contains(FirstDayTask.firstFeed);
+    final user = Supabase.instance.client.auth.currentUser;
+    if (!mounted || !isFirstDayEligibleAccount(user?.createdAt)) {
+      return;
+    }
+    final settings = AppSettingsRepository.instance;
+    final fcm = ref.read(fcmServiceProvider);
+    final ask =
+        shouldSoftAskForPush(
+          askedCount: settings.pushSoftAskCount,
+          snoozedUntil: settings.pushSoftAskSnoozedUntil,
+          now: DateTime.now(),
+        ) &&
+        await fcm.isPermissionUndecided();
+    if (!firstMeal && !ask) {
+      return;
+    }
+    // Let the feed animation and any double-reward prompt go first.
+    await Future<void>.delayed(const Duration(seconds: 2));
+    final uncovered = await waitUntilUncovered(
+      isCovered: () => mounted && !(ModalRoute.of(context)?.isCurrent ?? true),
+      isStillWanted: () => mounted,
+    );
+    if (!uncovered || !mounted) {
+      return;
+    }
+    await _showFirstMealCard(
+      firstMealCoins: firstMeal ? FirstDayTask.firstFeed.coins : null,
+      ask: ask,
+    );
+  }
+
+  Future<void> _showFirstMealCard({
+    required int? firstMealCoins,
+    required bool ask,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = AppSettingsRepository.instance;
+    var answeredYes = false;
+    await showJuiceToast<void>(
+      context: context,
+      tone: AppDialogTone.success,
+      position: JuicePosition.center,
+      message: firstMealCoins != null
+          ? l10n.firstMealTitle(firstMealCoins)
+          : l10n.pushSoftAskTitle,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (firstMealCoins != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppTheme.gold,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppTheme.ink, width: 2),
+              ),
+              child: Text(
+                l10n.firstMealBadge,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ),
+          PetAnimatedImage(
+            sourceAsset: PetCatalog.byId(_petType).stayAsset,
+            width: 110,
+            height: 110,
+            fit: BoxFit.contain,
+          ),
+          if (ask)
+            BalancedText(
+              l10n.pushSoftAskBody,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary,
+                height: 1.45,
+              ),
+            ),
+        ],
+      ),
+      actionLabel: ask ? l10n.pushSoftAskYes : l10n.commonClose,
+      onActionPressed: ask
+          ? () {
+              answeredYes = true;
+              unawaited(
+                ref.read(fcmServiceProvider).initialize(askIfUndecided: true),
+              );
+            }
+          : null,
+      secondaryActionLabel: ask ? l10n.pushSoftAskLater : null,
+    );
+    if (!ask) {
+      return;
+    }
+    // "Not now", the barrier or back all count as not now.
+    await settings.recordPushSoftAsk(
+      snoozedUntil: answeredYes ? null : DateTime.now().add(kPushSoftAskSnooze),
+    );
+    AnalyticsService.instance.logEvent(
+      'push_soft_ask',
+      parameters: {'answer': answeredYes ? 'yes' : 'not_now'},
+    );
   }
 
   void _onFirstDayTaskTap(FirstDayTask task) {

@@ -16,6 +16,22 @@ bool isFirstDayEligibleAccount(String? createdAt) {
   return created != null && !created.isBefore(kFirstDayAccountCutoff);
 }
 
+/// In-app ask before the iOS notification prompt: after the first feed, and
+/// once more after a later feed if the player said "Not now" at least
+/// [kPushSoftAskSnooze] ago. Never a third time.
+const Duration kPushSoftAskSnooze = Duration(days: 3);
+
+bool shouldSoftAskForPush({
+  required int askedCount,
+  required DateTime? snoozedUntil,
+  required DateTime now,
+}) {
+  if (askedCount <= 0) {
+    return true;
+  }
+  return askedCount == 1 && snoozedUntil != null && !now.isBefore(snoozedUntil);
+}
+
 /// One-time onboarding tasks. [key] and [coins] mirror
 /// `claim_onboarding_reward` (supabase/migrations/20261008074506_*); the
 /// server is the authority, [coins] is only what the card promises.

@@ -1183,5 +1183,11 @@
   "firstDayTaskFeed": "{petName}に写真をあげる",
   "firstDayTaskCoKeeper": "もうひとりの飼い主をむかえる",
   "firstDayTaskFurniture": "はじめての家具を置く",
-  "firstDayTaskChat": "チャットであいさつする"
+  "firstDayTaskChat": "チャットであいさつする",
+  "firstMealBadge": "はじめてのごはん",
+  "firstMealTitle": "おいしい！+{coins}コイン",
+  "pushSoftAskTitle": "おなかがすいたら知らせようか？",
+  "pushSoftAskBody": "数時間したらまたおなかがすくよ。そのとき声をかけてもいい？",
+  "pushSoftAskYes": "うん、知らせて",
+  "pushSoftAskLater": "あとで"
 }

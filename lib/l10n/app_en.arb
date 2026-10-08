@@ -1211,5 +1211,12 @@
   "@firstDayTaskFeed": {"placeholders": {"petName": {"type": "String"}}},
   "firstDayTaskCoKeeper": "Get a co-keeper",
   "firstDayTaskFurniture": "Place your first furniture",
-  "firstDayTaskChat": "Say hi in chat"
+  "firstDayTaskChat": "Say hi in chat",
+  "firstMealBadge": "FIRST MEAL",
+  "firstMealTitle": "Yum! +{coins} coins",
+  "@firstMealTitle": {"placeholders": {"coins": {"type": "int"}}},
+  "pushSoftAskTitle": "Want a nudge when I'm hungry?",
+  "pushSoftAskBody": "I get hungry again in a few hours. Want me to tap you on the shoulder?",
+  "pushSoftAskYes": "Yes, remind me",
+  "pushSoftAskLater": "Not now"
 }

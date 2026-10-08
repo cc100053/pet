@@ -6,8 +6,8 @@
       (08:19 UTC; hunger cron 200, notify_friend accepts new / rejects
       wrong). Both had shipped in plain text in the 5.0.0 archive's
       `flutter_assets/.env`.
-- [ ] Delete the old R2 API token in Cloudflare (created ~2026-01) so the
-      key in 5.0.0 stops working `[USER ACTION REQUIRED]`.
+- [x] Old R2 API token deleted in Cloudflare (2026-10-08); the key bundled
+      in 5.0.0 no longer works.
 - [x] The app bundles `.env.app` (public keys only, `scripts/write_app_env.sh`)
       instead of `.env` from the next build on.
 - [ ] The admin debug coin tool (`lib/features/home/home_view_debug.dart`)
