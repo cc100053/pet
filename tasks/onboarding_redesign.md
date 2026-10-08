@@ -1,6 +1,8 @@
 # Onboarding redesign — B + C hybrid
 
-Status: **plan, not started.** Design canvas (approved direction):
+Status: **phase 1 (backend) applied 2026-10-08 as `20261008065402`; phase 2
+next.** Phase 0 decisions: backend contract approved; invite landing uses
+generic copy before sign-in (option b). Design canvas (approved direction):
 https://claude.ai/artifact/63F7MbNVcTLhdWvXhYpimF — rows "B+C Hybrid — New
 keeper path" and "B+C Hybrid — Invited keeper path".
 
@@ -46,18 +48,18 @@ queries after this ships ("after any change to coin rewards").
 
 ### 0. Approvals needed before code `[USER ACTION REQUIRED]`
 
-- [ ] Backend contract below (new ledger source + RPC). It is additive, so
+- [x] Backend contract below (new ledger source + RPC). It is additive, so
       installed clients are unaffected, but AGENTS.md requires approval.
-- [ ] Invite landing pre-auth preview: either (a) add an anon-callable
+- [x] Invite landing pre-auth preview: either (a) add an anon-callable
       `get_invite_preview(p_code)` returning only pet name, species and
       inviter nickname, or (b) show generic copy ("You've been invited to raise
-      a pet") until sign-in. **Recommend (b) for v1**: no pre-auth data exposure,
+      a pet") until sign-in. **Chose (b)**: no pre-auth data exposure,
       and the Joined screen right after is already personal.
 - [ ] "Co-keeper joined" push to the inviter: v1 relies on the checklist
       noticing on next open; a `member_joined` type in `notify_friend` is
       phase 9 (needs old-client tap-handling check).
 
-### 1. Backend (one migration, Supabase MCP, project `ilxzpszgirhwxpeocygs`)
+### 1. Backend — DONE (`supabase/migrations/20261008065402_add_onboarding_rewards.sql`; rollback dry run: claim 20 then 0, non-member and unknown task rejected, anon has no execute) (one migration, Supabase MCP, project `ilxzpszgirhwxpeocygs`)
 
 - Extend `coin_ledger_source` check with `'onboarding'` (keep every existing
   value, latest list from `20260202090000_add_diamond_currency.sql`).
