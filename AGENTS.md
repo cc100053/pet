@@ -34,7 +34,7 @@ Read the sources relevant to the operation, not every linked document:
 | Photo cleanup | `docs/abandoned_room_cleanup.md` |
 | Support inbox / replying to users | `docs/support_inbox.md` |
 | Coin pricing | `docs/shop_pricing.md` — use its calibrated ladder and guardrails |
-| Furniture art (style, Gemini prompts, normalizing) | `docs/art_style.md` |
+| Furniture and room-background art (style, Gemini prompts, normalizing) | `docs/art_style.md` |
 
 Load the matching repository skill:
 
@@ -42,6 +42,8 @@ Load the matching repository skill:
 - Release notes / ASC metadata: `.codex/skills/release-notes-sync/SKILL.md`.
 - Shared item rollout or compatibility: `.codex/skills/shared-item-rollout/SKILL.md`.
 - New furniture art (design through shippable PNG): `.codex/skills/new-furniture-art/SKILL.md`.
+- New room background (design through shippable JPG):
+  `.codex/skills/new-room-background/SKILL.md`.
 - New pet character (master art, idle/walk/sleep animation, export, wiring):
   `.codex/skills/new-pet-character/SKILL.md`.
 - Godot sockets, sequence exports, equipment placement:

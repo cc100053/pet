@@ -1400,6 +1400,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'パステルの惑星と雲、流れ星が広がる夢みたいな夜空の背景。';
 
   @override
+  String get storeItemNameBackgroundGhostSky => 'ゴーストスカイ背景';
+
+  @override
+  String get storeItemDescBackgroundGhostSky =>
+      'ふわふわの雲と、そっとのぞく2匹のやさしいおばけがいるラベンダー色の空の背景。';
+
+  @override
   String get storeItemNameFurnitureSofa => 'ソファ';
 
   @override

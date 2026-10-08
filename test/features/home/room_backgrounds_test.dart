@@ -41,6 +41,17 @@ void main() {
     expect(bubbleImage, 'assets/bg/paid/background-paid-01.jpg');
   });
 
+  test('resolves the ghost sky background to its bundled light JPG', () {
+    final ghostSky = RoomBackgrounds.resolve(RoomBackgrounds.ghostSkyKey);
+
+    expect(ghostSky.key, RoomBackgrounds.ghostSkyKey);
+    expect(ghostSky.isDark, isFalse);
+    expect(
+      (ghostSky.decoration.image!.image as AssetImage).assetName,
+      'assets/bg/paid/background-paid-03.jpg',
+    );
+  });
+
   test('supports known keys and rejects unknown keys', () {
     expect(RoomBackgrounds.supportsKey(RoomBackgrounds.sageFrameKey), isTrue);
     expect(RoomBackgrounds.supportsKey('future_background'), isFalse);

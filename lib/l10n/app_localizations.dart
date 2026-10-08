@@ -2591,6 +2591,18 @@ abstract class AppLocalizations {
   /// **'A dreamy night sky with pastel planets, clouds, and shooting stars.'**
   String get storeItemDescBackgroundStarlitDream;
 
+  /// No description provided for @storeItemNameBackgroundGhostSky.
+  ///
+  /// In en, this message translates to:
+  /// **'Ghost Sky Background'**
+  String get storeItemNameBackgroundGhostSky;
+
+  /// No description provided for @storeItemDescBackgroundGhostSky.
+  ///
+  /// In en, this message translates to:
+  /// **'A soft lilac sky with fluffy clouds and two friendly ghosts peeking in.'**
+  String get storeItemDescBackgroundGhostSky;
+
   /// No description provided for @storeItemNameFurnitureSofa.
   ///
   /// In en, this message translates to:

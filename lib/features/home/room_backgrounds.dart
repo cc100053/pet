@@ -21,6 +21,7 @@ class RoomBackgrounds {
   static const String _bubbleSkyAsset = 'assets/bg/paid/background-paid-01.jpg';
   static const String _starlitDreamAsset =
       'assets/bg/paid/background-paid-02.jpg';
+  static const String _ghostSkyAsset = 'assets/bg/paid/background-paid-03.jpg';
   static const String defaultKey = 'default';
   static const String testKey = 'test';
   static const String test1Key = 'test1';
@@ -28,6 +29,7 @@ class RoomBackgrounds {
   static const String lilacFrameKey = 'lilac_frame';
   static const String bubbleSkyKey = 'bubble_sky';
   static const String starlitDreamKey = 'starlit_dream';
+  static const String ghostSkyKey = 'ghost_sky';
 
   static final Map<String, RoomBackgroundDefinition> definitions = {
     defaultKey: RoomBackgroundDefinition(
@@ -104,6 +106,15 @@ class RoomBackgrounds {
         ),
       ),
       isDark: true,
+    ),
+    ghostSkyKey: RoomBackgroundDefinition(
+      key: ghostSkyKey,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(_ghostSkyAsset),
+          fit: BoxFit.cover,
+        ),
+      ),
     ),
   };
 

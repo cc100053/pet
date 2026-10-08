@@ -1411,6 +1411,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '파스텔 행성, 구름, 별똥별이 펼쳐진 몽환적인 밤하늘 배경입니다.';
 
   @override
+  String get storeItemNameBackgroundGhostSky => '고스트 스카이 배경';
+
+  @override
+  String get storeItemDescBackgroundGhostSky =>
+      '포근한 구름과 살짝 들여다보는 다정한 유령 둘이 있는 라일락빛 하늘 배경입니다.';
+
+  @override
   String get storeItemNameFurnitureSofa => '소파';
 
   @override

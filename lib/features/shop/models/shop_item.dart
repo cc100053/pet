@@ -181,6 +181,8 @@ class ShopItem {
         return l10n.storeItemDescBackgroundBubbleSky;
       case 'background_starlit_dream':
         return l10n.storeItemDescBackgroundStarlitDream;
+      case 'background_ghost_sky':
+        return l10n.storeItemDescBackgroundGhostSky;
       case 'furniture_emoji_sofa':
         return l10n.storeItemDescFurnitureSofa;
       case 'furniture_emoji_plant':

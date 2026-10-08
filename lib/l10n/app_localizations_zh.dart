@@ -1393,6 +1393,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescBackgroundStarlitDream => '粉彩行星、云朵与流星交织的梦幻夜空背景。';
 
   @override
+  String get storeItemNameBackgroundGhostSky => '幽灵天空背景';
+
+  @override
+  String get storeItemDescBackgroundGhostSky =>
+      '柔和淡紫色天空里飘着蓬松白云，还有两只友善的小幽灵探出头来。';
+
+  @override
   String get storeItemNameFurnitureSofa => '沙发';
 
   @override
@@ -3764,6 +3771,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescBackgroundStarlitDream => '粉彩行星、雲朵與流星交織的夢幻夜空背景。';
+
+  @override
+  String get storeItemNameBackgroundGhostSky => '幽靈天空背景';
+
+  @override
+  String get storeItemDescBackgroundGhostSky =>
+      '柔和淡紫色天空裡飄著蓬鬆白雲，還有兩隻友善的小幽靈探出頭來。';
 
   @override
   String get storeItemNameFurnitureSofa => '沙發';

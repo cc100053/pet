@@ -252,3 +252,95 @@ The script:
 
 It cannot recover translucency (§4.6) or fix drawing mistakes. Those need
 the hand-cleanup step.
+
+## 8. Room backgrounds
+
+A background sits behind the whole home screen, so the pet, furniture
+and room cards all draw on top of it. The order of operations is in
+`.codex/skills/new-room-background/SKILL.md`. The rules are here.
+
+### 8.1 Composition: decorate the edges, keep the middle empty
+
+Furniture can be placed anywhere in the room. Any shape in the middle competes
+with it, so:
+
+- All decoration (clouds, ghosts, webs, a moon) stays in the **outer ~10%** of
+  the picture: a band along the top and bottom edges, or small elements peeking
+  in from a side, half outside the frame.
+- The middle is plain, low-contrast texture or a soft gradient: no objects, no
+  stars, no clouds.
+- Light pastel grounds by default. A dark ground needs `isDark: true` on its
+  `RoomBackgroundDefinition` (status bar and room chrome switch to light).
+- Same medium as the shipped set (`background-paid-01.jpg`): soft hand-painted
+  pastel/gouache, chalky grain, no hard black outlines. Halloween stays friendly
+  (§1).
+
+### 8.2 File spec
+
+- `assets/bg/paid/background-paid-NN.jpg` (or `free/background-free-NN.jpg`),
+  **1206 × 2622** JPG, opaque. `pubspec.yaml` already lists both folders.
+- Shipped files are 300–620 KB. A mostly plain one compresses smaller, which is
+  fine.
+
+### 8.3 Gemini
+
+Same method as §6.1 (one style image, describe in text, new chat per
+background), with these changes:
+
+- **Style image:** `assets/bg/paid/background-paid-01.jpg` (the bubble sky). It
+  is opaque, so it needs no ref-sheet step.
+- **Aspect ratio 9:16**, the tallest Gemini offers. §8.4 converts it to
+  1206 × 2622 without cropping the edges.
+- **Download at full resolution.** A pasted or screenshot copy (the Ghost Sky
+  test run used a 572 × 1024 one) is upscaled about 2× and looks soft on device.
+- No transparency or halo rules: backgrounds are opaque, so §4.6 does not apply.
+
+Template:
+
+```
+Draw a NEW picture from scratch: {SCENE}, as a very calm wallpaper for a cozy mobile pet game. Furniture and a pet will be placed on top of it, so it must stay quiet.
+
+The scene:
+{PARTS}
+
+The attached image is a STYLE REFERENCE ONLY. Do not edit or redraw it, and do not draw bubbles. Only copy HOW it is painted:
+- hand-painted digital pastel/gouache, soft chalky texture, light grain
+- soft edges, gentle colour blending, no black
+
+Output:
+- 9:16 portrait, full bleed, no border, no text, no watermark
+- the middle 80% of the picture is EMPTY: only soft {GROUND} texture, no objects, no clouds, no stars, no shapes
+- all decoration stays within the outer 10% of the edges
+```
+
+Ghost Sky (`background_ghost_sky`, usable first try on 2026-10-08; `{GROUND}` = sky):
+
+```
+{SCENE} = a soft Halloween twilight sky
+- a soft, plain twilight sky, pale lilac at the top fading to pale blue at the bottom, low contrast
+- a thin band of fluffy chalky white clouds along the very top edge and along the very bottom edge only
+- one small friendly ghost peeking in from the right edge near the top, half outside the picture
+- one small friendly ghost peeking in from the left edge near the bottom, half outside the picture
+- the ghosts are soft white with a lavender-grey outline, small dark oval eyes and pink blush cheeks
+```
+
+If decoration drifts into the middle, use a §6.4 edit prompt:
+`remove the {thing} in the middle; the middle stays plain {GROUND}`.
+
+### 8.4 Normalize and preview
+
+```bash
+python3 scripts/normalize_background.py --band 0.3 0.67 raw.png assets/bg/paid/background-paid-03.jpg
+python3 scripts/normalize_background.py --preview /tmp/preview.jpg assets/bg/paid/background-paid-03.jpg
+```
+
+The script scales the image to 1206 px wide. It then **stretches only the plain
+middle band** (`--band`, given as fractions of the source height) until the
+image is 2622 tall. Cropping the sides instead would cut off edge elements
+like the peeking ghosts. Pick a band that sits between the lowest top
+decoration and the highest bottom decoration. A stretched gradient is
+invisible; a stretched object is not.
+
+`--preview` composites the shipped furniture (1×–3×) and the ghost pet on the
+result. Squint at it: the furniture and the pet must read first, the background
+last.

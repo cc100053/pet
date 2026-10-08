@@ -1442,6 +1442,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A dreamy night sky with pastel planets, clouds, and shooting stars.';
 
   @override
+  String get storeItemNameBackgroundGhostSky => 'Ghost Sky Background';
+
+  @override
+  String get storeItemDescBackgroundGhostSky =>
+      'A soft lilac sky with fluffy clouds and two friendly ghosts peeking in.';
+
+  @override
   String get storeItemNameFurnitureSofa => 'Sofa';
 
   @override
