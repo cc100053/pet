@@ -1,10 +1,55 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/shop/models/shop_item.dart';
+import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/l10n/app_localizations_en.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 void main() {
   final l10n = AppLocalizationsEn();
+
+  test(
+    'festive furniture uses localized names and descriptions in every locale',
+    () {
+      const items = {
+        'candle': 'Candle',
+        'candy_cane': 'CandyCane',
+        'sunflower': 'Sunflower',
+        'gift': 'Gift',
+        'christmas_tree': 'ChristmasTree',
+      };
+      for (final locale in AppLocalizations.supportedLocales) {
+        final suffix = locale.countryCode == null
+            ? locale.languageCode
+            : '${locale.languageCode}_${locale.countryCode}';
+        final arb =
+            jsonDecode(File('lib/l10n/app_$suffix.arb').readAsStringSync())
+                as Map<String, dynamic>;
+        final strings = lookupAppLocalizations(
+          Locale(locale.languageCode, locale.countryCode),
+        );
+        for (final entry in items.entries) {
+          final item = ShopItem.fromJson({
+            'id': entry.key,
+            'sku': 'furniture_${entry.key}',
+            'name': 'fallback name',
+            'metadata': {'description': 'fallback description'},
+          });
+          expect(
+            item.localizedName(strings),
+            arb['storeItemNameFurniture${entry.value}'],
+          );
+          expect(
+            item.localizedDescription(strings),
+            arb['storeItemDescFurniture${entry.value}'],
+          );
+        }
+      }
+    },
+  );
 
   test(
     'uses package localized price string even when catalog currency is JPY',

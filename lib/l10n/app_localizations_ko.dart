@@ -1492,6 +1492,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get storeItemDescFurnitureBatArmchair => '작은 박쥐 날개가 달린 포근한 안락의자.';
 
   @override
+  String get storeItemNameFurnitureCandle => '양초';
+
+  @override
+  String get storeItemDescFurnitureCandle => '리본으로 꾸민 양초가 포근한 빛을 더해요.';
+
+  @override
+  String get storeItemNameFurnitureCandyCane => '캔디 케인';
+
+  @override
+  String get storeItemDescFurnitureCandyCane => '줄무늬가 귀여운 지팡이 사탕이에요.';
+
+  @override
+  String get storeItemNameFurnitureSunflower => '해바라기';
+
+  @override
+  String get storeItemDescFurnitureSunflower => '방을 환하게 밝혀 주는 해바라기 화분이에요.';
+
+  @override
+  String get storeItemNameFurnitureGift => '선물 상자';
+
+  @override
+  String get storeItemDescFurnitureGift => '커다란 리본으로 포장한 특별한 선물이에요.';
+
+  @override
+  String get storeItemNameFurnitureChristmasTree => '크리스마스트리';
+
+  @override
+  String get storeItemDescFurnitureChristmasTree =>
+      '눈을 살짝 덮고 크리스마스 장식을 단 트리예요.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '밀짚모자';
 
   @override

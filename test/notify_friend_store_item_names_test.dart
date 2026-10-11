@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +34,27 @@ void main() {
           5,
           reason: '$sku must appear once in each of en/ja/ko/zh/zh-TW',
         );
+      }
+
+      final names = RegExp(
+        r"case '((?:furniture|background)_[a-z0-9_]+)':\s+return l10n\.(\w+);",
+      ).allMatches(app);
+      for (final locale in ['en', 'ja', 'ko', 'zh', 'zh_TW']) {
+        final arb =
+            jsonDecode(File('lib/l10n/app_$locale.arb').readAsStringSync())
+                as Map<String, dynamic>;
+        final marker = locale == 'zh_TW' ? '"zh-TW"' : locale;
+        final block = table
+            .substring(table.indexOf('  $marker: {'))
+            .split('  },')
+            .first;
+        for (final name in names) {
+          expect(
+            block,
+            contains('${name.group(1)}: ${jsonEncode(arb[name.group(2)])}'),
+            reason: '${name.group(1)} push name must match $locale app copy',
+          );
+        }
       }
     },
   );

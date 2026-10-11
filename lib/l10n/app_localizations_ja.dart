@@ -1481,6 +1481,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeItemDescFurnitureBatArmchair => '小さなコウモリの羽がついたふかふかの椅子。';
 
   @override
+  String get storeItemNameFurnitureCandle => 'キャンドル';
+
+  @override
+  String get storeItemDescFurnitureCandle => 'リボンで飾ったキャンドルで、お部屋をあたたかく。';
+
+  @override
+  String get storeItemNameFurnitureCandyCane => 'キャンディケイン';
+
+  @override
+  String get storeItemDescFurnitureCandyCane => 'しましま模様がかわいいキャンディケイン。';
+
+  @override
+  String get storeItemNameFurnitureSunflower => 'ひまわり';
+
+  @override
+  String get storeItemDescFurnitureSunflower => 'お部屋を明るく彩る、鉢植えのひまわり。';
+
+  @override
+  String get storeItemNameFurnitureGift => 'プレゼントボックス';
+
+  @override
+  String get storeItemDescFurnitureGift => '大きなリボンで包んだ、華やかなプレゼント。';
+
+  @override
+  String get storeItemNameFurnitureChristmasTree => 'クリスマスツリー';
+
+  @override
+  String get storeItemDescFurnitureChristmasTree => '雪をまとった、クリスマス飾りのツリー。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '麦わら帽子';
 
   @override

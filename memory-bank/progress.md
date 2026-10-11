@@ -4,6 +4,13 @@ Current baseline and where live state is recorded. Full snapshots live in
 `memory-bank/archive/`; latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 
 ## Current State
+- Five supplied furniture pieces are wired for the next `5.1.0+` build:
+  Candle 100, Candy Cane 150, Sunflowers 150, Gift Box 200, Christmas Tree
+  250 coins. PNGs, five-language app copy and purchase push names are ready;
+  catalog migration and `notify_friend` deployment await separate approval.
+  NEW ends `2026-11-01T00:00:00Z`. Release/deployment details live in
+  `docs/release_status.md`; art review lives in
+  `design/furniture_sketches/festive_2026/README.md`.
 - `pubspec.yaml` version is the in-flight build; release, ASC, dSYM, and
   deployment state live only in `docs/release_status.md`.
 - Halloween 2026 furniture (Pumpkin Lantern 100, Candy Cauldron 150, Bat-Wing

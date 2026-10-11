@@ -96,6 +96,35 @@ Earlier release rows and the original ledger are preserved in
 
 ## Pending Release Actions
 
+- 2026-10-11: five furniture PNGs and their app/push localizations are wired
+  for `5.1.0+`. The source version remains `5.0.0+31` until the release flow
+  assigns the next build; the already-uploaded build 31 does **not** bundle
+  these assets and must never receive their catalog visibility. The draft
+  [catalog migration](../supabase/migrations/20261011143653_add_v510_festive_furniture_catalog.sql)
+  awaits explicit apply approval: Candle 100, Candy Cane 150, Sunflowers 150,
+  Gift Box 200, Christmas Tree 250 coins; `is_active=false`, version gate
+  `5.1.0`, fallback `skip`, NEW until `2026-11-01T00:00:00Z` (approved by the
+  owner). No schema, RPC, grant or RLS changes. Read-only production SQL
+  evaluated the migration's five-row SELECT: coin/metadata prices match,
+  paths are correct, `5.0.0` is excluded and `5.1.0` is included. Live catalog
+  verification remains pending apply. Target: `ilxzpszgirhwxpeocygs`.
+- Furniture implementation validation (2026-10-11): final-tree format check
+  359 Dart files / 0 changes; full `flutter analyze` clean; `flutter test`
+  746 passed / 1 live integration skip (no refresh token); `deno check`
+  clean. `flutter build bundle` passed; all five paths appear in
+  `AssetManifest.bin`, copied PNGs match source bytes and are transparent
+  450 × 450. No archive, upload or App Store metadata change was performed.
+- `notify_friend` is currently live at v39, `verify_jwt=false` (verified
+  2026-10-11). Compared all five deployed source files to the repo: only the
+  five new furniture names in each of five locales differ (25 mappings in
+  `l10n.ts`). Deploy approval is separate from migration approval; preserve
+  the existing custom authentication, secrets and all other source. Rollback:
+  redeploy v39 source. After apply, catalog rollback can hide the five rows
+  with `metadata.shop_visibility='hidden'`; do not delete owned item rows.
+- `[USER ACTION REQUIRED]` check the five furniture pieces in Shop and in a
+  room on a device running the first `5.1.0+` build; publish that build before
+  claiming public availability. If it ships after the approved NEW window,
+  agree a new window before applying a follow-up catalog migration.
 - iOS `5.0.0+31` is the current repository baseline as of 2026-10-05. ASC
   version `0c0ff600-cf0e-491f-8680-63b045437205` is
   `PREPARE_FOR_SUBMISSION`; build `55175623-8b91-4de1-8463-f2462d045641` is

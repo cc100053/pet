@@ -1,6 +1,13 @@
 # TODO
 
 ## Active follow-ups
+- [x] Festive furniture implementation (2026-10-11): normalized all five PNGs,
+      wired the draft catalog, five app locales and purchase push names;
+      format/analyze/test/bundle verified. Rollout state and required device
+      checks are in `docs/release_status.md`.
+- [ ] Approve/apply the festive furniture catalog migration and separately
+      approve/deploy `notify_friend`; release a build bundling the PNGs at
+      `5.1.0+`. Production operations remain pending explicit approval.
 - [x] Rotated the R2 access key (new Cloudflare token, Supabase secrets set
       2026-10-08 08:17 UTC, upload tested) and `NOTIFY_WEBHOOK_SECRET`
       (08:19 UTC; hunger cron 200, notify_friend accepts new / rejects

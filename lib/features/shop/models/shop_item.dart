@@ -217,6 +217,16 @@ class ShopItem {
         return l10n.storeItemDescFurnitureCandyCauldron;
       case 'furniture_bat_armchair':
         return l10n.storeItemDescFurnitureBatArmchair;
+      case 'furniture_candle':
+        return l10n.storeItemDescFurnitureCandle;
+      case 'furniture_candy_cane':
+        return l10n.storeItemDescFurnitureCandyCane;
+      case 'furniture_sunflower':
+        return l10n.storeItemDescFurnitureSunflower;
+      case 'furniture_gift':
+        return l10n.storeItemDescFurnitureGift;
+      case 'furniture_christmas_tree':
+        return l10n.storeItemDescFurnitureChristmasTree;
       default:
         return description;
     }

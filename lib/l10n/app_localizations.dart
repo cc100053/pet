@@ -2753,6 +2753,66 @@ abstract class AppLocalizations {
   /// **'A cozy armchair with little bat wings.'**
   String get storeItemDescFurnitureBatArmchair;
 
+  /// No description provided for @storeItemNameFurnitureCandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Candle'**
+  String get storeItemNameFurnitureCandle;
+
+  /// No description provided for @storeItemDescFurnitureCandle.
+  ///
+  /// In en, this message translates to:
+  /// **'A ribbon-tied candle for a cozy glow.'**
+  String get storeItemDescFurnitureCandle;
+
+  /// No description provided for @storeItemNameFurnitureCandyCane.
+  ///
+  /// In en, this message translates to:
+  /// **'Candy Cane'**
+  String get storeItemNameFurnitureCandyCane;
+
+  /// No description provided for @storeItemDescFurnitureCandyCane.
+  ///
+  /// In en, this message translates to:
+  /// **'A cheerful striped candy cane.'**
+  String get storeItemDescFurnitureCandyCane;
+
+  /// No description provided for @storeItemNameFurnitureSunflower.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunflowers'**
+  String get storeItemNameFurnitureSunflower;
+
+  /// No description provided for @storeItemDescFurnitureSunflower.
+  ///
+  /// In en, this message translates to:
+  /// **'A pot of sunflowers to brighten the room.'**
+  String get storeItemDescFurnitureSunflower;
+
+  /// No description provided for @storeItemNameFurnitureGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift Box'**
+  String get storeItemNameFurnitureGift;
+
+  /// No description provided for @storeItemDescFurnitureGift.
+  ///
+  /// In en, this message translates to:
+  /// **'A festive gift wrapped with a big bow.'**
+  String get storeItemDescFurnitureGift;
+
+  /// No description provided for @storeItemNameFurnitureChristmasTree.
+  ///
+  /// In en, this message translates to:
+  /// **'Christmas Tree'**
+  String get storeItemNameFurnitureChristmasTree;
+
+  /// No description provided for @storeItemDescFurnitureChristmasTree.
+  ///
+  /// In en, this message translates to:
+  /// **'A snowy tree dressed for Christmas.'**
+  String get storeItemDescFurnitureChristmasTree;
+
   /// No description provided for @storeItemNameEquipmentStrawHat.
   ///
   /// In en, this message translates to:

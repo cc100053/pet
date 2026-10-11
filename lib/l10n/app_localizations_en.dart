@@ -1522,6 +1522,41 @@ class AppLocalizationsEn extends AppLocalizations {
       'A cozy armchair with little bat wings.';
 
   @override
+  String get storeItemNameFurnitureCandle => 'Candle';
+
+  @override
+  String get storeItemDescFurnitureCandle =>
+      'A ribbon-tied candle for a cozy glow.';
+
+  @override
+  String get storeItemNameFurnitureCandyCane => 'Candy Cane';
+
+  @override
+  String get storeItemDescFurnitureCandyCane =>
+      'A cheerful striped candy cane.';
+
+  @override
+  String get storeItemNameFurnitureSunflower => 'Sunflowers';
+
+  @override
+  String get storeItemDescFurnitureSunflower =>
+      'A pot of sunflowers to brighten the room.';
+
+  @override
+  String get storeItemNameFurnitureGift => 'Gift Box';
+
+  @override
+  String get storeItemDescFurnitureGift =>
+      'A festive gift wrapped with a big bow.';
+
+  @override
+  String get storeItemNameFurnitureChristmasTree => 'Christmas Tree';
+
+  @override
+  String get storeItemDescFurnitureChristmasTree =>
+      'A snowy tree dressed for Christmas.';
+
+  @override
   String get storeItemNameEquipmentStrawHat => 'Straw Hat';
 
   @override

@@ -1475,6 +1475,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get storeItemDescFurnitureBatArmchair => '长着小蝙蝠翅膀的舒适扶手椅。';
 
   @override
+  String get storeItemNameFurnitureCandle => '蜡烛';
+
+  @override
+  String get storeItemDescFurnitureCandle => '系着蝴蝶结的蜡烛，为房间添一份暖意。';
+
+  @override
+  String get storeItemNameFurnitureCandyCane => '拐杖糖';
+
+  @override
+  String get storeItemDescFurnitureCandyCane => '条纹拐杖糖，带来甜甜的节日气氛。';
+
+  @override
+  String get storeItemNameFurnitureSunflower => '向日葵';
+
+  @override
+  String get storeItemDescFurnitureSunflower => '一盆向日葵，让房间明亮起来。';
+
+  @override
+  String get storeItemNameFurnitureGift => '礼物盒';
+
+  @override
+  String get storeItemDescFurnitureGift => '系着大蝴蝶结的礼物，满载节日心意。';
+
+  @override
+  String get storeItemNameFurnitureChristmasTree => '圣诞树';
+
+  @override
+  String get storeItemDescFurnitureChristmasTree => '披着白雪、挂满装饰的圣诞树。';
+
+  @override
   String get storeItemNameEquipmentStrawHat => '草帽';
 
   @override
@@ -3957,6 +3987,36 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get storeItemDescFurnitureBatArmchair => '長著小蝙蝠翅膀的舒適扶手椅。';
+
+  @override
+  String get storeItemNameFurnitureCandle => '蠟燭';
+
+  @override
+  String get storeItemDescFurnitureCandle => '繫著蝴蝶結的蠟燭，為房間添一份暖意。';
+
+  @override
+  String get storeItemNameFurnitureCandyCane => '拐杖糖';
+
+  @override
+  String get storeItemDescFurnitureCandyCane => '條紋拐杖糖，帶來甜甜的節日氣氛。';
+
+  @override
+  String get storeItemNameFurnitureSunflower => '向日葵';
+
+  @override
+  String get storeItemDescFurnitureSunflower => '一盆向日葵，讓房間明亮起來。';
+
+  @override
+  String get storeItemNameFurnitureGift => '禮物盒';
+
+  @override
+  String get storeItemDescFurnitureGift => '繫著大蝴蝶結的禮物，滿載節日心意。';
+
+  @override
+  String get storeItemNameFurnitureChristmasTree => '聖誕樹';
+
+  @override
+  String get storeItemDescFurnitureChristmasTree => '披著白雪、掛滿裝飾的聖誕樹。';
 
   @override
   String get storeItemNameEquipmentStrawHat => '草帽';
