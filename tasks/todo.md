@@ -5,9 +5,12 @@
       wired the draft catalog, five app locales and purchase push names;
       format/analyze/test/bundle verified. Rollout state and required device
       checks are in `docs/release_status.md`.
-- [ ] Approve/apply the festive furniture catalog migration and separately
-      approve/deploy `notify_friend`; release a build bundling the PNGs at
-      `5.1.0+`. Production operations remain pending explicit approval.
+- [x] Applied the festive furniture catalog migration and deployed
+      `notify_friend` v40 with the owner's separate approvals (2026-10-11);
+      production compatibility/source/HTTP/log checks passed.
+- [ ] Release a build bundling the five festive furniture PNGs at `5.1.0+`;
+      device and purchase-push acceptance remain `[USER ACTION REQUIRED]`.
+      See `docs/release_status.md`.
 - [x] Rotated the R2 access key (new Cloudflare token, Supabase secrets set
       2026-10-08 08:17 UTC, upload tested) and `NOTIFY_WEBHOOK_SECRET`
       (08:19 UTC; hunger cron 200, notify_friend accepts new / rejects

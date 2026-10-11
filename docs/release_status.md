@@ -96,31 +96,17 @@ Earlier release rows and the original ledger are preserved in
 
 ## Pending Release Actions
 
-- 2026-10-11: five furniture PNGs and their app/push localizations are wired
-  for `5.1.0+`. The source version remains `5.0.0+31` until the release flow
-  assigns the next build; the already-uploaded build 31 does **not** bundle
-  these assets and must never receive their catalog visibility. The draft
-  [catalog migration](../supabase/migrations/20261011143653_add_v510_festive_furniture_catalog.sql)
-  awaits explicit apply approval: Candle 100, Candy Cane 150, Sunflowers 150,
-  Gift Box 200, Christmas Tree 250 coins; `is_active=false`, version gate
-  `5.1.0`, fallback `skip`, NEW until `2026-11-01T00:00:00Z` (approved by the
-  owner). No schema, RPC, grant or RLS changes. Read-only production SQL
-  evaluated the migration's five-row SELECT: coin/metadata prices match,
-  paths are correct, `5.0.0` is excluded and `5.1.0` is included. Live catalog
-  verification remains pending apply. Target: `ilxzpszgirhwxpeocygs`.
+- 2026-10-11: the five festive furniture pieces and their purchase push names
+  are live in production, gated at `5.1.0+` (deployment evidence below).
+  Source version remains `5.0.0+31` until the release flow assigns the next
+  build; already-uploaded build 31 does **not** bundle these PNGs. Release
+  the first build that bundles them at `5.1.0+`.
 - Furniture implementation validation (2026-10-11): final-tree format check
   359 Dart files / 0 changes; full `flutter analyze` clean; `flutter test`
   746 passed / 1 live integration skip (no refresh token); `deno check`
   clean. `flutter build bundle` passed; all five paths appear in
   `AssetManifest.bin`, copied PNGs match source bytes and are transparent
   450 × 450. No archive, upload or App Store metadata change was performed.
-- `notify_friend` is currently live at v39, `verify_jwt=false` (verified
-  2026-10-11). Compared all five deployed source files to the repo: only the
-  five new furniture names in each of five locales differ (25 mappings in
-  `l10n.ts`). Deploy approval is separate from migration approval; preserve
-  the existing custom authentication, secrets and all other source. Rollback:
-  redeploy v39 source. After apply, catalog rollback can hide the five rows
-  with `metadata.shop_visibility='hidden'`; do not delete owned item rows.
 - `[USER ACTION REQUIRED]` check the five furniture pieces in Shop and in a
   room on a device running the first `5.1.0+` build; publish that build before
   claiming public availability. If it ships after the approved NEW window,
@@ -187,6 +173,8 @@ gate is moved.
 
 | Date | System | Target | Status | Compatibility note | Verification |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-11 | Supabase migration | `20261011144603_add_v510_festive_furniture_catalog` on `ilxzpszgirhwxpeocygs` | Applied, owner approved | Additive catalog only: Candle 100, Candy Cane 150, Sunflowers 150, Gift Box 200, Christmas Tree 250 coins; `price_coins=metadata.price_jpy`, `is_active=false`, `version_gated` at `5.1.0`, fallback `skip`, NEW until `2026-11-01T00:00:00Z`. No app schema/RPC/RLS/grant changes. Rollback: hide these five rows with `metadata.shop_visibility='hidden'`; preserve owned rows | No prior apply/rows found; MCP applied and repo filename renamed from `20261011143653` to recorded version. Read back all five prices, PNG paths and metadata. Catalog excludes null/4.1.0/5.0.0/5.0.1, includes all five at 5.1.0/5.2.0. Read-only `authenticated` probe confirms 5.0.0=0, 5.1.0=5, legacy `is_active=true` query=0. All 13 relevant function/ACL/policy fingerprints match before/after; existing version-gated furniture purchase/placement predicates retained. No real purchase or inventory write was tested |
+| 2026-10-11 | Edge Function | `notify_friend` v40 on `ilxzpszgirhwxpeocygs` | Deployed, owner approved | From v39: only 25 localized furniture-name mappings in `l10n.ts`; entrypoint, auth, HTTP helper and pet source unchanged. `verify_jwt=false` retained for custom webhook/user auth. Required Supabase/webhook secrets and existing FCM project/email/private-key alternative verified present; no secrets changed. Rollback: redeploy v39 source (`84bf59b^`) | MCP reports v40 `ACTIVE`; fetched all five files byte-identical to approved repo source. Preflight=200, unauthenticated JSON=401, invalid JSON=400; no notifications sent. Logs confirm v40 responses (1210/1311/110 ms respectively), normal 34 ms boots and no runtime errors in the deployment window; Postgres has only transaction-wrapper warnings. Local `deno check`, 746 Flutter tests and asset bundle checks passed; real purchase-push/device acceptance remains pending |
 | 2026-09-30 | Edge Function | `notify_friend` v36 on `ilxzpszgirhwxpeocygs` (from v35, deployed 2026-08-02) | Deployed | Data-only change from commit `585defb`: `localizedStoreItemNames` gains all nine illustrated furniture skus (Toilet, Tub, Balloon, Cactus, Carpet, Vinyl, Pumpkin Lantern, Candy Cauldron, Bat-Wing Armchair) in five locales; before this their purchase pushes showed the raw sku. Repo diff against v35 was only `l10n.ts`. `verify_jwt=false` kept (custom auth: webhook secret or `auth.getUser()`). Rollback: redeploy v35 source (`585defb^`) | `list_edge_functions`: v36 `ACTIVE`, `verify_jwt=false`; CORS preflight 200 from v36; `deno check` clean; `test/notify_friend_store_item_names_test.dart` passes |
 | 2026-09-30 | Supabase migration | `20260930013450_set_halloween_2026_new_until` on `ilxzpszgirhwxpeocygs` | Applied | Catalog-data only: `metadata.new_until = 2026-11-01T00:00:00Z` on all three Halloween items (the pumpkin's earlier one-off value, now in a migration). Old clients ignore the key. Rollback: `metadata - 'new_until'` | Read back: all three rows carry the value; `get_visible_shop_items('4.0.0')` returns all three with it, `('3.3.0')` returns none |
 | 2026-09-30 | Supabase migration | `20260930012053_add_halloween_cauldron_armchair` on `ilxzpszgirhwxpeocygs` | Applied | Catalog-data only, additive: `furniture_candy_cauldron` 150 and `furniture_bat_armchair` 250 coins (Halloween 2026 drop), `is_active=false` + `visibility_mode=version_gated` + `min_app_version=3.3.1` + `fallback_behavior=skip`. 3.3.0 build 26 was archived without the PNGs, so only 3.3.1+ can see or buy them. No schema, RPC, policy, or grant change; `on conflict (sku) do update` makes it re-runnable | Read back: rows present with `price_coins` = `metadata.price_jpy` (150/250) and expected `asset_path`s; `get_visible_shop_items('3.3.1')` returns all three Halloween items, `get_visible_shop_items('3.3.0')` returns none. `flutter analyze` clean on `lib/features/shop`; shop/home/overflow-matrix tests 227 passed; `flutter build bundle` contains all three PNGs |

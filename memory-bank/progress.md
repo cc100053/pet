@@ -7,7 +7,7 @@ Current baseline and where live state is recorded. Full snapshots live in
 - Five supplied furniture pieces are wired for the next `5.1.0+` build:
   Candle 100, Candy Cane 150, Sunflowers 150, Gift Box 200, Christmas Tree
   250 coins. PNGs, five-language app copy and purchase push names are ready;
-  catalog migration and `notify_friend` deployment await separate approval.
+  catalog migration is applied and `notify_friend` v40 is deployed with approval.
   NEW ends `2026-11-01T00:00:00Z`. Release/deployment details live in
   `docs/release_status.md`; art review lives in
   `design/furniture_sketches/festive_2026/README.md`.
