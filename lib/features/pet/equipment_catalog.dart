@@ -115,6 +115,14 @@ class EquipmentCatalog {
       ),
       assetPath: 'assets/equipment/hats/straw_hat.png',
       petOverrides: {
+        // Provisional Gingerbread Man uses the Godot default fit.
+        'gingerbread_man': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.75),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.8,
+            aspectRatio: 1821 / 700,
+          ),
+        ),
         'cat': EquipmentFitOverride(
           anchor: EquipmentAnchor(x: 0.5, y: 0.75),
           sizeRatio: EquipmentSize.fromWidthAspect(
@@ -167,6 +175,14 @@ class EquipmentCatalog {
       ),
       assetPath: 'assets/equipment/hats/crown.png',
       petOverrides: {
+        // Provisional Gingerbread Man uses the Godot default fit.
+        'gingerbread_man': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.7),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.32,
+            aspectRatio: 1,
+          ),
+        ),
         'cat': EquipmentFitOverride(
           anchor: EquipmentAnchor(x: 0.5, y: 0.7),
           sizeRatio: EquipmentSize.fromWidthAspect(
@@ -253,6 +269,14 @@ class EquipmentCatalog {
       ),
       assetPath: 'assets/equipment/sunglasses.png',
       petOverrides: {
+        // Provisional Gingerbread Man uses the Godot default fit.
+        'gingerbread_man': EquipmentFitOverride(
+          anchor: EquipmentAnchor(x: 0.5, y: 0.2),
+          sizeRatio: EquipmentSize.fromWidthAspect(
+            widthRatio: 0.45,
+            aspectRatio: 1,
+          ),
+        ),
         'cat': EquipmentFitOverride(
           anchor: EquipmentAnchor(x: 0.5, y: 0.2),
           sizeRatio: EquipmentSize.fromWidthAspect(

@@ -2,6 +2,46 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/pet/pet_catalog.dart';
 
 void main() {
+  test(
+    'gingerbread man is selectable only from 5.1.0 with old-room fallback',
+    () {
+      for (final version in <String?>[null, '4.1.0', '5.0.0', '5.0.9']) {
+        expect(
+          PetCatalog.supportsIdOnAppVersion('gingerbread_man', version),
+          isFalse,
+        );
+        expect(
+          PetCatalog.visiblePetsForAppVersion(version).map((pet) => pet.id),
+          isNot(contains('gingerbread_man')),
+        );
+        expect(
+          PetCatalog.resolveIdForAppVersion(
+            'gingerbread_man',
+            appVersion: version,
+          ),
+          PetCatalog.defaultPetId,
+        );
+      }
+      for (final version in ['5.1.0', '5.2.0']) {
+        expect(
+          PetCatalog.supportsIdOnAppVersion('gingerbread_man', version),
+          isTrue,
+        );
+        expect(
+          PetCatalog.visiblePetsForAppVersion(version).map((pet) => pet.id),
+          contains('gingerbread_man'),
+        );
+        expect(
+          PetCatalog.resolveIdForAppVersion(
+            'gingerbread_man',
+            appVersion: version,
+          ),
+          'gingerbread_man',
+        );
+      }
+    },
+  );
+
   test('version-gated pets stay hidden until the minimum app version', () {
     expect(
       PetCatalog.visiblePetsForAppVersion(

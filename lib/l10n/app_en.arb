@@ -956,6 +956,8 @@
   "petTypeChickenTagline": "A feathery friend with a lively little strut.",
   "petTypeTurtleName": "Turtle",
   "petTypeTurtleTagline": "A slow and steady pond buddy who can nap anywhere.",
+  "petTypeGingerbreadManName": "Gingerbread Man",
+  "petTypeGingerbreadManTagline": "A sweet cookie buddy with a cheerful wave.",
   "roomLeaveTitle": "Leave room?",
   "roomLeaveMessage": "You'll leave {name} and lose access to its chat and pet.",
   "@roomLeaveMessage": {

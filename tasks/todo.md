@@ -1,5 +1,21 @@
 # TODO
 
+## Gingerbread Man rollout (2026-10-11)
+- [x] Inspect and preserve the supplied stay/walk/sleep art and exact timing.
+- [x] Wire `gingerbread_man`, five locales, PNG playback, GIF fallbacks and
+      equipment preview; owner approved `minAppVersion = 5.1.0`.
+- [x] Prepare Godot scenes and level-1 head/body/back estimates for review.
+- [x] Owner explicitly approved provisional Flutter socket sync; retain all
+      non-zero tracks and mirror Godot default equipment fits.
+- [ ] Sync level-2 exported sockets/equipment fits after owner review
+      `[USER ACTION REQUIRED]`; do not publish estimated tracks as final.
+- [x] Final-tree format/analyze/test passed (750 tests / 1 skipped), bundle
+      includes all 21 PNGs and three GIFs; rollout state documented.
+- [ ] Owner review continuous loops, room-size rendering, equipment in both
+      facings and release timing `[USER ACTION REQUIRED]`.
+- [ ] Publish the push avatar and deploy `notify_friend` under separate
+      approval; until then the existing ghost fallback remains.
+
 ## Active follow-ups
 - [x] Festive furniture implementation (2026-10-11): normalized all five PNGs,
       wired the draft catalog, five app locales and purchase push names;

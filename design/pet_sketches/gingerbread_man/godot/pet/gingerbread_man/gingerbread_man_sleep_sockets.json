@@ -1,0 +1,172 @@
+{
+  "pet": "gingerbread_man",
+  "animation": "sleep",
+  "canvas": [
+    450.0,
+    450.0
+  ],
+  "frameCount": 6,
+  "frameHold": 1,
+  "frameDurationsMs": [
+    200,
+    100,
+    200,
+    100,
+    100,
+    100
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "durationMs": 200,
+      "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-01.png",
+      "sockets": {
+        "head": {
+          "x": 225.0,
+          "y": 28.0,
+          "nx": 0.5,
+          "ny": 0.062222222
+        },
+        "body": {
+          "x": 225.0,
+          "y": 182.0,
+          "nx": 0.5,
+          "ny": 0.404444444
+        },
+        "back": {
+          "x": 265.0,
+          "y": 195.0,
+          "nx": 0.588888889,
+          "ny": 0.433333333
+        }
+      }
+    },
+    {
+      "index": 1,
+      "durationMs": 100,
+      "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-02.png",
+      "sockets": {
+        "head": {
+          "x": 239.0,
+          "y": 32.0,
+          "nx": 0.531111111,
+          "ny": 0.071111111
+        },
+        "body": {
+          "x": 226.0,
+          "y": 185.0,
+          "nx": 0.502222222,
+          "ny": 0.411111111
+        },
+        "back": {
+          "x": 267.0,
+          "y": 198.0,
+          "nx": 0.593333333,
+          "ny": 0.44
+        }
+      }
+    },
+    {
+      "index": 2,
+      "durationMs": 200,
+      "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-03.png",
+      "sockets": {
+        "head": {
+          "x": 239.0,
+          "y": 32.0,
+          "nx": 0.531111111,
+          "ny": 0.071111111
+        },
+        "body": {
+          "x": 226.0,
+          "y": 185.0,
+          "nx": 0.502222222,
+          "ny": 0.411111111
+        },
+        "back": {
+          "x": 267.0,
+          "y": 198.0,
+          "nx": 0.593333333,
+          "ny": 0.44
+        }
+      }
+    },
+    {
+      "index": 3,
+      "durationMs": 100,
+      "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-04.png",
+      "sockets": {
+        "head": {
+          "x": 239.0,
+          "y": 32.0,
+          "nx": 0.531111111,
+          "ny": 0.071111111
+        },
+        "body": {
+          "x": 226.0,
+          "y": 185.0,
+          "nx": 0.502222222,
+          "ny": 0.411111111
+        },
+        "back": {
+          "x": 267.0,
+          "y": 198.0,
+          "nx": 0.593333333,
+          "ny": 0.44
+        }
+      }
+    },
+    {
+      "index": 4,
+      "durationMs": 100,
+      "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-05.png",
+      "sockets": {
+        "head": {
+          "x": 239.0,
+          "y": 32.0,
+          "nx": 0.531111111,
+          "ny": 0.071111111
+        },
+        "body": {
+          "x": 226.0,
+          "y": 185.0,
+          "nx": 0.502222222,
+          "ny": 0.411111111
+        },
+        "back": {
+          "x": 267.0,
+          "y": 198.0,
+          "nx": 0.593333333,
+          "ny": 0.44
+        }
+      }
+    },
+    {
+      "index": 5,
+      "durationMs": 100,
+      "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-06.png",
+      "sockets": {
+        "head": {
+          "x": 239.0,
+          "y": 32.0,
+          "nx": 0.531111111,
+          "ny": 0.071111111
+        },
+        "body": {
+          "x": 226.0,
+          "y": 185.0,
+          "nx": 0.502222222,
+          "ny": 0.411111111
+        },
+        "back": {
+          "x": 267.0,
+          "y": 198.0,
+          "nx": 0.593333333,
+          "ny": 0.44
+        }
+      }
+    }
+  ],
+  "equipmentSettings": {},
+  "sockets": {}
+}

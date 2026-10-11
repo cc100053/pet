@@ -922,6 +922,8 @@
   "petTypeChickenTagline": "精神满满、昂首阔步的毛茸茸伙伴。",
   "petTypeTurtleName": "小乌龟",
   "petTypeTurtleTagline": "慢悠悠、随时随地都能打个盹的池塘小伙伴。",
+  "petTypeGingerbreadManName": "姜饼人",
+  "petTypeGingerbreadManTagline": "开心挥手的甜甜饼干小伙伴。",
   "roomLeaveTitle": "要离开房间吗？",
   "roomLeaveMessage": "你将离开 {name}，并失去聊天和宠物的访问权限。",
   "@roomLeaveMessage": {

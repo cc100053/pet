@@ -1895,6 +1895,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A slow and steady pond buddy who can nap anywhere.';
 
   @override
+  String get petTypeGingerbreadManName => 'Gingerbread Man';
+
+  @override
+  String get petTypeGingerbreadManTagline =>
+      'A sweet cookie buddy with a cheerful wave.';
+
+  @override
   String get roomLeaveTitle => 'Leave room?';
 
   @override

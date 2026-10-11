@@ -758,6 +758,148 @@ class PetSocketCatalog {
         ),
       },
     ),
+    // shortcut: owner-approved Level-1 estimates; replace after Godot equipment review.
+    PetSocketConfig(
+      petId: 'gingerbread_man',
+      sockets: {
+        PetEquipmentSlot.head: PetSocket(x: 0.5, y: 0.088888889),
+        PetEquipmentSlot.body: PetSocket(x: 0.5, y: 0.411111111),
+        PetEquipmentSlot.back: PetSocket(x: 0.6, y: 0.422222222),
+      },
+      walkOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.5, y: 0.062222222),
+        PetEquipmentSlot.body: PetSocket(x: 0.5, y: 0.388888889),
+        PetEquipmentSlot.back: PetSocket(x: 0.6, y: 0.4),
+      },
+      sleepOverrides: {
+        PetEquipmentSlot.head: PetSocket(x: 0.5, y: 0.062222222),
+        PetEquipmentSlot.body: PetSocket(x: 0.5, y: 0.404444444),
+        PetEquipmentSlot.back: PetSocket(x: 0.588888889, y: 0.433333333),
+      },
+      idleMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.028888889, -0.006666667),
+            Offset(-0.028888889, -0.006666667),
+            Offset(-0.028888889, -0.006666667),
+            Offset(-0.028888889, -0.006666667),
+            Offset(-0.028888889, -0.006666667),
+            Offset(-0.002222222, 0),
+          ],
+        ),
+        PetEquipmentSlot.body: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.02, -0.002222222),
+            Offset(-0.02, -0.004444444),
+            Offset(-0.02, -0.004444444),
+            Offset(-0.02, -0.004444444),
+            Offset(-0.02, -0.004444444),
+            Offset(-0.004444444, 0.002222222),
+          ],
+        ),
+        PetEquipmentSlot.back: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManIdle.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(-0.026666667, -0.002222222),
+            Offset(-0.026666667, -0.002222222),
+            Offset(-0.026666667, -0.002222222),
+            Offset(-0.026666667, -0.002222222),
+            Offset(-0.026666667, -0.002222222),
+            Offset(-0.011111111, 0.011111111),
+          ],
+        ),
+      },
+      walkMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0.011111111),
+            Offset(0, 0.011111111),
+            Offset(0, 0.011111111),
+            Offset(-0.002222222, 0.011111111),
+            Offset(-0.002222222, 0.022222222),
+          ],
+        ),
+        PetEquipmentSlot.body: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, -0.011111111),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, 0),
+            Offset(0, -0.011111111),
+            Offset(-0.002222222, 0.006666667),
+          ],
+        ),
+        PetEquipmentSlot.back: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManWalk.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0.002222222, -0.002222222),
+            Offset(0.002222222, -0.013333333),
+            Offset(0.002222222, -0.002222222),
+            Offset(0, 0),
+            Offset(0.002222222, -0.002222222),
+            Offset(0.006666667, -0.015555556),
+            Offset(0.002222222, -0.002222222),
+          ],
+        ),
+      },
+      sleepMotionTracksBySlot: {
+        PetEquipmentSlot.head: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManSleep.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0.031111111, 0.008888889),
+            Offset(0.031111111, 0.008888889),
+            Offset(0.031111111, 0.008888889),
+            Offset(0.031111111, 0.008888889),
+            Offset(0.031111111, 0.008888889),
+          ],
+        ),
+        PetEquipmentSlot.body: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManSleep.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0.002222222, 0.006666667),
+            Offset(0.002222222, 0.006666667),
+            Offset(0.002222222, 0.006666667),
+            Offset(0.002222222, 0.006666667),
+            Offset(0.002222222, 0.006666667),
+          ],
+        ),
+        PetEquipmentSlot.back: PetMotionTrack.timed(
+          frameDurationsMs:
+              PetAnimationFrames.gingerbreadManSleep.frameDurationsMs,
+          frames: [
+            Offset(0, 0),
+            Offset(0.004444444, 0.006666667),
+            Offset(0.004444444, 0.006666667),
+            Offset(0.004444444, 0.006666667),
+            Offset(0.004444444, 0.006666667),
+            Offset(0.004444444, 0.006666667),
+          ],
+        ),
+      },
+    ),
   ];
 
   static PetSocketConfig? forPet(String petId) {

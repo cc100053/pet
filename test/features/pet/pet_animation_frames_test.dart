@@ -2,6 +2,56 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/pet/pet_animation_frames.dart';
 
 void main() {
+  test(
+    'gingerbread man sequences preserve supplied timing and loop boundaries',
+    () {
+      final cases = {
+        PetAnimationFrames.gingerbreadManIdle: [
+          200,
+          100,
+          250,
+          400,
+          200,
+          400,
+          100,
+        ],
+        PetAnimationFrames.gingerbreadManWalk: [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          300,
+          200,
+        ],
+        PetAnimationFrames.gingerbreadManSleep: [200, 100, 200, 100, 100, 100],
+      };
+      for (final entry in cases.entries) {
+        final sequence = entry.key;
+        expect(sequence.frameDurationsMs, entry.value);
+        expect(sequence.frameAssets, hasLength(entry.value.length));
+        var elapsedMs = 0;
+        for (var frame = 0; frame < entry.value.length; frame++) {
+          expect(
+            sequence.assetForElapsedMs(elapsedMs),
+            sequence.frameAssets[frame],
+          );
+          elapsedMs += entry.value[frame];
+          expect(
+            sequence.assetForElapsedMs(elapsedMs - 1),
+            sequence.frameAssets[frame],
+          );
+        }
+        expect(sequence.totalDurationMs, elapsedMs);
+        expect(
+          sequence.assetForElapsedMs(elapsedMs),
+          sequence.frameAssets.first,
+        );
+      }
+    },
+  );
+
   test('ghost idle sequence follows exported frame durations', () {
     final sequence = PetAnimationFrames.ghostIdle;
 
@@ -64,7 +114,7 @@ void main() {
       ),
       PetAnimationFrames.ghostIdle,
     );
-    expect(PetAnimationFrames.all, hasLength(18));
+    expect(PetAnimationFrames.all, hasLength(21));
     for (final sequence in PetAnimationFrames.all) {
       expect(sequence.frameAssets, isNotEmpty);
       expect(sequence.frameDurationsMs, hasLength(sequence.frameAssets.length));

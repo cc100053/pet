@@ -128,6 +128,21 @@ class PetCatalog {
       ),
       minAppVersion: '5.0.0',
     ),
+    PetDefinition(
+      id: 'gingerbread_man',
+      name: (l10n) => l10n.petTypeGingerbreadManName,
+      tagline: (l10n) => l10n.petTypeGingerbreadManTagline,
+      stayAsset: 'assets/pet/gingerbread_man/gingerbread_man_stay.gif',
+      sleepAsset: 'assets/pet/gingerbread_man/gingerbread_man_sleep.gif',
+      walkAsset: 'assets/pet/gingerbread_man/gingerbread_man_moving.gif',
+      accent: const Color(0xFFB8893E),
+      gradient: const LinearGradient(
+        colors: [Color(0xFFE4C17B), Color(0xFFB8893E)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      minAppVersion: '5.1.0',
+    ),
   ];
 
   static PetDefinition? _byIdOrNull(String? id) {

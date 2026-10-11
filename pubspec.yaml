@@ -151,6 +151,7 @@ flutter:
     - assets/pet/fish/
     - assets/pet/tiger/
     - assets/pet/turtle/
+    - assets/pet/gingerbread_man/
     - assets/pet_sequences/ghost/stay/
     - assets/pet_sequences/ghost/sleep/
     - assets/pet_sequences/ghost/walk/
@@ -169,6 +170,9 @@ flutter:
     - assets/pet_sequences/turtle/stay/
     - assets/pet_sequences/turtle/sleep/
     - assets/pet_sequences/turtle/walk/
+    - assets/pet_sequences/gingerbread_man/stay/
+    - assets/pet_sequences/gingerbread_man/sleep/
+    - assets/pet_sequences/gingerbread_man/walk/
     - assets/icon/
     - assets/shop/
     - assets/shop/icon/

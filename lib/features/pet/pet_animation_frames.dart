@@ -70,6 +70,9 @@ class PetAnimationFrames {
     turtleIdle,
     turtleSleep,
     turtleWalk,
+    gingerbreadManIdle,
+    gingerbreadManSleep,
+    gingerbreadManWalk,
   ];
 
   static const PetFrameSequence ghostIdle = PetFrameSequence(
@@ -459,6 +462,51 @@ class PetAnimationFrames {
       'assets/pet_sequences/turtle/walk/turtle_walk-06.png',
       'assets/pet_sequences/turtle/walk/turtle_walk-07.png',
       'assets/pet_sequences/turtle/walk/turtle_walk-08.png',
+    ],
+  );
+
+  static const PetFrameSequence gingerbreadManIdle = PetFrameSequence(
+    petId: 'gingerbread_man',
+    sourceAsset: 'assets/pet/gingerbread_man/gingerbread_man_stay.gif',
+    frameDurationsMs: [200, 100, 250, 400, 200, 400, 100],
+    frameAssets: [
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-01.png',
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-02.png',
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-03.png',
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-04.png',
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-05.png',
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-06.png',
+      'assets/pet_sequences/gingerbread_man/stay/gingerbread_man_stay-07.png',
+    ],
+  );
+
+  static const PetFrameSequence gingerbreadManWalk = PetFrameSequence(
+    petId: 'gingerbread_man',
+    sourceAsset: 'assets/pet/gingerbread_man/gingerbread_man_moving.gif',
+    frameDurationsMs: [200, 200, 200, 200, 200, 200, 300, 200],
+    frameAssets: [
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-01.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-02.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-03.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-04.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-05.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-06.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-07.png',
+      'assets/pet_sequences/gingerbread_man/walk/gingerbread_man_walk-08.png',
+    ],
+  );
+
+  static const PetFrameSequence gingerbreadManSleep = PetFrameSequence(
+    petId: 'gingerbread_man',
+    sourceAsset: 'assets/pet/gingerbread_man/gingerbread_man_sleep.gif',
+    frameDurationsMs: [200, 100, 200, 100, 100, 100],
+    frameAssets: [
+      'assets/pet_sequences/gingerbread_man/sleep/gingerbread_man_sleep-01.png',
+      'assets/pet_sequences/gingerbread_man/sleep/gingerbread_man_sleep-02.png',
+      'assets/pet_sequences/gingerbread_man/sleep/gingerbread_man_sleep-03.png',
+      'assets/pet_sequences/gingerbread_man/sleep/gingerbread_man_sleep-04.png',
+      'assets/pet_sequences/gingerbread_man/sleep/gingerbread_man_sleep-05.png',
+      'assets/pet_sequences/gingerbread_man/sleep/gingerbread_man_sleep-06.png',
     ],
   );
 

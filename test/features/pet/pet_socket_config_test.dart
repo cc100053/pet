@@ -1,8 +1,84 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pet/features/pet/equipment_catalog.dart';
 import 'package:pet/features/pet/pet_animation_frames.dart';
 import 'package:pet/features/pet/pet_sockets.dart';
 
 void main() {
+  test(
+    'provisional gingerbread sockets retain every exported frame and slot',
+    () {
+      final config = PetSocketCatalog.forPet('gingerbread_man')!;
+      final cases = {
+        'stay': PetAnimationFrames.gingerbreadManIdle,
+        'moving': PetAnimationFrames.gingerbreadManWalk,
+        'sleep': PetAnimationFrames.gingerbreadManSleep,
+      };
+      for (final entry in cases.entries) {
+        final data =
+            jsonDecode(
+                  File(
+                    'design/pet_sketches/gingerbread_man/godot/pet/gingerbread_man/'
+                    'gingerbread_man_${entry.key}_sockets.json',
+                  ).readAsStringSync(),
+                )
+                as Map<String, dynamic>;
+        final frames = data['frames'] as List<dynamic>;
+        final sequence = entry.value;
+        expect(data['frameDurationsMs'], sequence.frameDurationsMs);
+        expect(frames, hasLength(sequence.frameAssets.length));
+        for (final slot in [
+          PetEquipmentSlot.head,
+          PetEquipmentSlot.face,
+          PetEquipmentSlot.body,
+          PetEquipmentSlot.back,
+        ]) {
+          final base = config.resolve(
+            slot,
+            isWalking: entry.key == 'moving',
+            isSleeping: entry.key == 'sleep',
+          )!;
+          var elapsed = 0;
+          for (var i = 0; i < frames.length; i++) {
+            final point =
+                frames[i]['sockets'][PetEquipmentSlot.socketAnchorFor(slot)];
+            final motion = config.resolveMotion(
+              slot: slot,
+              animationProgress: (elapsed + 1) / sequence.totalDurationMs,
+              isWalking: entry.key == 'moving',
+              isSleeping: entry.key == 'sleep',
+            );
+            expect(
+              base.x + motion.dx,
+              closeTo(point['nx'] as num, 0.000000002),
+            );
+            expect(
+              base.y + motion.dy,
+              closeTo(point['ny'] as num, 0.000000002),
+            );
+            elapsed += sequence.frameDurationsMs[i];
+          }
+        }
+      }
+    },
+  );
+
+  test('provisional gingerbread equipment mirrors Godot default anchors', () {
+    for (final entry in {
+      'equip_straw_hat': 0.75,
+      'equip_crown': 0.7,
+      'equip_sunglasses': 0.2,
+    }.entries) {
+      final fit = EquipmentCatalog.bySku(
+        entry.key,
+      )!.fitOverrideFor('gingerbread_man', isWalking: false, isSleeping: false);
+      expect(fit.anchor!.x, 0.5);
+      expect(fit.anchor!.y, entry.value);
+    }
+  });
+
   test('validates supported equipment slots', () {
     expect(PetEquipmentSlot.isValid(PetEquipmentSlot.head), isTrue);
     expect(PetEquipmentSlot.isValid(PetEquipmentSlot.face), isTrue);

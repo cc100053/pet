@@ -3393,6 +3393,18 @@ abstract class AppLocalizations {
   /// **'A slow and steady pond buddy who can nap anywhere.'**
   String get petTypeTurtleTagline;
 
+  /// No description provided for @petTypeGingerbreadManName.
+  ///
+  /// In en, this message translates to:
+  /// **'Gingerbread Man'**
+  String get petTypeGingerbreadManName;
+
+  /// No description provided for @petTypeGingerbreadManTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A sweet cookie buddy with a cheerful wave.'**
+  String get petTypeGingerbreadManTagline;
+
   /// No description provided for @roomLeaveTitle.
   ///
   /// In en, this message translates to:
