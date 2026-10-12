@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/home/widgets/pet_photo_gallery.dart';
 import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/shared/ui/full_screen_photo_viewer.dart';
+import 'package:pet/shared/ui/app_ui_scale.dart';
+import 'package:pet/shared/ui/user_avatar.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,10 +25,17 @@ void main() {
     List<String?>? messageIds,
     int jumpToLatestEventId = 0,
     double width = 360,
+    double textScale = 1,
   }) {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(textScale)),
+        child: child!,
+      ),
       home: Scaffold(
         body: Center(
           child: SizedBox(
@@ -131,11 +141,11 @@ void main() {
     expect(updatedPageView.controller!.page, 0);
   });
 
-  testWidgets('uses single-line ellipsis and keeps caption above card bottom', (
+  testWidgets('uses two-line ellipsis and keeps caption above card bottom', (
     WidgetTester tester,
   ) async {
     const longCaption =
-        'This caption is intentionally long so it must collapse with ellipsis instead of wrapping to a second line';
+        'This caption is intentionally long so it must wrap to two lines and truncate the rest with ellipsis';
     final imageUrls = createImageUrls(1);
 
     await tester.pumpWidget(
@@ -148,25 +158,80 @@ void main() {
     await tester.pump();
 
     final captionText = tester.widget<Text>(find.text(longCaption));
-    expect(captionText.maxLines, 1);
-    expect(captionText.softWrap, isFalse);
+    expect(captionText.maxLines, 2);
+    expect(captionText.softWrap, isNot(false));
     expect(captionText.overflow, TextOverflow.ellipsis);
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.descendant(
+        of: find.text(longCaption),
+        matching: find.byType(RichText),
+      ),
+    );
+    expect(paragraph.didExceedMaxLines, isTrue);
 
     final captionRect = tester.getRect(find.text(longCaption));
     final itemRect = tester.getRect(galleryItem(0));
     expect(itemRect.bottom - captionRect.bottom, greaterThan(6));
   });
 
+  testWidgets('paints the second caption line clear of the avatar and frame', (
+    tester,
+  ) async {
+    const caption = '第一行🤭\n第二行完整文字';
+    for (final width in [320.0, 375.0, 402.0, 440.0]) {
+      for (final userScale in [1.0, kMaxUserTextScale]) {
+        await tester.pumpWidget(
+          buildGallery(
+            imageUrls: createImageUrls(1),
+            captions: const [caption],
+            width: width,
+            textScale: userScale * appUiScale(width),
+          ),
+        );
+        await tester.pump();
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(
+            of: find.text(caption),
+            matching: find.byType(RichText),
+          ),
+        );
+        final secondLine = paragraph.getBoxesForSelection(
+          TextSelection(
+            baseOffset: caption.indexOf('\n') + 1,
+            extentOffset: caption.length,
+          ),
+        );
+        expect(secondLine, isNotEmpty);
+        expect(paragraph.didExceedMaxLines, isFalse);
+        expect(
+          secondLine.last.bottom,
+          lessThanOrEqualTo(paragraph.size.height),
+        );
+        final captionRect = tester.getRect(find.text(caption));
+        expect(
+          captionRect.top,
+          greaterThan(tester.getRect(find.byType(UserAvatar).first).bottom),
+        );
+        expect(
+          tester.getRect(galleryItem(0)).bottom - captionRect.bottom,
+          greaterThan(6),
+        );
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
   testWidgets('passes room and message linkage into fullscreen viewer', (
     WidgetTester tester,
   ) async {
     final imageUrls = createImageUrls(2);
+    const caption = '第一行🤭\n第二行完整文字';
 
     await tester.pumpWidget(
       buildGallery(
         roomId: 'room-42',
         imageUrls: imageUrls,
-        captions: const <String?>['caption 0', 'caption 1'],
+        captions: const <String?>[caption, 'caption 1'],
         messageIds: const <String?>['message-0', 'message-1'],
       ),
     );
@@ -181,6 +246,7 @@ void main() {
     );
     expect(viewer.items.first.roomId, 'room-42');
     expect(viewer.items.first.messageId, 'message-0');
+    expect(viewer.items.first.caption, caption);
   });
 
   testWidgets('fullscreen viewer disables actions for unsynced local photos', (

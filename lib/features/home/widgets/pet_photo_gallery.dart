@@ -251,6 +251,7 @@ class _PetPhotoGalleryState extends State<PetPhotoGallery> {
         final tokens = _GalleryFrameTokens.fromScale(
           scale: scale,
           responsive: responsive,
+          textScaler: MediaQuery.textScalerOf(context),
         );
         final aspectRatio = responsive.pick(
           compact: 1.44,
@@ -510,8 +511,7 @@ class _GalleryPolaroidFrame extends StatelessWidget {
                                     height: 1.12,
                                     color: AppTheme.textPrimary,
                                   ),
-                                  maxLines: 1,
-                                  softWrap: false,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -603,7 +603,12 @@ class _GalleryFrameTokens {
   factory _GalleryFrameTokens.fromScale({
     required double scale,
     required HomeResponsiveSpec responsive,
+    required TextScaler textScaler,
   }) {
+    final captionTopInset =
+        responsive.pick(compact: 16, regular: 24, expanded: 24) * scale;
+    final captionBottomInset =
+        responsive.pick(compact: 7, regular: 8, expanded: 8) * scale;
     return _GalleryFrameTokens(
       innerPadding:
           responsive.pick(compact: 11, regular: 12, expanded: 12) * scale,
@@ -615,12 +620,12 @@ class _GalleryFrameTokens {
         regular: 0.62,
         expanded: 0.62,
       ),
-      captionTopInset:
-          responsive.pick(compact: 16, regular: 24, expanded: 24) * scale,
-      captionBottomInset:
-          responsive.pick(compact: 7, regular: 8, expanded: 8) * scale,
-      minCaptionHeight:
-          responsive.pick(compact: 44, regular: 48, expanded: 48) * scale,
+      captionTopInset: captionTopInset,
+      captionBottomInset: captionBottomInset,
+      minCaptionHeight: math.max(
+        responsive.pick(compact: 44, regular: 48, expanded: 48) * scale,
+        captionTopInset + captionBottomInset + textScaler.scale(13) * 1.12 * 2,
+      ),
     );
   }
 }

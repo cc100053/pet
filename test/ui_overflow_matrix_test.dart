@@ -11,6 +11,7 @@ import 'package:pet/features/home/room_selection_view.dart';
 import 'package:pet/features/home/widgets/home_bottom_nav_bar.dart';
 import 'package:pet/features/home/widgets/home_game_status_bar.dart';
 import 'package:pet/features/home/widgets/invite_polaroid_card.dart';
+import 'package:pet/features/home/widgets/pet_photo_gallery.dart';
 import 'package:pet/features/shop/models/shop_item.dart';
 import 'package:pet/features/shop/shop_view.dart';
 import 'package:pet/l10n/app_localizations.dart';
@@ -207,6 +208,27 @@ void main() {
             context,
           )!.inviteCardCaption('Mochimochimo'),
           code: 'AB12CD',
+        ),
+      ),
+    );
+  });
+
+  testWidgets('home photo captions and placeholders fit every locale', (
+    tester,
+  ) async {
+    await _sweep(
+      tester,
+      'PetPhotoGallery',
+      (context) => Center(
+        child: PetPhotoGallery(
+          roomId: null,
+          imageUrls: const ['https://example.com/feed.jpg'],
+          captions: const ['第一行🤭\n第二行完整文字'],
+          sentAts: const [null],
+          messageIds: const [null],
+          senderAvatars: const [null],
+          senderFallbackTexts: const ['Phoebe'],
+          onPlaceholderTap: () {},
         ),
       ),
     );

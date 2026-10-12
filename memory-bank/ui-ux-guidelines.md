@@ -59,6 +59,10 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Text scale = system text size (capped at `kMaxUserTextScale`) × `appUiScale`,
   applied once in `MaterialApp.builder`; never also scale theme font sizes
   or multiply a `fontSize` by `homeUiScale`/`appUiScale`.
+- Home photo captions wrap to at most two lines with ellipsis. Reserve enough
+  height at the effective text scale to keep both lines clear of the sender
+  avatar and frame bottom. Capture retains its 40-character limit; the photo
+  viewer receives the original caption.
 - Legal/subscription disclosure text: at least 11pt, fully opaque.
 
 ## Onboarding (B+C hybrid, in progress)
