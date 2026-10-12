@@ -93,9 +93,11 @@ class ChatMessageEnvelope extends StatelessWidget {
                 : const SizedBox.shrink(),
           ),
         ),
-        _buildBubbleColumn(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          childAlignment: Alignment.centerLeft,
+        Flexible(
+          child: _buildBubbleColumn(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            childAlignment: Alignment.centerLeft,
+          ),
         ),
       ],
     );

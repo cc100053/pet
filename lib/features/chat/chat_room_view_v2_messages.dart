@@ -1138,8 +1138,6 @@ class _FeedCard extends StatelessWidget {
                                       ),
                                     ]),
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               if (bubbleTime != null) ...[

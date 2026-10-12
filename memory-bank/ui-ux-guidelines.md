@@ -23,6 +23,10 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Chat emoji follow Telegram (`chat_emoji_text.dart`): inline emoji in text
   bodies, photo captions and the long-press preview render 1.25x the text size
   without growing the line; a body of only 1-3 emoji renders 44/38/32pt.
+- Chat photo captions wrap in full, including explicit newlines; the feed
+  bubble and its long-press preview grow with the text instead of truncating
+  it to a fixed number of lines. Received bubbles fit the remaining width
+  after their avatar slot.
 
 ## Visuals ("Mori" direction, 2026-09-30)
 - Modern Japanese social-game feel (Animal Crossing warmth). Use `AppTheme`

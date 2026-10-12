@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet/features/chat/chat_message.dart';
@@ -14,6 +15,7 @@ import 'package:pet/l10n/app_localizations.dart';
 import 'package:pet/services/chat/chat_message_action_service.dart';
 import 'package:pet/services/chat/chat_message_repository.dart';
 import 'package:pet/services/profile/profile_cache_service.dart';
+import 'package:pet/shared/ui/app_ui_scale.dart';
 
 class _FetchCall {
   const _FetchCall({this.beforeCreatedAt, this.beforeId, required this.limit});
@@ -333,6 +335,7 @@ void main() {
     required _FakeChatMessageRepository repository,
     required ChatRoomViewRuntime runtime,
     ChatMessageActionService? messageActionService,
+    double textScale = 1,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -344,6 +347,12 @@ void main() {
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
           home: ChatRoomViewV2(
             roomId: 'room-1',
             petName: 'Mochi',
@@ -1445,6 +1454,71 @@ void main() {
       expect(find.text('grouped feed caption'), findsOneWidget);
       // Text bubble names the sender once; the feed photo always names it.
       expect(find.text('Other'), findsNWidgets(2));
+    },
+  );
+
+  testWidgets(
+    'feed captions paint every line at phone widths and text scales',
+    (tester) async {
+      addTearDown(tester.view.reset);
+      tester.view.devicePixelRatio = 1;
+      const runtime = ChatRoomViewRuntime(
+        currentUserId: 'me',
+        disableRealtime: true,
+      );
+      for (final width in [320.0, 375.0, 402.0, 440.0]) {
+        tester.view.physicalSize = Size(width, 874);
+        for (final userScale in [1.0, kMaxUserTextScale]) {
+          for (final senderId in ['me', 'other']) {
+            for (final caption in [
+              '第一行🤭\n第二行完整文字\n第三行都要顯示',
+              List.filled(40, '字').join(),
+            ]) {
+              final message = feedMessage(
+                id: 'caption-$width-$userScale-$senderId-${caption.length}',
+                senderId: senderId,
+                caption: caption,
+                createdAt: DateTime.utc(2026, 10, 12, 12),
+              );
+              final repository = _FakeChatMessageRepository(
+                cachedMessages: [message],
+                canonicalMessages: [message],
+              );
+              await pumpChatRoom(
+                tester,
+                repository: repository,
+                runtime: runtime,
+                textScale: userScale * appUiScale(width),
+              );
+              final paragraph = tester.renderObject<RenderParagraph>(
+                findRenderedText(caption),
+              );
+              expect(paragraph.didExceedMaxLines, isFalse);
+              final lastCharacter = paragraph.getBoxesForSelection(
+                TextSelection(
+                  baseOffset: caption.length - 1,
+                  extentOffset: caption.length,
+                ),
+              );
+              expect(lastCharacter, isNotEmpty);
+              expect(
+                lastCharacter.last.bottom,
+                lessThanOrEqualTo(paragraph.size.height),
+              );
+              final captionRect = tester.getRect(findRenderedText(caption));
+              final cardRect = tester.getRect(
+                find.byKey(ValueKey('chatMessageSurface_${message.id}')),
+              );
+              expect(cardRect.contains(captionRect.topLeft), isTrue);
+              expect(cardRect.contains(captionRect.bottomRight), isTrue);
+              expect(cardRect.right, lessThanOrEqualTo(width));
+              expect(tester.takeException(), isNull);
+              await tester.pumpWidget(const SizedBox.shrink());
+              await tester.pumpAndSettle();
+            }
+          }
+        }
+      }
     },
   );
 
