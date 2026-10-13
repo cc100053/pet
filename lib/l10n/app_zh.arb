@@ -281,6 +281,8 @@
   "drawerTestNotification": "测试本地通知",
   "feedCameraSubtitle": "拍照后送出。",
   "feedCameraTitle": "喂食相机",
+  "feedPhotoLoadingTitle": "照片加载中…",
+  "feedPhotoLoadingSubtitle": "小伙伴等着开饭！",
   "feedPickPhotoHint": "选择照片",
   "feedCanonicalTags": "标准标签：{tags}",
   "@feedCanonicalTags": {

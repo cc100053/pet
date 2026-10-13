@@ -539,6 +539,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get feedCameraTitle => '喂食相机';
 
   @override
+  String get feedPhotoLoadingTitle => '照片加载中…';
+
+  @override
+  String get feedPhotoLoadingSubtitle => '小伙伴等着开饭！';
+
+  @override
   String get feedPickPhotoHint => '选择照片';
 
   @override
@@ -3057,6 +3063,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get feedCameraTitle => '餵食相機';
+
+  @override
+  String get feedPhotoLoadingTitle => '照片載入中…';
+
+  @override
+  String get feedPhotoLoadingSubtitle => '小夥伴等著開飯！';
 
   @override
   String get feedPickPhotoHint => '選擇照片';

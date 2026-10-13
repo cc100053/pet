@@ -15,6 +15,7 @@ import '../../shared/ui/responsive_layout.dart';
 import '../../shared/ui/status_bar_style.dart';
 import 'feed_upload_models.dart';
 import 'feed_upload_queue.dart';
+import 'feed_photo_loading.dart';
 
 export 'feed_upload_models.dart';
 
@@ -60,6 +61,7 @@ class FeedCaptureView extends ConsumerStatefulWidget {
   const FeedCaptureView({
     super.key,
     required this.roomId,
+    this.petAsset,
     this.onBeforeEnqueue,
     this.onOptimisticMessage,
     this.onSendStarted,
@@ -67,6 +69,7 @@ class FeedCaptureView extends ConsumerStatefulWidget {
   });
 
   final String roomId;
+  final String? petAsset;
   final Future<void> Function()? onBeforeEnqueue;
   final ValueChanged<FeedOptimisticMessage>? onOptimisticMessage;
   final ValueChanged<FeedOptimisticMessage>? onSendStarted;
@@ -84,6 +87,7 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
   final _picker = ImagePicker();
 
   Uint8List? _previewBytes;
+  ImageProvider<Object>? _previewImage;
   XFile? _selectedImage;
 
   bool _sending = false;
@@ -134,7 +138,57 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
       if (image == null) {
         return;
       }
+      if (!mounted) {
+        return;
+      }
       previewBytes = await image.readAsBytes();
+      if (!mounted) {
+        return;
+      }
+      if (previewBytes.length > _feedInputHardLimitBytes) {
+        setState(() {
+          _error = AppLocalizations.of(context)!.errorImageTooLarge;
+        });
+        return;
+      }
+
+      // Keep loading through decode, using the same sized provider we render.
+      final previewWidth = (MediaQuery.sizeOf(context).width - 40).clamp(
+        1,
+        360,
+      );
+      final cacheWidth = (previewWidth * MediaQuery.devicePixelRatioOf(context))
+          .round()
+          .clamp(1, 1080);
+      final previewImage = ResizeImage.resizeIfNeeded(
+        cacheWidth,
+        null,
+        MemoryImage(previewBytes),
+      );
+      Object? decodeError;
+      StackTrace? decodeStack;
+      await precacheImage(
+        previewImage,
+        context,
+        onError: (error, stackTrace) {
+          decodeError = error;
+          decodeStack = stackTrace;
+        },
+      );
+      if (decodeError != null) {
+        Error.throwWithStackTrace(
+          decodeError!,
+          decodeStack ?? StackTrace.current,
+        );
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _previewBytes = previewBytes;
+        _previewImage = previewImage;
+        _selectedImage = image;
+      });
     } catch (error, stackTrace) {
       if (!mounted) {
         return;
@@ -160,24 +214,12 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
         });
       }
     }
-
-    if (!mounted) {
-      return;
-    }
-    if (previewBytes.length > _feedInputHardLimitBytes) {
-      setState(() {
-        _error = AppLocalizations.of(context)!.errorImageTooLarge;
-      });
-      return;
-    }
-
-    setState(() {
-      _previewBytes = previewBytes;
-      _selectedImage = image;
-    });
   }
 
   Future<void> _sendFeed() async {
+    if (_picking || _sending) {
+      return;
+    }
     final image = _selectedImage;
     final previewBytes = _previewBytes;
     if (image == null || previewBytes == null) {
@@ -365,47 +407,23 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                           borderRadius: BorderRadius.circular(
                                             24,
                                           ),
-                                          child: _previewBytes == null
+                                          child: _picking
+                                              ? FeedPhotoLoading(
+                                                  petAsset: widget.petAsset,
+                                                )
+                                              : _previewImage == null
                                               ? const _EmptyPreviewState()
-                                              : LayoutBuilder(
-                                                  builder: (context, constraints) {
-                                                    // Cap the decode to the
-                                                    // preview width: picked
-                                                    // photos can be full
-                                                    // sensor resolution and
-                                                    // decoding them whole
-                                                    // can exhaust memory.
-                                                    final dpr =
-                                                        MediaQuery.devicePixelRatioOf(
-                                                          context,
-                                                        );
-                                                    final maxWidth =
-                                                        constraints
-                                                                .maxWidth
-                                                                .isFinite &&
-                                                            constraints
-                                                                    .maxWidth >
-                                                                0
-                                                        ? constraints.maxWidth
-                                                        : 360.0;
-                                                    final cacheWidth =
-                                                        (maxWidth * dpr)
-                                                            .round()
-                                                            .clamp(1, 1080);
-                                                    return DecoratedBox(
-                                                      decoration:
-                                                          const BoxDecoration(
-                                                            color: Color(
-                                                              0xFFF8F4EF,
-                                                            ),
-                                                          ),
-                                                      child: Image.memory(
-                                                        _previewBytes!,
-                                                        fit: BoxFit.contain,
-                                                        cacheWidth: cacheWidth,
+                                              : DecoratedBox(
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                        color: Color(
+                                                          0xFFF8F4EF,
+                                                        ),
                                                       ),
-                                                    );
-                                                  },
+                                                  child: Image(
+                                                    image: _previewImage!,
+                                                    fit: BoxFit.contain,
+                                                  ),
                                                 ),
                                         ),
                                       ),
@@ -501,11 +519,17 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                   ),
                                   const SizedBox(height: 12),
                                   Opacity(
-                                    opacity: _sending || _selectedImage == null
+                                    opacity:
+                                        _sending ||
+                                            _picking ||
+                                            _selectedImage == null
                                         ? 0.5
                                         : 1,
                                     child: HardShadowPressButton(
-                                      onTap: _sending || _selectedImage == null
+                                      onTap:
+                                          _sending ||
+                                              _picking ||
+                                              _selectedImage == null
                                           ? null
                                           : _sendFeed,
                                       borderRadius: BorderRadius.circular(18),

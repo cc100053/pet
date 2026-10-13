@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +8,141 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet/features/feed/feed_capture_view.dart';
+import 'package:pet/features/feed/feed_photo_loading.dart';
 import 'package:pet/l10n/app_localizations.dart';
+import 'package:pet/shared/ui/juice_wrappers.dart';
+
+class _DelayedPhoto extends XFile {
+  _DelayedPhoto(this.bytes) : super('picked.png');
+
+  final Future<Uint8List> bytes;
+
+  @override
+  Future<Uint8List> readAsBytes() => bytes;
+}
 
 void main() {
+  testWidgets(
+    'shows loading until preview is ready and blocks replacement send',
+    (tester) async {
+      var pickerCompleter = Completer<XFile?>();
+      final bytesCompleter = Completer<Uint8List>();
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: FeedCaptureView(
+              roomId: 'room-1',
+              pickImage: (_) => pickerCompleter.future,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.photo_library_rounded));
+      await tester.pump();
+      expect(find.byType(FeedPhotoLoading), findsOneWidget);
+      expect(
+        tester
+            .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
+            .onTap,
+        isNull,
+      );
+
+      pickerCompleter.complete(_DelayedPhoto(bytesCompleter.future));
+      await tester.pump();
+      expect(find.byType(FeedPhotoLoading), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Lunch');
+
+      await tester.runAsync(() async {
+        bytesCompleter.complete(
+          File(
+            'assets/pet_sequences/cat/stay/cat_stay-01.png',
+          ).readAsBytesSync(),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(FeedPhotoLoading), findsNothing);
+      expect(
+        tester
+            .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
+            .onTap,
+        isNotNull,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Lunch',
+      );
+
+      pickerCompleter = Completer<XFile?>();
+      await tester.tap(find.byIcon(Icons.photo_library_rounded));
+      await tester.pump();
+      expect(find.byType(FeedPhotoLoading), findsOneWidget);
+      expect(
+        tester
+            .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
+            .onTap,
+        isNull,
+      );
+      pickerCompleter.complete(null);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(FeedPhotoLoading), findsNothing);
+      expect(
+        tester
+            .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
+            .onTap,
+        isNotNull,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('unreadable photo ends loading and allows another pick', (
+    tester,
+  ) async {
+    var attempts = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: FeedCaptureView(
+            roomId: 'room-1',
+            pickImage: (_) async {
+              attempts++;
+              return XFile.fromData(Uint8List.fromList([1, 2, 3]));
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byIcon(Icons.photo_library_rounded));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(FeedPhotoLoading), findsNothing);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(FeedCaptureView)),
+    )!;
+    expect(find.text(l10n.errorUnexpected), findsOneWidget);
+    expect(
+      tester
+          .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
+          .onTap,
+      isNull,
+    );
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(attempts, 2);
+    expect(tester.takeException(), isNull);
+  });
+
   test('dispatchFeedCaptureCallback runs the callback', () {
     var called = false;
 
@@ -119,6 +252,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.photo_library_rounded));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpWidget(const SizedBox.shrink());
 
     pickerCompleter.complete(

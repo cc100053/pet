@@ -173,6 +173,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       MaterialPageRoute(
         builder: (_) => FeedCaptureView(
           roomId: roomId,
+          petAsset: PetCatalog.byId(_resolvePetTypeForRoom(roomId)).stayAsset,
           onBeforeEnqueue: _tickPetStateBeforeFeed,
           onOptimisticMessage: _handleOptimisticFeed,
         ),

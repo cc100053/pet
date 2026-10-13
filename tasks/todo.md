@@ -1,5 +1,15 @@
 # TODO
 
+## Feed photo selection feedback (2026-10-13)
+- [x] Implement approved pet loading design and five localized copy pairs.
+- [x] Keep loading through sized preview decode; prevent sending an old photo
+      during replacement; preserve caption and prior preview on cancel/failure.
+- [x] Final-tree format/analyze passed; 759 tests passed / 1 live integration
+      skip. Five-language layout, reduced motion and rendered loading checks
+      passed (widget rendering uses a test font).
+- [ ] Check native camera/gallery return and large/iCloud photos on device
+      `[USER ACTION REQUIRED]`; widget tests cannot emulate native transfer.
+
 ## Debug currency repair (2026-10-13)
 - [x] Reproduce protected-column writes failing and trace both debug buttons.
 - [x] Replace the direct UPDATE with an authenticated, admin-only, self-only

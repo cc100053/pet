@@ -286,6 +286,8 @@
   "drawerTestNotification": "로컬 알림 테스트",
   "feedCameraSubtitle": "먹이 사진을 찍어 보내세요.",
   "feedCameraTitle": "먹이 카메라",
+  "feedPhotoLoadingTitle": "사진을 불러오는 중…",
+  "feedPhotoLoadingSubtitle": "펫이 밥을 기다리고 있어요!",
   "feedPickPhotoHint": "사진 선택",
   "feedCanonicalTags": "표준 태그: {tags}",
   "@feedCanonicalTags": {

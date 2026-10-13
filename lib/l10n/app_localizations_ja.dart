@@ -541,6 +541,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get feedCameraTitle => 'フィードカメラ';
 
   @override
+  String get feedPhotoLoadingTitle => '写真を読み込み中…';
+
+  @override
+  String get feedPhotoLoadingSubtitle => 'ペットがごはんを待っています！';
+
+  @override
   String get feedPickPhotoHint => '写真を選択';
 
   @override

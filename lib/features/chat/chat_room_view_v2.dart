@@ -1950,6 +1950,7 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
         MaterialPageRoute(
           builder: (_) => FeedCaptureView(
             roomId: widget.roomId,
+            petAsset: widget.petAssetPath,
             onOptimisticMessage: _handleOptimisticFeed,
             onSendStarted: _handleFeedSendStarted,
           ),

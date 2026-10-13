@@ -1063,6 +1063,18 @@ abstract class AppLocalizations {
   /// **'Feed Camera'**
   String get feedCameraTitle;
 
+  /// No description provided for @feedPhotoLoadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your photo…'**
+  String get feedPhotoLoadingTitle;
+
+  /// No description provided for @feedPhotoLoadingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pet is waiting for a treat!'**
+  String get feedPhotoLoadingSubtitle;
+
   /// No description provided for @feedPickPhotoHint.
   ///
   /// In en, this message translates to:

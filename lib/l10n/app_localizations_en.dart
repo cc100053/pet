@@ -563,6 +563,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedCameraTitle => 'Feed Camera';
 
   @override
+  String get feedPhotoLoadingTitle => 'Loading your photo…';
+
+  @override
+  String get feedPhotoLoadingSubtitle => 'Your pet is waiting for a treat!';
+
+  @override
   String get feedPickPhotoHint => 'Pick a photo';
 
   @override

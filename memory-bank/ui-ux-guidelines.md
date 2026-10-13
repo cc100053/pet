@@ -96,6 +96,13 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   locked room keeps the snackbar.
 
 ## Feedback
+- Feed capture shows the room's idle pet and pulsing leaf dots while the native
+  picker, byte read and sized preview decode are pending. The localized title
+  says the photo is loading; the subtitle says the pet is waiting for a meal.
+  Caption editing stays available, while source and send actions are disabled.
+  Cancel/failure restores the prior preview; reduced motion uses a static pet
+  and dots. There is no artificial delay or percentage, and a live region
+  announces the loading state.
 - `showJuiceToast`: blocking alerts, confirmations, and input.
 - `showJuiceSnackbar`: non-blocking success/info feedback.
 - `JuicePosition.center`: complex input, IAP previews, critical confirmations.

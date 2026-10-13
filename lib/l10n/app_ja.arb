@@ -286,6 +286,8 @@
   "drawerTestNotification": "ローカル通知をテスト",
   "feedCameraSubtitle": "写真を撮って送信します。",
   "feedCameraTitle": "フィードカメラ",
+  "feedPhotoLoadingTitle": "写真を読み込み中…",
+  "feedPhotoLoadingSubtitle": "ペットがごはんを待っています！",
   "feedPickPhotoHint": "写真を選択",
   "feedCanonicalTags": "カノニカルタグ: {tags}",
   "@feedCanonicalTags": {

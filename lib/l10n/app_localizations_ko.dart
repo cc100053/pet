@@ -548,6 +548,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get feedCameraTitle => '먹이 카메라';
 
   @override
+  String get feedPhotoLoadingTitle => '사진을 불러오는 중…';
+
+  @override
+  String get feedPhotoLoadingSubtitle => '펫이 밥을 기다리고 있어요!';
+
+  @override
   String get feedPickPhotoHint => '사진 선택';
 
   @override

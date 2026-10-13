@@ -3,6 +3,9 @@
 // Text scaling mirrors MaterialApp.builder in lib/app/app.dart.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pet/features/feed/feed_photo_loading.dart';
+import 'package:pet/features/pet/pet_animated_image.dart';
 import 'package:pet/features/auth/sign_in_view.dart';
 import 'package:pet/features/onboarding/first_day_checklist.dart';
 import 'package:pet/features/onboarding/onboarding_entry_view.dart';
@@ -142,6 +145,42 @@ class _NoPendingInvite implements PendingInviteCodeStore, InviteLinkGateway {
 void main() {
   // Phrase-aware wrapping makes longer unbreakable runs; check they still fit.
   setUpAll(() => PhraseBreaks.load());
+
+  testWidgets('feed photo loading fits every locale and phone', (tester) async {
+    await _sweep(
+      tester,
+      'FeedPhotoLoading',
+      (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: const SizedBox(
+            height: 300,
+            width: 360,
+            child: FeedPhotoLoading(),
+          ),
+        ),
+      ),
+    );
+  });
+
+  testWidgets('feed photo loading respects reduced motion', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        const Locale('en'),
+        _phones.first,
+        1,
+        (context) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          child: const FeedPhotoLoading(),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(Animate), findsNothing);
+    expect(find.byType(PetAnimatedImage), findsNothing);
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('Loading your photo…'), findsOneWidget);
+  });
 
   testWidgets('onboarding welcome and invited sign-in fit every locale', (
     tester,

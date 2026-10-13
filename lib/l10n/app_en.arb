@@ -286,6 +286,8 @@
   "drawerTestNotification": "Test Local Notification",
   "feedCameraSubtitle": "Capture a feed photo and send it.",
   "feedCameraTitle": "Feed Camera",
+  "feedPhotoLoadingTitle": "Loading your photo…",
+  "feedPhotoLoadingSubtitle": "Your pet is waiting for a treat!",
   "feedPickPhotoHint": "Pick a photo",
   "feedCanonicalTags": "Canonical tags: {tags}",
   "@feedCanonicalTags": {
