@@ -82,6 +82,17 @@ target and authorized scope, even when they roll back writes.
 - Durable queue retry/reconciliation guard:
   `flutter test test/features/feed/feed_upload_queue_test.dart`.
 
+### Admin debug currency
+
+- Client wiring/error reporting: `flutter test test/features/home/home_debug_currency_test.dart`.
+- On verified project `ilxzpszgirhwxpeocygs`, run
+  `test/supabase/debug_profile_balances_checks.sql` via Supabase MCP as postgres.
+  It selects an existing admin profile, simulates claims transactionally and
+  rolls back all balance/timestamp writes. Profiles have only the timestamp
+  trigger; confirm that remains true before re-running against a changed schema.
+  This validates DB authorization/arithmetic; device testing still needs a
+  rebuilt app and a real admin session.
+
 ### Shared room frames
 - Client requests/cache/stale response and picker retry coverage:
   `flutter test test/features/home/room_frame_provider_test.dart test/features/home/room_frame_test.dart`.

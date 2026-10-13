@@ -11,41 +11,37 @@ extension _HomeDebugTools on _HomeViewState {
     if (!await _ensureDebugAdminAccess()) {
       return;
     }
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
+    if (!await _ensureOnlineForWrite()) {
       return;
     }
     if (coinDelta == 0 && diamondDelta == 0) {
       return;
     }
     try {
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('coins,diamonds')
-          .eq('user_id', userId)
-          .maybeSingle();
-      if (profile == null) {
+      await Supabase.instance.client.rpc(
+        'debug_adjust_profile_balances',
+        params: {'p_coin_delta': coinDelta, 'p_diamond_delta': diamondDelta},
+      );
+      await _loadCoins(expectedReward: coinDelta > 0 ? coinDelta : null);
+    } catch (error, stackTrace) {
+      if (!mounted) {
+        reportSwallowedError(
+          error,
+          stackTrace,
+          source: 'home_debug_update_profile_balances',
+        );
         return;
       }
-      final currentCoins = (profile['coins'] as int?) ?? _coins;
-      final currentDiamonds = (profile['diamonds'] as int?) ?? _diamonds;
-      final updates = <String, dynamic>{};
-      if (coinDelta != 0) {
-        updates['coins'] = max(0, currentCoins + coinDelta);
-      }
-      if (diamondDelta != 0) {
-        updates['diamonds'] = max(0, currentDiamonds + diamondDelta);
-      }
-      if (updates.isEmpty) {
-        return;
-      }
-      await Supabase.instance.client
-          .from('profiles')
-          .update(updates)
-          .eq('user_id', userId);
-      unawaited(_loadCoins(expectedReward: coinDelta > 0 ? coinDelta : null));
-    } catch (_) {
-      // Best-effort debug tool.
+      showJuiceSnackbar(
+        context: context,
+        message: userFacingError(
+          context,
+          error,
+          stackTrace: stackTrace,
+          source: 'home_debug_update_profile_balances',
+        ),
+        tone: AppDialogTone.danger,
+      );
     }
   }
 

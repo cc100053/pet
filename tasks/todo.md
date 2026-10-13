@@ -1,5 +1,16 @@
 # TODO
 
+## Debug currency repair (2026-10-13)
+- [x] Reproduce protected-column writes failing and trace both debug buttons.
+- [x] Replace the direct UPDATE with an authenticated, admin-only, self-only
+      atomic RPC; surface and report write failures.
+- [x] Deploy additive migration `20261013034744`; transactional SQL checks
+      passed with every balance/timestamp write rolled back. Final-tree format,
+      analyze and tests passed (755 passed / 1 live integration skip).
+- [ ] Rebuild/install the app and check both +100 buttons with a real admin
+      session `[USER ACTION REQUIRED]`; backend deployment is recorded in
+      `docs/release_status.md`.
+
 ## Gingerbread Man rollout (2026-10-11)
 - [x] Inspect and preserve the supplied stay/walk/sleep art and exact timing.
 - [x] Wire `gingerbread_man`, five locales, PNG playback, GIF fallbacks and
@@ -36,9 +47,6 @@
       in 5.0.0 no longer works.
 - [x] The app bundles `.env.app` (public keys only, `scripts/write_app_env.sh`)
       instead of `.env` from the next build on.
-- [ ] The admin debug coin tool (`lib/features/home/home_view_debug.dart`)
-      writes `profiles.coins`/`diamonds` directly and now fails silently
-      since those columns are server-only; replace it with an admin RPC.
 - [ ] Onboarding redesign (B + C hybrid) is code-complete; run the device
       checks listed in `tasks/onboarding_redesign.md` before release
       `[USER ACTION REQUIRED]`.

@@ -42,6 +42,14 @@ migration that rewrites the object.
   change only inside SECURITY DEFINER functions;
   `purchase_room_background_with_coins` became definer for this. A new
   client-writable `profiles` column needs its own column grant.
+- `debug_adjust_profile_balances(p_coin_delta integer, p_diamond_delta integer)`
+  (since `20261013034744`) restores the admin debug drawer through a definer
+  RPC. Both deltas are required and non-null; it requires `auth.uid()` and
+  `is_debug_admin()`, updates only the caller's existing profile atomically,
+  clamps balances at zero and rejects positive integer overflow. Returns void;
+  Home reloads currency after success and reports localized write failures.
+  Only `authenticated` has client EXECUTE access; currency column grants stay
+  locked. Debug adjustments preserve the old tool's absence of ledger entries.
 - `leave_room` is idempotent: leaving without an active membership is a silent
   no-op, and an already-inactive membership keeps its original `left_at`.
 - Invite-code RPCs are reusable and default first-party creation/regeneration
