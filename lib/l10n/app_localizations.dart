@@ -4227,6 +4227,30 @@ abstract class AppLocalizations {
   /// **'See the day while scrolling'**
   String get whatsNew410Bullet3Detail;
 
+  /// No description provided for @whatsNew501Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoother Days Together'**
+  String get whatsNew501Title;
+
+  /// No description provided for @whatsNew501Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshed Getting Started'**
+  String get whatsNew501Bullet1;
+
+  /// No description provided for @whatsNew501Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo Loading Feedback'**
+  String get whatsNew501Bullet2;
+
+  /// No description provided for @whatsNew501Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo Caption Fixes'**
+  String get whatsNew501Bullet3;
+
   /// No description provided for @whatsNew500Title.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,19 @@
 # TODO
 
+## Approved release 5.0.1+32 (2026-10-16)
+- [x] Owner approved patch version, five bundled locales and four ASC locales.
+- [x] Production catalog diff 5.0.0 → 5.0.1 is empty; Gingerbread Man and
+      five furniture pieces remain gated at 5.1.0; Ghost Sky stays unapplied.
+- [x] Generate localizations and pass final-tree validation: 361 Dart files /
+      0 format changes, analyze clean, 764 tests passed / 1 live test skipped.
+- [x] Sync/read back ASC metadata; build, upload dSYMs, preserve archive,
+      upload IPA, verify processing and attach build. Do not submit for review.
+- [x] Record verified results and commit/push this release.
+- [ ] Crashlytics Missing dSYMs and onboarding/native photo device checks
+      `[USER ACTION REQUIRED]`; see `docs/release_status.md`.
+- [ ] Align notification extension version/build with Runner in a future build;
+      current VALID build has two Apple `90473` warnings (extension 1.4.0+1).
+
 ## Feed photo selection feedback (2026-10-13)
 - [x] Implement approved pet loading design and five localized copy pairs.
 - [x] Keep loading through sized preview decode; prevent sending an old photo

@@ -2261,6 +2261,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '轻松查看对话日期';
 
   @override
+  String get whatsNew501Title => '一起养宠更顺手';
+
+  @override
+  String get whatsNew501Bullet1 => '新手引导更新';
+
+  @override
+  String get whatsNew501Bullet2 => '照片加载提示';
+
+  @override
+  String get whatsNew501Bullet3 => '照片说明显示修复';
+
+  @override
   String get whatsNew500Title => '小乌龟登场';
 
   @override
@@ -4784,6 +4796,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew410Bullet3Detail => '輕鬆掌握對話日期';
+
+  @override
+  String get whatsNew501Title => '一起養寵更順手';
+
+  @override
+  String get whatsNew501Bullet1 => '新手引導更新';
+
+  @override
+  String get whatsNew501Bullet2 => '照片載入提示';
+
+  @override
+  String get whatsNew501Bullet3 => '照片說明顯示修正';
 
   @override
   String get whatsNew500Title => '小烏龜登場';

@@ -16,7 +16,8 @@ This is the internal source/build baseline, not proof of public availability.
 
 | Platform | Baseline version | Build | Store status | Verified at | Source | Git tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| iOS | 5.0.0 | 31 | Current repository baseline; ASC version `0c0ff600-cf0e-491f-8680-63b045437205` is `PREPARE_FOR_SUBMISSION`, build `55175623-8b91-4de1-8463-f2462d045641` is `VALID` (uploaded 2026-10-05T06:35:31-07:00) and attached; not submitted for App Review; public availability not independently verified; localizations synced/read back (en-US `3978675c-8b62-4e5c-948a-3075e9085142`, ja `89437f73-ca7b-4206-b6f1-043b03288bc7`, ko `a6309606-3fa5-4fc2-984f-e1c56e345d1c`, zh-Hant `d0bcd729-01c8-4b45-b18f-9675f48e4168`) | 2026-10-05 | Approved release-notes flow; IPA build/upload/processing/attach. Bundled What's New + ASC copy for Turtle, its room/Pet Ticket paths, and larger chat emoji. IPA verified: 5.0.0 (31), `UIDeviceFamily` [1], portrait, full screen; Turtle PNG sequences bundled | none |
+| iOS | 5.0.1 | 32 | ASC version `a98c7ac7-a40d-42b2-a798-100b900fb122` is `PREPARE_FOR_SUBMISSION`; build `a8d9b31d-a34f-40f9-a1b7-6c9a33675bce` is `VALID` and attached; four localizations synced/read back exactly; not submitted for App Review; not publicly released | 2026-10-16 | Approved patch release flow; source through `07d1483` plus release metadata. Onboarding, photo loading feedback and caption fixes; no newly visible pets/items. IPA verified iPhone-only, portrait, full screen; 12 dSYMs uploaded and archive preserved | none |
+| iOS | 5.0.0 | 31 | Previous internal baseline (superseded 2026-10-16); ASC version `0c0ff600-cf0e-491f-8680-63b045437205` is now `READY_FOR_DISTRIBUTION`; build `55175623-8b91-4de1-8463-f2462d045641` remains `VALID`. Storefront availability not independently checked | 2026-10-16 | Prior approved release flow; Turtle and larger chat emoji. Historical 2026-10-05 state was `PREPARE_FOR_SUBMISSION` | none |
 | iOS | 4.1.0 | 30 | Previous internal baseline (superseded 2026-10-05; ASC version `0f40a6d3-7c16-490a-aaa0-54d9e17b4a81` is `READY_FOR_DISTRIBUTION`, build `401f9a0b-1cbe-46db-917f-f62361f705d0` is `VALID` and attached; public availability not independently verified; localizations synced/read back (en-US `059cd3e3-3b70-4e16-ad13-0849664e726d`, ja `f1856ade-82f9-45bf-9173-6d95faaf6882`, ko `745dd64f-3827-44cc-97c6-d1c4bb507037`, zh-Hant `839f06c9-478d-453a-9801-eddde6b45ba1`)) | 2026-10-05 | Previous internal baseline; IPA verified: 4.1.0 (30), `UIDeviceFamily` [1], portrait, full screen | none |
 | iOS | 4.0.0 | 29 | Previous internal baseline (superseded 2026-10-03; 29 replaced builds 27/28, which remain `VALID` but unattached; ASC version `64c4ade8-b449-4aae-8523-ccbdfd5f477f` is `READY_FOR_DISTRIBUTION`, build `c62cf599-21d0-4d6d-8438-8c0ec8b2bc8e` is `VALID` and attached; public availability not independently verified); localizations synced from `.asc/version-localizations/*.strings` and read back (en-US `dd742020-ddf7-4e87-8eac-600a0cf34d59`, ja `d9e4c19b-0a67-4f9c-8678-22c8440a002e`, ko `ce6ee435-e083-4fcb-8993-8c40fbedff6e`, zh-Hant `2388822f-91f0-42e9-ab6b-f347c2d2bf4c`) | 2026-10-03 | Existing metadata sync + archive/build/upload/processing/attach; bundled What's New + ASC copy for Halloween furniture, Mori UI refresh, room-aware shop delivery. IPA verified: 4.0.0 (29), `UIDeviceFamily` [1], portrait, full screen, three Halloween PNGs bundled | none |
 | iOS | 3.3.0 | 26 | Previous baseline (superseded 2026-09-30); ASC version `8ddfabc4-...` `READY_FOR_DISTRIBUTION` | 2026-09-30 | `asc versions list` | none |
@@ -40,6 +41,7 @@ this is unrecoverable after the fact. Record every release here.
 
 | Version | Build | dSYMs uploaded | Archive preserved | Note |
 | --- | --- | --- | --- | --- |
+| 5.0.1 | 32 | Yes — 2026-10-16, all 12 dSYMs, immediately after archive via `ios/scripts/upload_archive_dsyms.sh` | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 5.0.1 (32).xcarchive` | Runner UUID `986ADF02-1546-3348-AB37-374618629B4A`, App.framework UUID `0C7143A3-FA34-D97F-485E-50E6B85E9945`; all 12 UUIDs submitted successfully. `[USER ACTION REQUIRED]` confirm none appear in Crashlytics → Settings → Missing dSYMs |
 | 5.0.0 | 31 | Yes — 2026-10-05, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` immediately after the archive/IPA build | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 5.0.0 (31).xcarchive` | Runner UUID `56233931-A031-3B30-BCF8-A5E536E9AF6B`, App.framework UUID `0C7143A3-FD06-B831-485E-50E69C4B8751`; all 12 UUIDs submitted successfully. `[USER ACTION REQUIRED]` confirm none appear in Crashlytics → Settings → Missing dSYMs |
 | 4.1.0 | 30 | Yes — 2026-10-03, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` immediately after the archive/IPA build | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 4.1.0 (30).xcarchive` | Runner UUID `9182E40A-0CF4-38C0-B58E-0E2C5A7CFBC1`, App.framework `0C7143A3-C899-D0B2-485E-50E68D56AE3C`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
 | 4.0.0 | 29 | Yes — 2026-09-30, all 12 dSYMs, via `ios/scripts/upload_archive_dsyms.sh` before the IPA upload | `/Users/fatboy/Library/Developer/Xcode/Archives/shipped/Runner 4.0.0 (29).xcarchive` | Runner UUID `8D8C240A-24B1-35C6-A337-C0C2BF814C32`, App.framework `0C7143A3-C50B-851A-485E-50E6538E885F`; `[USER ACTION REQUIRED]` confirm neither appears in Crashlytics → Settings → Missing dSYMs |
@@ -96,11 +98,70 @@ Earlier release rows and the original ledger are preserved in
 
 ## Pending Release Actions
 
+- 2026-10-16: owner approved the full `5.0.1+32` release-notes flow, covering
+  refreshed onboarding, photo selection loading feedback and caption fixes.
+  Five bundled locales and four ASC locales use the approved patch copy.
+  Gingerbread Man and five festive furniture pieces retain their `5.1.0`
+  gates; `get_visible_shop_items('5.0.1')` minus `('5.0.0')` is empty on
+  verified project `ilxzpszgirhwxpeocygs`. Ghost Sky is absent from production
+  and its migration stays unapplied. No catalog/NEW-window change is approved.
+  Build 32 was free at preflight; the approved build is now VALID and attached.
+  App Review submission is not authorized. Promotional text is evergreen.
+- 5.0.1 local preflight (2026-10-16): pinned Flutter 3.44.0; final-tree
+  format 361 Dart files / 0 changes, analyze clean, 764 tests passed / 1 live
+  integration skip (no refresh token). `test/app_store_metadata_terms_test.dart`
+  passed in the full suite. Five new patch-note locale renders pass at 320pt.
+  `flutter build bundle` passed; manifest present, `.env.app` bundled and
+  `.env`/untracked todo art excluded. All title/headline length limits pass.
+- ASC 5.0.1 metadata created/synced/read back exactly on 2026-10-16:
+  version `a98c7ac7-a40d-42b2-a798-100b900fb122`,
+  `PREPARE_FOR_SUBMISSION`; en-US `62bdac73-006e-40b7-a4a7-008159f8c310`,
+  ja `691b2b88-1c2c-46b5-af91-19f935e69552`,
+  ko `2fae4e98-8701-4667-a515-0336208d488a`,
+  zh-Hant `7238d878-fa42-4e19-8c74-6213ede5126b`.
+  Existing descriptions/support/marketing URLs and direct Apple EULA retained;
+  original keywords copied from 5.0.0. No App Review submission performed.
+- 5.0.1 archive/export (2026-10-16): archive succeeded; the tracked export
+  plist's `destination=upload` failed with `Failed to Use Accounts`. An
+  export-only temporary plist (`destination=export`, no version/build
+  management), existing ASC API key and `-allowProvisioningUpdates` resolved
+  missing distribution signing and exported the same archive successfully.
+  No signing assets were revoked and no repository export configuration changed.
+  IPA `build/ios/ipa-501/PetTomo.ipa`: 71,175,523 bytes,
+  SHA256 `2163b8fa7897f7fb2252a16220a15489fe2d71d5f4b1593ea01c373ee30820b2`.
+  Verified `5.0.1` / `32`, `UIDeviceFamily=[1]`, portrait, full screen;
+  `.env.app` matches the public allowlist output, `.env` and todo art absent.
+  Archive preserved and all 12 dSYMs uploaded before re-export.
+  IPA main app and notification extension both verified with App Store
+  profiles (`get-task-allow=false`, no provisioned devices), UUIDs
+  `8a7bf9cb-de66-47bd-bf91-6d13c99c680d` and
+  `6689aba9-b299-494d-84ed-f77c63b2508d`, expiring 2027-10-14.
+  ASC accepted upload `a8d9b31d-a34f-40f9-a1b7-6c9a33675bce`
+  (file `b9525dfb-0304-447e-830c-5422273de7a7`); processing completed.
+  The 10-minute selector wait timed out, but the final read-back immediately
+  afterwards reported upload COMPLETE and exact 5.0.1 build 32 VALID
+  (`a8d9b31d-a34f-40f9-a1b7-6c9a33675bce`), uploaded
+  `2026-10-15T23:23:34-07:00`. Attached and read back on version
+  `a98c7ac7-a40d-42b2-a798-100b900fb122`; no duplicate upload performed.
+  Apple returned two non-blocking warning codes `90473`. IPA inspection shows
+  the existing notification extension is `1.4.0+1` while Runner is `5.0.1+32`,
+  consistent with [Apple forum reports of version mismatch warnings](https://developer.apple.com/forums/tags/widgetkit/?page=7&sortBy=oldest).
+  The API supplies codes only, so this explanation is an inference; the build
+  is VALID. Align extension versions in a future build; do not re-upload 32.
+- `[USER ACTION REQUIRED]` for 5.0.1: confirm all 12 uploaded UUIDs are absent
+  from Crashlytics Missing dSYMs; perform onboarding device acceptance in
+  `tasks/onboarding_redesign.md` and native camera/gallery/large-photo checks
+  from `tasks/todo.md`. App Review submission remains separately authorized.
+- ASC read-only refresh on 2026-10-16: version `5.0.0`
+  (`0c0ff600-cf0e-491f-8680-63b045437205`) is now
+  `READY_FOR_DISTRIBUTION`, superseding its 2026-10-05 recorded state.
+  Storefront availability was not independently checked.
+
 - 2026-10-11: the five festive furniture pieces and their purchase push names
   are live in production, gated at `5.1.0+` (deployment evidence below).
-  Source version remains `5.0.0+31` until the release flow assigns the next
-  build; already-uploaded build 31 does **not** bundle these PNGs. Release
-  the first build that bundles them at `5.1.0+`.
+  Build 31 does **not** bundle these PNGs. Build `5.0.1+32` bundles the
+  assets but keeps them hidden by the unchanged `5.1.0` gate. Release a
+  `5.1.0+` build before opening this drop to players.
 - Furniture implementation validation (2026-10-11): final-tree format check
   359 Dart files / 0 changes; full `flutter analyze` clean; `flutter test`
   746 passed / 1 live integration skip (no refresh token); `deno check`

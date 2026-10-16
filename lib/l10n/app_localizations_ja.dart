@@ -2273,6 +2273,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'スクロール中に表示';
 
   @override
+  String get whatsNew501Title => 'もっと快適なお世話';
+
+  @override
+  String get whatsNew501Bullet1 => 'はじめての案内を刷新';
+
+  @override
+  String get whatsNew501Bullet2 => '写真の読み込み表示';
+
+  @override
+  String get whatsNew501Bullet3 => '写真の説明表示を改善';
+
+  @override
   String get whatsNew500Title => 'カメがやってきた';
 
   @override

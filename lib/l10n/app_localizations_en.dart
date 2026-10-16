@@ -2385,6 +2385,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'See the day while scrolling';
 
   @override
+  String get whatsNew501Title => 'Smoother Days Together';
+
+  @override
+  String get whatsNew501Bullet1 => 'Refreshed Getting Started';
+
+  @override
+  String get whatsNew501Bullet2 => 'Photo Loading Feedback';
+
+  @override
+  String get whatsNew501Bullet3 => 'Photo Caption Fixes';
+
+  @override
   String get whatsNew500Title => 'Meet Turtle';
 
   @override

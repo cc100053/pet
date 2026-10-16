@@ -7,6 +7,21 @@ class AppWhatsNewCatalog {
 
   static const List<AppWhatsNewEntry> entries = <AppWhatsNewEntry>[
     AppWhatsNewEntry(
+      version: '5.0.1',
+      titleBuilder: _version501Title,
+      bulletBuilders: <AppWhatsNewTextBuilder>[
+        _version501Bullet1,
+        _version501Bullet2,
+        _version501Bullet3,
+      ],
+      bulletIcons: <AppWhatsNewIcon>[
+        AppWhatsNewIcon.feature,
+        AppWhatsNewIcon.feature,
+        AppWhatsNewIcon.fix,
+      ],
+      actionLabelBuilder: _continueLabel,
+    ),
+    AppWhatsNewEntry(
       version: '5.0.0',
       titleBuilder: _version500Title,
       bulletBuilders: <AppWhatsNewTextBuilder>[
@@ -388,6 +403,15 @@ class AppWhatsNewCatalog {
     }
     return null;
   }
+
+  static String _version501Title(AppLocalizations l10n) =>
+      l10n.whatsNew501Title;
+  static String _version501Bullet1(AppLocalizations l10n) =>
+      l10n.whatsNew501Bullet1;
+  static String _version501Bullet2(AppLocalizations l10n) =>
+      l10n.whatsNew501Bullet2;
+  static String _version501Bullet3(AppLocalizations l10n) =>
+      l10n.whatsNew501Bullet3;
 
   static String _version500Title(AppLocalizations l10n) =>
       l10n.whatsNew500Title;

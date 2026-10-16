@@ -36,6 +36,46 @@ void main() {
     expect(find.byIcon(Icons.auto_awesome_rounded), findsOneWidget);
   });
 
+  for (final locale in const [
+    Locale('en'),
+    Locale('ja'),
+    Locale('ko'),
+    Locale('zh', 'TW'),
+    Locale('zh'),
+  ]) {
+    testWidgets('5.0.1 renders patch notes without a pet for $locale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final entry = AppWhatsNewCatalog.entryForVersion('5.0.1')!;
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: locale,
+          home: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(40),
+              child: WhatsNewToastBody(version: '5.0.1', entry: entry),
+            ),
+          ),
+        ),
+      );
+      final context = tester.element(find.byType(WhatsNewToastBody));
+      final l10n = AppLocalizations.of(context)!;
+      expect(entry.title(l10n), l10n.whatsNew501Title);
+      for (final bullet in entry.bullets(l10n)) {
+        expect(find.text(bullet), findsOneWidget);
+      }
+      expect(entry.heroPetId, isNull);
+      expect(find.byType(PetAnimatedImage), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('5.0.0 shows the turtle hero and both add-pet paths', (
     tester,
   ) async {

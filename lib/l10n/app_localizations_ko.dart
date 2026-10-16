@@ -2285,6 +2285,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '스크롤 중 표시돼요';
 
   @override
+  String get whatsNew501Title => '더 편리해진 함께 돌보기';
+
+  @override
+  String get whatsNew501Bullet1 => '첫 이용 안내 개선';
+
+  @override
+  String get whatsNew501Bullet2 => '사진 로딩 안내';
+
+  @override
+  String get whatsNew501Bullet3 => '사진 설명 표시 개선';
+
+  @override
   String get whatsNew500Title => '거북이가 왔어요';
 
   @override

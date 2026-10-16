@@ -4,6 +4,10 @@ Current baseline and where live state is recorded. Full snapshots live in
 `memory-bank/archive/`; latest: `memory-bank/archive/progress_20260818_pre_compaction.md`.
 
 ## Current State
+- `5.0.1+32` is the repository baseline as of 2026-10-16: built, uploaded,
+  VALID and attached in ASC; onboarding and photo feedback/caption improvements,
+  with no newly visible pets/items. Not submitted or publicly released.
+  Execution evidence, Apple warnings and human checks live in `docs/release_status.md`.
 - Gingerbread Man is wired as `gingerbread_man` from owner-approved 5.1.0:
   stay 7/1650 ms, walk 8/1700 ms, sleep 6/800 ms, five locales and GIF fallbacks.
   Owner explicitly approved provisional Level-1 socket tracks and Godot-default
