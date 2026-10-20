@@ -76,6 +76,21 @@ void main() {
     expect(find.text(_welcomeTitle), findsOneWidget);
   });
 
+  testWidgets('returning user opens welcome-back sign-in', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _pump(tester);
+    await tester.tap(find.text('Already have an account? Sign in'));
+    await _settle(tester);
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Continue with Google'), findsOneWidget);
+
+    await tester.tap(find.byType(OnboardingBackButton));
+    await _settle(tester);
+    expect(find.text(_welcomeTitle), findsOneWidget);
+  });
+
   testWidgets('pending invite link skips the fork', (tester) async {
     await _pump(tester, pending: 'AB12CD');
     expect(find.text(_welcomeTitle), findsNothing);

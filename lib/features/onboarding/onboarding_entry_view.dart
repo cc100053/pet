@@ -14,7 +14,7 @@ import '../auth/sign_in_view.dart';
 import '../pet/pet_animated_image.dart';
 import '../pet/pet_catalog.dart';
 
-enum _EntryStep { welcome, newKeeper, codeEntry, invited }
+enum _EntryStep { welcome, newKeeper, returning, codeEntry, invited }
 
 /// Signed-out root: Welcome fork → sign-in, or invite code → invited sign-in.
 /// A pending invite (from a link, or typed here) always shows the invited
@@ -69,7 +69,13 @@ class _OnboardingEntryViewState extends State<OnboardingEntryView> {
   void _choose(_EntryStep step) {
     AnalyticsService.instance.logEvent(
       'onboarding_fork',
-      parameters: {'path': step == _EntryStep.newKeeper ? 'new' : 'invited'},
+      parameters: {
+        'path': switch (step) {
+          _EntryStep.newKeeper => 'new',
+          _EntryStep.returning => 'returning',
+          _ => 'invited',
+        },
+      },
     );
     setState(() => _step = step);
   }
@@ -87,8 +93,13 @@ class _OnboardingEntryViewState extends State<OnboardingEntryView> {
       _EntryStep.welcome => _WelcomeFork(
         onStartNew: () => _choose(_EntryStep.newKeeper),
         onInvited: () => _choose(_EntryStep.codeEntry),
+        onReturning: () => _choose(_EntryStep.returning),
       ),
       _EntryStep.newKeeper => SignInView(onBack: _backToWelcome),
+      _EntryStep.returning => SignInView(
+        returning: true,
+        onBack: _backToWelcome,
+      ),
       _EntryStep.codeEntry => _InviteCodeEntry(
         onBack: _backToWelcome,
         onSubmit: _invites.rememberPendingInviteCode,
@@ -111,10 +122,15 @@ class _OnboardingEntryViewState extends State<OnboardingEntryView> {
 }
 
 class _WelcomeFork extends StatelessWidget {
-  const _WelcomeFork({required this.onStartNew, required this.onInvited});
+  const _WelcomeFork({
+    required this.onStartNew,
+    required this.onInvited,
+    required this.onReturning,
+  });
 
   final VoidCallback onStartNew;
   final VoidCallback onInvited;
+  final VoidCallback onReturning;
 
   static const List<String> _heroPetIds = ['cat', 'ghost', 'fish'];
 
@@ -147,7 +163,7 @@ class _WelcomeFork extends StatelessWidget {
                           Image.asset(
                             'assets/app/LoginPage.png',
                             height: 120,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -204,6 +220,25 @@ class _WelcomeFork extends StatelessWidget {
                             title: l10n.onboardingWelcomeInvited,
                             hint: l10n.onboardingWelcomeInvitedHint,
                             onTap: onInvited,
+                          ),
+                          const SizedBox(height: 10),
+                          Center(
+                            child: TextButton(
+                              onPressed: onReturning,
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(44, 44),
+                                foregroundColor: AppTheme.leafDeep,
+                              ),
+                              child: Text(
+                                l10n.onboardingWelcomeReturning,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),

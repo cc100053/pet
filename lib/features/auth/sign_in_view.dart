@@ -30,10 +30,18 @@ const String _googleLogoSvg = '''
 ''';
 
 class SignInView extends StatefulWidget {
-  const SignInView({super.key, this.invited = false, this.onBack});
+  const SignInView({
+    super.key,
+    this.invited = false,
+    this.returning = false,
+    this.onBack,
+  });
 
   /// Shows the generic "you've been invited" header (no pre-auth room data).
   final bool invited;
+
+  /// Shows the "welcome back" header for an existing account.
+  final bool returning;
   final VoidCallback? onBack;
 
   @override
@@ -267,6 +275,8 @@ class _SignInViewState extends State<SignInView> {
                           BalancedText(
                             widget.invited
                                 ? l10n.onboardingInviteLandingTitle
+                                : widget.returning
+                                ? l10n.onboardingReturningTitle
                                 : l10n.onboardingSignInTitle,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
@@ -280,6 +290,8 @@ class _SignInViewState extends State<SignInView> {
                           BalancedText(
                             widget.invited
                                 ? l10n.onboardingInviteLandingSubtitle
+                                : widget.returning
+                                ? l10n.onboardingReturningSubtitle
                                 : l10n.onboardingSignInSubtitle,
                             textAlign: TextAlign.center,
                             style: const TextStyle(

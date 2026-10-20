@@ -2444,6 +2444,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWelcomeInvitedHint => '招待コードを入力';
 
   @override
+  String get onboardingWelcomeReturning => 'アカウントをお持ちの方はサインイン';
+
+  @override
+  String get onboardingReturningTitle => 'おかえりなさい';
+
+  @override
+  String get onboardingReturningSubtitle =>
+      '前回と同じAppleまたはGoogleアカウントでサインインしてね。ペットが待っています。';
+
+  @override
   String get onboardingInviteCodeTitle => '招待コードを入力してね';
 
   @override

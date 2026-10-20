@@ -2455,6 +2455,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get onboardingWelcomeInvitedHint => '초대 코드 입력';
 
   @override
+  String get onboardingWelcomeReturning => '이미 계정이 있나요? 로그인';
+
+  @override
+  String get onboardingReturningTitle => '다시 오신 걸 환영해요';
+
+  @override
+  String get onboardingReturningSubtitle =>
+      '이전에 사용한 Apple 또는 Google 계정으로 로그인하세요. 펫이 기다리고 있어요.';
+
+  @override
   String get onboardingInviteCodeTitle => '초대 코드를 입력하세요';
 
   @override

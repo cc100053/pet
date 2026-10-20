@@ -4533,6 +4533,24 @@ abstract class AppLocalizations {
   /// **'Enter an invite code'**
   String get onboardingWelcomeInvitedHint;
 
+  /// No description provided for @onboardingWelcomeReturning.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get onboardingWelcomeReturning;
+
+  /// No description provided for @onboardingReturningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get onboardingReturningTitle;
+
+  /// No description provided for @onboardingReturningSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with the same Apple or Google account you used before. Your pet is waiting.'**
+  String get onboardingReturningSubtitle;
+
   /// No description provided for @onboardingInviteCodeTitle.
   ///
   /// In en, this message translates to:

@@ -2429,6 +2429,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingWelcomeInvitedHint => '输入邀请码';
 
   @override
+  String get onboardingWelcomeReturning => '已经有账号？登录';
+
+  @override
+  String get onboardingReturningTitle => '欢迎回来';
+
+  @override
+  String get onboardingReturningSubtitle =>
+      '使用你之前的 Apple 或 Google 账号登录，宠物正在等你。';
+
+  @override
   String get onboardingInviteCodeTitle => '输入你的邀请码';
 
   @override
@@ -4964,6 +4974,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get onboardingWelcomeInvitedHint => '輸入邀請碼';
+
+  @override
+  String get onboardingWelcomeReturning => '已經有帳號？登入';
+
+  @override
+  String get onboardingReturningTitle => '歡迎回來';
+
+  @override
+  String get onboardingReturningSubtitle =>
+      '使用你之前的 Apple 或 Google 帳號登入，寵物正在等你。';
 
   @override
   String get onboardingInviteCodeTitle => '輸入你的邀請碼';

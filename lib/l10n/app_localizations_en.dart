@@ -2570,6 +2570,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingWelcomeInvitedHint => 'Enter an invite code';
 
   @override
+  String get onboardingWelcomeReturning => 'Already have an account? Sign in';
+
+  @override
+  String get onboardingReturningTitle => 'Welcome back';
+
+  @override
+  String get onboardingReturningSubtitle =>
+      'Sign in with the same Apple or Google account you used before. Your pet is waiting.';
+
+  @override
   String get onboardingInviteCodeTitle => 'Enter your invite code';
 
   @override

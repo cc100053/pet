@@ -88,8 +88,9 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   server secrets and is never a pubspec asset: up to 5.0.0 it was, which
   shipped R2 and webhook secrets in plain text (rotated 2026-10-08).
 - Signed-out users land on `OnboardingEntryView`
-  (`lib/features/onboarding/`): Welcome fork → `SignInView`, or invite code →
-  `SignInView(invited: true)`. Any pending invite code (link or typed) shows
+  (`lib/features/onboarding/`): Welcome fork → `SignInView`, an "already have
+  an account" link → `SignInView(returning: true)` (same sign-in, welcome-back
+  copy), or invite code → `SignInView(invited: true)`. Any pending invite code (link or typed) shows
   the invited sign-in; joining still happens after sign-in through the home
   pending-invite path. Back from invited clears the pending code.
 - The post-sign-in profile step stays in `HomeView`
