@@ -44,6 +44,28 @@ void main() {
   });
 
   group('classifyUserFacingError', () {
+    test(
+      'classifies invalid session codes independently of server wording',
+      () {
+        for (final code in [
+          'refresh_token_already_used',
+          'refresh_token_not_found',
+          'session_not_found',
+        ]) {
+          expect(
+            classifyUserFacingError(AuthApiException('要求失敗', code: code)),
+            UserFacingErrorCategory.authReauthRequired,
+          );
+        }
+        expect(
+          classifyUserFacingError(
+            AuthApiException('Invalid login', code: 'invalid_credentials'),
+          ),
+          UserFacingErrorCategory.unexpected,
+        );
+      },
+    );
+
     test('maps 401 edge function failures to a re-auth prompt', () {
       expect(
         classifyUserFacingError(

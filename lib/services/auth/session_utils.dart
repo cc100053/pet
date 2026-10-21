@@ -2,6 +2,16 @@ import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/errors/user_facing_error.dart';
+
+void reportAuthStateError(Object error, StackTrace stackTrace) {
+  if (error is! AuthException) {
+    Error.throwWithStackTrace(error, stackTrace);
+  }
+  // The SDK owns session cleanup/retry; each stream listener must handle errors.
+  reportSwallowedError(error, stackTrace, source: 'auth_state_change');
+}
+
 class AccessTokenDebugResult {
   AccessTokenDebugResult({
     required this.token,

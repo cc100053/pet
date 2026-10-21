@@ -1,5 +1,15 @@
 # TODO
 
+## Auth token recovery (2026-10-21)
+- [x] Handle auth stream errors in AuthGate, Home and FCM; retain SDK session
+      cleanup/retry behavior and show the existing localized re-auth prompt.
+- [x] Regress expired-token recovery, transient failures and subsequent sign-in;
+      update architecture. Final-tree format: 363 files unchanged; analysis clean;
+      772 tests passed / 1 live integration test skipped.
+- [ ] Verify expired-session fallback on the next iOS build
+      `[USER ACTION REQUIRED]`; live-monitor Crashlytics issue
+      `c4880f82580d97645ad01e9cd866c7c1` after release.
+
 ## Approved release 5.0.1+32 (2026-10-16)
 - [x] Owner approved patch version, five bundled locales and four ASC locales.
 - [x] Production catalog diff 5.0.0 → 5.0.1 is empty; Gingerbread Man and

@@ -512,7 +512,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             return;
           }
           unawaited(_recoverRoomsIfNeeded('auth_state_change'));
-        });
+        }, onError: reportAuthStateError);
     unawaited(_ensureCurrentAppVersion());
     _selectNextPetStationaryState();
     WidgetsBinding.instance.addPostFrameCallback((_) {

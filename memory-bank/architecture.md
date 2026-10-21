@@ -93,6 +93,12 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   copy), or invite code → `SignInView(invited: true)`. Any pending invite code (link or typed) shows
   the invited sign-in; joining still happens after sign-in through the home
   pending-invite path. Back from invited clears the pending code.
+- Every manual Supabase auth stream subscription (AuthGate, Home, FCM) supplies
+  `onError`; `reportAuthStateError` records expected `AuthException`s as non-fatal,
+  while unexpected error types retain the global crash path. The SDK owns
+  invalid-session cleanup and transient refresh retries. AuthGate shows the
+  existing localized re-auth snackbar for rejected refresh/session codes when
+  the session is gone; it neither clears app data nor signs out on network errors.
 - The post-sign-in profile step stays in `HomeView`
   (`home_onboarding_flow.dart`), which `build()` returns as a full page
   whenever that step is active. Apple's given name is copied to auth

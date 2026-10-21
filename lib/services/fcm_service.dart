@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../shared/errors/user_facing_error.dart';
+import 'auth/session_utils.dart';
 
 enum NotificationIntentTarget { chat, petHome }
 
@@ -195,7 +196,7 @@ class FCMService {
       if (data.session != null) {
         unawaited(_attemptTokenSync());
       }
-    });
+    }, onError: reportAuthStateError);
 
     _initialized = true;
   }

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../services/auth/session_utils.dart';
+import '../../shared/errors/user_facing_error.dart';
+import '../../shared/ui/app_dialog.dart';
 import '../home/home_view.dart';
 import '../onboarding/first_day_checklist.dart';
 import '../onboarding/onboarding_entry_view.dart';
@@ -51,6 +54,29 @@ class _AuthGateState extends ConsumerState<AuthGate>
         unawaited(_initializePush(session.user));
         unawaited(_fcmService.refreshTokenSync());
       }
+    }, onError: _handleAuthError);
+  }
+
+  void _handleAuthError(Object error, StackTrace stackTrace) {
+    if (classifyUserFacingError(error) !=
+        UserFacingErrorCategory.authReauthRequired) {
+      reportAuthStateError(error, stackTrace);
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || Supabase.instance.client.auth.currentSession != null) {
+        return;
+      }
+      showJuiceSnackbar(
+        context: context,
+        message: userFacingError(
+          context,
+          error,
+          stackTrace: stackTrace,
+          source: 'auth_state_change',
+        ),
+        tone: AppDialogTone.info,
+      );
     });
   }
 

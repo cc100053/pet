@@ -228,7 +228,6 @@ StackTrace callerStackTrace() {
   return StackTrace.fromString(frames.sublist(firstCaller).join('\n'));
 }
 
-@visibleForTesting
 UserFacingErrorCategory classifyUserFacingError(Object error) =>
     _classify(error, _errorSummary(error));
 
@@ -270,6 +269,14 @@ UserFacingErrorCategory _classify(Object error, String rawSummary) {
     return UserFacingErrorCategory.network;
   }
   if (error is FunctionException && error.status == 401) {
+    return UserFacingErrorCategory.authReauthRequired;
+  }
+  if (error is AuthException &&
+      const {
+        'refresh_token_already_used',
+        'refresh_token_not_found',
+        'session_not_found',
+      }.contains(error.code)) {
     return UserFacingErrorCategory.authReauthRequired;
   }
   if (error is FunctionException && error.status == 413) {
