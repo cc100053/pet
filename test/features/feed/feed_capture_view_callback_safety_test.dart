@@ -23,7 +23,7 @@ class _DelayedPhoto extends XFile {
 
 void main() {
   testWidgets(
-    'shows loading until preview is ready and blocks replacement send',
+    'waits for selection and slow preview before loading, blocks replacement send',
     (tester) async {
       var pickerCompleter = Completer<XFile?>();
       final bytesCompleter = Completer<Uint8List>();
@@ -41,8 +41,8 @@ void main() {
       );
 
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
-      await tester.pump();
-      expect(find.byType(FeedPhotoLoading), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FeedPhotoLoading), findsNothing);
       expect(
         tester
             .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
@@ -52,6 +52,9 @@ void main() {
 
       pickerCompleter.complete(_DelayedPhoto(bytesCompleter.future));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 249));
+      expect(find.byType(FeedPhotoLoading), findsNothing);
+      await tester.pump(const Duration(milliseconds: 1));
       expect(find.byType(FeedPhotoLoading), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Lunch');
 
@@ -78,8 +81,9 @@ void main() {
 
       pickerCompleter = Completer<XFile?>();
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
-      await tester.pump();
-      expect(find.byType(FeedPhotoLoading), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FeedPhotoLoading), findsNothing);
+      expect(find.byType(Image), findsOneWidget);
       expect(
         tester
             .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
@@ -98,6 +102,68 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('fast preview never flashes loading', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: FeedCaptureView(
+            roomId: 'room-1',
+            pickImage: (_) async => XFile.fromData(
+              File(
+                'assets/pet_sequences/cat/stay/cat_stay-01.png',
+              ).readAsBytesSync(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byIcon(Icons.photo_library_rounded));
+    await tester.pump();
+    expect(find.byType(FeedPhotoLoading), findsNothing);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(FeedPhotoLoading), findsNothing);
+    expect(
+      tester
+          .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))
+          .onTap,
+      isNotNull,
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(FeedPhotoLoading), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('disposing during photo read cancels delayed loading', (
+    tester,
+  ) async {
+    final bytesCompleter = Completer<Uint8List>();
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: FeedCaptureView(
+            roomId: 'room-1',
+            pickImage: (_) async => _DelayedPhoto(bytesCompleter.future),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byIcon(Icons.photo_camera_rounded));
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 300));
+    bytesCompleter.complete(Uint8List(0));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('unreadable photo ends loading and allows another pick', (
     tester,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,6 +94,8 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
 
   bool _sending = false;
   bool _picking = false;
+  bool _showPhotoLoading = false;
+  Timer? _photoLoadingTimer;
   String? _error;
 
   static const int _captionCounterThreshold = 10;
@@ -103,6 +107,7 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
 
   @override
   void dispose() {
+    _photoLoadingTimer?.cancel();
     _captionController.dispose();
     super.dispose();
   }
@@ -141,6 +146,12 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
       if (!mounted) {
         return;
       }
+      // Opening the picker is not loading; only show feedback for slow previews.
+      _photoLoadingTimer = Timer(const Duration(milliseconds: 250), () {
+        if (mounted) {
+          setState(() => _showPhotoLoading = true);
+        }
+      });
       previewBytes = await image.readAsBytes();
       if (!mounted) {
         return;
@@ -208,9 +219,11 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
       });
       return;
     } finally {
+      _photoLoadingTimer?.cancel();
       if (mounted) {
         setState(() {
           _picking = false;
+          _showPhotoLoading = false;
         });
       }
     }
@@ -407,7 +420,7 @@ class _FeedCaptureViewState extends ConsumerState<FeedCaptureView> {
                                           borderRadius: BorderRadius.circular(
                                             24,
                                           ),
-                                          child: _picking
+                                          child: _showPhotoLoading
                                               ? FeedPhotoLoading(
                                                   petAsset: widget.petAsset,
                                                 )

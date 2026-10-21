@@ -1,5 +1,15 @@
 # TODO
 
+## Feed picker loading timing (2026-10-22)
+- [x] Reproduce Loading appearing before native photo selection finishes.
+- [x] Keep the preview during selection; defer feedback until returned-photo
+      read/decode exceeds 250ms, retaining duplicate-pick/send guards.
+- [x] Regress slow/fast preview, cancellation and disposal (12 focused tests).
+      Final-tree format: 364 files unchanged; analysis and document links clean;
+      777 tests passed / 1 live integration skip.
+- [ ] Check native gallery/camera return and iCloud photos on the next iOS build
+      `[USER ACTION REQUIRED]`; automated tests mock the native picker.
+
 ## Furniture inventory recovery (2026-10-21)
 - [x] Regress Crashlytics `b2f9f845e3bf777517ec16c582ab4bfa` handling and
       protect pending placements from removal/stale reloads.
