@@ -221,6 +221,7 @@
   "errorMediaPermissionDenied": "相機或照片存取權限已關閉，請到設定中允許後再試一次。",
   "errorImageTooLarge": "圖片檔案太大，請選擇較小的圖片。",
   "errorPetNameInvalid": "這個寵物名稱不可用，請換一個名稱。",
+  "errorInsufficientInventory": "沒有可擺放的家具了，請確認房間庫存。",
   "errorUnexpected": "發生錯誤，請稍後再試。",
   "currencyJpy": "JPY {amount}",
   "@currencyJpy": {

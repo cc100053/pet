@@ -44,6 +44,28 @@ void main() {
   });
 
   group('classifyUserFacingError', () {
+    test('recognises inventory exhaustion without hiding other SQL errors', () {
+      expect(
+        classifyUserFacingError(
+          const PostgrestException(
+            message: 'insufficient_inventory',
+            code: 'P0001',
+            details: 'Bad Request',
+          ),
+        ),
+        UserFacingErrorCategory.insufficientInventory,
+      );
+      expect(
+        classifyUserFacingError(
+          const PostgrestException(message: 'other_failure', code: 'P0001'),
+        ),
+        UserFacingErrorCategory.unexpected,
+      );
+      expect(
+        classifyUserFacingError(StateError('insufficient_inventory')),
+        UserFacingErrorCategory.unexpected,
+      );
+    });
     test(
       'classifies invalid session codes independently of server wording',
       () {
@@ -198,6 +220,19 @@ void main() {
   });
 
   group('userFacingError', () {
+    testWidgets('explains inventory exhaustion instead of a generic failure', (
+      tester,
+    ) async {
+      final message = await _resolveMessage(
+        tester,
+        const PostgrestException(
+          message: 'insufficient_inventory',
+          code: 'P0001',
+        ),
+      );
+      expect(message, contains('available'));
+      expect(message, isNot(contains('insufficient_inventory')));
+    });
     testWidgets('returns a localized message and never leaks raw error text', (
       tester,
     ) async {

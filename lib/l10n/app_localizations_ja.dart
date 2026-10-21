@@ -392,6 +392,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorPetNameInvalid => 'そのペット名は使用できません。別の名前を入力してください。';
 
   @override
+  String get errorInsufficientInventory => '配置できる家具がありません。部屋の持ち物を確認してください。';
+
+  @override
   String get errorUnexpected => '問題が発生しました。もう一度お試しください。';
 
   @override

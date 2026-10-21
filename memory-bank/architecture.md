@@ -71,6 +71,14 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   snapshot. User-initiated writes pass `timeout: _HomeViewState._writeTimeout`
   (12s, matching Profile): a timed-out write loses the edit with nothing to
   fall back to.
+- Furniture placement reserves its copy until the RPC settles; pending pieces
+  cannot be removed. Furniture reloads defer while placement is pending and
+  discard/retry snapshots whose local IDs changed during the read. Placement
+  replies update the captured room, including after a room switch. An
+  `insufficient_inventory` (`P0001`) rejection gets localized, understood error
+  handling: block that item's stale availability, reload placed furniture and
+  inventory, and retain the error for the active room. Placement/removal
+  completion reconciles the server snapshot; RPC contracts remain unchanged.
 - Crashlytics coverage is iOS-only, matching the shipped platforms: the Android
   app in the Firebase project has never received an event, so its absence from
   reports is expected and not a reporting gap.

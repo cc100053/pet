@@ -390,6 +390,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorPetNameInvalid => '这个宠物名称不可用，请换一个名称。';
 
   @override
+  String get errorInsufficientInventory => '没有可摆放的家具了，请确认房间库存。';
+
+  @override
   String get errorUnexpected => '发生错误，请稍后再试。';
 
   @override
@@ -2936,6 +2939,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get errorPetNameInvalid => '這個寵物名稱不可用，請換一個名稱。';
+
+  @override
+  String get errorInsufficientInventory => '沒有可擺放的家具了，請確認房間庫存。';
 
   @override
   String get errorUnexpected => '發生錯誤，請稍後再試。';

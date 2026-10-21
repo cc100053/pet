@@ -775,6 +775,12 @@ abstract class AppLocalizations {
   /// **'That pet name is not allowed. Please use a different name.'**
   String get errorPetNameInvalid;
 
+  /// No description provided for @errorInsufficientInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'No copies are available to place. Please check the room inventory.'**
+  String get errorInsufficientInventory;
+
   /// No description provided for @errorUnexpected.
   ///
   /// In en, this message translates to:

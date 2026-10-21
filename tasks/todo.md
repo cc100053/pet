@@ -1,5 +1,17 @@
 # TODO
 
+## Furniture inventory recovery (2026-10-21)
+- [x] Regress Crashlytics `b2f9f845e3bf777517ec16c582ab4bfa` handling and
+      protect pending placements from removal/stale reloads.
+- [x] Localize inventory exhaustion, reconcile the captured room after failure,
+      and document the client-only behavior without changing RPC contracts.
+- [x] Final-tree format: 364 files unchanged; analysis and document links clean;
+      775 tests passed / 1 live integration skip. Five delayed-response scenarios
+      fail against the prior source and pass with the fix. Mocked the existing
+      auth test's missing native preferences channel; no new dependency.
+- [ ] Verify furniture placement/removal on the next iOS build
+      `[USER ACTION REQUIRED]`; live-monitor the issue after release.
+
 ## Auth token recovery (2026-10-21)
 - [x] Handle auth stream errors in AuthGate, Home and FCM; retain SDK session
       cleanup/retry behavior and show the existing localized re-auth prompt.

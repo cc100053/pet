@@ -18,6 +18,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 enum UserFacingErrorCategory {
   authReauthRequired,
   imageTooLarge,
+  insufficientInventory,
   invalidInvite,
   mediaPermissionDenied,
   permissionDenied,
@@ -245,6 +246,12 @@ const Set<String> _mediaPermissionCodes = <String>{
 UserFacingErrorCategory _classify(Object error, String rawSummary) {
   final summary = rawSummary.toLowerCase();
 
+  if (error is PostgrestException &&
+      error.code == 'P0001' &&
+      error.message == 'insufficient_inventory') {
+    return UserFacingErrorCategory.insufficientInventory;
+  }
+
   // Platform channel failures carry a stable `code`; matching on it beats
   // substring-matching the rendered message, which varies per OS locale.
   if (error is PlatformException &&
@@ -329,6 +336,8 @@ String _message(AppLocalizations l10n, UserFacingErrorCategory category) {
       return l10n.authReauthRequired;
     case UserFacingErrorCategory.imageTooLarge:
       return l10n.errorImageTooLarge;
+    case UserFacingErrorCategory.insufficientInventory:
+      return l10n.errorInsufficientInventory;
     case UserFacingErrorCategory.invalidInvite:
       return l10n.errorInvalidInviteCode;
     case UserFacingErrorCategory.mediaPermissionDenied:

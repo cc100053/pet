@@ -1,0 +1,256 @@
+import 'dart:async';
+import 'dart:math';
+
+bool listEquals<T>(List<T> a, List<T> b) =>
+    a.length == b.length &&
+    List.generate(a.length, (i) => a[i] == b[i]).every((v) => v);
+
+class Offset {
+  const Offset(this.dx, this.dy);
+  final double dx, dy;
+  Offset operator -(Offset other) => Offset(dx - other.dx, dy - other.dy);
+  double get distance => sqrt(dx * dx + dy * dy);
+}
+
+class _PlacedFurniture {
+  _PlacedFurniture({
+    required this.id,
+    this.isPending = true,
+    String? itemId,
+    String? ownerUserId,
+    String? emoji,
+    String? assetPath,
+    Offset? normalizedPosition,
+    Offset? persistedNormalizedPosition,
+    Offset? canvasPosition,
+    Offset? persistedCanvasPosition,
+    double? scale,
+    double? persistedScale,
+    bool? flipX,
+    bool? persistedFlipX,
+  });
+  String id, itemId = 'carpet';
+  String? ownerUserId = 'owner';
+  Offset normalizedPosition = const Offset(.5, .5),
+      persistedNormalizedPosition = const Offset(.5, .5);
+  Offset? canvasPosition, persistedCanvasPosition;
+  double scale = 1, persistedScale = 1;
+  bool flipX = false, isPending;
+}
+
+class AppLocalizations {
+  static AppLocalizations? of(Object context) => AppLocalizations();
+  String shopLoadFailed(String e) => e;
+  String storePurchaseFailed(String e) => e;
+}
+
+enum UserFacingErrorCategory { insufficientInventory, unexpected }
+
+UserFacingErrorCategory classifyUserFacingError(Object e) =>
+    e.toString() == 'insufficient_inventory'
+    ? UserFacingErrorCategory.insufficientInventory
+    : UserFacingErrorCategory.unexpected;
+String userFacingError(
+  Object context,
+  Object e, {
+  StackTrace? stackTrace,
+  String? source,
+}) => e.toString();
+void reportSwallowedError(Object e, StackTrace s, {required String source}) {}
+
+class Supabase {
+  static final instance = Supabase();
+  final client = FakeClient();
+}
+
+class FakeRpc {
+  FakeRpc(this.future);
+  final Future<Map<String, dynamic>> future;
+  Future<Map<String, dynamic>> single() => future;
+}
+
+class FakeClient {
+  Completer<Map<String, dynamic>>? placement;
+  Completer<List<dynamic>>? delayedRead;
+  List<dynamic> rows = [];
+  int reads = 0;
+  FakeRpc rpc(String name, {required Map<String, dynamic> params}) {
+    if (name == 'place_room_furniture') return FakeRpc(placement!.future);
+    rows = [];
+    return FakeRpc(Future.value({}));
+  }
+
+  FakeClient from(String table) => this;
+  FakeClient select(String fields) => this;
+  Future<List<dynamic>> eq(String column, String value) {
+    reads++;
+    final delayed = delayedRead;
+    delayedRead = null;
+    return delayed?.future ?? Future.value(List.of(rows));
+  }
+}
+
+class _HomeViewState {
+  bool mounted = true;
+  String? _activeFurnitureDragId, _activeFurnitureScaleInteractionItemId;
+  bool _furnitureReloadPendingAfterGesture = false;
+  String? _roomId = 'room',
+      _selectedFurnitureItemId = 'carpet',
+      _selectedPlacedFurnitureId = 'pending',
+      _furnitureError;
+  final Object context = Object();
+  final Map<String, List<_PlacedFurniture>> _placedFurnitureByRoom = {};
+  final Map<String, int> _furnitureInventory = {'carpet': 1};
+  int inventoryReads = 0;
+  void _setStateForRoomDecor(void Function() fn) => fn();
+  List<_PlacedFurniture> _activeFurnitureForRoom() =>
+      _placedFurnitureByRoom.putIfAbsent(_roomId!, () => []);
+  Future<void> _ensureCurrentAppVersion() async {}
+  Future<void> _maybePromptForUnsupportedRoomDecor(String roomId) async {}
+  Future<void> _loadFurnitureInventory() async {
+    inventoryReads++;
+    _furnitureInventory['carpet'] = 1;
+  }
+
+  final Map<String, int> _unsupportedPlacedFurnitureCountByRoom = {};
+  bool _supportsPlacedFurniture(Object? v) => true;
+  double _parseFurnitureScale(Object? v) => (v as num?)?.toDouble() ?? 1;
+  String _resolveFurnitureEmoji(String id, Map<String, dynamic> r) => '';
+  String? _resolveFurnitureAssetPath(String id, Map<String, dynamic> r) => null;
+  void _markFurnitureWrite(String id) {}
+  Offset? _canvasOffsetFromRow(Map<String, dynamic> r) => null;
+  bool _shouldFallbackToLegacyFurniturePlacement(Object e) => false;
+  Future<void> _persistFurnitureTransform(_PlacedFurniture item) async {}
+}
+
+extension _HomeRoomDecor on _HomeViewState {
+  // PRODUCTION_METHODS
+}
+
+Map<String, dynamic> row() => {'id': 'server', 'item_id': 'carpet', 'scale': 1};
+void check(bool value, String message) {
+  if (!value) throw StateError(message);
+}
+
+Future<void> drain() async {
+  for (var i = 0; i < 5; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
+}
+
+Future<void> main() async {
+  final client = Supabase.instance.client;
+  final cases = <String, Future<void> Function()>{
+    'pending removal retains inventory reservation': () async {
+      final s = _HomeViewState();
+      final item = _PlacedFurniture(id: 'pending');
+      s._activeFurnitureForRoom().add(item);
+      client.placement = Completer();
+      final save = s._persistFurniturePlacement(item);
+      await s._removeFurniture(item);
+      final retained = s._activeFurnitureForRoom().contains(item);
+      client.rows = [row()];
+      client.placement!.complete(row());
+      await save;
+      await drain();
+      check(
+        retained,
+        'pending placement was hidden while its RPC still committed',
+      );
+      check(
+        s._activeFurnitureForRoom().single.id == 'server',
+        'saved placement disappeared',
+      );
+    },
+    'stale read cannot free a successfully placed copy': () async {
+      final s = _HomeViewState();
+      final stale = Completer<List<dynamic>>();
+      client.delayedRead = stale;
+      final load = s._loadRoomFurniture('room');
+      await drain();
+      final item = _PlacedFurniture(id: 'pending');
+      s._activeFurnitureForRoom().add(item);
+      client.placement = Completer();
+      final save = s._persistFurniturePlacement(item);
+      client.rows = [row()];
+      client.placement!.complete(row());
+      await save;
+      await drain();
+      stale.complete([]);
+      await load;
+      await drain();
+      check(
+        s._activeFurnitureForRoom().length == 1,
+        'stale response made an exhausted copy available',
+      );
+    },
+    'inventory rejection reloads authoritative state': () async {
+      final s = _HomeViewState();
+      final item = _PlacedFurniture(id: 'pending');
+      s._activeFurnitureForRoom().add(item);
+      client.rows = [row()];
+      client.placement = Completer();
+      final save = s._persistFurniturePlacement(item);
+      client.placement!.completeError('insufficient_inventory');
+      await save;
+      await drain();
+      check(s.inventoryReads == 1, 'inventory was not refreshed');
+      check(
+        s._activeFurnitureForRoom().single.id == 'server',
+        'placed furniture was not refreshed',
+      );
+      check(
+        s._selectedFurnitureItemId == null,
+        'exhausted item remains selected',
+      );
+    },
+    'room switch does not lose original-room success': () async {
+      final s = _HomeViewState();
+      final item = _PlacedFurniture(id: 'pending');
+      s._activeFurnitureForRoom().add(item);
+      client.placement = Completer();
+      final save = s._persistFurniturePlacement(item);
+      s._roomId = 'other';
+      client.placement!.complete(row());
+      await save;
+      await drain();
+      check(
+        s._placedFurnitureByRoom['room']!.single.id == 'server',
+        'success applied to active room instead of captured room',
+      );
+      check(s._activeFurnitureForRoom().isEmpty, 'other room changed');
+    },
+    'room switch does not retain rejected pending furniture': () async {
+      final s = _HomeViewState();
+      final item = _PlacedFurniture(id: 'pending');
+      s._activeFurnitureForRoom().add(item);
+      client.placement = Completer();
+      final save = s._persistFurniturePlacement(item);
+      s._roomId = 'other';
+      client.placement!.completeError('insufficient_inventory');
+      await save;
+      await drain();
+      check(
+        s._placedFurnitureByRoom['room']!.isEmpty,
+        'failure left a ghost in original room',
+      );
+      check(
+        s._furnitureError == null,
+        'failure from old room leaked into new room',
+      );
+    },
+  };
+  var failures = 0;
+  for (final entry in cases.entries) {
+    client.rows = [];
+    client.delayedRead = null;
+    try {
+      await entry.value();
+      print('PASS ${entry.key}');
+    } catch (e) {
+      failures++;
+      print('FAIL ${entry.key}: $e');
+    }
+  }
+  check(failures == 0, '$failures regression scenarios failed');
+}

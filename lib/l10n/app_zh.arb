@@ -228,6 +228,7 @@
   "errorMediaPermissionDenied": "相机或照片访问权限已关闭，请到设置中允许后再试一次。",
   "errorImageTooLarge": "图片文件太大，请选择较小的图片。",
   "errorPetNameInvalid": "这个宠物名称不可用，请换一个名称。",
+  "errorInsufficientInventory": "没有可摆放的家具了，请确认房间库存。",
   "errorUnexpected": "发生错误，请稍后再试。",
   "currencyJpy": "JPY {amount}",
   "@currencyJpy": {

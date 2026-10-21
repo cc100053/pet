@@ -804,7 +804,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                       : Text(item.emoji, style: TextStyle(fontSize: iconSize)),
                 ),
               ),
-              if (canEdit && isSelected)
+              if (canEdit && isSelected && !item.isPending)
                 Positioned(
                   top: -6,
                   right: -6,

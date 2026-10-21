@@ -90,7 +90,7 @@ extension _HomeRoomDecor on _HomeViewState {
         );
       }
 
-      if (!mounted) {
+      if (!mounted || _roomId != roomId) {
         return;
       }
 
@@ -110,7 +110,7 @@ extension _HomeRoomDecor on _HomeViewState {
           ..addAll(inventory);
       });
     } catch (error) {
-      if (!mounted) {
+      if (!mounted || _roomId != roomId) {
         return;
       }
       _setStateForRoomDecor(() {
@@ -121,6 +121,9 @@ extension _HomeRoomDecor on _HomeViewState {
     } finally {
       if (mounted) {
         _setStateForRoomDecor(() => _furnitureLoading = false);
+        if (_roomId != roomId) {
+          unawaited(_loadFurnitureInventory());
+        }
       }
     }
   }
@@ -179,6 +182,19 @@ extension _HomeRoomDecor on _HomeViewState {
   }
 
   Future<void> _loadRoomFurniture(String roomId) async {
+    if (!mounted || _roomId != roomId) {
+      return;
+    }
+    if (_activeFurnitureDragId != null ||
+        _activeFurnitureScaleInteractionItemId != null) {
+      _furnitureReloadPendingAfterGesture = true;
+      return;
+    }
+    final localFurniture = _placedFurnitureByRoom[roomId] ?? [];
+    if (localFurniture.any((item) => item.isPending)) {
+      return;
+    }
+    final localIds = localFurniture.map((item) => item.id).toList();
     try {
       await _ensureCurrentAppVersion();
       final response = await Supabase.instance.client
@@ -237,13 +253,27 @@ extension _HomeRoomDecor on _HomeViewState {
       if (!mounted || _roomId != roomId) {
         return;
       }
+      if (_activeFurnitureDragId != null ||
+          _activeFurnitureScaleInteractionItemId != null) {
+        _furnitureReloadPendingAfterGesture = true;
+        return;
+      }
+      final current = _placedFurnitureByRoom[roomId] ?? [];
+      if (current.any((item) => item.isPending)) {
+        return;
+      }
+      // A read started before a local placement/removal cannot free its copy.
+      if (!listEquals(localIds, current.map((item) => item.id).toList())) {
+        unawaited(_loadRoomFurniture(roomId));
+        return;
+      }
       _setStateForRoomDecor(() {
         _placedFurnitureByRoom[roomId] = placed;
         _unsupportedPlacedFurnitureCountByRoom[roomId] = unsupportedCount;
       });
       unawaited(_maybePromptForUnsupportedRoomDecor(roomId));
     } catch (error) {
-      if (mounted) {
+      if (mounted && _roomId == roomId) {
         _setStateForRoomDecor(() {
           _furnitureError = AppLocalizations.of(
             context,
@@ -800,7 +830,7 @@ extension _HomeRoomDecor on _HomeViewState {
     if (item == null) {
       return;
     }
-    if (_availableFurnitureCount(itemId) <= 0) {
+    if (_furnitureLoading || _availableFurnitureCount(itemId) <= 0) {
       return;
     }
 
@@ -1111,8 +1141,9 @@ extension _HomeRoomDecor on _HomeViewState {
       if (!mounted) {
         return;
       }
+      Future<void>? followUpPersist;
       _setStateForRoomDecor(() {
-        final list = _activeFurnitureForRoom();
+        final list = _placedFurnitureByRoom[roomId] ?? [];
         final index = list.indexWhere((entry) => entry.id == item.id);
         if (index >= 0) {
           final previousId = list[index].id;
@@ -1134,24 +1165,54 @@ extension _HomeRoomDecor on _HomeViewState {
           list[index].scale = needsFollowUpPersist
               ? localScale
               : persistedScale;
-          if (_selectedPlacedFurnitureId == previousId) {
+          if (_roomId == roomId && _selectedPlacedFurnitureId == previousId) {
             _selectedPlacedFurnitureId = list[index].id;
           }
           if (needsFollowUpPersist) {
-            unawaited(_persistFurnitureTransform(list[index]));
+            followUpPersist = _persistFurnitureTransform(list[index]);
           }
         }
       });
-    } catch (error) {
+      await followUpPersist;
+      unawaited(_loadRoomFurniture(roomId));
+    } catch (error, stackTrace) {
       if (!mounted) {
         return;
       }
       _setStateForRoomDecor(() {
-        _activeFurnitureForRoom().removeWhere((entry) => entry.id == item.id);
-        _furnitureError = AppLocalizations.of(
-          context,
-        )!.storePurchaseFailed(userFacingError(context, error));
+        _placedFurnitureByRoom[roomId]?.removeWhere(
+          (entry) => entry.id == item.id,
+        );
+        if (_roomId == roomId) {
+          _selectedFurnitureItemId = null;
+          if (_selectedPlacedFurnitureId == item.id) {
+            _selectedPlacedFurnitureId = null;
+          }
+          if (classifyUserFacingError(error) ==
+              UserFacingErrorCategory.insufficientInventory) {
+            _furnitureInventory[item.itemId] = 0;
+          }
+        }
       });
+      if (_roomId != roomId) {
+        reportSwallowedError(error, stackTrace, source: 'home_place_furniture');
+        return;
+      }
+      final message = userFacingError(
+        context,
+        error,
+        stackTrace: stackTrace,
+        source: 'home_place_furniture',
+      );
+      _setStateForRoomDecor(() => _furnitureError = message);
+      await _loadRoomFurniture(roomId);
+      if (!mounted || _roomId != roomId) {
+        return;
+      }
+      await _loadFurnitureInventory();
+      if (mounted && _roomId == roomId) {
+        _setStateForRoomDecor(() => _furnitureError = message);
+      }
     }
   }
 
@@ -1323,7 +1384,7 @@ extension _HomeRoomDecor on _HomeViewState {
 
   Future<void> _removeFurniture(_PlacedFurniture item) async {
     final roomId = _roomId;
-    if (roomId == null) {
+    if (roomId == null || item.isPending) {
       return;
     }
     _setStateForRoomDecor(() {
@@ -1332,10 +1393,6 @@ extension _HomeRoomDecor on _HomeViewState {
         _selectedPlacedFurnitureId = null;
       }
     });
-
-    if (item.isPending) {
-      return;
-    }
 
     _markFurnitureWrite(item.id);
     try {
@@ -1351,7 +1408,10 @@ extension _HomeRoomDecor on _HomeViewState {
           )!.shopLoadFailed(userFacingError(context, error));
         });
       }
-      unawaited(_loadRoomFurniture(roomId));
+    } finally {
+      if (mounted) {
+        unawaited(_loadRoomFurniture(roomId));
+      }
     }
   }
 }

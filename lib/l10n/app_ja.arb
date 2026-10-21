@@ -228,6 +228,7 @@
   "errorMediaPermissionDenied": "カメラまたは写真へのアクセスがオフになっています。設定で許可してからもう一度お試しください。",
   "errorImageTooLarge": "画像サイズが大きすぎます。より小さい画像を選択してください。",
   "errorPetNameInvalid": "そのペット名は使用できません。別の名前を入力してください。",
+  "errorInsufficientInventory": "配置できる家具がありません。部屋の持ち物を確認してください。",
   "errorUnexpected": "問題が発生しました。もう一度お試しください。",
   "currencyJpy": "JPY {amount}",
   "@currencyJpy": {

@@ -411,6 +411,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'That pet name is not allowed. Please use a different name.';
 
   @override
+  String get errorInsufficientInventory =>
+      'No copies are available to place. Please check the room inventory.';
+
+  @override
   String get errorUnexpected => 'Something went wrong. Please try again.';
 
   @override
