@@ -758,7 +758,7 @@ class PetSocketCatalog {
         ),
       },
     ),
-    // shortcut: owner-approved Level-1 estimates; replace after Godot equipment review.
+    // Level 2: owner equipment-reviewed 2026-10-22; head is the forehead icing-loop centre.
     PetSocketConfig(
       petId: 'gingerbread_man',
       sockets: {

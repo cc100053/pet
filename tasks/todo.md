@@ -125,8 +125,8 @@
 - [x] Prepare Godot scenes and level-1 head/body/back estimates for review.
 - [x] Owner explicitly approved provisional Flutter socket sync; retain all
       non-zero tracks and mirror Godot default equipment fits.
-- [ ] Sync level-2 exported sockets/equipment fits after owner review
-      `[USER ACTION REQUIRED]`; do not publish estimated tracks as final.
+- [x] Owner Level-2 equipment review passed 2026-10-22 on the loop-centre head
+      sockets and Godot default fits; back stays marker-only until a back SKU.
 - [x] Final-tree format/analyze/test passed (750 tests / 1 skipped), bundle
       includes all 21 PNGs and three GIFs; rollout state documented.
 - [ ] Owner review continuous loops, room-size rendering, equipment in both

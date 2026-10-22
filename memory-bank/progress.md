@@ -10,8 +10,9 @@ Current baseline and where live state is recorded. Full snapshots live in
   Execution evidence, Apple warnings and human checks live in `docs/release_status.md`.
 - Gingerbread Man is wired as `gingerbread_man` from owner-approved 5.1.0:
   stay 7/1650 ms, walk 8/1700 ms, sleep 6/800 ms, five locales and GIF fallbacks.
-  Owner explicitly approved provisional Level-1 socket tracks and Godot-default
-  equipment fits. Human art/device/equipment checks remain; details and source
+  Sockets are owner-reviewed Level 2 (2026-10-22; head on the forehead icing
+  loop, back marker-only) with Godot-default equipment fits. Human art/device
+  checks remain; details and source
   evidence live in [the pet README](../design/pet_sketches/gingerbread_man/README.md).
 - Five supplied furniture pieces are wired for the next `5.1.0+` build:
   Candle 100, Candy Cane 150, Sunflowers 150, Gift Box 200, Christmas Tree

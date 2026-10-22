@@ -2,8 +2,8 @@
 
 Supplied artwork from `assets/todo-Gingerbread_Man`, integrated on 2026-10-11
 as pet id `gingerbread_man`. The owner approved `minAppVersion = 5.1.0` and
-explicitly requested provisional socket sync, retaining the calibration todo.
-This is an implemented, provisional pet, not a production-reviewed character.
+explicitly requested provisional socket sync; the owner completed the Level-2
+equipment review on 2026-10-22. Level-3 device/release checks remain.
 
 ## Art and playback
 
@@ -49,14 +49,15 @@ python3 -m http.server 8871 --bind 127.0.0.1 --directory design/pet_sketches/gin
 Open `http://127.0.0.1:8871/review.html`; GIFs are embedded in
 [review.html](review.html), so the app browser does not need local file access.
 
-## Provisional equipment calibration
+## Equipment calibration
 
-All stay/walk/sleep × head/body/back captures are **Level 1**; face uses head.
-The owner explicitly approved syncing these estimates into Flutter before
-human equipment review. The Dart catalog has a `shortcut:` marker, all nine
-tracks retain every non-zero movement (`--track-threshold 0`), and hats/glasses
-mirror the Godot default anchors and sizes. Ribbon already shares the default
-fit. This does not establish that any equipment shape fits correctly.
+Stay/walk/sleep × head/face/body captures are **Level 2**: the owner reviewed
+them with equipment on 2026-10-22, with no Godot edits after the loop-centre
+head write (the pet-tomo exports are byte-identical to these). Face uses head.
+Back is reviewed as a marker only and stays Level 1 until a back SKU exists.
+All nine tracks retain every non-zero movement (`--track-threshold 0`), and
+hats/glasses use the reviewed Godot default anchors and sizes. Ribbon shares
+the default fit.
 
 [estimate_sockets.py](sockets/estimate_sockets.py) adapts the turtle template
 tracker, with bounded patches near the canvas edge and an overwrite guard.
@@ -67,7 +68,8 @@ puts head at the centroid of the enclosed hole in the forehead icing loop (a
 drawn landmark, one hole per frame). This fixed walk drift (the tracker sank
 frames 4–8 by up to 5 px; the loop and body both rise 5 px on frames 3 and 7
 only) and lowers head about 7 px versus the old loop-top seed; compare old/new
-in [review_head_loop.png](sockets/review_head_loop.png). Body/back are unchanged. Scenes and seed exports are preserved
+in [review_head_loop.png](sockets/review_head_loop.png). Body/back are unchanged.
+Scenes and reviewed exports are preserved
 under [godot/pet/gingerbread_man](godot/pet/gingerbread_man/) and installed at
 `/Users/fatboy/pet-tomo/pet/gingerbread_man/`. Do not rerun the seed script over
 reviewed captures. Equipment overrides in the existing Godot project were
@@ -84,16 +86,12 @@ records these warnings using 1-based frame numbers:
 
 Review sheets: [stay](sockets/review_stay.png),
 [walk](sockets/review_moving.png), [sleep](sockets/review_sleep.png).
-These warnings identify provisional points to review; they are not rejected
-or certified as intentional motion.
+The owner's review accepted these warnings as drawn motion.
 
-`[USER ACTION REQUIRED]` Play each scene in Godot with small/wide hats,
-glasses and body equipment, review all three markers, and **Export Sockets**
-before switching scenes. Confirm both facings in Flutter. Back has no shipped
-equipment SKU, so inspect its marker and review with equipment when available.
-After review, compare the exported files with these seeds, preserve the exports
-here, validate them and regenerate tracks at `--track-threshold 0` following
-the [socket skill](../../../.codex/skills/pet-socket-calibration/SKILL.md).
+`[USER ACTION REQUIRED]` For Level 3, confirm both facings in the Flutter
+equipment preview, and review back equipment once a back SKU ships. Follow the
+[socket skill](../../../.codex/skills/pet-socket-calibration/SKILL.md) for any
+re-export.
 
 ## Rollout and verification
 
@@ -122,6 +120,6 @@ is required for this pet. No actual creation, ticket use, purchase or push was
 performed during verification.
 
 `[USER ACTION REQUIRED]` Review continuous loops, room-size placement and
-state transitions on a device using a build at/above 5.1.0, complete Level-2
-equipment review, and decide release timing. Publishing a pet push avatar and
+state transitions on a device using a build at/above 5.1.0, and decide
+release timing. Publishing a pet push avatar and
 deploying `notify_friend` require their own approval.
