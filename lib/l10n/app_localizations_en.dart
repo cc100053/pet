@@ -2559,7 +2559,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'One pet, two keepers. Feed it photos of your day and it lives on both phones.';
+      'One pet, as many keepers as you like. Feed it photos of your day and it lives on everyone\'s phone.';
 
   @override
   String get onboardingWelcomeStartNew => 'Start a new pet';

@@ -2417,7 +2417,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingWelcomeTitle => '一起养宠物吧';
 
   @override
-  String get onboardingWelcomeSubtitle => '一只宠物，两位主人。用每天的照片喂它，它会同时住在你们俩的手机里。';
+  String get onboardingWelcomeSubtitle => '一只宠物，大家一起养。用每天的照片喂它，它会同时住在每个人的手机里。';
 
   @override
   String get onboardingWelcomeStartNew => '迎接新宠物';
@@ -4967,7 +4967,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get onboardingWelcomeTitle => '一起養寵物吧';
 
   @override
-  String get onboardingWelcomeSubtitle => '一隻寵物，兩位主人。用每天的照片餵牠，牠會同時住在你們倆的手機裡。';
+  String get onboardingWelcomeSubtitle => '一隻寵物，大家一起養。用每天的照片餵牠，牠會同時住在每個人的手機裡。';
 
   @override
   String get onboardingWelcomeStartNew => '迎接新寵物';

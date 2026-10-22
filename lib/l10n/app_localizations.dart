@@ -4512,7 +4512,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One pet, two keepers. Feed it photos of your day and it lives on both phones.'**
+  /// **'One pet, as many keepers as you like. Feed it photos of your day and it lives on everyone\'s phone.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingWelcomeStartNew.

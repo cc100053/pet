@@ -2443,7 +2443,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      '펫은 하나, 키우는 사람은 둘. 하루의 사진을 먹이로 주면 두 사람의 폰에서 함께 자라요.';
+      '펫은 하나, 키우는 사람은 여럿. 하루의 사진을 먹이로 주면 모두의 폰에서 함께 자라요.';
 
   @override
   String get onboardingWelcomeStartNew => '새 펫 맞이하기';

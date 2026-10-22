@@ -2432,7 +2432,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'ペットはひとり、飼い主はふたり。毎日の写真をごはんにして、ふたりのスマホで育てよう。';
+      'ペットはひとり、飼い主はみんな。毎日の写真をごはんにして、みんなのスマホで育てよう。';
 
   @override
   String get onboardingWelcomeStartNew => '新しいペットをむかえる';
