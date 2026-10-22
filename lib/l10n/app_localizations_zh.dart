@@ -2395,6 +2395,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shopNewBadge => '新品';
 
   @override
+  String get shopProOnlyLabel => 'Pro会员专享';
+
+  @override
   String get newItemsPopupTitle => '商店新品到货！';
 
   @override
@@ -4944,6 +4947,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get shopNewBadge => '新品';
+
+  @override
+  String get shopProOnlyLabel => 'Pro會員專用';
 
   @override
   String get newItemsPopupTitle => '商店新品到貨！';

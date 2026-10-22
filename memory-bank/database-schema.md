@@ -126,6 +126,14 @@ migration that rewrites the object.
 ## RLS And Edge Notes
 - Scope room/user data through active `room_members`; use
   `(select auth.uid())`, `TO authenticated`, and matching indexes.
+- Pro-only backgrounds (`items.metadata.pro_only = true`, both prices null)
+  reach rooms only through `grant_pro_backgrounds` (verify_jwt on; secret
+  `REVENUECAT_SECRET_KEY`). It checks the `Petmonthly` entitlement with the
+  RevenueCat REST API (app user id = Supabase user id) and inserts every
+  Pro-only background into each active room of the caller with the service
+  role. The `room_backgrounds_insert` policy rejects `pro_only` items and the
+  purchase RPCs reject them for having no price. Grants survive a lapse.
+  HomeView calls it whenever RevenueCat reports Pro (launch, resume, shop exit).
 - Function truth lives in `supabase/functions/`; feed/R2 behavior is in
   `docs/feed_upload_pipeline.md`.
 

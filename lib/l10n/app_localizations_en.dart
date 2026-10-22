@@ -2535,6 +2535,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopNewBadge => 'NEW';
 
   @override
+  String get shopProOnlyLabel => 'Pro only';
+
+  @override
   String get newItemsPopupTitle => 'Just arrived in the shop';
 
   @override

@@ -1412,6 +1412,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     } catch (error) {
       debugPrint('[iap] failed to refresh pro status: $error');
     }
+    if (hasProEntitlement) {
+      unawaited(_grantProBackgrounds());
+    }
 
     if (!mounted) {
       _revenueCatProPlan = hasProEntitlement;
@@ -1425,6 +1428,22 @@ class _HomeViewState extends ConsumerState<HomeView>
       _myRooms = _applyLegacyRoomLocking(_myRooms);
     });
     _syncRoomProviders();
+  }
+
+  /// Adds Pro-only backgrounds to every room the subscriber belongs to. The
+  /// Edge Function re-checks the entitlement with RevenueCat and is idempotent,
+  /// so rooms joined since the last launch/resume pick them up here too. The
+  /// room_backgrounds realtime listener reloads the decor once rows land.
+  Future<void> _grantProBackgrounds() async {
+    try {
+      await Supabase.instance.client.functions.invoke('grant_pro_backgrounds');
+    } catch (error, stackTrace) {
+      reportSwallowedError(
+        error,
+        stackTrace,
+        source: 'home_grant_pro_backgrounds',
+      );
+    }
   }
 
   void _setRoomsState(List<Map<String, dynamic>> nextRooms) {

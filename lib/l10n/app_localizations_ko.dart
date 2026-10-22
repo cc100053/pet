@@ -2420,6 +2420,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shopNewBadge => 'NEW';
 
   @override
+  String get shopProOnlyLabel => 'Pro 회원 전용';
+
+  @override
   String get newItemsPopupTitle => '상점에 새 아이템 입고!';
 
   @override

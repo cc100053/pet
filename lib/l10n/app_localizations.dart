@@ -4479,6 +4479,12 @@ abstract class AppLocalizations {
   /// **'NEW'**
   String get shopNewBadge;
 
+  /// Shop button label on an item included with the Pro subscription and not sold for coins.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro only'**
+  String get shopProOnlyLabel;
+
   /// No description provided for @newItemsPopupTitle.
   ///
   /// In en, this message translates to:

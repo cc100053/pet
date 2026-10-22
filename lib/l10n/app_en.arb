@@ -1193,6 +1193,8 @@
   "shopDeliverConfirmAction": "Buy for {petName}",
   "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
   "shopNewBadge": "NEW",
+  "shopProOnlyLabel": "Pro only",
+  "@shopProOnlyLabel": {"description": "Shop button label on an item included with the Pro subscription and not sold for coins."},
   "newItemsPopupTitle": "Just arrived in the shop",
   "newItemsPopupMore": "{count, plural, =1{+1 more new item} other{+{count} more new items}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},

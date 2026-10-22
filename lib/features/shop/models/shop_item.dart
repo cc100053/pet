@@ -32,6 +32,7 @@ class ShopItem {
     this.fallbackBehavior,
     this.fallbackBackgroundKey,
     this.newUntil,
+    this.isProOnly = false,
   });
 
   final String id;
@@ -58,6 +59,10 @@ class ShopItem {
   final String? visibilityMode;
   final String? shopVisibility;
   final String? fallbackBehavior;
+
+  /// Included with Pro (granted by the grant_pro_backgrounds Edge Function),
+  /// never sold for coins or diamonds.
+  final bool isProOnly;
   final String? fallbackBackgroundKey;
 
   /// Catalog-driven NEW window (`metadata.new_until`, ISO 8601). Old clients
@@ -329,6 +334,7 @@ class ShopItem {
       fallbackBehavior: fallbackBehavior,
       fallbackBackgroundKey: fallbackBackgroundKey,
       newUntil: newUntil,
+      isProOnly: metadata['pro_only'] == true,
     );
   }
 }

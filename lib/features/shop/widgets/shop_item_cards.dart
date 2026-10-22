@@ -102,8 +102,11 @@ class ShopGridItemCard extends StatelessWidget {
     final canUsePetTicket = item.isPetTicket && ownedQuantity > 0;
     final isOwnedLocked =
         isOwned && !item.isFurniture && !canBuyMore && !canUsePetTicket;
+    final isProLocked = item.isProOnly && !isOwned;
     final buyActionLabel = canUsePetTicket
         ? l10n.petTicketUseCta
+        : isProLocked
+        ? l10n.shopProOnlyLabel
         : canBuyMore
         ? l10n.commonBuyMore
         : (isOwnedLocked ? l10n.commonOwned : l10n.commonBuy);
@@ -279,7 +282,7 @@ class ShopGridItemCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 _GridBuyAction(
                   onPressed: onBuy,
-                  isOwnedLocked: isOwnedLocked,
+                  isOwnedLocked: isOwnedLocked || isProLocked,
                   label: buyActionLabel,
                 ),
               ],

@@ -1171,6 +1171,7 @@
   "shopDeliverConfirmAction": "{petName}에게 사 주기",
   "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
   "shopNewBadge": "NEW",
+  "shopProOnlyLabel": "Pro 회원 전용",
   "newItemsPopupTitle": "상점에 새 아이템 입고!",
   "newItemsPopupMore": "{count, plural, other{새 아이템 {count}개 더}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},

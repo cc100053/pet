@@ -1165,6 +1165,7 @@
   "shopDeliverConfirmAction": "買給{petName}",
   "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
   "shopNewBadge": "新品",
+  "shopProOnlyLabel": "Pro會員專用",
   "newItemsPopupTitle": "商店新品到貨！",
   "newItemsPopupMore": "{count, plural, other{還有{count}件新品}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},

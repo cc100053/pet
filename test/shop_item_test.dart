@@ -9,6 +9,17 @@ import 'package:pet/l10n/app_localizations_en.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 void main() {
+  test('reads pro_only from catalog metadata', () {
+    ShopItem parse(Map<String, dynamic> metadata) => ShopItem.fromJson({
+      'id': 'id',
+      'sku': 'background_ghost_sky',
+      'metadata': {'category': 'background', ...metadata},
+    });
+
+    expect(parse({'pro_only': true}).isProOnly, isTrue);
+    expect(parse({}).isProOnly, isFalse);
+  });
+
   final l10n = AppLocalizationsEn();
 
   test(

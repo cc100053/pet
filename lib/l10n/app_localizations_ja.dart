@@ -2409,6 +2409,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopNewBadge => 'NEW';
 
   @override
+  String get shopProOnlyLabel => 'Pro会員限定';
+
+  @override
   String get newItemsPopupTitle => 'ショップに新アイテム入荷！';
 
   @override

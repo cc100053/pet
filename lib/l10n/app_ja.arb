@@ -1172,6 +1172,7 @@
   "shopDeliverConfirmAction": "{petName}に買う",
   "@shopDeliverConfirmAction": {"placeholders": {"petName": {}}},
   "shopNewBadge": "NEW",
+  "shopProOnlyLabel": "Pro会員限定",
   "newItemsPopupTitle": "ショップに新アイテム入荷！",
   "newItemsPopupMore": "{count, plural, other{ほかに{count}個の新アイテム}}",
   "@newItemsPopupMore": {"placeholders": {"count": {"type": "int"}}},
