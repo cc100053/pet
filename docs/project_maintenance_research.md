@@ -6,6 +6,9 @@
 本次只更新文件；沒有修改 app、部署 backend、設定通知或建立定時工作。
 線上 Crashlytics、Supabase、ASC、商店及備份狀態均未重新查驗。
 
+以上是研究時點的範圍；後續實作、CI 與 live-test 規則以
+[testing](testing.md) 及 [當前任務](../tasks/todo.md) 為準。
+
 ## 結論與優先次序
 
 現有架構已有不少防線。最值得投入的是讓「發現問題 → 重現 → 修正 → 發佈 → 線上驗證」完整閉環，

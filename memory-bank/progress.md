@@ -41,5 +41,7 @@ Current baseline and where live state is recorded. Full snapshots live in
 ## Open Items
 Tracked in `tasks/todo.md` ("Active follow-ups").
 
-Maintenance research and proposed priorities (not enabled policy):
-[project maintenance research](../docs/project_maintenance_research.md).
+Maintenance priorities: [research snapshot](../docs/project_maintenance_research.md).
+Automated checks, offline CI fixtures and explicit live-test opt-in are defined
+in [testing](../docs/testing.md); delivery and verification are tracked in
+`tasks/todo.md`.

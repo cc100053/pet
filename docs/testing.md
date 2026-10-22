@@ -1,8 +1,22 @@
 ## Testing Helpers
 
-### Verification is local, not CI
+### Automated checks and local verification
 
-There is no CI gate. `.githooks/pre-push` (enable per clone with
+`.github/workflows/ci.yml` runs formatting, analysis, the full test suite and
+documentation links on pull requests, pushes to main and manual dispatch. It
+reads the SDK pin from `.fvmrc`, installs locked dependencies, and copies fake
+offline fixtures from `.github/fixtures/` into the gitignored Firebase/env
+files before generating `.env.app`. It needs no production secrets and never
+builds or deploys the app. Follow its bootstrap steps only in a clean test
+checkout; never overwrite a developer's real config with the CI fixtures.
+
+Main had no branch protection when checked on 2026-10-22, so workflow failures
+report problems but do not block direct pushes. `[USER ACTION REQUIRED]` if a
+mandatory merge gate is desired: require the `verify` check in branch protection
+or a ruleset after confirming a successful run. Keep the local final checks
+below before pushing executable/asset changes and before release.
+
+`.githooks/pre-push` (enable per clone with
 `git config core.hooksPath .githooks`) format-checks pushed Dart files, runs
 `flutter analyze`, and link-checks pushed Markdown; it skips `flutter test`.
 Before pushing code or runtime-asset changes, run on the final tree, in this
@@ -21,8 +35,7 @@ concurrent processes share `build/unit_test_assets` shader outputs.
 
 For documentation-only changes, run `scripts/check_doc_links.sh <files>` and
 check affected instructions and commands instead. Do not use this exception for executable scripts or runtime
-assets. If CI is restored, materialize gitignored `lib/firebase_options.dart`
-and `.env` from appropriate templates before analyzer/tests.
+assets.
 
 The app bundles `.env.app`, not `.env`. Run `scripts/write_app_env.sh` after
 creating or changing `.env` and before any `flutter run`, `test` or `build`;
@@ -48,12 +61,14 @@ then install `build/ios_sim/Build/Products/Debug-iphonesimulator/Runner.app`.
 
 ### Live-test boundary
 
-The feed integration test reads credentials from process variables **and `.env`**.
-When all required values are present, even a full `flutter test` can invoke live
-services. Verify the target, dedicated test account, and authorization before
-enabling it. Missing credentials produce a documented skip; do not inject
-production credentials merely to turn that skip green. Cleanup is best-effort,
-not proof that the test has no lasting effects.
+The feed integration test requires the process variable
+`PET_RUN_LIVE_FEED_TEST=1` before it reads credentials or contacts a service.
+Without that opt-in, even existing credentials in process variables or `.env`
+cannot enable it. After opt-in, credentials are read from both places; missing
+or blank credentials produce a documented skip. Verify the target, dedicated
+test account, and authorization before enabling it. Do not inject production
+credentials merely to turn that skip green. Cleanup is best-effort, not proof
+that the test has no lasting effects. Routine CI does not set the opt-in.
 
 The webhook helper sends to the configured recipient. Run it only for an
 authorized notification test. Transactional SQL checks also require a verified
@@ -69,7 +84,8 @@ target and authorized scope, even when they roll back writes.
 - Required env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_TEST_REFRESH_TOKEN`.
 - Obtain `SUPABASE_TEST_REFRESH_TOKEN` through the dedicated test account
   authentication flow; keep it out of logs and committed files.
-- Run: `flutter test test/feed_flow_integration_test.dart`.
+- Run only after verification/authorization:
+  `PET_RUN_LIVE_FEED_TEST=1 flutter test test/feed_flow_integration_test.dart`.
 - Test creates a room via `create_room`, calls `feed_validate`, asserts the
   message record, then attempts to delete the room to clean up.
 - Feed upload pipeline behavior, response compatibility, latency diagnosis, and

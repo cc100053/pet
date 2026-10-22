@@ -1,5 +1,25 @@
 # TODO
 
+## Maintenance implementation (2026-10-22)
+- [x] Add a minimal pinned-SDK CI with fake offline configuration and validate
+      it from a clean checkout with no `.fvm` or production config. Format and
+      analysis and the full suite passed; all 3 final opt-in cases also passed
+      separately with fake config.
+- [x] Make live feed integration explicitly opt-in so routine checks cannot
+      mutate services merely because credentials exist in the environment.
+- [x] Refresh the two recent Crashlytics issues and record delivery/verification
+      status without closing issues or changing production.
+- [ ] Firebase alert subscriptions / Missing dSYMs dashboard checks remain
+      `[USER ACTION REQUIRED]`: MCP exposes issue data, not those settings, and
+      the available browser requires Google sign-in. Latest Apple secret
+      reminder workflow completed successfully (run `36818778995`); email
+      delivery and future scheduling were not verified.
+- [x] Update canonical testing/maintenance guidance. Final-tree format:
+      364 files / 0 changes, analysis clean, 780 tests passed / 1 live skip;
+      all tracked documentation links and workflow YAML syntax passed.
+- [ ] Commit/push and verify the remote workflow result. Main is unprotected;
+      requiring `verify` as a merge check is `[USER ACTION REQUIRED]`.
+
 ## Maintenance research (2026-10-22)
 - [x] Map existing architecture, local gates, regression tests and open release
       verification against current source and repository history.
@@ -30,6 +50,13 @@
       auth test's missing native preferences channel; no new dependency.
 - [ ] Verify furniture placement/removal on the next iOS build
       `[USER ACTION REQUIRED]`; live-monitor the issue after release.
+      Read-only refresh 2026-10-22: issue remains OPEN / NON_FATAL;
+      `topVariants` returned 1 event / 1 affected user for
+      2026-10-15T00:00:00Z–2026-10-22T23:59:59Z. Latest sample:
+      2026-10-21T11:49:15Z, `5.0.0 (31)`,
+      `_persistFurniturePlacement` → `ui_error/unexpected` for
+      `insufficient_inventory`. Fix `2508637` is in source; no verified build
+      containing it was established. No issue state or backend changes.
 
 ## Auth token recovery (2026-10-21)
 - [x] Handle auth stream errors in AuthGate, Home and FCM; retain SDK session
@@ -40,6 +67,14 @@
 - [ ] Verify expired-session fallback on the next iOS build
       `[USER ACTION REQUIRED]`; live-monitor Crashlytics issue
       `c4880f82580d97645ad01e9cd866c7c1` after release.
+      Read-only refresh 2026-10-22: issue remains OPEN / classified FATAL;
+      `topVariants` returned 4 events / 2 affected users for
+      2026-10-15T00:00:00Z–2026-10-22T23:59:59Z. Two latest samples:
+      2026-10-19T17:13:16Z (`5.0.1 (32)`) and 14:44:49Z (`5.0.0 (31)`),
+      `GotrueFetch._handleError` → session recovery → `zoned_guarded`,
+      `refresh_token_already_used`. These are captured fatal reports, not
+      independent evidence of OS process termination. Fix `73cad68` is in
+      source; no verified build containing it was established.
 
 ## Approved release 5.0.1+32 (2026-10-16)
 - [x] Owner approved patch version, five bundled locales and four ASC locales.

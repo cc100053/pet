@@ -17,13 +17,27 @@ class _TestEnv {
   final String? refreshToken;
   final String? skipReason;
 
-  static _TestEnv load() {
+  static _TestEnv load({Map<String, String>? environment}) {
+    final processEnv = environment ?? Platform.environment;
+    // Credentials alone must never authorize writes during the normal suite.
+    if (processEnv['PET_RUN_LIVE_FEED_TEST'] != '1') {
+      return _TestEnv(
+        supabaseUrl: null,
+        supabaseAnonKey: null,
+        refreshToken: null,
+        skipReason: 'Set PET_RUN_LIVE_FEED_TEST=1 for an authorized live test.',
+      );
+    }
+
     final envFile = File('.env');
     if (envFile.existsSync()) {
       dotenv.loadFromString(envString: envFile.readAsStringSync());
     }
 
-    String? readEnv(String key) => Platform.environment[key] ?? dotenv.env[key];
+    String? readEnv(String key) {
+      final value = (processEnv[key] ?? dotenv.env[key])?.trim();
+      return value == null || value.isEmpty ? null : value;
+    }
 
     final url = readEnv('SUPABASE_URL');
     final anonKey = readEnv('SUPABASE_ANON_KEY');
@@ -47,6 +61,43 @@ class _TestEnv {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final env = _TestEnv.load();
+
+  test('credentials alone do not enable live service writes', () {
+    final config = _TestEnv.load(
+      environment: {
+        'SUPABASE_URL': 'http://127.0.0.1:54321',
+        'SUPABASE_ANON_KEY': 'fake-key',
+        'SUPABASE_TEST_REFRESH_TOKEN': 'fake-token',
+      },
+    );
+    expect(config.skipReason, contains('PET_RUN_LIVE_FEED_TEST=1'));
+    expect(config.refreshToken, isNull);
+  });
+
+  test('explicit opt-in still requires nonblank credentials', () {
+    final config = _TestEnv.load(
+      environment: {
+        'PET_RUN_LIVE_FEED_TEST': '1',
+        'SUPABASE_URL': '',
+        'SUPABASE_ANON_KEY': ' ',
+        'SUPABASE_TEST_REFRESH_TOKEN': '',
+      },
+    );
+    expect(config.skipReason, contains('SUPABASE_TEST_REFRESH_TOKEN'));
+  });
+
+  test('explicit opt-in loads the supplied test credentials', () {
+    final config = _TestEnv.load(
+      environment: {
+        'PET_RUN_LIVE_FEED_TEST': '1',
+        'SUPABASE_URL': 'http://127.0.0.1:54321',
+        'SUPABASE_ANON_KEY': 'fake-key',
+        'SUPABASE_TEST_REFRESH_TOKEN': 'fake-token',
+      },
+    );
+    expect(config.skipReason, isNull);
+    expect(config.refreshToken, 'fake-token');
+  });
 
   test('feed_validate writes message to chat', () async {
     final client = SupabaseClient(env.supabaseUrl!, env.supabaseAnonKey!);

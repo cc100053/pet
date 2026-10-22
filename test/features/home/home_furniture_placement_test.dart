@@ -31,10 +31,7 @@ void main() {
         ..writeAsStringSync(
           template.replaceFirst('// PRODUCTION_METHODS', methods.join('\n')),
         );
-      final result = Process.runSync(
-        '.fvm/flutter_sdk/bin/cache/dart-sdk/bin/dart',
-        [harness.path],
-      );
+      final result = Process.runSync('dart', [harness.path]);
       expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
       expect('PASS '.allMatches(result.stdout as String), hasLength(5));
     } finally {

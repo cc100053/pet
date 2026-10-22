@@ -144,7 +144,7 @@ Live integration test, only with verified target/account and authorized scope
 (see the live-test boundary in `docs/testing.md`):
 
 ```sh
-flutter test test/feed_flow_integration_test.dart
+PET_RUN_LIVE_FEED_TEST=1 flutter test test/feed_flow_integration_test.dart
 ```
 
 Required env vars for the live test are documented in `docs/testing.md`.
