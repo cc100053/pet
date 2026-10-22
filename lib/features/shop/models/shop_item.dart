@@ -66,6 +66,22 @@ class ShopItem {
 
   bool isNewAt(DateTime now) => newUntil != null && now.isBefore(newUntil!);
 
+  /// Ids that show NEW at [now]. Only the latest drop (the latest open
+  /// `new_until`) keeps NEW, so a newer drop supersedes an older one.
+  static Set<String> latestNewItemIds(Iterable<ShopItem> items, DateTime now) {
+    final open = items.where((item) => item.isNewAt(now)).toList();
+    if (open.isEmpty) {
+      return const {};
+    }
+    final latest = open
+        .map((item) => item.newUntil!)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+    return {
+      for (final item in open)
+        if (item.newUntil == latest) item.id,
+    };
+  }
+
   bool get isIap => iapProductId != null && iapProductId!.isNotEmpty;
   bool get isBackground => category == 'background';
   bool get isDiamondIap =>

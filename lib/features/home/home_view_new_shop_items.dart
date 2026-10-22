@@ -46,10 +46,9 @@ extension _HomeNewShopItems on _HomeViewState {
 
     final List<ShopItem> newItems;
     try {
-      final now = DateTime.now();
-      newItems = (await _fetchPopupShopItems(
-        appVersion,
-      )).where((item) => item.isNewAt(now)).toList();
+      final items = await _fetchPopupShopItems(appVersion);
+      final newIds = ShopItem.latestNewItemIds(items, DateTime.now());
+      newItems = items.where((item) => newIds.contains(item.id)).toList();
     } catch (error, stackTrace) {
       _newShopItemsCheckedThisSession = false;
       reportSwallowedError(error, stackTrace, source: 'home_new_shop_items');
@@ -133,8 +132,8 @@ extension _HomeNewShopItems on _HomeViewState {
       reportSwallowedError(error, stackTrace, source: 'debug_new_shop_items');
       return;
     }
-    final now = DateTime.now();
-    final newItems = items.where((item) => item.isNewAt(now)).toList();
+    final newIds = ShopItem.latestNewItemIds(items, DateTime.now());
+    final newItems = items.where((item) => newIds.contains(item.id)).toList();
     final preview = newItems.isNotEmpty ? newItems : items.take(3).toList();
     if (preview.isEmpty || !mounted) {
       return;

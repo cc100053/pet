@@ -69,7 +69,12 @@ migration that rewrites the object.
   positions.
 - `items.metadata.new_until` (ISO 8601, optional) marks a catalog item NEW
   until that instant: gold NEW badge in the shop and the in-room "just arrived"
-  popup. Client-only key; set/clear it with a metadata update, no migration.
+  popup. Client-only key; set or clear it in a catalog-data migration. When
+  several drops are open, the client shows NEW only on the drop with the
+  latest `new_until` (`ShopItem.latestNewItemIds`), so a newer drop supersedes
+  the older one. Give each new drop a later `new_until` than any open drop.
+  Clients that cannot see the newer drop keep the older drop NEW; clients
+  before this rule show every open window.
 - Pet tickets are additive and v2-gated. New purchases use
   `purchase_and_use_pet_ticket(...)`; owned tickets use `use_pet_ticket(...)`.
 - Message senders may be null for system events. Image-feed recall clears media

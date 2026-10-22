@@ -144,7 +144,8 @@ Pricing is one of six touch points. For a furniture item the full set is:
    `fallback_behavior=skip`, so builds without the PNG never see it. An
    already-uploaded build without the PNG does not count as bundling it. Put
    `new_until` (NEW badge window) for every item of a drop in the same
-   migration. Apply, rename, and log per `AGENTS.md` and
+   migration, later than any open drop so it takes over the NEW badge (see
+   `memory-bank/database-schema.md`). Apply, rename, and log per `AGENTS.md` and
    `docs/release_status.md`.
 3. `lib/l10n/app_{en,ja,zh,zh_TW,ko}.arb` — `storeItemName…` and
    `storeItemDesc…` keys, then `flutter gen-l10n`.

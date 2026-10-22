@@ -19,6 +19,7 @@ class ShopGridItemCard extends StatelessWidget {
     required this.onBuyDiamonds,
     required this.onHandleLetter,
     required this.onUsePetTicket,
+    this.isNew = false,
   });
 
   final ShopItem item;
@@ -37,6 +38,7 @@ class ShopGridItemCard extends StatelessWidget {
   final VoidCallback onBuyDiamonds;
   final VoidCallback onHandleLetter;
   final VoidCallback onUsePetTicket;
+  final bool isNew;
 
   VoidCallback? _resolveBuyAction() {
     if (item.isPetTicket && ownedQuantity > 0) {
@@ -192,7 +194,7 @@ class ShopGridItemCard extends StatelessWidget {
                                     style: const TextStyle(fontSize: 56),
                                   ),
                           ),
-                        if (item.isNewAt(DateTime.now()))
+                        if (isNew)
                           Positioned(
                             top: 0,
                             left: 4,
@@ -355,6 +357,10 @@ extension _ShopItemCards on _ShopViewState {
           : () => _purchaseDiamondItem(item),
       onHandleLetter: () => _handleLetterPurchase(item),
       onUsePetTicket: () => _handlePetTicketUse(item),
+      isNew: ShopItem.latestNewItemIds(
+        _storeItems,
+        DateTime.now(),
+      ).contains(item.id),
     );
   }
 }

@@ -116,6 +116,39 @@ void main() {
     expect(parse('not a date').isNewAt(now), isFalse);
   });
 
+  test('keeps NEW only on the latest open drop', () {
+    ShopItem item(String id, String? newUntil) => ShopItem.fromJson({
+      'id': id,
+      'sku': 'furniture_$id',
+      'type': 'cosmetic',
+      'name': id,
+      'price_coins': 100,
+      'metadata': {'category': 'furniture', 'new_until': newUntil},
+    });
+    final now = DateTime.utc(2026, 10, 22);
+    final older = [
+      item('pumpkin', '2026-11-01T00:00:00Z'),
+      item('cauldron', '2026-11-01T00:00:00Z'),
+    ];
+    final newer = [
+      item('candle', '2026-12-01T00:00:00Z'),
+      item('tree', '2026-12-01T00:00:00Z'),
+    ];
+    final expired = item('cactus', '2026-10-01T00:00:00Z');
+    final plain = item('lamp', null);
+
+    expect(
+      ShopItem.latestNewItemIds([...older, ...newer, expired, plain], now),
+      {'candle', 'tree'},
+    );
+    // Clients that cannot see the newer drop keep the older one NEW.
+    expect(ShopItem.latestNewItemIds([...older, expired], now), {
+      'pumpkin',
+      'cauldron',
+    });
+    expect(ShopItem.latestNewItemIds([expired, plain], now), isEmpty);
+  });
+
   test('parses paid backgrounds as coin-only catalog items', () {
     final item = ShopItem.fromJson({
       'id': 'item-paid-1',
