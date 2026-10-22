@@ -40,3 +40,6 @@ Current baseline and where live state is recorded. Full snapshots live in
 
 ## Open Items
 Tracked in `tasks/todo.md` ("Active follow-ups").
+
+Maintenance research and proposed priorities (not enabled policy):
+[project maintenance research](../docs/project_maintenance_research.md).

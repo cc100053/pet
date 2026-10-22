@@ -1,5 +1,14 @@
 # TODO
 
+## Maintenance research (2026-10-22)
+- [x] Map existing architecture, local gates, regression tests and open release
+      verification against current source and repository history.
+- [x] Record prioritized prevention, detection and recovery recommendations
+      in [the research note](../docs/project_maintenance_research.md), with
+      repository and official-source evidence.
+- [x] Validate documentation links/instructions and whitespace; documentation
+      only, so no Flutter checks. Runtime/service changes remain proposals.
+
 ## Feed picker loading timing (2026-10-22)
 - [x] Reproduce Loading appearing before native photo selection finishes.
 - [x] Keep the preview during selection; defer feedback until returned-photo
