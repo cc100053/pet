@@ -384,18 +384,22 @@ extension _HomeInviteFlow on _HomeViewState {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (other != null) keeper(other.avatarUrl, other.nickname),
-              PetAnimatedImage(
-                sourceAsset: petAsset,
-                width: 100,
-                height: 100,
-                fit: BoxFit.contain,
-              ),
-              keeper(_myAvatarUrl, _myNickname),
-            ],
+          // Two avatars + pet (218px) can exceed the toast body width.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (other != null) keeper(other.avatarUrl, other.nickname),
+                PetAnimatedImage(
+                  sourceAsset: petAsset,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
+                keeper(_myAvatarUrl, _myNickname),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           BalancedText(
