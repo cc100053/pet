@@ -2389,6 +2389,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'See the day while scrolling';
 
   @override
+  String get whatsNew600Title => 'Meet Gingerbread Man';
+
+  @override
+  String get whatsNew600Bullet1 => 'Start a new room';
+
+  @override
+  String get whatsNew600Bullet1Detail => 'Pick Gingerbread Man first';
+
+  @override
+  String get whatsNew600Bullet2 => 'Use a Pet Ticket';
+
+  @override
+  String get whatsNew600Bullet2Detail => 'Invite from the shop';
+
+  @override
+  String get whatsNew600Bullet3 => 'Festive items, Ghost Sky';
+
+  @override
+  String get whatsNew600Bullet3Detail => 'Ghost Sky is free with Pro';
+
+  @override
   String get whatsNew501Title => 'Smoother Days Together';
 
   @override

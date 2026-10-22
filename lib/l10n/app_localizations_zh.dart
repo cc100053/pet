@@ -2264,6 +2264,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '轻松查看对话日期';
 
   @override
+  String get whatsNew600Title => '姜饼人登场';
+
+  @override
+  String get whatsNew600Bullet1 => '创建新房间';
+
+  @override
+  String get whatsNew600Bullet1Detail => '选姜饼人做第一只宠物';
+
+  @override
+  String get whatsNew600Bullet2 => '使用宠物券';
+
+  @override
+  String get whatsNew600Bullet2Detail => '到商店邀请';
+
+  @override
+  String get whatsNew600Bullet3 => '季节道具与新背景';
+
+  @override
+  String get whatsNew600Bullet3Detail => '幽灵天空 Pro 免费';
+
+  @override
   String get whatsNew501Title => '一起养宠更顺手';
 
   @override
@@ -4816,6 +4837,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew410Bullet3Detail => '輕鬆掌握對話日期';
+
+  @override
+  String get whatsNew600Title => '薑餅人登場';
+
+  @override
+  String get whatsNew600Bullet1 => '建立新房間';
+
+  @override
+  String get whatsNew600Bullet1Detail => '選薑餅人當第一隻寵物';
+
+  @override
+  String get whatsNew600Bullet2 => '使用寵物券';
+
+  @override
+  String get whatsNew600Bullet2Detail => '到商店邀請';
+
+  @override
+  String get whatsNew600Bullet3 => '季節道具與新背景';
+
+  @override
+  String get whatsNew600Bullet3Detail => '幽靈天空 Pro 免費';
 
   @override
   String get whatsNew501Title => '一起養寵更順手';

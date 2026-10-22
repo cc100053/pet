@@ -4233,6 +4233,48 @@ abstract class AppLocalizations {
   /// **'See the day while scrolling'**
   String get whatsNew410Bullet3Detail;
 
+  /// No description provided for @whatsNew600Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet Gingerbread Man'**
+  String get whatsNew600Title;
+
+  /// No description provided for @whatsNew600Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new room'**
+  String get whatsNew600Bullet1;
+
+  /// No description provided for @whatsNew600Bullet1Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick Gingerbread Man first'**
+  String get whatsNew600Bullet1Detail;
+
+  /// No description provided for @whatsNew600Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a Pet Ticket'**
+  String get whatsNew600Bullet2;
+
+  /// No description provided for @whatsNew600Bullet2Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite from the shop'**
+  String get whatsNew600Bullet2Detail;
+
+  /// No description provided for @whatsNew600Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Festive items, Ghost Sky'**
+  String get whatsNew600Bullet3;
+
+  /// No description provided for @whatsNew600Bullet3Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Ghost Sky is free with Pro'**
+  String get whatsNew600Bullet3Detail;
+
   /// No description provided for @whatsNew501Title.
   ///
   /// In en, this message translates to:

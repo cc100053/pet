@@ -2276,6 +2276,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'スクロール中に表示';
 
   @override
+  String get whatsNew600Title => 'ジンジャーブレッドマン登場';
+
+  @override
+  String get whatsNew600Bullet1 => '新しい部屋を作る';
+
+  @override
+  String get whatsNew600Bullet1Detail => '最初のペットに選べます';
+
+  @override
+  String get whatsNew600Bullet2 => 'ペット券を使う';
+
+  @override
+  String get whatsNew600Bullet2Detail => 'ショップでお迎え';
+
+  @override
+  String get whatsNew600Bullet3 => '季節アイテムと新背景';
+
+  @override
+  String get whatsNew600Bullet3Detail => 'ゴーストスカイはPro無料';
+
+  @override
   String get whatsNew501Title => 'もっと快適なお世話';
 
   @override

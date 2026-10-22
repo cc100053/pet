@@ -2288,6 +2288,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '스크롤 중 표시돼요';
 
   @override
+  String get whatsNew600Title => '진저브레드맨 등장';
+
+  @override
+  String get whatsNew600Bullet1 => '새 방 만들기';
+
+  @override
+  String get whatsNew600Bullet1Detail => '첫 펫으로 선택하기';
+
+  @override
+  String get whatsNew600Bullet2 => '펫 티켓 사용';
+
+  @override
+  String get whatsNew600Bullet2Detail => '상점에서 초대하기';
+
+  @override
+  String get whatsNew600Bullet3 => '시즌 아이템과 새 배경';
+
+  @override
+  String get whatsNew600Bullet3Detail => '고스트 스카이는 Pro 무료';
+
+  @override
   String get whatsNew501Title => '더 편리해진 함께 돌보기';
 
   @override
