@@ -47,6 +47,12 @@ Run helper commands from the repository root.
 - Level-1 seeding: hand-place frame 0, then template-track each socket patch through
   the later frames (turtle `design/pet_sketches/turtle_pond_buddy/sockets/estimate_sockets.py`).
   A seeding script rewrites the scene JSON; never re-run it over reviewed captures.
+- Prefer a drawn landmark over template tracking: when the art has a closed,
+  high-contrast mark that moves rigidly with the head (gingerbread forehead icing
+  loop), put the socket at the centroid of its enclosed hole in every frame and
+  assert exactly one hole per frame (`design/pet_sketches/gingerbread_man/sockets/loop_head_sockets.py`).
+  Template tracking accumulates drift; cross-check a track against a rigidly
+  attached slot (head vs body bounce) before trusting it.
 - Before syncing a reported review, confirm it reached disk: the JSON's modification
   time is newer than the last scripted write, and the expected `equipmentSettings` are
   present. Captures and settings that were never exported exist only in the open editor.

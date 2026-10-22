@@ -22,10 +22,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-01.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 28.0,
-          "nx": 0.5,
-          "ny": 0.062222222
+          "x": 225.2,
+          "y": 35.2,
+          "nx": 0.500444444,
+          "ny": 0.078222222
         },
         "body": {
           "x": 225.0,
@@ -47,10 +47,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-02.png",
       "sockets": {
         "head": {
-          "x": 239.0,
-          "y": 32.0,
-          "nx": 0.531111111,
-          "ny": 0.071111111
+          "x": 240.3,
+          "y": 39.7,
+          "nx": 0.534,
+          "ny": 0.088222222
         },
         "body": {
           "x": 226.0,
@@ -72,10 +72,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-03.png",
       "sockets": {
         "head": {
-          "x": 239.0,
-          "y": 32.0,
-          "nx": 0.531111111,
-          "ny": 0.071111111
+          "x": 240.3,
+          "y": 39.7,
+          "nx": 0.534,
+          "ny": 0.088222222
         },
         "body": {
           "x": 226.0,
@@ -97,10 +97,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-04.png",
       "sockets": {
         "head": {
-          "x": 239.0,
-          "y": 32.0,
-          "nx": 0.531111111,
-          "ny": 0.071111111
+          "x": 240.3,
+          "y": 39.7,
+          "nx": 0.534,
+          "ny": 0.088222222
         },
         "body": {
           "x": 226.0,
@@ -122,10 +122,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-05.png",
       "sockets": {
         "head": {
-          "x": 239.0,
-          "y": 32.0,
-          "nx": 0.531111111,
-          "ny": 0.071111111
+          "x": 240.3,
+          "y": 39.7,
+          "nx": 0.534,
+          "ny": 0.088222222
         },
         "body": {
           "x": 226.0,
@@ -147,10 +147,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_sleep/gingerbread_man_sleep-06.png",
       "sockets": {
         "head": {
-          "x": 239.0,
-          "y": 32.0,
-          "nx": 0.531111111,
-          "ny": 0.071111111
+          "x": 240.3,
+          "y": 39.7,
+          "nx": 0.534,
+          "ny": 0.088222222
         },
         "body": {
           "x": 226.0,

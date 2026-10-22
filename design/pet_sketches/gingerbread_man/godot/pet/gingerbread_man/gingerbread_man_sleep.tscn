@@ -24,7 +24,7 @@ autoplay = "sleep"
 centered = false
 
 [node name="HeadSocket" type="Marker2D" parent="."]
-position = Vector2(225, 28)
+position = Vector2(225.2, 35.2)
 
 [node name="BodySocket" type="Marker2D" parent="."]
 position = Vector2(225, 182)

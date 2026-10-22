@@ -7,12 +7,12 @@
       "animation": "moving",
       "slots": {
         "head": {
-          "x_range_px": 1.0,
-          "y_range_px": 10.0,
-          "max_step_px": 5.0,
+          "x_range_px": 0.1,
+          "y_range_px": 5.0,
+          "max_step_px": 5.001,
           "suspicious_frames": [],
-          "loop_delta_px": 10.05,
-          "loop_warning": true,
+          "loop_delta_px": 0.0,
+          "loop_warning": false,
           "motion_track_recommended": false
         },
         "body": {
@@ -41,13 +41,13 @@
       "animation": "sleep",
       "slots": {
         "head": {
-          "x_range_px": 14.0,
-          "y_range_px": 4.0,
-          "max_step_px": 14.56,
+          "x_range_px": 15.1,
+          "y_range_px": 4.5,
+          "max_step_px": 15.756,
           "suspicious_frames": [
             2
           ],
-          "loop_delta_px": 14.56,
+          "loop_delta_px": 15.756,
           "loop_warning": true,
           "motion_track_recommended": true
         },
@@ -77,14 +77,14 @@
       "animation": "stay",
       "slots": {
         "head": {
-          "x_range_px": 13.0,
+          "x_range_px": 13.1,
           "y_range_px": 3.0,
           "max_step_px": 13.342,
           "suspicious_frames": [
             2,
             7
           ],
-          "loop_delta_px": 1.0,
+          "loop_delta_px": 0.0,
           "loop_warning": false,
           "motion_track_recommended": true
         },

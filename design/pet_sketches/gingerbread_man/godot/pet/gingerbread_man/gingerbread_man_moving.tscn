@@ -26,7 +26,7 @@ autoplay = "moving"
 centered = false
 
 [node name="HeadSocket" type="Marker2D" parent="."]
-position = Vector2(225, 28)
+position = Vector2(225.4, 34.7)
 
 [node name="BodySocket" type="Marker2D" parent="."]
 position = Vector2(225, 175)

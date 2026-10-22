@@ -24,10 +24,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-01.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 28.0,
-          "nx": 0.5,
-          "ny": 0.062222222
+          "x": 225.4,
+          "y": 34.7,
+          "nx": 0.500888889,
+          "ny": 0.077111111
         },
         "body": {
           "x": 225.0,
@@ -49,10 +49,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-02.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 28.0,
-          "nx": 0.5,
-          "ny": 0.062222222
+          "x": 225.4,
+          "y": 34.7,
+          "nx": 0.500888889,
+          "ny": 0.077111111
         },
         "body": {
           "x": 225.0,
@@ -74,10 +74,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-03.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 28.0,
-          "nx": 0.5,
-          "ny": 0.062222222
+          "x": 225.3,
+          "y": 29.7,
+          "nx": 0.500666667,
+          "ny": 0.066
         },
         "body": {
           "x": 225.0,
@@ -99,10 +99,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-04.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 33.0,
-          "nx": 0.5,
-          "ny": 0.073333333
+          "x": 225.4,
+          "y": 34.7,
+          "nx": 0.500888889,
+          "ny": 0.077111111
         },
         "body": {
           "x": 225.0,
@@ -124,10 +124,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-05.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 33.0,
-          "nx": 0.5,
-          "ny": 0.073333333
+          "x": 225.4,
+          "y": 34.7,
+          "nx": 0.500888889,
+          "ny": 0.077111111
         },
         "body": {
           "x": 225.0,
@@ -149,10 +149,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-06.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 33.0,
-          "nx": 0.5,
-          "ny": 0.073333333
+          "x": 225.4,
+          "y": 34.7,
+          "nx": 0.500888889,
+          "ny": 0.077111111
         },
         "body": {
           "x": 225.0,
@@ -174,10 +174,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-07.png",
       "sockets": {
         "head": {
-          "x": 224.0,
-          "y": 33.0,
-          "nx": 0.497777778,
-          "ny": 0.073333333
+          "x": 225.3,
+          "y": 29.7,
+          "nx": 0.500666667,
+          "ny": 0.066
         },
         "body": {
           "x": 225.0,
@@ -199,10 +199,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_moving/gingerbread_man_walk-08.png",
       "sockets": {
         "head": {
-          "x": 224.0,
-          "y": 38.0,
-          "nx": 0.497777778,
-          "ny": 0.084444444
+          "x": 225.4,
+          "y": 34.7,
+          "nx": 0.500888889,
+          "ny": 0.077111111
         },
         "body": {
           "x": 224.0,

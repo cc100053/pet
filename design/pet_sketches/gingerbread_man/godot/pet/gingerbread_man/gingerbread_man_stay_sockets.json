@@ -23,10 +23,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-01.png",
       "sockets": {
         "head": {
-          "x": 225.0,
-          "y": 40.0,
-          "nx": 0.5,
-          "ny": 0.088888889
+          "x": 225.4,
+          "y": 46.5,
+          "nx": 0.500888889,
+          "ny": 0.103333333
         },
         "body": {
           "x": 225.0,
@@ -48,10 +48,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-02.png",
       "sockets": {
         "head": {
-          "x": 212.0,
-          "y": 37.0,
-          "nx": 0.471111111,
-          "ny": 0.082222222
+          "x": 212.3,
+          "y": 44.0,
+          "nx": 0.471777778,
+          "ny": 0.097777778
         },
         "body": {
           "x": 216.0,
@@ -73,10 +73,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-03.png",
       "sockets": {
         "head": {
-          "x": 212.0,
-          "y": 37.0,
-          "nx": 0.471111111,
-          "ny": 0.082222222
+          "x": 212.4,
+          "y": 43.5,
+          "nx": 0.472,
+          "ny": 0.096666667
         },
         "body": {
           "x": 216.0,
@@ -98,10 +98,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-04.png",
       "sockets": {
         "head": {
-          "x": 212.0,
-          "y": 37.0,
-          "nx": 0.471111111,
-          "ny": 0.082222222
+          "x": 212.4,
+          "y": 43.5,
+          "nx": 0.472,
+          "ny": 0.096666667
         },
         "body": {
           "x": 216.0,
@@ -123,10 +123,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-05.png",
       "sockets": {
         "head": {
-          "x": 212.0,
-          "y": 37.0,
-          "nx": 0.471111111,
-          "ny": 0.082222222
+          "x": 212.4,
+          "y": 43.5,
+          "nx": 0.472,
+          "ny": 0.096666667
         },
         "body": {
           "x": 216.0,
@@ -148,10 +148,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-06.png",
       "sockets": {
         "head": {
-          "x": 212.0,
-          "y": 37.0,
-          "nx": 0.471111111,
-          "ny": 0.082222222
+          "x": 212.4,
+          "y": 43.5,
+          "nx": 0.472,
+          "ny": 0.096666667
         },
         "body": {
           "x": 216.0,
@@ -173,10 +173,10 @@
       "image": "res://pet/gingerbread_man/gingerbread_man_stay/gingerbread_man_stay-07.png",
       "sockets": {
         "head": {
-          "x": 224.0,
-          "y": 40.0,
-          "nx": 0.497777778,
-          "ny": 0.088888889
+          "x": 225.4,
+          "y": 46.5,
+          "nx": 0.500888889,
+          "ny": 0.103333333
         },
         "body": {
           "x": 223.0,

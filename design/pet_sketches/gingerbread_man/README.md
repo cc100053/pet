@@ -61,7 +61,13 @@ fit. This does not establish that any equipment shape fits correctly.
 [estimate_sockets.py](sockets/estimate_sockets.py) adapts the turtle template
 tracker, with bounded patches near the canvas edge and an overwrite guard.
 Frame-0 semantic points were estimated from each source pose; later frames
-were tracked from the previous frame. Scenes and seed exports are preserved
+were tracked from the previous frame. On 2026-10-22 the head socket was
+re-derived by [loop_head_sockets.py](sockets/loop_head_sockets.py): every frame
+puts head at the centroid of the enclosed hole in the forehead icing loop (a
+drawn landmark, one hole per frame). This fixed walk drift (the tracker sank
+frames 4–8 by up to 5 px; the loop and body both rise 5 px on frames 3 and 7
+only) and lowers head about 7 px versus the old loop-top seed; compare old/new
+in [review_head_loop.png](sockets/review_head_loop.png). Body/back are unchanged. Scenes and seed exports are preserved
 under [godot/pet/gingerbread_man](godot/pet/gingerbread_man/) and installed at
 `/Users/fatboy/pet-tomo/pet/gingerbread_man/`. Do not rerun the seed script over
 reviewed captures. Equipment overrides in the existing Godot project were
@@ -70,10 +76,11 @@ not modified.
 Schema/timing/normalized-coordinate checks pass. [score.json](sockets/score.json)
 records these warnings using 1-based frame numbers:
 
-- Stay: head steps at frames 2 and 7 (up to 13.34 px); back step at frame 2
-  (12.04 px).
-- Walk: head last-to-first delta 10.05 px.
-- Sleep: head step at frame 2 and last-to-first delta 14.56 px.
+- Stay: head steps at frames 2 and 7 (13.34 px, the drawn wave lean); back
+  step at frame 2 (12.04 px).
+- Walk: no warnings; head loop delta is 0.
+- Sleep: head step at frame 2 and last-to-first delta 15.76 px (the drawn
+  head tilt into sleep).
 
 Review sheets: [stay](sockets/review_stay.png),
 [walk](sockets/review_moving.png), [sleep](sockets/review_sleep.png).
