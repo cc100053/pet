@@ -344,3 +344,14 @@ invisible; a stretched object is not.
 `--preview` composites the shipped furniture (1×–3×) and the ghost pet on the
 result. Squint at it: the furniture and the pet must read first, the background
 last.
+
+### 8.5 Shop thumbnail
+
+Shop cards and the room inventory crop `previewDecoration` to a landscape box,
+so a centre crop of the full art shows only the empty middle. A background
+whose decoration sits at the edges needs a `-thumb.jpg` (about 4:3, 600 px
+wide) that packs the edge elements together, wired as `previewDecoration`.
+Keep the thumb no wider than 3:2 so `BoxFit.cover` crops only top and bottom,
+never the side elements. The Ghost Sky one is built by
+`design/backgrounds/halloween_2026/ghost_sky_thumb.py`. The shop's preview
+dialog shows the full art at screen ratio, so it needs no extra asset.

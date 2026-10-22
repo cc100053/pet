@@ -59,5 +59,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.text(l10n.commonClose), findsOneWidget);
+    // The dialog shows the full room art, not the card thumbnail.
+    expect(
+      find.byWidgetPredicate((widget) {
+        final decoration = widget is Container ? widget.decoration : null;
+        final image = decoration is BoxDecoration ? decoration.image : null;
+        return image?.image is AssetImage &&
+            (image!.image as AssetImage).assetName == 'assets/bg/test1.png';
+      }),
+      findsOneWidget,
+    );
   });
 }

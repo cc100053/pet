@@ -374,6 +374,7 @@ Future<void> showStoreThemePreviewDialog({
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final bg = RoomBackgrounds.resolve(item.backgroundKey);
+  final screen = MediaQuery.sizeOf(context);
   await showJuiceToast<void>(
     context: context,
     message: l10n.storeThemePreviewTitle(item.localizedName(l10n)),
@@ -381,28 +382,37 @@ Future<void> showStoreThemePreviewDialog({
     body: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AspectRatio(
-          aspectRatio: 16 / 10,
-          child: Container(
-            decoration: bg.previewDecoration,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                margin: const EdgeInsets.all(12),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  item.localizedName(l10n),
-                  style: GoogleFonts.mPlusRounded1c(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+        // Screen-shaped full art, so edge decoration shows as it will in the
+        // room; capped so the close button stays on screen.
+        ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: screen.height * 0.55),
+          child: AspectRatio(
+            aspectRatio: screen.width / screen.height,
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: bg.decoration.copyWith(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.ink, width: 2),
+              ),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    item.localizedName(l10n),
+                    style: GoogleFonts.mPlusRounded1c(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),

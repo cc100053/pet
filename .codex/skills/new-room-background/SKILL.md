@@ -31,18 +31,21 @@ gives only the order of operations; read the section each step names.
    then look at the output and check the stretched middle shows no visible
    stretch.
 6. **In-room preview.** Run `--preview`, do the squint test, and send the
-   preview to the user.
+   preview to the user. Then make the shop thumbnail (§8.5) and send it too.
 7. **Wire and roll out.** Load `.codex/skills/shared-item-rollout/SKILL.md` and
    `.codex/skills/shared-item-rollout/references/decor-contracts.md`. A background has seven touch points:
-   - the JPG under `assets/bg/paid/` (the folder is already in `pubspec.yaml`)
-   - a key, asset constant and `RoomBackgroundDefinition` in
+   - the JPG and its `-thumb.jpg` under `assets/bg/paid/` (the folder is
+     already in `pubspec.yaml`)
+   - a key, asset constants and `RoomBackgroundDefinition` in
      `lib/features/home/room_backgrounds.dart`, with `isDark` for dark grounds
+     and the thumb as `previewDecoration`
    - a migration inserting the `items` row with `category: background`,
      `background_key`, `visibility_mode: version_gated`, `min_app_version`,
      `fallback_behavior: default_background`, `fallback_background_key: default`,
      `new_until` and `is_active = false`; paid version-gated backgrounds stay
      purchasable while inactive. Reference migration:
-     `supabase/migrations/20261008120000_add_halloween_ghost_sky_background.sql`.
+     `supabase/migrations/20261022130000_add_pro_only_ghost_sky_background.sql`
+     (Pro-only; a coin-priced background sets its prices and leaves `pro_only` off).
    - `storeItemNameBackground…` and `storeItemDescBackground…` in all five ARBs,
      then `flutter gen-l10n`
    - the sku → name case in `lib/features/shop/shop_item_localization.dart`

@@ -50,6 +50,10 @@ void main() {
       (ghostSky.decoration.image!.image as AssetImage).assetName,
       'assets/bg/paid/background-paid-03.jpg',
     );
+    expect(
+      (ghostSky.previewDecoration.image!.image as AssetImage).assetName,
+      'assets/bg/paid/background-paid-03-thumb.jpg',
+    );
   });
 
   test('supports known keys and rejects unknown keys', () {

@@ -22,6 +22,8 @@ class RoomBackgrounds {
   static const String _starlitDreamAsset =
       'assets/bg/paid/background-paid-02.jpg';
   static const String _ghostSkyAsset = 'assets/bg/paid/background-paid-03.jpg';
+  static const String _ghostSkyThumbAsset =
+      'assets/bg/paid/background-paid-03-thumb.jpg';
   static const String defaultKey = 'default';
   static const String testKey = 'test';
   static const String test1Key = 'test1';
@@ -112,6 +114,14 @@ class RoomBackgrounds {
       decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage(_ghostSkyAsset),
+          fit: BoxFit.cover,
+        ),
+      ),
+      // The ghosts sit at the far edges, so a crop of the full art shows
+      // plain sky; the thumb packs them into a landscape card.
+      previewDecoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(_ghostSkyThumbAsset),
           fit: BoxFit.cover,
         ),
       ),
