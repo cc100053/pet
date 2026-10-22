@@ -136,8 +136,8 @@
 
 ## Active follow-ups
 - [ ] Pro-only Ghost Sky (2026-10-22): migration applied and
-      `grant_pro_backgrounds` deployed. `[USER ACTION REQUIRED]` set
-      `REVENUECAT_SECRET_KEY`, then verify on a 6.0.0 device that a Pro account
+      `grant_pro_backgrounds` deployed; `REVENUECAT_SECRET_KEY` set.
+      `[USER ACTION REQUIRED]` verify on a 6.0.0 device that a Pro account
       gets Ghost Sky in every room and a free account sees "Pro only".
 - [x] Festive furniture implementation (2026-10-11): normalized all five PNGs,
       wired the draft catalog, five app locales and purchase push names;
