@@ -127,6 +127,19 @@ extension _HomeDrawerBuilder on _HomeViewState {
                           ? null
                           : _debugSpawnPetPoop,
                     ),
+                    // Main pet is excluded: swap it out first.
+                    for (final pet
+                        in _roomPetsByRoom[_roomId] ?? const <_RoomPet>[])
+                      if (!pet.isMain)
+                        ListTile(
+                          leading: const Icon(Icons.delete_outline_rounded),
+                          title: Text(
+                            'Remove extra pet: ${pet.name ?? pet.petType}',
+                          ),
+                          onTap: _petBusy
+                              ? null
+                              : () => _debugRemoveExtraPet(pet),
+                        ),
                     ListTile(
                       title: Text(l10n.drawerDebugShowFullBubble),
                       onTap:

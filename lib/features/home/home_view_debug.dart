@@ -258,6 +258,62 @@ extension _HomeDebugTools on _HomeViewState {
     }
   }
 
+  Future<void> _debugRemoveExtraPet(_RoomPet pet) async {
+    if (!await _ensureDebugAdminAccess()) {
+      return;
+    }
+    if (!await _ensureOnlineForWrite()) {
+      return;
+    }
+    final roomId = _roomId;
+    if (roomId == null || !mounted) {
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove extra pet?'),
+        content: Text(
+          '${pet.name ?? pet.petType} will be deleted with its equipment. '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(AppLocalizations.of(dialogContext)!.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    _setStateForDebug(() {
+      _petBusy = true;
+      _petError = null;
+    });
+    try {
+      await Supabase.instance.client.rpc(
+        'admin_debug_remove_room_pet',
+        params: {'p_room_id': roomId, 'p_pet_id': pet.petId},
+      );
+      await _loadRoomPets(roomId);
+    } catch (error) {
+      if (!mounted) return;
+      _setStateForDebug(
+        () => _petError = AppLocalizations.of(
+          context,
+        )!.petActionFailed(userFacingError(context, error)),
+      );
+    } finally {
+      if (mounted) _setStateForDebug(() => _petBusy = false);
+    }
+  }
+
   void _debugShowOverfedBubble() {
     if (!_isDebugAdmin) {
       return;

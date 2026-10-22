@@ -57,6 +57,11 @@ migration that rewrites the object.
 - `pets.room_id` stays unique for old clients. Extras use
   `room_extra_pets`; `rooms.main_pet_id` identifies the canonical pet and
   `rooms.name` mirrors its name.
+- `admin_debug_remove_room_pet(p_room_id uuid, p_pet_id uuid)` (since
+  `20261022120000`) lets a debug admin who is a room member delete one
+  `room_extra_pets` row; it refuses the main pet (`cannot_remove_main_pet`),
+  so swap with `set_room_main_pet` first. Equipment cleanup is the existing
+  delete trigger; `room_pet_count()` is computed.
 - `room_pet_state` is shared stat truth; `pet_state` mirrors the main pet.
   Every feed adds +25 hunger (capped at 100) and anchors decay at feed time;
   there is no 10-minute burst/overfed gate since `20260924120000`, so
