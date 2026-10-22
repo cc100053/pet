@@ -19,6 +19,10 @@
       all tracked documentation links and workflow YAML syntax passed.
 - [ ] Commit/push and verify the remote workflow result. Main is unprotected;
       requiring `verify` as a merge check is `[USER ACTION REQUIRED]`.
+      Implementation `0a5c349` pushed. First remote run `39723629132` passed
+      bootstrap, format, analysis and all 780 tests / 1 live skip, then exposed
+      machine-specific documentation paths. Internal links are now relative;
+      external Godot examples are described relative to that project's root.
 
 ## Maintenance research (2026-10-22)
 - [x] Map existing architecture, local gates, regression tests and open release

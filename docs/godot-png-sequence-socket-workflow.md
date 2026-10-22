@@ -27,14 +27,14 @@ These are **independent**. Exporting socket positions does not export equipment 
 | Godot authoring project | `/Users/fatboy/pet-tomo` |
 | Godot socket add-on | `/Users/fatboy/pet-tomo/addons/socket_authoring/` |
 | Godot pet scenes | `/Users/fatboy/pet-tomo/pet/<pet>/<animation>.tscn` |
-| Godot exported socket JSON | beside the scene, e.g. `/Users/fatboy/pet-tomo/pet/ghost/ghost_stay_sockets.json` |
-| Godot global equipment overrides | `/Users/fatboy/pet-tomo/equipment_overrides.json` |
-| Flutter socket catalog | `/Users/fatboy/pet/lib/features/pet/pet_sockets.dart` |
-| Flutter equipment catalog | `/Users/fatboy/pet/lib/features/pet/equipment_catalog.dart` |
-| Flutter frame sequence catalog | `/Users/fatboy/pet/lib/features/pet/pet_animation_frames.dart` |
-| Flutter overlay renderer | `/Users/fatboy/pet/lib/features/home/widgets/pet_equipment_overlay.dart` |
-| Flutter placement math | `/Users/fatboy/pet/lib/features/home/widgets/pet_equipment_layout.dart` |
-| Asset registration | `/Users/fatboy/pet/pubspec.yaml` |
+| Godot exported socket JSON | beside the scene in the authoring project, e.g. `ghost_stay_sockets.json` under `pet/ghost/` |
+| Godot global equipment overrides | `equipment_overrides.json` at the authoring project root |
+| Flutter socket catalog | [pet_sockets.dart](../lib/features/pet/pet_sockets.dart) |
+| Flutter equipment catalog | [equipment_catalog.dart](../lib/features/pet/equipment_catalog.dart) |
+| Flutter frame sequence catalog | [pet_animation_frames.dart](../lib/features/pet/pet_animation_frames.dart) |
+| Flutter overlay renderer | [pet_equipment_overlay.dart](../lib/features/home/widgets/pet_equipment_overlay.dart) |
+| Flutter placement math | [pet_equipment_layout.dart](../lib/features/home/widgets/pet_equipment_layout.dart) |
+| Asset registration | [pubspec.yaml](../pubspec.yaml) |
 
 ---
 
