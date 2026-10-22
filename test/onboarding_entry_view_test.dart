@@ -51,7 +51,7 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-const _welcomeTitle = 'Raise a pet together';
+const _welcomeTitle = 'Raise pets together';
 const _invitedTitle = "You've been invited to raise a pet";
 
 void main() {

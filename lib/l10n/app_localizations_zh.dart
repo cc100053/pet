@@ -2417,7 +2417,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingWelcomeTitle => '一起养宠物吧';
 
   @override
-  String get onboardingWelcomeSubtitle => '一只宠物，大家一起养。用每天的照片喂它，它会同时住在每个人的手机里。';
+  String get onboardingWelcomeSubtitle =>
+      '和家人朋友，甚至一大群人一起养。用每天的照片喂它们，它们会同时住在每个人的手机里。';
 
   @override
   String get onboardingWelcomeStartNew => '迎接新宠物';
@@ -2463,7 +2464,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onboardingSignInSubtitle =>
-      '一起养宠物需要两部手机都有账号。我们会从 Apple 或 Google 帮你填好名字。';
+      '一起养宠物，每位主人都需要账号。我们会从 Apple 或 Google 帮你填好名字。';
 
   @override
   String get onboardingPetMoveIn => '搬进来吧';
@@ -2476,7 +2477,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String inviteCardTitle(String petName) {
-    return '$petName还需要一位主人';
+    return '$petName想要更多主人';
   }
 
   @override
@@ -2508,7 +2509,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get firstDayTaskCoKeeper => '迎来另一位主人';
+  String get firstDayTaskCoKeeper => '邀请其他主人';
 
   @override
   String get firstDayTaskFurniture => '摆放第一件家具';
@@ -2538,7 +2539,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String joinedTitle(String petName) {
-    return '你成为$petName的第二位主人了';
+    return '你成为$petName的主人之一了';
   }
 
   @override
@@ -4967,7 +4968,8 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get onboardingWelcomeTitle => '一起養寵物吧';
 
   @override
-  String get onboardingWelcomeSubtitle => '一隻寵物，大家一起養。用每天的照片餵牠，牠會同時住在每個人的手機裡。';
+  String get onboardingWelcomeSubtitle =>
+      '和家人朋友，甚至一大群人一起養。用每天的照片餵牠們，牠們會同時住在每個人的手機裡。';
 
   @override
   String get onboardingWelcomeStartNew => '迎接新寵物';
@@ -5013,7 +5015,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get onboardingSignInSubtitle =>
-      '一起養寵物需要兩支手機都有帳號。我們會從 Apple 或 Google 幫你填好名字。';
+      '一起養寵物，每位主人都需要帳號。我們會從 Apple 或 Google 幫你填好名字。';
 
   @override
   String get onboardingPetMoveIn => '搬進來吧';
@@ -5026,7 +5028,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String inviteCardTitle(String petName) {
-    return '$petName還需要一位主人';
+    return '$petName想要更多主人';
   }
 
   @override
@@ -5058,7 +5060,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get firstDayTaskCoKeeper => '迎來另一位主人';
+  String get firstDayTaskCoKeeper => '邀請其他主人';
 
   @override
   String get firstDayTaskFurniture => '擺放第一件家具';
@@ -5088,7 +5090,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String joinedTitle(String petName) {
-    return '你成為$petName的第二位主人了';
+    return '你成為$petName的主人之一了';
   }
 
   @override

@@ -4506,13 +4506,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Raise a pet together'**
+  /// **'Raise pets together'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One pet, as many keepers as you like. Feed it photos of your day and it lives on everyone\'s phone.'**
+  /// **'With friends, family, or a whole group. Feed your pets photos of your day and they live on everyone\'s phone.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingWelcomeStartNew.
@@ -4524,7 +4524,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeStartNewHint.
   ///
   /// In en, this message translates to:
-  /// **'Then invite your person'**
+  /// **'Then invite your people'**
   String get onboardingWelcomeStartNewHint;
 
   /// No description provided for @onboardingWelcomeInvited.
@@ -4596,7 +4596,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A shared pet needs an account on both phones. We\'ll fill in your name from Apple or Google.'**
+  /// **'A shared pet needs an account on every keeper\'s phone. We\'ll fill in your name from Apple or Google.'**
   String get onboardingSignInSubtitle;
 
   /// No description provided for @onboardingPetMoveIn.
@@ -4620,7 +4620,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteCardTitle.
   ///
   /// In en, this message translates to:
-  /// **'{petName} needs a second keeper'**
+  /// **'{petName} wants more keepers'**
   String inviteCardTitle(String petName);
 
   /// No description provided for @inviteCardCaption.
@@ -4716,7 +4716,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinedTitle.
   ///
   /// In en, this message translates to:
-  /// **'You\'re {petName}\'s second keeper'**
+  /// **'You\'re now one of {petName}\'s keepers'**
   String joinedTitle(String petName);
 
   /// No description provided for @joinedBody.

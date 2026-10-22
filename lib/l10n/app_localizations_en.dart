@@ -2555,17 +2555,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newItemsLater => 'Maybe later';
 
   @override
-  String get onboardingWelcomeTitle => 'Raise a pet together';
+  String get onboardingWelcomeTitle => 'Raise pets together';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'One pet, as many keepers as you like. Feed it photos of your day and it lives on everyone\'s phone.';
+      'With friends, family, or a whole group. Feed your pets photos of your day and they live on everyone\'s phone.';
 
   @override
   String get onboardingWelcomeStartNew => 'Start a new pet';
 
   @override
-  String get onboardingWelcomeStartNewHint => 'Then invite your person';
+  String get onboardingWelcomeStartNewHint => 'Then invite your people';
 
   @override
   String get onboardingWelcomeInvited => 'I was invited';
@@ -2608,7 +2608,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingSignInSubtitle =>
-      'A shared pet needs an account on both phones. We\'ll fill in your name from Apple or Google.';
+      'A shared pet needs an account on every keeper\'s phone. We\'ll fill in your name from Apple or Google.';
 
   @override
   String get onboardingPetMoveIn => 'Move in';
@@ -2622,7 +2622,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inviteCardTitle(String petName) {
-    return '$petName needs a second keeper';
+    return '$petName wants more keepers';
   }
 
   @override
@@ -2685,7 +2685,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String joinedTitle(String petName) {
-    return 'You\'re $petName\'s second keeper';
+    return 'You\'re now one of $petName\'s keepers';
   }
 
   @override

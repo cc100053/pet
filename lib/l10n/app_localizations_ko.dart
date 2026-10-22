@@ -2443,7 +2443,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onboardingWelcomeSubtitle =>
-      '펫은 하나, 키우는 사람은 여럿. 하루의 사진을 먹이로 주면 모두의 폰에서 함께 자라요.';
+      '가족, 친구, 여럿이 모인 그룹도 좋아요. 하루의 사진을 먹이로 주면 모두의 폰에서 펫이 함께 자라요.';
 
   @override
   String get onboardingWelcomeStartNew => '새 펫 맞이하기';
@@ -2490,7 +2490,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onboardingSignInSubtitle =>
-      '함께 키우려면 두 사람 모두 계정이 필요해요. 이름은 Apple 또는 Google에서 가져와요.';
+      '함께 키우려면 보호자 모두 계정이 필요해요. 이름은 Apple 또는 Google에서 가져와요.';
 
   @override
   String get onboardingPetMoveIn => '입주시키기';
@@ -2504,7 +2504,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String inviteCardTitle(String petName) {
-    return '$petName에게 두 번째 보호자가 필요해요';
+    return '$petName에게 보호자가 더 필요해요';
   }
 
   @override
@@ -2536,7 +2536,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get firstDayTaskCoKeeper => '두 번째 보호자 맞이하기';
+  String get firstDayTaskCoKeeper => '다른 보호자 맞이하기';
 
   @override
   String get firstDayTaskFurniture => '첫 가구 놓기';
@@ -2566,7 +2566,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String joinedTitle(String petName) {
-    return '$petName의 두 번째 보호자가 되었어요';
+    return '$petName의 보호자가 되었어요';
   }
 
   @override
