@@ -392,6 +392,10 @@ extension _HomeDebugTools on _HomeViewState {
       _myRooms = _applyLegacyRoomLocking(_myRooms);
     });
     _syncRoomProviders();
+    if (value) {
+      // The function also accepts debug admins, so Pro-only decor can be tested.
+      unawaited(_grantProBackgrounds());
+    }
     try {
       await AppSettingsRepository.instance.setDebugProPlanEnabled(value);
     } catch (error) {

@@ -1412,7 +1412,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     } catch (error) {
       debugPrint('[iap] failed to refresh pro status: $error');
     }
-    if (hasProEntitlement) {
+    if (hasProEntitlement || (_isDebugAdmin && _debugProPlan)) {
       unawaited(_grantProBackgrounds());
     }
 

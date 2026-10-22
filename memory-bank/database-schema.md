@@ -133,7 +133,11 @@ migration that rewrites the object.
   Pro-only background into each active room of the caller with the service
   role. The `room_backgrounds_insert` policy rejects `pro_only` items and the
   purchase RPCs reject them for having no price. Grants survive a lapse.
-  HomeView calls it whenever RevenueCat reports Pro (launch, resume, shop exit).
+  Once granted, any active member can select it: `room_background_state`
+  only requires the item in that room's `room_backgrounds`. Debug admins
+  (`is_debug_admin()`) skip the RevenueCat check. HomeView calls it whenever
+  RevenueCat reports Pro or the admin debug Pro toggle is on (launch, resume,
+  shop exit, toggling debug Pro on).
 - Function truth lives in `supabase/functions/`; feed/R2 behavior is in
   `docs/feed_upload_pipeline.md`.
 

@@ -7,6 +7,8 @@ import { corsHeaders, jsonResponse } from "../_shared/http.ts";
 // caller is an active member of, after RevenueCat confirms the caller's Pro
 // entitlement server-side. The client's own Pro flag is never trusted. The
 // RevenueCat app user id is the Supabase user id (RevenueCatService.configure).
+// Debug admins (public.is_debug_admin(), from JWT app_metadata) skip the
+// RevenueCat check so the debug drawer's Pro toggle can exercise the grant.
 // Grants persist after the subscription lapses, like a purchase.
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -46,10 +48,6 @@ serve(async (req) => {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
     return jsonResponse(500, { error: "supabase_env_missing" });
   }
-  if (!REVENUECAT_SECRET_KEY) {
-    return jsonResponse(500, { error: "revenuecat_not_configured" });
-  }
-
   const authHeader = req.headers.get("Authorization") ?? "";
   if (!authHeader.startsWith("Bearer ")) {
     return jsonResponse(401, { error: "missing_auth" });
@@ -64,9 +62,13 @@ serve(async (req) => {
   }
   const userId = authData.user.id;
 
-  let isPro: boolean;
+  const { data: isDebugAdmin } = await supabase.rpc("is_debug_admin");
+  let isPro = isDebugAdmin === true;
+  if (!isPro && !REVENUECAT_SECRET_KEY) {
+    return jsonResponse(500, { error: "revenuecat_not_configured" });
+  }
   try {
-    isPro = await hasActiveProEntitlement(userId);
+    isPro ||= await hasActiveProEntitlement(userId);
   } catch (error) {
     console.error("grant_pro_backgrounds revenuecat lookup failed", {
       userId,
