@@ -132,18 +132,9 @@ class _WelcomeFork extends StatelessWidget {
   final VoidCallback onInvited;
   final VoidCallback onReturning;
 
-  static const List<String> _heroPetIds = ['cat', 'ghost', 'fish'];
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final heroPets = [
-      for (final id in _heroPetIds)
-        PetCatalog.pets.firstWhere(
-          (pet) => pet.id == id,
-          orElse: () => PetCatalog.pets.first,
-        ),
-    ];
     return Scaffold(
       body: MoriPaperBackground(
         child: SafeArea(
@@ -165,14 +156,18 @@ class _WelcomeFork extends StatelessWidget {
                             height: 120,
                             fit: BoxFit.contain,
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          // Every bundled pet, so new pets show up here without edits.
+                          // 76pt keeps four per row even on 375pt-wide phones.
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 4,
+                            runSpacing: 4,
                             children: [
-                              for (final pet in heroPets)
+                              for (final pet in PetCatalog.pets)
                                 PetAnimatedImage(
                                   sourceAsset: pet.stayAsset,
-                                  width: 92,
-                                  height: 92,
+                                  width: 76,
+                                  height: 76,
                                   fit: BoxFit.contain,
                                 ),
                             ],

@@ -27,6 +27,10 @@ class _NoLinks implements InviteLinkGateway {
 }
 
 Future<_MemoryStore> _pump(WidgetTester tester, {String? pending}) async {
+  // Phone-sized so the welcome fork's buttons sit on screen below the hero.
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   final store = _MemoryStore(pending);
   final service = AppInviteLinkService(
     gateway: _NoLinks(),
@@ -77,9 +81,6 @@ void main() {
   });
 
   testWidgets('returning user opens welcome-back sign-in', (tester) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
     await _pump(tester);
     await tester.tap(find.text('Already have an account? Sign in'));
     await _settle(tester);
