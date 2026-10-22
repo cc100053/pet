@@ -18,7 +18,8 @@ Current baseline and where live state is recorded. Full snapshots live in
   Candle 100, Candy Cane 150, Sunflowers 150, Gift Box 200, Christmas Tree
   250 coins. PNGs, five-language app copy and purchase push names are ready;
   catalog migration is applied and `notify_friend` v40 is deployed with approval.
-  NEW ends `2026-11-01T00:00:00Z`. Release/deployment details live in
+  NEW ends `2026-11-22T00:00:00Z` (extended 2026-10-22 so it supersedes the
+  Halloween drop's NEW on clients with the latest-drop rule). Release/deployment details live in
   `docs/release_status.md`; art review lives in
   `design/furniture_sketches/festive_2026/README.md`.
 - `pubspec.yaml` version is the in-flight build; release, ASC, dSYM, and
