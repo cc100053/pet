@@ -17,12 +17,15 @@
 - [x] Update canonical testing/maintenance guidance. Final-tree format:
       364 files / 0 changes, analysis clean, 780 tests passed / 1 live skip;
       all tracked documentation links and workflow YAML syntax passed.
-- [ ] Commit/push and verify the remote workflow result. Main is unprotected;
-      requiring `verify` as a merge check is `[USER ACTION REQUIRED]`.
-      Implementation `0a5c349` pushed. First remote run `39723629132` passed
-      bootstrap, format, analysis and all 780 tests / 1 live skip, then exposed
-      machine-specific documentation paths. Internal links are now relative;
-      external Godot examples are described relative to that project's root.
+- [x] Implementation `0a5c349` and portable-link fix `322c367` committed/pushed.
+      [Remote CI run 39727064053](https://github.com/cc100053/pet/actions/runs/39727064053)
+      passed bootstrap, locked dependencies, format, analysis, full tests and
+      all tracked documentation links. Machine-specific internal links are now
+      relative; external Godot examples use that project's root as their base.
+- [ ] Require `verify` as a merge check if a mandatory gate is desired
+      `[USER ACTION REQUIRED]`; main has neither branch protection nor an
+      active branch ruleset. CI currently reports failures without blocking
+      direct pushes.
 
 ## Maintenance research (2026-10-22)
 - [x] Map existing architecture, local gates, regression tests and open release
