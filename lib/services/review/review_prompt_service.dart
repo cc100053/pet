@@ -162,14 +162,15 @@ class ReviewPromptService {
       if (_recordedFeedIds.contains(feedId)) {
         return true;
       }
+      // Count before day: a failed day write can only delay a prompt.
+      await _settingsStore.setReviewFeedSuccessCount(
+        _settingsStore.reviewFeedSuccessCount + 1,
+      );
       final day = _nowProvider().toIso8601String().split('T').first;
       final days = _settingsStore.reviewFeedDays;
       if (days.length < 2 && !days.contains(day)) {
         await _settingsStore.setReviewFeedDays([...days, day]);
       }
-      await _settingsStore.setReviewFeedSuccessCount(
-        _settingsStore.reviewFeedSuccessCount + 1,
-      );
       _recordedFeedIds.add(feedId);
       return true;
     } catch (error, stackTrace) {

@@ -469,7 +469,16 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         ReviewPromptService.instance.onFeedCompletedSuccessfully(
           feedId: result.tempId,
           waitForFeedback: () async {
-            await Future.wait([?doubleRewardFeedback, firstDayFeedback]);
+            try {
+              await Future.wait([?doubleRewardFeedback, firstDayFeedback]);
+            } catch (error, stackTrace) {
+              // Feedback failures are not review failures; still allow the prompt.
+              reportSwallowedError(
+                error,
+                stackTrace,
+                source: 'feed_completion_feedback',
+              );
+            }
             await waitUntilUncovered(
               isCovered: () =>
                   _photoFoodImageSource != null ||

@@ -31,8 +31,11 @@ class _FakeSettingsStore implements ReviewPromptSettingsStore {
     reviewLastPromptAt = value;
   }
 
+  bool throwOnSetDays = false;
+
   @override
   Future<void> setReviewFeedDays(List<String> days) async {
+    if (throwOnSetDays) throw StateError('days write failed');
     reviewFeedDays = days;
   }
 }
@@ -130,6 +133,14 @@ void main() {
       expect(events, isNot(contains('review_prompt_shown')));
     },
   );
+
+  test('failed day write still counts the feed but cannot prompt', () async {
+    settings.throwOnSetDays = true;
+    await feed('a');
+    expect(settings.reviewFeedSuccessCount, 5);
+    expect(settings.reviewFeedDays, ['2026-10-23']);
+    expect(gateway.requestCalls, 0);
+  });
 
   test(
     'same-day feeds do not qualify; date change does, and storage stops at two days',
