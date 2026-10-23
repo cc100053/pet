@@ -876,6 +876,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileFeedback => 'フィードバックを送る';
 
   @override
+  String get profileWriteReview => 'レビューを書く';
+
+  @override
   String get profileVersionPrefix => 'バージョン：';
 
   @override

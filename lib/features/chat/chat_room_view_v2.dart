@@ -2108,7 +2108,20 @@ class _ChatRoomViewV2State extends ConsumerState<ChatRoomViewV2>
       }
       _markSendConfirmed(messageId);
     }
-    unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
+    if (!result.reconciled) {
+      unawaited(
+        ReviewPromptService.instance.onFeedCompletedSuccessfully(
+          feedId: result.tempId,
+          canPrompt: () =>
+              mounted &&
+              WidgetsBinding.instance.lifecycleState ==
+                  AppLifecycleState.resumed &&
+              (ModalRoute.of(context)?.isCurrent ?? false) &&
+              !_composerFocusNode.hasFocus &&
+              MediaQuery.viewInsetsOf(context).bottom == 0,
+        ),
+      );
+    }
     if (!mounted) {
       return;
     }

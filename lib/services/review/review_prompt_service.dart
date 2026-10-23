@@ -4,11 +4,14 @@ import 'package:in_app_review/in_app_review.dart';
 import '../analytics/analytics_service.dart';
 import 'review_prompt_policy.dart';
 import '../settings/app_settings_repository.dart';
+import '../../shared/errors/user_facing_error.dart';
 
 typedef ReviewPromptLogEvent =
     Future<void> Function(String name, {Map<String, Object?>? parameters});
 
 abstract class ReviewPromptSettingsStore {
+  List<String> get reviewFeedDays;
+  Future<void> setReviewFeedDays(List<String> days);
   int get reviewFeedSuccessCount;
   Future<void> setReviewFeedSuccessCount(int count);
   int get reviewNextMilestoneIndex;
@@ -22,6 +25,13 @@ class AppSettingsReviewPromptStore implements ReviewPromptSettingsStore {
     : _settings = settings ?? AppSettingsRepository.instance;
 
   final AppSettingsRepository _settings;
+
+  @override
+  List<String> get reviewFeedDays => _settings.reviewFeedDays;
+
+  @override
+  Future<void> setReviewFeedDays(List<String> days) =>
+      _settings.setReviewFeedDays(days);
 
   @override
   int get reviewFeedSuccessCount => _settings.reviewFeedSuccessCount;
@@ -81,12 +91,14 @@ class ReviewPromptService {
     DateTime Function()? nowProvider,
     bool Function()? shouldRunOnCurrentPlatform,
     ReviewPromptLogEvent? logEvent,
+    Future<void> Function(Duration)? delay,
   }) : _reviewGateway = reviewGateway ?? InAppReviewGateway(),
        _settingsStore = settingsStore ?? AppSettingsReviewPromptStore(),
        _nowProvider = nowProvider ?? _defaultNowProvider,
        _shouldRunOnCurrentPlatform =
            shouldRunOnCurrentPlatform ?? _defaultShouldRunOnCurrentPlatform,
-       _logEvent = logEvent ?? AnalyticsService.instance.logEvent;
+       _logEvent = logEvent ?? AnalyticsService.instance.logEvent,
+       _delay = delay ?? Future<void>.delayed;
 
   static final ReviewPromptService instance = ReviewPromptService();
 
@@ -95,68 +107,118 @@ class ReviewPromptService {
   final DateTime Function() _nowProvider;
   final bool Function() _shouldRunOnCurrentPlatform;
   final ReviewPromptLogEvent _logEvent;
+  final Future<void> Function(Duration) _delay;
+  Future<bool> _recording = Future<bool>.value(true);
+  final _recordedFeedIds = <String>{};
+  bool _requestInProgress = false;
 
-  Future<void> onFeedCompletedSuccessfully() async {
-    final updatedFeedCount = _settingsStore.reviewFeedSuccessCount + 1;
-    await _settingsStore.setReviewFeedSuccessCount(updatedFeedCount);
-
-    if (!_shouldRunOnCurrentPlatform()) {
+  Future<void> onFeedCompletedSuccessfully({
+    required String feedId,
+    required bool Function() canPrompt,
+    Future<void> Function()? waitForFeedback,
+  }) async {
+    final recording = _recording.then((_) => _recordFeed(feedId));
+    _recording = recording;
+    if (!await recording || !_shouldRunOnCurrentPlatform()) {
       return;
     }
 
+    if (!_decision().shouldPrompt) {
+      return;
+    }
+    var ownsRequest = false;
+    try {
+      await waitForFeedback?.call();
+      await _delay(const Duration(seconds: 2));
+      if (!canPrompt() || _requestInProgress) {
+        return;
+      }
+      final decision = _decision();
+      if (!decision.shouldPrompt) {
+        return;
+      }
+      _requestInProgress = true;
+      ownsRequest = true;
+      final milestone = _milestoneForIndex(
+        _settingsStore.reviewNextMilestoneIndex,
+      );
+      if (await _tryPromptInApp(milestone: milestone, canPrompt: canPrompt)) {
+        await _markPromptHandled(
+          nowUtc: _nowProvider().toUtc(),
+          nextMilestoneIndex: decision.nextMilestoneIndex,
+        );
+      }
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'review_prompt');
+    } finally {
+      if (ownsRequest) {
+        _requestInProgress = false;
+      }
+    }
+  }
+
+  Future<bool> _recordFeed(String feedId) async {
+    try {
+      if (_recordedFeedIds.contains(feedId)) {
+        return true;
+      }
+      final day = _nowProvider().toIso8601String().split('T').first;
+      final days = _settingsStore.reviewFeedDays;
+      if (days.length < 2 && !days.contains(day)) {
+        await _settingsStore.setReviewFeedDays([...days, day]);
+      }
+      await _settingsStore.setReviewFeedSuccessCount(
+        _settingsStore.reviewFeedSuccessCount + 1,
+      );
+      _recordedFeedIds.add(feedId);
+      return true;
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'review_feed_count');
+      return false;
+    }
+  }
+
+  ReviewPromptDecision _decision() {
     final now = _nowProvider().toUtc();
     final nextMilestoneIndex = _settingsStore.reviewNextMilestoneIndex;
-    final decision = ReviewPromptPolicy.evaluate(
-      updatedFeedCount: updatedFeedCount,
+    return ReviewPromptPolicy.evaluate(
+      updatedFeedCount: _settingsStore.reviewFeedSuccessCount,
+      activeFeedDays: _settingsStore.reviewFeedDays.length,
       nextMilestoneIndex: nextMilestoneIndex,
       lastPromptAtUtc: _settingsStore.reviewLastPromptAt,
       nowUtc: now,
     );
-    if (!decision.shouldPrompt) {
-      return;
-    }
-
-    final milestone = _milestoneForIndex(nextMilestoneIndex);
-    final promptedInApp = await _tryPromptInApp(milestone: milestone);
-    if (promptedInApp) {
-      await _markPromptHandled(
-        nowUtc: now,
-        nextMilestoneIndex: decision.nextMilestoneIndex,
-      );
-      return;
-    }
-
-    final openedStore = await _tryOpenStoreFallback(milestone: milestone);
-    if (!openedStore) {
-      return;
-    }
-
-    await _markPromptHandled(
-      nowUtc: now,
-      nextMilestoneIndex: decision.nextMilestoneIndex,
-    );
   }
 
-  Future<bool> _tryPromptInApp({required int? milestone}) async {
+  Future<bool> _tryPromptInApp({
+    required int? milestone,
+    required bool Function() canPrompt,
+  }) async {
     bool available = false;
     try {
       available = await _reviewGateway.isAvailable();
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'review_available');
       await _logReviewEvent('review_prompt_failed', {
         'stage': 'is_available',
         'milestone': milestone,
       });
       return false;
     }
-    if (!available) {
+    if (!available || !canPrompt()) {
       return false;
     }
 
     try {
       await _reviewGateway.requestReview();
-      await _logReviewEvent('review_prompt_shown', {'milestone': milestone});
+      await _logReviewEvent('review_prompt_requested', {
+        'milestone': milestone,
+        'feed_count': _settingsStore.reviewFeedSuccessCount,
+        'active_feed_days': _settingsStore.reviewFeedDays.length,
+      });
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'review_request');
       await _logReviewEvent('review_prompt_failed', {
         'stage': 'request_review',
         'milestone': milestone,
@@ -165,16 +227,13 @@ class ReviewPromptService {
     }
   }
 
-  Future<bool> _tryOpenStoreFallback({required int? milestone}) async {
+  Future<void> openStoreForReview() async {
     try {
       await _reviewGateway.openStoreListing(appStoreId: iosAppStoreId);
-      await _logReviewEvent('review_store_opened', {'milestone': milestone});
-      return true;
+      await _logReviewEvent('review_store_opened', {'source': 'profile'});
     } catch (_) {
-      await _logReviewEvent('review_store_open_failed', {
-        'milestone': milestone,
-      });
-      return false;
+      await _logReviewEvent('review_store_open_failed', {'source': 'profile'});
+      rethrow;
     }
   }
 
@@ -190,7 +249,11 @@ class ReviewPromptService {
     String name,
     Map<String, Object?> parameters,
   ) async {
-    await _logEvent(name, parameters: parameters);
+    try {
+      await _logEvent(name, parameters: parameters);
+    } catch (error, stackTrace) {
+      reportSwallowedError(error, stackTrace, source: 'review_analytics');
+    }
   }
 
   int? _milestoneForIndex(int index) {
@@ -200,7 +263,7 @@ class ReviewPromptService {
     return ReviewPromptPolicy.feedMilestones[index];
   }
 
-  static DateTime _defaultNowProvider() => DateTime.now().toUtc();
+  static DateTime _defaultNowProvider() => DateTime.now();
 
   static bool _defaultShouldRunOnCurrentPlatform() {
     if (kIsWeb) {

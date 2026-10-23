@@ -1,5 +1,21 @@
 # TODO
 
+## Review prompt refinement (2026-10-24)
+- [x] Lower first eligibility to five feeds on two observed local feed days;
+      retain existing counters/dates and allow recurring requests after 90 days.
+- [x] Wait for feed/reward feedback and a visible, resumed, keyboard-free screen;
+      count each completion once across Home and Chat.
+- [x] Add a localized Profile review link; remove automatic store fallback and
+      report native API calls as requests, not confirmed displays.
+- [x] Regress eligibility, upgrade continuity, timing, duplicate events, manual
+      navigation and localized Profile link/error handling; update architecture.
+      Final-tree format: 365 files / 0 changes; analysis clean; 794 tests passed /
+      1 live integration skip. Documentation links and whitespace passed.
+- [ ] Check native dialog timing after feed/reward feedback and the manual
+      review page on a shipping iOS build `[USER ACTION REQUIRED]`. Apple owns
+      actual dialog display; assess rating/review volume after release/adoption
+      using the measurement guidance in `memory-bank/architecture.md`.
+
 ## Maintenance implementation (2026-10-22)
 - [x] Add a minimal pinned-SDK CI with fake offline configuration and validate
       it from a clean checkout with no `.fvm` or production config. Format and

@@ -884,6 +884,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileFeedback => '피드백 보내기';
 
   @override
+  String get profileWriteReview => '리뷰 작성';
+
+  @override
   String get profileVersionPrefix => '버전: ';
 
   @override

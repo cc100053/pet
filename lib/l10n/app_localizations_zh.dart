@@ -874,6 +874,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileFeedback => '发送反馈';
 
   @override
+  String get profileWriteReview => '撰写评价';
+
+  @override
   String get profileVersionPrefix => '版本：';
 
   @override
@@ -3448,6 +3451,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileFeedback => '提供意見回饋';
+
+  @override
+  String get profileWriteReview => '撰寫評論';
 
   @override
   String get profileVersionPrefix => '版本：';

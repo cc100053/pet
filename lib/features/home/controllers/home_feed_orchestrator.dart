@@ -415,10 +415,14 @@ extension _HomeFeedOrchestrator on _HomeViewState {
       _latestFeedOptimisticPrevCaption = null;
     }
     final roomId = _roomId;
+    Future<void>? doubleRewardFeedback;
     if (!result.reconciled && optimisticRoomId != null) {
-      unawaited(_maybePromptFeedDoubleReward(result, optimisticRoomId));
+      doubleRewardFeedback = _maybePromptFeedDoubleReward(
+        result,
+        optimisticRoomId,
+      );
     } else if (!result.reconciled && roomId != null) {
-      unawaited(_maybePromptFeedDoubleReward(result, roomId));
+      doubleRewardFeedback = _maybePromptFeedDoubleReward(result, roomId);
     }
     if (result.coinsAwarded > 0 && !result.reconciled) {
       _applyCoinRewardFeedback(result.coinsAwarded);
@@ -455,9 +459,31 @@ extension _HomeFeedOrchestrator on _HomeViewState {
         }
       }());
     }
-    unawaited(ReviewPromptService.instance.onFeedCompletedSuccessfully());
     if (!result.reconciled) {
-      unawaited(_afterFeedCompleted());
+      final firstDayFeedback = _afterFeedCompleted();
+      bool isCurrent() =>
+          mounted &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
+          (ModalRoute.of(context)?.isCurrent ?? false);
+      unawaited(
+        ReviewPromptService.instance.onFeedCompletedSuccessfully(
+          feedId: result.tempId,
+          waitForFeedback: () async {
+            await Future.wait([?doubleRewardFeedback, firstDayFeedback]);
+            await waitUntilUncovered(
+              isCovered: () =>
+                  _photoFoodImageSource != null ||
+                  _showingFeedDoubleRewardPrompt,
+              isStillWanted: isCurrent,
+            );
+          },
+          canPrompt: () =>
+              isCurrent() &&
+              _photoFoodImageSource == null &&
+              !_showingFeedDoubleRewardPrompt &&
+              MediaQuery.viewInsetsOf(context).bottom == 0,
+        ),
+      );
     }
   }
 

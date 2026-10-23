@@ -16,6 +16,7 @@ class AppSettingsRepository implements PendingInviteCodeStore {
   static const String _reviewNextMilestoneIndexKey =
       'review_next_milestone_index';
   static const String _reviewLastPromptAtIsoKey = 'review_last_prompt_at_iso';
+  static const String _reviewFeedDaysKey = 'review_feed_days';
   static const String _lastLaunchedAppVersionKey = 'last_launched_app_version';
   static const String _lastLaunchedAppReleaseSignatureKey =
       'last_launched_app_release_signature';
@@ -78,6 +79,13 @@ class AppSettingsRepository implements PendingInviteCodeStore {
 
   int get reviewFeedSuccessCount =>
       (_box?.get(_reviewFeedSuccessCountKey) as int?) ?? 0;
+
+  List<String> get reviewFeedDays =>
+      List<String>.from(_box?.get(_reviewFeedDaysKey) as List? ?? const []);
+
+  Future<void> setReviewFeedDays(List<String> days) async {
+    await _box?.put(_reviewFeedDaysKey, days);
+  }
 
   Future<void> setReviewFeedSuccessCount(int count) async {
     final safeCount = count < 0 ? 0 : count;

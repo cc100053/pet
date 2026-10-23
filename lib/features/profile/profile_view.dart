@@ -14,6 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../services/auth/session_utils.dart';
 import '../../services/profile/profile_bootstrap_service.dart';
+import '../../services/review/review_prompt_service.dart';
 import '../support/support_view.dart';
 import '../../shared/errors/user_facing_error.dart';
 import '../../shared/theme/app_theme.dart';
@@ -44,6 +45,29 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   final _nicknameController = TextEditingController();
   Future<Map<String, dynamic>?>? _profileFuture;
   bool _busy = false;
+  bool _openingReview = false;
+
+  Future<void> _openStoreForReview() async {
+    if (_openingReview) return;
+    _openingReview = true;
+    try {
+      await ReviewPromptService.instance.openStoreForReview();
+    } catch (error, stackTrace) {
+      if (!mounted) return;
+      showJuiceSnackbar(
+        context: context,
+        message: userFacingError(
+          context,
+          error,
+          stackTrace: stackTrace,
+          source: 'profile_review',
+        ),
+        tone: AppDialogTone.danger,
+      );
+    } finally {
+      _openingReview = false;
+    }
+  }
 
   @override
   void initState() {
@@ -1204,6 +1228,21 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
           const Gap(12),
+          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
+            Semantics(
+              button: true,
+              child: JuicyScaleButton(
+                onTap: () => unawaited(_openStoreForReview()),
+                child: ListTile(
+                  leading: const Icon(Icons.star_outline_rounded),
+                  title: Text(
+                    l10n.profileWriteReview,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                ),
+              ),
+            ),
           _buildMenuTile(
             icon: Icons.feedback_outlined,
             title: l10n.profileFeedback,

@@ -907,6 +907,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileFeedback => 'Send Feedback';
 
   @override
+  String get profileWriteReview => 'Write a review';
+
+  @override
   String get profileVersionPrefix => 'Version: ';
 
   @override

@@ -1661,6 +1661,12 @@ abstract class AppLocalizations {
   /// **'Send Feedback'**
   String get profileFeedback;
 
+  /// No description provided for @profileWriteReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a review'**
+  String get profileWriteReview;
+
   /// No description provided for @profileVersionPrefix.
   ///
   /// In en, this message translates to:

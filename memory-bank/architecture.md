@@ -136,6 +136,25 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   (`lib/features/support/`), which replaces the external support web form.
   The backend contract is `support_messages` in `database-schema.md`;
   the ops runbook is `docs/support_inbox.md`.
+- iOS reviews: `ReviewPromptService` counts fresh successful feeds once across
+  Home/Chat listeners; restored/reconciled completions do not count or prompt.
+  First eligibility is five feeds on two observed local feed dates (only those
+  first two dates are stored). Existing local feed counts, milestone index and
+  request date survive upgrades; historical feed dates are not inferred.
+  Later feed milestones are 25/50/100/150, with at least 90 days between native
+  requests; after 150, a fresh feed can qualify every 90 days indefinitely.
+  Home waits for feeding, reward/ad and first-day feedback; both screens allow
+  a two-second settle and require a current route, resumed app and no keyboard.
+  Busy/abandoned screens do not consume eligibility. Native unavailability or
+  errors never redirect automatically; Profile → Write a review explicitly
+  opens the App Store's `action=write-review` page and reports failures locally.
+  `review_prompt_requested` replaces `review_prompt_shown`, with `milestone`,
+  `feed_count` and `active_feed_days`; `review_store_opened`/`review_store_open_failed`
+  use `source=profile`. API success proves neither display nor submission.
+  To evaluate impact after release, compare new App Store ratings and written
+  reviews separately per iOS active user over equal before/after windows,
+  accounting for app-version adoption and analytics consent. Request events
+  are opportunities, not a review-conversion denominator.
 
 ## Read More
 - Schema/RPC watchlist: `memory-bank/database-schema.md`
