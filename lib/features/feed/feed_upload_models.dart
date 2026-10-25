@@ -154,6 +154,7 @@ class FeedUploadJob {
   }
 
   FeedUploadJob copyWith({
+    String? localImagePath,
     FeedUploadJobStatus? status,
     int? retryCount,
     DateTime? updatedAt,
@@ -166,7 +167,7 @@ class FeedUploadJob {
       tempId: tempId,
       roomId: roomId,
       senderId: senderId,
-      localImagePath: localImagePath,
+      localImagePath: localImagePath ?? this.localImagePath,
       caption: caption,
       clientCreatedAt: clientCreatedAt,
       labels: labels,

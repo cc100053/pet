@@ -74,6 +74,266 @@ void main() {
     expect(completed.result?.reconciled, isFalse);
   });
 
+  test('enqueue saves preview bytes before exposing the job', () async {
+    client.uploadError = const SocketException('offline');
+    final bytes = Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]);
+    final job = await container
+        .read(feedUploadQueueProvider.notifier)
+        .enqueue(
+          roomId: 'room-1',
+          senderId: 'user-1',
+          localImagePath: '${tempDir.path}/missing_picker.jpg',
+          caption: null,
+          clientCreatedAt: DateTime.utc(2026, 10, 25),
+          labels: const [],
+          initialBytes: bytes,
+        );
+
+    expect(await File(job.localImagePath).readAsBytes(), bytes);
+    expect(
+      (box.get(job.tempId) as Map)['local_image_path'],
+      job.localImagePath,
+    );
+    await _pumpUntil(
+      () =>
+          container
+              .read(feedUploadQueueProvider)
+              .jobsByTempId[job.tempId]
+              ?.retryCount ==
+          1,
+    );
+  });
+
+  test(
+    'restoration rebases saved photos after an app container move',
+    () async {
+      final job = _buildJob(status: FeedUploadJobStatus.pending);
+      final bytes = Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]);
+      final path = await repository.saveImage(
+        job.tempId,
+        '/missing.jpg',
+        bytes: bytes,
+      );
+      await repository.saveJob(
+        job.copyWith(
+          localImagePath: '/previous-container/feed_upload_images/temp-1.image',
+        ),
+      );
+
+      final restored = repository.loadJobs().single;
+      expect(restored.localImagePath, path);
+      expect(await File(restored.localImagePath).readAsBytes(), bytes);
+      expect(restored.clientCreatedAt, job.clientCreatedAt);
+    },
+  );
+
+  test('missing picker without preview bytes is never enqueued', () async {
+    final notifier = container.read(feedUploadQueueProvider.notifier);
+    await _pumpUntil(() => container.read(feedUploadQueueProvider).loaded);
+    await expectLater(
+      notifier.enqueue(
+        roomId: 'room-1',
+        senderId: 'user-1',
+        localImagePath: '${tempDir.path}/missing.jpg',
+        caption: null,
+        clientCreatedAt: DateTime.utc(2026, 10, 25),
+        labels: const [],
+      ),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(container.read(feedUploadQueueProvider).jobs, isEmpty);
+    expect(box.values, isEmpty);
+    expect(
+      await Directory('${tempDir.path}/feed_upload_images').list().toList(),
+      isEmpty,
+    );
+    expect(client.uploadCalls, 0);
+  });
+
+  test(
+    'failed queue persistence removes its photo and exposes no job',
+    () async {
+      container.dispose();
+      repository = _FailingSaveRepository(box: box);
+      container = ProviderContainer(
+        overrides: [
+          feedUploadRepositoryProvider.overrideWithValue(repository),
+          feedUploadClientProvider.overrideWithValue(client),
+        ],
+      );
+      final notifier = container.read(feedUploadQueueProvider.notifier);
+      await _pumpUntil(() => container.read(feedUploadQueueProvider).loaded);
+      await expectLater(
+        notifier.enqueue(
+          roomId: 'room-1',
+          senderId: 'user-1',
+          localImagePath: '/missing.jpg',
+          caption: null,
+          clientCreatedAt: DateTime.utc(2026, 10, 25),
+          labels: const [],
+          initialBytes: Uint8List.fromList([0xff, 0xd8, 0xff]),
+        ),
+        throwsStateError,
+      );
+      expect(container.read(feedUploadQueueProvider).jobs, isEmpty);
+      expect(box.values, isEmpty);
+      expect(
+        await Directory('${tempDir.path}/feed_upload_images').list().toList(),
+        isEmpty,
+      );
+      expect(client.uploadCalls, 0);
+    },
+  );
+
+  test(
+    'retry reads the saved photo after the picker file is deleted',
+    () async {
+      final picker = File('${tempDir.path}/picker.jpg');
+      final bytes = Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]);
+      await picker.writeAsBytes(bytes);
+      client
+        ..readImage = true
+        ..uploadError = const SocketException('offline');
+      final notifier = container.read(feedUploadQueueProvider.notifier);
+      final job = await notifier.enqueue(
+        roomId: 'room-1',
+        senderId: 'user-1',
+        localImagePath: picker.path,
+        caption: null,
+        clientCreatedAt: DateTime.utc(2026, 10, 25),
+        labels: const [],
+        initialBytes: bytes,
+      );
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId[job.tempId]
+                ?.retryCount ==
+            1,
+      );
+      await picker.delete();
+      client
+        ..uploadError = null
+        ..uploadResult = const FeedUploadResult(
+          tempId: 'ignored',
+          coinsAwarded: 0,
+        );
+
+      await notifier.retry(job.tempId);
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId[job.tempId]
+                ?.status ==
+            FeedUploadJobStatus.completed,
+      );
+
+      expect(client.uploadedImages, [bytes, bytes]);
+      expect(await File(job.localImagePath).readAsBytes(), bytes);
+      await notifier.acknowledge(job.tempId);
+      expect(await File(job.localImagePath).exists(), isFalse);
+    },
+  );
+
+  test(
+    'reopened queue uploads saved photo without in-memory preview',
+    () async {
+      final picker = File('${tempDir.path}/picker.jpg');
+      final bytes = Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]);
+      await picker.writeAsBytes(bytes);
+      client.uploadError = const SocketException('offline');
+      final job = await container
+          .read(feedUploadQueueProvider.notifier)
+          .enqueue(
+            roomId: 'room-1',
+            senderId: 'user-1',
+            localImagePath: picker.path,
+            caption: null,
+            clientCreatedAt: DateTime.utc(2026, 10, 25),
+            labels: const [],
+            initialBytes: bytes,
+          );
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId[job.tempId]
+                ?.retryCount ==
+            1,
+      );
+      container.dispose();
+      await box.close();
+      await picker.delete();
+      box = await Hive.openBox<dynamic>('feed_upload_jobs_test');
+      repository = FeedUploadRepository(box: box);
+      client = _FakeFeedUploadClient()
+        ..readImage = true
+        ..uploadResult = const FeedUploadResult(
+          tempId: 'ignored',
+          coinsAwarded: 0,
+        );
+      container = ProviderContainer(
+        overrides: [
+          feedUploadRepositoryProvider.overrideWithValue(repository),
+          feedUploadClientProvider.overrideWithValue(client),
+        ],
+      );
+      container.read(feedUploadQueueProvider);
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId[job.tempId]
+                ?.status ==
+            FeedUploadJobStatus.completed,
+      );
+      expect(client.uploadedImages.single, bytes);
+    },
+  );
+
+  test(
+    'legacy jobs save readable picker files only after reconciliation',
+    () async {
+      final picker = File('${tempDir.path}/legacy.jpg');
+      final bytes = Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF]);
+      await picker.writeAsBytes(bytes);
+      final job = _buildJob(status: FeedUploadJobStatus.pending);
+      await repository.saveJob(
+        FeedUploadJob.fromJson({
+          ...job.toJson(),
+          'local_image_path': picker.path,
+        }),
+      );
+      client
+        ..readImage = true
+        ..uploadResult = const FeedUploadResult(
+          tempId: 'ignored',
+          coinsAwarded: 0,
+        );
+      container.read(feedUploadQueueProvider);
+      await _pumpUntil(
+        () =>
+            container
+                .read(feedUploadQueueProvider)
+                .jobsByTempId[job.tempId]
+                ?.status ==
+            FeedUploadJobStatus.completed,
+      );
+      final saved = container
+          .read(feedUploadQueueProvider)
+          .jobsByTempId[job.tempId]!;
+      expect(saved.localImagePath, isNot(picker.path));
+      expect(await File(saved.localImagePath).readAsBytes(), bytes);
+      await container
+          .read(feedUploadQueueProvider.notifier)
+          .acknowledge(job.tempId);
+      expect(await picker.exists(), isTrue);
+      expect(await File(saved.localImagePath).exists(), isFalse);
+    },
+  );
+
   test(
     'first upload failure auto-retries silently and stays pending',
     () async {
@@ -114,13 +374,16 @@ void main() {
   test(
     'upload fails terminally once the auto-retry budget is exhausted',
     () async {
+      final picker = await File(
+        '${tempDir.path}/picker.jpg',
+      ).writeAsBytes([0xff, 0xd8, 0xff]);
       // Persist a job that has already consumed its auto-retry budget so the next
       // failed attempt flips it straight to failed without scheduling a timer.
       final exhausted = FeedUploadJob(
         tempId: 'temp-exhausted',
         roomId: 'room-1',
         senderId: 'user-1',
-        localImagePath: '/tmp/feed.jpg',
+        localImagePath: picker.path,
         caption: null,
         clientCreatedAt: DateTime.utc(2026, 4, 17, 5),
         labels: const <Map<String, dynamic>>[],
@@ -148,6 +411,12 @@ void main() {
       expect(failed.retryCount, 4);
       expect(failed.lastError, contains('network_timeout'));
       expect(client.uploadCalls, 1);
+      expect(await File(failed.localImagePath).exists(), isTrue);
+      await container
+          .read(feedUploadQueueProvider.notifier)
+          .acknowledge(failed.tempId);
+      expect(await File(failed.localImagePath).exists(), isFalse);
+      expect(await picker.exists(), isTrue);
     },
   );
 
@@ -415,11 +684,12 @@ void main() {
 }
 
 Future<void> _pumpUntil(bool Function() condition) async {
-  for (var i = 0; i < 30; i++) {
+  final deadline = DateTime.now().add(const Duration(seconds: 3));
+  while (DateTime.now().isBefore(deadline)) {
     if (condition()) {
       return;
     }
-    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(const Duration(milliseconds: 10));
   }
   fail('Condition was not met before timeout.');
 }
@@ -451,12 +721,22 @@ FeedUploadJob _buildJob({
   );
 }
 
+class _FailingSaveRepository extends FeedUploadRepository {
+  _FailingSaveRepository({required super.box});
+
+  @override
+  Future<void> saveJob(FeedUploadJob job) async =>
+      throw StateError('disk full');
+}
+
 class _FakeFeedUploadClient implements FeedUploadClient {
   FeedUploadResult? reconciledResult;
   FeedUploadResult? uploadResult;
   Object? uploadError;
   int findCalls = 0;
   int uploadCalls = 0;
+  bool readImage = false;
+  final List<Uint8List> uploadedImages = [];
 
   @override
   Future<FeedUploadResult?> findCompletedUpload(FeedUploadJob job) async {
@@ -470,6 +750,11 @@ class _FakeFeedUploadClient implements FeedUploadClient {
     Uint8List? initialBytes,
   }) async {
     uploadCalls += 1;
+    if (readImage) {
+      uploadedImages.add(
+        initialBytes ?? await File(job.localImagePath).readAsBytes(),
+      );
+    }
     final error = uploadError;
     if (error != null) {
       throw error;

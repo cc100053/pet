@@ -10,7 +10,8 @@ durable queue state, rewards, hunger, and push notifications.
 
 ## Runtime Flow
 
-1. Flutter enqueues a `FeedUploadJob` in the durable Hive/Riverpod queue.
+1. Flutter saves a queue-owned photo beside Hive, then persists and exposes a
+   `FeedUploadJob` in the durable Hive/Riverpod queue.
 2. Home shows the optimistic feed image and increments the reward-pending UI.
 3. `SupabaseFeedUploadClient` compresses the image (WebP, long edge 1600px,
    q85; 1600/q78 fallback; emergency profiles only above 10MB; originals
@@ -93,14 +94,32 @@ therefore have an old failed job saved from a previous timeout or server error.
 
 Current handling:
 
+- New jobs write the preview bytes (or copy the source file) to
+  `feed_upload_images/<encoded-temp-id>.image` beside the Hive box before
+  persisting/publishing the job. A staging file is renamed only after the
+  write completes. Enqueue failures retain the picker screen and remove the
+  staged/owned photo if possible; cleanup errors are reported silently.
+- The existing `local_image_path` field points to this owned file; no Hive
+  fields or client/server contracts changed. Retries read the saved file rather
+  than consuming a one-use in-memory preview. Restored jobs resolve owned
+  photos against the current Hive directory so an iOS container move does not
+  leave stale absolute paths.
 - Pending/uploading jobs reload as pending and are resumed.
 - Failed jobs persisted from a previous app run reload as pending too.
 - Before re-uploading, the queue calls `findCompletedUpload(...)` using
   `client_created_at` tolerance to find an already-written message.
 - If the message is found, the job completes as reconciled without uploading
   again or replaying the old error.
+- If no message is found, legacy jobs copy any still-readable picker photo
+  into queue storage before uploading. Already-missing legacy photos cannot
+  be recovered and follow the existing retry/failure UI path; reconciliation
+  always runs first so a committed feed does not require its old local file.
 - Only a fresh terminal failure after the retry budget is exhausted should show
   the user-facing feed upload error.
+- Home acknowledges completed/failed jobs after handling their terminal event.
+  Acknowledgement removes only the queue-owned photo and Hive job; it never
+  deletes a picker/gallery source. Until acknowledgement, the owned photo is
+  retained for restoration and optimistic display.
 
 This prevents existing users from seeing stale error snackbars after a feed
 that already succeeded in the backend.

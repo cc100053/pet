@@ -128,7 +128,6 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
   static const int _maxAutoRetries = 3;
 
   final Set<String> _inFlightTempIds = <String>{};
-  final Map<String, Uint8List> _initialBytesByTempId = <String, Uint8List>{};
   final Map<String, Timer> _autoRetryTimers = <String, Timer>{};
   bool _loadStarted = false;
 
@@ -149,6 +148,7 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
 
   Future<void> _loadPersistedJobs() async {
     await _repository.init();
+    if (!ref.mounted) return;
     final jobs = _repository.loadJobs();
     state = state.copyWith(
       jobsByTempId: {
@@ -182,15 +182,20 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
     required List<Map<String, dynamic>> labels,
     Uint8List? initialBytes,
   }) async {
+    final repository = _repository;
     if (!state.loaded) {
-      await _repository.init();
+      await repository.init();
     }
     final tempId = 'temp_${clientCreatedAt.microsecondsSinceEpoch}';
     final job = FeedUploadJob(
       tempId: tempId,
       roomId: roomId,
       senderId: senderId,
-      localImagePath: localImagePath,
+      localImagePath: await repository.saveImage(
+        tempId,
+        localImagePath,
+        bytes: initialBytes,
+      ),
       caption: caption,
       clientCreatedAt: clientCreatedAt.toUtc(),
       labels: labels,
@@ -198,10 +203,12 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
       retryCount: 0,
       updatedAt: DateTime.now().toUtc(),
     );
-    if (initialBytes != null) {
-      _initialBytesByTempId[tempId] = initialBytes;
+    try {
+      await _upsertJob(job);
+    } catch (_) {
+      await repository.deleteImage(tempId);
+      rethrow;
     }
-    await _upsertJob(job);
     unawaited(_processJob(tempId));
     return job;
   }
@@ -240,12 +247,11 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
       jobsByTempId: nextJobs,
       revision: state.revision + 1,
     );
-    _initialBytesByTempId.remove(tempId);
     await _repository.deleteJob(tempId);
   }
 
   Future<void> _processJob(String tempId) async {
-    if (!_inFlightTempIds.add(tempId)) {
+    if (!ref.mounted || !_inFlightTempIds.add(tempId)) {
       return;
     }
     try {
@@ -261,24 +267,35 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
         clearLastError: true,
       );
       await _upsertJob(uploading);
+      if (!ref.mounted) return;
       job = uploading;
 
       final reconciled = await _client.findCompletedUpload(job);
+      if (!ref.mounted) return;
       if (reconciled != null) {
         await _completeJob(job, reconciled.copyWith(reconciled: true));
         return;
       }
 
-      final result = await _client.upload(
-        job,
-        initialBytes: _initialBytesByTempId.remove(tempId),
+      final imagePath = await _repository.saveImage(
+        job.tempId,
+        job.localImagePath,
       );
+      if (!ref.mounted) return;
+      if (imagePath != job.localImagePath) {
+        job = job.copyWith(localImagePath: imagePath);
+        await _upsertJob(job);
+      }
+      if (!ref.mounted) return;
+      final result = await _client.upload(job);
+      if (!ref.mounted) return;
       await _completeJob(job, result);
       AnalyticsService.instance.logEvent(
         'feed_send',
         parameters: {'result': 'success'},
       );
     } catch (error) {
+      if (!ref.mounted) return;
       AnalyticsService.instance.logEvent(
         'feed_send',
         parameters: {'result': 'failure'},
@@ -314,6 +331,7 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
   }
 
   void _scheduleAutoRetry(String tempId, int attempt) {
+    if (!ref.mounted) return;
     _autoRetryTimers.remove(tempId)?.cancel();
     _autoRetryTimers[tempId] = Timer(_backoffDelay(attempt), () {
       _autoRetryTimers.remove(tempId);
@@ -345,6 +363,8 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
   }
 
   Future<void> _upsertJob(FeedUploadJob job) async {
+    await _repository.saveJob(job);
+    if (!ref.mounted) return;
     final nextJobs = Map<String, FeedUploadJob>.from(state.jobsByTempId);
     nextJobs[job.tempId] = job;
     state = state.copyWith(
@@ -352,6 +372,5 @@ class FeedUploadQueueNotifier extends Notifier<FeedUploadQueueState> {
       loaded: true,
       revision: state.revision + 1,
     );
-    await _repository.saveJob(job);
   }
 }

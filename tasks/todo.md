@@ -1,5 +1,17 @@
 # TODO
 
+## Durable feed photos (2026-10-25)
+- [x] Persist queue-owned photos before enqueue; retain them across retries and
+      restarts, rebase paths after iOS container moves, and clean up on acknowledgement.
+- [x] Preserve old Hive job fields and reconcile server success before reading
+      old picker files; regress enqueue failures, retry, restoration and cleanup.
+- [x] Update the feed runbook. Final-tree format: 365 files unchanged; analysis
+      clean; 802 tests passed / 1 live integration skip. Seven new regressions
+      cover durable photos and safe cleanup; documentation links/whitespace pass.
+- [ ] Verify picker → interrupted upload → app restart on an iOS device
+      `[USER ACTION REQUIRED]`; monitor Crashlytics
+      `20256d54958a5fffbd2cc26adef3b81e` after the next release.
+
 ## Review prompt refinement (2026-10-24)
 - [x] Lower first eligibility to five feeds on two observed local feed days;
       retain existing counters/dates and allow recurring requests after 90 days.
