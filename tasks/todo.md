@@ -1,5 +1,14 @@
 # TODO
 
+## Risk-based verification workflow (2026-10-26)
+- [x] Route implementation work from AGENTS.md to the testing decision table;
+      choose and execute behavior checks proactively while retaining the code gate.
+- [x] Document the simulator procedure, isolated-data fallback, concrete proof,
+      normal-app restoration and remaining device/live-service boundaries.
+- [x] Walk through documentation, logic, simulator-file-lifetime and hardware
+      branches; validate links, heading anchors, referenced command targets and
+      whitespace. Documentation-only, so no Flutter or simulator rerun needed.
+
 ## Feed photo lifetime follow-up (2026-10-26)
 - [x] Defer terminal-job acknowledgement while Home's feeding animation uses
       its photo; release on completion, replacement, room switch or disposal.

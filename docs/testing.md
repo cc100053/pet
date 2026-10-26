@@ -44,6 +44,37 @@ only the public client keys `lib/services/env.dart` reads, because every
 bundled asset ships to users in plain text; server secrets (R2, webhook
 secrets, Apple keys) must never reach it.
 
+### Risk-based behavior checks
+
+Before implementation, identify the behavior that could break and choose the
+checks below. Record a short decision in commentary or `tasks/todo.md`:
+**changed behavior → test level → concrete pass/fail signal**. Execute the
+chosen checks after the change as part of the task; the user need not request
+testing separately. An explicit simulator/device test request selects that
+level even when automated tests already pass.
+
+| Change / risk | Behavior verification |
+| --- | --- |
+| Documentation or agent instructions only | Validate instructions, links and affected commands; walk through the decision branches. |
+| Formatting, trivial edits or behavior-preserving refactors | Use relevant existing tests; add a test only when a meaningful regression is otherwise uncovered. |
+| Non-trivial logic, retries, persisted state, auth, purchases or backend contracts | Run focused automated checks for the changed behavior, failure paths and relevant old data/contracts. For bug fixes, demonstrate the regression against the prior implementation when feasible, then verify the fix. |
+| Layout, navigation, keyboard, dialogs or animation timing | Use widget tests; add a simulator rendering/interaction check when those tests cannot establish the actual platform behavior. |
+| Native integration, local file lifetime, background/resume or process restart | Run applicable automated regressions plus a simulator check of the platform boundary. Use actual process termination/relaunch when testing restart recovery. |
+| Hardware, iCloud transfer, APNs delivery, native purchases/review dialogs or OS eviction/OOM behavior | Validate what the simulator supports, then perform a targeted real-device check for the remaining claim. Mark unavailable required checks `[USER ACTION REQUIRED]`. |
+
+These behavior checks supplement the final-tree gate above; they do not waive
+it for code or runtime-asset changes. Physical-device testing is selected for a
+specific uncovered risk, rather than required after every edit. Before release,
+include a short smoke check of the affected critical flow. Once the selected
+checks pass, expand or repeat them only for new changes, failures or unresolved
+risks.
+
+Report the decision and actual results, including checks skipped and why.
+Distinguish isolated harnesses, mocked services and copied private methods from
+the full app flow; report the device/runtime and tested commit for platform
+runs. A successful launch alone proves startup, not the changed feature.
+Live service/account/notification tests retain the [live-test boundary](#live-test-boundary).
+
 ### iOS simulator builds on Xcode 27
 
 `flutter build ios --simulator` / `flutter run` on a simulator fail in
@@ -58,6 +89,33 @@ xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Debug
 ```
 
 then install `build/ios_sim/Build/Products/Debug-iphonesimulator/Runner.app`.
+
+### Simulator verification procedure
+
+1. Record the source commit, working-tree state, pinned SDK, simulator UDID and
+   OS. Prefer XcodeBuildMCP when available: inspect session defaults, select
+   the correct Runner workspace/scheme/device, then build and launch with the
+   arm64 settings above. Verify the normal app opens.
+2. Exercise the changed path in the app using a verified test account when
+   authorized. If account access or UI automation is unavailable, use an
+   isolated temporary entry point under ignored `build/` with production
+   components and separate Hive boxes/directories. Preserve the normal app
+   bundle before building a custom `FLUTTER_TARGET`; keep the entry point out
+   of release wiring. Use test-generated photos and mocked uploads for local
+   checks, retaining the live-test boundary for real writes and notifications.
+3. Assert the relevant happy path and failure/recovery cases. For feed photo
+   lifetime, verify actual photo pixels through each bite after fast upload,
+   retry after deleting the picker source, and persisted-job recovery after
+   terminating/relaunching the simulator process. Seed orphan/staging files
+   in the isolated directory and check that startup removes only those files
+   while preserving the pending photo; verify cleanup after acknowledgement.
+4. Capture visible output and inspect assertions/results, rather than treating
+   a running app or a green status label as feature verification. Save enough
+   evidence to identify the source, environment, scenarios and limitations.
+5. Stop the temporary entry point, reinstall/launch the preserved normal app
+   and verify its normal screen. Restore any temporary build configuration,
+   preserve existing account/room data, and check the worktree for accidental
+   changes. Keep required real-device or live-service checks explicitly pending.
 
 ### Live-test boundary
 

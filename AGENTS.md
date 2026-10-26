@@ -119,7 +119,11 @@ Discover code with `codegraph_explore` (or `codegraph explore`) before source se
 
 ## Verification
 
-- `docs/testing.md` owns the validation policy; there is no CI gate. Before
+- For each implementation, proactively choose and run the
+  [risk-based behavior checks](docs/testing.md#risk-based-behavior-checks).
+  Record the testing decision, evidence and remaining gaps; use the simulator
+  procedure there when platform behavior needs validation.
+- `docs/testing.md` owns the validation policy and CI status. Before
   pushing code or runtime-asset changes, run its final-tree format/analyze/test
   sequence. Format only touched Dart files; run Flutter test processes
   sequentially because they share generated assets.
