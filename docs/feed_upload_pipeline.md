@@ -99,6 +99,13 @@ Current handling:
   persisting/publishing the job. A staging file is renamed only after the
   write completes. Enqueue failures retain the picker screen and remove the
   staged/owned photo if possible; cleanup errors are reported silently.
+- Repository initialization runs one shared startup sweep before new photo
+  writes. It removes unreferenced `.image` files and abandoned `.image.pending`
+  files only from the owned directory. Every Hive job (including completed and
+  failed jobs) retains its photo; unrelated files and symlinks are left alone.
+  Repeated initialization calls await the same work rather than sweeping an
+  in-progress enqueue. Cleanup failures are reported silently and retried on
+  the next app launch.
 - The existing `local_image_path` field points to this owned file; no Hive
   fields or client/server contracts changed. Retries read the saved file rather
   than consuming a one-use in-memory preview. Restored jobs resolve owned
@@ -116,7 +123,10 @@ Current handling:
   always runs first so a committed feed does not require its old local file.
 - Only a fresh terminal failure after the retry budget is exhausted should show
   the user-facing feed upload error.
-- Home acknowledges completed/failed jobs after handling their terminal event.
+- Home acknowledges completed/failed jobs after handling their terminal event
+  and after its feeding animation stops referencing that photo. Animation
+  completion, replacement, room switching and Home disposal release the wait;
+  terminal jobs for unrelated photos can be acknowledged immediately.
   Acknowledgement removes only the queue-owned photo and Hive job; it never
   deletes a picker/gallery source. Until acknowledgement, the owned photo is
   retained for restoration and optimistic display.

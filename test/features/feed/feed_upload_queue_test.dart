@@ -105,6 +105,69 @@ void main() {
   });
 
   test(
+    'startup cleans interrupted enqueues but preserves every saved job',
+    () async {
+      final bytes = Uint8List.fromList([0xff, 0xd8, 0xff]);
+      final orphan = await repository.saveImage(
+        'orphan',
+        '/missing.jpg',
+        bytes: bytes,
+      );
+      final directory = File(orphan).parent;
+      final staging = await File(
+        '${directory.path}/interrupted.image.pending',
+      ).writeAsBytes(bytes);
+      final other = await File(
+        '${directory.path}/unrelated.txt',
+      ).writeAsString('keep');
+      final savedPhotos = <String>[];
+      for (final status in FeedUploadJobStatus.values) {
+        final job = FeedUploadJob.fromJson({
+          ..._buildJob(status: status).toJson(),
+          'temp_id': 'saved_${status.name}',
+        });
+        final path = await repository.saveImage(
+          job.tempId,
+          '/missing.jpg',
+          bytes: bytes,
+        );
+        await repository.saveJob(job.copyWith(localImagePath: path));
+        savedPhotos.add(path);
+      }
+      await box.close();
+      box = await Hive.openBox<dynamic>('feed_upload_jobs_test');
+      repository = FeedUploadRepository(box: box);
+
+      await repository.init();
+
+      expect(await File(orphan).exists(), isFalse);
+      expect(await staging.exists(), isFalse);
+      expect(await other.exists(), isTrue);
+      expect(
+        repository.loadJobs(),
+        hasLength(FeedUploadJobStatus.values.length),
+      );
+      for (final path in savedPhotos) {
+        expect(await File(path).readAsBytes(), bytes);
+      }
+    },
+  );
+
+  test(
+    'repeated init does not sweep a photo between staging and saving its job',
+    () async {
+      final bytes = Uint8List.fromList([0xff, 0xd8, 0xff]);
+      final path = await repository.saveImage(
+        'new-job',
+        '/missing.jpg',
+        bytes: bytes,
+      );
+      await Future.wait([repository.init(), repository.init()]);
+      expect(await File(path).readAsBytes(), bytes);
+    },
+  );
+
+  test(
     'restoration rebases saved photos after an app container move',
     () async {
       final job = _buildJob(status: FeedUploadJobStatus.pending);

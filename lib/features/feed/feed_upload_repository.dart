@@ -13,9 +13,37 @@ class FeedUploadRepository {
   static const String boxName = 'feed_upload_jobs';
 
   Box<dynamic>? _box;
+  Future<void>? _initialization;
 
-  Future<void> init() async {
+  Future<void> init() => _initialization ??= _initialize();
+
+  Future<void> _initialize() async {
     _box ??= await Hive.openBox<dynamic>(boxName);
+    await _cleanupOrphanedImages();
+  }
+
+  Future<void> _cleanupOrphanedImages() async {
+    try {
+      final directory = _imageFile('').parent;
+      if (!await directory.exists()) return;
+      final retained = {
+        for (final id in _box!.keys.whereType<String>()) _imageFile(id).path,
+      };
+      await for (final entry in directory.list(followLinks: false)) {
+        if (entry is! File) continue;
+        final name = entry.uri.pathSegments.last;
+        if (name.endsWith('.image.pending') ||
+            (name.endsWith('.image') && !retained.contains(entry.path))) {
+          await _deleteImage(entry);
+        }
+      }
+    } catch (error, stackTrace) {
+      reportSwallowedError(
+        error,
+        stackTrace,
+        source: 'feed_upload_orphan_cleanup',
+      );
+    }
   }
 
   List<FeedUploadJob> loadJobs() {
@@ -48,6 +76,7 @@ class FeedUploadRepository {
     String sourcePath, {
     Uint8List? bytes,
   }) async {
+    await init();
     final image = _imageFile(tempId);
     if (await image.exists()) {
       return image.path;

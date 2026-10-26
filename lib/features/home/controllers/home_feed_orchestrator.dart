@@ -330,7 +330,7 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     unawaited(
       Future<void>.delayed(
         Duration.zero,
-        () => _feedUploadQueue.acknowledge(event.job.tempId),
+        () => _acknowledgeQueuedFeed(event.job),
       ),
     );
   }
@@ -342,9 +342,18 @@ extension _HomeFeedOrchestrator on _HomeViewState {
     unawaited(
       Future<void>.delayed(
         Duration.zero,
-        () => _feedUploadQueue.acknowledge(event.job.tempId),
+        () => _acknowledgeQueuedFeed(event.job),
       ),
     );
+  }
+
+  Future<void> _acknowledgeQueuedFeed(FeedUploadJob job) async {
+    final queue = _feedUploadQueue;
+    // Upload completion can precede the last bite that rebuilds PhotoFood.
+    while (mounted && _photoFoodImageSource == job.localImagePath) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await queue.acknowledge(job.tempId);
   }
 
   void _handleFeedUploadCompleted(FeedUploadResult result) {

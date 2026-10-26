@@ -1,5 +1,18 @@
 # TODO
 
+## Feed photo lifetime follow-up (2026-10-26)
+- [x] Defer terminal-job acknowledgement while Home's feeding animation uses
+      its photo; release on completion, replacement, room switch or disposal.
+- [x] Sweep only unreferenced owned photos and abandoned staging files once at
+      repository startup, before accepting new photo writes; retain all saved jobs.
+- [x] Regress both reported failures and cleanup/write ordering; the animation
+      regression runs the real Home terminal handlers through five scenarios.
+      Updated the feed runbook. Final-tree format: 366 files unchanged; analysis
+      clean; 805 tests passed / 1 live integration skip. Documentation links and
+      whitespace pass.
+- [ ] Verify a fast upload keeps the photo through every bite, plus interrupted
+      enqueue/restart on an iOS device `[USER ACTION REQUIRED]`; ships next build.
+
 ## Durable feed photos (2026-10-25)
 - [x] Persist queue-owned photos before enqueue; retain them across retries and
       restarts, rebase paths after iOS container moves, and clean up on acknowledgement.
