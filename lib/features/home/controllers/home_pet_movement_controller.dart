@@ -11,6 +11,7 @@ extension _HomePetMovementController on _HomeViewState {
 
   void _maybeTriggerWander() {
     if (!mounted ||
+        _furnitureMode ||
         _isDraggingPet ||
         _petDeparted ||
         _petEating ||

@@ -77,7 +77,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
                 ..._buildAdditionalRoomPets(fieldSize),
                 AnimatedBuilder(
                   animation: _petMoveController,
-                  builder: (context, child) {
+                  builder: (context, _) {
                     final normalized = _currentPetNormalized();
                     final topLeft = _positionFromNormalized(
                       normalized,
@@ -86,10 +86,18 @@ extension _HomePetSceneBuilders on _HomeViewState {
                     return Positioned(
                       left: topLeft.dx,
                       top: topLeft.dy,
-                      child: child!,
+                      child: HomePetPeekShift(
+                        hidden: _furnitureMode,
+                        shift: _petPeekTopLeft(0, fieldSize) - topLeft,
+                        cheerTick: _furniturePlaceCount,
+                        builder: (walking, facingRight) => _buildDraggablePet(
+                          fieldSize,
+                          peekWalking: walking,
+                          peekFacingRight: facingRight,
+                        ),
+                      ),
                     );
                   },
-                  child: _buildDraggablePet(fieldSize),
                 ),
                 if (_petEating) _buildEatingHearts(fieldSize),
                 if (_shouldShowNewRoomInvitePrompt)
@@ -410,7 +418,11 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
-  Widget _buildDraggablePet(Size fieldSize) {
+  Widget _buildDraggablePet(
+    Size fieldSize, {
+    bool peekWalking = false,
+    bool? peekFacingRight,
+  }) {
     final petState = _effectivePetState;
     if (_effectivePetDeparted) {
       return _buildDepartedPetPlaceholder();
@@ -449,13 +461,13 @@ extension _HomePetSceneBuilders on _HomeViewState {
               child: Transform(
                 alignment: Alignment.center,
                 transform: Matrix4.diagonal3Values(
-                  _petFacingRight ? 1.0 : -1.0,
+                  (peekFacingRight ?? _petFacingRight) ? 1.0 : -1.0,
                   1.0,
                   1.0,
                 ),
                 child: Transform.scale(
                   scale: petVisualScale,
-                  child: _buildPetAvatar(),
+                  child: _buildPetAvatar(peekWalking: peekWalking),
                 ),
               ),
             ),
@@ -519,6 +531,26 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
+  /// Furniture-mode peek spot for room pet [slot] (0 = main pet): pets line up
+  /// evenly along the room's bottom edge, sunk below it so only their heads
+  /// show above the edit bar (the field's Stack clips the rest).
+  Offset _petPeekTopLeft(int slot, Size fieldSize) {
+    final count = 1 + _peekExtraPetCount();
+    final size = _HomeViewState._petAvatarSize;
+    final x = fieldSize.width * (slot + 1) / (count + 1) - size.width / 2;
+    return Offset(x, fieldSize.height - _HomeViewState._petPeekVisibleHeight);
+  }
+
+  int _peekExtraPetCount() {
+    final roomId = _roomId;
+    if (roomId == null) return 0;
+    final pets = _roomPetsByRoom[roomId] ?? const <_RoomPet>[];
+    return pets
+        .where((pet) => !pet.isMain && pet.petId != _petId)
+        .take(4)
+        .length;
+  }
+
   List<Widget> _buildAdditionalRoomPets(Size fieldSize) {
     if (_effectivePetDeparted || !_effectivePetStateReady) {
       return const [];
@@ -568,24 +600,34 @@ extension _HomePetSceneBuilders on _HomeViewState {
                 _handleExtraPetDragUpdate(pet.petId, details, fieldSize),
             onPanEnd: (_) => _handleExtraPetDragEnd(pet.petId),
             onPanCancel: () => _handleExtraPetDragEnd(pet.petId),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Transform.scale(
-                  scale: visualScale,
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(
-                      runtime.facingRight ? 1.0 : -1.0,
-                      1.0,
-                      1.0,
+            child: HomePetPeekShift(
+              hidden: _furnitureMode,
+              shift: _petPeekTopLeft(i + 1, fieldSize) - pos,
+              cheerTick: _furniturePlaceCount,
+              builder: (walking, facingRight) => Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Transform.scale(
+                    scale: visualScale,
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.diagonal3Values(
+                        (facingRight ?? runtime.facingRight) ? 1.0 : -1.0,
+                        1.0,
+                        1.0,
+                      ),
+                      child: _buildRoomPetAvatar(
+                        pet,
+                        runtime,
+                        size: size,
+                        peekWalking: walking,
+                      ),
                     ),
-                    child: _buildRoomPetAvatar(pet, runtime, size: size),
                   ),
-                ),
-                if (_visibleNameTagPetId == pet.petId)
-                  _buildPetNameTag(pet, size: size),
-              ],
+                  if (_visibleNameTagPetId == pet.petId)
+                    _buildPetNameTag(pet, size: size),
+                ],
+              ),
             ),
           ),
         ),
@@ -902,14 +944,15 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
-  Widget _buildPetAvatar() {
+  Widget _buildPetAvatar({bool peekWalking = false}) {
     final petColor = _petMoodColor();
     final petDefinition = PetCatalog.byId(_petType);
+    final moving = _petIsMoving || peekWalking;
 
     final String asset;
     if (_petEating) {
       asset = petDefinition.stayAsset;
-    } else if (_petIsMoving) {
+    } else if (moving) {
       asset = petDefinition.walkAsset;
     } else {
       asset = switch (_petStationaryState) {
@@ -935,9 +978,9 @@ extension _HomePetSceneBuilders on _HomeViewState {
         petId: _petType,
         asset: asset,
         size: _HomeViewState._petAvatarSize,
-        isWalking: _petIsMoving,
+        isWalking: moving,
         isSleeping:
-            !_petIsMoving &&
+            !moving &&
             _petStationaryState == _PetStationaryState.sleeping &&
             !_petEating,
         petFallbackColor: petColor,
@@ -951,9 +994,10 @@ extension _HomePetSceneBuilders on _HomeViewState {
     _RoomPet pet,
     _ExtraPetRuntime runtime, {
     required Size size,
+    bool peekWalking = false,
   }) {
     final petDefinition = PetCatalog.byId(pet.petType);
-    final isWalking = runtime.isWalking || runtime.isDragging;
+    final isWalking = runtime.isWalking || runtime.isDragging || peekWalking;
     final isSleeping =
         !isWalking && runtime.stationaryState == _PetStationaryState.sleeping;
     final String asset;

@@ -98,6 +98,7 @@ import 'room_canvas.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_furniture_inventory_overlay.dart';
+import 'widgets/home_pet_peek_shift.dart';
 import 'widgets/home_furniture_edit_bar.dart';
 import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_main_content.dart';
@@ -150,6 +151,9 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   static const _petAvatarSize = Size(100, 100);
+  // How far a peeking pet's 100pt box rises above the room's bottom edge in
+  // furniture mode: the ~13pt transparent margin at 0.74 scale plus its head.
+  static const double _petPeekVisibleHeight = 52;
   static const double _petCompactVisualScale = 0.74;
   static const double _petRegularVisualScale = 0.74;
   static const double _petExpandedVisualScale = 0.88;
@@ -346,6 +350,8 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   // Furniture State
   bool _furnitureMode = false;
+  // Bumped per piece placed so peeking pets hop.
+  int _furniturePlaceCount = 0;
   bool _furnitureLoading = false;
   String? _furnitureError;
   String? _selectedFurnitureItemId;
@@ -1918,7 +1924,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   void _wanderExtraPetsIfIdle() {
-    if (!mounted) return;
+    if (!mounted || _furnitureMode) return;
     if (_petEating || _photoFoodImageSource != null) return;
     final roomId = _roomId;
     if (roomId == null) return;

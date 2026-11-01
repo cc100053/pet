@@ -883,6 +883,7 @@ extension _HomeRoomDecor on _HomeViewState {
     _setStateForRoomDecor(() {
       _activeFurnitureForRoom().add(placed);
       _selectedPlacedFurnitureId = placed.id;
+      _furniturePlaceCount++;
     });
     _autoLayerFurniture(placed, content);
     unawaited(_persistFurniturePlacement(placed));

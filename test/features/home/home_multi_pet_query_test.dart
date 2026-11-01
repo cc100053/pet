@@ -182,7 +182,10 @@ void main() {
     // Avatar builder selects walk/sleep/stay assets from runtime state.
     expect(sceneSource, contains('petDefinition.walkAsset'));
     expect(sceneSource, contains('petDefinition.sleepAsset'));
-    expect(sceneSource, contains('_buildRoomPetAvatar(pet, runtime'));
+    expect(
+      sceneSource,
+      contains(RegExp(r'_buildRoomPetAvatar\(\s*pet,\s*runtime')),
+    );
     // Full size (no 0.86 shrink factor).
     expect(
       sceneSource,
