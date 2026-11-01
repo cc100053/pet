@@ -657,7 +657,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (activeRoomId != null) {
         unawaited(_refreshLatestFeed(activeRoomId));
         unawaited(_refreshEffectivePetStatusForRooms([activeRoomId]));
-        unawaited(_tickPetState());
+        // A room entry that failed (e.g. offline in the background) never
+        // loaded the pet; a plain tick would not fetch it, so reload it.
+        unawaited(
+          _petState == null && _petError != null
+              ? _refreshPetState(tick: true)
+              : _tickPetState(),
+        );
       }
       return;
     }
@@ -2227,9 +2233,14 @@ class _HomeViewState extends ConsumerState<HomeView>
         return;
       }
       setState(
-        () => _petError = AppLocalizations.of(
-          context,
-        )!.petSyncFailed(userFacingError(context, error)),
+        () => _petError = AppLocalizations.of(context)!.petSyncFailed(
+          userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'home_refresh_pet_state',
+          ),
+        ),
       );
       if (mounted && !_petStateReady) {
         setState(() {

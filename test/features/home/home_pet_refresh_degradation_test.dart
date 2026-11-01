@@ -53,6 +53,27 @@ void main() {
     // The early return must be conditional; an unconditional one would hide
     // genuine failures on a cold room entry.
     expect(body, contains('if (_petStateReady && _petState != null) {'));
-    expect(body, contains('petSyncFailed(userFacingError(context, error))'));
+    expect(body, contains('petSyncFailed('));
+    // Without the caught stack trace Crashlytics blames the setState closure.
+    expect(body, contains('stackTrace: stackTrace,'));
+  });
+
+  test('resuming after a failed room entry reloads the pet', () {
+    final source = File('lib/features/home/home_view.dart').readAsStringSync();
+    final resume =
+        RegExp(
+          r'void didChangeAppLifecycleState\(AppLifecycleState state\) \{([\s\S]*?)\n  \}',
+        ).firstMatch(source)?.group(1) ??
+        '';
+
+    // A plain tick never fetches pet_state, so a pet that failed to load
+    // offline would stay missing after the network returns.
+    expect(
+      resume,
+      contains(
+        '_petState == null && _petError != null\n'
+        '              ? _refreshPetState(tick: true)',
+      ),
+    );
   });
 }

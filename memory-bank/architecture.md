@@ -25,6 +25,9 @@ Current-state map for architecture and ownership changes. Full snapshots live in
   `room_frame_styles` is fallback/cache only, never automatically uploaded.
   Server timestamps reject stale responses; Home/session teardown invalidates
   pending work. Frame sync stays dark below the existing `3.0.0` UI gate.
+- A failed `_refreshPetState` keeps a pet already on screen (swallowed
+  report); with nothing to show it renders `petSyncFailed`, and the next
+  app resume retries the full refresh instead of the plain hunger tick.
 - Shared backgrounds, furniture, and pets require version-gated visibility,
   old-client render fallback, and the compatibility prompt.
 - Multi-pet v2 keeps one canonical `pets` row per room for old clients; extras
