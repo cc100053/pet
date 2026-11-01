@@ -4,18 +4,21 @@ import 'package:flutter/material.dart';
 
 /// Shows [child] briefly, then fades it out after [visibleFor] or as soon as
 /// [dismissed] turns true (e.g. the user starts the gesture it teaches). Once
-/// faded it stays hidden; give it a new key to show it again.
+/// faded it stays hidden and reports [onHidden]; give it a new key to show it
+/// again.
 class HomeFadingHint extends StatefulWidget {
   const HomeFadingHint({
     super.key,
     required this.dismissed,
     required this.child,
     this.visibleFor = const Duration(seconds: 3),
+    this.onHidden,
   });
 
   final bool dismissed;
   final Widget child;
   final Duration visibleFor;
+  final VoidCallback? onHidden;
 
   @override
   State<HomeFadingHint> createState() => _HomeFadingHintState();
@@ -53,6 +56,7 @@ class _HomeFadingHintState extends State<HomeFadingHint> {
       child: AnimatedOpacity(
         opacity: _visible ? 1 : 0,
         duration: const Duration(milliseconds: 300),
+        onEnd: _visible ? null : widget.onHidden,
         child: widget.child,
       ),
     );

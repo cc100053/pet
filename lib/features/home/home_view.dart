@@ -351,6 +351,8 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   // Furniture State
   bool _furnitureMode = false;
+  // The move hint shows once per furniture-mode visit.
+  bool _furnitureMoveHintSeen = false;
   // Bumped per piece placed so peeking pets hop.
   int _furniturePlaceCount = 0;
   bool _furnitureLoading = false;

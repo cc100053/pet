@@ -10,13 +10,27 @@ void main() {
   double opacity(WidgetTester tester) =>
       tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
 
-  testWidgets('fades out after visibleFor', (tester) async {
-    await tester.pumpWidget(build());
+  testWidgets('fades out after visibleFor, then reports onHidden', (
+    tester,
+  ) async {
+    var hidden = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeFadingHint(
+          dismissed: false,
+          onHidden: () => hidden++,
+          child: const Text('hint'),
+        ),
+      ),
+    );
     expect(opacity(tester), 1);
     await tester.pump(const Duration(seconds: 2));
     expect(opacity(tester), 1);
     await tester.pump(const Duration(seconds: 1));
     expect(opacity(tester), 0);
+    expect(hidden, 0, reason: 'still fading');
+    await tester.pumpAndSettle();
+    expect(hidden, 1);
   });
 
   testWidgets('a dismiss hides it for good', (tester) async {

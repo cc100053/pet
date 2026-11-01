@@ -112,16 +112,18 @@ extension _HomePetSceneBuilders on _HomeViewState {
                     child: _buildFirstDayChecklist(),
                   ),
                 // Top of the room: the bottom edge is where pets peek. Shown
-                // again per selected piece, gone once a drag starts.
-                if (movingPiece != null)
+                // once per furniture-mode visit, gone once a drag starts.
+                if (movingPiece != null && !_furnitureMoveHintSeen)
                   Positioned(
                     top: promptInset,
                     left: promptInset,
                     right: promptInset,
                     child: Center(
                       child: HomeFadingHint(
-                        key: ValueKey('furniture_move_hint_${movingPiece.id}'),
                         dismissed: _activeFurnitureDragId != null,
+                        onHidden: () => _setStateForRoomDecor(
+                          () => _furnitureMoveHintSeen = true,
+                        ),
                         child: _buildFurnitureEditHint(),
                       ),
                     ),

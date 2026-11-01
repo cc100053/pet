@@ -422,6 +422,7 @@ extension _HomeRoomDecor on _HomeViewState {
         pets.any((p) => p.petId == _selectedEquipPetId);
     _setStateForRoomDecor(() {
       _furnitureMode = true;
+      _furnitureMoveHintSeen = false;
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
       if (!selectionValid) {
