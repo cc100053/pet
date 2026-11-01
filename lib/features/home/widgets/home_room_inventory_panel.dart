@@ -56,7 +56,8 @@ class HomeRoomInventoryPanel extends StatefulWidget {
     required this.equipPets,
     required this.selectedEquipPetId,
     required this.onSelectEquipPet,
-    required this.onClose,
+    required this.onToggleCollapsed,
+    this.collapsed = false,
     required this.onFurnitureTap,
     required this.onBackgroundApply,
     required this.onEquipItem,
@@ -87,7 +88,10 @@ class HomeRoomInventoryPanel extends StatefulWidget {
   final List<RoomPetOption> equipPets;
   final String? selectedEquipPetId;
   final ValueChanged<String> onSelectEquipPet;
-  final VoidCallback onClose;
+
+  /// Collapsed shows only the tab row so the room background shows through.
+  final bool collapsed;
+  final VoidCallback onToggleCollapsed;
   final void Function(String itemId) onFurnitureTap;
   final void Function(String itemId) onBackgroundApply;
   final Future<void> Function(String itemId, String slot) onEquipItem;
@@ -233,118 +237,127 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
       elevation: 6,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Text(
-                  l10n.roomInventoryTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: widget.onClose,
-                  tooltip: l10n.commonClose,
-                ),
-              ],
-            ),
-            TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.black87,
-              labelColor: Colors.black87,
-              unselectedLabelColor: Colors.black45,
-              tabs: [
-                Tab(text: l10n.inventoryTabFurniture),
-                Tab(text: l10n.backgroundGalleryTab),
-                Tab(text: l10n.inventoryTabEquipment),
-              ],
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              // One height for every tab: a per-tab height shrinks under the
-              // outgoing page mid-swipe and overflows. The equipment tab needs
-              // the extra room when the persistent pet selector shows; the
-              // furniture grid simply reveals more rows.
-              height: widget.equipPets.length >= 2 ? 348 : 290,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _FurnitureTab(
-                    items: furnitureItems,
-                    totalCount: (itemId) =>
-                        widget.furnitureInventory[itemId] ?? 0,
-                    selectedItemId: widget.selectedFurnitureItemId,
-                    availableCount: widget.availableFurnitureCount,
-                    loading: widget.furnitureLoading,
-                    errorText: widget.furnitureErrorText,
-                    onItemTap: widget.onFurnitureTap,
-                  ),
-                  _BackgroundTab(
-                    items: widget.backgroundItems,
-                    activeBackgroundId: widget.activeBackgroundId,
-                    applyingBackgroundId: widget.applyingBackgroundId,
-                    loading: widget.backgroundLoading,
-                    errorText: widget.backgroundErrorText,
-                    onApply: widget.onBackgroundApply,
-                  ),
-                  _EquipmentTab(
-                    petType: _selectedEquipPetType(),
-                    equipPets: widget.equipPets,
-                    selectedEquipPetId: widget.selectedEquipPetId,
-                    onSelectEquipPet: (petId) {
-                      if (petId == widget.selectedEquipPetId) {
-                        return;
+                Expanded(
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: Colors.black87,
+                    labelColor: Colors.black87,
+                    unselectedLabelColor: Colors.black45,
+                    // A tab tap on the collapsed strip reopens the list.
+                    onTap: (_) {
+                      if (widget.collapsed) {
+                        widget.onToggleCollapsed();
                       }
-                      setState(() => _previewEquipmentItemId = null);
-                      widget.onSelectEquipPet(petId);
                     },
-                    previewSkusBySlot: _previewSkusBySlot(),
-                    selectedSlot: _selectedEquipmentSlot,
-                    onSelectSlot: (slot) {
-                      setState(() {
-                        _selectedEquipmentSlot = slot;
-                        _previewEquipmentItemId = null;
-                      });
-                    },
-                    items: _equipmentItemsForSelectedSlot(),
-                    availableCount: widget.availableEquipmentCount,
-                    equippedItemId: _equippedItemIdForSelectedSlot(),
-                    previewItemId: _previewEquipmentItemId,
-                    loading: widget.equipmentLoading,
-                    errorText: widget.equipmentErrorText,
-                    submitting: _equipmentSubmitting,
-                    onItemTap: (itemId) {
-                      setState(() {
-                        _previewEquipmentItemId = itemId;
-                      });
-                    },
-                    onEquip: () => unawaited(_handleEquipPressed()),
-                    onUnequip: () => unawaited(_handleUnequipPressed()),
+                    tabs: [
+                      Tab(text: l10n.inventoryTabFurniture),
+                      Tab(text: l10n.backgroundGalleryTab),
+                      Tab(text: l10n.inventoryTabEquipment),
+                    ],
                   ),
-                ],
+                ),
+                IconButton(
+                  key: const Key('room_inventory_collapse_toggle'),
+                  icon: Icon(
+                    widget.collapsed
+                        ? Icons.expand_more_rounded
+                        : Icons.expand_less_rounded,
+                  ),
+                  onPressed: widget.onToggleCollapsed,
+                  tooltip: widget.collapsed
+                      ? l10n.furnitureInventoryExpand
+                      : l10n.furnitureInventoryCollapse,
+                ),
+              ],
+            ),
+            if (!widget.collapsed) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                // One height for every tab: a per-tab height shrinks under the
+                // outgoing page mid-swipe and overflows. The equipment tab needs
+                // the extra room when the persistent pet selector shows; the
+                // furniture grid simply reveals more rows.
+                height: widget.equipPets.length >= 2 ? 348 : 290,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _FurnitureTab(
+                      items: furnitureItems,
+                      totalCount: (itemId) =>
+                          widget.furnitureInventory[itemId] ?? 0,
+                      selectedItemId: widget.selectedFurnitureItemId,
+                      availableCount: widget.availableFurnitureCount,
+                      loading: widget.furnitureLoading,
+                      errorText: widget.furnitureErrorText,
+                      onItemTap: widget.onFurnitureTap,
+                    ),
+                    _BackgroundTab(
+                      items: widget.backgroundItems,
+                      activeBackgroundId: widget.activeBackgroundId,
+                      applyingBackgroundId: widget.applyingBackgroundId,
+                      loading: widget.backgroundLoading,
+                      errorText: widget.backgroundErrorText,
+                      onApply: widget.onBackgroundApply,
+                    ),
+                    _EquipmentTab(
+                      petType: _selectedEquipPetType(),
+                      equipPets: widget.equipPets,
+                      selectedEquipPetId: widget.selectedEquipPetId,
+                      onSelectEquipPet: (petId) {
+                        if (petId == widget.selectedEquipPetId) {
+                          return;
+                        }
+                        setState(() => _previewEquipmentItemId = null);
+                        widget.onSelectEquipPet(petId);
+                      },
+                      previewSkusBySlot: _previewSkusBySlot(),
+                      selectedSlot: _selectedEquipmentSlot,
+                      onSelectSlot: (slot) {
+                        setState(() {
+                          _selectedEquipmentSlot = slot;
+                          _previewEquipmentItemId = null;
+                        });
+                      },
+                      items: _equipmentItemsForSelectedSlot(),
+                      availableCount: widget.availableEquipmentCount,
+                      equippedItemId: _equippedItemIdForSelectedSlot(),
+                      previewItemId: _previewEquipmentItemId,
+                      loading: widget.equipmentLoading,
+                      errorText: widget.equipmentErrorText,
+                      submitting: _equipmentSubmitting,
+                      onItemTap: (itemId) {
+                        setState(() {
+                          _previewEquipmentItemId = itemId;
+                        });
+                      },
+                      onEquip: () => unawaited(_handleEquipPressed()),
+                      onUnequip: () => unawaited(_handleUnequipPressed()),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            AnimatedBuilder(
-              animation: _tabController,
-              builder: (context, _) {
-                final hint = switch (_tabController.index) {
-                  0 => l10n.furnitureInventoryHint,
-                  1 => l10n.backgroundInventoryHint,
-                  _ => l10n.equipmentInventoryHint,
-                };
-                return Text(
-                  hint,
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
-                );
-              },
-            ),
+              const SizedBox(height: 8),
+              AnimatedBuilder(
+                animation: _tabController,
+                builder: (context, _) {
+                  final hint = switch (_tabController.index) {
+                    0 => l10n.furnitureInventoryHint,
+                    1 => l10n.backgroundInventoryHint,
+                    _ => l10n.equipmentInventoryHint,
+                  };
+                  return Text(
+                    hint,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  );
+                },
+              ),
+            ],
           ],
         ),
       ),
@@ -1184,84 +1197,108 @@ class _FurnitureInventoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final canSelect = available > 0;
-    return JuicyScaleButton(
-      onTap: canSelect ? onTap : null,
-      child: Column(
-        key: Key('furniture_inventory_item_${item.id}'),
-        children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: AnimatedContainer(
-              duration: 150.ms,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFFFF2D6)
-                    : (canSelect
-                          ? const Color(0xFFFAF6EF)
-                          : const Color(0xFFF3F1ED)),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFFF0A53A)
-                      : (canSelect
-                            ? const Color(0xFFECE3D4)
-                            : const Color(0xFFD6D0C7)),
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Opacity(
-                      opacity: canSelect ? 1 : 0.4,
-                      child: ShopFurnitureVisual(item: item, size: 40),
-                    ),
-                  ),
-                  Positioned(
-                    top: 5,
-                    right: 5,
-                    child: Container(
-                      constraints: const BoxConstraints(minWidth: 20),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: canSelect
-                            ? const Color(0xFF2F8A76)
-                            : const Color(0xFFE4E0DA),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'x$total',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 10,
-                          height: 1.2,
-                          fontWeight: FontWeight.w800,
-                          color: canSelect ? Colors.white : Colors.black54,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            item.localizedName(l10n),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 11,
-              height: 1.25,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: canSelect ? Colors.black87 : Colors.black45,
-            ),
-          ),
-        ],
+    // Press-and-hold drags the piece down into the room (the drop target is
+    // the room field); a plain tap still places it in the middle.
+    return LongPressDraggable<String>(
+      data: item.id,
+      maxSimultaneousDrags: canSelect ? 1 : 0,
+      delay: const Duration(milliseconds: 250),
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      hapticFeedbackOnStart: true,
+      feedback: FractionalTranslation(
+        translation: const Offset(-0.5, -0.5),
+        child: Material(
+          type: MaterialType.transparency,
+          child: ShopFurnitureVisual(item: item, size: 56),
+        ),
       ),
+      childWhenDragging: Opacity(
+        opacity: 0.4,
+        child: _tile(context, l10n, canSelect),
+      ),
+      child: JuicyScaleButton(
+        onTap: canSelect ? onTap : null,
+        child: _tile(context, l10n, canSelect),
+      ),
+    );
+  }
+
+  Widget _tile(BuildContext context, AppLocalizations l10n, bool canSelect) {
+    return Column(
+      key: Key('furniture_inventory_item_${item.id}'),
+      children: [
+        AspectRatio(
+          aspectRatio: 1,
+          child: AnimatedContainer(
+            duration: 150.ms,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFFFFF2D6)
+                  : (canSelect
+                        ? const Color(0xFFFAF6EF)
+                        : const Color(0xFFF3F1ED)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFFF0A53A)
+                    : (canSelect
+                          ? const Color(0xFFECE3D4)
+                          : const Color(0xFFD6D0C7)),
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Opacity(
+                    opacity: canSelect ? 1 : 0.4,
+                    child: ShopFurnitureVisual(item: item, size: 40),
+                  ),
+                ),
+                Positioned(
+                  top: 5,
+                  right: 5,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: canSelect
+                          ? const Color(0xFF2F8A76)
+                          : const Color(0xFFE4E0DA),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'x$total',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        height: 1.2,
+                        fontWeight: FontWeight.w800,
+                        color: canSelect ? Colors.white : Colors.black54,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          item.localizedName(l10n),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11,
+            height: 1.25,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: canSelect ? Colors.black87 : Colors.black45,
+          ),
+        ),
+      ],
     );
   }
 }

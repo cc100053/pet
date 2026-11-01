@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pet/features/home/widgets/home_furniture_edit_bar.dart';
 import 'package:pet/features/feed/feed_photo_loading.dart';
 import 'package:pet/features/pet/pet_animated_image.dart';
 import 'package:pet/features/auth/sign_in_view.dart';
@@ -161,6 +162,20 @@ void main() {
         ),
       ),
     );
+  });
+
+  testWidgets('furniture edit bar fits every locale and phone', (tester) async {
+    await _sweep(tester, 'HomeFurnitureEditBar', (context) {
+      final l10n = AppLocalizations.of(context)!;
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: HomeFurnitureEditBar(
+          hint: l10n.furnitureEditBarHint,
+          doneLabel: l10n.furnitureDone,
+          onDone: () {},
+        ),
+      );
+    });
   });
 
   testWidgets('feed photo loading respects reduced motion', (tester) async {

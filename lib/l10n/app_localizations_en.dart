@@ -1658,7 +1658,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      'Tap furniture to place it. Select placed furniture to move, resize, or flip.';
+      'Tap an item to place it in the middle, or press and hold to drag it into the room.';
 
   @override
   String get furnitureScaleLabel => 'Size';
@@ -1799,6 +1799,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get furnitureMoveHint => 'Drag anywhere or tap a spot to move';
+
+  @override
+  String get furnitureEditBarHint =>
+      'Tap a piece in the room to move, resize or layer it.';
+
+  @override
+  String get furnitureDone => 'Done';
+
+  @override
+  String get furnitureStore => 'Put away';
+
+  @override
+  String get furnitureLayer => 'Layer';
+
+  @override
+  String get furnitureLayerFront => 'Bring to front';
+
+  @override
+  String get furnitureLayerForward => 'Bring forward';
+
+  @override
+  String get furnitureLayerBackward => 'Send backward';
+
+  @override
+  String get furnitureLayerBack => 'Send to back';
+
+  @override
+  String get furnitureInventoryCollapse => 'Hide items';
+
+  @override
+  String get furnitureInventoryExpand => 'Show items';
 
   @override
   String get petSelectionTitle => 'Choose your pet';

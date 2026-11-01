@@ -1620,7 +1620,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get furnitureInventoryHint =>
-      '가구를 탭해 배치하세요. 배치된 가구를 선택하면 이동, 크기 조절, 뒤집기를 할 수 있어요.';
+      '탭하면 방 가운데에 놓여요. 길게 눌러 원하는 곳으로 끌어 놓을 수도 있어요.';
 
   @override
   String get furnitureScaleLabel => '크기';
@@ -1755,6 +1755,36 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get furnitureMoveHint => '아무 곳이나 드래그하거나 탭해서 이동';
+
+  @override
+  String get furnitureEditBarHint => '방의 가구를 탭하면 이동, 크기, 순서를 바꿀 수 있어요.';
+
+  @override
+  String get furnitureDone => '완료';
+
+  @override
+  String get furnitureStore => '보관하기';
+
+  @override
+  String get furnitureLayer => '순서';
+
+  @override
+  String get furnitureLayerFront => '맨 앞으로';
+
+  @override
+  String get furnitureLayerForward => '앞으로';
+
+  @override
+  String get furnitureLayerBackward => '뒤로';
+
+  @override
+  String get furnitureLayerBack => '맨 뒤로';
+
+  @override
+  String get furnitureInventoryCollapse => '목록 접기';
+
+  @override
+  String get furnitureInventoryExpand => '목록 펼치기';
 
   @override
   String get petSelectionTitle => '펫을 선택하세요';

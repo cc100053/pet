@@ -98,7 +98,7 @@ import 'room_canvas.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_furniture_inventory_overlay.dart';
-import 'widgets/home_furniture_scale_controls.dart';
+import 'widgets/home_furniture_edit_bar.dart';
 import 'widgets/home_room_inventory_panel.dart';
 import 'widgets/home_main_content.dart';
 import 'widgets/home_room_background.dart';
@@ -279,7 +279,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   final ImagePicker _onboardingProfileImagePicker = ImagePicker();
   final Random _random = Random();
   late final AnimationController _petMoveController;
-  late final AnimationController _furnitureWiggleController;
   Animation<Offset>? _petMoveAnimation;
   Offset _petNormalizedPosition = const Offset(0.5, 0.6);
   Offset _petNormalizedTarget = const Offset(0.5, 0.6);
@@ -347,15 +346,13 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   // Furniture State
   bool _furnitureMode = false;
+  bool _furnitureInventoryCollapsed = false;
   bool _furnitureLoading = false;
   String? _furnitureError;
   String? _selectedFurnitureItemId;
   String? _selectedPlacedFurnitureId;
   String? _activeFurnitureDragId;
   Offset? _activeFurnitureDragStartCanvasPosition;
-  String? _activeFurnitureScaleInteractionItemId;
-  Offset? _activeFurnitureScaleInteractionStartCanvasPosition;
-  double? _activeFurnitureScaleInteractionStartScale;
   int _furnitureInstanceSeed = 0;
   final Map<String, ShopItem> _furnitureCatalog = {};
   final Map<String, int> _furnitureInventory = {};
@@ -541,10 +538,6 @@ class _HomeViewState extends ConsumerState<HomeView>
           }
         }
       });
-    _furnitureWiggleController = AnimationController(
-      vsync: this,
-      duration: 450.ms,
-    );
     _startWanderTimer();
     _startPetTickTimer();
     _startRoomSelectionRefreshTimer();
@@ -630,7 +623,6 @@ class _HomeViewState extends ConsumerState<HomeView>
     _feedingAnimationToken++;
     _onboardingProfileNicknameController.dispose();
     _petMoveController.dispose();
-    _furnitureWiggleController.dispose();
     super.dispose();
   }
 
@@ -3339,7 +3331,52 @@ class _HomeViewState extends ConsumerState<HomeView>
                   onPlaceholderTap: _openFeedCamera,
                 ),
                 petHomeCard: _buildPetHomeCard(),
-                bottomOverlay: _buildFurnitureScaleControlBar(),
+                bottomOverlay: _buildFurnitureEditBar(),
+                galleryOverlay: !_furnitureMode
+                    ? null
+                    : HomeFurnitureInventoryOverlay(
+                        panel: HomeRoomInventoryPanel(
+                          petType: _petType,
+                          furnitureCatalog: _furnitureCatalog,
+                          furnitureInventory: _furnitureInventory,
+                          selectedFurnitureItemId: _selectedFurnitureItemId,
+                          availableFurnitureCount: _availableFurnitureCount,
+                          furnitureLoading: _furnitureLoading,
+                          furnitureErrorText: _furnitureError,
+                          backgroundItems: _ownedBackgroundsForRoom(
+                            activeRoomId,
+                          ),
+                          activeBackgroundId:
+                              _activeBackgroundByRoom[activeRoomId],
+                          backgroundLoading: _backgroundLoading,
+                          backgroundErrorText: _backgroundError,
+                          applyingBackgroundId: _backgroundApplyingItemId,
+                          equipmentItems: _ownedEquipmentItems,
+                          availableEquipmentCount: _availableEquipmentCopies,
+                          equippedItemIdsBySlot: _panelEquippedItemIdsBySlot,
+                          equippedItemSkusBySlot: _panelEquippedSkusBySlot,
+                          equipmentLoading: _equipmentLoading,
+                          equipmentErrorText: _equipmentError,
+                          equipPets: _equipPetOptionsForRoom(activeRoomId),
+                          selectedEquipPetId: _selectedEquipPetId,
+                          onSelectEquipPet: _onSelectEquipPet,
+                          collapsed: _furnitureInventoryCollapsed,
+                          onToggleCollapsed: () => setState(
+                            () => _furnitureInventoryCollapsed =
+                                !_furnitureInventoryCollapsed,
+                          ),
+                          onFurnitureTap: (itemId) {
+                            setState(() {
+                              _selectedFurnitureItemId = itemId;
+                              _selectedPlacedFurnitureId = null;
+                            });
+                            _autoPlaceFurnitureFromInventory(itemId);
+                          },
+                          onBackgroundApply: _applyRoomBackground,
+                          onEquipItem: _equipItem,
+                          onUnequipItem: _unequipItem,
+                        ),
+                      ),
                 bottomNavBar: HomeBottomNavBar(
                   onHome: _onHomeNavPressed,
                   onCalendar: _openCalendar,
@@ -3348,44 +3385,6 @@ class _HomeViewState extends ConsumerState<HomeView>
                   onChat: _openChatRoom,
                   cameraEnabled: true,
                   chatHasUnread: (unreadCountByRoom[activeRoomId] ?? 0) > 0,
-                ),
-              ),
-              HomeFurnitureInventoryOverlay(
-                visible: _furnitureMode,
-                roomTop: _furnitureMode ? _petFieldGlobalTop() : null,
-                panel: HomeRoomInventoryPanel(
-                  petType: _petType,
-                  furnitureCatalog: _furnitureCatalog,
-                  furnitureInventory: _furnitureInventory,
-                  selectedFurnitureItemId: _selectedFurnitureItemId,
-                  availableFurnitureCount: _availableFurnitureCount,
-                  furnitureLoading: _furnitureLoading,
-                  furnitureErrorText: _furnitureError,
-                  backgroundItems: _ownedBackgroundsForRoom(activeRoomId),
-                  activeBackgroundId: _activeBackgroundByRoom[activeRoomId],
-                  backgroundLoading: _backgroundLoading,
-                  backgroundErrorText: _backgroundError,
-                  applyingBackgroundId: _backgroundApplyingItemId,
-                  equipmentItems: _ownedEquipmentItems,
-                  availableEquipmentCount: _availableEquipmentCopies,
-                  equippedItemIdsBySlot: _panelEquippedItemIdsBySlot,
-                  equippedItemSkusBySlot: _panelEquippedSkusBySlot,
-                  equipmentLoading: _equipmentLoading,
-                  equipmentErrorText: _equipmentError,
-                  equipPets: _equipPetOptionsForRoom(activeRoomId),
-                  selectedEquipPetId: _selectedEquipPetId,
-                  onSelectEquipPet: _onSelectEquipPet,
-                  onClose: _closeFurnitureInventory,
-                  onFurnitureTap: (itemId) {
-                    setState(() {
-                      _selectedFurnitureItemId = itemId;
-                      _selectedPlacedFurnitureId = null;
-                    });
-                    _autoPlaceFurnitureFromInventory(itemId);
-                  },
-                  onBackgroundApply: _applyRoomBackground,
-                  onEquipItem: _equipItem,
-                  onUnequipItem: _unequipItem,
                 ),
               ),
             ],

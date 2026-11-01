@@ -13,6 +13,7 @@ class HomeMainContent extends StatelessWidget {
     required this.petHomeCard,
     required this.bottomNavBar,
     this.bottomOverlay,
+    this.galleryOverlay,
   });
 
   final double bottomInset;
@@ -21,6 +22,10 @@ class HomeMainContent extends StatelessWidget {
   final Widget petHomeCard;
   final Widget bottomNavBar;
   final Widget? bottomOverlay;
+
+  /// Shown in place of the photo gallery (same slot) in furniture mode; the
+  /// gallery stays mounted underneath so it keeps its scroll and state.
+  final Widget? galleryOverlay;
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +99,31 @@ class HomeMainContent extends StatelessWidget {
                             SizedBox(
                               width: double.infinity,
                               height: galleryHeight,
-                              child: photoGallery,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  IgnorePointer(
+                                    ignoring: galleryOverlay != null,
+                                    child: AnimatedOpacity(
+                                      opacity: galleryOverlay != null ? 0 : 1,
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      child: photoGallery,
+                                    ),
+                                  ),
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 200),
+                                    layoutBuilder: (current, previous) => Stack(
+                                      alignment: Alignment.topCenter,
+                                      children: [...previous, ?current],
+                                    ),
+                                    child:
+                                        galleryOverlay ??
+                                        const SizedBox.shrink(),
+                                  ),
+                                ],
+                              ),
                             ),
                             Gap(splitGap),
                             SizedBox(

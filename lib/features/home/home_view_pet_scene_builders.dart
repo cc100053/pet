@@ -19,110 +19,119 @@ extension _HomePetSceneBuilders on _HomeViewState {
         // anywhere (finger never hides the piece) or tap a spot to send it there.
         final movingPiece = _furnitureMode ? _selectedPlacedFurniture() : null;
         final content = RoomCanvas.contentRect(fieldSize);
-        return GestureDetector(
-          key: _petFieldKey,
-          behavior: HitTestBehavior.opaque,
-          onTapUp: (details) {
-            if (movingPiece != null) {
-              _moveSelectedFurnitureTo(details.localPosition, fieldSize);
-              return;
-            }
-            if (_furnitureMode) {
-              _closeFurnitureInventory();
-              return;
-            }
-            _handlePetFieldTap(details.localPosition, fieldSize);
-          },
-          onPanStart: movingPiece == null
-              ? null
-              : (_) => _handleFurnitureDragStart(movingPiece),
-          onPanUpdate: movingPiece == null
-              ? null
-              : (details) =>
-                    _handleFurnitureDragUpdate(movingPiece, details, content),
-          onPanEnd: movingPiece == null
-              ? null
-              : (_) => _handleFurnitureDragEnd(movingPiece),
-          onPanCancel: movingPiece == null ? null : _handleFurnitureDragCancel,
-          child: Stack(
-            children: [
-              ..._buildPlacedFurniture(fieldSize),
-              if (_photoFoodImageSource != null &&
-                  _photoFoodNormalizedPosition != null &&
-                  _photoFoodBiteStage < 3)
-                _buildPhotoFood(fieldSize),
-              for (final spot in _poopSpots())
-                Positioned(
-                  key: ValueKey('poop_${spot.key}'),
-                  left: _positionFromNormalizedSized(
-                    spot.normalized,
-                    fieldSize,
-                    _HomeViewState._poopEmojiSize,
-                  ).dx,
-                  top: _positionFromNormalizedSized(
-                    spot.normalized,
-                    fieldSize,
-                    _HomeViewState._poopEmojiSize,
-                  ).dy,
-                  child: _buildPoopEmoji(spot),
+        // Furniture dragged out of the inventory panel lands where it's dropped.
+        return DragTarget<String>(
+          onWillAcceptWithDetails: (details) =>
+              _furnitureMode && _availableFurnitureCount(details.data) > 0,
+          onAcceptWithDetails: (details) =>
+              _dropFurnitureFromInventory(details.data, details.offset),
+          builder: (context, candidates, rejected) => GestureDetector(
+            key: _petFieldKey,
+            behavior: HitTestBehavior.opaque,
+            onTapUp: (details) {
+              if (movingPiece != null) {
+                _moveSelectedFurnitureTo(details.localPosition, fieldSize);
+                return;
+              }
+              // Furniture mode is left with Done, so a missed tap is harmless.
+              if (_furnitureMode) {
+                return;
+              }
+              _handlePetFieldTap(details.localPosition, fieldSize);
+            },
+            onPanStart: movingPiece == null
+                ? null
+                : (_) => _handleFurnitureDragStart(movingPiece),
+            onPanUpdate: movingPiece == null
+                ? null
+                : (details) =>
+                      _handleFurnitureDragUpdate(movingPiece, details, content),
+            onPanEnd: movingPiece == null
+                ? null
+                : (_) => _handleFurnitureDragEnd(movingPiece),
+            onPanCancel: movingPiece == null
+                ? null
+                : _handleFurnitureDragCancel,
+            child: Stack(
+              children: [
+                ..._buildPlacedFurniture(fieldSize),
+                if (_photoFoodImageSource != null &&
+                    _photoFoodNormalizedPosition != null &&
+                    _photoFoodBiteStage < 3)
+                  _buildPhotoFood(fieldSize),
+                for (final spot in _poopSpots())
+                  Positioned(
+                    key: ValueKey('poop_${spot.key}'),
+                    left: _positionFromNormalizedSized(
+                      spot.normalized,
+                      fieldSize,
+                      _HomeViewState._poopEmojiSize,
+                    ).dx,
+                    top: _positionFromNormalizedSized(
+                      spot.normalized,
+                      fieldSize,
+                      _HomeViewState._poopEmojiSize,
+                    ).dy,
+                    child: _buildPoopEmoji(spot),
+                  ),
+                ..._buildAdditionalRoomPets(fieldSize),
+                AnimatedBuilder(
+                  animation: _petMoveController,
+                  builder: (context, child) {
+                    final normalized = _currentPetNormalized();
+                    final topLeft = _positionFromNormalized(
+                      normalized,
+                      fieldSize,
+                    );
+                    return Positioned(
+                      left: topLeft.dx,
+                      top: topLeft.dy,
+                      child: child!,
+                    );
+                  },
+                  child: _buildDraggablePet(fieldSize),
                 ),
-              ..._buildAdditionalRoomPets(fieldSize),
-              AnimatedBuilder(
-                animation: _petMoveController,
-                builder: (context, child) {
-                  final normalized = _currentPetNormalized();
-                  final topLeft = _positionFromNormalized(
-                    normalized,
-                    fieldSize,
-                  );
-                  return Positioned(
-                    left: topLeft.dx,
-                    top: topLeft.dy,
-                    child: child!,
-                  );
-                },
-                child: _buildDraggablePet(fieldSize),
-              ),
-              if (_petEating) _buildEatingHearts(fieldSize),
-              if (_shouldShowNewRoomInvitePrompt)
-                Positioned(
-                  top: promptInset,
-                  right: promptInset,
-                  child: _buildNewRoomInvitePrompt(),
-                ),
-              if (_shouldShowFirstDayChecklist && !_furnitureMode)
-                Positioned(
-                  left: promptInset,
-                  right: promptInset,
-                  bottom: promptInset,
-                  child: _buildFirstDayChecklist(),
-                ),
-              if (_furnitureMode)
-                Positioned(
-                  left: furnitureHintLeft,
-                  bottom: furnitureHintBottom,
-                  child: _buildFurnitureEditHint(),
-                ),
-              if (_isCurrentRoomLocked)
-                Positioned.fill(
-                  child: AbsorbPointer(
-                    absorbing: true,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
+                if (_petEating) _buildEatingHearts(fieldSize),
+                if (_shouldShowNewRoomInvitePrompt)
+                  Positioned(
+                    top: promptInset,
+                    right: promptInset,
+                    child: _buildNewRoomInvitePrompt(),
+                  ),
+                if (_shouldShowFirstDayChecklist && !_furnitureMode)
+                  Positioned(
+                    left: promptInset,
+                    right: promptInset,
+                    bottom: promptInset,
+                    child: _buildFirstDayChecklist(),
+                  ),
+                if (movingPiece != null)
+                  Positioned(
+                    left: furnitureHintLeft,
+                    bottom: furnitureHintBottom,
+                    child: _buildFurnitureEditHint(),
+                  ),
+                if (_isCurrentRoomLocked)
+                  Positioned.fill(
+                    child: AbsorbPointer(
+                      absorbing: true,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              if (_isCurrentRoomLocked)
-                Positioned(
-                  left: promptInset,
-                  right: promptInset,
-                  bottom: promptInset,
-                  child: _buildLockedRoomHomePrompt(),
-                ),
-            ],
+                if (_isCurrentRoomLocked)
+                  Positioned(
+                    left: promptInset,
+                    right: promptInset,
+                    bottom: promptInset,
+                    child: _buildLockedRoomHomePrompt(),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -725,9 +734,16 @@ extension _HomePetSceneBuilders on _HomeViewState {
     // Plan A: lay furniture out inside a fixed-aspect canvas so every member
     // sees the same relative position and size regardless of device size.
     final content = RoomCanvas.contentRect(fieldSize);
+    // Draw back-to-front by z_order; list index breaks ties (pre-migration).
+    final order = List<int>.generate(placed.length, (i) => i)
+      ..sort((a, b) {
+        final byZ = (placed[a].zOrder ?? 0).compareTo(placed[b].zOrder ?? 0);
+        return byZ != 0 ? byZ : a.compareTo(b);
+      });
     return [
-      for (final item in placed)
+      for (final item in order.map((i) => placed[i]))
         Positioned(
+          key: ValueKey('placed_furniture_${item.id}'),
           left: RoomCanvas.topLeftFromCenterFraction(
             centerFraction: _canvasCenterFraction(item),
             content: content,
@@ -760,12 +776,10 @@ extension _HomePetSceneBuilders on _HomeViewState {
           : null,
       onPanEnd: canEdit ? (_) => _handleFurnitureDragEnd(item) : null,
       onPanCancel: canEdit ? _handleFurnitureDragCancel : null,
-      child: AnimatedBuilder(
-        animation: _furnitureWiggleController,
-        builder: (context, child) {
-          final angle = canEdit ? _furnitureWiggleAngle(item) : 0.0;
-          return Transform.rotate(angle: angle, child: child);
-        },
+      // Selected pieces lift slightly instead of the whole room wiggling.
+      child: AnimatedScale(
+        scale: canEdit && isSelected ? 1.08 : 1,
+        duration: 150.ms,
         child: AnimatedContainer(
           duration: 150.ms,
           width: itemSize.width,
@@ -773,7 +787,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: canEdit
-                ? Colors.white.withValues(alpha: 0.7)
+                ? Colors.white.withValues(alpha: isSelected ? 0.85 : 0.55)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: canEdit
@@ -781,70 +795,36 @@ extension _HomePetSceneBuilders on _HomeViewState {
                     color: isSelected
                         ? const Color(0xFFFFB74D)
                         : Colors.black12,
-                    width: isSelected ? 1.8 : 1,
+                    width: isSelected ? 2.4 : 1,
                   )
                 : null,
-            boxShadow: canEdit
+            boxShadow: canEdit && isSelected
                 ? [
                     BoxShadow(
-                      color:
-                          (isSelected ? const Color(0xFFFFB74D) : Colors.black)
-                              .withValues(alpha: isSelected ? 0.2 : 0.08),
-                      blurRadius: isSelected ? 10 : 8,
-                      offset: const Offset(0, 4),
+                      color: const Color(0xFFFFB74D).withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ]
                 : null,
           ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Center(
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.diagonal3Values(
-                    item.flipX ? -1.0 : 1.0,
-                    1.0,
-                    1.0,
-                  ),
-                  child:
-                      item.assetPath != null &&
-                          item.assetPath!.trim().isNotEmpty
-                      ? Image.asset(
-                          item.assetPath!.trim(),
-                          width: itemSize.width * 0.9,
-                          height: itemSize.height * 0.9,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Text(
-                            item.emoji,
-                            style: TextStyle(fontSize: iconSize),
-                          ),
-                        )
-                      : Text(item.emoji, style: TextStyle(fontSize: iconSize)),
-                ),
-              ),
-              if (canEdit && isSelected && !item.isPending)
-                Positioned(
-                  top: -6,
-                  right: -6,
-                  child: Material(
-                    color: Colors.redAccent,
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () => _removeFurniture(item),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.diagonal3Values(
+              item.flipX ? -1.0 : 1.0,
+              1.0,
+              1.0,
+            ),
+            child: item.assetPath != null && item.assetPath!.trim().isNotEmpty
+                ? Image.asset(
+                    item.assetPath!.trim(),
+                    width: itemSize.width * 0.9,
+                    height: itemSize.height * 0.9,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Text(item.emoji, style: TextStyle(fontSize: iconSize)),
+                  )
+                : Text(item.emoji, style: TextStyle(fontSize: iconSize)),
           ),
         ),
       ),
@@ -868,9 +848,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
         ],
       ),
       child: Text(
-        _selectedPlacedFurniture() != null
-            ? l10n.furnitureMoveHint
-            : l10n.furnitureEditMode,
+        l10n.furnitureMoveHint,
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
@@ -880,38 +858,48 @@ extension _HomePetSceneBuilders on _HomeViewState {
     );
   }
 
-  Widget? _buildFurnitureScaleControlBar() {
+  Widget? _buildFurnitureEditBar() {
     if (!_furnitureMode) {
       return null;
     }
-    final item = _selectedPlacedFurniture();
-    if (item == null) {
-      return null;
-    }
-    final canDecrease = item.scale > roomFurnitureMinScale + 0.001;
-    final canIncrease = item.scale < roomFurnitureMaxScale - 0.001;
     final l10n = AppLocalizations.of(context)!;
-    return HomeFurnitureScaleControls(
-      label: l10n.furnitureScaleLabel,
-      scale: item.scale,
-      minScale: roomFurnitureMinScale,
-      maxScale: roomFurnitureMaxScale,
-      step: roomFurnitureScaleStep,
-      decreaseLabel: l10n.furnitureScaleDecrease,
-      increaseLabel: l10n.furnitureScaleIncrease,
-      flipLabel: l10n.furnitureFlipHorizontal,
-      onDecrease: canDecrease ? () => _stepSelectedFurnitureScale(-1) : null,
-      onIncrease: canIncrease ? () => _stepSelectedFurnitureScale(1) : null,
-      onFlip: _toggleSelectedFurnitureFlip,
-      onChanged: _handleFurnitureScaleChanged,
-      onChangeStart: _handleFurnitureScaleChangeStart,
-      onChangeEnd: _handleFurnitureScaleChangeEnd,
+    final item = _selectedPlacedFurniture();
+    HomeFurnitureSelectionActions? selection;
+    if (item != null) {
+      final canDecrease = item.scale > roomFurnitureMinScale + 0.001;
+      final canIncrease = item.scale < roomFurnitureMaxScale - 0.001;
+      FurnitureLayerAction layer(FurnitureLayerMove move, String label) =>
+          FurnitureLayerAction(
+            move: move,
+            label: label,
+            onSelected: _selectedFurnitureLayerZ(move) == null
+                ? null
+                : () => _moveSelectedFurnitureLayer(move),
+          );
+      selection = HomeFurnitureSelectionActions(
+        decreaseLabel: l10n.furnitureScaleDecrease,
+        increaseLabel: l10n.furnitureScaleIncrease,
+        flipLabel: l10n.furnitureFlipHorizontal,
+        layerLabel: l10n.furnitureLayer,
+        storeLabel: l10n.furnitureStore,
+        onDecrease: canDecrease ? () => _stepSelectedFurnitureScale(-1) : null,
+        onIncrease: canIncrease ? () => _stepSelectedFurnitureScale(1) : null,
+        onFlip: _toggleSelectedFurnitureFlip,
+        onStore: item.isPending ? null : () => _removeFurniture(item),
+        layerActions: [
+          layer(FurnitureLayerMove.front, l10n.furnitureLayerFront),
+          layer(FurnitureLayerMove.forward, l10n.furnitureLayerForward),
+          layer(FurnitureLayerMove.backward, l10n.furnitureLayerBackward),
+          layer(FurnitureLayerMove.back, l10n.furnitureLayerBack),
+        ],
+      );
+    }
+    return HomeFurnitureEditBar(
+      hint: l10n.furnitureEditBarHint,
+      doneLabel: l10n.furnitureDone,
+      onDone: _closeFurnitureInventory,
+      selection: selection,
     );
-  }
-
-  double _furnitureWiggleAngle(_PlacedFurniture item) {
-    final phase = (item.id.hashCode % 360) * (pi / 180);
-    return sin((_furnitureWiggleController.value * 2 * pi) + phase) * 0.04;
   }
 
   Widget _buildPetAvatar() {

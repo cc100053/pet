@@ -17,6 +17,16 @@ migration that rewrites the object.
   overrides, cleanup review
 
 ## Current Contracts
+- `room_furniture.z_order double precision` (since `20261101100000`) is the
+  shared draw order (higher in front). Existing rows were backfilled by
+  `created_at`; an invoker BEFORE INSERT trigger puts new rows (any client
+  version) on top. New clients read `order(z_order, id)` and write it through
+  `set_room_furniture_layer(p_id uuid, p_z_order double precision)` (invoker;
+  RLS `room_furniture_update` scopes it to active members; rejects
+  null/NaN/infinite; `authenticated` only). Old clients ignore the column and
+  keep their unordered draw order. Catalog `metadata.layer = 'floor'`
+  (`furniture_carpet`) marks rugs that auto-layering keeps behind standing
+  pieces.
 - `room_frame_state(room_id, style, updated_at)` is additive shared casing
   state: member-only RLS, explicit SELECT/INSERT/UPDATE grants, no client delete
   or timestamp writes. Invoker trigger enforces levels 1/1/3/5/8, immutable

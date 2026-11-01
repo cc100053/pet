@@ -96,6 +96,8 @@ class _PlacedFurniture {
     required this.isPending,
     this.canvasPosition,
     this.persistedCanvasPosition,
+    this.zOrder,
+    this.isFloor = false,
   });
 
   String id;
@@ -116,6 +118,9 @@ class _PlacedFurniture {
   bool flipX;
   bool persistedFlipX;
   bool isPending;
+  // Draw order (higher in front); null only before the z_order migration.
+  double? zOrder;
+  bool isFloor;
 }
 
 class _PoopSpot {

@@ -28,6 +28,8 @@ class _PlacedFurniture {
     double? persistedScale,
     bool? flipX,
     bool? persistedFlipX,
+    this.zOrder,
+    this.isFloor = false,
   });
   String id, itemId = 'carpet';
   String? ownerUserId = 'owner';
@@ -36,6 +38,8 @@ class _PlacedFurniture {
   Offset? canvasPosition, persistedCanvasPosition;
   double scale = 1, persistedScale = 1;
   bool flipX = false, isPending;
+  double? zOrder;
+  bool isFloor;
 }
 
 class AppLocalizations {
@@ -82,12 +86,38 @@ class FakeClient {
 
   FakeClient from(String table) => this;
   FakeClient select(String fields) => this;
-  Future<List<dynamic>> eq(String column, String value) {
+  FakeQuery eq(String column, String value) {
     reads++;
     final delayed = delayedRead;
     delayedRead = null;
-    return delayed?.future ?? Future.value(List.of(rows));
+    return FakeQuery(delayed?.future ?? Future.value(List.of(rows)));
   }
+}
+
+/// Awaitable PostgREST builder stand-in so `.order()` chains after `.eq()`.
+class FakeQuery implements Future<List<dynamic>> {
+  FakeQuery(this._future);
+  final Future<List<dynamic>> _future;
+  FakeQuery order(String column) => this;
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(List<dynamic>) onValue, {
+    Function? onError,
+  }) => _future.then(onValue, onError: onError);
+  @override
+  Future<List<dynamic>> catchError(Function onError, {bool Function(Object)? test}) =>
+      _future.catchError(onError, test: test);
+  @override
+  Future<List<dynamic>> whenComplete(FutureOr<void> Function() action) =>
+      _future.whenComplete(action);
+  @override
+  Future<List<dynamic>> timeout(
+    Duration timeLimit, {
+    FutureOr<List<dynamic>> Function()? onTimeout,
+  }) => _future.timeout(timeLimit, onTimeout: onTimeout);
+  @override
+  Stream<List<dynamic>> asStream() => _future.asStream();
 }
 
 class _HomeViewState {
@@ -121,6 +151,7 @@ class _HomeViewState {
   Offset? _canvasOffsetFromRow(Map<String, dynamic> r) => null;
   bool _shouldFallbackToLegacyFurniturePlacement(Object e) => false;
   Future<void> _persistFurnitureTransform(_PlacedFurniture item) async {}
+  Future<void> _persistFurnitureLayer(_PlacedFurniture item) async {}
 }
 
 extension _HomeRoomDecor on _HomeViewState {

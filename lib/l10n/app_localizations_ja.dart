@@ -1607,8 +1607,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get furnitureInventoryEmpty => 'まだ家具がありません。ショップで購入してください。';
 
   @override
-  String get furnitureInventoryHint =>
-      '家具をタップして配置。配置済みの家具を選ぶと移動、サイズ調整、反転ができます。';
+  String get furnitureInventoryHint => 'タップで部屋の中央に置けます。長押しでドラッグして好きな場所へ。';
 
   @override
   String get furnitureScaleLabel => 'サイズ';
@@ -1742,6 +1741,36 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get furnitureMoveHint => 'どこでもドラッグ、またはタップで移動';
+
+  @override
+  String get furnitureEditBarHint => '部屋の家具をタップすると、移動・サイズ・重なり順を変えられます。';
+
+  @override
+  String get furnitureDone => '完了';
+
+  @override
+  String get furnitureStore => 'しまう';
+
+  @override
+  String get furnitureLayer => '重なり順';
+
+  @override
+  String get furnitureLayerFront => '最前面へ';
+
+  @override
+  String get furnitureLayerForward => 'ひとつ前へ';
+
+  @override
+  String get furnitureLayerBackward => 'ひとつ後ろへ';
+
+  @override
+  String get furnitureLayerBack => '最背面へ';
+
+  @override
+  String get furnitureInventoryCollapse => '一覧を閉じる';
+
+  @override
+  String get furnitureInventoryExpand => '一覧を開く';
 
   @override
   String get petSelectionTitle => 'ペットを選んで';

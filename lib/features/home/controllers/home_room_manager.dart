@@ -521,8 +521,6 @@ extension _HomeRoomManager on _HomeViewState {
       _noteAppliedPetStateClock(warmPetId, warmPetState);
     }
     _overfedBubbleTimer?.cancel();
-    _furnitureWiggleController.stop();
-    _furnitureWiggleController.value = 0;
     final previousPetStateChannel = _petStateChannel;
     final previousPetEquipmentChannel = _petEquipmentChannel;
     _petStateChannel = null;

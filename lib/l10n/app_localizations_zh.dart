@@ -1598,8 +1598,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureInventoryEmpty => '目前没有家具，去商店买一些吧。';
 
   @override
-  String get furnitureInventoryHint =>
-      '长按家具可编辑，点击道具放置，拖动移动，选取已放置家具后可用底部控制栏调整大小，点空白退出。';
+  String get furnitureInventoryHint => '点一下放到房间中央，或长按拖进房间想放的位置。';
 
   @override
   String get furnitureScaleLabel => '大小';
@@ -1733,6 +1732,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get furnitureMoveHint => '在任意位置拖动或点一下即可移动';
+
+  @override
+  String get furnitureEditBarHint => '点房间里的家具，就能移动、调整大小或图层。';
+
+  @override
+  String get furnitureDone => '完成';
+
+  @override
+  String get furnitureStore => '放回背包';
+
+  @override
+  String get furnitureLayer => '图层';
+
+  @override
+  String get furnitureLayerFront => '置于顶层';
+
+  @override
+  String get furnitureLayerForward => '上移一层';
+
+  @override
+  String get furnitureLayerBackward => '下移一层';
+
+  @override
+  String get furnitureLayerBack => '置于底层';
+
+  @override
+  String get furnitureInventoryCollapse => '收起列表';
+
+  @override
+  String get furnitureInventoryExpand => '展开列表';
 
   @override
   String get petSelectionTitle => '选择你的宠物';
@@ -4183,7 +4212,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get furnitureInventoryEmpty => '目前沒有家具，去商店買一些吧。';
 
   @override
-  String get furnitureInventoryHint => '點擊家具即可放置。選取已放置家具後可移動、調整大小或左右反轉。';
+  String get furnitureInventoryHint => '點一下放到房間中央，或長按拖進房間想放的位置。';
 
   @override
   String get furnitureScaleLabel => '大小';
@@ -4317,6 +4346,36 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get furnitureMoveHint => '在任意位置拖曳或點一下即可移動';
+
+  @override
+  String get furnitureEditBarHint => '點房間裡的家具，就能移動、調整大小或圖層。';
+
+  @override
+  String get furnitureDone => '完成';
+
+  @override
+  String get furnitureStore => '放回背包';
+
+  @override
+  String get furnitureLayer => '圖層';
+
+  @override
+  String get furnitureLayerFront => '移到最上層';
+
+  @override
+  String get furnitureLayerForward => '上移一層';
+
+  @override
+  String get furnitureLayerBackward => '下移一層';
+
+  @override
+  String get furnitureLayerBack => '移到最下層';
+
+  @override
+  String get furnitureInventoryCollapse => '收起列表';
+
+  @override
+  String get furnitureInventoryExpand => '展開列表';
 
   @override
   String get petSelectionTitle => '選擇你的寵物';

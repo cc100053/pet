@@ -33,6 +33,7 @@ class ShopItem {
     this.fallbackBackgroundKey,
     this.newUntil,
     this.isProOnly = false,
+    this.isFloorLayer = false,
   });
 
   final String id;
@@ -63,6 +64,9 @@ class ShopItem {
   /// Included with Pro (granted by the grant_pro_backgrounds Edge Function),
   /// never sold for coins or diamonds.
   final bool isProOnly;
+
+  /// Floor decor (rugs) that auto-layering keeps behind standing furniture.
+  final bool isFloorLayer;
   final String? fallbackBackgroundKey;
 
   /// Catalog-driven NEW window (`metadata.new_until`, ISO 8601). Old clients
@@ -335,6 +339,7 @@ class ShopItem {
       fallbackBackgroundKey: fallbackBackgroundKey,
       newUntil: newUntil,
       isProOnly: metadata['pro_only'] == true,
+      isFloorLayer: metadata['layer'] == 'floor',
     );
   }
 }

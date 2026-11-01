@@ -5,7 +5,7 @@ import 'package:pet/features/home/widgets/home_main_content.dart';
 void main() {
   const roomKey = Key('room');
 
-  Widget build({Widget? bottomOverlay}) {
+  Widget build({Widget? bottomOverlay, Widget? galleryOverlay}) {
     return MaterialApp(
       home: Scaffold(
         body: HomeMainContent(
@@ -15,6 +15,7 @@ void main() {
           petHomeCard: const SizedBox.expand(key: roomKey),
           bottomNavBar: const SizedBox(height: 68, width: double.infinity),
           bottomOverlay: bottomOverlay,
+          galleryOverlay: galleryOverlay,
         ),
       ),
     );
@@ -32,4 +33,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.getRect(find.byKey(roomKey)), before);
   });
+
+  testWidgets(
+    'furniture inventory takes the gallery slot without moving the room',
+    (tester) async {
+      await tester.pumpWidget(build());
+      final before = tester.getRect(find.byKey(roomKey));
+
+      const panelKey = Key('panel');
+      await tester.pumpWidget(
+        build(galleryOverlay: const SizedBox(key: panelKey, height: 2000)),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getRect(find.byKey(roomKey)), before);
+      expect(
+        tester.getRect(find.byKey(panelKey)).bottom,
+        lessThanOrEqualTo(before.top),
+      );
+    },
+  );
 }

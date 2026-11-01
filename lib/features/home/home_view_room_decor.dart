@@ -148,10 +148,9 @@ extension _HomeRoomDecor on _HomeViewState {
     String roomId,
     PostgresChangePayload payload,
   ) {
-    // Fix 3: never reload while the user is actively dragging or scaling a
-    // piece; defer any genuine remote change until the gesture ends.
-    if (_activeFurnitureDragId != null ||
-        _activeFurnitureScaleInteractionItemId != null) {
+    // Fix 3: never reload while the user is actively dragging a piece; defer
+    // any genuine remote change until the gesture ends.
+    if (_activeFurnitureDragId != null) {
       _furnitureReloadPendingAfterGesture = true;
       return;
     }
@@ -185,8 +184,7 @@ extension _HomeRoomDecor on _HomeViewState {
     if (!mounted || _roomId != roomId) {
       return;
     }
-    if (_activeFurnitureDragId != null ||
-        _activeFurnitureScaleInteractionItemId != null) {
+    if (_activeFurnitureDragId != null) {
       _furnitureReloadPendingAfterGesture = true;
       return;
     }
@@ -200,9 +198,11 @@ extension _HomeRoomDecor on _HomeViewState {
       final response = await Supabase.instance.client
           .from('room_furniture')
           .select(
-            'id,item_id,owner_user_id,position_x,position_y,canvas_position_x,canvas_position_y,scale,flip_x,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
+            'id,item_id,owner_user_id,position_x,position_y,canvas_position_x,canvas_position_y,scale,flip_x,z_order,items(id,sku,type,name,price_coins,price_diamonds,metadata)',
           )
-          .eq('room_id', roomId);
+          .eq('room_id', roomId)
+          .order('z_order')
+          .order('id');
 
       final placed = <_PlacedFurniture>[];
       var unsupportedCount = 0;
@@ -246,6 +246,8 @@ extension _HomeRoomDecor on _HomeViewState {
             flipX: flipX,
             persistedFlipX: flipX,
             isPending: false,
+            zOrder: (record['z_order'] as num?)?.toDouble(),
+            isFloor: (itemData?['metadata'] as Map?)?['layer'] == 'floor',
           ),
         );
       }
@@ -253,8 +255,7 @@ extension _HomeRoomDecor on _HomeViewState {
       if (!mounted || _roomId != roomId) {
         return;
       }
-      if (_activeFurnitureDragId != null ||
-          _activeFurnitureScaleInteractionItemId != null) {
+      if (_activeFurnitureDragId != null) {
         _furnitureReloadPendingAfterGesture = true;
         return;
       }
@@ -399,16 +400,6 @@ extension _HomeRoomDecor on _HomeViewState {
     });
   }
 
-  /// Global y of the room field's top edge from the last layout; the
-  /// inventory panel stops above it so the room stays visible.
-  double? _petFieldGlobalTop() {
-    final box = _petFieldKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) {
-      return null;
-    }
-    return box.localToGlobal(Offset.zero).dy;
-  }
-
   void _openFurnitureInventory() {
     final roomId = _roomId;
     if (roomId == null) {
@@ -421,6 +412,7 @@ extension _HomeRoomDecor on _HomeViewState {
         pets.any((p) => p.petId == _selectedEquipPetId);
     _setStateForRoomDecor(() {
       _furnitureMode = true;
+      _furnitureInventoryCollapsed = false;
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
       if (!selectionValid) {
@@ -428,9 +420,7 @@ extension _HomeRoomDecor on _HomeViewState {
         _panelEquippedItemsBySlot.clear();
       }
       _clearFurnitureDragGesture();
-      _clearFurnitureScaleInteraction();
     });
-    _furnitureWiggleController.repeat(reverse: true);
     _subscribeToRoomInventoryRevisions(roomId);
     unawaited(_loadFurnitureInventory());
     unawaited(_loadRoomFurniture(roomId));
@@ -447,10 +437,7 @@ extension _HomeRoomDecor on _HomeViewState {
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
       _clearFurnitureDragGesture();
-      _clearFurnitureScaleInteraction();
     });
-    _furnitureWiggleController.stop();
-    _furnitureWiggleController.value = 0;
     unawaited(_syncFirstDayChecklist(force: true));
   }
 
@@ -879,13 +866,31 @@ extension _HomeRoomDecor on _HomeViewState {
       flipX: false,
       persistedFlipX: false,
       isPending: true,
+      // Matches the server's insert default (top of the stack).
+      zOrder: _furnitureTopZ() + 1,
+      isFloor: item.isFloorLayer,
     );
 
     _setStateForRoomDecor(() {
       _activeFurnitureForRoom().add(placed);
       _selectedPlacedFurnitureId = placed.id;
     });
+    _autoLayerFurniture(placed, content);
     unawaited(_persistFurniturePlacement(placed));
+  }
+
+  /// Places [itemId] centred on [globalPosition] (the drag pointer; the drag
+  /// feedback is centred on it).
+  void _dropFurnitureFromInventory(String itemId, Offset globalPosition) {
+    final box = _petFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) {
+      return;
+    }
+    _setStateForRoomDecor(() {
+      _selectedFurnitureItemId = itemId;
+      _selectedPlacedFurnitureId = null;
+    });
+    _placeFurnitureAt(box.globalToLocal(globalPosition), box.size);
   }
 
   void _autoPlaceFurnitureFromInventory(String itemId) {
@@ -939,6 +944,7 @@ extension _HomeRoomDecor on _HomeViewState {
     if (!item.isPending) {
       unawaited(_persistFurnitureTransform(item));
     }
+    _autoLayerFurniture(item, content);
   }
 
   void _clearFurnitureDragGesture() {
@@ -1007,25 +1013,14 @@ extension _HomeRoomDecor on _HomeViewState {
       return;
     }
     unawaited(_persistFurnitureTransform(item));
+    final fieldSize = _petFieldSize();
+    if (fieldSize != null) {
+      _autoLayerFurniture(item, RoomCanvas.contentRect(fieldSize));
+    }
   }
 
   void _handleFurnitureDragCancel() {
     _clearFurnitureDragGesture();
-  }
-
-  void _beginFurnitureScaleInteraction(_PlacedFurniture item) {
-    _activeFurnitureScaleInteractionItemId = item.id;
-    _activeFurnitureScaleInteractionStartScale = item.scale;
-    _activeFurnitureScaleInteractionStartCanvasPosition = _canvasCenterFraction(
-      item,
-    );
-  }
-
-  void _clearFurnitureScaleInteraction() {
-    _activeFurnitureScaleInteractionItemId = null;
-    _activeFurnitureScaleInteractionStartScale = null;
-    _activeFurnitureScaleInteractionStartCanvasPosition = null;
-    _flushPendingFurnitureReload();
   }
 
   void _applyFurnitureScale(
@@ -1073,47 +1068,6 @@ extension _HomeRoomDecor on _HomeViewState {
     _applyFurnitureScale(item, nextScale, persist: true);
   }
 
-  void _handleFurnitureScaleChangeStart(double _) {
-    final item = _selectedPlacedFurniture();
-    if (item == null) {
-      return;
-    }
-    _beginFurnitureScaleInteraction(item);
-  }
-
-  void _handleFurnitureScaleChanged(double value) {
-    final item = _selectedPlacedFurniture();
-    if (item == null) {
-      return;
-    }
-    if (_activeFurnitureScaleInteractionItemId != item.id) {
-      _beginFurnitureScaleInteraction(item);
-    }
-    _applyFurnitureScale(item, value);
-  }
-
-  void _handleFurnitureScaleChangeEnd(double _) {
-    final item = _selectedPlacedFurniture();
-    final startItemId = _activeFurnitureScaleInteractionItemId;
-    final startScale = _activeFurnitureScaleInteractionStartScale;
-    final startPosition = _activeFurnitureScaleInteractionStartCanvasPosition;
-    _clearFurnitureScaleInteraction();
-    if (item == null ||
-        item.isPending ||
-        startItemId != item.id ||
-        startScale == null ||
-        startPosition == null) {
-      return;
-    }
-    final scaleChanged = (item.scale - startScale).abs() > 0.001;
-    final positionChanged =
-        (_canvasCenterFraction(item) - startPosition).distance > 0.001;
-    if (!scaleChanged && !positionChanged) {
-      return;
-    }
-    unawaited(_persistFurnitureTransform(item));
-  }
-
   void _toggleSelectedFurnitureFlip() {
     final item = _selectedPlacedFurniture();
     if (item == null) {
@@ -1127,6 +1081,96 @@ extension _HomeRoomDecor on _HomeViewState {
     });
     if (!item.isPending) {
       unawaited(_persistFurnitureFlip(item));
+    }
+  }
+
+  FurnitureLayerBox _furnitureLayerBox(_PlacedFurniture item, Rect content) {
+    final size = RoomCanvas.furnitureSize(content, item.scale);
+    final topLeft = RoomCanvas.topLeftFromCenterFraction(
+      centerFraction: _canvasCenterFraction(item),
+      content: content,
+      itemSize: size,
+    );
+    return FurnitureLayerBox(
+      id: item.id,
+      rect: topLeft & size,
+      z: item.zOrder ?? 0,
+      isFloor: item.isFloor,
+    );
+  }
+
+  double _furnitureTopZ() => _activeFurnitureForRoom().fold(
+    0.0,
+    (top, item) => max(top, item.zOrder ?? 0),
+  );
+
+  /// Re-slots [item] by depth among the pieces it overlaps after a place/move.
+  void _autoLayerFurniture(_PlacedFurniture item, Rect content) {
+    final z = autoFurnitureZ(_furnitureLayerBox(item, content), [
+      for (final other in _activeFurnitureForRoom())
+        _furnitureLayerBox(other, content),
+    ]);
+    if (z != null) {
+      _setFurnitureZ(item, z);
+    }
+  }
+
+  /// The z a manual layer [move] would give the selected piece, or null when
+  /// it is unavailable (nothing overlapping that way, or not yet saved).
+  double? _selectedFurnitureLayerZ(FurnitureLayerMove move) {
+    final item = _selectedPlacedFurniture();
+    final fieldSize = _petFieldSize();
+    if (item == null || item.isPending || fieldSize == null) {
+      return null;
+    }
+    final content = RoomCanvas.contentRect(fieldSize);
+    return movedFurnitureZ(_furnitureLayerBox(item, content), [
+      for (final other in _activeFurnitureForRoom())
+        _furnitureLayerBox(other, content),
+    ], move);
+  }
+
+  void _moveSelectedFurnitureLayer(FurnitureLayerMove move) {
+    final item = _selectedPlacedFurniture();
+    final z = _selectedFurnitureLayerZ(move);
+    if (item != null && z != null) {
+      _setFurnitureZ(item, z);
+    }
+  }
+
+  void _setFurnitureZ(_PlacedFurniture item, double z) {
+    _setStateForRoomDecor(() => item.zOrder = z);
+    if (!item.isPending) {
+      unawaited(_persistFurnitureLayer(item));
+    }
+  }
+
+  Future<void> _persistFurnitureLayer(_PlacedFurniture item) async {
+    final z = item.zOrder;
+    if (item.isPending || z == null) {
+      return;
+    }
+    _markFurnitureWrite(item.id);
+    try {
+      await Supabase.instance.client.rpc(
+        'set_room_furniture_layer',
+        params: {'p_id': item.id, 'p_z_order': z},
+      );
+    } catch (error, stackTrace) {
+      if (mounted) {
+        _setStateForRoomDecor(() {
+          _furnitureError = userFacingError(
+            context,
+            error,
+            stackTrace: stackTrace,
+            source: 'home_furniture_layer',
+          );
+        });
+      }
+      final roomId = _roomId;
+      if (roomId != null) {
+        unawaited(_loadRoomFurniture(roomId));
+      }
     }
   }
 
@@ -1182,6 +1226,7 @@ extension _HomeRoomDecor on _HomeViewState {
         return;
       }
       Future<void>? followUpPersist;
+      _PlacedFurniture? followUpLayer;
       _setStateForRoomDecor(() {
         final list = _placedFurnitureByRoom[roomId] ?? [];
         final index = list.indexWhere((entry) => entry.id == item.id);
@@ -1202,6 +1247,10 @@ extension _HomeRoomDecor on _HomeViewState {
             ..persistedCanvasPosition =
                 responseCanvas ?? list[index].canvasPosition
             ..isPending = false;
+          final serverZ = (response['z_order'] as num?)?.toDouble();
+          if (serverZ != null && list[index].zOrder != serverZ) {
+            followUpLayer = list[index];
+          }
           list[index].scale = needsFollowUpPersist
               ? localScale
               : persistedScale;
@@ -1214,6 +1263,10 @@ extension _HomeRoomDecor on _HomeViewState {
         }
       });
       await followUpPersist;
+      final layerItem = followUpLayer;
+      if (layerItem != null) {
+        await _persistFurnitureLayer(layerItem);
+      }
       unawaited(_loadRoomFurniture(roomId));
     } catch (error, stackTrace) {
       if (!mounted) {

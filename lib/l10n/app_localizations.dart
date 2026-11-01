@@ -2994,7 +2994,7 @@ abstract class AppLocalizations {
   /// No description provided for @furnitureInventoryHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap furniture to place it. Select placed furniture to move, resize, or flip.'**
+  /// **'Tap an item to place it in the middle, or press and hold to drag it into the room.'**
   String get furnitureInventoryHint;
 
   /// No description provided for @furnitureScaleLabel.
@@ -3230,6 +3230,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag anywhere or tap a spot to move'**
   String get furnitureMoveHint;
+
+  /// No description provided for @furnitureEditBarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a piece in the room to move, resize or layer it.'**
+  String get furnitureEditBarHint;
+
+  /// No description provided for @furnitureDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get furnitureDone;
+
+  /// No description provided for @furnitureStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Put away'**
+  String get furnitureStore;
+
+  /// No description provided for @furnitureLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Layer'**
+  String get furnitureLayer;
+
+  /// No description provided for @furnitureLayerFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring to front'**
+  String get furnitureLayerFront;
+
+  /// No description provided for @furnitureLayerForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring forward'**
+  String get furnitureLayerForward;
+
+  /// No description provided for @furnitureLayerBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Send backward'**
+  String get furnitureLayerBackward;
+
+  /// No description provided for @furnitureLayerBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to back'**
+  String get furnitureLayerBack;
+
+  /// No description provided for @furnitureInventoryCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide items'**
+  String get furnitureInventoryCollapse;
+
+  /// No description provided for @furnitureInventoryExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show items'**
+  String get furnitureInventoryExpand;
 
   /// No description provided for @petSelectionTitle.
   ///
