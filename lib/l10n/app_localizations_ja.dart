@@ -1767,12 +1767,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get furnitureLayerBack => '最背面へ';
 
   @override
-  String get furnitureInventoryCollapse => '一覧を閉じる';
-
-  @override
-  String get furnitureInventoryExpand => '一覧を開く';
-
-  @override
   String get petSelectionTitle => 'ペットを選んで';
 
   @override

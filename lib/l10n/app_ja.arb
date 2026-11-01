@@ -892,8 +892,6 @@
   "furnitureLayerForward": "ひとつ前へ",
   "furnitureLayerBackward": "ひとつ後ろへ",
   "furnitureLayerBack": "最背面へ",
-  "furnitureInventoryCollapse": "一覧を閉じる",
-  "furnitureInventoryExpand": "一覧を開く",
   "petSelectionTitle": "ペットを選んで",
   "petSelectionSubtitle": "このルームの相棒を選ぼう。",
   "petSelectionHint": "ペットをタップして進みましょう。",

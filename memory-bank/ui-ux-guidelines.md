@@ -57,8 +57,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   fixed-size surfaces to it.
 - Room frame casings keep their original (black-outlined) art; do not reskin.
 - Furniture mode keeps the room fixed: the inventory replaces the photo
-  gallery inside the gallery's own slot (collapsible to its tab row so the
-  background shows), and the edit bar overlays the nav bar's fixed-height slot
+  gallery inside the gallery's own slot (the status-bar inventory button
+  collapses it to its tab row so the background shows, and re-expands it, as
+  does a tab tap; no separate collapse arrow), and the edit bar overlays the nav bar's fixed-height slot
   (hint + Done; with a piece selected: size −/+, flip, layer, put away,
   Done). Leave the mode only with Done; empty-floor taps never exit.
 - Placing: tap an inventory item (room centre) or long-press and drag it into

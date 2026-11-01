@@ -1781,12 +1781,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get furnitureLayerBack => '맨 뒤로';
 
   @override
-  String get furnitureInventoryCollapse => '목록 접기';
-
-  @override
-  String get furnitureInventoryExpand => '목록 펼치기';
-
-  @override
   String get petSelectionTitle => '펫을 선택하세요';
 
   @override

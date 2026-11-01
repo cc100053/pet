@@ -913,8 +913,6 @@
   "furnitureLayerForward": "Bring forward",
   "furnitureLayerBackward": "Send backward",
   "furnitureLayerBack": "Send to back",
-  "furnitureInventoryCollapse": "Hide items",
-  "furnitureInventoryExpand": "Show items",
   "petSelectionTitle": "Choose your pet",
   "petSelectionSubtitle": "Pick a buddy to start this room.",
   "petSelectionHint": "Tap a pet to continue.",

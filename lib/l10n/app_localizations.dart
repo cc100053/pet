@@ -3279,18 +3279,6 @@ abstract class AppLocalizations {
   /// **'Send to back'**
   String get furnitureLayerBack;
 
-  /// No description provided for @furnitureInventoryCollapse.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide items'**
-  String get furnitureInventoryCollapse;
-
-  /// No description provided for @furnitureInventoryExpand.
-  ///
-  /// In en, this message translates to:
-  /// **'Show items'**
-  String get furnitureInventoryExpand;
-
   /// No description provided for @petSelectionTitle.
   ///
   /// In en, this message translates to:

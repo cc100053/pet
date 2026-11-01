@@ -885,8 +885,6 @@
   "furnitureLayerForward": "上移一層",
   "furnitureLayerBackward": "下移一層",
   "furnitureLayerBack": "移到最下層",
-  "furnitureInventoryCollapse": "收起列表",
-  "furnitureInventoryExpand": "展開列表",
   "petSelectionTitle": "選擇你的寵物",
   "petSelectionSubtitle": "為這個房間挑一位夥伴。",
   "petSelectionHint": "點一下寵物就能繼續。",

@@ -241,39 +241,21 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: Colors.black87,
-                    labelColor: Colors.black87,
-                    unselectedLabelColor: Colors.black45,
-                    // A tab tap on the collapsed strip reopens the list.
-                    onTap: (_) {
-                      if (widget.collapsed) {
-                        widget.onToggleCollapsed();
-                      }
-                    },
-                    tabs: [
-                      Tab(text: l10n.inventoryTabFurniture),
-                      Tab(text: l10n.backgroundGalleryTab),
-                      Tab(text: l10n.inventoryTabEquipment),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  key: const Key('room_inventory_collapse_toggle'),
-                  icon: Icon(
-                    widget.collapsed
-                        ? Icons.expand_more_rounded
-                        : Icons.expand_less_rounded,
-                  ),
-                  onPressed: widget.onToggleCollapsed,
-                  tooltip: widget.collapsed
-                      ? l10n.furnitureInventoryExpand
-                      : l10n.furnitureInventoryCollapse,
-                ),
+            TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.black87,
+              labelColor: Colors.black87,
+              unselectedLabelColor: Colors.black45,
+              // A tab tap on the collapsed strip reopens the list.
+              onTap: (_) {
+                if (widget.collapsed) {
+                  widget.onToggleCollapsed();
+                }
+              },
+              tabs: [
+                Tab(text: l10n.inventoryTabFurniture),
+                Tab(text: l10n.backgroundGalleryTab),
+                Tab(text: l10n.inventoryTabEquipment),
               ],
             ),
             if (!widget.collapsed) ...[

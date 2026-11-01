@@ -400,6 +400,18 @@ extension _HomeRoomDecor on _HomeViewState {
     });
   }
 
+  /// Status-bar inventory button: opens furniture mode, then collapses and
+  /// re-expands the panel on later taps (Done still leaves the mode).
+  void _toggleFurnitureInventory() {
+    if (!_furnitureMode) {
+      _openFurnitureInventory();
+      return;
+    }
+    _setStateForRoomDecor(
+      () => _furnitureInventoryCollapsed = !_furnitureInventoryCollapsed,
+    );
+  }
+
   void _openFurnitureInventory() {
     final roomId = _roomId;
     if (roomId == null) {

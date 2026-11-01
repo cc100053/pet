@@ -1758,12 +1758,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureLayerBack => '置于底层';
 
   @override
-  String get furnitureInventoryCollapse => '收起列表';
-
-  @override
-  String get furnitureInventoryExpand => '展开列表';
-
-  @override
   String get petSelectionTitle => '选择你的宠物';
 
   @override
@@ -4370,12 +4364,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get furnitureLayerBack => '移到最下層';
-
-  @override
-  String get furnitureInventoryCollapse => '收起列表';
-
-  @override
-  String get furnitureInventoryExpand => '展開列表';
 
   @override
   String get petSelectionTitle => '選擇你的寵物';

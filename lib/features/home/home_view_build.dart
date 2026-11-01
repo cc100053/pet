@@ -122,7 +122,7 @@ extension _HomeBuildHelpers on _HomeViewState {
           onInviteTap: _generateInviteCode,
           inviteLabel: l10n.roomInviteCta,
           inviteLoading: _inviteCodeLoading,
-          onInventoryTap: _openFurnitureInventory,
+          onInventoryTap: _toggleFurnitureInventory,
           inventoryLabel: l10n.roomInventoryCta,
           showInventoryGuidance: _shouldShowRoomDecorHintFor(activeRoomId),
           inventoryGuidanceTitle: l10n.roomDecorHintTitle,

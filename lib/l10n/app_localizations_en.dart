@@ -1826,12 +1826,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get furnitureLayerBack => 'Send to back';
 
   @override
-  String get furnitureInventoryCollapse => 'Hide items';
-
-  @override
-  String get furnitureInventoryExpand => 'Show items';
-
-  @override
   String get petSelectionTitle => 'Choose your pet';
 
   @override
