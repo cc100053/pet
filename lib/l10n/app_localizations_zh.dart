@@ -2296,6 +2296,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '轻松查看对话日期';
 
   @override
+  String get whatsNew610Title => '布置房间更轻松';
+
+  @override
+  String get whatsNew610Bullet1 => '家具模式全新改版';
+
+  @override
+  String get whatsNew610Bullet1Detail => '房间固定,移动更轻松';
+
+  @override
+  String get whatsNew610Bullet2 => '调整家具前后层次';
+
+  @override
+  String get whatsNew610Bullet2Detail => '可选择前后层次';
+
+  @override
+  String get whatsNew610Bullet3 => '照片上传更稳定';
+
+  @override
   String get whatsNew600Title => '姜饼人登场';
 
   @override
@@ -4902,6 +4920,24 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get whatsNew410Bullet3Detail => '輕鬆掌握對話日期';
+
+  @override
+  String get whatsNew610Title => '佈置房間更輕鬆';
+
+  @override
+  String get whatsNew610Bullet1 => '家具模式全新改版';
+
+  @override
+  String get whatsNew610Bullet1Detail => '房間固定,移動更輕鬆';
+
+  @override
+  String get whatsNew610Bullet2 => '調整家具前後層次';
+
+  @override
+  String get whatsNew610Bullet2Detail => '可選擇前後層次';
+
+  @override
+  String get whatsNew610Bullet3 => '照片上傳更穩定';
 
   @override
   String get whatsNew600Title => '薑餅人登場';

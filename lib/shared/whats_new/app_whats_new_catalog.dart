@@ -7,6 +7,26 @@ class AppWhatsNewCatalog {
 
   static const List<AppWhatsNewEntry> entries = <AppWhatsNewEntry>[
     AppWhatsNewEntry(
+      version: '6.1.0',
+      titleBuilder: _version610Title,
+      bulletBuilders: <AppWhatsNewTextBuilder>[
+        _version610Bullet1,
+        _version610Bullet2,
+        _version610Bullet3,
+      ],
+      bulletIcons: <AppWhatsNewIcon>[
+        AppWhatsNewIcon.design,
+        AppWhatsNewIcon.feature,
+        AppWhatsNewIcon.fix,
+      ],
+      bulletDetailBuilders: <AppWhatsNewTextBuilder?>[
+        _version610Bullet1Detail,
+        _version610Bullet2Detail,
+        null,
+      ],
+      actionLabelBuilder: _continueLabel,
+    ),
+    AppWhatsNewEntry(
       version: '6.0.0',
       titleBuilder: _version600Title,
       bulletBuilders: <AppWhatsNewTextBuilder>[
@@ -424,6 +444,19 @@ class AppWhatsNewCatalog {
     }
     return null;
   }
+
+  static String _version610Title(AppLocalizations l10n) =>
+      l10n.whatsNew610Title;
+  static String _version610Bullet1(AppLocalizations l10n) =>
+      l10n.whatsNew610Bullet1;
+  static String _version610Bullet1Detail(AppLocalizations l10n) =>
+      l10n.whatsNew610Bullet1Detail;
+  static String _version610Bullet2(AppLocalizations l10n) =>
+      l10n.whatsNew610Bullet2;
+  static String _version610Bullet2Detail(AppLocalizations l10n) =>
+      l10n.whatsNew610Bullet2Detail;
+  static String _version610Bullet3(AppLocalizations l10n) =>
+      l10n.whatsNew610Bullet3;
 
   static String _version600Title(AppLocalizations l10n) =>
       l10n.whatsNew600Title;

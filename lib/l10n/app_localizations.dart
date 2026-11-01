@@ -4299,6 +4299,42 @@ abstract class AppLocalizations {
   /// **'See the day while scrolling'**
   String get whatsNew410Bullet3Detail;
 
+  /// No description provided for @whatsNew610Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Easier room decorating'**
+  String get whatsNew610Title;
+
+  /// No description provided for @whatsNew610Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Furniture mode redesign'**
+  String get whatsNew610Bullet1;
+
+  /// No description provided for @whatsNew610Bullet1Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed room, easier moving'**
+  String get whatsNew610Bullet1Detail;
+
+  /// No description provided for @whatsNew610Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Layer your furniture'**
+  String get whatsNew610Bullet2;
+
+  /// No description provided for @whatsNew610Bullet2Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Send pieces front or back'**
+  String get whatsNew610Bullet2Detail;
+
+  /// No description provided for @whatsNew610Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Steadier photo uploads'**
+  String get whatsNew610Bullet3;
+
   /// No description provided for @whatsNew600Title.
   ///
   /// In en, this message translates to:

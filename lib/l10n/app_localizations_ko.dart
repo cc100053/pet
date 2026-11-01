@@ -2322,6 +2322,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whatsNew410Bullet3Detail => '스크롤 중 표시돼요';
 
   @override
+  String get whatsNew610Title => '더 쉬워진 방 꾸미기';
+
+  @override
+  String get whatsNew610Bullet1 => '가구 모드 새 단장';
+
+  @override
+  String get whatsNew610Bullet1Detail => '방 고정, 쉬운 이동';
+
+  @override
+  String get whatsNew610Bullet2 => '가구 겹침 순서 조절';
+
+  @override
+  String get whatsNew610Bullet2Detail => '앞뒤 순서를 고를 수 있어요';
+
+  @override
+  String get whatsNew610Bullet3 => '사진 전송 안정화';
+
+  @override
   String get whatsNew600Title => '진저브레드맨 등장';
 
   @override

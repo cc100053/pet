@@ -2424,6 +2424,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'See the day while scrolling';
 
   @override
+  String get whatsNew610Title => 'Easier room decorating';
+
+  @override
+  String get whatsNew610Bullet1 => 'Furniture mode redesign';
+
+  @override
+  String get whatsNew610Bullet1Detail => 'Fixed room, easier moving';
+
+  @override
+  String get whatsNew610Bullet2 => 'Layer your furniture';
+
+  @override
+  String get whatsNew610Bullet2Detail => 'Send pieces front or back';
+
+  @override
+  String get whatsNew610Bullet3 => 'Steadier photo uploads';
+
+  @override
   String get whatsNew600Title => 'Meet Gingerbread Man';
 
   @override

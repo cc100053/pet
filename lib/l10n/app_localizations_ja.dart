@@ -2309,6 +2309,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get whatsNew410Bullet3Detail => 'スクロール中に表示';
 
   @override
+  String get whatsNew610Title => '家具の配置がもっと楽に';
+
+  @override
+  String get whatsNew610Bullet1 => '家具モードを刷新';
+
+  @override
+  String get whatsNew610Bullet1Detail => '部屋は固定で移動も簡単';
+
+  @override
+  String get whatsNew610Bullet2 => '家具の重なりを調整';
+
+  @override
+  String get whatsNew610Bullet2Detail => '前面・背面を選べます';
+
+  @override
+  String get whatsNew610Bullet3 => '写真送信が安定';
+
+  @override
   String get whatsNew600Title => 'ジンジャーブレッドマン登場';
 
   @override
