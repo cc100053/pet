@@ -346,7 +346,6 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   // Furniture State
   bool _furnitureMode = false;
-  bool _furnitureInventoryCollapsed = false;
   bool _furnitureLoading = false;
   String? _furnitureError;
   String? _selectedFurnitureItemId;
@@ -3360,11 +3359,6 @@ class _HomeViewState extends ConsumerState<HomeView>
                           equipPets: _equipPetOptionsForRoom(activeRoomId),
                           selectedEquipPetId: _selectedEquipPetId,
                           onSelectEquipPet: _onSelectEquipPet,
-                          collapsed: _furnitureInventoryCollapsed,
-                          onToggleCollapsed: () => setState(
-                            () => _furnitureInventoryCollapsed =
-                                !_furnitureInventoryCollapsed,
-                          ),
                           onFurnitureTap: (itemId) {
                             setState(() {
                               _selectedFurnitureItemId = itemId;

@@ -56,8 +56,6 @@ class HomeRoomInventoryPanel extends StatefulWidget {
     required this.equipPets,
     required this.selectedEquipPetId,
     required this.onSelectEquipPet,
-    required this.onToggleCollapsed,
-    this.collapsed = false,
     required this.onFurnitureTap,
     required this.onBackgroundApply,
     required this.onEquipItem,
@@ -89,9 +87,6 @@ class HomeRoomInventoryPanel extends StatefulWidget {
   final String? selectedEquipPetId;
   final ValueChanged<String> onSelectEquipPet;
 
-  /// Collapsed shows only the tab row so the room background shows through.
-  final bool collapsed;
-  final VoidCallback onToggleCollapsed;
   final void Function(String itemId) onFurnitureTap;
   final void Function(String itemId) onBackgroundApply;
   final Future<void> Function(String itemId, String slot) onEquipItem;
@@ -246,100 +241,92 @@ class _HomeRoomInventoryPanelState extends State<HomeRoomInventoryPanel>
               indicatorColor: Colors.black87,
               labelColor: Colors.black87,
               unselectedLabelColor: Colors.black45,
-              // A tab tap on the collapsed strip reopens the list.
-              onTap: (_) {
-                if (widget.collapsed) {
-                  widget.onToggleCollapsed();
-                }
-              },
               tabs: [
                 Tab(text: l10n.inventoryTabFurniture),
                 Tab(text: l10n.backgroundGalleryTab),
                 Tab(text: l10n.inventoryTabEquipment),
               ],
             ),
-            if (!widget.collapsed) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                // One height for every tab: a per-tab height shrinks under the
-                // outgoing page mid-swipe and overflows. The equipment tab needs
-                // the extra room when the persistent pet selector shows; the
-                // furniture grid simply reveals more rows.
-                height: widget.equipPets.length >= 2 ? 348 : 290,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _FurnitureTab(
-                      items: furnitureItems,
-                      totalCount: (itemId) =>
-                          widget.furnitureInventory[itemId] ?? 0,
-                      selectedItemId: widget.selectedFurnitureItemId,
-                      availableCount: widget.availableFurnitureCount,
-                      loading: widget.furnitureLoading,
-                      errorText: widget.furnitureErrorText,
-                      onItemTap: widget.onFurnitureTap,
-                    ),
-                    _BackgroundTab(
-                      items: widget.backgroundItems,
-                      activeBackgroundId: widget.activeBackgroundId,
-                      applyingBackgroundId: widget.applyingBackgroundId,
-                      loading: widget.backgroundLoading,
-                      errorText: widget.backgroundErrorText,
-                      onApply: widget.onBackgroundApply,
-                    ),
-                    _EquipmentTab(
-                      petType: _selectedEquipPetType(),
-                      equipPets: widget.equipPets,
-                      selectedEquipPetId: widget.selectedEquipPetId,
-                      onSelectEquipPet: (petId) {
-                        if (petId == widget.selectedEquipPetId) {
-                          return;
-                        }
-                        setState(() => _previewEquipmentItemId = null);
-                        widget.onSelectEquipPet(petId);
-                      },
-                      previewSkusBySlot: _previewSkusBySlot(),
-                      selectedSlot: _selectedEquipmentSlot,
-                      onSelectSlot: (slot) {
-                        setState(() {
-                          _selectedEquipmentSlot = slot;
-                          _previewEquipmentItemId = null;
-                        });
-                      },
-                      items: _equipmentItemsForSelectedSlot(),
-                      availableCount: widget.availableEquipmentCount,
-                      equippedItemId: _equippedItemIdForSelectedSlot(),
-                      previewItemId: _previewEquipmentItemId,
-                      loading: widget.equipmentLoading,
-                      errorText: widget.equipmentErrorText,
-                      submitting: _equipmentSubmitting,
-                      onItemTap: (itemId) {
-                        setState(() {
-                          _previewEquipmentItemId = itemId;
-                        });
-                      },
-                      onEquip: () => unawaited(_handleEquipPressed()),
-                      onUnequip: () => unawaited(_handleUnequipPressed()),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 8),
+            SizedBox(
+              // One height for every tab: a per-tab height shrinks under the
+              // outgoing page mid-swipe and overflows. The equipment tab needs
+              // the extra room when the persistent pet selector shows; the
+              // furniture grid simply reveals more rows.
+              height: widget.equipPets.length >= 2 ? 348 : 290,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _FurnitureTab(
+                    items: furnitureItems,
+                    totalCount: (itemId) =>
+                        widget.furnitureInventory[itemId] ?? 0,
+                    selectedItemId: widget.selectedFurnitureItemId,
+                    availableCount: widget.availableFurnitureCount,
+                    loading: widget.furnitureLoading,
+                    errorText: widget.furnitureErrorText,
+                    onItemTap: widget.onFurnitureTap,
+                  ),
+                  _BackgroundTab(
+                    items: widget.backgroundItems,
+                    activeBackgroundId: widget.activeBackgroundId,
+                    applyingBackgroundId: widget.applyingBackgroundId,
+                    loading: widget.backgroundLoading,
+                    errorText: widget.backgroundErrorText,
+                    onApply: widget.onBackgroundApply,
+                  ),
+                  _EquipmentTab(
+                    petType: _selectedEquipPetType(),
+                    equipPets: widget.equipPets,
+                    selectedEquipPetId: widget.selectedEquipPetId,
+                    onSelectEquipPet: (petId) {
+                      if (petId == widget.selectedEquipPetId) {
+                        return;
+                      }
+                      setState(() => _previewEquipmentItemId = null);
+                      widget.onSelectEquipPet(petId);
+                    },
+                    previewSkusBySlot: _previewSkusBySlot(),
+                    selectedSlot: _selectedEquipmentSlot,
+                    onSelectSlot: (slot) {
+                      setState(() {
+                        _selectedEquipmentSlot = slot;
+                        _previewEquipmentItemId = null;
+                      });
+                    },
+                    items: _equipmentItemsForSelectedSlot(),
+                    availableCount: widget.availableEquipmentCount,
+                    equippedItemId: _equippedItemIdForSelectedSlot(),
+                    previewItemId: _previewEquipmentItemId,
+                    loading: widget.equipmentLoading,
+                    errorText: widget.equipmentErrorText,
+                    submitting: _equipmentSubmitting,
+                    onItemTap: (itemId) {
+                      setState(() {
+                        _previewEquipmentItemId = itemId;
+                      });
+                    },
+                    onEquip: () => unawaited(_handleEquipPressed()),
+                    onUnequip: () => unawaited(_handleUnequipPressed()),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              AnimatedBuilder(
-                animation: _tabController,
-                builder: (context, _) {
-                  final hint = switch (_tabController.index) {
-                    0 => l10n.furnitureInventoryHint,
-                    1 => l10n.backgroundInventoryHint,
-                    _ => l10n.equipmentInventoryHint,
-                  };
-                  return Text(
-                    hint,
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  );
-                },
-              ),
-            ],
+            ),
+            const SizedBox(height: 8),
+            AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, _) {
+                final hint = switch (_tabController.index) {
+                  0 => l10n.furnitureInventoryHint,
+                  1 => l10n.backgroundInventoryHint,
+                  _ => l10n.equipmentInventoryHint,
+                };
+                return Text(
+                  hint,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                );
+              },
+            ),
           ],
         ),
       ),

@@ -400,16 +400,14 @@ extension _HomeRoomDecor on _HomeViewState {
     });
   }
 
-  /// Status-bar inventory button: opens furniture mode, then collapses and
-  /// re-expands the panel on later taps (Done still leaves the mode).
+  /// Status-bar inventory button: enters furniture mode, or leaves it like
+  /// Done when already in it.
   void _toggleFurnitureInventory() {
-    if (!_furnitureMode) {
+    if (_furnitureMode) {
+      _closeFurnitureInventory();
+    } else {
       _openFurnitureInventory();
-      return;
     }
-    _setStateForRoomDecor(
-      () => _furnitureInventoryCollapsed = !_furnitureInventoryCollapsed,
-    );
   }
 
   void _openFurnitureInventory() {
@@ -424,7 +422,6 @@ extension _HomeRoomDecor on _HomeViewState {
         pets.any((p) => p.petId == _selectedEquipPetId);
     _setStateForRoomDecor(() {
       _furnitureMode = true;
-      _furnitureInventoryCollapsed = false;
       _selectedFurnitureItemId = null;
       _selectedPlacedFurnitureId = null;
       if (!selectionValid) {
