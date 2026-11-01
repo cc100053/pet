@@ -193,7 +193,7 @@ void main() {
     final l10n = AppLocalizations.of(
       tester.element(find.byType(FeedCaptureView)),
     )!;
-    expect(find.text(l10n.errorUnexpected), findsOneWidget);
+    expect(find.text(l10n.errorImageUnreadable), findsOneWidget);
     expect(
       tester
           .widget<HardShadowPressButton>(find.byType(HardShadowPressButton))

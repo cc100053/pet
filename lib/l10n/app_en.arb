@@ -227,6 +227,7 @@
   "errorPermissionDenied": "You don't have permission to do that.",
   "errorMediaPermissionDenied": "Camera or photo access is off. Please allow it in Settings and try again.",
   "errorImageTooLarge": "Image is too large. Please choose a smaller image.",
+  "errorImageUnreadable": "Couldn't open this photo. If it's in iCloud, check your connection, or choose another photo.",
   "errorPetNameInvalid": "That pet name is not allowed. Please use a different name.",
   "errorInsufficientInventory": "No copies are available to place. Please check the room inventory.",
   "errorUnexpected": "Something went wrong. Please try again.",

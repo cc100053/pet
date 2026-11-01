@@ -389,6 +389,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorImageTooLarge => '画像サイズが大きすぎます。より小さい画像を選択してください。';
 
   @override
+  String get errorImageUnreadable =>
+      'この写真を開けませんでした。iCloudの写真の場合は接続を確認するか、別の写真を選択してください。';
+
+  @override
   String get errorPetNameInvalid => 'そのペット名は使用できません。別の名前を入力してください。';
 
   @override

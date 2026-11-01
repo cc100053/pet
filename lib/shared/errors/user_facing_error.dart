@@ -19,6 +19,7 @@ enum UserFacingErrorCategory {
   authReauthRequired,
   imageTooLarge,
   insufficientInventory,
+  invalidImage,
   invalidInvite,
   mediaPermissionDenied,
   permissionDenied,
@@ -289,6 +290,13 @@ UserFacingErrorCategory _classify(Object error, String rawSummary) {
   if (error is FunctionException && error.status == 413) {
     return UserFacingErrorCategory.imageTooLarge;
   }
+  // A picked photo we cannot read: image_picker fails `invalid_image` when the
+  // iCloud original won't load, and dart:ui rejects the empty or unsupported
+  // file the iOS plugin writes when UIImage cannot decode the original.
+  if ((error is PlatformException && error.code == 'invalid_image') ||
+      summary.contains('invalid image data')) {
+    return UserFacingErrorCategory.invalidImage;
+  }
   if (summary.contains('invalid_invite')) {
     return UserFacingErrorCategory.invalidInvite;
   }
@@ -338,6 +346,8 @@ String _message(AppLocalizations l10n, UserFacingErrorCategory category) {
       return l10n.errorImageTooLarge;
     case UserFacingErrorCategory.insufficientInventory:
       return l10n.errorInsufficientInventory;
+    case UserFacingErrorCategory.invalidImage:
+      return l10n.errorImageUnreadable;
     case UserFacingErrorCategory.invalidInvite:
       return l10n.errorInvalidInviteCode;
     case UserFacingErrorCategory.mediaPermissionDenied:

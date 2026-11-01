@@ -106,6 +106,19 @@ void main() {
       );
     });
 
+    test('classifies unreadable picked photos as invalid image', () {
+      expect(
+        classifyUserFacingError(Exception('Invalid image data')),
+        UserFacingErrorCategory.invalidImage,
+      );
+      expect(
+        classifyUserFacingError(
+          PlatformException(code: 'invalid_image', message: '無法載入'),
+        ),
+        UserFacingErrorCategory.invalidImage,
+      );
+    });
+
     test('classifies transport failures as network', () {
       expect(
         classifyUserFacingError(Exception('SocketException: failed')),

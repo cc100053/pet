@@ -387,6 +387,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorImageTooLarge => '图片文件太大，请选择较小的图片。';
 
   @override
+  String get errorImageUnreadable => '无法打开这张照片。如果照片存储在 iCloud，请检查网络连接，或选择其他照片。';
+
+  @override
   String get errorPetNameInvalid => '这个宠物名称不可用，请换一个名称。';
 
   @override
@@ -2964,6 +2967,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get errorImageTooLarge => '圖片檔案太大，請選擇較小的圖片。';
+
+  @override
+  String get errorImageUnreadable => '無法開啟這張照片。如果照片儲存在 iCloud，請檢查網路連線，或選擇其他照片。';
 
   @override
   String get errorPetNameInvalid => '這個寵物名稱不可用，請換一個名稱。';

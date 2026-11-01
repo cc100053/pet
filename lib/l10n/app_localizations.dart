@@ -769,6 +769,12 @@ abstract class AppLocalizations {
   /// **'Image is too large. Please choose a smaller image.'**
   String get errorImageTooLarge;
 
+  /// No description provided for @errorImageUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open this photo. If it\'s in iCloud, check your connection, or choose another photo.'**
+  String get errorImageUnreadable;
+
   /// No description provided for @errorPetNameInvalid.
   ///
   /// In en, this message translates to:
