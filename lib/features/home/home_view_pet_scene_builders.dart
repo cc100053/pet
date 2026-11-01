@@ -947,13 +947,16 @@ extension _HomePetSceneBuilders on _HomeViewState {
   Widget _buildPetAvatar({bool peekWalking = false}) {
     final petColor = _petMoodColor();
     final petDefinition = PetCatalog.byId(_petType);
-    final moving = _petIsMoving || peekWalking;
+    // Peeking pets only walk to their spot and back, otherwise they stay.
+    final moving = _furnitureMode ? peekWalking : _petIsMoving;
 
     final String asset;
     if (_petEating) {
       asset = petDefinition.stayAsset;
     } else if (moving) {
       asset = petDefinition.walkAsset;
+    } else if (_furnitureMode) {
+      asset = petDefinition.stayAsset;
     } else {
       asset = switch (_petStationaryState) {
         _PetStationaryState.staying => petDefinition.stayAsset,
@@ -981,6 +984,7 @@ extension _HomePetSceneBuilders on _HomeViewState {
         isWalking: moving,
         isSleeping:
             !moving &&
+            !_furnitureMode &&
             _petStationaryState == _PetStationaryState.sleeping &&
             !_petEating,
         petFallbackColor: petColor,
@@ -997,9 +1001,13 @@ extension _HomePetSceneBuilders on _HomeViewState {
     bool peekWalking = false,
   }) {
     final petDefinition = PetCatalog.byId(pet.petType);
-    final isWalking = runtime.isWalking || runtime.isDragging || peekWalking;
+    final isWalking = _furnitureMode
+        ? peekWalking
+        : runtime.isWalking || runtime.isDragging;
     final isSleeping =
-        !isWalking && runtime.stationaryState == _PetStationaryState.sleeping;
+        !isWalking &&
+        !_furnitureMode &&
+        runtime.stationaryState == _PetStationaryState.sleeping;
     final String asset;
     if (isWalking) {
       asset = petDefinition.walkAsset;

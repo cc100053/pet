@@ -63,7 +63,7 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   leaves it like Done; empty-floor taps never exit.
 - In furniture mode room pets stop wandering and walk to evenly spaced spots
   along the room's bottom edge, sunk so only their heads peek over the edit
-  bar; each placed piece makes them hop. Leaving the mode walks them back.
+  bar, always in the stay pose (no sleep); each placed piece makes them hop. Leaving the mode walks them back.
   This is display-only: stored pet positions never change.
 - Placing: tap an inventory item (room centre) or long-press and drag it into
   the room. Moving: drag the piece, or select it then drag anywhere / tap a
