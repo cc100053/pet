@@ -1732,6 +1732,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get furnitureEditMode => '家具模式';
 
   @override
+  String get furnitureMoveHint => '在任意位置拖动或点一下即可移动';
+
+  @override
   String get petSelectionTitle => '选择你的宠物';
 
   @override
@@ -4311,6 +4314,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get furnitureEditMode => '家具模式';
+
+  @override
+  String get furnitureMoveHint => '在任意位置拖曳或點一下即可移動';
 
   @override
   String get petSelectionTitle => '選擇你的寵物';

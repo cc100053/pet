@@ -1798,6 +1798,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get furnitureEditMode => 'Furniture Mode';
 
   @override
+  String get furnitureMoveHint => 'Drag anywhere or tap a spot to move';
+
+  @override
   String get petSelectionTitle => 'Choose your pet';
 
   @override

@@ -56,6 +56,11 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   sweeps every locale × 320/375/402/440pt × text scale 1.0/1.3. Add new
   fixed-size surfaces to it.
 - Room frame casings keep their original (black-outlined) art; do not reskin.
+- Furniture mode: drag a piece directly, or select it and then drag anywhere
+  on the floor / tap a spot to move it (tap it again to deselect; tapping
+  empty floor with nothing selected closes the mode). The inventory panel
+  stops above the room's top edge, and the size controls overlay the nav
+  bar's fixed-height slot so the room canvas never resizes (no piece jump).
 - New furniture art follows `docs/art_style.md` (canon: Cactus/Carpet/Vinyl
   gouache look; Gemini prompt templates; `scripts/normalize_furniture.py`).
 - Rounded corners: large cards/toasts around `32`, dialogs/actions around `16`.

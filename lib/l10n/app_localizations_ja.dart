@@ -1741,6 +1741,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get furnitureEditMode => '家具モード';
 
   @override
+  String get furnitureMoveHint => 'どこでもドラッグ、またはタップで移動';
+
+  @override
   String get petSelectionTitle => 'ペットを選んで';
 
   @override

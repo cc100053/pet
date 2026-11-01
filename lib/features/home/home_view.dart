@@ -3352,6 +3352,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               ),
               HomeFurnitureInventoryOverlay(
                 visible: _furnitureMode,
+                roomTop: _furnitureMode ? _petFieldGlobalTop() : null,
                 panel: HomeRoomInventoryPanel(
                   petType: _petType,
                   furnitureCatalog: _furnitureCatalog,

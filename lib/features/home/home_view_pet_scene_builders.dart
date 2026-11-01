@@ -15,16 +15,35 @@ extension _HomePetSceneBuilders on _HomeViewState {
         final promptInset = 12 * uiScale;
         final furnitureHintLeft = 16 * uiScale;
         final furnitureHintBottom = 12 * uiScale;
+        // With a piece selected, empty floor acts as a trackpad for it: drag
+        // anywhere (finger never hides the piece) or tap a spot to send it there.
+        final movingPiece = _furnitureMode ? _selectedPlacedFurniture() : null;
+        final content = RoomCanvas.contentRect(fieldSize);
         return GestureDetector(
           key: _petFieldKey,
           behavior: HitTestBehavior.opaque,
           onTapUp: (details) {
+            if (movingPiece != null) {
+              _moveSelectedFurnitureTo(details.localPosition, fieldSize);
+              return;
+            }
             if (_furnitureMode) {
               _closeFurnitureInventory();
               return;
             }
             _handlePetFieldTap(details.localPosition, fieldSize);
           },
+          onPanStart: movingPiece == null
+              ? null
+              : (_) => _handleFurnitureDragStart(movingPiece),
+          onPanUpdate: movingPiece == null
+              ? null
+              : (details) =>
+                    _handleFurnitureDragUpdate(movingPiece, details, content),
+          onPanEnd: movingPiece == null
+              ? null
+              : (_) => _handleFurnitureDragEnd(movingPiece),
+          onPanCancel: movingPiece == null ? null : _handleFurnitureDragCancel,
           child: Stack(
             children: [
               ..._buildPlacedFurniture(fieldSize),
@@ -849,7 +868,9 @@ extension _HomePetSceneBuilders on _HomeViewState {
         ],
       ),
       child: Text(
-        l10n.furnitureEditMode,
+        _selectedPlacedFurniture() != null
+            ? l10n.furnitureMoveHint
+            : l10n.furnitureEditMode,
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,

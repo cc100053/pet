@@ -904,6 +904,7 @@
     }
   },
   "furnitureEditMode": "Furniture Mode",
+  "furnitureMoveHint": "Drag anywhere or tap a spot to move",
   "petSelectionTitle": "Choose your pet",
   "petSelectionSubtitle": "Pick a buddy to start this room.",
   "petSelectionHint": "Tap a pet to continue.",

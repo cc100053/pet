@@ -388,11 +388,25 @@ extension _HomeRoomDecor on _HomeViewState {
     return _selectedPlacedFurnitureId == item.id;
   }
 
+  /// Tapping the selected piece again deselects it, so a tap on empty floor
+  /// goes back to closing furniture mode.
   void _selectPlacedFurniture(_PlacedFurniture item) {
     _setStateForRoomDecor(() {
-      _selectedPlacedFurnitureId = item.id;
+      _selectedPlacedFurnitureId = _isPlacedFurnitureSelected(item)
+          ? null
+          : item.id;
       _selectedFurnitureItemId = null;
     });
+  }
+
+  /// Global y of the room field's top edge from the last layout; the
+  /// inventory panel stops above it so the room stays visible.
+  double? _petFieldGlobalTop() {
+    final box = _petFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) {
+      return null;
+    }
+    return box.localToGlobal(Offset.zero).dy;
   }
 
   void _openFurnitureInventory() {
@@ -899,6 +913,32 @@ extension _HomeRoomDecor on _HomeViewState {
       }
     }
     return null;
+  }
+
+  /// Tap-to-move: sends the selected piece to [localPosition] (field-local).
+  void _moveSelectedFurnitureTo(Offset localPosition, Size fieldSize) {
+    final item = _selectedPlacedFurniture();
+    if (item == null) {
+      return;
+    }
+    final content = RoomCanvas.contentRect(fieldSize);
+    final nextCanvas = RoomCanvas.clampCenterFraction(
+      centerFraction: RoomCanvas.centerFractionFromCenter(
+        center: localPosition,
+        content: content,
+      ),
+      content: content,
+      itemSize: RoomCanvas.furnitureSize(content, item.scale),
+    );
+    _setStateForRoomDecor(() {
+      item.canvasPosition = nextCanvas;
+      item.normalizedPosition = RoomCanvas.legacyPositionFromCenterFraction(
+        nextCanvas,
+      );
+    });
+    if (!item.isPending) {
+      unawaited(_persistFurnitureTransform(item));
+    }
   }
 
   void _clearFurnitureDragGesture() {

@@ -111,9 +111,10 @@ class HomeMainContent extends StatelessWidget {
                       },
                     ),
                   ),
-                  // When a placed piece is selected the size controls take over
-                  // the bottom nav bar's slot (and hide it) so they never cover
-                  // the pet's play area.
+                  // When a placed piece is selected the size controls cover the
+                  // bottom nav bar's slot. The nav bar stays laid out (hidden) so
+                  // the slot height never changes: a taller slot would shrink the
+                  // room canvas and make every placed piece jump.
                   Padding(
                     padding: EdgeInsets.fromLTRB(
                       0,
@@ -121,29 +122,47 @@ class HomeMainContent extends StatelessWidget {
                       0,
                       bottomInset + 8,
                     ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.2),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IgnorePointer(
+                          ignoring: bottomOverlay != null,
+                          child: AnimatedOpacity(
+                            opacity: bottomOverlay != null ? 0 : 1,
+                            duration: const Duration(milliseconds: 200),
+                            child: bottomNavBar,
+                          ),
                         ),
-                      ),
-                      child: bottomOverlay != null
-                          ? KeyedSubtree(
-                              key: const ValueKey('home-furniture-scale'),
-                              child: bottomOverlay!,
-                            )
-                          : KeyedSubtree(
-                              key: const ValueKey('home-bottom-nav'),
-                              child: bottomNavBar,
-                            ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, animation) =>
+                                FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.2),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                            child: bottomOverlay != null
+                                ? KeyedSubtree(
+                                    key: const ValueKey('home-furniture-scale'),
+                                    child: bottomOverlay!,
+                                  )
+                                : const SizedBox.shrink(
+                                    key: ValueKey('home-bottom-nav'),
+                                  ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

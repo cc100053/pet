@@ -3225,6 +3225,12 @@ abstract class AppLocalizations {
   /// **'Furniture Mode'**
   String get furnitureEditMode;
 
+  /// No description provided for @furnitureMoveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag anywhere or tap a spot to move'**
+  String get furnitureMoveHint;
+
   /// No description provided for @petSelectionTitle.
   ///
   /// In en, this message translates to:

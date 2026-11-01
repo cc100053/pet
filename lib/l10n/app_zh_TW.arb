@@ -876,6 +876,7 @@
     }
   },
   "furnitureEditMode": "家具模式",
+  "furnitureMoveHint": "在任意位置拖曳或點一下即可移動",
   "petSelectionTitle": "選擇你的寵物",
   "petSelectionSubtitle": "為這個房間挑一位夥伴。",
   "petSelectionHint": "點一下寵物就能繼續。",

@@ -1754,6 +1754,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get furnitureEditMode => '가구 모드';
 
   @override
+  String get furnitureMoveHint => '아무 곳이나 드래그하거나 탭해서 이동';
+
+  @override
   String get petSelectionTitle => '펫을 선택하세요';
 
   @override

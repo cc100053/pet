@@ -883,6 +883,7 @@
     }
   },
   "furnitureEditMode": "家具モード",
+  "furnitureMoveHint": "どこでもドラッグ、またはタップで移動",
   "petSelectionTitle": "ペットを選んで",
   "petSelectionSubtitle": "このルームの相棒を選ぼう。",
   "petSelectionHint": "ペットをタップして進みましょう。",

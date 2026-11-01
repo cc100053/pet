@@ -8,10 +8,15 @@ class HomeFurnitureInventoryOverlay extends StatefulWidget {
     super.key,
     required this.visible,
     required this.panel,
+    this.roomTop,
   });
 
   final bool visible;
   final Widget panel;
+
+  /// Global y of the room's top edge. When known, the panel stops above it so
+  /// it never covers the room decor while furniture is being arranged.
+  final double? roomTop;
 
   /// Fraction of the screen height the panel may occupy from the top. The rest
   /// is left for the room floor + bottom nav so furniture stays reachable while
@@ -53,6 +58,7 @@ class _HomeFurnitureInventoryOverlayState
 
   @override
   Widget build(BuildContext context) {
+    final safeTop = MediaQuery.paddingOf(context).top;
     return Positioned(
       top: 0,
       left: 12,
@@ -65,9 +71,16 @@ class _HomeFurnitureInventoryOverlayState
                 screenHeight * HomeFurnitureInventoryOverlay._maxScreenFraction;
             // Never let the panel reach the room: cap it to a fraction of the
             // screen, bounded by whatever vertical space is actually available.
-            final maxPanelHeight = constraints.maxHeight.isFinite
-                ? math.min(constraints.maxHeight, softCap)
-                : softCap;
+            final roomTop = widget.roomTop;
+            final roomCap = roomTop == null
+                ? double.infinity
+                : math.max(0.0, roomTop - safeTop - 8);
+            final maxPanelHeight = math.min(
+              roomCap,
+              constraints.maxHeight.isFinite
+                  ? math.min(constraints.maxHeight, softCap)
+                  : softCap,
+            );
             return IgnorePointer(
               ignoring: !widget.visible,
               child: AnimatedSlide(
