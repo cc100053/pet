@@ -97,6 +97,7 @@ import 'room_backgrounds.dart';
 import 'room_canvas.dart';
 import 'widgets/home_bottom_nav_bar.dart';
 import 'widgets/home_drawer.dart';
+import 'widgets/home_fading_hint.dart';
 import 'widgets/home_furniture_inventory_overlay.dart';
 import 'widgets/home_pet_peek_shift.dart';
 import 'widgets/home_furniture_edit_bar.dart';

@@ -13,8 +13,6 @@ extension _HomePetSceneBuilders on _HomeViewState {
         final fieldSize = constraints.biggest;
         final uiScale = homeUiScale(MediaQuery.sizeOf(context).width);
         final promptInset = 12 * uiScale;
-        final furnitureHintLeft = 16 * uiScale;
-        final furnitureHintBottom = 12 * uiScale;
         // With a piece selected, empty floor acts as a trackpad for it: drag
         // anywhere (finger never hides the piece) or tap a spot to send it there.
         final movingPiece = _furnitureMode ? _selectedPlacedFurniture() : null;
@@ -113,11 +111,20 @@ extension _HomePetSceneBuilders on _HomeViewState {
                     bottom: promptInset,
                     child: _buildFirstDayChecklist(),
                   ),
+                // Top of the room: the bottom edge is where pets peek. Shown
+                // again per selected piece, gone once a drag starts.
                 if (movingPiece != null)
                   Positioned(
-                    left: furnitureHintLeft,
-                    bottom: furnitureHintBottom,
-                    child: _buildFurnitureEditHint(),
+                    top: promptInset,
+                    left: promptInset,
+                    right: promptInset,
+                    child: Center(
+                      child: HomeFadingHint(
+                        key: ValueKey('furniture_move_hint_${movingPiece.id}'),
+                        dismissed: _activeFurnitureDragId != null,
+                        child: _buildFurnitureEditHint(),
+                      ),
+                    ),
                   ),
                 if (_isCurrentRoomLocked)
                   Positioned.fill(

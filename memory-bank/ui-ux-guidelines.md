@@ -67,7 +67,9 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
   This is display-only: stored pet positions never change.
 - Placing: tap an inventory item (room centre) or long-press and drag it into
   the room. Moving: drag the piece, or select it then drag anywhere / tap a
-  spot. Selected pieces lift (scale + orange outline); no wiggle.
+  spot. Selected pieces lift (scale + orange outline); no wiggle. The move
+  hint shows top-centre of the room (the bottom is where pets peek) for ~3s
+  per selected piece and fades as soon as a drag starts.
 - Layering: after a place/move a piece auto-slots among the pieces it overlaps
   (lower in the room = in front; floor rugs behind). The layer button swaps
   the edit bar in place for back + front/forward/backward/back icons (no
