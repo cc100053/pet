@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../home_furniture_math.dart';
 
-/// One entry of the edit bar's layer menu; [onSelected] is null when that move
+/// One entry of the edit bar's layer row; [onSelected] is null when that move
 /// would change nothing (no overlapping piece in that direction).
 class FurnitureLayerAction {
   const FurnitureLayerAction({
@@ -18,8 +18,10 @@ class FurnitureLayerAction {
 
 /// Furniture-mode controls that sit in the bottom nav bar's slot. With nothing
 /// selected it shows [hint] and Done; with a piece selected it shows that
-/// piece's actions. Kept to one 44pt row so it fits the nav bar's height.
-class HomeFurnitureEditBar extends StatelessWidget {
+/// piece's actions. The layer button swaps the row for the layer moves in
+/// place, so nothing covers the room and moves can be repeated. Kept to one
+/// 44pt row so it fits the nav bar's height.
+class HomeFurnitureEditBar extends StatefulWidget {
   const HomeFurnitureEditBar({
     super.key,
     required this.hint,
@@ -36,8 +38,23 @@ class HomeFurnitureEditBar extends StatelessWidget {
   final HomeFurnitureSelectionActions? selection;
 
   @override
+  State<HomeFurnitureEditBar> createState() => _HomeFurnitureEditBarState();
+}
+
+class _HomeFurnitureEditBarState extends State<HomeFurnitureEditBar> {
+  bool _layerMode = false;
+
+  @override
+  void didUpdateWidget(HomeFurnitureEditBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selection == null) _layerMode = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final selection = this.selection;
+    final selection = widget.selection;
+    final hint = widget.hint;
+    final doneLabel = widget.doneLabel;
     return Center(
       heightFactor: 1,
       child: ConstrainedBox(
@@ -69,7 +86,21 @@ class HomeFurnitureEditBar extends StatelessWidget {
                     ),
                   ),
                 )
-              else ...[
+              else if (_layerMode) ...[
+                _EditBarButton(
+                  key: const Key('home_furniture_layer_close'),
+                  icon: Icons.arrow_back_rounded,
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  onPressed: () => setState(() => _layerMode = false),
+                ),
+                for (final action in selection.layerActions)
+                  _EditBarButton(
+                    key: Key('home_furniture_layer_${action.move.name}'),
+                    icon: _layerIcon(action.move),
+                    tooltip: action.label,
+                    onPressed: action.onSelected,
+                  ),
+              ] else ...[
                 _EditBarButton(
                   key: const Key('home_furniture_scale_decrease'),
                   icon: Icons.remove_rounded,
@@ -88,9 +119,14 @@ class HomeFurnitureEditBar extends StatelessWidget {
                   tooltip: selection.flipLabel,
                   onPressed: selection.onFlip,
                 ),
-                _LayerMenuButton(
+                _EditBarButton(
+                  key: const Key('home_furniture_layer'),
+                  icon: Icons.layers_outlined,
                   tooltip: selection.layerLabel,
-                  actions: selection.layerActions,
+                  onPressed:
+                      selection.layerActions.any((a) => a.onSelected != null)
+                      ? () => setState(() => _layerMode = true)
+                      : null,
                 ),
                 _EditBarButton(
                   key: const Key('home_furniture_store'),
@@ -108,7 +144,7 @@ class HomeFurnitureEditBar extends StatelessWidget {
                   height: 44,
                   child: FilledButton(
                     key: const Key('home_furniture_done'),
-                    onPressed: onDone,
+                    onPressed: widget.onDone,
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFFF0A53A),
                       foregroundColor: Colors.white,
@@ -211,54 +247,9 @@ class _EditBarButton extends StatelessWidget {
   }
 }
 
-class _LayerMenuButton extends StatelessWidget {
-  const _LayerMenuButton({required this.tooltip, required this.actions});
-
-  final String tooltip;
-  final List<FurnitureLayerAction> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = actions.any((action) => action.onSelected != null);
-    return Expanded(
-      child: Center(
-        heightFactor: 1,
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: PopupMenuButton<FurnitureLayerMove>(
-            key: const Key('home_furniture_layer'),
-            tooltip: tooltip,
-            enabled: enabled,
-            position: PopupMenuPosition.over,
-            offset: const Offset(0, -8),
-            onSelected: (move) => actions
-                .firstWhere((action) => action.move == move)
-                .onSelected
-                ?.call(),
-            itemBuilder: (context) => [
-              for (final action in actions)
-                PopupMenuItem(
-                  key: Key('home_furniture_layer_${action.move.name}'),
-                  value: action.move,
-                  enabled: action.onSelected != null,
-                  child: Text(action.label),
-                ),
-            ],
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: enabled ? Colors.black87 : Colors.black26,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(
-                Icons.layers_outlined,
-                size: 22,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+IconData _layerIcon(FurnitureLayerMove move) => switch (move) {
+  FurnitureLayerMove.front => Icons.vertical_align_top_rounded,
+  FurnitureLayerMove.forward => Icons.arrow_upward_rounded,
+  FurnitureLayerMove.backward => Icons.arrow_downward_rounded,
+  FurnitureLayerMove.back => Icons.vertical_align_bottom_rounded,
+};

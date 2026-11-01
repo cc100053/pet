@@ -28,7 +28,7 @@ void main() {
   });
 
   testWidgets(
-    'selection actions fire and the layer menu respects availability',
+    'selection actions fire and the layer row respects availability',
     (tester) async {
       final calls = <String>[];
       FurnitureLayerAction layer(
@@ -73,16 +73,19 @@ void main() {
       expect(calls, ['bigger', 'flip', 'store']);
 
       await tester.tap(find.byKey(const Key('home_furniture_layer')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      expect(find.byKey(const Key('home_furniture_flip')), findsNothing);
       await tester.tap(find.byKey(const Key('home_furniture_layer_backward')));
-      await tester.pumpAndSettle();
       expect(calls, ['bigger', 'flip', 'store'], reason: 'disabled entry');
 
-      await tester.tap(find.byKey(const Key('home_furniture_layer')));
-      await tester.pumpAndSettle();
+      // The row stays open so moves can be repeated without reopening.
       await tester.tap(find.byKey(const Key('home_furniture_layer_forward')));
-      await tester.pumpAndSettle();
-      expect(calls.last, 'forward');
+      await tester.tap(find.byKey(const Key('home_furniture_layer_forward')));
+      expect(calls.skip(3), ['forward', 'forward']);
+
+      await tester.tap(find.byKey(const Key('home_furniture_layer_close')));
+      await tester.pump();
+      expect(find.byKey(const Key('home_furniture_flip')), findsOneWidget);
     },
   );
 

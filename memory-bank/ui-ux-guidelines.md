@@ -59,14 +59,16 @@ snapshot: `memory-bank/archive/ui_ux_guidelines_20260818_pre_compaction.md`.
 - Furniture mode keeps the room fixed: the inventory replaces the photo
   gallery inside the gallery's own slot (collapsible to its tab row so the
   background shows), and the edit bar overlays the nav bar's fixed-height slot
-  (hint + Done; with a piece selected: size −/+, flip, layer menu, put away,
+  (hint + Done; with a piece selected: size −/+, flip, layer, put away,
   Done). Leave the mode only with Done; empty-floor taps never exit.
 - Placing: tap an inventory item (room centre) or long-press and drag it into
   the room. Moving: drag the piece, or select it then drag anywhere / tap a
   spot. Selected pieces lift (scale + orange outline); no wiggle.
 - Layering: after a place/move a piece auto-slots among the pieces it overlaps
-  (lower in the room = in front; floor rugs behind). The layer menu (front,
-  forward, backward, back) overrides it until the piece moves again;
+  (lower in the room = in front; floor rugs behind). The layer button swaps
+  the edit bar in place for back + front/forward/backward/back icons (no
+  popup over the room; the row stays open for repeated moves), overriding
+  it until the piece moves again;
   forward/backward step past the next overlapping piece, and entries with
   nothing overlapping that way are disabled.
 - New furniture art follows `docs/art_style.md` (canon: Cactus/Carpet/Vinyl

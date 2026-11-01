@@ -506,6 +506,7 @@ class _BackgroundTab extends StatelessWidget {
 
     return ListView.separated(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.only(top: 4),
       itemCount: items.length,
       separatorBuilder: (context, index) => const SizedBox(width: 10),
       itemBuilder: (context, index) {
@@ -513,9 +514,10 @@ class _BackgroundTab extends StatelessWidget {
         final isActive = item.id == activeBackgroundId;
         final isApplying = item.id == applyingBackgroundId;
         final definition = RoomBackgrounds.resolve(item.backgroundKey);
-        // Center the fixed-size card so the preview stays a normal thumbnail
-        // instead of stretching to the full panel height.
-        return Center(
+        // Top-align the fixed-size card so the preview stays a normal
+        // thumbnail and lines up with the furniture grid's first row.
+        return Align(
+          alignment: Alignment.topCenter,
           child: _BackgroundInventoryItem(
             item: item,
             definition: definition,
