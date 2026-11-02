@@ -103,9 +103,9 @@ class FeedUploadRepository {
 
   Future<void> _deleteImage(File image) async {
     try {
-      if (await image.exists()) {
-        await image.delete();
-      }
+      await image.delete();
+    } on PathNotFoundException {
+      // Already gone (concurrent cleanup); nothing to delete.
     } catch (error, stackTrace) {
       reportSwallowedError(
         error,
